@@ -778,10 +778,24 @@ ${(!error.message) ? `` : `錯誤訊息:${error.message}`}${(!error.lineNumber) 
         }
     }
     ;
-    openDrawer(width) {
+    openDrawer(width, align) {
         width = width || 300;
+        function showDrawer() {
+            window.drawer.align = align;
+            if (align === 'right') {
+                $('.hy-drawer-content').hide();
+                setTimeout(() => {
+                    $("#Navigation").show();
+                    $('.hy-drawer-content').show();
+                }, 300);
+            }
+            else {
+                $('.hy-drawer-content').show();
+                $("#Navigation").hide();
+            }
+        }
         if (window.drawer !== undefined) {
-            $("#Navigation").show();
+            showDrawer();
             window.drawer.open();
             if (width) {
                 document.querySelector('.hy-drawer-content').style.width = width + 'px';
@@ -790,7 +804,7 @@ ${(!error.message) ? `` : `錯誤訊息:${error.message}`}${(!error.lineNumber) 
         else {
             var timer = setInterval(function () {
                 if (window.drawer !== undefined) {
-                    $("#Navigation").show();
+                    showDrawer();
                     window.drawer.open();
                     if (width) {
                         document.querySelector('.hy-drawer-content').style.width = width + 'px';
@@ -803,6 +817,10 @@ ${(!error.message) ? `` : `錯誤訊息:${error.message}`}${(!error.lineNumber) 
     ;
     closeDrawer() {
         try {
+            if (window.drawer.align === 'right') {
+                $('.hy-drawer-content').hide();
+                $("#Navigation").hide();
+            }
             window.drawer.close();
         }
         catch (e) {

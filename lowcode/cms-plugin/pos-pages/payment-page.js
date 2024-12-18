@@ -7,6 +7,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
+import { OrderDetail } from './models.js';
 import { ShareDialog } from '../../glitterBundle/dialog/ShareDialog.js';
 import { ApiShop } from '../../glitter-base/route/shopping.js';
 import { EditorElem } from '../../glitterBundle/plugins/editor-elem.js';
@@ -351,8 +352,8 @@ flex-shrink: 0;"
                                                                     dialog.errorMessage({ text: '查無此會員' });
                                                                 }
                                                                 else {
-                                                                    orderDetail.user_info.email = user.response.account;
-                                                                    gvc.notifyDataChange(id);
+                                                                    OrderDetail.singleInstance.user_info.email = user.response.userData.email;
+                                                                    gvc.notifyDataChange(['checkout-page']);
                                                                 }
                                                             }));
                                                         })}"

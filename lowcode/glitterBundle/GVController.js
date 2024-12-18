@@ -222,7 +222,7 @@ export class GVC {
         return `s${style_check_sum}`;
     }
     bindView(map) {
-        var _a, _b, _c, _d, _e, _f, _g, _h;
+        var _a, _b, _c, _d, _e, _f, _g, _h, _j;
         const gvc = this;
         if (typeof map === "function") {
             map = map();
@@ -260,12 +260,12 @@ export class GVC {
         });
         gvc.glitter.elementCallback[bind_id].getView = map.view;
         gvc.glitter.elementCallback[bind_id].updateAttribute = (() => {
-            var _a, _b;
+            var _a, _b, _c;
             try {
                 const id = gvc.id(map.bind);
                 const divCreate2 = (typeof map.divCreate === "function") ? map.divCreate() : map.divCreate;
                 if (divCreate2) {
-                    ((_a = divCreate2.option) !== null && _a !== void 0 ? _a : []).concat({ key: 'class', value: ((_b = divCreate2.class) !== null && _b !== void 0 ? _b : '').split(' ').filter((dd) => { return dd; }).join(' ').replace(/\n/g, '') + ` ${this.getStyleCheckSum(divCreate2.style || '')}` }).map((dd) => {
+                    ((_a = divCreate2.option) !== null && _a !== void 0 ? _a : []).concat({ key: 'class', value: ((_b = divCreate2.class) !== null && _b !== void 0 ? _b : '').split(' ').filter((dd) => { return dd; }).join(' ').replace(/\n/g, '') }, { key: 'style', value: ((_c = divCreate2.style) !== null && _c !== void 0 ? _c : '').trim() }).map((dd) => {
                         try {
                             gvc.glitter.renderView.replaceAttributeValue(dd, document.querySelector(`[gvc-id="${id}"]`));
                         }
@@ -282,14 +282,15 @@ export class GVC {
         if ((typeof gvc.glitter.elementCallback[bind_id].initial_view === 'string')) {
         }
         const divCreate = (_d = ((typeof map.divCreate === "function") ? map.divCreate() : map.divCreate)) !== null && _d !== void 0 ? _d : { elem: 'div' };
-        return `<${(_e = divCreate.elem) !== null && _e !== void 0 ? _e : 'div'}  class="${((_f = divCreate.class) !== null && _f !== void 0 ? _f : "").split(' ').filter((dd) => { return dd; }).join(' ').replace(/\n/g, '')} ${this.getStyleCheckSum(divCreate.style || '')}" 
+        return `<${(_e = divCreate.elem) !== null && _e !== void 0 ? _e : 'div'}  class="${((_f = divCreate.class) !== null && _f !== void 0 ? _f : "").split(' ').filter((dd) => { return dd; }).join(' ').replace(/\n/g, '')} "
+style="${((_g = divCreate.style) !== null && _g !== void 0 ? _g : "").trim()}" 
  glem="bindView"  gvc-id="${bind_id}"
- ${gvc.map(((_g = divCreate.option) !== null && _g !== void 0 ? _g : []).map((dd) => {
+ ${gvc.map(((_h = divCreate.option) !== null && _h !== void 0 ? _h : []).map((dd) => {
             return ` ${dd.key}="${dd.value}"`;
         }))}
 >
 ${(typeof gvc.glitter.elementCallback[bind_id].initial_view === 'string') ? gvc.glitter.elementCallback[bind_id].initial_view : ``}
-</${(_h = divCreate.elem) !== null && _h !== void 0 ? _h : 'div'}>`;
+</${(_j = divCreate.elem) !== null && _j !== void 0 ? _j : 'div'}>`;
     }
     event(fun, noCycle) {
         const gvc = this;

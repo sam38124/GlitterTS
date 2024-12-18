@@ -281,8 +281,8 @@ export class GVC {
                 const divCreate2 = (typeof (map as any).divCreate === "function") ? (map as any).divCreate() : (map as any).divCreate;
                 if (divCreate2) {
                     (divCreate2.option ?? []).concat(
-                        {key: 'class', value: (divCreate2.class ?? '').split(' ').filter((dd:any)=>{return dd}).join(' ').replace(/\n/g,'')+` ${this.getStyleCheckSum(divCreate2.style || '')}`},
-                        // {key: 'style', value: (divCreate2.style ?? '').trim()}
+                        {key: 'class', value: (divCreate2.class ?? '').split(' ').filter((dd:any)=>{return dd}).join(' ').replace(/\n/g,'')},
+                        {key: 'style', value: (divCreate2.style ?? '').trim()}
                     ).map((dd: any) => {
                         try {
                             gvc.glitter.renderView.replaceAttributeValue(dd, document.querySelector(`[gvc-id="${id}"]`)!)
@@ -301,7 +301,8 @@ export class GVC {
             //             // console.log(`initial_view`,gvc.glitter.elementCallback[bind_id].initial_view)
         }
         const divCreate = ((typeof (map as any).divCreate === "function") ? (map as any).divCreate() : (map as any).divCreate) ?? {elem: 'div'};
-        return `<${divCreate.elem ?? 'div'}  class="${(divCreate.class ?? "").split(' ').filter((dd:any)=>{return dd}).join(' ').replace(/\n/g,'')} ${this.getStyleCheckSum(divCreate.style || '')}" 
+        return `<${divCreate.elem ?? 'div'}  class="${(divCreate.class ?? "").split(' ').filter((dd:any)=>{return dd}).join(' ').replace(/\n/g,'')} "
+style="${(divCreate.style ?? "").trim()}" 
  glem="bindView"  gvc-id="${bind_id}"
  ${gvc.map((divCreate.option ?? []).map((dd: any) => {
             return ` ${dd.key}="${dd.value}"`

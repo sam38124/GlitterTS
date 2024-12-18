@@ -2808,35 +2808,6 @@ OR JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.orderStatus')) NOT IN (-99)) `);
                     }
                 }
             }
-            function findCodePath(items, inputCode, path = []) {
-                for (const item of items) {
-                    const currentPath = [...path, item];
-                    if (item.code === inputCode) {
-                        return currentPath;
-                    }
-                    if (item.array.length > 0) {
-                        const result = findCodePath(item.array, inputCode, currentPath);
-                        if (result.length > 0) {
-                            return result;
-                        }
-                    }
-                }
-                return [];
-            }
-            let isUsedCode = false;
-            const codeResult = findCodePath(config.value, replace.code);
-            if (codeResult.length === 1) {
-                isUsedCode = codeResult[0].title !== original.title;
-            }
-            if (codeResult.length === 2) {
-                isUsedCode = codeResult[0].title !== original.parentTitles[0] || codeResult[1].title !== original.title;
-            }
-            if (isUsedCode) {
-                return {
-                    result: false,
-                    message: `類別代號「${replace.code}」已被使用`,
-                };
-            }
             const formatData = {
                 array: [],
                 code: replace.code,

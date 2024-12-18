@@ -438,6 +438,7 @@ async function createAPP(dd) {
                                         }
                                     })()}"
                                                     />
+                                                ${data.tag !== req.query.page ? `<meta name="robots" content="noindex">` : ``}
                                                     <meta name="keywords" content="${(_b = d.keywords) !== null && _b !== void 0 ? _b : '尚未設定關鍵字'}" />
                                                     <link id="appImage" rel="shortcut icon" href="${d.logo || home_seo.logo || ''}" type="image/x-icon" />
                                                     <link rel="icon" href="${d.logo || home_seo.logo || ''}" type="image/png" sizes="128x128" />

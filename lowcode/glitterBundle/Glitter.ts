@@ -41,7 +41,7 @@ export class Glitter {
     public debugMode = localStorage.getItem('glitter-db-mode') || 'false'
     public publicBeans = {};
     public share: any = {};
-        public deviceType = this.deviceTypeEnum.Web
+    public deviceType = this.deviceTypeEnum.Web
     public modelJsList: { src: string, create: (glitter: Glitter) => void }[] = []
     public pageIndex = 0
     public getBoundingClientRect = {}
@@ -49,7 +49,21 @@ export class Glitter {
     public pageConfig: PageConfig[] = []
     public nowPageConfig?: PageConfig
     public waitChangePage = false
-    public elementCallback: { [name: string]: { onCreate: () => void, onInitial: () => void, notifyDataChange: () => void, getView: () => string | Promise<string>, updateAttribute: () => void, onDestroy: () => void, rendered: boolean, recreateView: () => void, element: any, doc: any,initial_view?:string | Promise<string> } } = {}
+    public elementCallback: {
+        [name: string]: {
+            onCreate: () => void,
+            onInitial: () => void,
+            notifyDataChange: () => void,
+            getView: () => string | Promise<string>,
+            updateAttribute: () => void,
+            onDestroy: () => void,
+            rendered: boolean,
+            recreateView: () => void,
+            element: any,
+            doc: any,
+            initial_view?: string | Promise<string>
+        }
+    } = {}
     public html = String.raw
     public promiseValueMap: any = {}
 
@@ -60,10 +74,10 @@ export class Glitter {
     set href(value) {
         const link = new URL(value, location.href);
         if ((location.origin) === (link.origin)) {
-            if(link.searchParams.get("page")) {
-                const page=link.searchParams.get("page")
+            if (link.searchParams.get("page")) {
+                const page = link.searchParams.get("page")
                 link.searchParams.delete("page");
-                link.pathname+=page
+                link.pathname += page
             }
             window.history.replaceState({}, document.title, link.href);
             this.getModule(new URL('../official_event/page/change-page.js', import.meta.url).href, (cl) => {
@@ -131,11 +145,12 @@ export class Glitter {
     public goBack = PageManager.goBack
     public goMenu = PageManager.goMenu
     public addChangePageListener = PageManager.addChangePageListener
-    public recreateView=(selector:string)=>{
-        for (const a of document.querySelectorAll(`${selector}`)){
+    public recreateView = (selector: string) => {
+        for (const a of document.querySelectorAll(`${selector}`)) {
             (a as any).recreateView()
         }
     }
+
     public promiseValue(fun: Promise<any> | string) {
         const index = Object.keys(this.promiseValueMap).length + 1
         this.promiseValueMap[`${index}`] = fun
@@ -173,7 +188,10 @@ export class Glitter {
         }, callBack, option);
     }
 
-    public getPro(tag: string, callBack: (response: { data: any }) => void, option: { defineType?: any, webFunction: (data: any, callback: (data: any) => void) => any }
+    public getPro(tag: string, callBack: (response: { data: any }) => void, option: {
+        defineType?: any,
+        webFunction: (data: any, callback: (data: any) => void) => any
+    }
         = {
         webFunction: (data: any, callback: (data: any) => void) => {
             callback({result: true, data: Glitter.glitter.getCookieByName(tag)})
@@ -185,7 +203,10 @@ export class Glitter {
         }, callBack, option);
     };
 
-    public runJsInterFace(functionName: string, data: {}, callBack: (data: any) => void, option: { defineType?: any, webFunction?(data: any, callback: (data: any) => void): any } = {}) {
+    public runJsInterFace(functionName: string, data: {}, callBack: (data: any) => void, option: {
+        defineType?: any,
+        webFunction?(data: any, callback: (data: any) => void): any
+    } = {}) {
         const glitter = this
         let id = this.callBackId += 1;
         this.callBackList.set(id, callBack);
@@ -288,11 +309,11 @@ ${(!error.message) ? `` : `錯誤訊息:${error.message}`}${(!error.lineNumber) 
         if (tag === 'page' && value) {
             try {
                 this.page = value;
-                const url = new URL((()=>{
-                    if(value==='index'){
-                        return this.root_path.substring(0,this.root_path.length-1)+Language.getLanguageLinkPrefix(false)  + window.location.search
-                    }else{
-                        return this.root_path + Language.getLanguageLinkPrefix() + value  + window.location.search
+                const url = new URL((() => {
+                    if (value === 'index') {
+                        return this.root_path.substring(0, this.root_path.length - 1) + Language.getLanguageLinkPrefix(false) + window.location.search
+                    } else {
+                        return this.root_path + Language.getLanguageLinkPrefix() + value + window.location.search
                     }
                 })())
                 url.searchParams.delete('page')
@@ -314,9 +335,9 @@ ${(!error.message) ? `` : `錯誤訊息:${error.message}`}${(!error.lineNumber) 
 
     public setDrawer(src: string, callback: () => void) {
         const gliter = this;
-        if((window as any).drawer && (window as any).drawer.opened){
+        if ((window as any).drawer && (window as any).drawer.opened) {
             $("#Navigation").show()
-        }else{
+        } else {
             $("#Navigation").hide()
         }
 
@@ -332,21 +353,36 @@ ${(!error.message) ? `` : `錯誤訊息:${error.message}`}${(!error.lineNumber) 
         }
     };
 
-    public openDrawer(width?:number) {
-        width=width || 300
+    public openDrawer(width?: number,align?:'left'|'right') {
+        width = width || 300;
+
+        function showDrawer() {
+            (window as any).drawer.align=align
+            if (align === 'right') {
+                $('.hy-drawer-content').hide();
+                setTimeout(() => {
+                    $("#Navigation").show();
+                    $('.hy-drawer-content').show();
+                }, 300)
+            } else {
+                $('.hy-drawer-content').show();
+                $("#Navigation").hide();
+            }
+        }
+
         if ((window as any).drawer !== undefined) {
-            $("#Navigation").show();
+            showDrawer();
             (window as any).drawer.open();
-            if(width){
-                (document.querySelector('.hy-drawer-content') as any).style.width=width+'px'
+            if (width) {
+                (document.querySelector('.hy-drawer-content') as any).style.width = width + 'px'
             }
         } else {
             var timer = setInterval(function () {
                 if ((window as any).drawer !== undefined) {
-                    $("#Navigation").show();
+                    showDrawer();
                     (window as any).drawer.open();
-                    if(width){
-                        (document.querySelector('.hy-drawer-content') as any).style.width=width+'px'
+                    if (width) {
+                        (document.querySelector('.hy-drawer-content') as any).style.width = width + 'px'
                     }
                     clearInterval(timer);
                 }
@@ -355,7 +391,12 @@ ${(!error.message) ? `` : `錯誤訊息:${error.message}`}${(!error.lineNumber) 
     }; //關閉側滑選單
 
     public closeDrawer() {
+
         try {
+            if ((window as any).drawer.align === 'right') {
+                $('.hy-drawer-content').hide();
+                $("#Navigation").hide();
+            }
             (window as any).drawer.close();
         } catch (e) {
         }
@@ -402,7 +443,10 @@ ${(!error.message) ? `` : `錯誤訊息:${error.message}`}${(!error.lineNumber) 
         }
     };
 
-    public addMtScript(urlArray: any[], success: () => void, error: (message: string) => void, option?: { key: string, value: string }[]) {
+    public addMtScript(urlArray: any[], success: () => void, error: (message: string) => void, option?: {
+        key: string,
+        value: string
+    }[]) {
         Glitter.glitter.share.scriptMemory = Glitter.glitter.share.scriptMemory ?? []
         const glitter = this;
         let index = 0
@@ -413,10 +457,10 @@ ${(!error.message) ? `` : `錯誤訊息:${error.message}`}${(!error.lineNumber) 
                 return
             }
             let scritem: any = urlArray[index]
-            if(typeof scritem==='string'){
-                scritem=new URL(scritem,glitter.root_path).href
-            }else{
-                scritem.src=new URL(scritem.src,glitter.root_path).href
+            if (typeof scritem === 'string') {
+                scritem = new URL(scritem, glitter.root_path).href
+            } else {
+                scritem.src = new URL(scritem.src, glitter.root_path).href
             }
 
             if (Glitter.glitter.share.scriptMemory.indexOf((scritem.src ?? scritem)) !== -1) {
@@ -464,13 +508,13 @@ ${(!error.message) ? `` : `錯誤訊息:${error.message}`}${(!error.lineNumber) 
                     script.setAttribute('type', scritem.type);
                     script.setAttribute('src', scritem.src ?? undefined);
                     script.setAttribute('crossorigin', true);
-                    scritem.id && (  script.setAttribute('id', scritem.id ?? undefined));
+                    scritem.id && (script.setAttribute('id', scritem.id ?? undefined));
 
 
                     document.getElementsByTagName("head")[0].appendChild(script);
                 } else {
                     script.setAttribute('src', scritem.src ?? scritem);
-                    scritem.id && (  script.setAttribute('id', scritem.id ?? undefined));
+                    scritem.id && (script.setAttribute('id', scritem.id ?? undefined));
                     script.setAttribute('crossorigin', true)
                     document.getElementsByTagName("head")[0].appendChild(script);
                 }
@@ -502,7 +546,7 @@ ${(!error.message) ? `` : `錯誤訊息:${error.message}`}${(!error.lineNumber) 
         })
     }
 
-    public generateCheckSum(str: string,count?:number) {
+    public generateCheckSum(str: string, count?: number) {
         let hash = 0;
 
         for (let i = 0; i < str.length; i++) {
@@ -579,9 +623,10 @@ ${(!error.message) ? `` : `錯誤訊息:${error.message}`}${(!error.lineNumber) 
         }
     }
 
-    public isTouchDevice(){
+    public isTouchDevice() {
         return ('ontouchstart' in window) || (navigator.maxTouchPoints > 0) || ((navigator as any).msMaxTouchPoints > 0);
     }
+
     public getUUID(format?: string): string {
         let d = Date.now();
 
@@ -596,7 +641,7 @@ ${(!error.message) ? `` : `錯誤訊息:${error.message}`}${(!error.lineNumber) 
         });
     }
 
-    public addStyle(style: string,id?:string) {
+    public addStyle(style: string, id?: string) {
         const glitter = (window as any).glitter;
         glitter.share.style_memory = glitter.share.style_memory ?? {};
         const checkSum = glitter.generateCheckSum(style)
@@ -608,7 +653,7 @@ ${(!error.message) ? `` : `錯誤訊息:${error.message}`}${(!error.lineNumber) 
         glitter.share.wait_add_style_string += style
         // clearInterval(glitter.share.wait_add_style)
         const css = document.createElement('style');
-        css.id=id || glitter.getUUID()
+        css.id = id || glitter.getUUID()
         css.type = 'text/css';
         if ((css as any).styleSheet)
             (css as any).styleSheet.cssText = glitter.share.wait_add_style_string;
@@ -631,7 +676,7 @@ ${(!error.message) ? `` : `錯誤訊息:${error.message}`}${(!error.lineNumber) 
         const head = document.head || document;
 
         async function add(filePath: string) {
-            filePath=new URL(filePath,glitter.root_path).href
+            filePath = new URL(filePath, glitter.root_path).href
             return new Promise((resolve, reject) => {
                 const id = glitter.getUUID()
                 // 获取所有<a>标签
@@ -681,8 +726,8 @@ ${(!error.message) ? `` : `錯誤訊息:${error.message}`}${(!error.lineNumber) 
     public ut = {
         glitter: this,
         queue: {},
-        resize_img_url:(link:string)=>{
-            let rela_link=link;
+        resize_img_url: (link: string) => {
+            let rela_link = link;
             [150, 600, 1200, 1440].reverse().map((dd) => {
                 if (document.body.clientWidth < dd) {
                     rela_link = link.replace('size1440_s*px$_', `size${dd}_s*px$_`)
@@ -811,7 +856,11 @@ ${(!error.message) ? `` : `錯誤訊息:${error.message}`}${(!error.lineNumber) 
             })
             return returnSize
         },
-        chooseMediaCallback(option: { single?: boolean, accept: string, callback(data: { data: any, file: any, type: string, name: string, extension: string }[]): void }) {
+        chooseMediaCallback(option: {
+            single?: boolean,
+            accept: string,
+            callback(data: { data: any, file: any, type: string, name: string, extension: string }[]): void
+        }) {
             const $ = this.glitter.$
             $('#imageSelect').remove()
             if (!document.getElementById("imageSelect")) {
@@ -1098,7 +1147,7 @@ ${(!error.message) ? `` : `錯誤訊息:${error.message}`}${(!error.lineNumber) 
                         const funString = `${dd.value}`;
                         if (!((element as any).replaceAtMemory[dd.key])) {
                             element.addEventListener(dd.key.substring(2), function () {
-                                if ((glitter.htmlGenerate.isEditMode() || glitter.htmlGenerate.isIdeaMode()) && !glitter.share.EditorMode && (['htmlEditor','find_idea'].includes(glitter.getUrlParameter('type')) )) {
+                                if ((glitter.htmlGenerate.isEditMode() || glitter.htmlGenerate.isIdeaMode()) && !glitter.share.EditorMode && (['htmlEditor', 'find_idea'].includes(glitter.getUrlParameter('type')))) {
                                     if (funString.indexOf('editorEvent') !== -1) {
                                         eval(funString.replace('editorEvent', 'clickMap'))
                                     } else if (dd.key !== 'onclick') {

@@ -379,8 +379,8 @@ flex-shrink: 0;"
                                                                                                 if (!user.response || !user.response.account) {
                                                                                                     dialog.errorMessage({text: '查無此會員'});
                                                                                                 } else {
-                                                                                                    orderDetail.user_info.email = user.response.account;
-                                                                                                    gvc.notifyDataChange(id);
+                                                                                                    OrderDetail.singleInstance.user_info.email = user.response.userData.email;
+                                                                                                    gvc.notifyDataChange(['checkout-page']);
                                                                                                 }
                                                                                             })
                                                                                         })}"

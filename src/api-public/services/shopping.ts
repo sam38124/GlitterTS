@@ -3541,41 +3541,6 @@ OR JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.orderStatus')) NOT IN (-99)) `);
                 }
             }
 
-            // 判斷是否有重複使用的代號
-            function findCodePath(items: Collection[], inputCode: string, path: Collection[] = []): Collection[] {
-                for (const item of items) {
-                    const currentPath = [...path, item]; // 儲存目前的路徑
-
-                    if (item.code === inputCode) {
-                        return currentPath; // 找到匹配的 code，返回整個路徑
-                    }
-
-                    // 遞迴檢查子層的 array
-                    if (item.array.length > 0) {
-                        const result = findCodePath(item.array, inputCode, currentPath);
-                        if (result.length > 0) {
-                            return result; // 如果找到結果，返回該路徑
-                        }
-                    }
-                }
-                return []; // 如果沒有匹配的 code，返回空陣列
-            }
-
-            let isUsedCode = false;
-            const codeResult = findCodePath(config.value, replace.code);
-            if (codeResult.length === 1) {
-                isUsedCode = codeResult[0].title !== original.title;
-            }
-            if (codeResult.length === 2) {
-                isUsedCode = codeResult[0].title !== original.parentTitles[0] || codeResult[1].title !== original.title;
-            }
-            if (isUsedCode) {
-                return {
-                    result: false,
-                    message: `類別代號「${replace.code}」已被使用`,
-                };
-            }
-
             const formatData = {
                 array: [],
                 code: replace.code,
