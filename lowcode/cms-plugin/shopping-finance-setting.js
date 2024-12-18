@@ -21,7 +21,7 @@ export class ShoppingFinanceSetting {
     static main(gvc) {
         const dialog = new ShareDialog(gvc.glitter);
         const saasConfig = window.parent.saasConfig;
-        let keyData = {};
+        let keyData = { payment_info_custom: [] };
         const vm = {
             id: gvc.glitter.getUUID(),
             onBoxId: gvc.glitter.getUUID(),
@@ -34,17 +34,119 @@ export class ShoppingFinanceSetting {
             { key: 'paypal', name: 'PayPal' },
             { key: 'line_pay', name: 'Line Pay' },
         ];
-        const offlinePayArray = [
-            { key: 'atm', name: 'ATM銀行轉帳', customerClass: 'guide2-3' },
-            { key: 'line', name: 'LINE 轉帳' },
-            { key: 'cash_on_delivery', name: '貨到付款' },
-        ];
         const redDot = html ` <span class="red-dot">*</span>`;
+        function refresh() {
+            gvc.notifyDataChange(vm.id);
+        }
+        function updateCustomFinance(obj) {
+            const custom_finance = JSON.parse(JSON.stringify(obj.data || {
+                id: gvc.glitter.getUUID(),
+                name: '',
+                text: '',
+            }));
+            let form = undefined;
+            BgWidget.settingDialog({
+                gvc: gvc,
+                title: '新增自訂物流',
+                innerHTML: (gvc) => {
+                    form = BgWidget.customForm(gvc, [
+                        {
+                            title: html ` <div class="tx_normal fw-bolder mt-2 d-flex flex-column" style="margin-bottom: 12px;">
+                                自訂線下金流表單
+                                <span style="color:#8D8D8D;font-size: 12px;">當客戶選擇此付款方式時，所需填寫的額外資料</span>
+                            </div>`,
+                            key: `form_finance_${custom_finance.id}`,
+                            no_padding: true,
+                        },
+                    ]);
+                    return gvc.bindView((() => {
+                        const id = gvc.glitter.getUUID();
+                        return {
+                            bind: id,
+                            view: () => {
+                                return [
+                                    BgWidget.editeInput({
+                                        gvc: gvc,
+                                        title: '自訂金流名稱',
+                                        default: custom_finance.name,
+                                        callback: (text) => {
+                                            custom_finance.name = text;
+                                        },
+                                        placeHolder: '請輸入自訂金流名稱',
+                                    }),
+                                    form.view,
+                                ].join(BgWidget.mbContainer(12));
+                            },
+                            divCreate: {},
+                            onCreate: () => { },
+                        };
+                    })());
+                },
+                footer_html: (gvc) => {
+                    let array = [
+                        BgWidget.save(gvc.event(() => {
+                            return new Promise(() => __awaiter(this, void 0, void 0, function* () {
+                                var _a;
+                                const dialog = new ShareDialog(gvc.glitter);
+                                if (!custom_finance.name) {
+                                    dialog.errorMessage({ text: '請輸入金流名稱' });
+                                    return;
+                                }
+                                keyData.payment_info_custom = (_a = keyData.payment_info_custom) !== null && _a !== void 0 ? _a : [];
+                                if (obj.function === 'plus') {
+                                    keyData.payment_info_custom.push(custom_finance);
+                                }
+                                else {
+                                    keyData.payment_info_custom[keyData.payment_info_custom.findIndex((d1) => {
+                                        return d1.id === custom_finance.id;
+                                    })] = custom_finance;
+                                }
+                                dialog.dataLoading({ visible: true });
+                                yield form.save();
+                                saasConfig.api.setPrivateConfig(saasConfig.config.appName, 'glitter_finance', keyData);
+                                dialog.dataLoading({ visible: false });
+                                dialog.successMessage({ text: '設定成功' });
+                                gvc.closeDialog();
+                                refresh();
+                            }));
+                        })),
+                    ];
+                    if (obj.function === 'replace') {
+                        array = [
+                            BgWidget.danger(gvc.event(() => {
+                                const dialog = new ShareDialog(gvc.glitter);
+                                dialog.checkYesOrNot({
+                                    text: '是否確認刪除？',
+                                    callback: (response) => __awaiter(this, void 0, void 0, function* () {
+                                        if (response) {
+                                            keyData.payment_info_custom = keyData.payment_info_custom.filter((d1) => {
+                                                return obj.data.id !== d1.id;
+                                            });
+                                            dialog.dataLoading({ visible: true });
+                                            saasConfig.api.setPrivateConfig(saasConfig.config.appName, 'glitter_finance', keyData);
+                                            dialog.dataLoading({ visible: false });
+                                            gvc.closeDialog();
+                                            refresh();
+                                        }
+                                    }),
+                                });
+                            })),
+                        ].concat(array);
+                    }
+                    return array.join('');
+                },
+            });
+        }
         return BgWidget.container(html `
                 ${[
             html ` <div class="title-container">
                         ${BgWidget.title(`金流設定`)}
                         <div class="flex-fill"></div>
+                        <div style="display: flex; gap: 14px;">
+                            ${BgWidget.grayButton('新增自訂金流', gvc.event(() => {
+                updateCustomFinance({ function: 'plus' });
+            }))}
+                        </div>
                     </div>`,
             gvc.bindView({
                 bind: vm.id,
@@ -54,11 +156,20 @@ export class ShoppingFinanceSetting {
                         return BgWidget.spinner();
                     }
                     try {
-                        keyData.off_line_support = (_a = keyData.off_line_support) !== null && _a !== void 0 ? _a : {
-                            line: false,
-                            atm: false,
-                            cash_on_delivery: false,
-                        };
+                        keyData.off_line_support = (_a = keyData.off_line_support) !== null && _a !== void 0 ? _a : Object.assign({ line: false, atm: false, cash_on_delivery: false }, keyData.payment_info_custom.map((dd) => {
+                            return {
+                                [dd.id]: false,
+                            };
+                        }));
+                        Object.keys(keyData.off_line_support).map((key) => {
+                            if (['line', 'atm', 'cash_on_delivery'].includes(key) ||
+                                keyData.payment_info_custom.some((item) => {
+                                    return item.id === key;
+                                })) {
+                                return;
+                            }
+                            delete keyData.off_line_support[key];
+                        });
                         return [
                             BgWidget.mainCard(html ` <div class="tx_700">線上金流</div>
                                             ${BgWidget.grayNote('透過服務商串接線上付款功能')} ${BgWidget.mbContainer(12)}
@@ -299,25 +410,55 @@ export class ShoppingFinanceSetting {
                             BgWidget.mainCard(html `
                                             <div class="tx_700">線下金流</div>
                                             ${BgWidget.grayNote('不執行線上付款，由店家自行與消費者商議付款方式')} ${BgWidget.mbContainer(12)}
-                                            ${BgWidget.multiCheckboxContainer(gvc, offlinePayArray, offlinePayArray
-                                .slice()
-                                .filter((item) => {
-                                return keyData.off_line_support[item.key];
-                            })
-                                .map((item) => {
-                                return item.key;
-                            }), (data) => {
-                                offlinePayArray.map((item) => {
-                                    keyData.off_line_support[item.key] = data.some((d) => {
-                                        return d === item.key;
+                                            ${(() => {
+                                const offlinePayArray = [
+                                    { key: 'atm', name: 'ATM銀行轉帳', customerClass: 'guide2-3' },
+                                    { key: 'line', name: 'LINE 轉帳' },
+                                    { key: 'cash_on_delivery', name: '貨到付款' },
+                                    ...keyData.payment_info_custom.map((dd) => {
+                                        return {
+                                            key: dd.id,
+                                            name: html `${dd.name}
+                                                                <i
+                                                                    class="fa-solid fa-pencil cursor_pointer ms-1"
+                                                                    onclick="${gvc.event(() => {
+                                                updateCustomFinance({
+                                                    function: 'replace',
+                                                    data: keyData.payment_info_custom.find((d1) => {
+                                                        return dd.id === d1.id;
+                                                    }),
+                                                });
+                                            })}"
+                                                                ></i>`,
+                                        };
+                                    }),
+                                ];
+                                return BgWidget.multiCheckboxContainer(gvc, offlinePayArray, offlinePayArray
+                                    .slice()
+                                    .filter((item) => {
+                                    return keyData.off_line_support[item.key];
+                                })
+                                    .map((item) => {
+                                    return item.key;
+                                }), (data) => {
+                                    offlinePayArray.map((item) => {
+                                        keyData.off_line_support[item.key] = data.some((d) => {
+                                            return d === item.key;
+                                        });
                                     });
-                                });
-                                gvc.notifyDataChange(vm.offBoxId);
-                            }, { single: false })}
+                                    gvc.notifyDataChange(vm.offBoxId);
+                                }, { single: false });
+                            })()}
                                             ${gvc.bindView({
                                 bind: vm.offBoxId,
                                 view: () => {
-                                    const payData = ['atm', 'line'].filter((key) => {
+                                    const payData = [
+                                        'atm',
+                                        'line',
+                                        ...keyData.payment_info_custom.map((dd) => {
+                                            return dd.id;
+                                        }),
+                                    ].filter((key) => {
                                         return keyData.off_line_support[key];
                                     });
                                     if (payData.length == 0) {
@@ -347,7 +488,20 @@ export class ShoppingFinanceSetting {
                                                 height: 700,
                                             });
                                         }
-                                        return '';
+                                        const i = keyData.payment_info_custom.findIndex((dd) => {
+                                            return dd.id === key;
+                                        });
+                                        if (i === -1) {
+                                            return '';
+                                        }
+                                        const customer = keyData.payment_info_custom[i];
+                                        return BgWidget.openBoxContainer({
+                                            gvc,
+                                            tag: 'detail',
+                                            title: `自訂金流：${customer.name}` + redDot,
+                                            insideHTML: ShoppingFinanceSetting.customerText(gvc, keyData, i),
+                                            height: 700,
+                                        });
                                     })
                                         .filter((str) => str.length > 0)
                                         .join(BgWidget.mbContainer(12))}
@@ -367,7 +521,7 @@ export class ShoppingFinanceSetting {
                         return new Promise((resolve) => __awaiter(this, void 0, void 0, function* () {
                             const data = yield saasConfig.api.getPrivateConfig(saasConfig.config.appName, 'glitter_finance');
                             if (data.response.result[0]) {
-                                keyData = data.response.result[0].value;
+                                keyData = Object.assign(Object.assign({}, keyData), data.response.result[0].value);
                             }
                             resolve();
                         })).then(() => {
@@ -389,7 +543,6 @@ export class ShoppingFinanceSetting {
                 <div class="update-bar-container">
                     ${BgWidget.save(gvc.event(() => {
             dialog.dataLoading({ visible: true });
-            console.log('keydata -- ', keyData);
             saasConfig.api.setPrivateConfig(saasConfig.config.appName, 'glitter_finance', keyData).then((r) => {
                 setTimeout(() => {
                     dialog.dataLoading({ visible: false });
@@ -440,6 +593,29 @@ export class ShoppingFinanceSetting {
                             def: (_b = (_a = keyData.payment_info_line_pay) === null || _a === void 0 ? void 0 : _a.text) !== null && _b !== void 0 ? _b : '',
                             callback: (text) => {
                                 keyData.payment_info_line_pay.text = text;
+                            },
+                        }),
+                    ].join('');
+                },
+            };
+        });
+    }
+    static customerText(gvc, keyData, id) {
+        keyData.payment_info_custom[id] = Object.assign({ text: '' }, keyData.payment_info_custom[id]);
+        return gvc.bindView(() => {
+            const view_id = gvc.glitter.getUUID();
+            return {
+                bind: view_id,
+                view: () => {
+                    return [
+                        html ` <div class="d-flex justify-content-between mb-3">
+                            <div class="tx_normal">付款說明</div>
+                        </div>`,
+                        EditorElem.richText({
+                            gvc: gvc,
+                            def: keyData.payment_info_custom[id].text,
+                            callback: (text) => {
+                                keyData.payment_info_custom[id].text = text;
                             },
                         }),
                     ].join('');
@@ -806,7 +982,7 @@ export class ShoppingFinanceSetting {
                                         {
                                             title: html ` <div class="tx_normal fw-bolder mt-2 d-flex flex-column" style="margin-bottom: 12px;">
                                                         自訂物流表單
-                                                        <span class="" style="color:#8D8D8D;font-size: 12px;">當客戶選擇此物流時所需填寫的額外資料</span>
+                                                        <span style="color:#8D8D8D;font-size: 12px;">當客戶選擇此物流時所需填寫的額外資料</span>
                                                     </div>`,
                                             key: `form_delivery_${custom_delivery.id}`,
                                             no_padding: true,
@@ -1245,21 +1421,21 @@ export class ShoppingFinanceSetting {
                                                     {
                                                         title: html ` <div class="d-flex flex-column">
                                                                                         綠界發票
-                                                                                        <span class="" style="color:#8D8D8D;font-size: 12px;">透過綠界服務商串接，於商品購買時，自動開立電子發票</span>
+                                                                                        <span style="color:#8D8D8D;font-size: 12px;">透過綠界服務商串接，於商品購買時，自動開立電子發票</span>
                                                                                     </div>`,
                                                         value: 'ecpay',
                                                     },
                                                     {
                                                         title: html ` <div class="d-flex flex-column">
                                                                                         線下開立
-                                                                                        <span class="" style="color:#8D8D8D;font-size: 12px;">顧客需填寫發票資訊，由店家自行開立發票</span>
+                                                                                        <span style="color:#8D8D8D;font-size: 12px;">顧客需填寫發票資訊，由店家自行開立發票</span>
                                                                                     </div>`,
                                                         value: 'off_line',
                                                     },
                                                     {
                                                         title: html ` <div class="d-flex flex-column">
                                                                                         不開立電子發票
-                                                                                        <span class="" style="color:#8D8D8D;font-size: 12px;">顧客不需填寫發票資訊，不需開立電子發票</span>
+                                                                                        <span style="color:#8D8D8D;font-size: 12px;">顧客不需填寫發票資訊，不需開立電子發票</span>
                                                                                     </div>`,
                                                         value: 'nouse',
                                                     },
@@ -1280,7 +1456,7 @@ export class ShoppingFinanceSetting {
                                                             : ` <div class="c_39_checkbox"></div>`}
                                                                                                 <div class="tx_normal fw-normal">${dd.title}</div>
                                                                                             </div>`,
-                                                        html ` <div class="d-flex position-relative mt-2" style="">
+                                                        html ` <div class="d-flex position-relative mt-2">
                                                                                                 <div class="ms-2 border-end position-absolute h-100" style="left: 0px;"></div>
                                                                                                 <div class="flex-fill " style="margin-left:30px;max-width: 518px;">
                                                                                                     ${(() => {
@@ -1400,6 +1576,10 @@ export class ShoppingFinanceSetting {
                     `);
             },
         });
+    }
+    static removeUndefined(originParams) {
+        const params = Object.fromEntries(Object.entries(originParams).filter(([_, value]) => value !== undefined));
+        return params;
     }
 }
 window.glitter.setModule(import.meta.url, ShoppingFinanceSetting);

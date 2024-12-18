@@ -1,3 +1,12 @@
+var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+};
 import { UmClass } from './um-class.js';
 import { ApiShop } from '../../glitter-base/route/shopping.js';
 import { ApiCart } from '../../glitter-base/route/api-cart.js';
@@ -5,6 +14,7 @@ import { Ad } from '../public/ad.js';
 import { ShareDialog } from '../../glitterBundle/dialog/ShareDialog.js';
 import { FormWidget } from '../../official_view_component/official/form.js';
 import { Language } from '../../glitter-base/global/language.js';
+import { CheckInput } from '../../modules/checkInput.js';
 const html = String.raw;
 const css = String.raw;
 export class UMOrder {
@@ -197,6 +207,7 @@ export class UMOrder {
         const vm = {
             data: {},
             type: '',
+            formList: [],
         };
         return html `<div class="container py-4">
             ${gvc.bindView({
@@ -215,61 +226,99 @@ export class UMOrder {
                 }
                 const orderData = vm.data.orderData;
                 function payInfo() {
-                    let arr = [];
-                    if (orderData.customer_info.payment_select === 'atm') {
-                        arr = [
-                            {
-                                title: Language.text('bank_name'),
-                                value: orderData.payment_info_atm.bank_name,
-                            },
-                            {
-                                title: Language.text('bank_code'),
-                                value: orderData.payment_info_atm.bank_code,
-                            },
-                            {
-                                title: Language.text('remittance_account_name'),
-                                value: orderData.payment_info_atm.bank_user,
-                            },
-                            {
-                                title: Language.text('remittance_account_number'),
-                                value: orderData.payment_info_atm.bank_account,
-                            },
-                            {
-                                title: Language.text('remittance_amount'),
-                                value: orderData.total.toLocaleString(),
-                            },
-                            {
-                                title: Language.text('payment_instructions'),
-                                value: orderData.payment_info_atm.text,
-                            },
-                        ];
-                    }
-                    else if (orderData.customer_info.payment_select === 'line') {
-                        arr = [
-                            {
-                                title: Language.text('payment_instructions'),
-                                value: orderData.payment_info_line_pay.text,
-                            },
-                        ];
-                    }
-                    else {
-                        arr = [
-                            {
-                                title: Language.text('payment_instructions'),
-                                value: orderData.payment_info_text,
-                            },
-                        ];
-                    }
-                    return gvc.map(arr.map((item) => {
-                        return html `
-                                    <div class="o-title-container ${item.title === Language.text('payment_instructions') ? 'align-items-start mt-2' : ''}">
-                                        <div class="o-title me-1">${item.title}：</div>
-                                        <div class="o-title">${item.value}</div>
-                                    </div>
-                                `;
-                    }));
+                    const id = glitter.getUUID();
+                    return gvc.bindView({
+                        bind: id,
+                        view: () => __awaiter(this, void 0, void 0, function* () {
+                            let arr = [];
+                            if (orderData.customer_info.payment_select === 'atm') {
+                                arr = [
+                                    {
+                                        title: Language.text('bank_name'),
+                                        value: orderData.payment_info_atm.bank_name,
+                                    },
+                                    {
+                                        title: Language.text('bank_code'),
+                                        value: orderData.payment_info_atm.bank_code,
+                                    },
+                                    {
+                                        title: Language.text('remittance_account_name'),
+                                        value: orderData.payment_info_atm.bank_user,
+                                    },
+                                    {
+                                        title: Language.text('remittance_account_number'),
+                                        value: orderData.payment_info_atm.bank_account,
+                                    },
+                                    {
+                                        title: Language.text('remittance_amount'),
+                                        value: orderData.total.toLocaleString(),
+                                    },
+                                    {
+                                        title: Language.text('payment_instructions'),
+                                        value: orderData.payment_info_atm.text,
+                                    },
+                                ];
+                            }
+                            else if (orderData.customer_info.payment_select === 'line') {
+                                arr = [
+                                    {
+                                        title: Language.text('payment_instructions'),
+                                        value: orderData.payment_info_line_pay.text,
+                                    },
+                                ];
+                            }
+                            else {
+                                yield new Promise((resolve) => {
+                                    ApiShop.getOrderPaymentMethod().then((data) => {
+                                        if (data.result && data.response) {
+                                            const customer = data.response.payment_info_custom.find((item) => {
+                                                return item.id === orderData.customer_info.payment_select;
+                                            });
+                                            if (customer) {
+                                                resolve([
+                                                    {
+                                                        title: Language.text('payment_instructions'),
+                                                        value: customer.text,
+                                                    },
+                                                ]);
+                                            }
+                                            else {
+                                                resolve([]);
+                                            }
+                                        }
+                                    });
+                                }).then((finalArr) => {
+                                    arr = finalArr;
+                                });
+                            }
+                            return gvc.map(arr.map((item) => {
+                                return html `
+                                            <div class="o-title-container ${item.title === Language.text('payment_instructions') ? 'align-items-start mt-2' : ''}">
+                                                <div class="o-title me-1">${item.title}：</div>
+                                                <div class="o-title">${item.value}</div>
+                                            </div>
+                                        `;
+                            }));
+                        }),
+                    });
                 }
                 function validateForm(data) {
+                    if (orderData.customer_info.payment_select === 'line') {
+                        if (CheckInput.isEmpty(data.image)) {
+                            dialog.errorMessage({ text: Language.text('upload_screenshot_for_verification') });
+                            return false;
+                        }
+                        return true;
+                    }
+                    if (vm.formList.length > 0) {
+                        for (const item of vm.formList) {
+                            if (item.require === 'true' && CheckInput.isEmpty(data[item.key])) {
+                                dialog.errorMessage({ text: `${Language.text('please_enter')}「${item.title}」` });
+                                return false;
+                            }
+                        }
+                        return true;
+                    }
                     const paymentTime = data['pay-date'];
                     const bankName = data.bank_name;
                     const accountName = data.bank_account;
@@ -310,10 +359,13 @@ export class UMOrder {
                         if (orderData.customer_info.payment_select === 'atm') {
                             return html `＊${Language.text('please_confirm_bank_account_details')}`;
                         }
-                        else if (orderData.customer_info.payment_select === 'line') {
+                        if (orderData.customer_info.payment_select === 'line') {
                             return html `＊${Language.text('upload_screenshot_for_verification')}`;
                         }
-                        return html `＊${Language.text('please_confirm_bank_account_details')}<br />＊${Language.text('upload_screenshot_or_transfer_proof')}`;
+                        if (orderData.customer_info.payment_select === 'cash_on_delivery') {
+                            return html `＊${Language.text('please_confirm_bank_account_details')}<br />＊${Language.text('upload_screenshot_or_transfer_proof')}`;
+                        }
+                        return '';
                     })()}</span
                                     >
                                     ${gvc.bindView((() => {
@@ -330,7 +382,14 @@ export class UMOrder {
                                         if (orderData.customer_info.payment_select === 'atm') {
                                             return UMOrder.atmFormList;
                                         }
-                                        return [];
+                                        const from = orderData.payment_customer_form.find((item) => {
+                                            return item.id === orderData.customer_info.payment_select;
+                                        });
+                                        if (from === undefined || from.list.length === 0) {
+                                            return [];
+                                        }
+                                        vm.formList = from.list;
+                                        return from.list;
                                     })(),
                                     refresh: () => {
                                         setTimeout(() => {
@@ -383,7 +442,7 @@ export class UMOrder {
                             <h3 class="mb-3">${Language.text('order_details')}</h3>
                             ${gvc.map(orderData.lineItems.map((item) => {
                     return html `
-                                        <div class="o-line-item ${(document.body.clientWidth < 800) ? `p-2` : ``}">
+                                        <div class="o-line-item ${document.body.clientWidth < 800 ? `p-2` : ``}">
                                             <div class="d-flex gap-3 align-items-center">
                                                 <div>
                                                     ${UmClass.validImageBox({
@@ -393,7 +452,7 @@ export class UMOrder {
                         style: 'border-radius: 10px;',
                     })}
                                                 </div>
-                                                <div class="">
+                                                <div>
                                                     <p
                                                         class="o-item-title"
                                                         onclick="${gvc.event(() => {

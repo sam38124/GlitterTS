@@ -44,6 +44,11 @@ export interface paymentInterface {
     payment_info_line_pay: {
         text: string;
     };
+    payment_info_custom: {
+        id: string;
+        name: string;
+        text: string;
+    }[];
 }
 export declare const onlinePayArray: {
     key: string;

@@ -1306,6 +1306,7 @@ export class Shopping {
                 }
             }
             console.log(`checkout-time-11=>`, new Date().getTime() - check_time);
+
             // 付款資訊設定
             const keyData: paymentInterface = (
                 await Private_config.getConfig({
@@ -1313,6 +1314,30 @@ export class Shopping {
                     key: 'glitter_finance',
                 })
             )[0].value;
+            (carData as any).payment_info_custom = keyData.payment_info_custom;
+
+            await new Promise<void>((resolve) => {
+                let n = 0;
+                (carData as any).payment_customer_form = (carData as any).payment_customer_form ?? [];
+                keyData.payment_info_custom.map((item, index) => {
+                    new User(this.app)
+                        .getConfigV2({
+                            user_id: 'manager',
+                            key: `form_finance_${item.id}`,
+                        })
+                        .then((data) => {
+                            (carData as any).payment_customer_form[index] = {
+                                id: item.id,
+                                list: data.list,
+                            };
+                            n++;
+                            if (keyData.payment_info_custom.length === n) {
+                                resolve();
+                            }
+                        });
+                });
+            });
+
             (carData as any).payment_setting = onlinePayArray.filter((dd) => {
                 return (keyData as any)[dd.key] && (keyData as any)[dd.key].toggle;
             });
@@ -1873,13 +1898,11 @@ export class Shopping {
                 }
             })
             .filter((dd) => {
-
                 // 判斷用戶是否為指定客群
                 if (dd.target === 'customer') {
                     return userData && userData.id && dd.targetList.includes(userData.userID);
                 }
                 if (dd.target === 'levels') {
-
                     return userData && userData.member && dd.targetList.includes(userData.member[0].id);
                 }
                 return true; // 所有顧客皆可使用
