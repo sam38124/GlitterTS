@@ -301,19 +301,40 @@ export class ProductExcel {
                     weight: 0,
                 };
             };
-            function errorCallback(text: string) {
+            function errorCallback(
+                text: string,
+                obj?: {
+                    warningMessageView?: boolean;
+                }
+            ) {
                 error = true;
                 dialog.dataLoading({ visible: false });
-                dialog.infoMessage({ text });
+                if (obj && obj.warningMessageView) {
+                    dialog.warningMessage({ text, callback: () => {} });
+                } else {
+                    dialog.infoMessage({ text });
+                }
             }
 
-            const domainList = data.map((item: string[]) => item[5]);
+            // 商品連結若為空，則預設值為商品名稱
+            const domainList = data.map((item: string[]) => {
+                if (CheckInput.isEmpty(item[5])) {
+                    item[5] = item[0];
+                }
+                return item[5];
+            });
 
             // 判斷excel中是否有重複的domain
-            const filteredArr = domainList.filter((item: string) => item.trim() !== ''); // 過濾掉空白字串
+            const filteredArr = domainList.filter((item: string) => {
+                return item && item.length > 0 && item.trim().length > 0;
+            });
+
+            // 過濾掉空白字串
             const hasDuplicates = new Set(filteredArr).size !== filteredArr.length;
             if (hasDuplicates) {
-                errorCallback('「商品連結」的值不可重複');
+                errorCallback('「商品連結」的值不可重複<br/>如果「商品連結」為空，預設值為該商品的「商品名稱」<br/>則該「商品名稱」不可與其它「商品連結」重複', {
+                    warningMessageView: true,
+                });
             }
 
             // 判斷已建立產品中是否有重複存在的domain
