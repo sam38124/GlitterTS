@@ -99,8 +99,6 @@ class Recommend {
                             if (idArray.includes(item.id)) {
                                 variants.forEach((variant) => {
                                     if (variant.id === item.id && arraysAreEqualIgnoringOrder(variant.spec, item.spec)) {
-                                        console.log("here OK ");
-                                        console.log("item -- ", item);
                                         data.sharing_bonus += Math.floor((item.sale_price * item.count * parseFloat(data.content.share_value)) / 100);
                                     }
                                 });

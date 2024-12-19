@@ -306,7 +306,7 @@ export async function createAPP(dd: any) {
 
                                 if (pd.data.content) {
                                     pd.data.content.language_data = pd.data.content.language_data ?? {};
-                                    const productSeo = pd.data.content.language_data[language].seo || (pd.data.content.seo ?? {});
+                                    const productSeo = (pd.data.content.language_data[language] &&  pd.data.content.language_data[language].seo) || (pd.data.content.seo ?? {});
                                     data = await Seo.getPageInfo(appName, data.config.homePage, language);
                                     data.page_config = data.page_config ?? {};
                                     data.page_config.seo = data.page_config.seo ?? {};

@@ -435,9 +435,7 @@ export class Shopping {
             query.id_list && querySql.push(`(id in (${query.id_list}))`);
             query.min_price && querySql.push(`(id in (select product_id from \`${this.app}\`.t_variants where content->>'$.sale_price'>=${query.min_price})) `);
             query.max_price && querySql.push(`(id in (select product_id from \`${this.app}\`.t_variants where content->>'$.sale_price'<=${query.max_price})) `);
-            console.log(`querySql==>`,querySql)
             const products = await this.querySql(querySql, query);
-            console.log(`products==>`,products.data)
             // 產品清單
             const productList = (Array.isArray(products.data) ? products.data : [products.data]).filter((product) => product);
 
@@ -1323,6 +1321,7 @@ export class Shopping {
                     key: 'glitter_finance',
                 })
             )[0].value;
+
             (carData as any).payment_info_custom = keyData.payment_info_custom;
 
             await new Promise<void>((resolve) => {
@@ -1345,6 +1344,9 @@ export class Shopping {
                             }
                         });
                 });
+                if(n===0){
+                    resolve()
+                }
             });
 
             (carData as any).payment_setting = onlinePayArray.filter((dd) => {

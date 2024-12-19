@@ -300,7 +300,7 @@ async function createAPP(dd) {
                                 });
                             if (pd.data.content) {
                                 pd.data.content.language_data = (_c = pd.data.content.language_data) !== null && _c !== void 0 ? _c : {};
-                                const productSeo = pd.data.content.language_data[language].seo || ((_d = pd.data.content.seo) !== null && _d !== void 0 ? _d : {});
+                                const productSeo = (pd.data.content.language_data[language] && pd.data.content.language_data[language].seo) || ((_d = pd.data.content.seo) !== null && _d !== void 0 ? _d : {});
                                 data = await seo_js_1.Seo.getPageInfo(appName, data.config.homePage, language);
                                 data.page_config = (_e = data.page_config) !== null && _e !== void 0 ? _e : {};
                                 data.page_config.seo = (_f = data.page_config.seo) !== null && _f !== void 0 ? _f : {};

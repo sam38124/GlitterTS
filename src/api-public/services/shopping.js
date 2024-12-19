@@ -271,9 +271,7 @@ class Shopping {
             query.id_list && querySql.push(`(id in (${query.id_list}))`);
             query.min_price && querySql.push(`(id in (select product_id from \`${this.app}\`.t_variants where content->>'$.sale_price'>=${query.min_price})) `);
             query.max_price && querySql.push(`(id in (select product_id from \`${this.app}\`.t_variants where content->>'$.sale_price'<=${query.max_price})) `);
-            console.log(`querySql==>`, querySql);
             const products = await this.querySql(querySql, query);
-            console.log(`products==>`, products.data);
             const productList = (Array.isArray(products.data) ? products.data : [products.data]).filter((product) => product);
             if (this.token && this.token.userID) {
                 for (const b of productList) {
@@ -956,6 +954,9 @@ class Shopping {
                         }
                     });
                 });
+                if (n === 0) {
+                    resolve();
+                }
             });
             carData.payment_setting = glitter_finance_js_1.onlinePayArray.filter((dd) => {
                 return keyData[dd.key] && keyData[dd.key].toggle;

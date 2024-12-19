@@ -136,6 +136,7 @@ class Private_config {
                 ['MERCHANT_ID', 'HASH_IV', 'HASH_KEY', 'ActionURL', 'atm', 'c_bar_code', 'c_code', 'credit', 'web_atm'].map((dd) => {
                     keyData[dd] = undefined;
                 });
+                keyData.payment_info_custom = keyData.payment_info_custom || [];
                 break;
         }
     }
