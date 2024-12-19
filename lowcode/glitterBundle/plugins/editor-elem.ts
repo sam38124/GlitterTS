@@ -1014,6 +1014,9 @@ ${obj.structEnd ? obj.structEnd : '})()'}`,
                                         .fr-sticky-dummy {
                                             display: none !important;
                                         }
+                                        li{
+                                            list-style:auto;
+                                        }
                                         ${
                                             obj.hiddenBorder
                                                 ? css`
@@ -1051,6 +1054,7 @@ ${obj.structEnd ? obj.structEnd : '})()'}`,
 
                                     const FroalaEditor = (glitter.window as any).FroalaEditor;
                                     const editor = new FroalaEditor('#' + richID, {
+                                        enter: FroalaEditor.ENTER_DIV,
                                         language: 'zh_tw',
                                         heightMin: obj.setHeight ?? 350,
                                         content: obj.def,
@@ -1175,7 +1179,6 @@ ${obj.structEnd ? obj.structEnd : '})()'}`,
                                             H6: '標題 6',
                                         },
                                     });
-
                                     if (glitter.document.querySelector(`.${richID}-loading`) as any) {
                                         (glitter.document.querySelector(`.${richID}-loading`) as any).remove();
                                     }

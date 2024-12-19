@@ -929,6 +929,9 @@ ${obj.structEnd ? obj.structEnd : '})()'}`,
                                         .fr-sticky-dummy {
                                             display: none !important;
                                         }
+                                        li{
+                                            list-style:auto;
+                                        }
                                         ${obj.hiddenBorder
                                         ? css `
                                                       .fr-box {
@@ -955,6 +958,7 @@ ${obj.structEnd ? obj.structEnd : '})()'}`,
                                     }
                                     const FroalaEditor = glitter.window.FroalaEditor;
                                     const editor = new FroalaEditor('#' + richID, {
+                                        enter: FroalaEditor.ENTER_DIV,
                                         language: 'zh_tw',
                                         heightMin: (_a = obj.setHeight) !== null && _a !== void 0 ? _a : 350,
                                         content: obj.def,
