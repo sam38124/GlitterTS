@@ -1473,6 +1473,10 @@ export class ShoppingProductSetting {
                         preview_image: '',
                     });
                 }
+                postMD.variants.map((dd) => {
+                    dd.checked = undefined;
+                    return dd;
+                });
                 obj.vm.replaceData = postMD;
                 obj.gvc.notifyDataChange(variantsViewID);
             }
