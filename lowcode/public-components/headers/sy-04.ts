@@ -413,6 +413,9 @@ padding-bottom: 2px;
                                             if (GlobalUser.token) {
                                                 changePage('account_userinfo', 'page', {});
                                             } else {
+                                                if (localStorage.getItem('redirect_cart') === 'true') {
+                                                    localStorage.removeItem('redirect_cart');
+                                                }
                                                 changePage('login', 'page', {});
                                             }
                                         })}"

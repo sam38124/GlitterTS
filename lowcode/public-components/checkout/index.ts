@@ -1,18 +1,18 @@
 import { GVC } from '../../glitterBundle/GVController.js';
-import { ApiShop } from '../../glitter-base/route/shopping.js';
 import { GlobalUser } from '../../glitter-base/global/global-user.js';
 import { CheckInput } from '../../modules/checkInput.js';
 import { Tool } from '../../modules/tool.js';
+import { ApiShop } from '../../glitter-base/route/shopping.js';
 import { ApiCart, CartItem } from '../../glitter-base/route/api-cart.js';
 import { ApiDelivery } from '../../glitter-base/route/delivery.js';
 import { ApiUser } from '../../glitter-base/route/user.js';
+import { ApiWallet } from '../../glitter-base/route/wallet.js';
 import { FormWidget } from '../../official_view_component/official/form.js';
 import { ShareDialog } from '../../glitterBundle/dialog/ShareDialog.js';
 import { Voucher as OriginVoucher, VoucherContent } from '../user-manager/um-voucher.js';
 import { PdClass } from '../product/pd-class.js';
 import * as vm from 'node:vm';
 import { Ad } from '../public/ad.js';
-import { ApiWallet } from '../../glitter-base/route/wallet.js';
 import { Language } from '../../glitter-base/global/language.js';
 import { FakeOrder } from './fake-order.js';
 
@@ -390,6 +390,7 @@ export class CheckoutIndex {
             const dialog = new ShareDialog(gvc.glitter);
             dialog.dataLoading({ visible: true });
             const beta = false;
+
             if (!beta) {
                 new Promise(async (resolve, reject) => {
                     new Promise((resolve, reject) => {
@@ -572,6 +573,7 @@ export class CheckoutIndex {
         glitter.share.reloadCartData = () => {
             refreshCartData();
         };
+
         return gvc.bindView(
             (() => {
                 return {
@@ -632,9 +634,9 @@ export class CheckoutIndex {
                                                                                     return addItemBadge();
                                                                                 } else if (item.is_gift) {
                                                                                     return giftBadge();
-                                                                                } else if(item.is_hidden){
+                                                                                } else if (item.is_hidden) {
                                                                                     return hiddenBadge();
-                                                                                }else{
+                                                                                } else {
                                                                                     return ``;
                                                                                 }
                                                                             }
@@ -777,18 +779,18 @@ export class CheckoutIndex {
                                                                                                 return `<div class="fs-6 w-100 " ><i class="fa-solid fa-tickets-perforated  me-2"></i>${dd.title}</div>`;
                                                                                             })
                                                                                             .join('<div class="my-1"></div>')}
-                                                                                        ${(()=>{
-                                                                                            let min= (item.min_qty && parseInt(item.min_qty,10)) || 1;
-                                                                                            let count=0;
-                                                                                            for (const b of vm.cartData.lineItems){
-                                                                                                if(b.id===item.id){
-                                                                                                    count+=b.count
+                                                                                        ${(() => {
+                                                                                            let min = (item.min_qty && parseInt(item.min_qty, 10)) || 1;
+                                                                                            let count = 0;
+                                                                                            for (const b of vm.cartData.lineItems) {
+                                                                                                if (b.id === item.id) {
+                                                                                                    count += b.count;
                                                                                                 }
                                                                                             }
-                                                                                            if(count<min){
-                                                                                                return `<div class="text-danger">${Language.text('min_p_count').replace('_c_',min)}</div>`
-                                                                                            }else{
-                                                                                                return ``
+                                                                                            if (count < min) {
+                                                                                                return `<div class="text-danger">${Language.text('min_p_count').replace('_c_', min)}</div>`;
+                                                                                            } else {
+                                                                                                return ``;
                                                                                             }
                                                                                         })()}
                                                                                     </div>
@@ -2382,19 +2384,18 @@ export class CheckoutIndex {
                                                 if (!this.checkFormData(gvc, vm.cartData, widget)) {
                                                     return;
                                                 }
-                                                for (const item of vm.cartData.lineItems){
+                                                for (const item of vm.cartData.lineItems) {
                                                     const title = (item.language_data && item.language_data[Language.getLanguage()].title) || item.title;
-                                                    let min= (item.min_qty && parseInt(item.min_qty,10)) || 1;
-                                                    let count=0;
-                                                    for (const b of vm.cartData.lineItems){
-                                                        if(b.id===item.id){
-                                                            count+=b.count
+                                                    let min = (item.min_qty && parseInt(item.min_qty, 10)) || 1;
+                                                    let count = 0;
+                                                    for (const b of vm.cartData.lineItems) {
+                                                        if (b.id === item.id) {
+                                                            count += b.count;
                                                         }
-                                                        
                                                     }
-                                                    if(count<min){
-                                                        dialog.errorMessage({text:Language.text('min_p_count_d').replace('_c_',min).replace('_p_',`『${title}』`)})
-                                                        return 
+                                                    if (count < min) {
+                                                        dialog.errorMessage({ text: Language.text('min_p_count_d').replace('_c_', min).replace('_p_', `『${title}』`) });
+                                                        return;
                                                     }
                                                 }
                                                 if (vm.cartData.user_info_same) {
