@@ -205,16 +205,30 @@ export class ProductExcel {
                         weight: 0,
                     };
                 };
-                function errorCallback(text) {
+                function errorCallback(text, obj) {
                     error = true;
                     dialog.dataLoading({ visible: false });
-                    dialog.infoMessage({ text });
+                    if (obj && obj.warningMessageView) {
+                        dialog.warningMessage({ text, callback: () => { } });
+                    }
+                    else {
+                        dialog.infoMessage({ text });
+                    }
                 }
-                const domainList = data.map((item) => item[5]);
-                const filteredArr = domainList.filter((item) => item.trim() !== '');
+                const domainList = data.map((item) => {
+                    if (CheckInput.isEmpty(item[5])) {
+                        item[5] = item[0];
+                    }
+                    return item[5];
+                });
+                const filteredArr = domainList.filter((item) => {
+                    return item && item.length > 0 && item.trim().length > 0;
+                });
                 const hasDuplicates = new Set(filteredArr).size !== filteredArr.length;
                 if (hasDuplicates) {
-                    errorCallback('「商品連結」的值不可重複');
+                    errorCallback('「商品連結」的值不可重複<br/>如果「商品連結」為空，預設值為該商品的「商品名稱」<br/>則該「商品名稱」不可與其它「商品連結」重複', {
+                        warningMessageView: true,
+                    });
                 }
                 const productDomainSet = new Set(allProductDomain);
                 const duplicateDomain = domainList.find((domain) => domain.length > 0 && productDomainSet.has(domain));
