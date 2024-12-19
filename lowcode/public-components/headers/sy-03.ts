@@ -6,8 +6,10 @@ import { AiSearch } from '../ai/ai-search.js';
 import { Language } from '../../glitter-base/global/language.js';
 import { Color } from '../public/color.js';
 import { LanguageView } from '../public/language-view.js';
+import { HeaderClass } from './header-class.js';
 
 const html = String.raw;
+
 export class Sy03 {
     public static main(gvc: GVC, widget: any, subData: any) {
         let changePage = (index: string, type: 'page' | 'home', subData: any) => {};
@@ -353,7 +355,7 @@ padding-bottom: 2px;
                                             return html`<span
                                                 class="position-relative"
                                                 onclick="${gvc.event(() => {
-                                                    gvc.glitter.href = '/checkout';
+                                                    HeaderClass.rightCartMenu(gvc, widget);
                                                 })}"
                                             >
                                                 <i class="fa-duotone fa-cart-shopping" style="color: ${widget.formData.theme_color['title'] ?? '#000'} !important;cursor: pointer;font-size:20px;"></i>

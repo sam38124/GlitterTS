@@ -1,7 +1,5 @@
 import { GVC } from '../../glitterBundle/GVController.js';
 import { ApiUser } from '../../glitter-base/route/user.js';
-import { getCheckoutCount } from '../../official_event/e-commerce/get-count.js';
-import { GlobalUser } from '../../glitter-base/global/global-user.js';
 import { AiSearch } from '../ai/ai-search.js';
 import { Language } from '../../glitter-base/global/language.js';
 
