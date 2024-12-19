@@ -304,7 +304,6 @@ export class ShoppingInformation {
                                                         type="checkbox"
                                                         onchange="${gvc.event((e, event) => {
                             vm.data.wishlist = !vm.data.wishlist;
-                            console.log("vm.data.wishlist -- ", vm.data.wishlist);
                         })}"
                                                         ${vm.data.wishlist ? `checked` : ``}
                                                 />

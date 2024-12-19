@@ -971,24 +971,40 @@ export class ShoppingProductSetting {
                                                                     <div
                                                                             style="width: 136px;text-align: center;color: #36B;cursor: pointer;"
                                                                             onclick="${obj.gvc.event(() => {
-                                                                                imageLibrary.selectImageLibrary(
-                                                                                        gvc,
-                                                                                        (urlArray) => {
-                                                                                            if (urlArray.length > 0) {
-                                                                                                variant.preview_image = urlArray[0].data;
-                                                                                                gvc.notifyDataChange(id);
-                                                                                            } else {
-                                                                                                const dialog = new ShareDialog(gvc.glitter);
-                                                                                                dialog.errorMessage({text: '請選擇至少一張圖片'});
-                                                                                            }
-                                                                                        },
-                                                                                        html`
+                                                                                console.log("postMD -- " , postMD.preview_image)
+                                                                                imageLibrary.selectImageFromArray(
+                                                                                        postMD.preview_image,
+                                                                                        {
+                                                                                            gvc:gvc,
+                                                                                            title:html`
                                                                                             <div class="d-flex flex-column"
                                                                                                  style="border-radius: 10px 10px 0px 0px;background: #F2F2F2;">
                                                                                                 圖片庫
                                                                                             </div>`,
-                                                                                        {mul: false}
-                                                                                );
+                                                                                            getSelect:(imageUrl)=>{
+                                                                                                variant.preview_image = imageUrl;
+                                                                                                gvc.notifyDataChange(id);
+                                                                                            }
+                                                                                        }
+                                                                                )
+                                                                                // imageLibrary.selectImageLibrary(
+                                                                                //         gvc,
+                                                                                //         (urlArray) => {
+                                                                                //             if (urlArray.length > 0) {
+                                                                                //                 variant.preview_image = urlArray[0].data;
+                                                                                //                 gvc.notifyDataChange(id);
+                                                                                //             } else {
+                                                                                //                 const dialog = new ShareDialog(gvc.glitter);
+                                                                                //                 dialog.errorMessage({text: '請選擇至少一張圖片'});
+                                                                                //             }
+                                                                                //         },
+                                                                                //         html`
+                                                                                //             <div class="d-flex flex-column"
+                                                                                //                  style="border-radius: 10px 10px 0px 0px;background: #F2F2F2;">
+                                                                                //                 圖片庫
+                                                                                //             </div>`,
+                                                                                //         {mul: false}
+                                                                                // );
                                                                             })}"
                                                                     >
                                                                         變更
@@ -3891,32 +3907,54 @@ export class ShoppingProductSetting {
                                                                                                                                 >
                                                                                                                                     <div
                                                                                                                                             onclick="${gvc.event(() => {
-                                                                                                                                                imageLibrary.selectImageLibrary(
-                                                                                                                                                        gvc,
-                                                                                                                                                        (urlArray) => {
-                                                                                                                                                            if (urlArray.length > 0) {
-                                                                                                                                                                postMD.variants
-                                                                                                                                                                        .filter((dd) => {
-                                                                                                                                                                            return dd.spec[0] === spec.title;
-                                                                                                                                                                        })
-                                                                                                                                                                        .forEach((d1) => {
-                                                                                                                                                                            d1.preview_image = urlArray[0].data;
-                                                                                                                                                                        });
-                                                                                                                                                                obj.gvc.notifyDataChange(vm.id);
-                                                                                                                                                            } else {
-                                                                                                                                                                const dialog = new ShareDialog(gvc.glitter);
-                                                                                                                                                                dialog.errorMessage({text: '請選擇至少一張圖片'});
-                                                                                                                                                            }
-                                                                                                                                                        },
-                                                                                                                                                        html`
-                                                                                                                                                            <div
+                                                                                                                                                imageLibrary.selectImageFromArray(
+                                                                                                                                                    postMD.preview_image,
+                                                                                                                                                        {
+                                                                                                                                                            gvc:gvc,
+                                                                                                                                                            title:html`<div
                                                                                                                                                                     class="d-flex flex-column"
                                                                                                                                                                     style="border-radius: 10px 10px 0px 0px;background: #F2F2F2;"
                                                                                                                                                             >
                                                                                                                                                                 統一設定圖片
                                                                                                                                                             </div>`,
-                                                                                                                                                        {}
-                                                                                                                                                );
+                                                                                                                                                            getSelect:(imageUrl)=>{
+                                                                                                                                                                postMD.variants
+                                                                                                                                                                        .filter((dd) => {
+                                                                                                                                                                            return dd.spec[0] === spec.title;
+                                                                                                                                                                        })
+                                                                                                                                                                        .forEach((d1) => {
+                                                                                                                                                                            d1.preview_image = imageUrl;
+                                                                                                                                                                        });
+                                                                                                                                                                obj.gvc.notifyDataChange(vm.id);
+                                                                                                                                                            }
+                                                                                                                                                        }
+                                                                                                                                                )
+                                                                                                                                                // imageLibrary.selectImageLibrary(
+                                                                                                                                                //         gvc,
+                                                                                                                                                //         (urlArray) => {
+                                                                                                                                                //             if (urlArray.length > 0) {
+                                                                                                                                                //                 postMD.variants
+                                                                                                                                                //                         .filter((dd) => {
+                                                                                                                                                //                             return dd.spec[0] === spec.title;
+                                                                                                                                                //                         })
+                                                                                                                                                //                         .forEach((d1) => {
+                                                                                                                                                //                             d1.preview_image = urlArray[0].data;
+                                                                                                                                                //                         });
+                                                                                                                                                //                 obj.gvc.notifyDataChange(vm.id);
+                                                                                                                                                //             } else {
+                                                                                                                                                //                 const dialog = new ShareDialog(gvc.glitter);
+                                                                                                                                                //                 dialog.errorMessage({text: '請選擇至少一張圖片'});
+                                                                                                                                                //             }
+                                                                                                                                                //         },
+                                                                                                                                                //         html`
+                                                                                                                                                //             <div
+                                                                                                                                                //                     class="d-flex flex-column"
+                                                                                                                                                //                     style="border-radius: 10px 10px 0px 0px;background: #F2F2F2;"
+                                                                                                                                                //             >
+                                                                                                                                                //                 統一設定圖片
+                                                                                                                                                //             </div>`,
+                                                                                                                                                //         {}
+                                                                                                                                                // );
                                                                                                                                             })}"
                                                                                                                                     >
                                                                                                                                         ${BgWidget.validImageBox({
