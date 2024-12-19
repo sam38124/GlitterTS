@@ -960,7 +960,6 @@ export class BgRecommend {
                                                                                     }).then((data) => {
                                                                                         searchLoading = true;
                                                                                         newOrder.productArray = data.response.data;
-                                                                                        console.log("newOrder.productArray -- ", newOrder.productArray);
                                                                                         gvc.notifyDataChange('productArray');
                                                                                     });
                                                                                     return BgWidget.spinner();
