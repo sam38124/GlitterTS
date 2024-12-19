@@ -1,7 +1,7 @@
 import { Glitter } from '../Glitter.js';
 
 export class ShareDialog {
-    public dataLoading = (obj: { text?: string; visible: boolean }) => {};
+    public dataLoading = (obj: { text?: string; visible: boolean ,BG?:string}) => {};
     public infoMessage = (obj: { text?: string }) => {};
     public errorMessage = (obj: { text?: string,tag?:string }) => {};
     public successMessage = (obj: { text?: string }) => {};
@@ -13,7 +13,7 @@ export class ShareDialog {
         if (glitter.getUrlParameter('cms') === 'true' || glitter.getUrlParameter('type')==='htmlEditor') {
             glitter = (window.parent as any).glitter;
         }
-        this.dataLoading = (obj: { text?: string; visible: boolean }) => {
+        this.dataLoading = (obj: { text?: string; visible: boolean ,BG?:string}) => {
             if (obj.visible) {
               glitter.openDiaLog('glitterBundle/dialog/dialog.js', 'dataLoading', {
                     type: 'dataLoading',

@@ -64,8 +64,8 @@ init(import.meta.url, (gvc, glitter, gBundle) => {
             `);
             switch (gBundle.type) {
                 case 'dataLoading':
-                    return html`<div class="dialog-box">
-                        <div class="dialog-content">
+                    return html`<div class="dialog-box" style="${gBundle.obj.BG?`background:${gBundle.obj.BG}`:''} ">
+                        <div class="dialog-content" >
                             <div class="spinner-border fs-1"></div>
                             <div class="mt-3 fs-6 fw-500">${gBundle.obj.text ?? Language.text('please_wait')}</div>
                         </div>

@@ -848,6 +848,8 @@ ${obj.structEnd ? obj.structEnd : '})()'}`,
     static richText(obj) {
         const gvc = obj.gvc;
         const glitter = gvc.glitter;
+        let loading = true;
+        const dialog = new ShareDialog(glitter);
         return gvc.bindView(() => {
             const id = glitter.getUUID();
             const richID = glitter.getUUID();
@@ -857,6 +859,7 @@ ${obj.structEnd ? obj.structEnd : '})()'}`,
                 `https://cdnjs.cloudflare.com/ajax/libs/dompurify/2.2.7/purify.min.js`,
                 `https://cdn.jsdelivr.net/npm/froala-editor/js/languages/zh_tw.js`,
                 `froala_editor.min.js`,
+                `languages/zh_tw.js`,
                 `plugins/align.min.js`,
                 `plugins/char_counter.min.js`,
                 `plugins/code_beautifier.min.js`,
@@ -887,10 +890,10 @@ ${obj.structEnd ? obj.structEnd : '})()'}`,
                 `plugins/print.min.js`,
                 `third_party/spell_checker.min.js`,
                 `plugins/special_characters.min.js`,
-                `languages/zh_tw.js`,
             ].map((dd) => {
                 return { src: dd.includes('http') ? dd : new URL(`../../jslib/froala/` + dd, import.meta.url).href };
-            }), () => { }, () => { });
+            }), () => {
+            }, () => { });
             gvc.addStyleLink([
                 new URL(`../../jslib/froala/css/plugins/code_view.css`, import.meta.url).href,
                 'https://cdnjs.cloudflare.com/ajax/libs/codemirror/6.65.7/codemirror.min.css',
@@ -908,6 +911,9 @@ ${obj.structEnd ? obj.structEnd : '})()'}`,
                     style: `${obj.style || `overflow-y: auto;`}position:relative;`,
                 },
                 onCreate: () => {
+                    let loading = true;
+                    let delay = true;
+                    let loadingView = false;
                     function render() {
                         const interval = setInterval(() => {
                             if (glitter.window.FroalaEditor) {
@@ -1060,6 +1066,18 @@ ${obj.structEnd ? obj.structEnd : '})()'}`,
                                     if (glitter.document.querySelector(`.${richID}-loading`)) {
                                         glitter.document.querySelector(`.${richID}-loading`).remove();
                                     }
+                                    const dialog = new ShareDialog(gvc.glitter);
+                                    if (loading) {
+                                        loading = false;
+                                        dialog.dataLoading({ visible: true, BG: "gray", text: "編輯器就位中" });
+                                        loadingView = true;
+                                        setTimeout(() => {
+                                            delay = false;
+                                            if (!loadingView && !delay) {
+                                                dialog.dataLoading({ visible: false });
+                                            }
+                                        }, 800);
+                                    }
                                     setTimeout(() => {
                                         const target = glitter.document.querySelector(`[data-cmd="insertImage"]`);
                                         if (!target) {
@@ -1071,6 +1089,10 @@ ${obj.structEnd ? obj.structEnd : '})()'}`,
                                                 render();
                                             }, 500);
                                             return;
+                                        }
+                                        loadingView = false;
+                                        if (!loadingView && !delay) {
+                                            dialog.dataLoading({ visible: false });
                                         }
                                         target.outerHTML = html ` <button
                                             id="insertImage-replace"
