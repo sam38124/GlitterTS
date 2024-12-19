@@ -132,6 +132,8 @@ export class HeaderClass {
             function refreshView() {
                 setTimeout(() => {
                     vm.loading = true;
+                    gvc.glitter.recreateView('.js-cart-count');
+                    gvc.glitter.recreateView('.shopping-cart');
                     gvc.notifyDataChange(vm.id);
                 }, 200);
             }

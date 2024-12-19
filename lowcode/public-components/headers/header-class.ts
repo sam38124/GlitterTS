@@ -59,7 +59,7 @@ export class HeaderClass {
 
     static noImageURL = 'https://d3jnmi1tfjgtti.cloudfront.net/file/234285319/1722936949034-default_image.jpg';
 
-    public static rightCartMenu(gvc: GVC, widget: any) {
+    static rightCartMenu(gvc: GVC, widget: any) {
         gvc.glitter.setDrawer(
             gvc.bindView(
                 (() => {
@@ -156,6 +156,8 @@ export class HeaderClass {
                     function refreshView() {
                         setTimeout(() => {
                             vm.loading = true;
+                            gvc.glitter.recreateView('.js-cart-count');
+                            gvc.glitter.recreateView('.shopping-cart');
                             gvc.notifyDataChange(vm.id);
                         }, 200);
                     }
