@@ -161,7 +161,7 @@ export class ShoppingInformation {
             view: () => {
                 if (vm.mainLoading) {
                     ApiUser.getPublicConfig("store-information", "manager").then((r) => {
-                        var _a, _b, _c, _d, _e, _f, _g, _h, _j;
+                        var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k;
                         vm.data = r.response.value;
                         const data = r.response.value;
                         vm.data = {
@@ -172,8 +172,9 @@ export class ShoppingInformation {
                             "category": (_e = data.category) !== null && _e !== void 0 ? _e : "",
                             "pos_type": (_f = data.pos_type) !== null && _f !== void 0 ? _f : "retails",
                             "ai_search": (_g = data.ai_search) !== null && _g !== void 0 ? _g : false,
-                            "shop_name": (_h = data.shop_name) !== null && _h !== void 0 ? _h : "",
-                            "support_pos_payment": (_j = data.support_pos_payment) !== null && _j !== void 0 ? _j : [
+                            "wishlist": (_h = data.wishlist) !== null && _h !== void 0 ? _h : true,
+                            "shop_name": (_j = data.shop_name) !== null && _j !== void 0 ? _j : "",
+                            "support_pos_payment": (_k = data.support_pos_payment) !== null && _k !== void 0 ? _k : [
                                 "cash",
                                 "creditCard",
                                 "line"
@@ -290,6 +291,24 @@ export class ShoppingInformation {
                                                     ${vm.data.ai_search ? `checked`
                             : ``}
                                             />
+                                        </div>
+                                        <div class="d-flex flex-column" style="gap:8px;">
+                                            <div style="color: #393939;font-size: 16px;">啟用心願單功能</div>
+                                            <div style="color: #8D8D8D;font-size:13px;">啟用心願單功能，方便客戶收藏並管理喜愛的商品清單。<br>
+                                                隨時查看心儀商品，提升購物體驗與轉換率。
+                                            </div>
+                                            <div class="cursor_pointer form-check form-switch m-0 p-0"
+                                                 style="margin-top: 10px;">
+                                                <input
+                                                        class="form-check-input m-0"
+                                                        type="checkbox"
+                                                        onchange="${gvc.event((e, event) => {
+                            vm.data.wishlist = !vm.data.wishlist;
+                            console.log("vm.data.wishlist -- ", vm.data.wishlist);
+                        })}"
+                                                        ${vm.data.wishlist ? `checked` : ``}
+                                                />
+                                            </div>
                                         </div>
                                         ${gvc.bindView(() => {
                             const id = gvc.glitter.getUUID();
@@ -418,6 +437,7 @@ export class ShoppingInformation {
                             };
                         })}
                                     </div>
+                                    
                                 </div>
                             `, `guide6-3`);
                     }, divCreate: {}

@@ -64,6 +64,10 @@ export class UmClass {
                         },
                     ]
                         .map((item) => {
+                            if (item.key == "wishlist" && (window as any).store_info.wishlist == false){
+                                console.log("here -- " , (window as any).store_info)
+                                return ``
+                            }
                             return html`
                                 <div
                                     class="option px-2 d-flex justify-content-center um-nav-btn ${vm.pageName === item.key ? 'um-nav-btn-active' : ''}"

@@ -205,7 +205,10 @@ export class ProductCard02 {
                 />
             </div>
             <div
-                class="wishBt wish-button"
+                class="wishBt wish-button ${(()=>{
+                    
+                    return (window as any).store_info.wishlist === false ? 'd-none' : 'd-flex';
+                })()}"
                 onclick="${gvc.event((e, event) => {
                     event.stopPropagation();
                     if (CheckInput.isEmpty(GlobalUser.token)) {

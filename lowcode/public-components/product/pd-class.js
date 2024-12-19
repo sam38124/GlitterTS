@@ -442,13 +442,18 @@ export class PdClass {
                     ${gvc.bindView({
             bind: ids.wishStatus,
             view: () => {
-                if (vm.wishStatus) {
-                    return html ` <i class="fa-solid fa-heart"></i>
-                                    <span>${Language.text('remove_to_wishlist')}</span>`;
+                if (window.store_info.wishlist == false) {
+                    return ``;
                 }
                 else {
-                    return html ` <i class="fa-regular fa-heart"></i>
+                    if (vm.wishStatus) {
+                        return html ` <i class="fa-solid fa-heart"></i>
+                                    <span>${Language.text('remove_to_wishlist')}</span>`;
+                    }
+                    else {
+                        return html ` <i class="fa-regular fa-heart"></i>
                                     <span>${Language.text('add_to_wishlist')}</span>`;
+                    }
                 }
             },
         })}

@@ -595,13 +595,19 @@ obj.gvc.addStyle(`
                     ${gvc.bindView({
                         bind: ids.wishStatus,
                         view: () => {
-                            if (vm.wishStatus) {
-                                return html` <i class="fa-solid fa-heart"></i>
+                            if ((window as any).store_info.wishlist == false){
+                                return ``
+                            }else {
+                                if (vm.wishStatus) {
+                                    return html` <i class="fa-solid fa-heart"></i>
                                     <span>${Language.text('remove_to_wishlist')}</span>`;
-                            } else {
-                                return html` <i class="fa-regular fa-heart"></i>
+                                } else {
+                                    return html` <i class="fa-regular fa-heart"></i>
                                     <span>${Language.text('add_to_wishlist')}</span>`;
+                                }
+                                
                             }
+                            
                         },
                     })}
                 </span>
