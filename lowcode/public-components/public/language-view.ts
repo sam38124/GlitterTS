@@ -33,11 +33,11 @@ export class LanguageView {
                                                         const sup = [
                                                             {
                                                                 key: 'en-US',
-                                                                value: '英文',
+                                                                value: 'English',
                                                             },
                                                             {
                                                                 key: 'zh-CN',
-                                                                value: '簡體中文',
+                                                                value: '简体中文',
                                                             },
                                                             {
                                                                 key: 'zh-TW',
@@ -68,15 +68,6 @@ export class LanguageView {
                                                                             })}"
                                                                         >
                                                                             ${dd.value}
-                                                                            <div
-                                                                                class="position-absolute  text-white rounded-2 px-2 d-flex align-items-center rounded-3 ${dd.key !==
-                                                                                Language.getLanguage()
-                                                                                    ? `d-none`
-                                                                                    : ``}"
-                                                                                style="top: -12px;right: -10px; height:20px;font-size: 11px;background: #ff6c02;"
-                                                                            >
-                                                                                已選擇
-                                                                            </div>
                                                                         </div>
                                                                     `;
                                                                 })

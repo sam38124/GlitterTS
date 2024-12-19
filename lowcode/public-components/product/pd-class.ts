@@ -86,6 +86,7 @@ export type Content = {
     id: number;
     seo: Seo;
     type: string;
+    min_qty:number;
     specs: Spec[];
     title: string;
     token: Token;
@@ -373,13 +374,28 @@ export class PdClass {
             wishStatus: glitter.getUUID(),
             addCartButton: glitter.getUUID(),
         };
+obj.gvc.addStyle(`
 
+.insignia {
+    border-radius: 0.5rem;
+    padding: 6px 8px;
+    font-size: 14px;
+    display: inline-block;
+    font-weight: 500;
+    line-height: 1.5;
+    text-align: center;
+    white-space: normal;
+    vertical-align: baseline;
+}
+`)
         let changePage = (index: string, type: 'page' | 'home', subData: any) => {};
         gvc.glitter.getModule(new URL('./official_event/page/change-page.js', gvc.glitter.root_path).href, (cl) => {
             changePage = cl.changePage;
         });
 
-        return html` <h1 style="color: ${titleFontColor}">${prod.title}</h1>
+        return html`
+            <h1 style="color: ${titleFontColor}">${prod.title}</h1>
+            ${prod.min_qty ? `<div class="insignia w-auto mt-n2 mb-2 fw-500 fs-6 py-2" style="background: #ffe9b2;margin-left:5px;">${Language.text('min_p_count').replace('_c_',prod.min_qty)}</div>`:``}
             <h2 style="color: ${titleFontColor}">
                 ${gvc.bindView({
                     bind: ids.price,

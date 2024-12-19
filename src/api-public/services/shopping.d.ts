@@ -243,6 +243,7 @@ export declare class Shopping {
             spec: string[];
             count: number;
             sale_price: number;
+            min_qty?: number;
             collection?: string[];
             title?: string;
             preview_image?: string;

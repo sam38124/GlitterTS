@@ -423,6 +423,11 @@ export class Entry {
         callback();
     }
     static toNormalRender(glitter, vm, callback) {
+        glitter.addMtScript([
+            {
+                src: `https://unpkg.com/@lottiefiles/lottie-player@latest/dist/lottie-player.js`,
+            },
+        ], () => { }, () => { });
         if (glitter.getUrlParameter('token') && glitter.getUrlParameter('return_type') === 'resetPassword') {
             GlobalUser.token = glitter.getUrlParameter('token');
             glitter.setUrlParameter('token');

@@ -65,7 +65,9 @@ export class ProductDetail {
         //移除所有查詢
         const url = new URL(location.href);
         for (const b of url.searchParams.keys()) {
-            gvc.glitter.setUrlParameter(b, undefined);
+            if(b!=='appName'){
+                gvc.glitter.setUrlParameter(b, undefined);
+            }
         }
         const glitter = gvc.glitter;
         const isPhone = document.body.clientWidth < 768;

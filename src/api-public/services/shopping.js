@@ -271,7 +271,9 @@ class Shopping {
             query.id_list && querySql.push(`(id in (${query.id_list}))`);
             query.min_price && querySql.push(`(id in (select product_id from \`${this.app}\`.t_variants where content->>'$.sale_price'>=${query.min_price})) `);
             query.max_price && querySql.push(`(id in (select product_id from \`${this.app}\`.t_variants where content->>'$.sale_price'<=${query.max_price})) `);
+            console.log(`querySql==>`, querySql);
             const products = await this.querySql(querySql, query);
+            console.log(`products==>`, products.data);
             const productList = (Array.isArray(products.data) ? products.data : [products.data]).filter((product) => product);
             if (this.token && this.token.userID) {
                 for (const b of productList) {
@@ -799,10 +801,16 @@ class Shopping {
                             b.is_add_on_items = true;
                             add_on_items.push(b);
                         }
+                        if (pd.visible === 'false') {
+                            b.is_hidden = true;
+                        }
                         if (pd.productType.giveaway) {
                             b.is_gift = true;
                             b.sale_price = 0;
                             gift_product.push(b);
+                        }
+                        if (pd.min_qty) {
+                            b.min_qty = pd.min_qty;
                         }
                     }
                 }

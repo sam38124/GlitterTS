@@ -357,7 +357,7 @@ ${(!error.message) ? `` : `錯誤訊息:${error.message}`}${(!error.lineNumber) 
         width = width || 300;
 
         function showDrawer() {
-            (window as any).drawer.align=align
+            (window as any).drawer.align=align || 'left'
             if (align === 'right') {
                 $('.hy-drawer-content').hide();
                 setTimeout(() => {
@@ -366,7 +366,7 @@ ${(!error.message) ? `` : `錯誤訊息:${error.message}`}${(!error.lineNumber) 
                 }, 300)
             } else {
                 $('.hy-drawer-content').show();
-                $("#Navigation").hide();
+                $("#Navigation").show();
             }
         }
 

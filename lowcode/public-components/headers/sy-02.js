@@ -31,8 +31,8 @@ export class Sy02 {
         return html `
             <div style="height: 76px;"></div>
             <nav
-                class="navbar navbar-expand-lg vw-100 header header-place shadow  position-fixed top-0 left-0  py-0"
-                style="background:  ${(_a = widget.formData.theme_color['background']) !== null && _a !== void 0 ? _a : '#000'} !important;height: 76px;z-index:9999;"
+                    class="navbar navbar-expand-lg vw-100 header header-place shadow  position-fixed top-0 left-0  py-0"
+                    style="background:  ${(_a = widget.formData.theme_color['background']) !== null && _a !== void 0 ? _a : '#000'} !important;height: 76px;z-index:9999;"
             >
                 <div class="container header-place  h-100">
                     <!--LOGO顯示區塊-->
@@ -49,65 +49,68 @@ export class Sy02 {
                     bind: id,
                     view: () => {
                         var _a;
-                        return html ` <div
-                                                            class="div d-flex align-items-center flex-column w-100 p-3"
-                                                            style="border-bottom:1px solid ${widget.formData.theme_color['title']};"
-                                                        >
-                                                            <div class="d-flex align-items-center ">
-                                                                <div>
-                                                                    <div
-                                                                        class="h-100"
-                                                                        onclick="${gvc.event(() => {
+                        return html `
+                                                            <div
+                                                                    class="div d-flex align-items-center flex-column w-100 p-3"
+                                                                    style="border-bottom:1px solid ${widget.formData.theme_color['title']};"
+                                                            >
+                                                                <div class="d-flex align-items-center ">
+                                                                    <div>
+                                                                        <div
+                                                                                class="h-100"
+                                                                                onclick="${gvc.event(() => {
                             changePage('index', 'home', {});
                         })}"
-                                                                    >
-                                                                        ${widget.formData.logo.type === 'text'
+                                                                        >
+                                                                            ${widget.formData.logo.type === 'text'
                             ? html `
-                                                                                  <div
-                                                                                      class=" fw-bold d-flex align-items-center justify-content-center"
-                                                                                      style="width: 150px;    margin-bottom: 20px;font-size: 36px;color: ${(_a = widget.formData.theme_color['title']) !== null && _a !== void 0 ? _a : '#000'};"
-                                                                                  >
-                                                                                      ${widget.formData.logo.value}
-                                                                                  </div>
-                                                                              `
+                                                                                        <div
+                                                                                                class=" fw-bold d-flex align-items-center justify-content-center"
+                                                                                                style="width: 150px;    margin-bottom: 20px;font-size: 36px;color: ${(_a = widget.formData.theme_color['title']) !== null && _a !== void 0 ? _a : '#000'};"
+                                                                                        >
+                                                                                            ${widget.formData.logo.value}
+                                                                                        </div>
+                                                                                    `
                             : html `<img
-                                                                                  style="width: 150px;
+                                                                                            style="width: 150px;
     background-position: center;
     background-size: cover;
     background-repeat: no-repeat;
     border-radius: 10px;
     margin-bottom: 20px;"
-                                                                                  src="${widget.formData.logo.value}"
-                                                                              /> `}
+                                                                                            src="${widget.formData.logo.value}"
+                                                                                    /> `}
+                                                                        </div>
                                                                     </div>
                                                                 </div>
-                                                            </div>
-                                                            <div class="mb-3">${LanguageView.selectLanguage(gvc, colors)}</div>
-                                                            <div class="position-relative">
-                                                                <input
-                                                                    class="form-control fw-500 "
-                                                                    placeholder="${Language.text('find_product')}"
-                                                                    autocomplete="off"
-                                                                    value=""
-                                                                    onchange="${gvc.event((e, event) => {
+                                                                <div class="mb-3">
+                                                                    ${LanguageView.selectLanguage(gvc, colors)}
+                                                                </div>
+                                                                <div class="position-relative">
+                                                                    <input
+                                                                            class="form-control fw-500 "
+                                                                            placeholder="${Language.text('find_product')}"
+                                                                            autocomplete="off"
+                                                                            value=""
+                                                                            onchange="${gvc.event((e, event) => {
                             gvc.glitter.href = `/all-product?search=${e.value}`;
                         })}"
-                                                                />
+                                                                    />
 
-                                                                <div
-                                                                    style=" position: absolute;
+                                                                    <div
+                                                                            style=" position: absolute;
     right: 10px;
     top: 50%;
     transform: translateY(-50%);
     color: rgb(107, 114, 128);"
-                                                                >
-                                                                    <i class="fa-solid fa-magnifying-glass"></i>
+                                                                    >
+                                                                        <i class="fa-solid fa-magnifying-glass"></i>
+                                                                    </div>
                                                                 </div>
                                                             </div>
-                                                        </div>
 
-                                                        <div class="offcanvas-body p-0 ">
-                                                            ${gvc.bindView(() => {
+                                                            <div class="offcanvas-body p-0 ">
+                                                                ${gvc.bindView(() => {
                             const id = gvc.glitter.getUUID();
                             const vm = {
                                 data: [],
@@ -134,15 +137,15 @@ export class Sy02 {
                                             .map((dd) => {
                                             var _a, _b, _c, _d, _e;
                                             return html `
-                                                                                        <li
-                                                                                            style="${show_border
+                                                                                                <li
+                                                                                                        style="${show_border
                                                 ? `border-bottom: 1px solid ${(_a = widget.formData.theme_color['title']) !== null && _a !== void 0 ? _a : '#000'} !important;`
                                                 : ``}"
-                                                                                        >
-                                                                                            <div
-                                                                                                class="nav-link d-flex justify-content-between"
-                                                                                                style="padding: 16px;"
-                                                                                                onclick="${gvc.event(() => {
+                                                                                                >
+                                                                                                    <div
+                                                                                                            class="nav-link d-flex justify-content-between"
+                                                                                                            style="padding: 16px;"
+                                                                                                            onclick="${gvc.event(() => {
                                                 var _a;
                                                 if (((_a = dd.items) !== null && _a !== void 0 ? _a : []).length === 0) {
                                                     if (dd.link) {
@@ -159,10 +162,10 @@ export class Sy02 {
                                                     gvc.notifyDataChange(id);
                                                 }
                                             })}"
-                                                                                            >
-                                                                                                <div
-                                                                                                    style="color: ${(_b = widget.formData.theme_color['title']) !== null && _b !== void 0 ? _b : '#000'} !important;"
-                                                                                                    onclick="${gvc.event((e, event) => {
+                                                                                                    >
+                                                                                                        <div
+                                                                                                                style="color: ${(_b = widget.formData.theme_color['title']) !== null && _b !== void 0 ? _b : '#000'} !important;"
+                                                                                                                onclick="${gvc.event((e, event) => {
                                                 if (dd.link) {
                                                     gvc.glitter.href = dd.link;
                                                     gvc.glitter.closeDrawer();
@@ -170,19 +173,20 @@ export class Sy02 {
                                                 event.stopPropagation();
                                                 event.preventDefault();
                                             })}"
-                                                                                                >
-                                                                                                    ${dd.title}
-                                                                                                </div>
-                                                                                                ${((_c = dd.items) !== null && _c !== void 0 ? _c : []).length
-                                                ? html `<i
-                                                                                                          class="fa-solid ${dd.open ? `fa-angle-up` : `fa-angle-down`}"
-                                                                                                          style="color: ${(_d = widget.formData.theme_color['title']) !== null && _d !== void 0 ? _d : '#000'} !important;"
-                                                                                                      ></i>`
+                                                                                                        >
+                                                                                                            ${dd.title}
+                                                                                                        </div>
+                                                                                                        ${((_c = dd.items) !== null && _c !== void 0 ? _c : []).length
+                                                ? html `
+                                                                                                                    <i
+                                                                                                                            class="fa-solid ${dd.open ? `fa-angle-up` : `fa-angle-down`}"
+                                                                                                                            style="color: ${(_d = widget.formData.theme_color['title']) !== null && _d !== void 0 ? _d : '#000'} !important;"
+                                                                                                                    ></i>`
                                                 : ``}
-                                                                                            </div>
-                                                                                            ${dd.open ? `<ul class="ps-3  pb-2">${loopItems((_e = dd.items) !== null && _e !== void 0 ? _e : [], false)}</ul>` : ``}
-                                                                                        </li>
-                                                                                    `;
+                                                                                                    </div>
+                                                                                                    ${dd.open ? `<ul class="ps-3  pb-2">${loopItems((_e = dd.items) !== null && _e !== void 0 ? _e : [], false)}</ul>` : ``}
+                                                                                                </li>
+                                                                                            `;
                                         })
                                             .join('');
                                     }
@@ -195,7 +199,7 @@ export class Sy02 {
                                 },
                             };
                         })}
-                                                        </div>`;
+                                                            </div>`;
                     },
                     divCreate: {
                         class: `w-100 h-100`,
@@ -219,11 +223,14 @@ background: ${(_a = widget.formData.theme_color['background']) !== null && _a !=
             changePage('index', 'home', {});
         })}"> ${widget.formData.logo.type === 'text'
             ? html `
-                      <div class=" fw-bold d-flex align-items-center h-100 mb-1 mb-sm-auto" style="font-size: 28px;line-height: 28px;color: ${(_c = widget.formData.theme_color['title']) !== null && _c !== void 0 ? _c : '#000'};">
-                          ${widget.formData.logo.value}
-                      </div>
-                  `
-            : html ` <div class="d-flex align-items-center justify-content-center h-100 py-2"><img src="${widget.formData.logo.value}" style="height: 100%;" /></div> `}
+                                            <div class=" fw-bold d-flex align-items-center h-100 mb-1 mb-sm-auto"
+                                                 style="font-size: 28px;line-height: 28px;color: ${(_c = widget.formData.theme_color['title']) !== null && _c !== void 0 ? _c : '#000'};">
+                                                ${widget.formData.logo.value}
+                                            </div>
+                                        `
+            : html `
+                                            <div class="d-flex align-items-center justify-content-center h-100 py-2"><img
+                                                    src="${widget.formData.logo.value}" style="height: 100%;"/></div> `}
                         </div>
                         <!--選單列表顯示區塊-->
                         <ul class="navbar-nav  d-none d-md-block flex-fill ps-2" style="">
@@ -243,26 +250,29 @@ background: ${(_a = widget.formData.theme_color['background']) !== null && _a !=
                         return data
                             .map((dd) => {
                             var _a, _b;
-                            return html ` <li class="nav-item dropdown">
-                                                        <a
-                                                            class="nav-link header-link "
-                                                            style="color: ${(_a = widget.formData.theme_color['title']) !== null && _a !== void 0 ? _a : '#000'} !important;cursor: pointer;"
-                                                            onclick="${gvc.event(() => {
+                            return html `
+                                                            <li class="nav-item dropdown">
+                                                                <a
+                                                                        class="nav-link header-link "
+                                                                        style="color: ${(_a = widget.formData.theme_color['title']) !== null && _a !== void 0 ? _a : '#000'} !important;cursor: pointer;"
+                                                                        onclick="${gvc.event(() => {
                                 if (dd.link) {
                                     gvc.glitter.href = dd.link;
                                 }
                             })}"
-                                                            >${dd.title} ${dd.items.length > 0 ? `<i class="fa-solid fa-angle-down ms-2"></i>` : ``}</a
-                                                        >
-                                                        ${dd.items.length > 0
-                                ? html `<ul
-                                                                  class="dropdown-menu"
-                                                                  style="background:${(_b = widget.formData.theme_color['background']) !== null && _b !== void 0 ? _b : '#000'} !important; cursor: pointer; z-index: 99999;"
-                                                              >
-                                                                  ${loopItems(dd.items)}
-                                                              </ul>`
+                                                                >${dd.title}
+                                                                    ${dd.items.length > 0 ? `<i class="fa-solid fa-angle-down ms-2"></i>` : ``}</a
+                                                                >
+                                                                ${dd.items.length > 0
+                                ? html `
+                                                                            <ul
+                                                                                    class="dropdown-menu"
+                                                                                    style="background:${(_b = widget.formData.theme_color['background']) !== null && _b !== void 0 ? _b : '#000'} !important; cursor: pointer; z-index: 99999;"
+                                                                            >
+                                                                                ${loopItems(dd.items)}
+                                                                            </ul>`
                                 : ``}
-                                                    </li>`;
+                                                            </li>`;
                         })
                             .join('');
                     }
@@ -294,17 +304,18 @@ background: ${(_a = widget.formData.theme_color['background']) !== null && _a !=
                 bind: id,
                 view: () => {
                     var _a, _b;
-                    return html `<div
-                                                class="d-flex align-items-center justify-content-center "
-                                                style="color: ${(_a = widget.formData.theme_color['title']) !== null && _a !== void 0 ? _a : '#000'} !important;width:30px;height:30px;font-size: 15px;
+                    return html `
+                                                <div
+                                                        class="d-flex align-items-center justify-content-center "
+                                                        style="color: ${(_a = widget.formData.theme_color['title']) !== null && _a !== void 0 ? _a : '#000'} !important;width:30px;height:30px;font-size: 15px;
 border: 2px solid ${(_b = widget.formData.theme_color['title']) !== null && _b !== void 0 ? _b : '#000'} !important;
 border-radius: 50%;
 font-weight: 700 !important;
 padding-bottom: 2px;
 "
-                                            >
-                                                AI
-                                            </div>`;
+                                                >
+                                                    AI
+                                                </div>`;
                 },
                 divCreate: () => {
                     return {
@@ -335,25 +346,26 @@ padding-bottom: 2px;
                     var _a, _b;
                     if (!vm.toggle) {
                         return html `<i
-                                                        class="fa-regular fa-magnifying-glass"
-                                                        style="color: ${(_a = widget.formData.theme_color['title']) !== null && _a !== void 0 ? _a : '#000'};cursor: pointer;font-size:20px;"
-                                                        onclick="${gvc.event(() => {
+                                                            class="fa-regular fa-magnifying-glass"
+                                                            style="color: ${(_a = widget.formData.theme_color['title']) !== null && _a !== void 0 ? _a : '#000'};cursor: pointer;font-size:20px;"
+                                                            onclick="${gvc.event(() => {
                             vm.toggle = !vm.toggle;
                             gvc.notifyDataChange(vm.id);
                         })}"
                                                     ></i>`;
                     }
                     else {
-                        return html `<a class="nav-link search-container d-flex align-items-center"
-                                                        ><i
+                        return html `<a
+                                                            class="nav-link search-container d-flex align-items-center"
+                                                    ><i
                                                             class="fa-regular fa-circle-xmark"
                                                             style="color: ${(_b = widget.formData.theme_color['title']) !== null && _b !== void 0 ? _b : '#000'};cursor: pointer;font-size:20px;"
                                                             onclick="${gvc.event(() => {
                             vm.toggle = !vm.toggle;
                             gvc.notifyDataChange(vm.id);
                         })}"
-                                                        ></i
-                                                        ><input
+                                                    ></i
+                                                    ><input
                                                             class="ms-3 form-control"
                                                             style="height:40px;"
                                                             placeholder="${Language.text('input_product_keyword')}"
@@ -363,7 +375,7 @@ padding-bottom: 2px;
                             vm.toggle = !vm.toggle;
                             gvc.notifyDataChange(vm.id);
                         })}"
-                                                        />
+                                                    />
                                                     </a>`;
                     }
                 },
@@ -386,14 +398,14 @@ padding-bottom: 2px;
                 view: () => {
                     var _a;
                     return html `<span
-                                                    class="position-relative"
-                                                    onclick="${gvc.event(() => {
+                                                        class="position-relative"
+                                                        onclick="${gvc.event(() => {
                         this.rightCartMenu(gvc, widget);
                     })}"
                                                 >
                                                     <i
-                                                        class="fa-duotone fa-cart-shopping"
-                                                        style="color: ${(_a = widget.formData.theme_color['title']) !== null && _a !== void 0 ? _a : '#000'} !important;cursor: pointer;font-size:20px;"
+                                                            class="fa-duotone fa-cart-shopping"
+                                                            style="color: ${(_a = widget.formData.theme_color['title']) !== null && _a !== void 0 ? _a : '#000'} !important;cursor: pointer;font-size:20px;"
                                                     ></i>
                                                     ${gvc.bindView(() => {
                         return {
@@ -403,14 +415,16 @@ padding-bottom: 2px;
                                     getCheckoutCount((count) => {
                                         vm.count = count;
                                         resolve(vm.count
-                                            ? html ` <div class="position-absolute" style="font-size: 10px;right: -10px;top: -6px;">
-                                                                                      <div
-                                                                                          class="rounded-circle bg-danger text-white  align-items-center justify-content-center fw-500 d-flex"
-                                                                                          style="width:18px;height: 18px;color: white !important;background:#fe5541;"
-                                                                                      >
-                                                                                          ${vm.count}
-                                                                                      </div>
-                                                                                  </div>`
+                                            ? html `
+                                                                                            <div class="position-absolute"
+                                                                                                 style="font-size: 10px;right: -10px;top: -6px;">
+                                                                                                <div
+                                                                                                        class="rounded-circle bg-danger text-white  align-items-center justify-content-center fw-500 d-flex"
+                                                                                                        style="width:18px;height: 18px;color: white !important;background:#fe5541;"
+                                                                                                >
+                                                                                                    ${vm.count}
+                                                                                                </div>
+                                                                                            </div>`
                                             : ``);
                                     });
                                 });
@@ -473,14 +487,17 @@ border-radius: 5px;"
             visible: ((_l = obj === null || obj === void 0 ? void 0 : obj.text) === null || _l === void 0 ? void 0 : _l.visible) === false ? false : true,
             fontSize: (_o = (_m = obj === null || obj === void 0 ? void 0 : obj.text) === null || _m === void 0 ? void 0 : _m.fontSize) !== null && _o !== void 0 ? _o : 16,
         };
-        return html ` <div class="d-flex align-items-center justify-content-center flex-column w-100 mx-auto ${container.class}" style="${container.style}">
-            <div
-                class="spinner-border ${circleAttr.visible ? '' : 'd-none'}"
-                style="font-size: ${circleAttr.borderSize}px; width: ${circleAttr.width}px; height: ${circleAttr.width}px;"
-                role="status"
-            ></div>
-            <span class="mt-3 ${textAttr.visible ? '' : 'd-none'}" style="font-size: ${textAttr.fontSize}px;">${textAttr.value}</span>
-        </div>`;
+        return html `
+            <div class="d-flex align-items-center justify-content-center flex-column w-100 mx-auto ${container.class}"
+                 style="${container.style}">
+                <div
+                        class="spinner-border ${circleAttr.visible ? '' : 'd-none'}"
+                        style="font-size: ${circleAttr.borderSize}px; width: ${circleAttr.width}px; height: ${circleAttr.width}px;"
+                        role="status"
+                ></div>
+                <span class="mt-3 ${textAttr.visible ? '' : 'd-none'}"
+                      style="font-size: ${textAttr.fontSize}px;">${textAttr.value}</span>
+            </div>`;
     }
     static isImageUrlValid(url) {
         return new Promise((resolve) => {
@@ -582,91 +599,122 @@ border-radius: 5px;"
             return {
                 bind: vm.id,
                 view: () => {
-                    if (vm.loading) {
-                        return this.spinner();
+                    try {
+                        if (vm.loading) {
+                            return `<div class="w-100 vh-100 bg-white">
+${this.spinner()}
+</div>`;
+                        }
+                        else {
+                            return html `
+                                    <div class="" style="position: relative;">
+                                        <div class="${classPrefix}-cart-container align-items-center">
+                                            <div class="d-flex align-items-center justify-content-center fs-5 py-3 px-2" style="cursor:pointer;" onclick="${gvc.event(() => {
+                                gvc.glitter.closeDrawer();
+                            })}">
+                                                <i class="fa-sharp fa-solid fa-angle-left"></i>
+                                            </div>
+                                            <div class="${classPrefix}-cart-title">${Language.text('cart')}</div>
+                                            <div class="flex-fill"></div>
+                                            <button
+                                                    class="${classPrefix}-button"
+                                                    type="button"
+                                                    onclick="${gvc.event(() => {
+                                window.drawer.close();
+                                gvc.glitter.href = '/checkout';
+                            })}"
+                                            >
+                                                ${Language.text('proceed_to_checkout')}
+                                            </button>
+                                        </div>
+                                        ${(() => {
+                                if (vm.dataList.length === 0) {
+                                    return `<div class="container d-flex align-items-center justify-content-center flex-column">
+                                        <lottie-player
+                                            style="max-width: 100%; width: 300px; height: 300px;"
+                                            src="https://lottie.host/38ba8340-3414-41b8-b068-bba18d240bb3/h7e1Q29IQJ.json"
+                                            speed="1"
+                                            loop=""
+                                            autoplay=""
+                                            background="transparent"
+                                        ></lottie-player>
+                                        <div class="mt-3 fw-bold">${Language.text('empty_cart_message')}</div>
+                                    </div>`;
+                                }
+                                else {
+                                    return vm.dataList.map((item, index) => {
+                                        return html `
+                                                        <div class="d-flex align-items-center  px-3 position-relative" style="gap:12px;">
+                                                            <div class="position-absolute" style="right:13px;top:0px;cursor:pointer;" onclick="${gvc.event(() => {
+                                            ApiCart.setCart((cartItem) => {
+                                                cartItem.line_items = cartItem.line_items.filter((dd) => {
+                                                    return !(dd.id === item.id && item.spec.join('') === dd.spec.join(''));
+                                                });
+                                                refreshView();
+                                            });
+                                        })}">
+                                                                <i class="fa-regular fa-trash-can"></i>
+                                                            </div>
+                                                            <div class="d-none" style="width: 10%">
+                                                                <i
+                                                                        class="fa-solid fa-xmark-large"
+                                                                        style="cursor: pointer;"
+                                                                        onclick="${gvc.event(() => {
+                                            ApiCart.setCart((cartItem) => {
+                                                cartItem.line_items = cartItem.line_items.filter((dd) => {
+                                                    return !(dd.id === item.id && item.spec.join('') === dd.spec.join(''));
+                                                });
+                                                refreshView();
+                                            });
+                                        })}"
+                                                                ></i>
+                                                            </div>
+                                                            <div class="d-flex" style="">
+                                                                <img src="${item.image}" class="${classPrefix}-wh rounded-3">
+                                                            </div>
+                                                            <div class="d-flex flex-column gap-1 flex-fill" >
+                                                                <div class="${classPrefix}-title">${item.title}</div>
+                                                                <div class="${classPrefix}-spec">
+                                                                    ${item.spec.join(' / ')}
+                                                                </div>
+                                                                <div class="d-flex align-items-center justify-content-between">
+                                                                    <div class="d-flex align-items-center gap-1">
+                                                                        數量：<select
+                                                                            class="${classPrefix}-select"
+                                                                            style="width: 100px;"
+                                                                            onchange="${gvc.event((e) => {
+                                            ApiCart.setCart((cartItem) => {
+                                                cartItem.line_items.find((dd) => {
+                                                    return (`${dd.id}` === `${item.id}`) && (item.spec.join('') === dd.spec.join(''));
+                                                }).count = parseInt(e.value, 10);
+                                                refreshView();
+                                            });
+                                        })}"
+                                                                    >
+                                                                        ${[...new Array(99)]
+                                            .map((_, index) => {
+                                            return html `
+                                                                                        <option value="${index + 1}"
+                                                                                                ${index + 1 === item.count ? `selected` : ``}>
+                                                                                            ${index + 1}
+                                                                                        </option>`;
+                                        })
+                                            .join('')}
+                                                                    </select>
+                                                                    </div>
+                                                                    NT$ ${(item.price * item.count).toLocaleString()}
+                                                                </div>
+                                                            </div>
+                                                        </div>`;
+                                    }).join(`<div class="w-100 border-top my-3"></div>`);
+                                }
+                            })()}
+                                    </div>`;
+                        }
                     }
-                    else {
-                        return html `<div class="mt-2" style="position: relative;">
-                                    <div class="${classPrefix}-cart-container">
-                                        <div class="${classPrefix}-cart-title">購物車詳細</div>
-                                        <div class="flex-fill"></div>
-                                        <button
-                                            class="${classPrefix}-button"
-                                            type="button"
-                                            onclick="${gvc.event(() => {
-                            window.drawer.close();
-                            gvc.glitter.href = '/checkout';
-                        })}"
-                                        >
-                                            前往購物車
-                                        </button>
-                                    </div>
-                                    ${gvc.map(vm.dataList.map((item, index) => {
-                            return html `<div class="d-flex align-items-center mb-4 px-3">
-                                                <div class="d-flex" style="width: 10%">
-                                                    <i
-                                                        class="fa-solid fa-xmark-large"
-                                                        style="cursor: pointer;"
-                                                        onclick="${gvc.event(() => {
-                                ApiCart.setCart((cartItem) => {
-                                    cartItem.line_items = cartItem.line_items.filter((dd) => {
-                                        return !(dd.id === item.id && item.spec.join('') === dd.spec.join(''));
-                                    });
-                                    refreshView();
-                                });
-                            })}"
-                                                    ></i>
-                                                </div>
-                                                <div class="d-flex" style="width: 22%">
-                                                    ${gvc.bindView(() => {
-                                return {
-                                    bind: vm.imageId,
-                                    view: () => {
-                                        return '';
-                                    },
-                                    divCreate: {
-                                        elem: 'img',
-                                        class: `${classPrefix}-wh`,
-                                        option: [
-                                            {
-                                                key: 'src',
-                                                value: item.image,
-                                            },
-                                        ],
-                                    },
-                                };
-                            })}
-                                                </div>
-                                                <div class="d-flex flex-column gap-1" style="width: 68%">
-                                                    <div class="${classPrefix}-title">${item.title}</div>
-                                                    <div class="${classPrefix}-spec">${item.spec.join(' / ')}</div>
-                                                    <div class="d-flex align-items-center justify-content-between">
-                                                        <div class="d-flex align-items-center gap-1">
-                                                            數量：<select
-                                                                class="${classPrefix}-select"
-                                                                style="width: 100px;"
-                                                                onchange="${gvc.event((e) => {
-                                ApiCart.setCart((cartItem) => {
-                                    cartItem.line_items.find((dd) => {
-                                        return dd.id === item.id && item.spec.join('') === dd.spec.join('');
-                                    }).count = parseInt(e.value, 10);
-                                    refreshView();
-                                });
-                            })}"
-                                                            >
-                                                                ${[...new Array(99)]
-                                .map((_, index) => {
-                                return html ` <option value="${index + 1}" ${index + 1 === item.count ? `selected` : ``}>${index + 1}</option>`;
-                            })
-                                .join('')}
-                                                            </select>
-                                                        </div>
-                                                        NT$ ${(item.price * item.count).toLocaleString()}
-                                                    </div>
-                                                </div>
-                                            </div>`;
-                        }))}
-                                </div>`;
+                    catch (e) {
+                        console.log(e);
+                        return `${e}`;
                     }
                 },
                 divCreate: {},
@@ -678,32 +726,36 @@ border-radius: 5px;"
                             ApiShop.getProduct({
                                 page: 0,
                                 limit: 10000,
+                                status: 'inRange',
+                                show_hidden: true,
                                 id_list: [...new Set(cart.line_items.map((item) => item.id))].join(','),
                             })
                                 .then((data) => __awaiter(this, void 0, void 0, function* () {
                                 if (data.result && data.response) {
                                     const products = data.response.data;
                                     for (const item of cart.line_items) {
-                                        const product = products.find((p) => p.id === item.id);
-                                        const variant = product.content.variants.find((v) => {
-                                            return v.spec.slice().sort().join(',') === item.spec.slice().sort().join(',');
-                                        });
-                                        vm.dataList.push({
-                                            id: item.id,
-                                            title: product.content.title,
-                                            count: item.count,
-                                            spec: item.spec,
-                                            price: variant ? variant.sale_price : 0,
-                                            image: yield (() => __awaiter(this, void 0, void 0, function* () {
-                                                if (!variant) {
-                                                    return this.noImageURL;
-                                                }
-                                                const img = yield this.isImageUrlValid(variant.preview_image).then((isValid) => {
-                                                    return isValid ? variant.preview_image : this.noImageURL;
-                                                });
-                                                return img;
-                                            }))(),
-                                        });
+                                        const product = products.find((p) => `${p.id}` === `${item.id}`);
+                                        if (product) {
+                                            const variant = product.content.variants.find((v) => {
+                                                return v.spec.join(',') === item.spec.join(',');
+                                            });
+                                            vm.dataList.push({
+                                                id: item.id,
+                                                title: product.content.title,
+                                                count: item.count,
+                                                spec: item.spec,
+                                                price: variant ? variant.sale_price : 0,
+                                                image: yield (() => __awaiter(this, void 0, void 0, function* () {
+                                                    if (!variant) {
+                                                        return this.noImageURL;
+                                                    }
+                                                    const img = yield this.isImageUrlValid(variant.preview_image).then((isValid) => {
+                                                        return isValid ? variant.preview_image : (product.content.preview_image[0] || this.noImageURL);
+                                                    });
+                                                    return img;
+                                                }))(),
+                                            });
+                                        }
                                     }
                                     resolve();
                                 }
@@ -718,7 +770,15 @@ border-radius: 5px;"
                 },
             };
         })()), () => {
-            gvc.glitter.openDrawer(400);
+            if (document.body.clientWidth > 800) {
+                gvc.glitter.openDrawer(400);
+            }
+            else if (document.body.clientWidth < 600) {
+                gvc.glitter.openDrawer(document.body.clientWidth);
+            }
+            else {
+                gvc.glitter.openDrawer(document.body.clientWidth * 0.8);
+            }
         });
     }
 }

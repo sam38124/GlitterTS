@@ -92,6 +92,9 @@ export class Language {
     }
     static languageDataList() {
         return [
+            { key: 'cart', tw: '購物車', cn: '购物车', en: `Cart` },
+            { key: 'min_p_count_d', tw: '_p_ 最少購買數量為_c_件', cn: '_p_ 最少购买数量为_c_件', en: `_p_ Minimum purchase quantity is _c_ pieces.` },
+            { key: 'min_p_count', tw: '此商品最少購買數量為_c_件', cn: '此商品最少购买数量为_c_件', en: `Minimum purchase quantity is _c_ pieces.` },
             { key: 'ship_HILIFEC2C', tw: '萊爾富店到店', cn: '莱尔富店到店', en: `Hi-Life Store-to-Store Delivery` },
             { key: 'ship_OKMARTC2C', tw: 'OK超商店到店', cn: 'OK超商店到店', en: `OK Mart Store-to-Store Delivery` },
             { key: 'ship_UNIMARTC2C', tw: '7-ELEVEN超商交貨便', cn: '7-ELEVEN便利店送货便', en: `7-ELEVEN Store Delivery Service` },
@@ -204,6 +207,7 @@ export class Language {
             { key: 'phone_format_starting_with_09', tw: '09 開頭的手機格式', cn: '以 09 開头的手机格式', en: 'Phone format starting with 09' },
             { key: 'addon', tw: '加購品', cn: '加购品', en: 'Addon' },
             { key: 'gift', tw: '贈品', cn: '赠品', en: 'Gift' },
+            { key: 'hidden_goods', tw: '隱形商品', cn: '隐形商品', en: 'Hidden goods' },
             { key: 'selected', tw: '已選擇', cn: '已选择', en: 'Selected' },
             { key: 'change_gift', tw: '更換贈品', cn: '更换赠品', en: 'Change gift' },
             { key: 'select_gift', tw: '選擇贈品', cn: '选择赠品', en: 'Select gift' },
@@ -371,7 +375,7 @@ export class Language {
             { key: 'paid', tw: '已付款', cn: '已付款', en: 'Paid' },
             { key: 'payment_failed', tw: '付款失敗', cn: '付款失败', en: 'Payment Failed' },
             { key: 'refunded', tw: '已退款', cn: '已退款', en: 'Refunded' },
-            { key: 'proceed_to_checkout', tw: '前往結帳', cn: '前往结账', en: 'Proceed to Checkout' },
+            { key: 'proceed_to_checkout', tw: '前往結帳', cn: '前往结账', en: 'Checkout' },
             { key: 'customer_information', tw: '顧客資訊', cn: '顾客信息', en: 'Customer Information' },
             { key: 'shipping_information', tw: '配送資訊', cn: '配送信息', en: 'Shipping Information' },
             { key: 'store_number', tw: '門市店號', cn: '门市店号', en: 'Store Number' },

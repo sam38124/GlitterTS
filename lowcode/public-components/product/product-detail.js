@@ -56,7 +56,9 @@ export class ProductDetail {
         ProductDetail.titleFontColor = (_a = gvc.glitter.share.globalValue['theme_color.0.title']) !== null && _a !== void 0 ? _a : '#333333';
         const url = new URL(location.href);
         for (const b of url.searchParams.keys()) {
-            gvc.glitter.setUrlParameter(b, undefined);
+            if (b !== 'appName') {
+                gvc.glitter.setUrlParameter(b, undefined);
+            }
         }
         const glitter = gvc.glitter;
         const isPhone = document.body.clientWidth < 768;

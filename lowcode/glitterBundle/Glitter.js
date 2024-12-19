@@ -781,7 +781,7 @@ ${(!error.message) ? `` : `錯誤訊息:${error.message}`}${(!error.lineNumber) 
     openDrawer(width, align) {
         width = width || 300;
         function showDrawer() {
-            window.drawer.align = align;
+            window.drawer.align = align || 'left';
             if (align === 'right') {
                 $('.hy-drawer-content').hide();
                 setTimeout(() => {
@@ -791,7 +791,7 @@ ${(!error.message) ? `` : `錯誤訊息:${error.message}`}${(!error.lineNumber) 
             }
             else {
                 $('.hy-drawer-content').show();
-                $("#Navigation").hide();
+                $("#Navigation").show();
             }
         }
         if (window.drawer !== undefined) {

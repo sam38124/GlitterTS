@@ -107,6 +107,12 @@ export class CheckoutIndex {
             </div>`;
         }
 
+        function hiddenBadge() {
+            return html`<div class="${gClass('add-item-badge')}" style="background: #EAEAEA;color:white !important;">
+                <div class="${gClass('add-item-text')}">${Language.text('hidden_goods')}</div>
+            </div>`;
+        }
+
         function addStyle() {
             gvc.addStyle(`
                 .${classPrefix}-container {
@@ -620,12 +626,15 @@ export class CheckoutIndex {
                                                                     vm.goodsWeight = 0;
                                                                     return vm.cartData.lineItems
                                                                         .map((item: any, index: number) => {
+                                                                            // min_qty
                                                                             function getBadgeClass() {
                                                                                 if (item.is_add_on_items) {
                                                                                     return addItemBadge();
                                                                                 } else if (item.is_gift) {
                                                                                     return giftBadge();
-                                                                                } else {
+                                                                                } else if(item.is_hidden){
+                                                                                    return hiddenBadge();
+                                                                                }else{
                                                                                     return ``;
                                                                                 }
                                                                             }
@@ -768,6 +777,20 @@ export class CheckoutIndex {
                                                                                                 return `<div class="fs-6 w-100 " ><i class="fa-solid fa-tickets-perforated  me-2"></i>${dd.title}</div>`;
                                                                                             })
                                                                                             .join('<div class="my-1"></div>')}
+                                                                                        ${(()=>{
+                                                                                            let min= (item.min_qty && parseInt(item.min_qty,10)) || 1;
+                                                                                            let count=0;
+                                                                                            for (const b of vm.cartData.lineItems){
+                                                                                                if(b.id===item.id){
+                                                                                                    count+=b.count
+                                                                                                }
+                                                                                            }
+                                                                                            if(count<min){
+                                                                                                return `<div class="text-danger">${Language.text('min_p_count').replace('_c_',min)}</div>`
+                                                                                            }else{
+                                                                                                return ``
+                                                                                            }
+                                                                                        })()}
                                                                                     </div>
                                                                                 </div>
                                                                             `;
@@ -2355,8 +2378,24 @@ export class CheckoutIndex {
                                         <button
                                             class="${gClass('button-bgr')}"
                                             onclick="${gvc.event(() => {
+                                                const dialog = new ShareDialog(gvc.glitter);
                                                 if (!this.checkFormData(gvc, vm.cartData, widget)) {
                                                     return;
+                                                }
+                                                for (const item of vm.cartData.lineItems){
+                                                    const title = (item.language_data && item.language_data[Language.getLanguage()].title) || item.title;
+                                                    let min= (item.min_qty && parseInt(item.min_qty,10)) || 1;
+                                                    let count=0;
+                                                    for (const b of vm.cartData.lineItems){
+                                                        if(b.id===item.id){
+                                                            count+=b.count
+                                                        }
+                                                        
+                                                    }
+                                                    if(count<min){
+                                                        dialog.errorMessage({text:Language.text('min_p_count_d').replace('_c_',min).replace('_p_',`『${title}』`)})
+                                                        return 
+                                                    }
                                                 }
                                                 if (vm.cartData.user_info_same) {
                                                     vm.cartData.user_info.name = vm.cartData.customer_info.name;
@@ -2368,7 +2407,6 @@ export class CheckoutIndex {
                                                         vm.cartData.user_info[dd] = decodeURI(glitter.getUrlParameter(dd));
                                                     }
                                                 });
-                                                const dialog = new ShareDialog(gvc.glitter);
 
                                                 dialog.dataLoading({ visible: true });
 
