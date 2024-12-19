@@ -2,6 +2,8 @@ import { GVC } from '../../glitterBundle/GVController.js';
 import { ApiUser } from '../../glitter-base/route/user.js';
 import { AiSearch } from '../ai/ai-search.js';
 import { Language } from '../../glitter-base/global/language.js';
+import {LanguageView} from "../public/language-view.js";
+import {Color} from "../public/color.js";
 
 const html = String.raw;
 
@@ -246,48 +248,7 @@ background: ${widget.formData.theme_color['background'] ?? '#000'};overflow-x: h
                         <div class="d-flex align-items-center ms-auto">
                             <!--固定按鈕顯示區塊-->
                             <ul class="navbar-nav flex-row ms-auto">
-                                ${gvc.bindView(() => {
-                                    const id = gvc.glitter.getUUID();
-                                    const vm = {
-                                        visible: false,
-                                    };
-                                    ApiUser.getPublicConfig('store-information', 'manager').then((res) => {
-                                        if (res.response.value.ai_search) {
-                                            vm.visible = true;
-                                            gvc.notifyDataChange(id);
-                                        }
-                                    });
-                                    return {
-                                        bind: id,
-                                        view: () => {
-                                            return html`<div
-                                                class="d-flex align-items-center justify-content-center "
-                                                style="color: ${widget.formData.theme_color['title'] ?? '#000'} !important;width:30px;height:30px;font-size: 15px;
-border: 2px solid ${widget.formData.theme_color['title'] ?? '#000'} !important;
-border-radius: 50%;
-font-weight: 700 !important;
-padding-bottom: 2px;
-"
-                                            >
-                                                AI
-                                            </div>`;
-                                        },
-                                        divCreate: () => {
-                                            return {
-                                                class: `nav-item  ${vm.visible ? `d-flex` : `d-none`} align-items-center justify-content-center`,
-                                                style: `width:48px !important;cursor: pointer;`,
-                                                option: [
-                                                    {
-                                                        key: 'onclick',
-                                                        value: gvc.event(() => {
-                                                            AiSearch.searchProduct(gvc);
-                                                        }),
-                                                    },
-                                                ],
-                                            };
-                                        },
-                                    };
-                                })}
+                            <div class="mt-n2">   ${LanguageView.selectLanguage(gvc, Color.getTheme(gvc, widget.formData))}</div>
                                
                             </ul>
                         </div>
