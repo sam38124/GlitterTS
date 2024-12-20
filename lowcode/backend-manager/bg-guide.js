@@ -808,11 +808,13 @@ export class BgGuide {
                             }                         
                         `);
         this.detectClickThrough(target, () => {
+            let loadingCheck = false;
             if (window === null || window === void 0 ? void 0 : window.loading) {
+                close();
                 let timer1 = setInterval(() => {
-                    if (document.querySelector('.dialog-success')) {
+                    if (!loadingCheck && document.querySelector('.dialog-success')) {
+                        loadingCheck = true;
                         setTimeout(() => {
-                            close();
                             this.finGuide(key);
                             this.leaveGuide(vm, 0);
                             clearInterval(timer1);
@@ -2205,6 +2207,15 @@ export class BgGuide {
                     }
                     case 4: {
                         let that = this;
+                        let target = this.findIframeDom('.guide3-4');
+                        target.scrollIntoView({});
+                        return this.drawBGwithBelowWindow(BG, vm, '.guide3-4', 'shipInit', 4, 5, {
+                            width: 332,
+                            height: 189,
+                            title: '填寫配送說明',
+                            content: '填寫詳細配送說明，將會出現在結帳頁供顧客閱讀',
+                        }, () => {
+                        });
                         const scrollEvent = this.disableScroll();
                         function close() {
                             BG.classList.remove(`guide3-4`);
@@ -2217,8 +2228,6 @@ export class BgGuide {
                             gvc.notifyDataChange('shipInit');
                         }
                         let iframeRect = iframe.getBoundingClientRect();
-                        let target = this.findIframeDom('.guide3-4');
-                        target.scrollIntoView({});
                         let rect = target.getBoundingClientRect();
                         let left = rect.left + iframeRect.left;
                         let top = rect.top + iframeRect.top;
