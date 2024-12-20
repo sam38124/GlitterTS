@@ -241,267 +241,272 @@ export class ProductExcel {
         });
 
         reader.onload = async (e) => {
-            const arrayBuffer = e.target!.result;
-            const workbook = new this.ExcelJS.Workbook();
-            await workbook.xlsx.load(arrayBuffer);
-            const worksheet = workbook.getWorksheet(1);
+           try {
+               const arrayBuffer = e.target!.result;
+               const workbook = new this.ExcelJS.Workbook();
+               await workbook.xlsx.load(arrayBuffer);
+               const worksheet = workbook.getWorksheet(1);
 
-            const data: any = [];
-            worksheet.eachRow({ includeEmpty: true }, (row: any, rowNumber: any) => {
-                const rowData: any = [];
-                row.eachCell({ includeEmpty: true }, (cell: any, colNumber: any) => {
-                    rowData.push(cell.value);
-                });
-                const isEmptyRow = rowData.every((cellValue: any) => cellValue === null || cellValue === '');
-                if (!isEmptyRow) {
-                    data.push(rowData);
-                }
-            });
-            let error = false;
-            let addCollection: any = [];
-            let postMD: {
-                title: string;
-                productType: {
-                    product: boolean;
-                    addProduct: boolean;
-                    giveaway: boolean;
-                };
-                content: string;
-                preview_image: string;
-                hideIndex: string;
-                collection: string[];
-                status: 'active' | 'draft';
-                specs: { title: string; option: any }[];
-                variants: Variant[];
-                seo: {
-                    title: string;
-                    content: string;
-                    keywords: string;
-                };
-                template: string;
-            }[] = [];
-            let productData: any = {};
-            const getVariantData: () => Variant = () => {
-                return {
-                    barcode: '',
-                    compare_price: 0,
-                    cost: 0,
-                    preview_image: '',
-                    profit: 0,
-                    sale_price: 0,
-                    shipment_type: 'weight',
-                    show_understocking: '',
-                    sku: '',
-                    spec: [],
-                    stock: 0,
-                    type: '',
-                    v_height: 0,
-                    v_length: 0,
-                    v_width: 0,
-                    weight: 0,
-                };
-            };
-            function errorCallback(
-                text: string,
-                obj?: {
-                    warningMessageView?: boolean;
-                }
-            ) {
-                error = true;
-                dialog.dataLoading({ visible: false });
-                if (obj && obj.warningMessageView) {
-                    dialog.warningMessage({ text, callback: () => {} });
-                } else {
-                    dialog.infoMessage({ text });
-                }
-            }
+               const data: any = [];
+               worksheet.eachRow({ includeEmpty: true }, (row: any, rowNumber: any) => {
+                   const rowData: any = [];
+                   row.eachCell({ includeEmpty: true }, (cell: any, colNumber: any) => {
+                       rowData.push(cell.value);
+                   });
+                   const isEmptyRow = rowData.every((cellValue: any) => cellValue === null || cellValue === '');
+                   if (!isEmptyRow) {
+                       data.push(rowData);
+                   }
+               });
+               let error = false;
+               let addCollection: any = [];
+               let postMD: {
+                   title: string;
+                   productType: {
+                       product: boolean;
+                       addProduct: boolean;
+                       giveaway: boolean;
+                   };
+                   content: string;
+                   preview_image: string;
+                   hideIndex: string;
+                   collection: string[];
+                   status: 'active' | 'draft';
+                   specs: { title: string; option: any }[];
+                   variants: Variant[];
+                   seo: {
+                       title: string;
+                       content: string;
+                       keywords: string;
+                   };
+                   template: string;
+               }[] = [];
+               let productData: any = {};
+               const getVariantData: () => Variant = () => {
+                   return {
+                       barcode: '',
+                       compare_price: 0,
+                       cost: 0,
+                       preview_image: '',
+                       profit: 0,
+                       sale_price: 0,
+                       shipment_type: 'weight',
+                       show_understocking: '',
+                       sku: '',
+                       spec: [],
+                       stock: 0,
+                       type: '',
+                       v_height: 0,
+                       v_length: 0,
+                       v_width: 0,
+                       weight: 0,
+                   };
+               };
+               function errorCallback(
+                   text: string,
+                   obj?: {
+                       warningMessageView?: boolean;
+                   }
+               ) {
+                   error = true;
+                   dialog.dataLoading({ visible: false });
+                   if (obj && obj.warningMessageView) {
+                       dialog.warningMessage({ text, callback: () => {} });
+                   } else {
+                       dialog.infoMessage({ text });
+                   }
+               }
 
-            // 商品連結若為空，則預設值為商品名稱
-            const domainList = data.map((item: string[]) => {
-                if (CheckInput.isEmpty(item[5])) {
-                    item[5] = item[0];
-                }
-                return item[5];
-            });
+               // 商品連結若為空，則預設值為商品名稱
+               const domainList = data.map((item: string[]) => {
+                   if (CheckInput.isEmpty(item[5])) {
+                       item[5] = item[0];
+                   }
+                   return `${item[5]}`;
+               });
 
-            // 判斷excel中是否有重複的domain
-            const filteredArr = domainList.filter((item: string) => {
-                return item && item.length > 0 && item.trim().length > 0;
-            });
+               // 判斷excel中是否有重複的domain
+               const filteredArr = domainList.filter((item: string) => {
+                   return item && item.length > 0 && item.trim().length > 0;
+               });
 
-            // 過濾掉空白字串
-            const hasDuplicates = new Set(filteredArr).size !== filteredArr.length;
-            if (hasDuplicates) {
-                errorCallback('「商品連結」的值不可重複<br/>如果「商品連結」為空，預設值為該商品的「商品名稱」<br/>則該「商品名稱」不可與其它「商品連結」重複', {
-                    warningMessageView: true,
-                });
-            }
+               // 過濾掉空白字串
+               const hasDuplicates = new Set(filteredArr).size !== filteredArr.length;
+               if (hasDuplicates) {
+                   errorCallback('「商品連結」的值不可重複<br/>如果「商品連結」為空，預設值為該商品的「商品名稱」<br/>則該「商品名稱」不可與其它「商品連結」重複', {
+                       warningMessageView: true,
+                   });
+               }
 
-            // 判斷已建立產品中是否有重複存在的domain
-            const productDomainSet = new Set(allProductDomain);
-            const duplicateDomain = domainList.find((domain: string) => domain.length > 0 && productDomainSet.has(domain));
-            if (duplicateDomain) {
-                errorCallback(`商品連結「${duplicateDomain}」已有產品使用，請更換該欄位的值`);
-            }
+               // 判斷已建立產品中是否有重複存在的domain
+               const productDomainSet = new Set(allProductDomain);
+               const duplicateDomain = domainList.find((domain: string) => domain.length > 0 && productDomainSet.has(domain));
+               if (duplicateDomain) {
+                   errorCallback(`商品連結「${duplicateDomain}」已有產品使用，請更換該欄位的值`);
+               }
 
-            data.forEach((row: any, index: number) => {
-                const variantData = getVariantData();
-                if (index != 0) {
-                    if (row[1]) {
-                        if (Object.keys(productData).length != 0) {
-                            postMD.push(productData);
-                        }
-                        addCollection = [];
-                        productData = {
-                            title: '',
-                            productType: {
-                                product: false,
-                                addProduct: false,
-                                giveaway: false,
-                            },
-                            visible: 'true',
-                            content: '',
-                            status: 'active',
-                            collection: [],
-                            hideIndex: 'false',
-                            preview_image: '',
-                            specs: [],
-                            variants: [],
-                            seo: {
-                                domain: '',
-                                title: '',
-                                content: '',
-                                keywords: '',
-                            },
-                            template: '',
-                        };
+               data.forEach((row: any, index: number) => {
+                   const variantData = getVariantData();
+                   if (index != 0) {
+                       if (row[1]) {
+                           if (Object.keys(productData).length != 0) {
+                               postMD.push(productData);
+                           }
+                           addCollection = [];
+                           productData = {
+                               title: '',
+                               productType: {
+                                   product: false,
+                                   addProduct: false,
+                                   giveaway: false,
+                               },
+                               visible: 'true',
+                               content: '',
+                               status: 'active',
+                               collection: [],
+                               hideIndex: 'false',
+                               preview_image: '',
+                               specs: [],
+                               variants: [],
+                               seo: {
+                                   domain: '',
+                                   title: '',
+                                   content: '',
+                                   keywords: '',
+                               },
+                               template: '',
+                           };
 
-                        productData.title = this.checkString(row[0]);
-                        productData.status = row[1] == '啟用' ? 'active' : 'draft';
-                        productData.collection = row[2].split(',') ?? [];
-                        const regex = /[\s\/\\]+/g;
-                        // 去除多餘空白
-                        productData.collection = productData.collection.map((item: string) => item.replace(/\s+/g, ''));
-                        productData.collection.forEach((row: any) => {
-                            let collection = row.replace(/\s+/g, '');
-                            if (regex.test(collection)) {
-                                errorCallback(`第${index + 1}行的類別名稱不可包含空白格與以下符號：「 / 」「 \\ 」，並以「 , 」區分不同類別`);
-                                return;
-                            }
+                           productData.title = this.checkString(row[0]);
+                           productData.status = row[1] == '啟用' ? 'active' : 'draft';
+                           productData.collection = row[2].split(',') ?? [];
+                           const regex = /[\s\/\\]+/g;
+                           // 去除多餘空白
+                           productData.collection = productData.collection.map((item: string) => item.replace(/\s+/g, ''));
+                           productData.collection.forEach((row: any) => {
+                               let collection = row.replace(/\s+/g, '');
+                               if (regex.test(collection)) {
+                                   errorCallback(`第${index + 1}行的類別名稱不可包含空白格與以下符號：「 / 」「 \\ 」，並以「 , 」區分不同類別`);
+                                   return;
+                               }
 
-                            // 若帶有/，要自動加上父類
-                            function splitStringIncrementally(input: string): string[] {
-                                const parts = input.split('/');
-                                const result: string[] = [];
+                               // 若帶有/，要自動加上父類
+                               function splitStringIncrementally(input: string): string[] {
+                                   const parts = input.split('/');
+                                   const result: string[] = [];
 
-                                // 使用 reduce 来构建每一部分的拼接字符串
-                                parts.reduce((acc, part) => {
-                                    const newAcc = acc ? `${acc}/${part}` : part;
-                                    result.push(newAcc);
-                                    return newAcc;
-                                }, '');
+                                   // 使用 reduce 来构建每一部分的拼接字符串
+                                   parts.reduce((acc, part) => {
+                                       const newAcc = acc ? `${acc}/${part}` : part;
+                                       result.push(newAcc);
+                                       return newAcc;
+                                   }, '');
 
-                                return result;
-                            }
+                                   return result;
+                               }
 
-                            if (collection.split('/').length > 1) {
-                                // 會進來代表有/的內容 需要檢查放進去的collection有沒有父類
-                                // 先取得目前分層 例如 貓/貓用品/貓砂/A品牌 會拆分成 貓/貓用品/貓砂 , 貓/貓用品, 貓
-                                // 然後把父層自動推進去
-                                let check = splitStringIncrementally(collection);
-                                const newItems = check.filter((item: string) => !productData.collection.includes(item));
-                                addCollection.push(...newItems);
-                            }
-                            addCollection.push(collection);
-                        });
-                        productData.collection = addCollection;
-                        switch (row[3]) {
-                            case '贈品':
-                                productData.productType.giveaway = true;
-                                break;
-                            case '加購品':
-                                productData.productType.addProduct = true;
-                                break;
-                            case '隱形賣場':
-                                productData.productType.product = true;
-                                productData.visible = 'false';
-                                break;
-                            default:
-                                productData.productType.product = true;
-                                break;
-                        }
-                        productData.preview_image = row[4] ? [row[4]] : ['商品圖片'];
-                        productData.seo.domain = this.checkString(row[5]);
-                        productData.seo.title = this.checkString(row[6]);
-                        productData.seo.content = this.checkString(row[7]);
-                        // spec值 merge
-                        let indices = [8, 10, 12];
-                        indices.forEach((index) => {
-                            if (row[index]) {
-                                productData.specs.push({
-                                    title: row[index],
-                                    option: [],
-                                });
-                            }
-                        });
-                    }
+                               if (collection.split('/').length > 1) {
+                                   // 會進來代表有/的內容 需要檢查放進去的collection有沒有父類
+                                   // 先取得目前分層 例如 貓/貓用品/貓砂/A品牌 會拆分成 貓/貓用品/貓砂 , 貓/貓用品, 貓
+                                   // 然後把父層自動推進去
+                                   let check = splitStringIncrementally(collection);
+                                   const newItems = check.filter((item: string) => !productData.collection.includes(item));
+                                   addCollection.push(...newItems);
+                               }
+                               addCollection.push(collection);
+                           });
+                           productData.collection = addCollection;
+                           switch (row[3]) {
+                               case '贈品':
+                                   productData.productType.giveaway = true;
+                                   break;
+                               case '加購品':
+                                   productData.productType.addProduct = true;
+                                   break;
+                               case '隱形賣場':
+                                   productData.productType.product = true;
+                                   productData.visible = 'false';
+                                   break;
+                               default:
+                                   productData.productType.product = true;
+                                   break;
+                           }
+                           productData.preview_image = row[4] ? [row[4]] : ['商品圖片'];
+                           productData.seo.domain = this.checkString(row[5]);
+                           productData.seo.title = this.checkString(row[6]);
+                           productData.seo.content = this.checkString(row[7]);
+                           // spec值 merge
+                           let indices = [8, 10, 12];
+                           indices.forEach((index) => {
+                               if (row[index]) {
+                                   productData.specs.push({
+                                       title: row[index],
+                                       option: [],
+                                   });
+                               }
+                           });
+                       }
 
-                    let indices = [9, 11, 13];
-                    indices.forEach((rowindex, key) => {
-                        if (row[rowindex] && productData.specs.length > key) {
-                            productData.specs[key].option = productData.specs[key].option ?? [];
-                            const exists = productData.specs[key].option.some((item: any) => item.title === row[rowindex]);
-                            if (!exists) {
-                                productData.specs[key].option.push({ title: row[rowindex], expand: true });
-                            }
-                            variantData.spec.push(row[rowindex]);
-                        }
-                    });
+                       let indices = [9, 11, 13];
+                       indices.forEach((rowindex, key) => {
+                           if (row[rowindex] && productData.specs.length > key) {
+                               productData.specs[key].option = productData.specs[key].option ?? [];
+                               const exists = productData.specs[key].option.some((item: any) => item.title === row[rowindex]);
+                               if (!exists) {
+                                   productData.specs[key].option.push({ title: row[rowindex], expand: true });
+                               }
+                               variantData.spec.push(row[rowindex]);
+                           }
+                       });
 
-                    variantData.sku = this.checkString(row[14]);
-                    variantData.cost = this.checkString(row[15]);
-                    variantData.sale_price = this.checkNumber(row[16]);
-                    variantData.compare_price = this.checkNumber(row[17]);
-                    variantData.profit = this.checkNumber(row[18]);
+                       variantData.sku = this.checkString(row[14]);
+                       variantData.cost = this.checkString(row[15]);
+                       variantData.sale_price = this.checkNumber(row[16]);
+                       variantData.compare_price = this.checkNumber(row[17]);
+                       variantData.profit = this.checkNumber(row[18]);
 
-                    const shipmentTypeMap: { [key: string]: 'weight' | 'volume' } = {
-                        依重量計算: 'weight',
-                        依材積計算: 'volume',
-                    };
-                    variantData.shipment_type = shipmentTypeMap[row[19]] || 'none';
+                       const shipmentTypeMap: { [key: string]: 'weight' | 'volume' } = {
+                           依重量計算: 'weight',
+                           依材積計算: 'volume',
+                       };
+                       variantData.shipment_type = shipmentTypeMap[row[19]] || 'none';
 
-                    variantData.v_length = this.checkNumber(row[20]);
-                    variantData.v_width = this.checkNumber(row[21]);
-                    variantData.v_height = this.checkNumber(row[22]);
-                    variantData.weight = this.checkNumber(row[23]);
-                    variantData.show_understocking = row[25] == '追蹤' ? 'true' : 'false';
-                    variantData.stock = this.checkNumber(row[26]);
-                    variantData.save_stock = this.checkNumber(row[27]);
-                    variantData.barcode = this.checkString(row[28]);
+                       variantData.v_length = this.checkNumber(row[20]);
+                       variantData.v_width = this.checkNumber(row[21]);
+                       variantData.v_height = this.checkNumber(row[22]);
+                       variantData.weight = this.checkNumber(row[23]);
+                       variantData.show_understocking = row[25] == '追蹤' ? 'true' : 'false';
+                       variantData.stock = this.checkNumber(row[26]);
+                       variantData.save_stock = this.checkNumber(row[27]);
+                       variantData.barcode = this.checkString(row[28]);
 
-                    productData.variants.push(JSON.parse(JSON.stringify(variantData)));
-                }
-            });
-            postMD.push(productData);
-            productData.reverse;
-            let passData = {
-                data: postMD,
-                collection: addCollection,
-            };
-
-            dialog.dataLoading({ visible: false });
-            if (!error) {
-                dialog.dataLoading({ visible: true, text: '上傳資料中' });
-                await ApiShop.postMultiProduct({
-                    data: passData,
-                    token: (window.parent as any).config.token,
-                }).then(() => {
-                    dialog.dataLoading({ visible: false });
-                    dialog.successMessage({ text: '上傳成功' });
-                    this.gvc.glitter.closeDiaLog();
-                    this.gvc.notifyDataChange(notifyId);
-                });
-            }
+                       productData.variants.push(JSON.parse(JSON.stringify(variantData)));
+                   }
+               });
+               postMD.push(productData);
+               productData.reverse;
+               let passData = {
+                   data: postMD,
+                   collection: addCollection,
+               };
+               dialog.dataLoading({ visible: false });
+               if (!error) {
+                   dialog.dataLoading({ visible: true, text: '上傳資料中' });
+                   await ApiShop.postMultiProduct({
+                       data: passData,
+                       token: (window.parent as any).config.token,
+                   }).then(() => {
+                       dialog.dataLoading({ visible: false });
+                       dialog.successMessage({ text: '上傳成功' });
+                       this.gvc.glitter.closeDiaLog();
+                       this.gvc.notifyDataChange(notifyId);
+                   });
+               }
+           }catch (e) {
+               console.log(e)
+               dialog.dataLoading({ visible: false });
+               dialog.errorMessage({ text: '資料錯誤' });
+           }
         };
         reader.readAsArrayBuffer(file);
     }
