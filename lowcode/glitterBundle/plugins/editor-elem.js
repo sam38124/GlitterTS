@@ -1090,8 +1090,9 @@ ${obj.structEnd ? obj.structEnd : '})()'}`,
                                             delay = false;
                                             if (!loadingView && !delay) {
                                                 gvc.glitter.document.querySelector(`#hid_${id}`).remove();
+                                                editor.html.set(obj.def || '');
                                             }
-                                        }, 800);
+                                        }, 500);
                                     }
                                     setTimeout(() => {
                                         const target = glitter.document.querySelector(`[data-cmd="insertImage"]`);
