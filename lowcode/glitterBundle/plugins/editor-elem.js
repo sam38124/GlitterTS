@@ -888,7 +888,6 @@ ${obj.structEnd ? obj.structEnd : '})()'}`,
                 `plugins/video.min.js`,
                 `plugins/help.min.js`,
                 `plugins/print.min.js`,
-                `third_party/spell_checker.min.js`,
                 `plugins/special_characters.min.js`,
             ].map((dd) => {
                 return { src: dd.includes('http') ? dd : new URL(`../../jslib/froala/` + dd, import.meta.url).href };
@@ -959,6 +958,29 @@ ${obj.structEnd ? obj.structEnd : '})()'}`,
                                         }
                                         return fontSizes;
                                     }
+                                    const toolBarArray = [
+                                        'bold',
+                                        'italic',
+                                        'underline',
+                                        'align',
+                                        '|',
+                                        'paragraphFormat',
+                                        'fontSize',
+                                        'fontFamily',
+                                        'textColor',
+                                        'backgroundColor',
+                                        'clearFormatting',
+                                        '|',
+                                        'insertTable',
+                                        'insertLink',
+                                        'insertImage',
+                                        'insertVideo',
+                                        'insertHR',
+                                        '|',
+                                        'formatOL',
+                                        'emoticons',
+                                        'html',
+                                    ];
                                     const FroalaEditor = glitter.window.FroalaEditor;
                                     const editor = new FroalaEditor('#' + richID, {
                                         enter: FroalaEditor.ENTER_DIV,
@@ -1042,29 +1064,7 @@ ${obj.structEnd ? obj.structEnd : '})()'}`,
                                             },
                                         },
                                         key: 'hWA2C-7I2B2C4B3E4E2G3wd1DBKSPF1WKTUCQOa1OURPJ1KDe2F-11D2C2D2D2C3B3C1D6B1C2==',
-                                        toolbarButtons: [
-                                            'bold',
-                                            'italic',
-                                            'underline',
-                                            'align',
-                                            '|',
-                                            'paragraphFormat',
-                                            'fontSize',
-                                            'fontFamily',
-                                            'textColor',
-                                            'backgroundColor',
-                                            'clearFormatting',
-                                            '|',
-                                            'insertTable',
-                                            'insertLink',
-                                            'insertImage',
-                                            'insertVideo',
-                                            'insertHR',
-                                            '|',
-                                            'formatOL',
-                                            'emoticons',
-                                            'html',
-                                        ],
+                                        toolbarButtons: toolBarArray,
                                         paragraphFormat: {
                                             N: '普通文字',
                                             H1: '標題 1',
@@ -1092,7 +1092,17 @@ ${obj.structEnd ? obj.structEnd : '})()'}`,
                                     }
                                     setTimeout(() => {
                                         const target = glitter.document.querySelector(`[data-cmd="insertImage"]`);
-                                        if (!target) {
+                                        function checkRender() {
+                                            let checked = false;
+                                            toolBarArray.forEach((toolBar) => {
+                                                if (toolBar != "|" && !glitter.document.querySelector(`[data-cmd=${toolBar}]`)) {
+                                                    console.log(toolBar, "載入錯誤");
+                                                    checked = true;
+                                                }
+                                            });
+                                            return checked;
+                                        }
+                                        if (checkRender()) {
                                             try {
                                                 editor.destroy();
                                             }
