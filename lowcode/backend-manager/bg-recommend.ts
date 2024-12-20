@@ -612,10 +612,16 @@ export class BgRecommend {
             users: [],
             readonly: cf.data.id !== undefined,
         };
+
         let newOrder: any = {
             id: glitter.getUUID(),
             productArray: [],
-            productCheck: cf.data.content.lineItems ?? [],
+            productCheck: (() => {
+                if (!cf.data.content) {
+                    return [];
+                }
+                return cf.data.content.lineItems ?? [];
+            })(),
             productTemp: [],
             orderProductArray: [],
             orderString: '',

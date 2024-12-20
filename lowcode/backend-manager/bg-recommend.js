@@ -467,7 +467,7 @@ export class BgRecommend {
         });
     }
     static editorLink(cf) {
-        var _a, _b;
+        var _a;
         const html = String.raw;
         const gvc = cf.gvc;
         const glitter = gvc.glitter;
@@ -508,7 +508,13 @@ export class BgRecommend {
         let newOrder = {
             id: glitter.getUUID(),
             productArray: [],
-            productCheck: (_b = cf.data.content.lineItems) !== null && _b !== void 0 ? _b : [],
+            productCheck: (() => {
+                var _a;
+                if (!cf.data.content) {
+                    return [];
+                }
+                return (_a = cf.data.content.lineItems) !== null && _a !== void 0 ? _a : [];
+            })(),
             productTemp: [],
             orderProductArray: [],
             orderString: '',

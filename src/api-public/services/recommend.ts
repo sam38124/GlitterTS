@@ -58,14 +58,19 @@ export class Recommend {
                 distribution_code: links.map((data: any) => data.code).join(','),
             });
 
-            const monitors = await db.query(
-                `SELECT id, mac_address, base_url 
-                    FROM \`${saasConfig.SAAS_NAME}\`.t_monitor
-                    WHERE app_name = "${this.app}"
-                    AND base_url in (${links.map((data: any) => `"/${this.app}/distribution/${data.content.link}"`).join(',')})
-                 `,
-                []
-            );
+            const monitors = await (async () => {
+                if (links.length === 0) {
+                    return [];
+                }
+                return await db.query(
+                    `SELECT id, mac_address, base_url 
+                        FROM \`${saasConfig.SAAS_NAME}\`.t_monitor
+                        WHERE app_name = "${this.app}"
+                        AND base_url in (${links.map((data: any) => `"/${this.app}/distribution/${data.content.link}"`).join(',')})
+                     `,
+                    []
+                );
+            })();
 
             for (const data of links) {
                 const orders = orderList.data.filter((d: any) => {
@@ -95,38 +100,34 @@ export class Recommend {
                 data.conversion_rate = this.calculatePercentage(totalOrders, monitor.length, 1);
                 data.total_price = totalPrice;
 
-                data.sharing_bonus = 0
-                if (data.content.lineItems){
+                data.sharing_bonus = 0;
+                if (data.content.lineItems) {
                     function arraysAreEqualIgnoringOrder<T>(arr1: T[], arr2: T[]): boolean {
                         if (arr1.length !== arr2.length) return false;
                         const set1 = new Set(arr1);
                         const set2 = new Set(arr2);
-                        return arr1.every(value => set2.has(value)) && arr2.every(value => set1.has(value));
+                        return arr1.every((value) => set2.has(value)) && arr2.every((value) => set1.has(value));
                     }
-                    let idArray:any[] = [];
+                    let idArray: any[] = [];
                     let variants = data.content.lineItems.map((item: any) => {
                         idArray.push(item.id);
                         return {
                             id: item.id,
-                            spec: item.content.variants[item.selectIndex].spec
-                        }
+                            spec: item.content.variants[item.selectIndex].spec,
+                        };
                     });
-                    orders.map((order:any)=>{
+                    orders.map((order: any) => {
                         order.orderData.lineItems.forEach((item: any) => {
                             if (idArray.includes(item.id)) {
                                 variants.forEach((variant: any) => {
-                                    if (variant.id === item.id && arraysAreEqualIgnoringOrder(variant.spec , item.spec)) {
+                                    if (variant.id === item.id && arraysAreEqualIgnoringOrder(variant.spec, item.spec)) {
                                         data.sharing_bonus += Math.floor((item.sale_price * item.count * parseFloat(data.content.share_value)) / 100);
                                     }
-                                })
-                                // item.spec = variants.find((v: any) => v.id === item.id)?.spec || item.spec;
+                                });
                             }
-                        })
-                    })
-                    // console.log("orders -- " , orders[0].orderData.lineItems)
+                        });
+                    });
                 }
-
-
             }
             return { data: links, total: total[0].c };
         } catch (error) {
@@ -287,6 +288,13 @@ export class Recommend {
                 `,
                 []
             );
+
+            if (data.length === 0) {
+                return {
+                    data: [],
+                    total: 0,
+                };
+            }
 
             let n = 0;
             await new Promise<void>((resolve) => {
