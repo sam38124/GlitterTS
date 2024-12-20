@@ -65,37 +65,38 @@ export class HtmlGenerate {
                 dd.event = (key, subData) => {
                     return new Promise((resolve, reject) => __awaiter(this, void 0, void 0, function* () {
                         var _a;
-                        if (window.glitter.getUrlParameter('cms') === 'true') {
-                            const dialog = new ShareDialog(window.parent.glitter);
-                            if (key === 'success') {
-                                dialog.successMessage({ text: subData.title });
-                            }
-                            else if (key === 'error') {
-                                dialog.errorMessage({ text: subData.title });
-                            }
-                            else if (key === 'loading') {
-                                dialog.dataLoading({ visible: (_a = subData.visible) !== null && _a !== void 0 ? _a : true, text: subData.title });
-                            }
-                            resolve(true);
-                            return;
+                        const dialog = new ShareDialog(window.parent.glitter);
+                        if (key === 'success') {
+                            dialog.successMessage({ text: subData.title });
+                            resolve(subData);
                         }
-                        GlobalEvent.getGlobalEvent({
-                            tag: key,
-                        }).then((d2) => __awaiter(this, void 0, void 0, function* () {
-                            try {
-                                const event = d2.response.result[0];
-                                const response = yield TriggerEvent.trigger({
-                                    gvc: dd.global.gvc,
-                                    widget: dd,
-                                    clickEvent: event.json,
-                                    subData: subData,
-                                });
-                                resolve(response);
-                            }
-                            catch (e) {
-                                resolve(false);
-                            }
-                        }));
+                        else if (key === 'error') {
+                            dialog.errorMessage({ text: subData.title });
+                            resolve(subData);
+                        }
+                        else if (key === 'loading') {
+                            dialog.dataLoading({ visible: (_a = subData.visible) !== null && _a !== void 0 ? _a : true, text: subData.title });
+                            resolve(subData);
+                        }
+                        else {
+                            GlobalEvent.getGlobalEvent({
+                                tag: key,
+                            }).then((d2) => __awaiter(this, void 0, void 0, function* () {
+                                try {
+                                    const event = d2.response.result[0];
+                                    const response = yield TriggerEvent.trigger({
+                                        gvc: dd.global.gvc,
+                                        widget: dd,
+                                        clickEvent: event.json,
+                                        subData: subData,
+                                    });
+                                    resolve(response);
+                                }
+                                catch (e) {
+                                    resolve(false);
+                                }
+                            }));
+                        }
                     }));
                 };
                 return dd;

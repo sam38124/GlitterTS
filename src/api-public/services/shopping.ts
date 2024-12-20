@@ -796,7 +796,7 @@ export class Shopping {
                 spec: string[];
                 count: number;
                 sale_price: number;
-                min_qty?:number;
+                min_qty?: number;
                 collection?: string[];
                 title?: string;
                 preview_image?: string;
@@ -1171,7 +1171,7 @@ export class Shopping {
                             (b as any).is_add_on_items = true;
                             add_on_items.push(b);
                         }
-                        if (pd.visible==='false') {
+                        if (pd.visible === 'false') {
                             (b as any).is_hidden = true;
                         }
                         if (pd.productType.giveaway) {
@@ -1180,7 +1180,7 @@ export class Shopping {
                             gift_product.push(b);
                         }
                         if (pd.min_qty) {
-                            b.min_qty=pd.min_qty;
+                            b.min_qty = pd.min_qty;
                         }
                     }
                 } catch (e) {}
@@ -1344,8 +1344,8 @@ export class Shopping {
                             }
                         });
                 });
-                if(n===0){
-                    resolve()
+                if (n === 0) {
+                    resolve();
                 }
             });
 
@@ -2214,6 +2214,47 @@ export class Shopping {
         }
     }
 
+    public async cancelOrder(order_id: string) {
+        try {
+            const orderList = await db.query(
+                `SELECT * FROM \`${this.app}\`.t_checkout WHERE cart_token = ?;
+                `,
+                [order_id]
+            );
+
+            if (orderList.length !== 1) {
+                return { data: false };
+            }
+
+            const origin = orderList[0];
+            const orderData = origin.orderData;
+            const proofPurchase = orderData.proof_purchase === undefined;
+            const paymentStatus = origin.status === undefined || origin.status === 0 || origin.status === -1;
+            const progressStatus = orderData.progress === undefined || orderData.progress === 'wait';
+            const orderStatus = orderData.orderStatus === undefined || `${orderData.orderStatus}` === '0';
+
+            if (proofPurchase && paymentStatus && progressStatus && orderStatus) {
+                orderData.orderStatus = '-1';
+                const record = { time: this.formatDateString(), record: '顧客手動取消訂單' };
+                if (orderData.editRecord) {
+                    orderData.editRecord.push(record);
+                } else {
+                    orderData.editRecord = [record];
+                }
+            }
+
+            await db.query(
+                `UPDATE \`${this.app}\`.t_checkout SET orderData = ? WHERE cart_token = ?;
+                `,
+                [JSON.stringify(orderData), order_id]
+            );
+
+            return { data: true };
+        } catch (e) {
+            throw exception.BadRequestError('BAD_REQUEST', 'cancelOrder Error:' + e, null);
+        }
+    }
+
     public async deleteOrder(req: { id: string }) {
         try {
             await db.query(
@@ -2852,6 +2893,21 @@ OR JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.orderStatus')) NOT IN (-99)) `);
         const endISO = endDate.toISOString();
 
         return { startISO, endISO };
+    }
+
+    formatDateString(isoDate?: string): string {
+        // 使用給定的 ISO 8601 日期字符串，或建立一個當前時間的 Date 對象
+        const date = isoDate ? new Date(isoDate) : new Date();
+
+        // 提取年、月、日、時、分
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, '0');
+        const day = String(date.getDate()).padStart(2, '0');
+        const hours = String(date.getHours()).padStart(2, '0');
+        const minutes = String(date.getMinutes()).padStart(2, '0');
+
+        // 格式化為所需的字符串
+        return `${year}-${month}-${day} ${hours}:${minutes}`;
     }
 
     async getActiveRecentYear() {

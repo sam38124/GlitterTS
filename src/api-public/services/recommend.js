@@ -46,11 +46,16 @@ class Recommend {
                 limit: 5000,
                 distribution_code: links.map((data) => data.code).join(','),
             });
-            const monitors = await database_1.default.query(`SELECT id, mac_address, base_url 
-                    FROM \`${config_js_1.saasConfig.SAAS_NAME}\`.t_monitor
-                    WHERE app_name = "${this.app}"
-                    AND base_url in (${links.map((data) => `"/${this.app}/distribution/${data.content.link}"`).join(',')})
-                 `, []);
+            const monitors = await (async () => {
+                if (links.length === 0) {
+                    return [];
+                }
+                return await database_1.default.query(`SELECT id, mac_address, base_url 
+                        FROM \`${config_js_1.saasConfig.SAAS_NAME}\`.t_monitor
+                        WHERE app_name = "${this.app}"
+                        AND base_url in (${links.map((data) => `"/${this.app}/distribution/${data.content.link}"`).join(',')})
+                     `, []);
+            })();
             for (const data of links) {
                 const orders = orderList.data.filter((d) => {
                     try {
@@ -84,14 +89,14 @@ class Recommend {
                             return false;
                         const set1 = new Set(arr1);
                         const set2 = new Set(arr2);
-                        return arr1.every(value => set2.has(value)) && arr2.every(value => set1.has(value));
+                        return arr1.every((value) => set2.has(value)) && arr2.every((value) => set1.has(value));
                     }
                     let idArray = [];
                     let variants = data.content.lineItems.map((item) => {
                         idArray.push(item.id);
                         return {
                             id: item.id,
-                            spec: item.content.variants[item.selectIndex].spec
+                            spec: item.content.variants[item.selectIndex].spec,
                         };
                     });
                     orders.map((order) => {
@@ -242,6 +247,12 @@ class Recommend {
                 `, []);
             const allOrders = await database_1.default.query(`SELECT * FROM \`${this.app}\`.t_checkout WHERE orderData->>'$.distribution_info' is not null;
                 `, []);
+            if (data.length === 0) {
+                return {
+                    data: [],
+                    total: 0,
+                };
+            }
             let n = 0;
             await new Promise((resolve) => {
                 data.map(async (user) => {

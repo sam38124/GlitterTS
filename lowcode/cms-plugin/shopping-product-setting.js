@@ -1557,7 +1557,9 @@ export class ShoppingProductSetting {
                                         window.parent.glitter.openNewTab(href);
                                     }), { icon: document.body.clientWidth > 768 ? 'fa-regular fa-eye' : undefined })
                                     : '',
-                            ].filter((str) => str.length > 0).join(html ` <div class="mx-1"></div>`)}
+                            ]
+                                .filter((str) => str.length > 0)
+                                .join(html ` <div class="mx-1"></div>`)}
                                     </div>
                                 </div>
                                 ${BgWidget.container1x2({
@@ -4081,9 +4083,11 @@ ${(_d = language_data.seo.content) !== null && _d !== void 0 ? _d : ''}</textare
                                             view: () => {
                                                 return [
                                                     html ` <div class="mb-2" style="font-weight: 700;">商品分類</div>`,
-                                                    postMD.collection.map((dd) => {
+                                                    postMD.collection
+                                                        .map((dd) => {
                                                         return html `<span style="font-size: 14px;">${dd}</span>`;
-                                                    }).join(html ` <div class="my-1"></div>`),
+                                                    })
+                                                        .join(html ` <div class="my-1"></div>`),
                                                     html ` <div class="w-100 mt-3">
                                                                         ${BgWidget.grayButton(`設定商品分類`, gvc.event(() => {
                                                         BgProduct.collectionsDialog({
@@ -4364,14 +4368,6 @@ ShoppingProductSetting.getActiveDatetime = () => {
         startTime: '00:00',
         endDate: undefined,
         endTime: undefined,
-    };
-};
-ShoppingProductSetting.getScheduleDatetime = () => {
-    return {
-        startDate: _a.getDateTime(7).date,
-        startTime: _a.getDateTime(7).time,
-        endDate: _a.getDateTime(14).date,
-        endTime: _a.getDateTime(14).time,
     };
 };
 ShoppingProductSetting.getInactiveDatetime = () => {

@@ -515,6 +515,18 @@ export class ApiShop {
             data: JSON.stringify(json),
         });
     }
+    static cancelOrder(id) {
+        return BaseApi.create({
+            url: getBaseUrl() + `/api-public/v1/ec/order/cancel`,
+            type: 'PUT',
+            headers: {
+                'Content-Type': 'application/json',
+                'g-app': getConfig().config.appName,
+                Authorization: getConfig().config.token,
+            },
+            data: JSON.stringify({ id }),
+        });
+    }
     static delete(json) {
         return BaseApi.create({
             url: getBaseUrl() + `/api-public/v1/ec/product?id=${json.id}`,

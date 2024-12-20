@@ -143,7 +143,7 @@ router.post('/checkout', async (req, resp) => {
             distribution_code: req.body.distribution_code,
             code_array: req.body.code_array,
             give_away: req.body.give_away,
-            language: req.headers['language']
+            language: req.headers['language'],
         }));
     }
     catch (err) {
@@ -180,7 +180,7 @@ router.post('/checkout/preview', async (req, resp) => {
             distribution_code: req.body.distribution_code,
             code_array: req.body.code_array,
             give_away: req.body.give_away,
-            language: req.headers['language']
+            language: req.headers['language'],
         }, 'preview'));
     }
     catch (err) {
@@ -369,6 +369,14 @@ router.put('/order', async (req, resp) => {
         return response_1.default.fail(resp, err);
     }
 });
+router.put('/order/cancel', async (req, resp) => {
+    try {
+        return response_1.default.succ(resp, await new shopping_1.Shopping(req.get('g-app'), req.body.token).cancelOrder(req.body.id));
+    }
+    catch (err) {
+        return response_1.default.fail(resp, err);
+    }
+});
 router.delete('/order', async (req, resp) => {
     try {
         if (await ut_permission_1.UtPermission.isManager(req)) {
@@ -517,7 +525,7 @@ async function redirect_link(req, resp) {
             }))[0].value.line_pay;
             const linePay = new financial_service_js_1.LinePay(req.query.appName, keyData);
             const data = linePay.confirmAndCaptureOrder(check_id);
-            if (data.returnCode == "0000") {
+            if (data.returnCode == '0000') {
                 await new shopping_1.Shopping(req.query.appName).releaseCheckout(1, req.query.orderID);
             }
         }
@@ -535,28 +543,28 @@ async function redirect_link(req, resp) {
         }
         const html = String.raw;
         return resp.send(html `<!DOCTYPE html>
-        <html lang="en">
-        <head>
-            <meta charset="UTF-8" />
-            <title>Title</title>
-        </head>
-        <body>
-        <script>
-            try {
-                window.webkit.messageHandlers.addJsInterFace.postMessage(
-                        JSON.stringify({
-                            functionName: 'check_out_finish',
-                            callBackId: 0,
-                            data: {
-                                redirect: '${return_url.href}',
-                            },
-                        })
-                );
-            } catch (e) {}
-            location.href = '${return_url.href}';
-        </script>
-        </body>
-        </html> `);
+            <html lang="en">
+                <head>
+                    <meta charset="UTF-8" />
+                    <title>Title</title>
+                </head>
+                <body>
+                    <script>
+                        try {
+                            window.webkit.messageHandlers.addJsInterFace.postMessage(
+                                JSON.stringify({
+                                    functionName: 'check_out_finish',
+                                    callBackId: 0,
+                                    data: {
+                                        redirect: '${return_url.href}',
+                                    },
+                                })
+                            );
+                        } catch (e) {}
+                        location.href = '${return_url.href}';
+                    </script>
+                </body>
+            </html> `);
     }
     catch (err) {
         return response_1.default.fail(resp, err);
@@ -809,7 +817,7 @@ router.get('/product', async (req, resp) => {
             show_hidden: `${req.query.show_hidden}`,
             productType: req.query.productType,
             filter_visible: req.query.filter_visible,
-            language: req.headers['language']
+            language: req.headers['language'],
         });
         return response_1.default.succ(resp, shopping);
     }
@@ -991,11 +999,9 @@ router.post('/apple-webhook', async (req, resp) => {
             axios_1.default
                 .request(config)
                 .then((response) => {
-                console.log(JSON.stringify(response.data));
                 resolve(response.data);
             })
                 .catch((error) => {
-                console.log(error);
                 resolve(false);
             });
         });
@@ -1132,7 +1138,7 @@ router.post('/apple-webhook', async (req, resp) => {
         return response_1.default.succ(resp, { result: true });
     }
     catch (err) {
-        console.log(err);
+        console.error(err);
         return response_1.default.fail(resp, err);
     }
 });

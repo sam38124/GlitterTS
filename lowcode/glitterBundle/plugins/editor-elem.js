@@ -904,21 +904,25 @@ ${obj.structEnd ? obj.structEnd : '})()'}`,
                     return html ` <div class="w-100 d-flex align-items-center justify-content-center p-3 ${richID}-loading">
                             <div class="spinner-border" style=""></div>
                         </div>
-                        <div id="${richID}" style="position:relative;">${obj.def}</div>`;
+                        <div id="${richID}" style="position:relative;min-height:100vh;"></div>
+                    <div class="position-absolute w-100  bg-white d-flex align-items-center justify-content-center flex-column" style="top:0px;left:0px;height:${obj.rich_height || '100%'};z-index:9999;" id="hid_${id}">
+                        <div class="spinner-border"></div>
+                        載入中
+                    </div>
+                    `;
                 },
                 divCreate: {
                     style: `${obj.style || `overflow-y: auto;`}position:relative;`,
                 },
                 onCreate: () => {
-                    gvc.addStyle(`
-                        
-                    `);
                     let loading = true;
                     let delay = true;
                     let loadingView = false;
-                    function render() {
-                        const interval = setInterval(() => {
-                            if (glitter.window.FroalaEditor) {
+                    const interval = setInterval(() => {
+                        if (glitter.window.FroalaEditor) {
+                            clearInterval(interval);
+                            console.log(`re_render=>`);
+                            function render() {
                                 setTimeout(() => {
                                     var _a;
                                     gvc.addStyle(`
@@ -986,7 +990,7 @@ ${obj.structEnd ? obj.structEnd : '})()'}`,
                                         enter: FroalaEditor.ENTER_DIV,
                                         language: 'zh_tw',
                                         heightMin: (_a = obj.setHeight) !== null && _a !== void 0 ? _a : 350,
-                                        content: obj.def,
+                                        content: '',
                                         fontSize: generateFontSizeArray(),
                                         quickInsertEnabled: false,
                                         toolbarSticky: true,
@@ -1081,14 +1085,14 @@ ${obj.structEnd ? obj.structEnd : '})()'}`,
                                     const dialog = new ShareDialog(gvc.glitter);
                                     if (loading) {
                                         loading = false;
-                                        dialog.dataLoading({ visible: true, BG: "gray", text: "編輯器就位中" });
                                         loadingView = true;
                                         setTimeout(() => {
                                             delay = false;
                                             if (!loadingView && !delay) {
-                                                dialog.dataLoading({ visible: false });
+                                                gvc.glitter.document.querySelector(`#hid_${id}`).remove();
+                                                editor.html.set(obj.def || '');
                                             }
-                                        }, 800);
+                                        }, 500);
                                     }
                                     setTimeout(() => {
                                         const target = glitter.document.querySelector(`[data-cmd="insertImage"]`);
@@ -1112,11 +1116,13 @@ ${obj.structEnd ? obj.structEnd : '})()'}`,
                                             }, 500);
                                             return;
                                         }
-                                        loadingView = false;
-                                        if (!loadingView && !delay) {
-                                            dialog.dataLoading({ visible: false });
-                                        }
-                                        target.outerHTML = html ` <button
+                                        else {
+                                            loadingView = false;
+                                            if (!loadingView && !delay) {
+                                                gvc.glitter.document.querySelector(`#hid_${id}`).remove();
+                                                editor.html.set(obj.def || '');
+                                            }
+                                            target.outerHTML = html ` <button
                                             id="insertImage-replace"
                                             type="button"
                                             tabindex="-1"
@@ -1124,45 +1130,45 @@ ${obj.structEnd ? obj.structEnd : '})()'}`,
                                             class="fr-command fr-btn "
                                             data-title="插入圖片 (⌘P)"
                                             onclick="${obj.gvc.event(() => {
-                                            if (obj.insertImageEvent) {
-                                                obj.insertImageEvent(editor);
-                                            }
-                                            else {
-                                                glitter.ut.chooseMediaCallback({
-                                                    single: true,
-                                                    accept: 'image/*',
-                                                    callback(data) {
-                                                        const saasConfig = window.saasConfig;
-                                                        const dialog = new ShareDialog(glitter);
-                                                        dialog.dataLoading({ visible: true });
-                                                        const file = data[0].file;
-                                                        saasConfig.api.uploadFile(file.name).then((data) => {
-                                                            dialog.dataLoading({ visible: false });
-                                                            const data1 = data.response;
+                                                if (obj.insertImageEvent) {
+                                                    obj.insertImageEvent(editor);
+                                                }
+                                                else {
+                                                    glitter.ut.chooseMediaCallback({
+                                                        single: true,
+                                                        accept: 'image/*',
+                                                        callback(data) {
+                                                            const saasConfig = window.saasConfig;
+                                                            const dialog = new ShareDialog(glitter);
                                                             dialog.dataLoading({ visible: true });
-                                                            BaseApi.create({
-                                                                url: data1.url,
-                                                                type: 'put',
-                                                                data: file,
-                                                                headers: {
-                                                                    'Content-Type': data1.type,
-                                                                },
-                                                            }).then((res) => {
+                                                            const file = data[0].file;
+                                                            saasConfig.api.uploadFile(file.name).then((data) => {
                                                                 dialog.dataLoading({ visible: false });
-                                                                if (res.result) {
-                                                                    const imgElement = html `<img src="${data1.fullUrl}" style="max-width: 100%;" />`;
-                                                                    editor.html.insert(imgElement);
-                                                                    editor.undo.saveStep();
-                                                                }
-                                                                else {
-                                                                    dialog.errorMessage({ text: '上傳失敗' });
-                                                                }
+                                                                const data1 = data.response;
+                                                                dialog.dataLoading({ visible: true });
+                                                                BaseApi.create({
+                                                                    url: data1.url,
+                                                                    type: 'put',
+                                                                    data: file,
+                                                                    headers: {
+                                                                        'Content-Type': data1.type,
+                                                                    },
+                                                                }).then((res) => {
+                                                                    dialog.dataLoading({ visible: false });
+                                                                    if (res.result) {
+                                                                        const imgElement = html `<img src="${data1.fullUrl}" style="max-width: 100%;" />`;
+                                                                        editor.html.insert(imgElement);
+                                                                        editor.undo.saveStep();
+                                                                    }
+                                                                    else {
+                                                                        dialog.errorMessage({ text: '上傳失敗' });
+                                                                    }
+                                                                });
                                                             });
-                                                        });
-                                                    },
-                                                });
-                                            }
-                                        })}"
+                                                        },
+                                                    });
+                                                }
+                                            })}"
                                         >
                                             <svg class="fr-svg" focusable="false" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                                                 <path
@@ -1171,22 +1177,22 @@ ${obj.structEnd ? obj.structEnd : '})()'}`,
                                             </svg>
                                             <span class="fr-sr-only">插入圖片</span>
                                         </button>`;
-                                        if (obj.rich_height) {
-                                            glitter.document.querySelector(`#` + richID).querySelector(`.fr-view`).style.height = obj.rich_height;
-                                            glitter.document.querySelector(`#` + richID).querySelector(`.fr-view`).style.minHeight = 'auto';
-                                            glitter.document.querySelector(`#` + richID).querySelector(`.fr-view`).style.overflowY = 'auto';
-                                        }
-                                        if (obj.readonly) {
-                                            editor.edit.off();
-                                            editor.toolbar.disable();
+                                            if (obj.rich_height) {
+                                                glitter.document.querySelector(`#` + richID).querySelector(`.fr-view`).style.height = obj.rich_height;
+                                                glitter.document.querySelector(`#` + richID).querySelector(`.fr-view`).style.minHeight = 'auto';
+                                                glitter.document.querySelector(`#` + richID).querySelector(`.fr-view`).style.overflowY = 'auto';
+                                            }
+                                            if (obj.readonly) {
+                                                editor.edit.off();
+                                                editor.toolbar.disable();
+                                            }
                                         }
                                     }, 200);
                                 }, 100);
-                                clearInterval(interval);
                             }
-                        }, 100);
-                    }
-                    render();
+                            render();
+                        }
+                    }, 100);
                 },
             };
         });

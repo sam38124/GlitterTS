@@ -326,6 +326,9 @@ export declare class Shopping {
         result: string;
         orderData: any;
     }>;
+    cancelOrder(order_id: string): Promise<{
+        data: boolean;
+    }>;
     deleteOrder(req: {
         id: string;
     }): Promise<{
@@ -365,6 +368,7 @@ export declare class Shopping {
         startISO: string;
         endISO: string;
     };
+    formatDateString(isoDate?: string): string;
     getActiveRecentYear(): Promise<{
         count_array: number[];
     }>;

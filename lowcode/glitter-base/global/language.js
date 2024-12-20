@@ -376,6 +376,7 @@ export class Language {
             { key: 'payment_failed', tw: '付款失敗', cn: '付款失败', en: 'Payment Failed' },
             { key: 'refunded', tw: '已退款', cn: '已退款', en: 'Refunded' },
             { key: 'proceed_to_checkout', tw: '前往結帳', cn: '前往结账', en: 'Checkout' },
+            { key: 'cancel_order', tw: '取消訂單', cn: '取消订单', en: 'Cancel order' },
             { key: 'customer_information', tw: '顧客資訊', cn: '顾客信息', en: 'Customer Information' },
             { key: 'shipping_information', tw: '配送資訊', cn: '配送信息', en: 'Shipping Information' },
             { key: 'store_number', tw: '門市店號', cn: '门市店号', en: 'Store Number' },
@@ -392,6 +393,7 @@ export class Language {
             { key: 'return_to_order_list', tw: '返回訂單列表', cn: '返回订单列表', en: 'Return to Order List' },
             { key: 'order_not_found', tw: '查無此訂單', cn: '查无此订单', en: 'Order not found' },
             { key: 'expired', tw: '已過期', cn: '已过期', en: 'Expired' },
+            { key: 'not_yet_shipped', tw: '尚未出貨', cn: '尚未出货', en: 'Not yet shipped' },
         ];
     }
 }

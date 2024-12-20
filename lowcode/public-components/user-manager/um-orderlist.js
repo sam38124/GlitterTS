@@ -70,8 +70,20 @@ export class UMOrderList {
                                 glitter.ut.dateFormat(new Date(item.created_time), 'yyyy/MM/dd'),
                                 ((_b = item.orderData.total) !== null && _b !== void 0 ? _b : 0).toLocaleString(),
                                 (() => {
-                                    if (item.status !== 1) {
+                                    if (item.orderData.orderStatus === '-1') {
+                                        return Language.text('cancelled');
+                                    }
+                                    else if (item.orderData.orderStatus === '1') {
+                                        return Language.text('completed');
+                                    }
+                                    if (item.status === 0) {
+                                        if (item.orderData.proof_purchase) {
+                                            return Language.text('awaiting_verification');
+                                        }
                                         return Language.text('unpaid');
+                                    }
+                                    else if (item.status === -2) {
+                                        return Language.text('refunded');
                                     }
                                     switch (item.orderData.progress) {
                                         case 'shipping':
