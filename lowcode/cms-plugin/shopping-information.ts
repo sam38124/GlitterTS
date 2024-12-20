@@ -24,7 +24,7 @@ export class ShoppingInformation {
             mainLoading: boolean;
             SEOLoading: boolean;
             domainLoading: boolean;
-            save_info: ()=>Promise<any>
+            save_info: () => Promise<any>
         } = {
             id: glitter.getUUID(),
             tableId: glitter.getUUID(),
@@ -69,7 +69,10 @@ export class ShoppingInformation {
             mainLoading: true,
             SEOLoading: true,
             domainLoading: true,
-            save_info: ()=>{return new  Promise<any>(()=>{})}
+            save_info: () => {
+                return new Promise<any>(() => {
+                })
+            }
         };
         const dialog = new ShareDialog(gvc.glitter);
         const shopCategory = [
@@ -200,7 +203,7 @@ export class ShoppingInformation {
                     ${gvc.bindView({
                         bind: "basic",
                         view: () => {
-                            vm.save_info = ()=>{
+                            vm.save_info = () => {
                                 return new Promise((resolve, reject) => {
                                     ApiUser.setPublicConfig({
                                         key: "store-information",
@@ -213,75 +216,78 @@ export class ShoppingInformation {
                             }
                             return BgWidget.mainCard(html`
                                 <div class="d-flex flex-column " style="gap:18px;">
-                                    <div style="font-size: 16px;font-weight: 700;">商店基本資訊</div>
-                                    <div class="d-flex w-100" style="gap:24px;">
-                                        ${BgWidget.editeInput({
-                                            gvc: gvc,
-                                            title: '商店名稱',
-                                            default: vm.data.shop_name ?? "",
-                                            callback: (text) => {
-                                                vm.data.shop_name = text;
-                                            },
-                                            placeHolder: '請輸入商店資訊',
-                                            divStyle: "width:100%;"
-                                        })}
-                                        <div class="w-100 d-flex flex-column">
-                                            <div class="tx_normal fw-normal">商店類別</div>
-                                            ${BgWidget.select({
+                                    <div class="d-flex flex-column guide6-3">
+                                        <div style="font-size: 16px;font-weight: 700;">商店基本資訊</div>
+                                        <div class="d-flex w-100" style="gap:24px;">
+                                            ${BgWidget.editeInput({
                                                 gvc: gvc,
-                                                default: vm.data.category ?? "",
-                                                callback: (key) => {
-                                                    vm.data.category = key;
+                                                title: '商店名稱',
+                                                default: vm.data.shop_name ?? "",
+                                                callback: (text) => {
+                                                    vm.data.shop_name = text;
                                                 },
-                                                options: shopCategory,
-                                                style: 'width:100%;margin: 8px 0;',
+                                                placeHolder: '請輸入商店資訊',
+                                                divStyle: "width:100%;"
+                                            })}
+                                            <div class="w-100 d-flex flex-column">
+                                                <div class="tx_normal fw-normal">商店類別</div>
+                                                ${BgWidget.select({
+                                                    gvc: gvc,
+                                                    default: vm.data.category ?? "",
+                                                    callback: (key) => {
+                                                        vm.data.category = key;
+                                                    },
+                                                    options: shopCategory,
+                                                    style: 'width:100%;margin: 8px 0;',
+                                                })}
+                                            </div>
+                                        </div>
+                                        <div class="d-flex w-100" style="gap:24px;">
+                                            ${BgWidget.editeInput({
+                                                gvc: gvc,
+                                                title: '電子信箱',
+                                                default: vm.data.email ?? "",
+                                                callback: (text) => {
+                                                    vm.data.email = text;
+                                                },
+                                                placeHolder: '請輸入電子信箱',
+                                                divStyle: "width:100%;"
+                                            })}
+                                            ${BgWidget.editeInput({
+                                                gvc: gvc,
+                                                title: '聯絡電話',
+                                                default: vm.data.phone ?? "",
+                                                callback: (text) => {
+                                                    vm.data.phone = text;
+                                                },
+                                                placeHolder: '請輸入聯絡電話',
+                                                divStyle: "width:100%;"
+                                            })}
+                                        </div>
+                                        <div class="d-flex w-100" style="gap:24px;">
+                                            ${BgWidget.editeInput({
+                                                gvc: gvc,
+                                                title: '店家地址',
+                                                default: vm.data.address,
+                                                callback: (text) => {
+                                                    vm.data.address = text;
+                                                },
+                                                placeHolder: '請輸入店家地址',
+                                                divStyle: "width:100%;"
+                                            })}
+                                            ${BgWidget.editeInput({
+                                                gvc: gvc,
+                                                title: '統一編號',
+                                                default: vm.data.ubn,
+                                                callback: (text) => {
+                                                    vm.data.ubn = text;
+                                                },
+                                                placeHolder: '請輸入統一編號',
+                                                divStyle: "width:100%;"
                                             })}
                                         </div>
                                     </div>
-                                    <div class="d-flex w-100" style="gap:24px;">
-                                        ${BgWidget.editeInput({
-                                            gvc: gvc,
-                                            title: '電子信箱',
-                                            default: vm.data.email ?? "",
-                                            callback: (text) => {
-                                                vm.data.email = text;
-                                            },
-                                            placeHolder: '請輸入電子信箱',
-                                            divStyle: "width:100%;"
-                                        })}
-                                        ${BgWidget.editeInput({
-                                            gvc: gvc,
-                                            title: '聯絡電話',
-                                            default: vm.data.phone ?? "",
-                                            callback: (text) => {
-                                                vm.data.phone = text;
-                                            },
-                                            placeHolder: '請輸入聯絡電話',
-                                            divStyle: "width:100%;"
-                                        })}
-                                    </div>
-                                    <div class="d-flex w-100" style="gap:24px;">
-                                        ${BgWidget.editeInput({
-                                            gvc: gvc,
-                                            title: '店家地址',
-                                            default: vm.data.address,
-                                            callback: (text) => {
-                                                vm.data.address = text;
-                                            },
-                                            placeHolder: '請輸入店家地址',
-                                            divStyle: "width:100%;"
-                                        })}
-                                        ${BgWidget.editeInput({
-                                            gvc: gvc,
-                                            title: '統一編號',
-                                            default: vm.data.ubn,
-                                            callback: (text) => {
-                                                vm.data.ubn = text;
-                                            },
-                                            placeHolder: '請輸入統一編號',
-                                            divStyle: "width:100%;"
-                                        })}
-                                    </div>
+
                                     <div class="d-flex flex-column" style="gap:8px;">
                                         <div style="color: #393939;font-size: 16px;">啟用 AI 選品</div>
                                         <div style="color: #8D8D8D;font-size:13px;">透過 AI 選品功能用戶可以使用自然語言描述找到所需商品<br>
@@ -313,7 +319,7 @@ export class ShoppingInformation {
                                                         onchange="${gvc.event((e, event) => {
                                                             vm.data.wishlist = !vm.data.wishlist
                                                         })}"
-                                                        ${vm.data.wishlist ? `checked`: ``}
+                                                        ${vm.data.wishlist ? `checked` : ``}
                                                 />
                                             </div>
                                         </div>
@@ -451,9 +457,8 @@ export class ShoppingInformation {
                                             }
                                         })}
                                     </div>
-                                    
                                 </div>
-                            `,`guide6-3`)
+                            `, ``)
                         }, divCreate: {}
                     })}
                     <div style="margin-top: 24px;"></div>
@@ -623,13 +628,14 @@ ${BgWidget.title('GoDaddy DNS 設定指南')}
                                             }), '申請')}
                                         </div>
                                     </div>
-                                `,'guide6-5')
+                                `, 'guide6-5')
 
                             }
                         }
                     })}
-                    <div style="margin-top: 240px;"></div>
-                    <div class="shadow" style="width: 100%;padding: 14px 16px;background: #FFF; display: flex;justify-content: end;position: fixed;bottom: 0;right: 0;z-index:1;gap:14px;">
+                    <div style="margin-top: 300px;"></div>
+                    <div class="shadow"
+                         style="width: 100%;padding: 14px 16px;background: #FFF; display: flex;justify-content: end;position: fixed;bottom: 0;right: 0;z-index:1;gap:14px;">
                         ${BgWidget.save(
                                 gvc.event(async () => {
                                     const dialog = new ShareDialog(gvc.glitter)

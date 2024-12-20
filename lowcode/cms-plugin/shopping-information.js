@@ -60,7 +60,10 @@ export class ShoppingInformation {
             mainLoading: true,
             SEOLoading: true,
             domainLoading: true,
-            save_info: () => { return new Promise(() => { }); }
+            save_info: () => {
+                return new Promise(() => {
+                });
+            }
         };
         const dialog = new ShareDialog(gvc.glitter);
         const shopCategory = [
@@ -206,9 +209,10 @@ export class ShoppingInformation {
                         };
                         return BgWidget.mainCard(html `
                                 <div class="d-flex flex-column " style="gap:18px;">
-                                    <div style="font-size: 16px;font-weight: 700;">商店基本資訊</div>
-                                    <div class="d-flex w-100" style="gap:24px;">
-                                        ${BgWidget.editeInput({
+                                    <div class="d-flex flex-column guide6-3">
+                                        <div style="font-size: 16px;font-weight: 700;">商店基本資訊</div>
+                                        <div class="d-flex w-100" style="gap:24px;">
+                                            ${BgWidget.editeInput({
                             gvc: gvc,
                             title: '商店名稱',
                             default: (_a = vm.data.shop_name) !== null && _a !== void 0 ? _a : "",
@@ -218,9 +222,9 @@ export class ShoppingInformation {
                             placeHolder: '請輸入商店資訊',
                             divStyle: "width:100%;"
                         })}
-                                        <div class="w-100 d-flex flex-column">
-                                            <div class="tx_normal fw-normal">商店類別</div>
-                                            ${BgWidget.select({
+                                            <div class="w-100 d-flex flex-column">
+                                                <div class="tx_normal fw-normal">商店類別</div>
+                                                ${BgWidget.select({
                             gvc: gvc,
                             default: (_b = vm.data.category) !== null && _b !== void 0 ? _b : "",
                             callback: (key) => {
@@ -229,10 +233,10 @@ export class ShoppingInformation {
                             options: shopCategory,
                             style: 'width:100%;margin: 8px 0;',
                         })}
+                                            </div>
                                         </div>
-                                    </div>
-                                    <div class="d-flex w-100" style="gap:24px;">
-                                        ${BgWidget.editeInput({
+                                        <div class="d-flex w-100" style="gap:24px;">
+                                            ${BgWidget.editeInput({
                             gvc: gvc,
                             title: '電子信箱',
                             default: (_c = vm.data.email) !== null && _c !== void 0 ? _c : "",
@@ -242,7 +246,7 @@ export class ShoppingInformation {
                             placeHolder: '請輸入電子信箱',
                             divStyle: "width:100%;"
                         })}
-                                        ${BgWidget.editeInput({
+                                            ${BgWidget.editeInput({
                             gvc: gvc,
                             title: '聯絡電話',
                             default: (_d = vm.data.phone) !== null && _d !== void 0 ? _d : "",
@@ -252,9 +256,9 @@ export class ShoppingInformation {
                             placeHolder: '請輸入聯絡電話',
                             divStyle: "width:100%;"
                         })}
-                                    </div>
-                                    <div class="d-flex w-100" style="gap:24px;">
-                                        ${BgWidget.editeInput({
+                                        </div>
+                                        <div class="d-flex w-100" style="gap:24px;">
+                                            ${BgWidget.editeInput({
                             gvc: gvc,
                             title: '店家地址',
                             default: vm.data.address,
@@ -264,7 +268,7 @@ export class ShoppingInformation {
                             placeHolder: '請輸入店家地址',
                             divStyle: "width:100%;"
                         })}
-                                        ${BgWidget.editeInput({
+                                            ${BgWidget.editeInput({
                             gvc: gvc,
                             title: '統一編號',
                             default: vm.data.ubn,
@@ -274,7 +278,9 @@ export class ShoppingInformation {
                             placeHolder: '請輸入統一編號',
                             divStyle: "width:100%;"
                         })}
+                                        </div>
                                     </div>
+
                                     <div class="d-flex flex-column" style="gap:8px;">
                                         <div style="color: #393939;font-size: 16px;">啟用 AI 選品</div>
                                         <div style="color: #8D8D8D;font-size:13px;">透過 AI 選品功能用戶可以使用自然語言描述找到所需商品<br>
@@ -436,9 +442,8 @@ export class ShoppingInformation {
                             };
                         })}
                                     </div>
-                                    
                                 </div>
-                            `, `guide6-3`);
+                            `, ``);
                     }, divCreate: {}
                 })}
                     <div style="margin-top: 24px;"></div>
@@ -614,8 +619,9 @@ ${BgWidget.title('GoDaddy DNS 設定指南')}
                         }
                     };
                 })}
-                    <div style="margin-top: 240px;"></div>
-                    <div class="shadow" style="width: 100%;padding: 14px 16px;background: #FFF; display: flex;justify-content: end;position: fixed;bottom: 0;right: 0;z-index:1;gap:14px;">
+                    <div style="margin-top: 300px;"></div>
+                    <div class="shadow"
+                         style="width: 100%;padding: 14px 16px;background: #FFF; display: flex;justify-content: end;position: fixed;bottom: 0;right: 0;z-index:1;gap:14px;">
                         ${BgWidget.save(gvc.event(() => __awaiter(this, void 0, void 0, function* () {
                     const dialog = new ShareDialog(gvc.glitter);
                     dialog.dataLoading({ visible: true });

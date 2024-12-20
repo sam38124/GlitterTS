@@ -156,9 +156,6 @@ export class BgGuide {
        }catch (e) {
 
        }
-        // setTimeout(()=>{
-
-        // },2000)
         this.step = step ?? -1;
         if (!step){
             ApiShop.getFEGuideLeave().then(r => {
@@ -166,6 +163,7 @@ export class BgGuide {
                     ApiShop.setFEGuideLeave().then(r => {
                         this.guide = 0;
                         this.drawBG();
+
                     })
                 }else {
                     try {
@@ -3006,17 +3004,42 @@ export class BgGuide {
         let vm = {
             guide: this.guide,
             step: this.step,
-            progress: [],
+            progress: [
+                {
+                    title: '金流設定',
+                    value: 'setFinanceWay',
+                    finished: false,
+                },
+                {
+                    title: '配送設定',
+                    value: 'shippment_setting',
+                    finished: false,
+                },
+                {
+                    title: '運費設定',
+                    value: 'logistics_setting',
+                    finished: false,
+                },
+                {
+                    title: '商品上架',
+                    value: 'product-manager',
+                    finished: false,
+                },
+                {
+                    title: '商店訊息',
+                    value: 'shop_information',
+                    finished: false,
+                },
+            ],
+            progressLoading : true,
         };
         return gvc.bindView({
             bind: 'init',
             dataList: [{key: 'step', obj: vm}],
             view: () => {
-                if (vm.progress.length == 0) {
+                if (vm.progressLoading) {
                     ApiShop.getGuide().then((r) => {
-                        // if (!r.response.value.guideList){
 
-                        // }
                         vm.progress = r.response.value;
                         if (vm.progress.length == 0) {
                             (vm.progress as any) = [
@@ -3049,6 +3072,7 @@ export class BgGuide {
                             ApiShop.setGuide(vm.progress).then((r) => {
                             });
                         }
+                        vm.progressLoading = false;
                         gvc.notifyDataChange('init');
                     });
                 }
@@ -3238,7 +3262,7 @@ export class BgGuide {
                                             bind: 'guideDirect',
                                             view: () => {
                                                 let dialog = new ShareDialog(gvc.glitter);
-                                                if (vm.progress.length == 0){
+                                                if (vm.progressLoading){
                                                     dialog.dataLoading({visible: true});
                                                 }else {
                                                     dialog.dataLoading({visible: false});

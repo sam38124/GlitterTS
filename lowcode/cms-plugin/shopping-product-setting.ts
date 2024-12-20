@@ -3466,7 +3466,7 @@ export class ShoppingProductSetting {
 
                                                                                                   return html`
                                                                                                       <div
-                                                                                                          style="display: flex;height: 40px;padding: 8px 17px 8px 18px;align-items: center;justify-content: space-between;gap: 4px;align-self: stretch;border-radius: 10px;background: #F7F7F7;"
+                                                                                                          style="display: flex;padding: 8px 17px 8px 18px;align-items: center;gap: 4px;align-self: stretch;border-radius: 10px;background: #F7F7F7;"
                                                                                                       >
                                                                                                           <div style="display: flex; gap: 12px;align-items: center;">
                                                                                                               <i
@@ -3480,6 +3480,29 @@ export class ShoppingProductSetting {
                                                                                                                   })}"
                                                                                                               ></i>
                                                                                                               已選取 ${selected.length} 項
+                                                                                                          </div>
+                                                                                                          <div class="ms-auto" style="margin-right: 18px;">
+                                                                                                              <div style="border-radius: 7px;border: 1px solid #DDD;background: #FFF;box-shadow: 0 0 10px 0 rgba(0, 0, 0, 0.10);padding: 3px 13px;cursor: pointer;" onclick="${gvc.event(()=>{
+                                                                                                                  let topGVC = (window.parent as any).glitter.pageConfig[(window.parent as any).glitter.pageConfig.length-1].gvc
+                                                                                                                  topGVC.glitter.innerDialog((gvc:GVC)=>{
+                                                                                                                      return html`
+                                                                                                                          <div class="d-flex flex-column" style="width: 100vw;height:100vh;position: absolute;left: 0;top:0;background-color: gray;">
+                                                                                                                              <div class="d-flex align-items-center" style="height: 60px;width: 100%;">
+                                                                                                                                  <div class="d-flex" style="padding:19px 32px;gap:8px;" onclick="${topGVC.event(()=>{
+                                                                                                                                      topGVC.glitter.closeDiaLog();
+                                                                                                                                  })}">
+                                                                                                                                      <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">
+                                                                                                                                          <path d="M13.7859 4.96406L8.02969 10.7203C7.69219 11.0578 7.5 11.5219 7.5 12C7.5 12.4781 7.69219 12.9422 8.02969 13.2797L13.7859 19.0359C14.0859 19.3359 14.4891 19.5 14.9109 19.5C15.7875 19.5 16.5 18.7875 16.5 17.9109V15H22.5C23.3297 15 24 14.3297 24 13.5V10.5C24 9.67031 23.3297 9 22.5 9H16.5V6.08906C16.5 5.2125 15.7875 4.5 14.9109 4.5C14.4891 4.5 14.0859 4.66875 13.7859 4.96406ZM7.5 19.5H4.5C3.67031 19.5 3 18.8297 3 18V6C3 5.17031 3.67031 4.5 4.5 4.5H7.5C8.32969 4.5 9 3.82969 9 3C9 2.17031 8.32969 1.5 7.5 1.5H4.5C2.01562 1.5 0 3.51562 0 6V18C0 20.4844 2.01562 22.5 4.5 22.5H7.5C8.32969 22.5 9 21.8297 9 21C9 20.1703 8.32969 19.5 7.5 19.5Z" fill="#393939"/>
+                                                                                                                                      </svg>
+                                                                                                                                      返回
+                                                                                                                                  </div>
+                                                                                                                              </div>
+                                                                                                                          </div>
+                                                                                                                      `
+                                                                                                                  },"batchEdit");
+                                                                                                              })}">
+                                                                                                                  批量編輯
+                                                                                                              </div>
                                                                                                           </div>
                                                                                                           <div
                                                                                                               style="position: relative"
