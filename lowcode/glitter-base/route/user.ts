@@ -698,6 +698,11 @@ export class ApiUser {
                     case 'message_setting':
                         config[key + user_id] = res;
                         break;
+                    case 'image-manager':
+                        if(!Array.isArray(res.response.value)){
+                            res.response.value=[]
+                        }
+                        break
                 }
                 if(key.indexOf('alt_')===0){
                     config[key + user_id] = res;
