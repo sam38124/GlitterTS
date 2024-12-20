@@ -716,7 +716,7 @@ export class imageLibrary {
                                     <div style="">
                                         <div style="width: 100%;  position: relative">
                                             <div
-                                                    style="width: 100%;  left: 0px; top: 0px;  flex-direction: column; justify-content: flex-start; align-items: flex-start; gap: 20px; display: inline-flex"
+                                                    style="width: 100%;  left: 0; top: 0;  flex-direction: column; justify-content: flex-start; align-items: flex-start; gap: 20px; display: inline-flex"
                                             >
                                                 <div class=" ${cf.key == 'album' ? `d-none` : `d-flex`}"
                                                      style="gap:14px;">${pageBTN()}
@@ -1111,7 +1111,7 @@ export class imageLibrary {
                                                      style="background: url('${image}') 50%/cover;padding-bottom:100%;border-radius: 10px;"></div>
                                             </div>
                                         `;
-                            })
+                            }).join(``)
                         ].join(``);
                     }, divCreate: { class: `d-flex flex-wrap w-100`, style: `gap: 0.5rem;margin-top:1rem;` }
                 })}

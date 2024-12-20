@@ -911,6 +911,9 @@ ${obj.structEnd ? obj.structEnd : '})()'}`,
                     style: `${obj.style || `overflow-y: auto;`}position:relative;`,
                 },
                 onCreate: () => {
+                    gvc.addStyle(`
+                        
+                    `);
                     let loading = true;
                     let delay = true;
                     let loadingView = false;
@@ -920,6 +923,9 @@ ${obj.structEnd ? obj.structEnd : '})()'}`,
                                 setTimeout(() => {
                                     var _a;
                                     gvc.addStyle(`
+                                        #${richID} li{
+                                            list-style:revert;
+                                        }
                                         #insertImage-1 {
                                             display: none !important;
                                         }
@@ -928,9 +934,6 @@ ${obj.structEnd ? obj.structEnd : '})()'}`,
                                         }
                                         .fr-sticky-dummy {
                                             display: none !important;
-                                        }
-                                        li{
-                                            list-style:auto;
                                         }
                                         ${obj.hiddenBorder
                                         ? css `
@@ -969,7 +972,12 @@ ${obj.structEnd ? obj.structEnd : '})()'}`,
                                             imageMaxSize: 5 * 1024 * 1024,
                                             imageAllowedTypes: ['jpeg', 'jpg', 'png'],
                                             contentChanged: function () {
-                                                obj.callback(editor.html.get());
+                                                const parser = new DOMParser();
+                                                const doc = parser.parseFromString(editor.html.get(), 'text/html');
+                                                doc.documentElement.querySelectorAll('li').forEach((element) => {
+                                                    element.style["list-style"] = "revert";
+                                                });
+                                                obj.callback(doc.documentElement.outerHTML);
                                             },
                                             'image.uploaded': function (response) {
                                                 console.info(`image.uploaded`);

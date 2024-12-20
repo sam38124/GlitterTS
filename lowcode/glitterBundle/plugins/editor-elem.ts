@@ -973,8 +973,6 @@ ${obj.structEnd ? obj.structEnd : '})()'}`,
                     return { src: dd.includes('http') ? dd : new URL(`../../jslib/froala/` + dd, import.meta.url).href };
                 }),
                 () => {
-                    // loading = false;
-                    // gvc.notifyDataChange(id);
                 },
                 () => {}
             );
@@ -997,6 +995,9 @@ ${obj.structEnd ? obj.structEnd : '})()'}`,
                     style: `${obj.style || `overflow-y: auto;`}position:relative;`,
                 },
                 onCreate: () => {
+                    gvc.addStyle(`
+                        
+                    `)
                     let loading = true;
                     let delay = true;
                     let loadingView = false;
@@ -1005,6 +1006,9 @@ ${obj.structEnd ? obj.structEnd : '})()'}`,
                             if ((glitter.window as any).FroalaEditor) {
                                 setTimeout(() => {
                                     gvc.addStyle(`
+                                        #${richID} li{
+                                            list-style:revert;
+                                        }
                                         #insertImage-1 {
                                             display: none !important;
                                         }
@@ -1013,9 +1017,6 @@ ${obj.structEnd ? obj.structEnd : '})()'}`,
                                         }
                                         .fr-sticky-dummy {
                                             display: none !important;
-                                        }
-                                        li{
-                                            list-style:auto;
                                         }
                                         ${
                                             obj.hiddenBorder
@@ -1065,7 +1066,12 @@ ${obj.structEnd ? obj.structEnd : '})()'}`,
                                             imageMaxSize: 5 * 1024 * 1024,
                                             imageAllowedTypes: ['jpeg', 'jpg', 'png'],
                                             contentChanged: function () {
-                                                obj.callback(editor.html.get());
+                                                const parser = new DOMParser();
+                                                const doc = parser.parseFromString(editor.html.get(), 'text/html');
+                                                doc.documentElement.querySelectorAll('li').forEach((element:any)=>{
+                                                    element.style["list-style"] = "revert"
+                                                })
+                                                obj.callback(doc.documentElement.outerHTML);
                                             },
                                             'image.uploaded': function (response: any) {
                                                 console.info(`image.uploaded`);
@@ -1135,15 +1141,6 @@ ${obj.structEnd ? obj.structEnd : '})()'}`,
                                                 });
                                                 return false;
                                             },
-                                            // 'keydown': function (e:any) {
-                                            //     // 檢查是否按下了 Shift + Enter
-                                            //     if (e.key === 'Enter' && e.shiftKey) {
-                                            //         e.preventDefault();
-                                            //         e.stopPropagation(); // 阻止事件冒泡
-                                            //         console.log('Shift+Enter 按下了');
-                                            //         // FroalaEditor.commands.exec('<br>');
-                                            //     }
-                                            // },
                                         },
                                         key: 'hWA2C-7I2B2C4B3E4E2G3wd1DBKSPF1WKTUCQOa1OURPJ1KDe2F-11D2C2D2D2C3B3C1D6B1C2==',
                                         toolbarButtons: [
@@ -1284,14 +1281,6 @@ ${obj.structEnd ? obj.structEnd : '})()'}`,
                         }, 100);
                     }
                     render();
-                    // if (loading){
-                    //     dialog.dataLoading({ visible: true })
-                    //     return ``;
-                    // }else{
-                    //     dialog.dataLoading({ visible: false })
-                    //     render();
-                    // }
-
                 },
             };
         });
