@@ -78,7 +78,7 @@ export class BgNotify {
                                     search: vm.query || undefined,
                                     filter: { account: 'no' },
                                 }).then((data) => {
-                                    console.log("data -- ", data);
+                                    console.log('data -- ', data);
                                     vm.dataList = data.response.data;
                                     vmi.pageSize = Math.ceil(data.response.total / limit);
                                     vmi.originalData = vm.dataList;
@@ -293,7 +293,7 @@ export class BgNotify {
                                                 options: FilterOptions.emailSelect,
                                             }),
                                             BgWidget.searchFilter(gvc.event((e) => {
-                                                vm.query = e.value;
+                                                vm.query = `${e.value}`.trim();
                                                 gvc.notifyDataChange(vm.tableId);
                                                 gvc.notifyDataChange(id);
                                             }), vm.query || '', '搜尋所有信件內容'),

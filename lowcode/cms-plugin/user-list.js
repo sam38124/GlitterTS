@@ -37,7 +37,7 @@ export class UserList {
             filter_type: `normal`,
             filterId: glitter.getUUID(),
             tableId: glitter.getUUID(),
-            initial_data: {}
+            initial_data: {},
         };
         const ListComp = new BgListComponent(gvc, vm, FilterOptions.userFilterFrame);
         vm.filter = ListComp.getFilterObject();
@@ -173,7 +173,7 @@ export class UserList {
                                                 options: FilterOptions.userSelect,
                                             }),
                                             BgWidget.searchFilter(gvc.event((e) => {
-                                                vm.query = e.value;
+                                                vm.query = `${e.value}`.trim();
                                                 gvc.notifyDataChange(vm.tableId);
                                                 gvc.notifyDataChange(id);
                                             }), vm.query || '', '搜尋所有用戶'),
@@ -380,7 +380,7 @@ export class UserList {
                                             options: FilterOptions.userSelect,
                                         }),
                                         BgWidget.searchFilter(gvc.event((e) => {
-                                            vm.query = e.value;
+                                            vm.query = `${e.value}`.trim();
                                             gvc.notifyDataChange(vm.tableId);
                                             gvc.notifyDataChange(id);
                                         }), vm.query || '', '搜尋會員電話/編號/名稱'),

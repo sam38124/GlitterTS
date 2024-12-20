@@ -293,7 +293,7 @@ export class BgLine {
                                                 options: FilterOptions.snsSelect,
                                             }),
                                             BgWidget.searchFilter(gvc.event((e) => {
-                                                vm.query = e.value;
+                                                vm.query = `${e.value}`.trim();
                                                 gvc.notifyDataChange(vm.tableId);
                                                 gvc.notifyDataChange(id);
                                             }), vm.query || '', '搜尋所有訊息內容'),

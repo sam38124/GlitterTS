@@ -98,7 +98,7 @@ export class ShoppingReturnOrderManager {
                                                 })}
                                                 ${BgWidget.searchFilter(
                                                     gvc.event((e, event) => {
-                                                        vm.query = e.value;
+                                                        vm.query = `${e.value}`.trim();
                                                         gvc.notifyDataChange(vm.id);
                                                     }),
                                                     vm.query || '',
@@ -557,7 +557,7 @@ export class ShoppingReturnOrderManager {
                                                         dialog.dataLoading({ text: '上傳中', visible: false });
                                                         if (response.result) {
                                                             dialog.successMessage({ text: '更新成功!' });
-                                                            vm.type='list'
+                                                            vm.type = 'list';
                                                         } else {
                                                             dialog.errorMessage({ text: '更新異常!' });
                                                         }

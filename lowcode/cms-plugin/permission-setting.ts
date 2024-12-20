@@ -297,7 +297,7 @@ export class PermissionSetting {
                                                         }),
                                                         BgWidget.searchFilter(
                                                             gvc.event((e) => {
-                                                                vm.query = e.value;
+                                                                vm.query = `${e.value}`.trim();
                                                                 gvc.notifyDataChange(vm.tableId);
                                                                 gvc.notifyDataChange(id);
                                                             }),
@@ -616,7 +616,7 @@ export class PermissionSetting {
                                                 phone: vm.data.config.phone,
                                                 auth: vm.data.config.auth,
                                             },
-                                            status: obj.type === 'add'  ? 1:vm.data.status,
+                                            status: obj.type === 'add' ? 1 : vm.data.status,
                                         }).then((res) => {
                                             dialog.dataLoading({ visible: false });
                                             if (res.result) {
@@ -973,8 +973,6 @@ export class PermissionSetting {
             },
         });
     }
-
-
 }
 
 (window as any).glitter.setModule(import.meta.url, PermissionSetting);

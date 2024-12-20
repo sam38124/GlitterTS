@@ -157,7 +157,7 @@ export class StockList {
                                                 options: FilterOptions.stockSelect,
                                             }),
                                             BgWidget.searchFilter(gvc.event((e) => {
-                                                vm.query = e.value;
+                                                vm.query = `${e.value}`.trim();
                                                 gvc.notifyDataChange(vm.tableId);
                                                 gvc.notifyDataChange(vmlist.id);
                                             }), vm.query || '', '搜尋商品'),

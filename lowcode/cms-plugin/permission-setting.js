@@ -194,7 +194,7 @@ export class PermissionSetting {
                                             options: FilterOptions.permissionSelect,
                                         }),
                                         BgWidget.searchFilter(gvc.event((e) => {
-                                            vm.query = e.value;
+                                            vm.query = `${e.value}`.trim();
                                             gvc.notifyDataChange(vm.tableId);
                                             gvc.notifyDataChange(id);
                                         }), vm.query || '', '搜尋所有員工'),

@@ -72,7 +72,7 @@ export class ShoppingReturnOrderManager {
                                 options: FilterOptions.returnOrderSelect,
                             })}
                                                 ${BgWidget.searchFilter(gvc.event((e, event) => {
-                                vm.query = e.value;
+                                vm.query = `${e.value}`.trim();
                                 gvc.notifyDataChange(vm.id);
                             }), vm.query || '', '搜尋所有訂單 按下Enter後執行')}
                                                 ${BgWidget.funnelFilter({

@@ -28,7 +28,7 @@ type ViewModel = {
     orderString?: string;
     filter_type: string;
     filter?: any;
-    initial_data?:any
+    initial_data?: any;
 };
 
 export class UserList {
@@ -54,7 +54,7 @@ export class UserList {
             filter_type: `normal`,
             filterId: glitter.getUUID(),
             tableId: glitter.getUUID(),
-            initial_data:{}
+            initial_data: {},
         };
 
         const ListComp = new BgListComponent(gvc, vm, FilterOptions.userFilterFrame);
@@ -104,10 +104,10 @@ export class UserList {
         }
 
         //AI快速生成
-        if(localStorage.getItem('add_member')){
-            vm.type='create'
-            vm.initial_data=JSON.parse(localStorage.getItem('add_member') as string)
-            localStorage.removeItem('add_member')
+        if (localStorage.getItem('add_member')) {
+            vm.type = 'create';
+            vm.initial_data = JSON.parse(localStorage.getItem('add_member') as string);
+            localStorage.removeItem('add_member');
         }
         return gvc.bindView({
             bind: vm.id,
@@ -207,7 +207,7 @@ export class UserList {
                                                             }),
                                                             BgWidget.searchFilter(
                                                                 gvc.event((e) => {
-                                                                    vm.query = e.value;
+                                                                    vm.query = `${e.value}`.trim();
                                                                     gvc.notifyDataChange(vm.tableId);
                                                                     gvc.notifyDataChange(id);
                                                                 }),
@@ -432,7 +432,7 @@ export class UserList {
                                         }),
                                         BgWidget.searchFilter(
                                             gvc.event((e) => {
-                                                vm.query = e.value;
+                                                vm.query = `${e.value}`.trim();
                                                 gvc.notifyDataChange(vm.tableId);
                                                 gvc.notifyDataChange(id);
                                             }),
@@ -1585,13 +1585,13 @@ export class UserList {
                                                     return;
                                                 }
                                                 dialog.dataLoading({ visible: true });
-                                                if( (await ApiUser.getPhoneCount(userData.phone)).response.result){
+                                                if ((await ApiUser.getPhoneCount(userData.phone)).response.result) {
                                                     dialog.dataLoading({ visible: false });
                                                     dialog.errorMessage({ text: '此電話號碼已被註冊' });
-                                                }else  if( (await ApiUser.getEmailCount(userData.email)).response.result){
+                                                } else if ((await ApiUser.getEmailCount(userData.email)).response.result) {
                                                     dialog.dataLoading({ visible: false });
                                                     dialog.errorMessage({ text: '此信箱已被註冊' });
-                                                }else{
+                                                } else {
                                                     ApiUser.quickRegister({
                                                         account: userData.email,
                                                         pwd: gvc.glitter.getUUID(),
@@ -1601,11 +1601,10 @@ export class UserList {
                                                             dialog.dataLoading({ visible: false });
                                                             dialog.infoMessage({ text: '成功新增會員' });
                                                             vm.type = 'list';
-                                                        }else{
+                                                        } else {
                                                             dialog.dataLoading({ visible: false });
                                                             dialog.errorMessage({ text: '會員建立失敗' });
                                                         }
-
                                                     });
                                                 }
                                             })

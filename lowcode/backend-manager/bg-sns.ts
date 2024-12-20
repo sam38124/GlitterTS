@@ -365,7 +365,7 @@ export class BgSNS {
                                                             }),
                                                             BgWidget.searchFilter(
                                                                 gvc.event((e) => {
-                                                                    vm.query = e.value;
+                                                                    vm.query = `${e.value}`.trim();
                                                                     gvc.notifyDataChange(vm.tableId);
                                                                     gvc.notifyDataChange(id);
                                                                 }),
