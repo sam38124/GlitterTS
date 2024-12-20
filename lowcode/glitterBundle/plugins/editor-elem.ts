@@ -988,23 +988,28 @@ ${obj.structEnd ? obj.structEnd : '})()'}`,
                     return html` <div class="w-100 d-flex align-items-center justify-content-center p-3 ${richID}-loading">
                             <div class="spinner-border" style=""></div>
                         </div>
-                        <div id="${richID}" style="position:relative;">${obj.def}</div>`;
+                        <div id="${richID}" style="position:relative;min-height:100vh;"></div>
+                    <div class="position-absolute w-100  bg-white d-flex align-items-center justify-content-center flex-column" style="top:0px;left:0px;height:${obj.rich_height || '100%'};z-index:9999;" id="hid_${id}">
+                        <div class="spinner-border"></div>
+                        載入中
+                    </div>
+                    `;
                 },
                 divCreate: {
                     style: `${obj.style || `overflow-y: auto;`}position:relative;`,
                 },
                 onCreate: () => {
-                    gvc.addStyle(`
-                        
-                    `)
                     let loading = true;
                     let delay = true;
                     let loadingView = false;
-                    function render() {
+
                         const interval = setInterval(() => {
                             if ((glitter.window as any).FroalaEditor) {
-                                setTimeout(() => {
-                                    gvc.addStyle(`
+                                clearInterval(interval);
+                                console.log(`re_render=>`)
+                                function render() {
+                                    setTimeout(() => {
+                                        gvc.addStyle(`
                                         #${richID} li{
                                             list-style:revert;
                                         }
@@ -1031,197 +1036,197 @@ ${obj.structEnd ? obj.structEnd : '})()'}`,
                                         }
                                     `);
 
-                                    function generateFontSizeArray() {
-                                        let fontSizes = [];
+                                        function generateFontSizeArray() {
+                                            let fontSizes = [];
 
-                                        // 添加8到30的字體大小
-                                        for (let size = 8; size <= 30; size += 1) {
-                                            fontSizes.push(size.toString());
-                                        }
-
-                                        // 添加30到60的字體大小
-                                        for (let size = 32; size <= 60; size += 2) {
-                                            fontSizes.push(size.toString());
-                                        }
-
-                                        // 添加60到96的字體大小
-                                        for (let size = 64; size <= 96; size += 4) {
-                                            fontSizes.push(size.toString());
-                                        }
-
-                                        return fontSizes;
-                                    }
-                                    const toolBarArray = [
-                                        'bold',
-                                        'italic',
-                                        'underline',
-                                        'align',
-                                        '|',
-                                        'paragraphFormat',
-                                        'fontSize',
-                                        'fontFamily',
-                                        'textColor',
-                                        'backgroundColor',
-                                        'clearFormatting',
-                                        '|',
-                                        'insertTable',
-                                        'insertLink',
-                                        'insertImage',
-                                        'insertVideo',
-                                        'insertHR',
-                                        '|',
-                                        'formatOL',
-                                        'emoticons',
-                                        'html',
-                                    ];
-                                    const FroalaEditor = (glitter.window as any).FroalaEditor;
-                                    const editor = new FroalaEditor('#' + richID, {
-                                        enter: FroalaEditor.ENTER_DIV,
-                                        language: 'zh_tw',
-                                        heightMin: obj.setHeight ?? 350,
-                                        content: obj.def,
-                                        fontSize: generateFontSizeArray(),
-                                        quickInsertEnabled: false,
-                                        toolbarSticky: true,
-                                        events: {
-                                            imageMaxSize: 5 * 1024 * 1024,
-                                            imageAllowedTypes: ['jpeg', 'jpg', 'png'],
-                                            contentChanged: function () {
-                                                const parser = new DOMParser();
-                                                const doc = parser.parseFromString(editor.html.get(), 'text/html');
-                                                doc.documentElement.querySelectorAll('li').forEach((element:any)=>{
-                                                    element.style["list-style"] = "revert"
-                                                })
-                                                obj.callback(doc.documentElement.outerHTML);
-                                            },
-                                            'image.uploaded': function (response: any) {
-                                                console.info(`image.uploaded`);
-                                                return false;
-                                            },
-                                            'image.inserted': function ($img: any, response: any) {
-                                                console.info(`image.inserted`);
-                                                return false;
-                                            },
-                                            'image.replaced': function ($img: any, response: any) {
-                                                console.info(`image.replaced`);
-                                                return false;
-                                            },
-                                            'image.beforePasteUpload': (e: any, images: any) => {
-                                                function base64ToBlob(base64: any, mimeType: any) {
-                                                    mimeType = mimeType || ''; // 设置默认 MIME 类型
-                                                    var byteCharacters = atob(base64);
-                                                    var byteNumbers = new Array(byteCharacters.length);
-
-                                                    for (var i = 0; i < byteCharacters.length; i++) {
-                                                        byteNumbers[i] = byteCharacters.charCodeAt(i);
-                                                    }
-
-                                                    var byteArray = new Uint8Array(byteNumbers);
-
-                                                    return new Blob([byteArray], { type: mimeType });
-                                                }
-
-                                                const mimeType = 'image/jpeg';
-                                                const blob = base64ToBlob(e.src.split(',')[1], mimeType);
-                                                const saasConfig: { config: any; api: any } = (window as any).saasConfig;
-
-                                                glitter.share.wait_up_f = glitter.share.wait_up_f ?? [];
-                                                glitter.share.wait_up_f.push({
-                                                    file: new File([blob], gvc.glitter.getUUID() + '.jpeg', { type: mimeType }),
-                                                    element: e,
-                                                });
-                                                clearInterval(glitter.share.wait_up_f_timer);
-                                                glitter.share.wait_up_f_timer = setTimeout(() => {
-                                                    const dialog = new ShareDialog(obj.gvc.glitter);
-                                                    dialog.dataLoading({ visible: true });
-                                                    saasConfig.api
-                                                        .uploadFileAll(
-                                                            glitter.share.wait_up_f.map((dd: any) => {
-                                                                return dd.file;
-                                                            })
-                                                        )
-                                                        .then((res: { result: boolean; links: string[] }) => {
-                                                            dialog.dataLoading({ visible: false });
-                                                            glitter.share.wait_up_f.map((dd: any, index: number) => {
-                                                                dd.element.src = res.links[index];
-                                                            });
-                                                            glitter.share.wait_up_f = [];
-                                                        });
-                                                }, 100);
-
-                                                e.src = '';
-                                                return false;
-                                            },
-                                            'image.beforeUpload': function (e: any, images: any) {
-                                                EditorElem.uploadFileFunction({
-                                                    gvc: gvc,
-                                                    callback: (text) => {
-                                                        editor.html.insert(`<img${text}">`);
-                                                    },
-                                                    file: e[0],
-                                                });
-                                                return false;
-                                            },
-                                        },
-                                        key: 'hWA2C-7I2B2C4B3E4E2G3wd1DBKSPF1WKTUCQOa1OURPJ1KDe2F-11D2C2D2D2C3B3C1D6B1C2==',
-                                        toolbarButtons: toolBarArray,
-                                        paragraphFormat: {
-                                            N: '普通文字',
-                                            H1: '標題 1',
-                                            H2: '標題 2',
-                                            H3: '標題 3',
-                                            H4: '標題 4',
-                                            H5: '標題 5',
-                                            H6: '標題 6',
-                                        },
-                                    });
-                                    if (glitter.document.querySelector(`.${richID}-loading`) as any) {
-                                        (glitter.document.querySelector(`.${richID}-loading`) as any).remove();
-                                    }
-                                    const dialog = new ShareDialog(gvc.glitter);
-                                    if (loading){
-                                        loading = false;
-                                        dialog.dataLoading({visible: true,BG:"gray",text:"編輯器就位中"});
-                                        loadingView = true;
-                                        setTimeout(()=>{
-                                            delay = false;
-                                            if (!loadingView && !delay){
-                                                dialog.dataLoading({visible: false});
+                                            // 添加8到30的字體大小
+                                            for (let size = 8; size <= 30; size += 1) {
+                                                fontSizes.push(size.toString());
                                             }
 
-                                        },800)
+                                            // 添加30到60的字體大小
+                                            for (let size = 32; size <= 60; size += 2) {
+                                                fontSizes.push(size.toString());
+                                            }
 
-                                    }
+                                            // 添加60到96的字體大小
+                                            for (let size = 64; size <= 96; size += 4) {
+                                                fontSizes.push(size.toString());
+                                            }
 
-                                    setTimeout(() => {
-                                        const target: any = glitter.document.querySelector(`[data-cmd="insertImage"]`);
+                                            return fontSizes;
+                                        }
+                                        const toolBarArray = [
+                                            'bold',
+                                            'italic',
+                                            'underline',
+                                            'align',
+                                            '|',
+                                            'paragraphFormat',
+                                            'fontSize',
+                                            'fontFamily',
+                                            'textColor',
+                                            'backgroundColor',
+                                            'clearFormatting',
+                                            '|',
+                                            'insertTable',
+                                            'insertLink',
+                                            'insertImage',
+                                            'insertVideo',
+                                            'insertHR',
+                                            '|',
+                                            'formatOL',
+                                            'emoticons',
+                                            'html',
+                                        ];
+                                        const FroalaEditor = (glitter.window as any).FroalaEditor;
+                                        const editor = new FroalaEditor('#' + richID, {
+                                            enter: FroalaEditor.ENTER_DIV,
+                                            language: 'zh_tw',
+                                            heightMin: obj.setHeight ?? 350,
+                                            content: '',
+                                            fontSize: generateFontSizeArray(),
+                                            quickInsertEnabled: false,
+                                            toolbarSticky: true,
+                                            events: {
+                                                imageMaxSize: 5 * 1024 * 1024,
+                                                imageAllowedTypes: ['jpeg', 'jpg', 'png'],
+                                                contentChanged: function () {
+                                                    const parser = new DOMParser();
+                                                    const doc = parser.parseFromString(editor.html.get(), 'text/html');
+                                                    doc.documentElement.querySelectorAll('li').forEach((element:any)=>{
+                                                        element.style["list-style"] = "revert"
+                                                    })
+                                                    obj.callback(doc.documentElement.outerHTML);
+                                                },
+                                                'image.uploaded': function (response: any) {
+                                                    console.info(`image.uploaded`);
+                                                    return false;
+                                                },
+                                                'image.inserted': function ($img: any, response: any) {
+                                                    console.info(`image.inserted`);
+                                                    return false;
+                                                },
+                                                'image.replaced': function ($img: any, response: any) {
+                                                    console.info(`image.replaced`);
+                                                    return false;
+                                                },
+                                                'image.beforePasteUpload': (e: any, images: any) => {
+                                                    function base64ToBlob(base64: any, mimeType: any) {
+                                                        mimeType = mimeType || ''; // 设置默认 MIME 类型
+                                                        var byteCharacters = atob(base64);
+                                                        var byteNumbers = new Array(byteCharacters.length);
 
-                                        function checkRender(){
-                                            let checked = false;
-                                            toolBarArray.forEach((toolBar)=>{
-                                                if (toolBar!="|" &&!glitter.document.querySelector(`[data-cmd=${toolBar}]`)){
-                                                    console.log(toolBar , "載入錯誤")
-                                                    checked = true;
+                                                        for (var i = 0; i < byteCharacters.length; i++) {
+                                                            byteNumbers[i] = byteCharacters.charCodeAt(i);
+                                                        }
+
+                                                        var byteArray = new Uint8Array(byteNumbers);
+
+                                                        return new Blob([byteArray], { type: mimeType });
+                                                    }
+
+                                                    const mimeType = 'image/jpeg';
+                                                    const blob = base64ToBlob(e.src.split(',')[1], mimeType);
+                                                    const saasConfig: { config: any; api: any } = (window as any).saasConfig;
+
+                                                    glitter.share.wait_up_f = glitter.share.wait_up_f ?? [];
+                                                    glitter.share.wait_up_f.push({
+                                                        file: new File([blob], gvc.glitter.getUUID() + '.jpeg', { type: mimeType }),
+                                                        element: e,
+                                                    });
+                                                    clearInterval(glitter.share.wait_up_f_timer);
+                                                    glitter.share.wait_up_f_timer = setTimeout(() => {
+                                                        const dialog = new ShareDialog(obj.gvc.glitter);
+                                                        dialog.dataLoading({ visible: true });
+                                                        saasConfig.api
+                                                            .uploadFileAll(
+                                                                glitter.share.wait_up_f.map((dd: any) => {
+                                                                    return dd.file;
+                                                                })
+                                                            )
+                                                            .then((res: { result: boolean; links: string[] }) => {
+                                                                dialog.dataLoading({ visible: false });
+                                                                glitter.share.wait_up_f.map((dd: any, index: number) => {
+                                                                    dd.element.src = res.links[index];
+                                                                });
+                                                                glitter.share.wait_up_f = [];
+                                                            });
+                                                    }, 100);
+
+                                                    e.src = '';
+                                                    return false;
+                                                },
+                                                'image.beforeUpload': function (e: any, images: any) {
+                                                    EditorElem.uploadFileFunction({
+                                                        gvc: gvc,
+                                                        callback: (text) => {
+                                                            editor.html.insert(`<img${text}">`);
+                                                        },
+                                                        file: e[0],
+                                                    });
+                                                    return false;
+                                                },
+                                            },
+                                            key: 'hWA2C-7I2B2C4B3E4E2G3wd1DBKSPF1WKTUCQOa1OURPJ1KDe2F-11D2C2D2D2C3B3C1D6B1C2==',
+                                            toolbarButtons: toolBarArray,
+                                            paragraphFormat: {
+                                                N: '普通文字',
+                                                H1: '標題 1',
+                                                H2: '標題 2',
+                                                H3: '標題 3',
+                                                H4: '標題 4',
+                                                H5: '標題 5',
+                                                H6: '標題 6',
+                                            },
+                                        });
+
+                                        if (glitter.document.querySelector(`.${richID}-loading`) as any) {
+                                            (glitter.document.querySelector(`.${richID}-loading`) as any).remove();
+                                        }
+                                        const dialog = new ShareDialog(gvc.glitter);
+                                        if (loading){
+                                            loading = false;
+                                            loadingView = true;
+                                            setTimeout(()=>{
+                                                delay = false;
+                                                if (!loadingView && !delay){
+                                                    gvc.glitter.document.querySelector(`#hid_${id}`)!!.remove();
                                                 }
-                                            })
-                                            return checked;
+
+                                            },800)
+
                                         }
 
-                                        if (checkRender()) {
-                                            try {
-                                                editor.destroy();
-                                            } catch (e) {}
-                                            setTimeout(() => {
-                                                render();
-                                            }, 500);
-                                            return;
-                                        }
-                                        loadingView = false;
-                                        if (!loadingView && !delay){
-                                            dialog.dataLoading({visible: false});
-                                        }
+                                        setTimeout(() => {
+                                            const target: any = glitter.document.querySelector(`[data-cmd="insertImage"]`);
 
-                                        target.outerHTML = html` <button
+                                            function checkRender(){
+                                                let checked = false;
+                                                toolBarArray.forEach((toolBar)=>{
+                                                    if (toolBar!="|" &&!glitter.document.querySelector(`[data-cmd=${toolBar}]`)){
+                                                        console.log(toolBar , "載入錯誤")
+                                                        checked = true;
+                                                    }
+                                                })
+                                                return checked;
+                                            }
+
+                                            if (checkRender()) {
+                                                try {
+                                                    editor.destroy();
+                                                } catch (e) {}
+                                                setTimeout(() => {
+                                                    render();
+                                                }, 500);
+                                                return;
+                                            }else{
+                                                loadingView = false;
+                                                if (!loadingView && !delay){
+                                                    gvc.glitter.document.querySelector(`#hid_${id}`)!!.remove();
+                                                    editor.html.set(obj.def || '')
+                                                }
+                                                target.outerHTML = html` <button
                                             id="insertImage-replace"
                                             type="button"
                                             tabindex="-1"
@@ -1229,43 +1234,43 @@ ${obj.structEnd ? obj.structEnd : '})()'}`,
                                             class="fr-command fr-btn "
                                             data-title="插入圖片 (⌘P)"
                                             onclick="${obj.gvc.event(() => {
-                                                if (obj.insertImageEvent) {
-                                                    obj.insertImageEvent(editor);
-                                                } else {
-                                                    glitter.ut.chooseMediaCallback({
-                                                        single: true,
-                                                        accept: 'image/*',
-                                                        callback(data) {
-                                                            const saasConfig = (window as any).saasConfig;
-                                                            const dialog = new ShareDialog(glitter);
-                                                            dialog.dataLoading({ visible: true });
-                                                            const file = data[0].file;
-                                                            saasConfig.api.uploadFile(file.name).then((data: any) => {
-                                                                dialog.dataLoading({ visible: false });
-                                                                const data1 = data.response;
+                                                    if (obj.insertImageEvent) {
+                                                        obj.insertImageEvent(editor);
+                                                    } else {
+                                                        glitter.ut.chooseMediaCallback({
+                                                            single: true,
+                                                            accept: 'image/*',
+                                                            callback(data) {
+                                                                const saasConfig = (window as any).saasConfig;
+                                                                const dialog = new ShareDialog(glitter);
                                                                 dialog.dataLoading({ visible: true });
-                                                                BaseApi.create({
-                                                                    url: data1.url,
-                                                                    type: 'put',
-                                                                    data: file,
-                                                                    headers: {
-                                                                        'Content-Type': data1.type,
-                                                                    },
-                                                                }).then((res) => {
+                                                                const file = data[0].file;
+                                                                saasConfig.api.uploadFile(file.name).then((data: any) => {
                                                                     dialog.dataLoading({ visible: false });
-                                                                    if (res.result) {
-                                                                        const imgElement = html`<img src="${data1.fullUrl}" style="max-width: 100%;" />`;
-                                                                        editor.html.insert(imgElement);
-                                                                        editor.undo.saveStep();
-                                                                    } else {
-                                                                        dialog.errorMessage({ text: '上傳失敗' });
-                                                                    }
+                                                                    const data1 = data.response;
+                                                                    dialog.dataLoading({ visible: true });
+                                                                    BaseApi.create({
+                                                                        url: data1.url,
+                                                                        type: 'put',
+                                                                        data: file,
+                                                                        headers: {
+                                                                            'Content-Type': data1.type,
+                                                                        },
+                                                                    }).then((res) => {
+                                                                        dialog.dataLoading({ visible: false });
+                                                                        if (res.result) {
+                                                                            const imgElement = html`<img src="${data1.fullUrl}" style="max-width: 100%;" />`;
+                                                                            editor.html.insert(imgElement);
+                                                                            editor.undo.saveStep();
+                                                                        } else {
+                                                                            dialog.errorMessage({ text: '上傳失敗' });
+                                                                        }
+                                                                    });
                                                                 });
-                                                            });
-                                                        },
-                                                    });
-                                                }
-                                            })}"
+                                                            },
+                                                        });
+                                                    }
+                                                })}"
                                         >
                                             <svg class="fr-svg" focusable="false" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                                                 <path
@@ -1274,23 +1279,27 @@ ${obj.structEnd ? obj.structEnd : '})()'}`,
                                             </svg>
                                             <span class="fr-sr-only">插入圖片</span>
                                         </button>`;
-                                        if (obj.rich_height) {
-                                            glitter.document.querySelector(`#` + richID).querySelector(`.fr-view`).style.height = obj.rich_height;
-                                            glitter.document.querySelector(`#` + richID).querySelector(`.fr-view`).style.minHeight = 'auto';
-                                            glitter.document.querySelector(`#` + richID).querySelector(`.fr-view`).style.overflowY = 'auto';
-                                        }
+                                                if (obj.rich_height) {
+                                                    glitter.document.querySelector(`#` + richID).querySelector(`.fr-view`).style.height = obj.rich_height;
+                                                    glitter.document.querySelector(`#` + richID).querySelector(`.fr-view`).style.minHeight = 'auto';
+                                                    glitter.document.querySelector(`#` + richID).querySelector(`.fr-view`).style.overflowY = 'auto';
+                                                }
 
-                                        if (obj.readonly) {
-                                            editor.edit.off();
-                                            editor.toolbar.disable();
-                                        }
-                                    }, 200);
-                                }, 100);
-                                clearInterval(interval);
+                                                if (obj.readonly) {
+                                                    editor.edit.off();
+                                                    editor.toolbar.disable();
+                                                }
+
+                                            }
+
+                                        }, 200);
+                                    }, 100);
+                                }
+                                render();
                             }
                         }, 100);
-                    }
-                    render();
+
+
                 },
             };
         });
