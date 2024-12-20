@@ -999,11 +999,9 @@ router.post('/apple-webhook', async (req, resp) => {
             axios_1.default
                 .request(config)
                 .then((response) => {
-                console.log(JSON.stringify(response.data));
                 resolve(response.data);
             })
                 .catch((error) => {
-                console.log(error);
                 resolve(false);
             });
         });
@@ -1140,7 +1138,7 @@ router.post('/apple-webhook', async (req, resp) => {
         return response_1.default.succ(resp, { result: true });
     }
     catch (err) {
-        console.log(err);
+        console.error(err);
         return response_1.default.fail(resp, err);
     }
 });

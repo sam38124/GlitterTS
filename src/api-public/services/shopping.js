@@ -1692,10 +1692,7 @@ class Shopping {
             const orderStatus = orderData.orderStatus === undefined || `${orderData.orderStatus}` === '0';
             if (proofPurchase && paymentStatus && progressStatus && orderStatus) {
                 orderData.orderStatus = '-1';
-                const record = {
-                    time: this.formatDateString(),
-                    record: '顧客手動取消訂單',
-                };
+                const record = { time: this.formatDateString(), record: '顧客手動取消訂單' };
                 if (orderData.editRecord) {
                     orderData.editRecord.push(record);
                 }
