@@ -1128,52 +1128,54 @@ export class BgRecommend {
                                                     },
                                                 }),
                                             ].join(``)),
-                                            gvc.bindView(() => {
-                                                const id = gvc.glitter.getUUID();
-                                                return {
-                                                    bind: id,
-                                                    view: () => {
-                                                        return BgWidget.mainCard(html ` <div style="display: flex; margin-bottom: 8px;padding-left:0.25rem;">
-                                                                        <span class="tx_700">訂單記錄</span>
-                                                                    </div>` +
-                                                            gvc.bindView(() => {
-                                                                const id = gvc.glitter.getUUID();
-                                                                return {
-                                                                    bind: id,
-                                                                    view: () => {
-                                                                        const limit = 10;
-                                                                        return new Promise((resolve) => __awaiter(this, void 0, void 0, function* () {
-                                                                            const h = BgWidget.tableV3({
-                                                                                gvc: gvc,
-                                                                                getData: (vd) => {
-                                                                                    ApiShop.getOrder({
-                                                                                        page: vd.page - 1,
-                                                                                        limit: limit,
-                                                                                        data_from: 'manager',
-                                                                                        distribution_code: vm.data.code,
-                                                                                        status: 1,
-                                                                                    }).then((data) => {
-                                                                                        vd.pageSize = Math.ceil(data.response.total / limit);
-                                                                                        vd.originalData = data.response.data;
-                                                                                        vd.tableData = getOrderlist(data.response.data);
-                                                                                        vd.loading = false;
-                                                                                        vd.callback();
-                                                                                    });
-                                                                                },
-                                                                                rowClick: () => { },
-                                                                                filter: [],
-                                                                            });
-                                                                            resolve(html ` <div style="display:flex; gap: 18px; flex-direction: column;">${h}</div>`);
-                                                                        }));
-                                                                    },
-                                                                };
-                                                            }));
-                                                    },
-                                                    divCreate: {
-                                                        class: 'p-0',
-                                                    },
-                                                };
-                                            }),
+                                            vm.readonly
+                                                ? gvc.bindView(() => {
+                                                    const id = gvc.glitter.getUUID();
+                                                    return {
+                                                        bind: id,
+                                                        view: () => {
+                                                            return BgWidget.mainCard(html ` <div style="display: flex; margin-bottom: 8px;padding-left:0.25rem;">
+                                                                              <span class="tx_700">訂單記錄</span>
+                                                                          </div>` +
+                                                                gvc.bindView(() => {
+                                                                    const id = gvc.glitter.getUUID();
+                                                                    return {
+                                                                        bind: id,
+                                                                        view: () => {
+                                                                            const limit = 10;
+                                                                            return new Promise((resolve) => __awaiter(this, void 0, void 0, function* () {
+                                                                                const h = BgWidget.tableV3({
+                                                                                    gvc: gvc,
+                                                                                    getData: (vd) => {
+                                                                                        ApiShop.getOrder({
+                                                                                            page: vd.page - 1,
+                                                                                            limit: limit,
+                                                                                            data_from: 'manager',
+                                                                                            distribution_code: vm.data.code,
+                                                                                            status: 1,
+                                                                                        }).then((data) => {
+                                                                                            vd.pageSize = Math.ceil(data.response.total / limit);
+                                                                                            vd.originalData = data.response.data;
+                                                                                            vd.tableData = getOrderlist(data.response.data);
+                                                                                            vd.loading = false;
+                                                                                            vd.callback();
+                                                                                        });
+                                                                                    },
+                                                                                    rowClick: () => { },
+                                                                                    filter: [],
+                                                                                });
+                                                                                resolve(html ` <div style="display:flex; gap: 18px; flex-direction: column;">${h}</div>`);
+                                                                            }));
+                                                                        },
+                                                                    };
+                                                                }));
+                                                        },
+                                                        divCreate: {
+                                                            class: 'p-0',
+                                                        },
+                                                    };
+                                                })
+                                                : '',
                                             BgWidget.mainCard((() => {
                                                 const id = gvc.glitter.getUUID();
                                                 return gvc.bindView({
@@ -1736,7 +1738,7 @@ export class BgRecommend {
                                                 }, { single: false }),
                                             ].join('')),
                                         ];
-                                        return map.join(BgWidget.mbContainer(24));
+                                        return map.filter((item) => item.length > 0).join(BgWidget.mbContainer(24));
                                     },
                                     divCreate: { class: 'p-0' },
                                 };
