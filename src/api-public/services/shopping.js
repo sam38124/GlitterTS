@@ -1677,6 +1677,40 @@ class Shopping {
             throw exception_js_1.default.BadRequestError('BAD_REQUEST', 'putOrder Error:' + e, null);
         }
     }
+    async cancelOrder(order_id) {
+        try {
+            const orderList = await database_js_1.default.query(`SELECT * FROM \`${this.app}\`.t_checkout WHERE cart_token = ?;
+                `, [order_id]);
+            if (orderList.length !== 1) {
+                return { data: false };
+            }
+            const origin = orderList[0];
+            const orderData = origin.orderData;
+            const proofPurchase = orderData.proof_purchase === undefined;
+            const paymentStatus = origin.status === undefined || origin.status === 0 || origin.status === -1;
+            const progressStatus = orderData.progress === undefined || orderData.progress === 'wait';
+            const orderStatus = orderData.orderStatus === undefined || `${orderData.orderStatus}` === '0';
+            if (proofPurchase && paymentStatus && progressStatus && orderStatus) {
+                orderData.orderStatus = '-1';
+                const record = {
+                    time: this.formatDateString(),
+                    record: '顧客手動取消訂單',
+                };
+                if (orderData.editRecord) {
+                    orderData.editRecord.push(record);
+                }
+                else {
+                    orderData.editRecord = [record];
+                }
+            }
+            await database_js_1.default.query(`UPDATE \`${this.app}\`.t_checkout SET orderData = ? WHERE cart_token = ?;
+                `, [JSON.stringify(orderData), order_id]);
+            return { data: true };
+        }
+        catch (e) {
+            throw exception_js_1.default.BadRequestError('BAD_REQUEST', 'cancelOrder Error:' + e, null);
+        }
+    }
     async deleteOrder(req) {
         try {
             await database_js_1.default.query(`DELETE
@@ -2185,6 +2219,15 @@ OR JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.orderStatus')) NOT IN (-99)) `);
         const startISO = startDate.toISOString();
         const endISO = endDate.toISOString();
         return { startISO, endISO };
+    }
+    formatDateString(isoDate) {
+        const date = isoDate ? new Date(isoDate) : new Date();
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, '0');
+        const day = String(date.getDate()).padStart(2, '0');
+        const hours = String(date.getHours()).padStart(2, '0');
+        const minutes = String(date.getMinutes()).padStart(2, '0');
+        return `${year}-${month}-${day} ${hours}:${minutes}`;
     }
     async getActiveRecentYear() {
         const endDate = new Date();

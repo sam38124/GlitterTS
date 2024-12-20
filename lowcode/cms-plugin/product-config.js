@@ -17,25 +17,27 @@ export class ProductConfig {
     static getInitial(obj) {
         function getEmptyLanguageData() {
             return {
-                title: '', seo: {
+                title: '',
+                seo: {
                     domain: '',
                     title: '',
                     content: '',
                     keywords: '',
                 },
                 content: '',
-                content_array: []
+                content_array: [],
             };
         }
         return {
             title: '',
             ai_description: '',
             language_data: {
-                "en-US": getEmptyLanguageData(),
-                "zh-CN": getEmptyLanguageData(),
-                "zh-TW": {
-                    title: (obj.defData && obj.defData.title) || '', seo: (obj.defData && obj.defData.seo) || {}
-                }
+                'en-US': getEmptyLanguageData(),
+                'zh-CN': getEmptyLanguageData(),
+                'zh-TW': {
+                    title: (obj.defData && obj.defData.title) || '',
+                    seo: (obj.defData && obj.defData.seo) || {},
+                },
             },
             productType: {
                 product: true,
@@ -63,8 +65,8 @@ export class ProductConfig {
             active_schedule: {
                 startDate: this.getDateTime().date,
                 startTime: this.getDateTime().time,
-                endDate: this.getDateTime(7).date,
-                endTime: this.getDateTime(7).time,
+                endDate: undefined,
+                endTime: undefined,
             },
             channel: ['normal', 'pos'],
         };

@@ -1399,15 +1399,6 @@ export class ShoppingProductSetting {
         };
     };
 
-    static getScheduleDatetime = (): ActiveSchedule => {
-        return {
-            startDate: this.getDateTime(7).date,
-            startTime: this.getDateTime(7).time,
-            endDate: this.getDateTime(14).date,
-            endTime: this.getDateTime(14).time,
-        };
-    };
-
     static getInactiveDatetime = (): ActiveSchedule => {
         return {
             startDate: this.getDateTime(-1).date,
@@ -1850,7 +1841,9 @@ export class ShoppingProductSetting {
                                                       { icon: document.body.clientWidth > 768 ? 'fa-regular fa-eye' : undefined }
                                                   )
                                                 : '',
-                                        ].filter((str) => str.length > 0).join(html` <div class="mx-1"></div>`)}
+                                        ]
+                                            .filter((str) => str.length > 0)
+                                            .join(html` <div class="mx-1"></div>`)}
                                     </div>
                                 </div>
                                 ${BgWidget.container1x2(
@@ -4741,9 +4734,11 @@ ${language_data.seo.content ?? ''}</textarea
                                                             view: () => {
                                                                 return [
                                                                     html` <div class="mb-2" style="font-weight: 700;">商品分類</div>`,
-                                                                    postMD.collection.map((dd) => {
-                                                                        return html`<span style="font-size: 14px;">${dd}</span>`;
-                                                                    }).join(html` <div class="my-1"></div>`),
+                                                                    postMD.collection
+                                                                        .map((dd) => {
+                                                                            return html`<span style="font-size: 14px;">${dd}</span>`;
+                                                                        })
+                                                                        .join(html` <div class="my-1"></div>`),
                                                                     html` <div class="w-100 mt-3">
                                                                         ${BgWidget.grayButton(
                                                                             `設定商品分類`,

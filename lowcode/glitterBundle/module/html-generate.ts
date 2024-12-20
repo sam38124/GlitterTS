@@ -703,34 +703,34 @@ ${obj.gvc.bindView({
                 dd.formData = dd.formData ?? formData;
                 dd.event = (key: string, subData: any) => {
                     return new Promise(async (resolve, reject) => {
-                        if ((window as any).glitter.getUrlParameter('cms') === 'true') {
-                            const dialog = new ShareDialog((window.parent as any).glitter);
-                            if (key === 'success') {
-                                dialog.successMessage({ text: subData.title });
-                            } else if (key === 'error') {
-                                dialog.errorMessage({ text: subData.title });
-                            } else if (key === 'loading') {
-                                dialog.dataLoading({ visible: subData.visible ?? true, text: subData.title });
-                            }
-                            resolve(true);
-                            return;
+                        const dialog = new ShareDialog((window.parent as any).glitter);
+                        if (key === 'success') {
+                            dialog.successMessage({ text: subData.title });
+                            resolve(subData);
+                        } else if (key === 'error') {
+                            dialog.errorMessage({ text: subData.title });
+                            resolve(subData);
+                        } else if (key === 'loading') {
+                            dialog.dataLoading({ visible: subData.visible ?? true, text: subData.title });
+                            resolve(subData);
+                        } else {
+                            GlobalEvent.getGlobalEvent({
+                                tag: key,
+                            }).then(async (d2) => {
+                                try {
+                                    const event = d2.response.result[0];
+                                    const response = await TriggerEvent.trigger({
+                                        gvc: (dd as any).global.gvc,
+                                        widget: dd as any,
+                                        clickEvent: event.json,
+                                        subData: subData,
+                                    });
+                                    resolve(response);
+                                } catch (e) {
+                                    resolve(false);
+                                }
+                            });
                         }
-                        GlobalEvent.getGlobalEvent({
-                            tag: key,
-                        }).then(async (d2) => {
-                            try {
-                                const event = d2.response.result[0];
-                                const response = await TriggerEvent.trigger({
-                                    gvc: (dd as any).global.gvc,
-                                    widget: dd as any,
-                                    clickEvent: event.json,
-                                    subData: subData,
-                                });
-                                resolve(response);
-                            } catch (e) {
-                                resolve(false);
-                            }
-                        });
                     });
                 };
                 return dd;

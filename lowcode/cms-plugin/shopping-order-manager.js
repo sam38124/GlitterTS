@@ -1188,18 +1188,20 @@ export class ShoppingOrderManager {
                                 if (!((_a = orderData.orderData) === null || _a === void 0 ? void 0 : _a.editRecord)) {
                                     return '';
                                 }
-                                let returnHTML = '';
-                                orderData.orderData.editRecord.map((record) => {
-                                    returnHTML += html `
-                                                            <div class="d-flex" style="gap: 42px">
-                                                                <div>${formatDateString(record.time)}</div>
-                                                                <div>${record.record}</div>
-                                                            </div>
-                                                        `;
-                                });
-                                return returnHTML;
+                                return gvc.map(orderData.orderData.editRecord
+                                    .sort((a, b) => {
+                                    return formatDateString(a.time) < formatDateString(b.time) ? 1 : -1;
+                                })
+                                    .map((record) => {
+                                    return html `
+                                                                    <div class="d-flex" style="gap: 42px">
+                                                                        <div>${formatDateString(record.time)}</div>
+                                                                        <div>${record.record}</div>
+                                                                    </div>
+                                                                `;
+                                }));
                             })()}
-                                                <div class="d-flex " style="gap: 42px">
+                                                <div class="d-flex" style="gap: 42px">
                                                     <div>${formatDateString(orderData.created_time)}</div>
                                                     <div>訂單成立</div>
                                                 </div>

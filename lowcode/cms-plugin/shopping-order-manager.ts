@@ -1411,18 +1411,22 @@ export class ShoppingOrderManager {
                                                     if (!orderData.orderData?.editRecord) {
                                                         return '';
                                                     }
-                                                    let returnHTML = '';
-                                                    orderData.orderData.editRecord.map((record: any) => {
-                                                        returnHTML += html`
-                                                            <div class="d-flex" style="gap: 42px">
-                                                                <div>${formatDateString(record.time)}</div>
-                                                                <div>${record.record}</div>
-                                                            </div>
-                                                        `;
-                                                    });
-                                                    return returnHTML;
+                                                    return gvc.map(
+                                                        orderData.orderData.editRecord
+                                                            .sort((a: any, b: any) => {
+                                                                return formatDateString(a.time) < formatDateString(b.time) ? 1 : -1;
+                                                            })
+                                                            .map((record: any) => {
+                                                                return html`
+                                                                    <div class="d-flex" style="gap: 42px">
+                                                                        <div>${formatDateString(record.time)}</div>
+                                                                        <div>${record.record}</div>
+                                                                    </div>
+                                                                `;
+                                                            })
+                                                    );
                                                 })()}
-                                                <div class="d-flex " style="gap: 42px">
+                                                <div class="d-flex" style="gap: 42px">
                                                     <div>${formatDateString(orderData.created_time)}</div>
                                                     <div>訂單成立</div>
                                                 </div>

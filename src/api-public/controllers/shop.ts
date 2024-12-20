@@ -6,7 +6,7 @@ import db from '../../modules/database.js';
 import redis from '../../modules/redis.js';
 import { UtDatabase } from '../utils/ut-database.js';
 import { UtPermission } from '../utils/ut-permission';
-import {EcPay, EzPay, LinePay, PayPal} from '../services/financial-service.js';
+import { EcPay, EzPay, LinePay, PayPal } from '../services/financial-service.js';
 import { Private_config } from '../../services/private_config.js';
 import { User } from '../services/user.js';
 import { Post } from '../services/post.js';
@@ -145,7 +145,7 @@ router.post('/checkout', async (req: express.Request, resp: express.Response) =>
                 distribution_code: req.body.distribution_code,
                 code_array: req.body.code_array,
                 give_away: req.body.give_away,
-                language:req.headers['language'] as any
+                language: req.headers['language'] as any,
             })
         );
     } catch (err) {
@@ -190,7 +190,7 @@ router.post('/checkout/preview', async (req: express.Request, resp: express.Resp
                     distribution_code: req.body.distribution_code,
                     code_array: req.body.code_array,
                     give_away: req.body.give_away,
-                    language:req.headers['language'] as any
+                    language: req.headers['language'] as any,
                 },
                 'preview'
             )
@@ -401,6 +401,13 @@ router.put('/order', async (req: express.Request, resp: express.Response) => {
         return response.fail(resp, err);
     }
 });
+router.put('/order/cancel', async (req: express.Request, resp: express.Response) => {
+    try {
+        return response.succ(resp, await new Shopping(req.get('g-app') as string, req.body.token).cancelOrder(req.body.id));
+    } catch (err) {
+        return response.fail(resp, err);
+    }
+});
 router.delete('/order', async (req: express.Request, resp: express.Response) => {
     try {
         if (await UtPermission.isManager(req)) {
@@ -569,7 +576,6 @@ async function redirect_link(req: express.Request, resp: express.Response) {
         // 判斷paypal進來 做capture
         let return_url = new URL((await redis.getValue(req.query.return as string)) as any);
         if (req.query.LinePay && req.query.LinePay === 'true') {
-
             const check_id = await redis.getValue(`linepay` + req.query.orderID);
             const keyData = (
                 await Private_config.getConfig({
@@ -579,12 +585,10 @@ async function redirect_link(req: express.Request, resp: express.Response) {
             )[0].value.line_pay;
             const linePay = new LinePay(req.query.appName as string, keyData);
 
-            const data:any = linePay.confirmAndCaptureOrder(check_id as string)
-            if (data.returnCode == "0000"){
+            const data: any = linePay.confirmAndCaptureOrder(check_id as string);
+            if (data.returnCode == '0000') {
                 await new Shopping(req.query.appName as string).releaseCheckout(1, req.query.orderID as string);
             }
-
-
         }
         if (req.query.payment && req.query.payment == 'true') {
             const check_id = await redis.getValue(`paypal` + req.query.orderID);
@@ -603,28 +607,28 @@ async function redirect_link(req: express.Request, resp: express.Response) {
 
         const html = String.raw;
         return resp.send(html`<!DOCTYPE html>
-        <html lang="en">
-        <head>
-            <meta charset="UTF-8" />
-            <title>Title</title>
-        </head>
-        <body>
-        <script>
-            try {
-                window.webkit.messageHandlers.addJsInterFace.postMessage(
-                        JSON.stringify({
-                            functionName: 'check_out_finish',
-                            callBackId: 0,
-                            data: {
-                                redirect: '${return_url.href}',
-                            },
-                        })
-                );
-            } catch (e) {}
-            location.href = '${return_url.href}';
-        </script>
-        </body>
-        </html> `);
+            <html lang="en">
+                <head>
+                    <meta charset="UTF-8" />
+                    <title>Title</title>
+                </head>
+                <body>
+                    <script>
+                        try {
+                            window.webkit.messageHandlers.addJsInterFace.postMessage(
+                                JSON.stringify({
+                                    functionName: 'check_out_finish',
+                                    callBackId: 0,
+                                    data: {
+                                        redirect: '${return_url.href}',
+                                    },
+                                })
+                            );
+                        } catch (e) {}
+                        location.href = '${return_url.href}';
+                    </script>
+                </body>
+            </html> `);
     } catch (err) {
         return response.fail(resp, err);
     }
@@ -899,7 +903,7 @@ router.get('/product', async (req: express.Request, resp: express.Response) => {
             show_hidden: `${req.query.show_hidden as any}`,
             productType: req.query.productType as any,
             filter_visible: req.query.filter_visible as any,
-            language:req.headers['language'] as string
+            language: req.headers['language'] as string,
         });
         return response.succ(resp, shopping);
     } catch (err) {
@@ -1080,11 +1084,9 @@ router.post('/apple-webhook', async (req: express.Request, resp: express.Respons
             axios
                 .request(config)
                 .then((response: any) => {
-                    console.log(JSON.stringify(response.data));
                     resolve(response.data);
                 })
                 .catch((error: any) => {
-                    console.log(error);
                     resolve(false);
                 });
         });
@@ -1251,7 +1253,7 @@ router.post('/apple-webhook', async (req: express.Request, resp: express.Respons
         }
         return response.succ(resp, { result: true });
     } catch (err) {
-        console.log(err);
+        console.error(err);
         return response.fail(resp, err);
     }
 });

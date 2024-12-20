@@ -69,9 +69,8 @@ export class UmClass {
                         },
                     ]
                         .map((item) => {
-                        if (item.key == "wishlist" && window.store_info.wishlist == false) {
-                            console.log("here -- ", window.store_info);
-                            return ``;
+                        if (item.key == 'wishlist' && window.store_info.wishlist == false) {
+                            return '';
                         }
                         return html `
                                 <div

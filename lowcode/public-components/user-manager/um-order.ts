@@ -394,7 +394,7 @@ export class UMOrder {
                 line-height: normal;
                 letter-spacing: 1px;
             }
-            .go-to-checkout {
+            .customer-btn {
                 height: 32px;
                 padding: 6px 14px;
                 background: #393939;
@@ -404,7 +404,7 @@ export class UMOrder {
                 display: inline-flex;
                 cursor: pointer;
             }
-            .go-to-checkout-text {
+            .customer-btn-text {
                 text-align: center;
                 color: white;
                 font-size: 14px;
@@ -429,6 +429,24 @@ export class UMOrder {
                 (document.querySelector(`#${id} #submit`) as any).click();
                 ApiCart.clearCart();
             });
+        });
+    }
+
+    static cancelOrder(gvc: GVC, id: string) {
+        const dialog = new ShareDialog(gvc.glitter);
+        dialog.checkYesOrNot({
+            text: '請問確定要取消此訂單嗎？',
+            callback: (bool: boolean) => {
+                if (bool) {
+                    dialog.dataLoading({ visible: true, text: Language.text('loading') });
+                    return new Promise(() => {
+                        ApiShop.cancelOrder(id).then((res) => {
+                            dialog.dataLoading({ visible: false });
+                            location.href = `.${Language.getLanguageLinkPrefix(true)}/order_list`;
+                        });
+                    });
+                }
+            },
         });
     }
 
@@ -1057,6 +1075,42 @@ export class UMOrder {
                                         }
                                     }
 
+                                    function customerCancelOrder() {
+                                        const origin = vm.data;
+                                        const proofPurchase = orderData.proof_purchase === undefined;
+                                        const paymentStatus = origin.status === undefined || origin.status === 0 || origin.status === -1;
+                                        const progressStatus = orderData.progress === undefined || orderData.progress === 'wait';
+                                        const orderStatus = orderData.orderStatus === undefined || `${orderData.orderStatus}` === '0';
+
+                                        if (!(proofPurchase && paymentStatus && progressStatus && orderStatus)) {
+                                            return '';
+                                        }
+
+                                        return html`<div
+                                            class="customer-btn ms-3"
+                                            onclick="${gvc.event(() => {
+                                                UMOrder.cancelOrder(gvc, vm.data.cart_token);
+                                            })}"
+                                        >
+                                            <div class="customer-btn-text">${Language.text('cancel_order')}</div>
+                                        </div>`;
+                                    }
+
+                                    function gotoCheckout() {
+                                        const isOffLine = orderData.method === 'off_line';
+                                        if (isOffLine) {
+                                            return '';
+                                        }
+                                        return html`<div
+                                            class="customer-btn ms-3"
+                                            onclick="${gvc.event(() => {
+                                                UMOrder.repay(gvc, vm.data.cart_token);
+                                            })}"
+                                        >
+                                            <div class="customer-btn-text">${Language.text('proceed_to_checkout')}</div>
+                                        </div>`;
+                                    }
+
                                     checkAndRemoveURLParameter();
 
                                     const arr = [
@@ -1079,7 +1133,7 @@ export class UMOrder {
                                                     case '-99':
                                                         return Language.text('deleted');
                                                     default:
-                                                        return Language.text('processing');
+                                                        return Language.text('processing') + customerCancelOrder();
                                                 }
                                             })(),
                                         },
@@ -1091,20 +1145,7 @@ export class UMOrder {
                                                 }
                                                 switch (vm.data.status) {
                                                     case 0:
-                                                        return orderData.proof_purchase
-                                                            ? Language.text('awaiting_verification')
-                                                            : `${Language.text('unpaid')}${
-                                                                  orderData.method === 'off_line'
-                                                                      ? ''
-                                                                      : html`<div
-                                                                            class="go-to-checkout ms-3"
-                                                                            onclick="${gvc.event(() => {
-                                                                                UMOrder.repay(gvc, vm.data.cart_token);
-                                                                            })}"
-                                                                        >
-                                                                            <div class="go-to-checkout-text">${Language.text('proceed_to_checkout')}</div>
-                                                                        </div>`
-                                                              }`;
+                                                        return orderData.proof_purchase ? Language.text('awaiting_verification') : `${Language.text('unpaid')}${gotoCheckout()}`;
                                                     case 1:
                                                         return Language.text('paid');
                                                     case -1:
@@ -1240,7 +1281,7 @@ export class UMOrder {
                                                 case 'returns':
                                                     return Language.text('returned');
                                                 default:
-                                                    return Language.text('picking');
+                                                    return Language.text('not_yet_shipped');
                                             }
                                         })(),
                                     });

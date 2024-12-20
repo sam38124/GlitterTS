@@ -1,39 +1,41 @@
 export class ProductConfig {
-    public static getName(data:any){
-        if(`${data.visible}`===`false`){
-            return `隱形商品`
-        }else if(data.productType.giveaway){
-            return `贈品`
-        }else if(data.productType.addProduct){
-            return `加購品`
-        }else if(data.productType.product){
-            return `前台商品`
+    public static getName(data: any) {
+        if (`${data.visible}` === `false`) {
+            return `隱形商品`;
+        } else if (data.productType.giveaway) {
+            return `贈品`;
+        } else if (data.productType.addProduct) {
+            return `加購品`;
+        } else if (data.productType.product) {
+            return `前台商品`;
         }
-        return  `前台商品`
+        return `前台商品`;
     }
 
-    public static getInitial(obj:any){
+    public static getInitial(obj: any) {
         function getEmptyLanguageData() {
             return {
-                title: '', seo: {
+                title: '',
+                seo: {
                     domain: '',
                     title: '',
                     content: '',
                     keywords: '',
                 },
                 content: '',
-                content_array: []
-            }
+                content_array: [],
+            };
         }
         return {
             title: '',
             ai_description: '',
             language_data: {
-                "en-US": getEmptyLanguageData(),
-                "zh-CN": getEmptyLanguageData(),
-                "zh-TW": {
-                    title: (obj.defData && obj.defData.title) || '', seo: (obj.defData && obj.defData.seo) || {}
-                }
+                'en-US': getEmptyLanguageData(),
+                'zh-CN': getEmptyLanguageData(),
+                'zh-TW': {
+                    title: (obj.defData && obj.defData.title) || '',
+                    seo: (obj.defData && obj.defData.seo) || {},
+                },
             },
             productType: {
                 product: true,
@@ -61,11 +63,11 @@ export class ProductConfig {
             active_schedule: {
                 startDate: this.getDateTime().date,
                 startTime: this.getDateTime().time,
-                endDate: this.getDateTime(7).date,
-                endTime: this.getDateTime(7).time,
+                endDate: undefined,
+                endTime: undefined,
             },
             channel: ['normal', 'pos'],
-        }
+        };
     }
     static getDateTime = (n = 0) => {
         const now = new Date();
@@ -76,6 +78,6 @@ export class ProductConfig {
         const hours = now.getHours().toString().padStart(2, '0');
         const dateStr = `${year}-${month}-${day}`;
         const timeStr = `${hours}:00`;
-        return {date: dateStr, time: timeStr};
+        return { date: dateStr, time: timeStr };
     };
 }

@@ -96,6 +96,7 @@ interface OrderData {
     user_email: string;
     orderSource: string;
     voucherList: any[];
+    orderStatus: string;
     shipment_fee: number;
     customer_info: CustomerInfo;
     shipment_info: string;
@@ -109,6 +110,7 @@ interface OrderData {
     shipment_selector: ShipmentSelector[];
     custom_form_format: any[];
     payment_info_line_pay: PaymentInfoLinePay;
+    proof_purchase?: string;
 }
 
 interface CartOrder {
@@ -191,9 +193,24 @@ export class UMOrderList {
                                                 glitter.ut.dateFormat(new Date(item.created_time), 'yyyy/MM/dd'),
                                                 (item.orderData.total ?? 0).toLocaleString(),
                                                 (() => {
-                                                    if (item.status !== 1) {
-                                                        return Language.text('unpaid');
+                                                    // 狀態: 已取消, 已完成
+                                                    if (item.orderData.orderStatus === '-1') {
+                                                        return Language.text('cancelled');
+                                                    } else if (item.orderData.orderStatus === '1') {
+                                                        return Language.text('completed');
                                                     }
+
+                                                    // 付款: 待核款, 已付款, 已退款
+                                                    if (item.status === 0) {
+                                                        if (item.orderData.proof_purchase) {
+                                                            return Language.text('awaiting_verification');
+                                                        }
+                                                        return Language.text('unpaid');
+                                                    } else if (item.status === -2) {
+                                                        return Language.text('refunded');
+                                                    }
+
+                                                    // 配送: 揀貨中, 配送中, 配送完成
                                                     switch (item.orderData.progress) {
                                                         case 'shipping':
                                                             return Language.text('shipping');
