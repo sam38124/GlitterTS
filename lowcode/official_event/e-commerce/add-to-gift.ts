@@ -30,6 +30,7 @@ TriggerEvent.createSingleEvent(import.meta.url, () => {
                 },
                 event: () => {
                     return new Promise(async (resolve, reject) => {
+                        const apiCart=new ApiCart()
                         const voucher_id :string = (await TriggerEvent.trigger({
                             gvc: gvc,
                             widget: widget,
@@ -51,12 +52,12 @@ TriggerEvent.createSingleEvent(import.meta.url, () => {
                                 subData: subData,
                                 element: element,
                             })) || 1;
-                        ApiCart.setCart(cartItem => {
+                        apiCart.setCart(cartItem => {
                             cartItem.give_away= cartItem.give_away.filter((dd)=>{
                                 return dd.voucher_id !== voucher_id
                             })
                         })
-                        ApiCart.addToGift(voucher_id,pdid.split('-')[0],pdid.split('-').filter((dd,index)=>{
+                        apiCart.addToGift(voucher_id,pdid.split('-')[0],pdid.split('-').filter((dd,index)=>{
                             return index>0 && dd
                         }),count )
                         resolve(pdid);

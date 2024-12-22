@@ -555,6 +555,9 @@ export class Glitter {
                 link.searchParams.delete("page");
                 link.pathname += page;
             }
+            if (this.getUrlParameter('appName')) {
+                link.searchParams.set('appName', this.getUrlParameter('appName'));
+            }
             window.history.replaceState({}, document.title, link.href);
             this.getModule(new URL('../official_event/page/change-page.js', import.meta.url).href, (cl) => {
                 cl.changePage(link.searchParams.get('page') || location.pathname.substring(1), 'page', {});

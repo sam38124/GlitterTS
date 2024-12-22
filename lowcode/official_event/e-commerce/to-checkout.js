@@ -117,6 +117,7 @@ TriggerEvent.createSingleEvent(import.meta.url, () => {
                     });
                 },
                 event: () => {
+                    const api_cart = new ApiCart();
                     return new Promise((resolve, reject) => __awaiter(void 0, void 0, void 0, function* () {
                         const userInfo = yield TriggerEvent.trigger({
                             gvc: gvc,
@@ -160,16 +161,16 @@ TriggerEvent.createSingleEvent(import.meta.url, () => {
                                 customer_info: customer_info,
                                 return_url: href.href,
                                 user_info: userInfo,
-                                code: ApiCart.cart.code,
-                                use_rebate: ApiCart.cart.use_rebate,
+                                code: api_cart.cart.code,
+                                use_rebate: api_cart.cart.use_rebate,
                                 custom_form_format: custom_form_format,
                                 custom_form_data: custom_form_data,
-                                distribution_code: ApiCart.cart.distribution_code,
-                                give_away: ApiCart.cart.give_away
+                                distribution_code: api_cart.cart.distribution_code,
+                                give_away: api_cart.cart.give_away
                             }).then((res) => {
                                 localStorage.removeItem('custom_form_delivery');
                                 if (object.payType === 'offline' || res.response.off_line || res.response.is_free) {
-                                    ApiCart.clearCart();
+                                    api_cart.clearCart();
                                     resolve(true);
                                     location.href = res.response.return_url;
                                 }
@@ -177,7 +178,7 @@ TriggerEvent.createSingleEvent(import.meta.url, () => {
                                     const id = gvc.glitter.getUUID();
                                     $('body').append(`<div id="${id}" style="display: none;">${res.response.form}</div>`);
                                     document.querySelector(`#${id} #submit`).click();
-                                    ApiCart.clearCart();
+                                    api_cart.clearCart();
                                 }
                             });
                         }
@@ -219,7 +220,7 @@ TriggerEvent.createSingleEvent(import.meta.url, () => {
                             checkout();
                         }
                         else {
-                            cartData.line_items = ApiCart.cart.line_items;
+                            cartData.line_items = new ApiCart().cart.line_items;
                             checkout();
                         }
                     }));

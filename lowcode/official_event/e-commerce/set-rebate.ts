@@ -29,6 +29,7 @@ TriggerEvent.createSingleEvent(import.meta.url, () => {
                     ].join(`<div class="my-2"></div>`);
                 },
                 event: () => {
+                    const api_cart=new ApiCart()
                     return new Promise(async (resolve) => {
                         const triggerRebate =
                             (await TriggerEvent.trigger({
@@ -37,14 +38,14 @@ TriggerEvent.createSingleEvent(import.meta.url, () => {
                                 clickEvent: object.rebate,
                                 element: element,
                             })) || 0;
-                        const defaultRebate = ApiCart.cart.use_rebate || 0;
-                        const voucherCode = ApiCart.cart.code;
+                        const defaultRebate = api_cart.cart.use_rebate || 0;
+                        const voucherCode = api_cart.cart.code;
 
                         ApiShop.getRebate({}).then(async (reb) => {
                             const remainRebate = reb.response?.sum ?? 0;
                             const rebate = triggerRebate ?? defaultRebate;
                             ApiShop.getCheckout({
-                                line_items: ApiCart.cart.line_items,
+                                line_items: api_cart.cart.line_items,
                                 code: voucherCode as string,
                                 use_rebate: parseInt(rebate as string, 10),
                             }).then(async (res) => {
@@ -53,7 +54,7 @@ TriggerEvent.createSingleEvent(import.meta.url, () => {
                                 const subtotal = data.total - data.shipment_fee + data.use_rebate;
 
                                 if (subtotal > 0 && useRebate >= 0 && subtotal >= useRebate && remainRebate >= useRebate) {
-                                    ApiCart.setCart((cartItem)=>{
+                                    api_cart.setCart((cartItem)=>{
                                         cartItem.use_rebate=parseInt(rebate as any,10)
                                     })
                                     TriggerEvent.trigger({
@@ -64,7 +65,7 @@ TriggerEvent.createSingleEvent(import.meta.url, () => {
                                         element: element,
                                     });
                                 } else {
-                                    ApiCart.setCart((cartItem)=>{
+                                    api_cart.setCart((cartItem)=>{
                                         cartItem.use_rebate=undefined
                                     })
                                     TriggerEvent.trigger({

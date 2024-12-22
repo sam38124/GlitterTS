@@ -1,8 +1,18 @@
 export class ApiCart {
-    static get cart() {
+    constructor(cartID = ApiCart.globalCart) {
+        this.cartID = cartID;
+    }
+    static get checkoutCart() {
+        return localStorage.getItem('checkoutCart') || ApiCart.globalCart;
+    }
+    static toCheckOutPage(cartID = ApiCart.globalCart) {
+        localStorage.setItem('checkoutCart', cartID);
+        window.glitter.href = '/checkout';
+    }
+    get cart() {
         const cart = (() => {
             try {
-                const cart = localStorage.getItem(ApiCart.cartID + `${window.appName}`) ||
+                const cart = localStorage.getItem(this.cartID + `${window.appName}`) ||
                     JSON.stringify({
                         line_items: [],
                         give_away: [],
@@ -19,10 +29,10 @@ export class ApiCart {
         cart.distribution_code = localStorage.getItem('distributionCode');
         return cart;
     }
-    static set cart(value) {
-        localStorage.setItem(ApiCart.cartID + `${window.appName}`, JSON.stringify(value));
+    set cart(value) {
+        localStorage.setItem(this.cartID + `${window.appName}`, JSON.stringify(value));
     }
-    static addToGift(voucher_id, id, spec, count) {
+    addToGift(voucher_id, id, spec, count) {
         count = parseInt(count, 10);
         id = parseInt(id, 10);
         const product = {
@@ -31,7 +41,7 @@ export class ApiCart {
             count,
             voucher_id,
         };
-        ApiCart.setCart((updated_cart) => {
+        this.setCart((updated_cart) => {
             const find = updated_cart.give_away.find((dd) => {
                 return dd.spec.join('') === spec.join('') && `${dd.id}` === `${id}` && dd.voucher_id === voucher_id;
             });
@@ -43,7 +53,7 @@ export class ApiCart {
             }
         });
     }
-    static addToCart(id, spec, count) {
+    addToCart(id, spec, count) {
         count = parseInt(count, 10);
         id = parseInt(id, 10);
         const product = {
@@ -51,7 +61,7 @@ export class ApiCart {
             spec,
             count,
         };
-        ApiCart.setCart((updated_cart) => {
+        this.setCart((updated_cart) => {
             const find = updated_cart.line_items.find((dd) => {
                 return dd.spec.join('') === spec.join('') && `${dd.id}` === `${id}`;
             });
@@ -66,7 +76,7 @@ export class ApiCart {
             window.parent.glitter.share.reloadCartData();
         }
     }
-    static serToCart(id, spec, count) {
+    serToCart(id, spec, count) {
         count = parseInt(count, 10);
         id = parseInt(id, 10);
         const product = {
@@ -74,7 +84,7 @@ export class ApiCart {
             spec,
             count,
         };
-        ApiCart.setCart((updated_cart) => {
+        this.setCart((updated_cart) => {
             const find = updated_cart.line_items.find((dd) => {
                 return dd.spec.join('') === spec.join('') && `${dd.id}` === `${id}`;
             });
@@ -86,19 +96,20 @@ export class ApiCart {
             }
         });
     }
-    static clearCart() {
-        ApiCart.cart = {
+    clearCart() {
+        this.cart = {
             line_items: [],
             give_away: [],
         };
     }
-    static setCart(exe) {
-        const cart = ApiCart.cart;
+    setCart(exe) {
+        const cart = this.cart;
         exe(cart);
-        ApiCart.cart = cart;
+        this.cart = cart;
     }
 }
-ApiCart.cartID = 'lemnoasew';
+ApiCart.globalCart = 'lemnoasew';
+ApiCart.buyItNow = 'lemnoasewbuyqwji';
 const interVal = setInterval(() => {
     if (window.glitter) {
         clearInterval(interVal);

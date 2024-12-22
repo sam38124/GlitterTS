@@ -29,8 +29,9 @@ TriggerEvent.createSingleEvent(import.meta.url, () => {
                     ].join(`<div class="my-2"></div>`);
                 },
                 event: () => {
+                    const api_cart=new ApiCart()
                     return new Promise(async (resolve, reject) => {
-                        const cart=ApiCart.cart
+                        const cart=api_cart.cart
                         const code:any =
                             (await TriggerEvent.trigger({
                                 gvc: gvc,
@@ -50,7 +51,7 @@ TriggerEvent.createSingleEvent(import.meta.url, () => {
                                     return code && dd.code === code;
                                 })
                             ) {
-                                ApiCart.setCart((cartItem)=>{
+                                api_cart.setCart((cartItem)=>{
                                     cartItem.code=code
                                 })
                                 await TriggerEvent.trigger({
@@ -59,7 +60,7 @@ TriggerEvent.createSingleEvent(import.meta.url, () => {
                                     clickEvent: object.success,
                                 });
                             } else {
-                                ApiCart.setCart((cartItem)=>{
+                                api_cart.setCart((cartItem)=>{
                                     cartItem.code=undefined
                                 })
                                 await TriggerEvent.trigger({

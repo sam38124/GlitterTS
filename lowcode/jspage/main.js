@@ -215,10 +215,10 @@ init(import.meta.url, (gvc, glitter, gBundle) => {
                 () => __awaiter(this, void 0, void 0, function* () {
                     return yield new Promise((resolve) => __awaiter(this, void 0, void 0, function* () {
                         viewModel.data = yield new Promise((resolve, reject) => {
-                            (window.glitterInitialHelper).getPageData({
+                            ApiPageConfig.getPage({
                                 tag: glitter.getUrlParameter('page'),
                                 appName: gBundle.appName
-                            }, (d2) => {
+                            }).then((d2) => {
                                 if (glitter.share.is_blog_editor()) {
                                     Article.get({
                                         page: 0,

@@ -12,5 +12,6 @@ export declare class Schedule {
     autoSendMail(sec: number): Promise<void>;
     autoSendLine(sec: number): Promise<void>;
     initialSampleApp(sec: number): Promise<void>;
+    currenciesUpdate(sec: number): Promise<void>;
     main(): void;
 }

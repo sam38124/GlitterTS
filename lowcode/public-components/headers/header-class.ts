@@ -187,7 +187,7 @@ export class HeaderClass {
                                                 type="button"
                                                 onclick="${gvc.event(() => {
                                                     (window as any).drawer.close();
-                                                    gvc.glitter.href = '/checkout';
+                                                    ApiCart.toCheckOutPage(ApiCart.globalCart);
                                                 })}"
                                             >
                                                 ${Language.text('proceed_to_checkout')}
@@ -214,7 +214,7 @@ export class HeaderClass {
                                                                 class="position-absolute"
                                                                 style="right:13px;top:0px;cursor:pointer;"
                                                                 onclick="${gvc.event(() => {
-                                                                    ApiCart.setCart((cartItem) => {
+                                                                    new ApiCart().setCart((cartItem) => {
                                                                         cartItem.line_items = cartItem.line_items.filter((dd) => {
                                                                             return !(dd.id === item.id && item.spec.join('') === dd.spec.join(''));
                                                                         });
@@ -229,7 +229,7 @@ export class HeaderClass {
                                                                     class="fa-solid fa-xmark-large"
                                                                     style="cursor: pointer;"
                                                                     onclick="${gvc.event(() => {
-                                                                        ApiCart.setCart((cartItem) => {
+                                                                        new ApiCart().setCart((cartItem) => {
                                                                             cartItem.line_items = cartItem.line_items.filter((dd) => {
                                                                                 return !(dd.id === item.id && item.spec.join('') === dd.spec.join(''));
                                                                             });
@@ -250,7 +250,7 @@ export class HeaderClass {
                                                                             class="${classPrefix}-select"
                                                                             style="width: 100px;"
                                                                             onchange="${gvc.event((e) => {
-                                                                                ApiCart.setCart((cartItem) => {
+                                                                                new ApiCart().setCart((cartItem) => {
                                                                                     cartItem.line_items.find((dd) => {
                                                                                         return `${dd.id}` === `${item.id}` && item.spec.join('') === dd.spec.join('');
                                                                                     })!.count = parseInt(e.value, 10);
@@ -284,7 +284,7 @@ export class HeaderClass {
                         onCreate: () => {
                             if (vm.loading) {
                                 vm.dataList = [];
-                                const cart = ApiCart.cart;
+                                const cart = new ApiCart().cart;
                                 new Promise<void>((resolve, reject) => {
                                     ApiShop.getProduct({
                                         page: 0,

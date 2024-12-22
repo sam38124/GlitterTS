@@ -9,6 +9,7 @@ import { AutoSendEmail } from './auto-send-email.js';
 import { saasConfig } from '../../config';
 import {InitialFakeData} from "./initial-fake-data.js";
 import {LineMessage} from "./line-message";
+import axios from "axios";
 
 type ScheduleItem = {
     second: number;
@@ -280,6 +281,35 @@ export class Schedule {
         await new InitialFakeData(`t_1725992531001`).run()
         setTimeout(() => this.initialSampleApp(sec), sec * 1000);
     }
+    async  currenciesUpdate(sec:number){
+        const date=new Date()
+        const date_index=`${date.getFullYear()}-${date.getMonth()}-${date.getDate()}`
+        if((await db.query(`select count(1) from \`${saasConfig.SAAS_NAME}\`.currency_config where updated='${date_index}'`,[]))[0]['count(1)']===0){
+            let config = {
+                method: 'get',
+                maxBodyLength: Infinity,
+                url: 'https://data.fixer.io/api/latest?access_key=0ced797dd1cc136b22d6cfee7e2d6476',
+                headers: { }
+            };
+
+            axios.request(config)
+                .then(async (response:any) => {
+                    console.log(JSON.stringify(response.data));
+                    await db.query(`insert into \`${saasConfig.SAAS_NAME}\`.currency_config (\`json\`,updated) values (?,?)`,[
+                        JSON.stringify(response.data),
+                        date_index
+                    ])
+                    setTimeout(() => this.currenciesUpdate(sec), sec * 1000);
+                })
+                .catch((error:any) => {
+                    console.log(error);
+                    setTimeout(() => this.currenciesUpdate(sec), sec * 1000);
+                });
+        }else{
+            setTimeout(() => this.currenciesUpdate(sec), sec * 1000);
+        }
+
+    }
 
     main() {
         const scheduleList: ScheduleItem[] = [
@@ -290,6 +320,7 @@ export class Schedule {
             { second: 30, status: true, func: 'resetVoucherHistory', desc: '未付款歷史優惠券重設' },
             { second: 30, status: true, func: 'autoSendMail', desc: '自動排程寄送信件' },
             { second: 30, status: true, func: 'autoSendLine', desc: '自動排程寄送line訊息' },
+            { second: 30 * 240, status: true, func: 'currenciesUpdate', desc: '多國貨幣的更新排程' },
             { second: 3600*24, status: true, func: 'initialSampleApp', desc: '重新刷新示範商店' },
         ];
         try {

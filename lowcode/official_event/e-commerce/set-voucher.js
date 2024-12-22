@@ -38,8 +38,9 @@ TriggerEvent.createSingleEvent(import.meta.url, () => {
                     ].join(`<div class="my-2"></div>`);
                 },
                 event: () => {
+                    const api_cart = new ApiCart();
                     return new Promise((resolve, reject) => __awaiter(void 0, void 0, void 0, function* () {
-                        const cart = ApiCart.cart;
+                        const cart = api_cart.cart;
                         const code = (yield TriggerEvent.trigger({
                             gvc: gvc,
                             widget: widget,
@@ -54,7 +55,7 @@ TriggerEvent.createSingleEvent(import.meta.url, () => {
                                 res.response.data.voucherList.find((dd) => {
                                     return code && dd.code === code;
                                 })) {
-                                ApiCart.setCart((cartItem) => {
+                                api_cart.setCart((cartItem) => {
                                     cartItem.code = code;
                                 });
                                 yield TriggerEvent.trigger({
@@ -64,7 +65,7 @@ TriggerEvent.createSingleEvent(import.meta.url, () => {
                                 });
                             }
                             else {
-                                ApiCart.setCart((cartItem) => {
+                                api_cart.setCart((cartItem) => {
                                     cartItem.code = undefined;
                                 });
                                 yield TriggerEvent.trigger({

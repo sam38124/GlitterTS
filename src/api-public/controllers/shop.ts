@@ -13,6 +13,7 @@ import { Post } from '../services/post.js';
 import { Shopping, VoucherData } from '../services/shopping';
 import { Rebate, IRebateSearch } from '../services/rebate';
 import axios from 'axios';
+import {saasConfig} from "../../config.js";
 
 const router: express.Router = express.Router();
 export = router;
@@ -31,7 +32,19 @@ router.post('/worker', async (req: express.Request, resp: express.Response) => {
         return response.fail(resp, err);
     }
 });
-
+//多國貨幣
+router.get('/currency-covert', async (req: express.Request, resp: express.Response) => {
+    try {
+        const data:any=(await db.query(`SELECT * FROM ${saasConfig.SAAS_NAME}.currency_config  order by id desc limit 0,1;`,[]))[0]['json']['rates'];
+        const base:any=req.query.base || 'TWD'
+        Object.keys(data).map((dd)=>{
+            data[dd]=(data[dd]/data[base])
+        })
+        return response.succ(resp, { data:data});
+    } catch (err) {
+        return response.fail(resp, err);
+    }
+});
 // 購物金
 router.get('/rebate', async (req: express.Request, resp: express.Response) => {
     try {

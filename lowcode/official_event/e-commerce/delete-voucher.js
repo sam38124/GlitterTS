@@ -18,7 +18,7 @@ TriggerEvent.createSingleEvent(import.meta.url, () => {
                 },
                 event: () => {
                     return new Promise((resolve, reject) => __awaiter(void 0, void 0, void 0, function* () {
-                        ApiCart.setCart((cartItem) => {
+                        new ApiCart().setCart((cartItem) => {
                             cartItem.code = undefined;
                         });
                         resolve(true);

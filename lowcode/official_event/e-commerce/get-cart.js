@@ -50,6 +50,7 @@ TriggerEvent.createSingleEvent(import.meta.url, () => {
                     });
                 },
                 event: () => {
+                    const api_cart = new ApiCart();
                     return new Promise((resolve, reject) => __awaiter(void 0, void 0, void 0, function* () {
                         (object.pd_from === 'custom'
                             ? () => {
@@ -63,7 +64,7 @@ TriggerEvent.createSingleEvent(import.meta.url, () => {
                             : (() => {
                                 return new Promise((resolve, reject) => {
                                     setTimeout(() => {
-                                        resolve(ApiCart.cart);
+                                        resolve(api_cart.cart);
                                     });
                                 });
                             }))().then((res) => __awaiter(void 0, void 0, void 0, function* () {
@@ -99,8 +100,8 @@ TriggerEvent.createSingleEvent(import.meta.url, () => {
                                         }),
                                     });
                                 }
-                                const voucher = ApiCart.cart.code;
-                                const rebate = ApiCart.cart.use_rebate || 0;
+                                const voucher = api_cart.cart.code;
+                                const rebate = api_cart.cart.use_rebate || 0;
                                 const distributionCode = (_a = localStorage.getItem('distributionCode')) !== null && _a !== void 0 ? _a : '';
                                 ApiShop.getCheckout({
                                     line_items: cartData.line_items.map((dd) => {

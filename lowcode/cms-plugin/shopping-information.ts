@@ -6,6 +6,7 @@ import {imageLibrary} from "../modules/image-library.js";
 import {BaseApi} from "../glitterBundle/api/base.js";
 import {config} from "../config.js";
 import {ApiShop} from "../glitter-base/route/shopping.js";
+import {Currency} from "../glitter-base/global/currency.js";
 
 export class ShoppingInformation {
     public static main(gvc: GVC) {
@@ -170,31 +171,34 @@ export class ShoppingInformation {
             bind: vm.id,
             dataList: [{obj: vm, key: 'type'}],
             view: () => {
+
                 if (vm.mainLoading) {
                     ApiUser.getPublicConfig("store-information", "manager").then((r: any) => {
 
                         vm.data = r.response.value;
                         const data = r.response.value
                         vm.data = {
-                            "ubn": data.ubn ?? "",
-                            "email": data.email ?? "",
-                            "phone": data.phone ?? "",
-                            "address": data.address ?? "",
-                            "category": data.category ?? "",
-                            "pos_type": data.pos_type ?? "retails",
-                            "ai_search": data.ai_search ?? false,
-                            "wishlist": data.wishlist ?? true,
-                            "shop_name": data.shop_name ?? "",
-                            "support_pos_payment": data.support_pos_payment ?? [
+                            "ubn": "",
+                            "email": "",
+                            "phone": "",
+                            "address": "",
+                            "category": "",
+                            "pos_type": "retails",
+                            "ai_search": false,
+                            "wishlist": true,
+                            "shop_name": "",
+                            "support_pos_payment": [
                                 "cash",
                                 "creditCard",
                                 "line"
-                            ]
+                            ],
+                            ...data
                         }
                         vm.mainLoading = false;
                         gvc.notifyDataChange(vm.id)
                     })
                 }
+                vm.data.currency_code = vm.data.currency_code || 'TWD'
                 return BgWidget.container(html`
                     <div class="title-container mb-4">
                         ${BgWidget.title(`商店訊息`)}
@@ -358,6 +362,9 @@ export class ShoppingInformation {
                                                         <div class="mt-2" style="color: #393939;font-size: 16px;">
                                                             多國語言
                                                         </div>
+                                                        <div style="color: #8D8D8D;font-size:13px;">
+                                                            初次載入時將優先預設為用戶裝置所設定的語言
+                                                        </div>
                                                         <div class="d-flex mt-3" style="gap:15px;">
                                                             ${sup.map((dd: any) => {
                                                                 return `<div class="px-3 py-1 text-white position-relative d-flex align-items-center justify-content-center" style="border-radius: 20px;background: #393939;cursor: pointer;width:100px;" onclick="${gvc.event(() => {
@@ -456,6 +463,61 @@ export class ShoppingInformation {
                                                 }
                                             }
                                         })}
+                                        <div class="d-flex flex-column mt-2" style="gap:8px;">
+                                            <div style="color: #393939;font-size: 16px;">商店貨幣</div>
+                                            <div style="color: #8D8D8D;font-size:13px;">
+                                                統一設定商品幣別，前台將依據商品幣別進行換算顯示
+                                            </div>
+                                            <div class="d-flex align-items-center justify-content-center">
+                                                ${BgWidget.select({
+                                                    gvc: gvc,
+                                                    callback: (text) => {
+                                                        vm.data.currency_code = text
+                                                    },
+                                                    default: vm.data.currency_code,
+                                                    options: Currency.code.map((dd) => {
+                                                        return {
+                                                            key: dd.currency_code,
+                                                            value: dd.currency_title
+                                                        }
+                                                    })
+                                                })}
+                                            </div>
+                                        </div>
+                                        <div class="d-flex flex-column mt-2" style="gap:8px;">
+                                            <div style="color: #393939;font-size: 16px;">啟用多國貨幣</div>
+                                            <div style="color: #8D8D8D;font-size:13px;">
+                                                啟用多國貨幣功能，將自動根據用戶IP所在地區進行幣值轉換
+                                            </div>
+                                            <div class="cursor_pointer form-check form-switch ms-0 ps-0"
+                                                 style="">
+                                                <input
+                                                        class="form-check-input m-0"
+                                                        type="checkbox"
+                                                        onchange="${gvc.event((e, event) => {
+                                                            vm.data.multi_currency = !vm.data.multi_currency
+                                                        })}"
+                                                        ${vm.data.multi_currency ? `checked` : ``}
+                                                />
+                                            </div>
+                                        </div>
+                                        <div class="d-flex flex-column " style="gap:8px;">
+                                            <div style="color: #393939;font-size: 16px;">啟用貨幣切換</div>
+                                            <div style="color: #8D8D8D;font-size:13px;">
+                                                是否開放用戶於前台自行切換幣別進行顯示
+                                            </div>
+                                            <div class="cursor_pointer form-check form-switch ms-0 ps-0"
+                                                 style="">
+                                                <input
+                                                        class="form-check-input m-0"
+                                                        type="checkbox"
+                                                        onchange="${gvc.event((e, event) => {
+                                                            vm.data.switch_currency = !vm.data.switch_currency
+                                                        })}"
+                                                        ${vm.data.switch_currency ? `checked` : ``}
+                                                />
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
                             `, ``)

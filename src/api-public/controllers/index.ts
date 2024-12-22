@@ -112,6 +112,7 @@ const whiteList: {}[] = [
     { url: config.getRoute(config.public_route.ec + '/notify', 'public'), method: 'POST' },
     { url: config.getRoute(config.public_route.ai_points + '/notify', 'public'), method: 'POST' },
     { url: config.getRoute(config.public_route.ec + '/payment/method', 'public'), method: 'GET' },
+    { url: config.getRoute(config.public_route.ec + '/currency-covert', 'public'), method: 'GET' },
     { url: config.getRoute(config.public_route.ec + '/check-login-for-order', 'public'), method: 'GET' },
     { url: config.getRoute(config.public_route.sms_points + '/notify', 'public'), method: 'POST' },
     { url: config.getRoute(config.public_route.wallet + '/notify', 'public'), method: 'POST' },

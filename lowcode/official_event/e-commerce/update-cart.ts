@@ -40,7 +40,7 @@ TriggerEvent.createSingleEvent(import.meta.url, () => {
                             element:element
                         })) ?? 1
 
-                        ApiCart.serToCart(pdid.split('-')[0],pdid.split('-').filter((dd:any,index:number)=>{
+                        new ApiCart().serToCart(pdid.split('-')[0],pdid.split('-').filter((dd:any,index:number)=>{
                             return index>0 && dd
                         }),count )
                         resolve(pdid)

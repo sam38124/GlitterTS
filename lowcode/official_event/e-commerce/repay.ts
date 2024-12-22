@@ -24,6 +24,7 @@ TriggerEvent.createSingleEvent(import.meta.url, () => {
                 },
                 event: () => {
                     return new Promise(async (resolve, reject) => {
+                        const api_cart=new ApiCart()
                         const order_id = await TriggerEvent.trigger({
                             gvc: gvc,
                             widget: widget,
@@ -38,14 +39,14 @@ TriggerEvent.createSingleEvent(import.meta.url, () => {
                             const href = new URL(redirect as any,location.href)
                             ApiShop.repay(order_id as string,href.href).then((res) => {
                                 if (object.payType === 'offline' || res.response.off_line || res.response.is_free) {
-                                    ApiCart.clearCart()
+                                    api_cart.clearCart()
                                     resolve(true)
                                     location.href = res.response.return_url
                                 }else{
                                     const id=gvc.glitter.getUUID()
                                     $('body').append(`<div id="${id}" style="display: none;">${res.response.form}</div>`);
                                     (document.querySelector(`#${id} #submit`) as any).click()
-                                    ApiCart.clearCart()
+                                    api_cart.clearCart()
                                 }
 
                             })

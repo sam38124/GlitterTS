@@ -33,6 +33,7 @@ TriggerEvent.createSingleEvent(import.meta.url, () => {
                 },
                 event: () => {
                     return new Promise((resolve, reject) => __awaiter(void 0, void 0, void 0, function* () {
+                        const apiCart = new ApiCart();
                         const pdid = (yield TriggerEvent.trigger({
                             gvc: gvc,
                             widget: widget,
@@ -47,7 +48,7 @@ TriggerEvent.createSingleEvent(import.meta.url, () => {
                             subData: subData,
                             element: element,
                         })) || 1;
-                        ApiCart.addToCart(pdid.split('-')[0], pdid.split('-').filter((dd, index) => {
+                        apiCart.addToCart(pdid.split('-')[0], pdid.split('-').filter((dd, index) => {
                             return index > 0 && dd;
                         }), count);
                         resolve(pdid);

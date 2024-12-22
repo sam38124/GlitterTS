@@ -38,6 +38,7 @@ TriggerEvent.createSingleEvent(import.meta.url, () => {
                     ].join(`<div class="my-2"></div>`);
                 },
                 event: () => {
+                    const api_cart = new ApiCart();
                     return new Promise((resolve) => __awaiter(void 0, void 0, void 0, function* () {
                         const triggerRebate = (yield TriggerEvent.trigger({
                             gvc: gvc,
@@ -45,14 +46,14 @@ TriggerEvent.createSingleEvent(import.meta.url, () => {
                             clickEvent: object.rebate,
                             element: element,
                         })) || 0;
-                        const defaultRebate = ApiCart.cart.use_rebate || 0;
-                        const voucherCode = ApiCart.cart.code;
+                        const defaultRebate = api_cart.cart.use_rebate || 0;
+                        const voucherCode = api_cart.cart.code;
                         ApiShop.getRebate({}).then((reb) => __awaiter(void 0, void 0, void 0, function* () {
                             var _a, _b;
                             const remainRebate = (_b = (_a = reb.response) === null || _a === void 0 ? void 0 : _a.sum) !== null && _b !== void 0 ? _b : 0;
                             const rebate = triggerRebate !== null && triggerRebate !== void 0 ? triggerRebate : defaultRebate;
                             ApiShop.getCheckout({
-                                line_items: ApiCart.cart.line_items,
+                                line_items: api_cart.cart.line_items,
                                 code: voucherCode,
                                 use_rebate: parseInt(rebate, 10),
                             }).then((res) => __awaiter(void 0, void 0, void 0, function* () {
@@ -61,7 +62,7 @@ TriggerEvent.createSingleEvent(import.meta.url, () => {
                                 const useRebate = typeof rebate === 'string' ? parseInt(`${rebate}`, 10) : 0;
                                 const subtotal = data.total - data.shipment_fee + data.use_rebate;
                                 if (subtotal > 0 && useRebate >= 0 && subtotal >= useRebate && remainRebate >= useRebate) {
-                                    ApiCart.setCart((cartItem) => {
+                                    api_cart.setCart((cartItem) => {
                                         cartItem.use_rebate = parseInt(rebate, 10);
                                     });
                                     TriggerEvent.trigger({
@@ -73,7 +74,7 @@ TriggerEvent.createSingleEvent(import.meta.url, () => {
                                     });
                                 }
                                 else {
-                                    ApiCart.setCart((cartItem) => {
+                                    api_cart.setCart((cartItem) => {
                                         cartItem.use_rebate = undefined;
                                     });
                                     TriggerEvent.trigger({

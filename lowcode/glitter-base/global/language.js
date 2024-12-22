@@ -92,6 +92,8 @@ export class Language {
     }
     static languageDataList() {
         return [
+            { key: 'stock_count', tw: '商品庫存', cn: '商品库存', en: `Stock quantity` },
+            { key: 'buy_it_now', tw: '立即購買', cn: '立即购买', en: `Buy it now` },
             { key: 'cart', tw: '購物車', cn: '购物车', en: `Cart` },
             { key: 'min_p_count_d', tw: '_p_ 最少購買數量為_c_件', cn: '_p_ 最少购买数量为_c_件', en: `_p_ Minimum purchase quantity is _c_ pieces.` },
             { key: 'min_p_count', tw: '此商品最少購買數量為_c_件', cn: '此商品最少购买数量为_c_件', en: `Minimum purchase quantity is _c_ pieces.` },

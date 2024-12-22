@@ -3,7 +3,8 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.compare_sql_table = exports.SaasScheme = void 0;
+exports.SaasScheme = void 0;
+exports.compare_sql_table = compare_sql_table;
 const database_1 = __importDefault(require("../modules/database"));
 const config_1 = require("../config");
 exports.SaasScheme = {
@@ -31,6 +32,17 @@ exports.SaasScheme = {
   KEY \`index4\` (\`mac_address\`),
   KEY \`index5\` (\`created_time\`),
   KEY \`index6\` (\`req_type\`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci`
+            },
+            {
+                scheme: config_1.saasConfig.SAAS_NAME,
+                table: 'currency_config',
+                sql: `(
+  \`id\` int NOT NULL AUTO_INCREMENT,
+  \`json\` json NOT NULL,
+  \`updated\` varchar(45) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  PRIMARY KEY (\`id\`),
+  UNIQUE KEY \`index2\` (\`updated\`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci`
             },
             {
@@ -306,5 +318,4 @@ async function compare_sql_table(scheme, table, sql) {
         return false;
     }
 }
-exports.compare_sql_table = compare_sql_table;
 //# sourceMappingURL=saas-table-check.js.map

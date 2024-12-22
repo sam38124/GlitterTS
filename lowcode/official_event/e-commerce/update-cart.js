@@ -46,7 +46,7 @@ TriggerEvent.createSingleEvent(import.meta.url, () => {
                             subData: subData,
                             element: element
                         }))) !== null && _a !== void 0 ? _a : 1;
-                        ApiCart.serToCart(pdid.split('-')[0], pdid.split('-').filter((dd, index) => {
+                        new ApiCart().serToCart(pdid.split('-')[0], pdid.split('-').filter((dd, index) => {
                             return index > 0 && dd;
                         }), count);
                         resolve(pdid);

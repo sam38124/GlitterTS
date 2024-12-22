@@ -29,6 +29,8 @@ interface Voucher extends OriginVoucher {
 export class CheckoutIndex {
     static main(gvc: GVC, widget: any, subData: any) {
         const glitter = gvc.glitter;
+        //取得要顯示的購物車
+        const apiCart=new ApiCart(ApiCart.checkoutCart)
         const ids = {
             page: glitter.getUUID(),
             cart: glitter.getUUID(),
@@ -395,7 +397,7 @@ export class CheckoutIndex {
                 new Promise(async (resolve, reject) => {
                     new Promise((resolve, reject) => {
                         setTimeout(() => {
-                            resolve(ApiCart.cart);
+                            resolve(apiCart.cart);
                         });
                     }).then(async (res: any) => {
                         const cartData: {
@@ -443,8 +445,8 @@ export class CheckoutIndex {
                                     }) as any,
                                 } as any);
                             }
-                            const voucher = ApiCart.cart.code;
-                            const rebate = ApiCart.cart.use_rebate || 0;
+                            const voucher = apiCart.cart.code;
+                            const rebate = apiCart.cart.use_rebate || 0;
                             const distributionCode = localStorage.getItem('distributionCode') ?? '';
                             ApiShop.getCheckout({
                                 line_items: cartData.line_items.map((dd) => {
@@ -589,7 +591,7 @@ export class CheckoutIndex {
                             if (vm.cartData.lineItems.length === 0) {
                                 return html`
                                     <div class="container ${gClass(['container', 'null-container'])}">
-                                        <div class="${gClass('header')}">${Language.text('shopping_details')}</div>
+                                        <div class="${gClass('header')}">${Language.text(('shopping_details')}</div>
                                         <lottie-player
                                             style="max-width: 100%; width: 300px; height: 300px;"
                                             src="https://lottie.host/38ba8340-3414-41b8-b068-bba18d240bb3/h7e1Q29IQJ.json"
@@ -612,7 +614,7 @@ export class CheckoutIndex {
                                                 return html`
                                                     <section>
                                                         <div class="${gClass('banner-bgr')}">
-                                                            <span class="${gClass('banner-text')}">${Language.text('your_shopping_cart')}</span>
+                                                            <span class="${gClass('banner-text')}">${Language.text((ApiCart.checkoutCart===ApiCart.globalCart) ? 'your_shopping_cart':'buy_it_now')}</span>
                                                         </div>
                                                         <div class="d-none d-sm-flex align-items-center p-3 border-bottom">
                                                             <div class="${gClass('first-td')} justify-content-start">${Language.text('product_name')}</div>
@@ -701,7 +703,7 @@ export class CheckoutIndex {
                                                                                                     class="${gClass('select')}"
                                                                                                     style="width: 100px;"
                                                                                                     onchange="${gvc.event((e) => {
-                                                                                                        ApiCart.setCart((cartItem) => {
+                                                                                                        apiCart.setCart((cartItem) => {
                                                                                                             cartItem.line_items.find((dd) => {
                                                                                                                 return dd.id === item.id && item.spec.join('') === dd.spec.join('');
                                                                                                             })!.count = parseInt(e.value, 10);
@@ -724,7 +726,7 @@ export class CheckoutIndex {
                                                                                                     class="fa-solid fa-xmark-large"
                                                                                                     style="cursor: pointer;"
                                                                                                     onclick="${gvc.event(() => {
-                                                                                                        ApiCart.setCart((cartItem) => {
+                                                                                                        apiCart.setCart((cartItem) => {
                                                                                                             cartItem.line_items = cartItem.line_items.filter((dd) => {
                                                                                                                 return !(dd.id === item.id && item.spec.join('') === dd.spec.join(''));
                                                                                                             });
@@ -752,7 +754,7 @@ export class CheckoutIndex {
                                                                                                         class="fa-solid fa-xmark-large"
                                                                                                         style="cursor: pointer;"
                                                                                                         onclick="${gvc.event(() => {
-                                                                                                            ApiCart.setCart((cartItem) => {
+                                                                                                            apiCart.setCart((cartItem) => {
                                                                                                                 cartItem.line_items = cartItem.line_items.filter((dd) => {
                                                                                                                     return !(dd.id === item.id && item.spec.join('') === dd.spec.join(''));
                                                                                                                 });
@@ -891,7 +893,7 @@ export class CheckoutIndex {
                                                                                                                           class="${gClass('button-bgr')} my-2"
                                                                                                                           style="max-width: 150px;"
                                                                                                                           onclick="${gvc.event(() => {
-                                                                                                                              ApiCart.setCart((cartItem) => {
+                                                                                                                              apiCart.setCart((cartItem) => {
                                                                                                                                   cartItem.code = item.code;
                                                                                                                                   refreshCartData();
                                                                                                                                   gvc.closeDialog();
@@ -930,7 +932,7 @@ export class CheckoutIndex {
                                                                                                                         return dd.code === code;
                                                                                                                     })
                                                                                                                 ) {
-                                                                                                                    ApiCart.setCart((cartItem) => {
+                                                                                                                    apiCart.setCart((cartItem) => {
                                                                                                                         cartItem.code = code;
                                                                                                                         refreshCartData();
                                                                                                                         gvc.closeDialog();
@@ -1132,7 +1134,7 @@ export class CheckoutIndex {
                                                                                   style="cursor: pointer;"
                                                                                   onclick="${gvc.event((e, event) => {
                                                                                       event.stopPropagation();
-                                                                                      ApiCart.setCart((cartItem) => {
+                                                                                      apiCart.setCart((cartItem) => {
                                                                                           cartItem.code = '';
                                                                                           refreshCartData();
                                                                                       });
@@ -1200,7 +1202,7 @@ export class CheckoutIndex {
                                                                                                         return;
                                                                                                     }
 
-                                                                                                    ApiCart.setCart((cartItem) => {
+                                                                                                    apiCart.setCart((cartItem) => {
                                                                                                         cartItem.use_rebate = tempRebate;
                                                                                                         refreshCartData();
                                                                                                     });
@@ -1470,7 +1472,7 @@ export class CheckoutIndex {
                                                                                                                     });
                                                                                                                 });
                                                                                                                 if (find) {
-                                                                                                                    ApiCart.setCart((cartItem) => {
+                                                                                                                    apiCart.setCart((cartItem) => {
                                                                                                                         cartItem.line_items.map((dd) => {
                                                                                                                             if (dd.id === find.id) {
                                                                                                                                 dd.count--;
@@ -2428,19 +2430,19 @@ export class CheckoutIndex {
                                                         return newUrl;
                                                     })(),
                                                     user_info: vm.cartData.user_info,
-                                                    code: ApiCart.cart.code,
-                                                    use_rebate: ApiCart.cart.use_rebate,
+                                                    code: apiCart.cart.code,
+                                                    use_rebate: apiCart.cart.use_rebate,
                                                     custom_form_format: vm.cartData.custom_form_format,
                                                     custom_form_data: vm.cartData.custom_form_data,
-                                                    distribution_code: ApiCart.cart.distribution_code,
-                                                    give_away: ApiCart.cart.give_away,
+                                                    distribution_code: apiCart.cart.distribution_code,
+                                                    give_away: apiCart.cart.give_away,
                                                 }).then((res) => {
                                                     dialog.dataLoading({ visible: false });
                                                     if (res.response.off_line || res.response.is_free) {
-                                                        ApiCart.clearCart();
+                                                        apiCart.clearCart();
                                                         location.href = res.response.return_url;
                                                     } else {
-                                                        ApiCart.clearCart();
+                                                        apiCart.clearCart();
                                                         // todo if 他是paypal的key值 上面應該有select之類的
                                                         if (res.response.returnCode == '0000' && vm.cartData.customer_info.payment_select == 'line_pay') {
                                                             console.log('res.response.form.info.paymentUrl.web -- ', res.response.info.paymentUrl.web);

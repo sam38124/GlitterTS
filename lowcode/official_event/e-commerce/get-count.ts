@@ -5,10 +5,11 @@ import {GlobalUser} from '../../glitter-base/global/global-user.js';
 import {ApiCart} from "../../glitter-base/route/api-cart.js";
 
 export function getCheckoutCount(callback: (count: number) => void) {
-    ApiShop.getCheckout(ApiCart.cart).then((res) => {
+   const api_cart=new ApiCart()
+    ApiShop.getCheckout(api_cart.cart).then((res) => {
 
         if (res.result) {
-            ApiCart.setCart((cartItem) => {
+            api_cart.setCart((cartItem) => {
                 cartItem.line_items = res.response.data.lineItems.map((dd: any) => {
                     return {
                         spec: dd.spec,

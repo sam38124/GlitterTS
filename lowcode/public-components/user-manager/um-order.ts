@@ -427,7 +427,7 @@ export class UMOrder {
                 const id = gvc.glitter.getUUID();
                 $('body').append(`<div id="${id}" style="display: none;">${res.response.form}</div>`);
                 (document.querySelector(`#${id} #submit`) as any).click();
-                ApiCart.clearCart();
+                new ApiCart().clearCart();
             });
         });
     }

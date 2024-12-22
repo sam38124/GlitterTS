@@ -33,6 +33,7 @@ TriggerEvent.createSingleEvent(import.meta.url, () => {
                 },
                 event: () => {
                     return new Promise((resolve, reject) => __awaiter(void 0, void 0, void 0, function* () {
+                        const api_cart = new ApiCart();
                         const order_id = yield TriggerEvent.trigger({
                             gvc: gvc,
                             widget: widget,
@@ -47,7 +48,7 @@ TriggerEvent.createSingleEvent(import.meta.url, () => {
                             const href = new URL(redirect, location.href);
                             ApiShop.repay(order_id, href.href).then((res) => {
                                 if (object.payType === 'offline' || res.response.off_line || res.response.is_free) {
-                                    ApiCart.clearCart();
+                                    api_cart.clearCart();
                                     resolve(true);
                                     location.href = res.response.return_url;
                                 }
@@ -55,7 +56,7 @@ TriggerEvent.createSingleEvent(import.meta.url, () => {
                                     const id = gvc.glitter.getUUID();
                                     $('body').append(`<div id="${id}" style="display: none;">${res.response.form}</div>`);
                                     document.querySelector(`#${id} #submit`).click();
-                                    ApiCart.clearCart();
+                                    api_cart.clearCart();
                                 }
                             });
                         }

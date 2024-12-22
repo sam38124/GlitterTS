@@ -14,7 +14,8 @@ TriggerEvent.createSingleEvent(import.meta.url, () => {
                 },
                 event: () => {
                     return new Promise(async (resolve, reject) => {
-                        resolve(ApiCart.cart.code)
+                        const api_cart=new ApiCart()
+                        resolve(api_cart.cart.code)
                     })
                 },
             };

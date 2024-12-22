@@ -15,6 +15,7 @@ const auto_send_email_js_1 = require("./auto-send-email.js");
 const config_1 = require("../../config");
 const initial_fake_data_js_1 = require("./initial-fake-data.js");
 const line_message_1 = require("./line-message");
+const axios_1 = __importDefault(require("axios"));
 class Schedule {
     async perload(app) {
         if (!(await this.isDatabasePass(app)))
@@ -243,6 +244,34 @@ class Schedule {
         await new initial_fake_data_js_1.InitialFakeData(`t_1725992531001`).run();
         setTimeout(() => this.initialSampleApp(sec), sec * 1000);
     }
+    async currenciesUpdate(sec) {
+        const date = new Date();
+        const date_index = `${date.getFullYear()}-${date.getMonth()}-${date.getDate()}`;
+        if ((await database_1.default.query(`select count(1) from \`${config_1.saasConfig.SAAS_NAME}\`.currency_config where updated='${date_index}'`, []))[0]['count(1)'] === 0) {
+            let config = {
+                method: 'get',
+                maxBodyLength: Infinity,
+                url: 'https://data.fixer.io/api/latest?access_key=0ced797dd1cc136b22d6cfee7e2d6476',
+                headers: {}
+            };
+            axios_1.default.request(config)
+                .then(async (response) => {
+                console.log(JSON.stringify(response.data));
+                await database_1.default.query(`insert into \`${config_1.saasConfig.SAAS_NAME}\`.currency_config (\`json\`,updated) values (?,?)`, [
+                    JSON.stringify(response.data),
+                    date_index
+                ]);
+                setTimeout(() => this.currenciesUpdate(sec), sec * 1000);
+            })
+                .catch((error) => {
+                console.log(error);
+                setTimeout(() => this.currenciesUpdate(sec), sec * 1000);
+            });
+        }
+        else {
+            setTimeout(() => this.currenciesUpdate(sec), sec * 1000);
+        }
+    }
     main() {
         const scheduleList = [
             { second: 10, status: false, func: 'example', desc: '排程啟用範例' },
@@ -252,6 +281,7 @@ class Schedule {
             { second: 30, status: true, func: 'resetVoucherHistory', desc: '未付款歷史優惠券重設' },
             { second: 30, status: true, func: 'autoSendMail', desc: '自動排程寄送信件' },
             { second: 30, status: true, func: 'autoSendLine', desc: '自動排程寄送line訊息' },
+            { second: 30 * 240, status: true, func: 'currenciesUpdate', desc: '多國貨幣的更新排程' },
             { second: 3600 * 24, status: true, func: 'initialSampleApp', desc: '重新刷新示範商店' },
         ];
         try {

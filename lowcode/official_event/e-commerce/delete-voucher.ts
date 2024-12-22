@@ -13,7 +13,7 @@ TriggerEvent.createSingleEvent(import.meta.url, () => {
                 },
                 event: () => {
                     return new Promise(async (resolve, reject) => {
-                        ApiCart.setCart((cartItem)=>{
+                        new ApiCart().setCart((cartItem)=>{
                             cartItem.code=undefined
                         })
                         resolve(true)

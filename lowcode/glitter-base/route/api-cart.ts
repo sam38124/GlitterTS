@@ -1,4 +1,4 @@
-import { ApiShop } from './shopping.js';
+import {ApiShop} from './shopping.js';
 
 type Product = {
     id: number;
@@ -6,6 +6,7 @@ type Product = {
     count: number;
     voucher_id?: string;
 };
+
 export interface CartItem {
     //購買的商品
     line_items: Product[];
@@ -18,13 +19,32 @@ export interface CartItem {
     //使用的分銷連結
     distribution_code?: string;
 }
+
 export class ApiCart {
-    static cartID = 'lemnoasew';
-    static get cart(): CartItem {
+    //全部的購物車
+    static globalCart: string = 'lemnoasew'
+    //立即結帳購物車
+    static buyItNow: string = 'lemnoasewbuyqwji'
+
+    static get checkoutCart(){
+        return localStorage.getItem('checkoutCart') || ApiCart.globalCart
+    }
+    //前往購物車
+    static toCheckOutPage(cartID: string = ApiCart.globalCart){
+        localStorage.setItem('checkoutCart',cartID);
+        (window as any).glitter.href = '/checkout';
+    }
+    //當下選擇購物車
+    cartID: string;
+    constructor(cartID: string = ApiCart.globalCart) {
+        this.cartID = cartID
+    }
+
+    get cart(): CartItem {
         const cart = (() => {
             try {
                 const cart =
-                    localStorage.getItem(ApiCart.cartID + `${(window as any).appName}`) ||
+                    localStorage.getItem(this.cartID + `${(window as any).appName}`) ||
                     JSON.stringify({
                         line_items: [],
                         give_away: [],
@@ -40,11 +60,13 @@ export class ApiCart {
         cart.distribution_code = localStorage.getItem('distributionCode');
         return cart;
     }
-    static set cart(value) {
-        localStorage.setItem(ApiCart.cartID + `${(window as any).appName}`, JSON.stringify(value));
+
+    set cart(value) {
+        localStorage.setItem(this.cartID + `${(window as any).appName}`, JSON.stringify(value));
     }
+
     //添加商品至購物車
-    static addToGift(voucher_id: string, id: any, spec: string[], count: any) {
+    addToGift(voucher_id: string, id: any, spec: string[], count: any) {
         count = parseInt(count, 10);
         id = parseInt(id, 10);
         const product: Product = {
@@ -53,7 +75,7 @@ export class ApiCart {
             count,
             voucher_id,
         };
-        ApiCart.setCart((updated_cart) => {
+        this.setCart((updated_cart) => {
             const find = updated_cart.give_away.find((dd) => {
                 return dd.spec.join('') === spec.join('') && `${dd.id}` === `${id}` && dd.voucher_id === voucher_id;
             });
@@ -64,8 +86,9 @@ export class ApiCart {
             }
         });
     }
+
     //添加商品至購物車
-    static addToCart(id: any, spec: string[], count: any) {
+    addToCart(id: any, spec: string[], count: any) {
         count = parseInt(count, 10);
         id = parseInt(id, 10);
         const product: Product = {
@@ -73,7 +96,7 @@ export class ApiCart {
             spec,
             count,
         };
-        ApiCart.setCart((updated_cart) => {
+        this.setCart((updated_cart) => {
             const find = updated_cart.line_items.find((dd) => {
                 return dd.spec.join('') === spec.join('') && `${dd.id}` === `${id}`;
             });
@@ -83,12 +106,13 @@ export class ApiCart {
                 updated_cart.line_items.push(product);
             }
         });
-        if( (window.parent as any).glitter.share.reloadCartData){
+        if ((window.parent as any).glitter.share.reloadCartData) {
             (window.parent as any).glitter.share.reloadCartData()
         }
     }
+
     //設定商品與數量至購物車
-    static serToCart(id: any, spec: string[], count: any) {
+    serToCart(id: any, spec: string[], count: any) {
         count = parseInt(count, 10);
         id = parseInt(id, 10);
         const product: Product = {
@@ -96,7 +120,7 @@ export class ApiCart {
             spec,
             count,
         };
-        ApiCart.setCart((updated_cart) => {
+        this.setCart((updated_cart) => {
             const find = updated_cart.line_items.find((dd) => {
                 return dd.spec.join('') === spec.join('') && `${dd.id}` === `${id}`;
             });
@@ -107,18 +131,20 @@ export class ApiCart {
             }
         });
     }
+
     //清空購物車
-    static clearCart() {
-        ApiCart.cart = {
+    clearCart() {
+        this.cart = {
             line_items: [],
             give_away: [],
         };
     }
+
     //設定購物車內容
-    static setCart(exe: (cartItem: CartItem) => void) {
-        const cart = ApiCart.cart;
+    setCart(exe: (cartItem: CartItem) => void) {
+        const cart = this.cart;
         exe(cart);
-        ApiCart.cart = cart;
+        this.cart = cart;
     }
 }
 

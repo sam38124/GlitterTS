@@ -11,9 +11,10 @@ import { TriggerEvent } from '../../glitterBundle/plugins/trigger-event.js';
 import { ApiShop } from '../../glitter-base/route/shopping.js';
 import { ApiCart } from "../../glitter-base/route/api-cart.js";
 export function getCheckoutCount(callback) {
-    ApiShop.getCheckout(ApiCart.cart).then((res) => {
+    const api_cart = new ApiCart();
+    ApiShop.getCheckout(api_cart.cart).then((res) => {
         if (res.result) {
-            ApiCart.setCart((cartItem) => {
+            api_cart.setCart((cartItem) => {
                 cartItem.line_items = res.response.data.lineItems.map((dd) => {
                     return {
                         spec: dd.spec,

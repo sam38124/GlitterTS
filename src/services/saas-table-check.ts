@@ -29,6 +29,17 @@ export const SaasScheme = {
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci`
             },
             {
+                scheme:saasConfig.SAAS_NAME as string,
+                table:'currency_config',
+                sql:`(
+  \`id\` int NOT NULL AUTO_INCREMENT,
+  \`json\` json NOT NULL,
+  \`updated\` varchar(45) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  PRIMARY KEY (\`id\`),
+  UNIQUE KEY \`index2\` (\`updated\`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci`
+            },
+            {
                 scheme: saasConfig.SAAS_NAME as string,
                 table: 'page_config',
                 sql: `(

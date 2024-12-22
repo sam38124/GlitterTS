@@ -50,7 +50,6 @@ export class ProductCard02 {
         gvc.glitter.getModule(new URL('./official_event/page/change-page.js', gvc.glitter.root_path).href, (cl) => {
             changePage = cl.changePage;
         });
-
         // add style
         PdClass.addSpecStyle(gvc);
         gvc.addStyle(`
@@ -253,11 +252,11 @@ export class ProductCard02 {
                 })}
             </div>
             <div class="card-collapse-parent">
-                <div class="px-1 d-flex card-title-container justify-content-around align-items-center">
-                    <div class="row gx-0 mb-1">
+                <div class="d-flex card-title-container justify-content-between align-items-center">
+                    <div class="row gx-0 mb-1" style="max-width:calc(100% - 50px);">
                         <div class="col-12 mb-1">
                             <div class="w-100 d-flex ${PdClass.isPad() ? 'justify-content-center' : ''}">
-                                <span class="card-title-text">${prod.title}</span>
+                                <span class="card-title-text" style="white-space: normal;word-break: break-all;">${prod.title}</span>
                             </div>
                         </div>
                         <div class="d-flex d-sm-block d-lg-flex col-12 p-0 card-price-container ${PdClass.isPhone() ? 'gap-0 flex-column' : ''}">
@@ -296,37 +295,12 @@ export class ProductCard02 {
                             style="border-radius: 50%;"
                             onclick="${gvc.event((e, event) => {
                                 event.stopPropagation();
-                                return gvc.glitter.innerDialog((gvc: GVC) => {
-                                    return html` <div
-                                        class="bg-white shadow rounded-3"
-                                        style="overflow-y: auto; ${document.body.clientWidth > 768 ? `min-width: 400px; width: 600px;` : 'min-width: 90vw; max-width: 92.5vw;'}"
-                                    >
-                                        <div class="bg-white shadow rounded-3" style="width: 100%; overflow-y: auto; position: relative;">
-                                            <div class="w-100 d-flex align-items-center p-3 border-bottom" style="position: sticky; top: 0; background: #fff;">
-                                                <div class="flex-fill"></div>
-                                                <i
-                                                    class="fa-regular fa-circle-xmark fs-5 text-dark"
-                                                    style="cursor: pointer"
-                                                    onclick="${gvc.event(() => {
-                                                        gvc.closeDialog();
-                                                    })}"
-                                                ></i>
-                                            </div>
-                                            <div class="c_dialog">
-                                                <div class="c_dialog_body">
-                                                    <div class="c_dialog_main" style="gap: 24px; height: auto; max-height: 500px; padding: 12px 20px;">
-                                                        ${PdClass.selectSpec({
-                                                            gvc,
-                                                            titleFontColor,
-                                                            prod,
-                                                            vm,
-                                                        })}
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>`;
-                                }, Tool.randomString(7));
+                                PdClass.addCartAction({
+                                    gvc: gvc,
+                                    titleFontColor: titleFontColor,
+                                    prod: prod,
+                                    vm: vm
+                                });
                             })}"
                         >
                             <i class="fa-solid fa-cart-plus"></i>
