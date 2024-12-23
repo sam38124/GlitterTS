@@ -22,7 +22,7 @@ export class Recommend {
         return `${percentage.toFixed(decimalPlaces)}%`;
     }
 
-    async getLinkList(query: { code?: string; status?: boolean; page: number; limit: number; user_id?: string }) {
+    async getLinkList(query: { code?: string; status?: boolean; page: number; limit: number; user_id?: string,no_detail?:boolean }) {
         try {
             query.page = query.page ?? 0;
             query.limit = query.limit ?? 50;
@@ -52,83 +52,86 @@ export class Recommend {
             );
 
             const shopping = new Shopping(this.app, this.token);
-            const orderList = await shopping.getCheckOut({
-                page: 0,
-                limit: 5000,
-                distribution_code: links.map((data: any) => data.code).join(','),
-            });
 
-            const monitors = await (async () => {
-                if (links.length === 0) {
-                    return [];
-                }
-                return await db.query(
-                    `SELECT id, mac_address, base_url 
+            if(!query.no_detail){
+                const orderList = await shopping.getCheckOut({
+                    page: 0,
+                    limit: 5000,
+                    distribution_code: links.map((data: any) => data.code).join(','),
+                });
+                const monitors = await (async () => {
+                    if (links.length === 0) {
+                        return [];
+                    }
+                    return await db.query(
+                        `SELECT id, mac_address, base_url 
                         FROM \`${saasConfig.SAAS_NAME}\`.t_monitor
                         WHERE app_name = "${this.app}"
                         AND base_url in (${links.map((data: any) => `"/${this.app}/distribution/${data.content.link}"`).join(',')})
                      `,
-                    []
-                );
-            })();
+                        []
+                    );
+                })();
 
-            for (const data of links) {
-                const orders = orderList.data.filter((d: any) => {
-                    try {
-                        return d.orderData.distribution_info.code === data.code;
-                    } catch (error) {
-                        return false;
-                    }
-                });
-                const monitor = monitors.filter((d: any) => d.base_url === `/${this.app}/distribution/${data.content.link}`);
+                for (const data of links) {
 
-                const monitorLength = monitor.length;
-                const macAddrSize = new Set(monitor.map((item: any) => item.mac_address)).size;
-                const totalOrders = orders.filter((order: any) => {
-                    return order.status === 1;
-                }).length;
-                const totalPrice = orders.reduce((sum: number, order: any) => {
-                    if (order.status === 1) {
-                        return sum + order.orderData.total - order.orderData.shipment_fee;
-                    }
-                    return sum;
-                }, 0);
-
-                data.orders = totalOrders;
-                data.click_times = monitorLength;
-                data.mac_address_count = macAddrSize;
-                data.conversion_rate = this.calculatePercentage(totalOrders, monitor.length, 1);
-                data.total_price = totalPrice;
-
-                data.sharing_bonus = 0;
-                if (data.content.lineItems) {
-                    function arraysAreEqualIgnoringOrder<T>(arr1: T[], arr2: T[]): boolean {
-                        if (arr1.length !== arr2.length) return false;
-                        const set1 = new Set(arr1);
-                        const set2 = new Set(arr2);
-                        return arr1.every((value) => set2.has(value)) && arr2.every((value) => set1.has(value));
-                    }
-                    let idArray: any[] = [];
-                    let variants = data.content.lineItems.map((item: any) => {
-                        idArray.push(item.id);
-                        return {
-                            id: item.id,
-                            spec: item.content.variants[item.selectIndex].spec,
-                        };
+                    const orders = orderList.data.filter((d: any) => {
+                        try {
+                            return d.orderData.distribution_info.code === data.code;
+                        } catch (error) {
+                            return false;
+                        }
                     });
-                    orders.map((order: any) => {
-                        order.orderData.lineItems.forEach((item: any) => {
-                            if (idArray.includes(item.id)) {
-                                variants.forEach((variant: any) => {
-                                    if (variant.id === item.id && arraysAreEqualIgnoringOrder(variant.spec, item.spec)) {
-                                        data.sharing_bonus += Math.floor((item.sale_price * item.count * parseFloat(data.content.share_value)) / 100);
-                                    }
-                                });
-                            }
+                    const monitor = monitors.filter((d: any) => d.base_url === `/${this.app}/distribution/${data.content.link}`);
+
+                    const monitorLength = monitor.length;
+                    const macAddrSize = new Set(monitor.map((item: any) => item.mac_address)).size;
+                    const totalOrders = orders.filter((order: any) => {
+                        return order.status === 1;
+                    }).length;
+                    const totalPrice = orders.reduce((sum: number, order: any) => {
+                        if (order.status === 1) {
+                            return sum + order.orderData.total - order.orderData.shipment_fee;
+                        }
+                        return sum;
+                    }, 0);
+
+                    data.orders = totalOrders;
+                    data.click_times = monitorLength;
+                    data.mac_address_count = macAddrSize;
+                    data.conversion_rate = this.calculatePercentage(totalOrders, monitor.length, 1);
+                    data.total_price = totalPrice;
+                    data.sharing_bonus = 0;
+                    if (data.content.lineItems) {
+                        function arraysAreEqualIgnoringOrder<T>(arr1: T[], arr2: T[]): boolean {
+                            if (arr1.length !== arr2.length) return false;
+                            const set1 = new Set(arr1);
+                            const set2 = new Set(arr2);
+                            return arr1.every((value) => set2.has(value)) && arr2.every((value) => set1.has(value));
+                        }
+                        let idArray: any[] = [];
+                        let variants = data.content.lineItems.map((item: any) => {
+                            idArray.push(item.id);
+                            return {
+                                id: item.id,
+                                spec: item.content.variants[item.selectIndex].spec,
+                            };
                         });
-                    });
+                        orders.map((order: any) => {
+                            order.orderData.lineItems.forEach((item: any) => {
+                                if (idArray.includes(item.id)) {
+                                    variants.forEach((variant: any) => {
+                                        if (variant.id === item.id && arraysAreEqualIgnoringOrder(variant.spec, item.spec)) {
+                                            data.sharing_bonus += Math.floor((item.sale_price * item.count * parseFloat(data.content.share_value)) / 100);
+                                        }
+                                    });
+                                }
+                            });
+                        });
+                    }
                 }
             }
+
             return { data: links, total: total[0].c };
         } catch (error) {
             throw exception.BadRequestError('ERROR', 'Recommend getLinkList Error: ' + error, null);

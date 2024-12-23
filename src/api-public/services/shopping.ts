@@ -1219,6 +1219,7 @@ export class Shopping {
                     limit: 99999,
                     code: data.distribution_code,
                     status: true,
+                    no_detail:true
                 });
                 if (linkList.data.length > 0) {
                     const content = linkList.data[0].content;
@@ -1914,7 +1915,14 @@ export class Shopping {
                     return userData && userData.id && dd.targetList.includes(userData.userID);
                 }
                 if (dd.target === 'levels') {
-                    return userData && userData.member && dd.targetList.includes(userData.member[0].id);
+                    if(userData && userData.member){
+                        const find=userData.member.find((dd:any)=>{
+                            return dd.trigger
+                        });
+                        return find && dd.targetList.includes(find.id);
+                    }else{
+                        return  false
+                    }
                 }
                 return true; // 所有顧客皆可使用
             })
