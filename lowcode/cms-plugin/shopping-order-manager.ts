@@ -3465,9 +3465,8 @@ export class ShoppingOrderManager {
                         return '發生錯誤';
                     }
 
-                    const paymentFormList = orderData.proof_purchase.paymentForm.list ?? [];
-
                     // 其他付款方式
+                    const paymentFormList = orderData.proof_purchase.paymentForm.list ?? [];
                     paymentFormList.map((item: any) => {
                         array.push(`${item.title} : ${orderData.proof_purchase[item.key]}`);
                     });

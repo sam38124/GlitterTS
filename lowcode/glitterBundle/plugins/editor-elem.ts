@@ -926,52 +926,60 @@ ${obj.structEnd ? obj.structEnd : '})()'}`,
     }) {
         const gvc = obj.gvc;
         const glitter = gvc.glitter;
-        let loading = true;
-        const dialog = new ShareDialog(glitter);
+
         return gvc.bindView(() => {
             const id = glitter.getUUID();
             const richID = glitter.getUUID();
+            glitter.share.richTextRendering = glitter.share.richTextRendering ?? false;
+
             glitter.addMtScript(
-                [
-                    `https://cdnjs.cloudflare.com/ajax/libs/codemirror/6.65.7/codemirror.min.js`,
-                    `https://cdnjs.cloudflare.com/ajax/libs/codemirror/6.65.7/mode/xml/xml.min.js`,
-                    `https://cdnjs.cloudflare.com/ajax/libs/dompurify/2.2.7/purify.min.js`,
-                    `https://cdn.jsdelivr.net/npm/froala-editor/js/languages/zh_tw.js`,
-                    `froala_editor.min.js`,
-                    `languages/zh_tw.js`,
-                    `plugins/align.min.js`,
-                    `plugins/char_counter.min.js`,
-                    `plugins/code_beautifier.min.js`,
-                    `plugins/code_view.min.js`,
-                    `plugins/colors.min.js`,
-                    `plugins/draggable.min.js`,
-                    `plugins/emoticons.min.js`,
-                    `plugins/entities.min.js`,
-                    `plugins/file.min.js`,
-                    `plugins/font_size.min.js`,
-                    `plugins/font_family.min.js`,
-                    `plugins/fullscreen.min.js`,
-                    `plugins/image.min.js`,
-                    `plugins/image_manager.min.js`,
-                    `plugins/line_breaker.min.js`,
-                    `plugins/inline_style.min.js`,
-                    `plugins/link.min.js`,
-                    `plugins/lists.min.js`,
-                    `plugins/paragraph_format.min.js`,
-                    `plugins/paragraph_style.min.js`,
-                    `plugins/quick_insert.min.js`,
-                    `plugins/quote.min.js`,
-                    `plugins/table.min.js`,
-                    `plugins/save.min.js`,
-                    `plugins/url.min.js`,
-                    `plugins/video.min.js`,
-                    `plugins/help.min.js`,
-                    `plugins/print.min.js`,
-                    `plugins/special_characters.min.js`,
-                ].map((dd) => {
-                    return { src: dd.includes('http') ? dd : new URL(`../../jslib/froala/` + dd, import.meta.url).href };
-                }),
+                [new URL(`../../jslib/froala/froala_editor.min.js`, import.meta.url).href],
                 () => {
+                    setTimeout(() => {
+                        glitter.addMtScript(
+                            [
+                                `https://cdnjs.cloudflare.com/ajax/libs/codemirror/6.65.7/codemirror.min.js`,
+                                `https://cdnjs.cloudflare.com/ajax/libs/codemirror/6.65.7/mode/xml/xml.min.js`,
+                                `https://cdnjs.cloudflare.com/ajax/libs/dompurify/2.2.7/purify.min.js`,
+                                `languages/zh_tw.js`,
+                                `plugins/align.min.js`,
+                                `plugins/char_counter.min.js`,
+                                `plugins/code_beautifier.min.js`,
+                                `plugins/code_view.min.js`,
+                                `plugins/colors.min.js`,
+                                `plugins/draggable.min.js`,
+                                `plugins/emoticons.min.js`,
+                                `plugins/entities.min.js`,
+                                `plugins/file.min.js`,
+                                `plugins/font_size.min.js`,
+                                `plugins/font_family.min.js`,
+                                `plugins/fullscreen.min.js`,
+                                `plugins/image.min.js`,
+                                `plugins/image_manager.min.js`,
+                                `plugins/line_breaker.min.js`,
+                                `plugins/inline_style.min.js`,
+                                `plugins/link.min.js`,
+                                `plugins/lists.min.js`,
+                                `plugins/paragraph_format.min.js`,
+                                `plugins/paragraph_style.min.js`,
+                                `plugins/quick_insert.min.js`,
+                                `plugins/quote.min.js`,
+                                `plugins/table.min.js`,
+                                `plugins/save.min.js`,
+                                `plugins/url.min.js`,
+                                `plugins/video.min.js`,
+                                `plugins/help.min.js`,
+                                `plugins/print.min.js`,
+                                `plugins/special_characters.min.js`,
+                            ].map((dd) => {
+                                return {
+                                    src: dd.includes('http') ? dd : new URL(`../../jslib/froala/` + dd, import.meta.url).href,
+                                };
+                            }),
+                            () => {},
+                            () => {}
+                        );
+                    }, 200);
                 },
                 () => {}
             );
@@ -982,17 +990,97 @@ ${obj.structEnd ? obj.structEnd : '})()'}`,
                 'https://cdn.jsdelivr.net/npm/froala-editor@latest/css/froala_editor.pkgd.min.css',
             ]);
 
+            gvc.addStyle(`
+                #${richID} li {
+                    list-style: revert;
+                }
+                #${richID} iframe.fr-draggable{
+                    height: 600px;
+                }
+                #insertImage-1 {
+                    display: none !important;
+                }
+                #insertImage-2 {
+                    display: none !important;
+                }
+                .fr-sticky-dummy {
+                    display: none !important;
+                }
+                ${
+                    obj.hiddenBorder
+                        ? css`
+                              .fr-box {
+                                  border: none !important;
+                              }
+                              .fr-box > div {
+                                  border: none !important;
+                              }
+                          `
+                        : ''
+                }
+            `);
+
+            function generateFontSizeArray() {
+                let fontSizes = [];
+
+                // 添加8到30的字體大小
+                for (let size = 8; size <= 30; size += 1) {
+                    fontSizes.push(size.toString());
+                }
+
+                // 添加30到60的字體大小
+                for (let size = 32; size <= 60; size += 2) {
+                    fontSizes.push(size.toString());
+                }
+
+                // 添加60到96的字體大小
+                for (let size = 64; size <= 96; size += 4) {
+                    fontSizes.push(size.toString());
+                }
+
+                return fontSizes;
+            }
+
+            const toolBarArray = [
+                'bold',
+                'italic',
+                'underline',
+                'align',
+                '|',
+                'paragraphFormat',
+                'fontSize',
+                'fontFamily',
+                'textColor',
+                'backgroundColor',
+                'clearFormatting',
+                '|',
+                'insertTable',
+                'insertLink',
+                'insertImage',
+                'insertVideo',
+                'insertHR',
+                '|',
+                'formatOL',
+                'emoticons',
+                'html',
+            ];
+
             return {
                 bind: id,
                 view: () => {
-                    return html` <div class="w-100 d-flex align-items-center justify-content-center p-3 ${richID}-loading">
-                            <div class="spinner-border" style=""></div>
+                    return html`
+                        <div class="w-100 d-flex align-items-center justify-content-center p-3 ${richID}-loading">
+                            <div class="spinner-border"></div>
                         </div>
-                        <div id="${richID}" style="position:relative;min-height:100vh;"></div>
-                    <div class="position-absolute w-100  bg-white d-flex align-items-center justify-content-center flex-column" style="top:0px;left:0px;height:${obj.rich_height || '100%'};z-index:9999;" id="hid_${id}">
-                        <div class="spinner-border"></div>
-                        載入中
-                    </div>
+                        <div id="${richID}" style="position: relative; min-height: 100vh;"></div>
+                        <div
+                            class="position-absolute w-100 bg-white d-flex align-items-center justify-content-center flex-column"
+                            style="top:0px;left:0px;height:${obj.rich_height || '100%'};z-index:9999;"
+                            id="hid_${id}"
+                        >
+                            <div class="spinner-border"></div>
+                            載入中
+                        </div>
                     `;
                 },
                 divCreate: {
@@ -1003,238 +1091,175 @@ ${obj.structEnd ? obj.structEnd : '})()'}`,
                     let delay = true;
                     let loadingView = false;
 
-                        const interval = setInterval(() => {
-                            if ((glitter.window as any).FroalaEditor) {
-                                clearInterval(interval);
-                                console.log(`re_render=>`)
-                                function render() {
-                                    setTimeout(() => {
-                                        gvc.addStyle(`
-                                        #${richID} li{
-                                            list-style:revert;
-                                        }
-                                        #insertImage-1 {
-                                            display: none !important;
-                                        }
-                                        #insertImage-2 {
-                                            display: none !important;
-                                        }
-                                        .fr-sticky-dummy {
-                                            display: none !important;
-                                        }
-                                        ${
-                                            obj.hiddenBorder
-                                                ? css`
-                                                      .fr-box {
-                                                          border: none !important;
-                                                      }
-                                                      .fr-box > div {
-                                                          border: none !important;
-                                                      }
-                                                  `
-                                                : ''
-                                        }
-                                    `);
+                    const interval = setInterval(() => {
+                        if ((glitter.window as any).FroalaEditor && !glitter.share.richTextRendering) {
+                            clearInterval(interval);
+                            glitter.share.richTextRendering = true;
+                            function render() {
+                                setTimeout(() => {
+                                    const FroalaEditor = (glitter.window as any).FroalaEditor;
+                                    const editor = new FroalaEditor('#' + richID, {
+                                        enter: FroalaEditor.ENTER_DIV,
+                                        language: 'zh_tw',
+                                        heightMin: obj.setHeight ?? 350,
+                                        content: '',
+                                        fontSize: generateFontSizeArray(),
+                                        quickInsertEnabled: false,
+                                        toolbarSticky: true,
+                                        events: {
+                                            imageMaxSize: 5 * 1024 * 1024,
+                                            imageAllowedTypes: ['jpeg', 'jpg', 'png'],
+                                            contentChanged: function () {
+                                                const parser = new DOMParser();
+                                                const doc = parser.parseFromString(editor.html.get(), 'text/html');
+                                                doc.documentElement.querySelectorAll('li').forEach((element: any) => {
+                                                    element.style['list-style'] = 'revert';
+                                                });
 
-                                        function generateFontSizeArray() {
-                                            let fontSizes = [];
+                                                doc.documentElement.querySelectorAll('iframe.fr-draggable').forEach(function (videoElement: any) {
+                                                    videoElement.removeAttribute('height');
+                                                    videoElement.style.height = '540px';
+                                                });
 
-                                            // 添加8到30的字體大小
-                                            for (let size = 8; size <= 30; size += 1) {
-                                                fontSizes.push(size.toString());
-                                            }
+                                                obj.callback(doc.documentElement.outerHTML);
+                                            },
+                                            'image.uploaded': function (response: any) {
+                                                console.info(`image.uploaded`);
+                                                return false;
+                                            },
+                                            'image.inserted': function ($img: any, response: any) {
+                                                console.info(`image.inserted`);
+                                                return false;
+                                            },
+                                            'image.replaced': function ($img: any, response: any) {
+                                                console.info(`image.replaced`);
+                                                return false;
+                                            },
+                                            'image.beforePasteUpload': (e: any, images: any) => {
+                                                function base64ToBlob(base64: any, mimeType: any) {
+                                                    mimeType = mimeType || ''; // 设置默认 MIME 类型
+                                                    var byteCharacters = atob(base64);
+                                                    var byteNumbers = new Array(byteCharacters.length);
 
-                                            // 添加30到60的字體大小
-                                            for (let size = 32; size <= 60; size += 2) {
-                                                fontSizes.push(size.toString());
-                                            }
-
-                                            // 添加60到96的字體大小
-                                            for (let size = 64; size <= 96; size += 4) {
-                                                fontSizes.push(size.toString());
-                                            }
-
-                                            return fontSizes;
-                                        }
-                                        const toolBarArray = [
-                                            'bold',
-                                            'italic',
-                                            'underline',
-                                            'align',
-                                            '|',
-                                            'paragraphFormat',
-                                            'fontSize',
-                                            'fontFamily',
-                                            'textColor',
-                                            'backgroundColor',
-                                            'clearFormatting',
-                                            '|',
-                                            'insertTable',
-                                            'insertLink',
-                                            'insertImage',
-                                            'insertVideo',
-                                            'insertHR',
-                                            '|',
-                                            'formatOL',
-                                            'emoticons',
-                                            'html',
-                                        ];
-                                        const FroalaEditor = (glitter.window as any).FroalaEditor;
-                                        const editor = new FroalaEditor('#' + richID, {
-                                            enter: FroalaEditor.ENTER_DIV,
-                                            language: 'zh_tw',
-                                            heightMin: obj.setHeight ?? 350,
-                                            content: '',
-                                            fontSize: generateFontSizeArray(),
-                                            quickInsertEnabled: false,
-                                            toolbarSticky: true,
-                                            events: {
-                                                imageMaxSize: 5 * 1024 * 1024,
-                                                imageAllowedTypes: ['jpeg', 'jpg', 'png'],
-                                                contentChanged: function () {
-                                                    const parser = new DOMParser();
-                                                    const doc = parser.parseFromString(editor.html.get(), 'text/html');
-                                                    doc.documentElement.querySelectorAll('li').forEach((element:any)=>{
-                                                        element.style["list-style"] = "revert"
-                                                    })
-                                                    obj.callback(doc.documentElement.outerHTML);
-                                                },
-                                                'image.uploaded': function (response: any) {
-                                                    console.info(`image.uploaded`);
-                                                    return false;
-                                                },
-                                                'image.inserted': function ($img: any, response: any) {
-                                                    console.info(`image.inserted`);
-                                                    return false;
-                                                },
-                                                'image.replaced': function ($img: any, response: any) {
-                                                    console.info(`image.replaced`);
-                                                    return false;
-                                                },
-                                                'image.beforePasteUpload': (e: any, images: any) => {
-                                                    function base64ToBlob(base64: any, mimeType: any) {
-                                                        mimeType = mimeType || ''; // 设置默认 MIME 类型
-                                                        var byteCharacters = atob(base64);
-                                                        var byteNumbers = new Array(byteCharacters.length);
-
-                                                        for (var i = 0; i < byteCharacters.length; i++) {
-                                                            byteNumbers[i] = byteCharacters.charCodeAt(i);
-                                                        }
-
-                                                        var byteArray = new Uint8Array(byteNumbers);
-
-                                                        return new Blob([byteArray], { type: mimeType });
+                                                    for (var i = 0; i < byteCharacters.length; i++) {
+                                                        byteNumbers[i] = byteCharacters.charCodeAt(i);
                                                     }
 
-                                                    const mimeType = 'image/jpeg';
-                                                    const blob = base64ToBlob(e.src.split(',')[1], mimeType);
-                                                    const saasConfig: { config: any; api: any } = (window as any).saasConfig;
+                                                    var byteArray = new Uint8Array(byteNumbers);
 
-                                                    glitter.share.wait_up_f = glitter.share.wait_up_f ?? [];
-                                                    glitter.share.wait_up_f.push({
-                                                        file: new File([blob], gvc.glitter.getUUID() + '.jpeg', { type: mimeType }),
-                                                        element: e,
-                                                    });
-                                                    clearInterval(glitter.share.wait_up_f_timer);
-                                                    glitter.share.wait_up_f_timer = setTimeout(() => {
-                                                        const dialog = new ShareDialog(obj.gvc.glitter);
-                                                        dialog.dataLoading({ visible: true });
-                                                        saasConfig.api
-                                                            .uploadFileAll(
-                                                                glitter.share.wait_up_f.map((dd: any) => {
-                                                                    return dd.file;
-                                                                })
-                                                            )
-                                                            .then((res: { result: boolean; links: string[] }) => {
-                                                                dialog.dataLoading({ visible: false });
-                                                                glitter.share.wait_up_f.map((dd: any, index: number) => {
-                                                                    dd.element.src = res.links[index];
-                                                                });
-                                                                glitter.share.wait_up_f = [];
+                                                    return new Blob([byteArray], { type: mimeType });
+                                                }
+
+                                                const mimeType = 'image/jpeg';
+                                                const blob = base64ToBlob(e.src.split(',')[1], mimeType);
+                                                const saasConfig: { config: any; api: any } = (window as any).saasConfig;
+
+                                                glitter.share.wait_up_f = glitter.share.wait_up_f ?? [];
+                                                glitter.share.wait_up_f.push({
+                                                    file: new File([blob], gvc.glitter.getUUID() + '.jpeg', { type: mimeType }),
+                                                    element: e,
+                                                });
+                                                clearInterval(glitter.share.wait_up_f_timer);
+                                                glitter.share.wait_up_f_timer = setTimeout(() => {
+                                                    const dialog = new ShareDialog(obj.gvc.glitter);
+                                                    dialog.dataLoading({ visible: true });
+                                                    saasConfig.api
+                                                        .uploadFileAll(
+                                                            glitter.share.wait_up_f.map((dd: any) => {
+                                                                return dd.file;
+                                                            })
+                                                        )
+                                                        .then((res: { result: boolean; links: string[] }) => {
+                                                            dialog.dataLoading({ visible: false });
+                                                            glitter.share.wait_up_f.map((dd: any, index: number) => {
+                                                                dd.element.src = res.links[index];
                                                             });
-                                                    }, 100);
+                                                            glitter.share.wait_up_f = [];
+                                                        });
+                                                }, 100);
 
-                                                    e.src = '';
-                                                    return false;
-                                                },
-                                                'image.beforeUpload': function (e: any, images: any) {
-                                                    EditorElem.uploadFileFunction({
-                                                        gvc: gvc,
-                                                        callback: (text) => {
-                                                            editor.html.insert(`<img${text}">`);
-                                                        },
-                                                        file: e[0],
-                                                    });
-                                                    return false;
-                                                },
+                                                e.src = '';
+                                                return false;
                                             },
-                                            key: 'hWA2C-7I2B2C4B3E4E2G3wd1DBKSPF1WKTUCQOa1OURPJ1KDe2F-11D2C2D2D2C3B3C1D6B1C2==',
-                                            toolbarButtons: toolBarArray,
-                                            paragraphFormat: {
-                                                N: '普通文字',
-                                                H1: '標題 1',
-                                                H2: '標題 2',
-                                                H3: '標題 3',
-                                                H4: '標題 4',
-                                                H5: '標題 5',
-                                                H6: '標題 6',
+                                            'image.beforeUpload': function (e: any, images: any) {
+                                                EditorElem.uploadFileFunction({
+                                                    gvc: gvc,
+                                                    callback: (text) => {
+                                                        editor.html.insert(`<img${text}">`);
+                                                    },
+                                                    file: e[0],
+                                                });
+                                                return false;
                                             },
-                                        });
-
-                                        if (glitter.document.querySelector(`.${richID}-loading`) as any) {
-                                            (glitter.document.querySelector(`.${richID}-loading`) as any).remove();
-                                        }
-                                        const dialog = new ShareDialog(gvc.glitter);
-                                        if (loading){
-                                            loading = false;
-                                            loadingView = true;
-                                            setTimeout(()=>{
-                                                delay = false;
-                                                if (!loadingView && !delay){
-                                                    gvc.glitter.document.querySelector(`#hid_${id}`)!!.remove();
-                                                    editor.html.set(obj.def || '')
-                                                }
-
-                                            },500)
-
-                                        }
-
-                                        setTimeout(() => {
-                                            const target: any = glitter.document.querySelector(`[data-cmd="insertImage"]`);
-
-                                            function checkRender(){
-                                                let checked = false;
-                                                toolBarArray.forEach((toolBar)=>{
-                                                    if (toolBar!="|" &&!glitter.document.querySelector(`[data-cmd=${toolBar}]`)){
-                                                        console.log(toolBar , "載入錯誤")
-                                                        checked = true;
-                                                    }
-                                                })
-                                                return checked;
-                                            }
-
-                                            if (checkRender()) {
-                                                try {
-                                                    editor.destroy();
-                                                } catch (e) {}
+                                            initialized: function () {
                                                 setTimeout(() => {
-                                                    render();
-                                                }, 500);
-                                                return;
-                                            }else{
-                                                loadingView = false;
-                                                if (!loadingView && !delay){
-                                                    gvc.glitter.document.querySelector(`#hid_${id}`)!!.remove();
-                                                    editor.html.set(obj.def || '')
-                                                }
-                                                target.outerHTML = html` <button
-                                            id="insertImage-replace"
-                                            type="button"
-                                            tabindex="-1"
-                                            role="button"
-                                            class="fr-command fr-btn "
-                                            data-title="插入圖片 (⌘P)"
-                                            onclick="${obj.gvc.event(() => {
+                                                    initEvent();
+                                                }, 200);
+                                            },
+                                        },
+                                        key: 'hWA2C-7I2B2C4B3E4E2G3wd1DBKSPF1WKTUCQOa1OURPJ1KDe2F-11D2C2D2D2C3B3C1D6B1C2==',
+                                        toolbarButtons: toolBarArray,
+                                        paragraphFormat: {
+                                            N: '普通文字',
+                                            H1: '標題 1',
+                                            H2: '標題 2',
+                                            H3: '標題 3',
+                                            H4: '標題 4',
+                                            H5: '標題 5',
+                                            H6: '標題 6',
+                                        },
+                                    });
+
+                                    if (glitter.document.querySelector(`.${richID}-loading`) as any) {
+                                        (glitter.document.querySelector(`.${richID}-loading`) as any).remove();
+                                    }
+
+                                    if (loading) {
+                                        loading = false;
+                                        loadingView = true;
+                                        setTimeout(() => {
+                                            delay = false;
+                                            if (!loadingView && !delay) {
+                                                gvc.glitter.document.querySelector(`#hid_${id}`)!!.remove();
+                                                editor.html.set(obj.def || '');
+                                            }
+                                        }, 200);
+                                    }
+
+                                    function checkRender() {
+                                        for (const toolBar of toolBarArray) {
+                                            if (toolBar != '|' && !glitter.document.querySelector(`#` + richID).querySelector(`[data-cmd="${toolBar}"]`)) {
+                                                console.error(`${richID} toolBar "${toolBar}" loading error`);
+                                                return true;
+                                            }
+                                        }
+                                        return false;
+                                    }
+
+                                    function initEvent() {
+                                        if (checkRender()) {
+                                            try {
+                                                editor.destroy();
+                                            } catch (e) {}
+                                            setTimeout(() => {
+                                                render();
+                                            }, 300);
+                                            return;
+                                        } else {
+                                            loadingView = false;
+                                            if (!loadingView && !delay) {
+                                                gvc.glitter.document.querySelector(`#hid_${id}`)!!.remove();
+                                                editor.html.set(obj.def || '');
+                                            }
+                                            const target: any = glitter.document.querySelector(`#` + richID).querySelector(`[data-cmd="insertImage"]`);
+                                            target.outerHTML = html` <button
+                                                id="insertImage-replace"
+                                                type="button"
+                                                tabindex="-1"
+                                                role="button"
+                                                class="fr-command fr-btn "
+                                                data-title="插入圖片 (⌘P)"
+                                                onclick="${obj.gvc.event(() => {
                                                     if (obj.insertImageEvent) {
                                                         obj.insertImageEvent(editor);
                                                     } else {
@@ -1272,35 +1297,35 @@ ${obj.structEnd ? obj.structEnd : '})()'}`,
                                                         });
                                                     }
                                                 })}"
-                                        >
-                                            <svg class="fr-svg" focusable="false" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                                                <path
-                                                    d="M14.2,11l3.8,5H6l3-3.9l2.1,2.7L14,11H14.2z M8.5,11c0.8,0,1.5-0.7,1.5-1.5S9.3,8,8.5,8S7,8.7,7,9.5C7,10.3,7.7,11,8.5,11z   M22,6v12c0,1.1-0.9,2-2,2H4c-1.1,0-2-0.9-2-2V6c0-1.1,0.9-2,2-2h16C21.1,4,22,4.9,22,6z M20,8.8V6H4v12h16V8.8z"
-                                                ></path>
-                                            </svg>
-                                            <span class="fr-sr-only">插入圖片</span>
-                                        </button>`;
-                                                if (obj.rich_height) {
-                                                    glitter.document.querySelector(`#` + richID).querySelector(`.fr-view`).style.height = obj.rich_height;
-                                                    glitter.document.querySelector(`#` + richID).querySelector(`.fr-view`).style.minHeight = 'auto';
-                                                    glitter.document.querySelector(`#` + richID).querySelector(`.fr-view`).style.overflowY = 'auto';
-                                                }
+                                            >
+                                                <svg class="fr-svg" focusable="false" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                                    <path
+                                                        d="M14.2,11l3.8,5H6l3-3.9l2.1,2.7L14,11H14.2z M8.5,11c0.8,0,1.5-0.7,1.5-1.5S9.3,8,8.5,8S7,8.7,7,9.5C7,10.3,7.7,11,8.5,11z   M22,6v12c0,1.1-0.9,2-2,2H4c-1.1,0-2-0.9-2-2V6c0-1.1,0.9-2,2-2h16C21.1,4,22,4.9,22,6z M20,8.8V6H4v12h16V8.8z"
+                                                    ></path>
+                                                </svg>
+                                                <span class="fr-sr-only">插入圖片</span>
+                                            </button>`;
 
-                                                if (obj.readonly) {
-                                                    editor.edit.off();
-                                                    editor.toolbar.disable();
-                                                }
-
+                                            if (obj.rich_height) {
+                                                glitter.document.querySelector(`#` + richID).querySelector(`.fr-view`).style.height = obj.rich_height;
+                                                glitter.document.querySelector(`#` + richID).querySelector(`.fr-view`).style.minHeight = 'auto';
+                                                glitter.document.querySelector(`#` + richID).querySelector(`.fr-view`).style.overflowY = 'auto';
                                             }
 
-                                        }, 200);
-                                    }, 100);
-                                }
-                                render();
+                                            if (obj.readonly) {
+                                                editor.edit.off();
+                                                editor.toolbar.disable();
+                                            }
+
+                                            console.info(`${richID} rendered richtext`);
+                                            glitter.share.richTextRendering = false;
+                                        }
+                                    }
+                                }, 100);
                             }
-                        }, 100);
-
-
+                            render();
+                        }
+                    }, 100);
                 },
             };
         });
