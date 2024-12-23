@@ -990,6 +990,8 @@ ${obj.structEnd ? obj.structEnd : '})()'}`,
                 'https://cdn.jsdelivr.net/npm/froala-editor@latest/css/froala_editor.pkgd.min.css',
             ]);
 
+            console.log(`obj.hiddenBorder: ${obj.hiddenBorder}`);
+
             gvc.addStyle(`
                 #${richID} li {
                     list-style: revert;
@@ -1072,7 +1074,7 @@ ${obj.structEnd ? obj.structEnd : '})()'}`,
                         <div class="w-100 d-flex align-items-center justify-content-center p-3 ${richID}-loading">
                             <div class="spinner-border"></div>
                         </div>
-                        <div id="${richID}" style="position: relative; min-height: 100vh;"></div>
+                        <div id="${richID}" style="position: relative;"></div>
                         <div
                             class="position-absolute w-100 bg-white d-flex align-items-center justify-content-center flex-column"
                             style="top:0px;left:0px;height:${obj.rich_height || '100%'};z-index:9999;"
