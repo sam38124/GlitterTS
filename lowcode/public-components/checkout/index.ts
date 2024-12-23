@@ -591,7 +591,7 @@ export class CheckoutIndex {
                             if (vm.cartData.lineItems.length === 0) {
                                 return html`
                                     <div class="container ${gClass(['container', 'null-container'])}">
-                                        <div class="${gClass('header')}">${Language.text(('shopping_details')}</div>
+                                        <div class="${gClass('header')}">${Language.text('shopping_details')}</div>
                                         <lottie-player
                                             style="max-width: 100%; width: 300px; height: 300px;"
                                             src="https://lottie.host/38ba8340-3414-41b8-b068-bba18d240bb3/h7e1Q29IQJ.json"

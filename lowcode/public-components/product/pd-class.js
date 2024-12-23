@@ -484,6 +484,7 @@ export class PdClass {
         gvc.glitter.getModule(new URL('./official_event/page/change-page.js', gvc.glitter.root_path).href, (cl) => {
             changePage = cl.changePage;
         });
+        const language_data = prod.language_data && prod.language_data[Language.getLanguage()];
         return html `
             <div class="d-flex flex-column flex-lg-row w-100" style="gap:${(document.body.clientWidth > 800) ? 40 : 20}px;">
                 ${obj.preview ? PdClass.showSwiper({
@@ -497,6 +498,9 @@ export class PdClass {
                         style="color: ${titleFontColor};font-size:${(document.body.clientWidth > 991) ? `36` : `24`}px;">
                         ${prod.title}</h1>
                     ${prod.min_qty ? `<div class="insignia mx-0 w-auto mt-0 mb-3 fw-500 fs-6 py-2" style="background: #ffe9b2;margin-left:5px;">${Language.text('min_p_count').replace('_c_', prod.min_qty)}</div>` : ``}
+                    ${(language_data && language_data.sub_title) ? `
+                    <div class="mb-3">${language_data.sub_title}</div>
+                    ` : ``}
                     <h2 class="" style="color: ${titleFontColor};font-size: 24px;">
                         ${gvc.bindView({
             bind: ids.price,

@@ -1869,6 +1869,161 @@ export class ShoppingProductSetting {
                                                 </div>
                                             `),
                                             BgWidget.mainCard(
+                                                    [
+                                                        obj.gvc.bindView(() => {
+                                                            const dialog = new ShareDialog(gvc.glitter);
+                                                            const vm = {
+                                                                id: obj.gvc.glitter.getUUID(),
+                                                                type: 'product-detail',
+                                                                documents: [],
+                                                            };
+
+                                                            language_data.content_array = language_data.content_array ?? [];
+                                                            language_data.content_json = language_data.content_json ?? [];
+                                                            return {
+                                                                bind: vm.id,
+                                                                view: async () => {
+                                                                    
+
+                                                                    return html` <div class="d-flex align-items-center justify-content-end ">
+                                                                        <div class="d-flex align-items-center gap-2">
+                                                                            <div style="color: #393939; font-weight: 700;">商品簡述 ${BgWidget.languageInsignia(sel_lan(), 'margin-left:5px;')}</div>
+                                                                        </div>
+                                                                        <div class="flex-fill"></div>
+                                                                    </div>
+                                                                    ${BgWidget.grayNote('將顯示於商品標題下方，快速表示商品內容')}
+                                                                    <div class="my-3">
+                                                                        ${gvc.bindView((() => {
+                                                                            const id = gvc.glitter.getUUID();
+                                                                            language_data.sub_title=language_data.sub_title??''
+                                                                            return {
+                                                                                bind: id,
+                                                                                view: () => {
+                                                                                    return html` <div
+                                                                                            class="d-flex justify-content-between align-items-center gap-3 mb-1"
+                                                                                            style="cursor: pointer;"
+                                                                                            onclick="${gvc.event(() => {
+                                                                                                const originContent = `${language_data.sub_title}`;
+                                                                                                BgWidget.fullDialog({
+                                                                                                    gvc: gvc,
+                                                                                                    title: (gvc2) => {
+                                                                                                        return `<div class="d-flex align-items-center" style="gap:10px;">${
+                                                                                                                '商品簡述' +
+                                                                                                                BgWidget.aiChatButton({
+                                                                                                                    gvc: gvc2,
+                                                                                                                    select: 'writer',
+                                                                                                                    click: () => {
+                                                                                                                        ProductAi.generateRichText(gvc, (text) => {
+                                                                                                                            language_data.sub_title += text;
+                                                                                                                            gvc.notifyDataChange(vm.id);
+                                                                                                                            gvc2.recreateView();
+                                                                                                                        });
+                                                                                                                    },
+                                                                                                                })
+                                                                                                        }</div>`;
+                                                                                                    },
+                                                                                                    innerHTML: (gvc2) => {
+                                                                                                        return html` <div>
+                                                                                                            ${EditorElem.richText({
+                                                                                                                gvc: gvc2,
+                                                                                                                def: language_data.sub_title,
+                                                                                                                setHeight: '100vh',
+                                                                                                                hiddenBorder: true,
+                                                                                                                insertImageEvent: (editor) => {
+                                                                                                                    const mark = `{{${Tool.randomString(8)}}}`;
+                                                                                                                    editor.selection.setAtEnd(editor.$el.get(0));
+                                                                                                                    editor.html.insert(mark);
+                                                                                                                    editor.undo.saveStep();
+
+                                                                                                                    imageLibrary.selectImageLibrary(
+                                                                                                                            gvc,
+                                                                                                                            (urlArray) => {
+                                                                                                                                if (urlArray.length > 0) {
+                                                                                                                                    const imgHTML = urlArray
+                                                                                                                                            .map((url) => {
+                                                                                                                                                return html` <img src="${url.data}" />`;
+                                                                                                                                            })
+                                                                                                                                            .join('');
+                                                                                                                                    editor.html.set(
+                                                                                                                                            editor.html
+                                                                                                                                                    .get(0)
+                                                                                                                                                    .replace(
+                                                                                                                                                            mark,
+                                                                                                                                                            html` <div class="d-flex flex-column">${imgHTML}</div>`
+                                                                                                                                                    )
+                                                                                                                                    );
+                                                                                                                                    editor.undo.saveStep();
+                                                                                                                                } else {
+                                                                                                                                    const dialog = new ShareDialog(gvc.glitter);
+                                                                                                                                    dialog.errorMessage({ text: '請選擇至少一張圖片' });
+                                                                                                                                }
+                                                                                                                            },
+                                                                                                                            html` <div
+                                                                                                                                    class="d-flex flex-column"
+                                                                                                                                    style="border-radius: 10px 10px 0px 0px;background: #F2F2F2;"
+                                                                                                                            >
+                                                                                                                                圖片庫
+                                                                                                                            </div>`,
+                                                                                                                            {
+                                                                                                                                mul: true,
+                                                                                                                                cancelEvent: () => {
+                                                                                                                                    editor.html.set(editor.html.get(0).replace(mark, ''));
+                                                                                                                                    editor.undo.saveStep();
+                                                                                                                                },
+                                                                                                                            }
+                                                                                                                    );
+                                                                                                                },
+                                                                                                                callback: (text) => {
+                                                                                                                    language_data.sub_title = text;
+                                                                                                                },
+                                                                                                                rich_height: `calc(${
+                                                                                                                        (window.parent as any).innerHeight
+                                                                                                                }px - 70px - 58px - 49px - 64px - 40px + ${
+                                                                                                                        document.body.clientWidth < 800 ? `70` : `0`
+                                                                                                                }px)`,
+                                                                                                            })}
+                                                                                                        </div>`;
+                                                                                                    },
+                                                                                                    footer_html: (gvc2: GVC) => {
+                                                                                                        return [
+                                                                                                            BgWidget.cancel(
+                                                                                                                    gvc2.event(() => {
+                                                                                                                        language_data.sub_title = originContent;
+                                                                                                                        gvc2.closeDialog();
+                                                                                                                    })
+                                                                                                            ),
+                                                                                                            BgWidget.save(
+                                                                                                                    gvc2.event(() => {
+                                                                                                                        gvc2.closeDialog();
+                                                                                                                        gvc.notifyDataChange(id);
+                                                                                                                    })
+                                                                                                            ),
+                                                                                                        ].join('');
+                                                                                                    },
+                                                                                                    closeCallback: () => {
+                                                                                                        language_data.sub_title = originContent;
+                                                                                                    },
+                                                                                                });
+                                                                                            })}"
+                                                                                    >
+                                                                                        ${(() => {
+                                                                                            const text = gvc.glitter.utText.removeTag(language_data.sub_title);
+                                                                                            return BgWidget.richTextView(Tool.truncateString(text, 100));
+                                                                                        })()}
+                                                                                    </div>`;
+                                                                                },
+                                                                            };
+                                                                        })())}
+                                                                    </div>`;
+                                                                },
+                                                                divCreate: {},
+                                                                onCreate: () => {
+                                                                },
+                                                            };
+                                                        }),
+                                                    ].join(BgWidget.mbContainer(12))
+                                            ),
+                                            BgWidget.mainCard(
                                                 [
                                                     obj.gvc.bindView(() => {
                                                         const dialog = new ShareDialog(gvc.glitter);
@@ -1930,7 +2085,7 @@ export class ShoppingProductSetting {
 
                                                                 return html` <div class="d-flex align-items-center justify-content-end mb-3">
                                                                         <div class="d-flex align-items-center gap-2">
-                                                                            <div style="color: #393939; font-weight: 700;">商品描述 ${BgWidget.languageInsignia(sel_lan(), 'margin-left:5px;')}</div>
+                                                                            <div style="color: #393939; font-weight: 700;">商品詳細描述 ${BgWidget.languageInsignia(sel_lan(), 'margin-left:5px;')}</div>
                                                                         </div>
                                                                         <div class="flex-fill"></div>
                                                                         <div
@@ -2062,8 +2217,7 @@ export class ShoppingProductSetting {
                                                                         </div>
                                                                     </div>
                                                                     <div class="my-3">
-                                                                        ${gvc.bindView(
-                                                                            (() => {
+                                                                        ${gvc.bindView((() => {
                                                                                 const id = gvc.glitter.getUUID();
                                                                                 return {
                                                                                     bind: id,
@@ -2182,8 +2336,7 @@ export class ShoppingProductSetting {
                                                                                         </div>`;
                                                                                     },
                                                                                 };
-                                                                            })()
-                                                                        )}
+                                                                            })())}
                                                                     </div>
                                                                     ${(vm.documents || [])
                                                                         .filter((item: any) => {

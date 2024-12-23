@@ -1110,6 +1110,7 @@ export class ShoppingFinanceSetting {
                                     })
                                 )}
                             </div>
+                            ${BgWidget.grayNote('郵政、黑貓、四大超商僅會於台灣地區進行顯示，如需設定跨境配送，可添加自訂物流表單。')}
                             ${gvc.bindView(() => {
                                 const id = gvc.glitter.getUUID();
 
