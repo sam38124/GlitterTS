@@ -215,6 +215,8 @@ export class ShoppingOrderManager {
                                             '訂單折扣',
                                             '訂單使用購物金',
                                             '訂單總計',
+                                            '分銷連結代碼',
+                                            '分銷連結名稱',
                                             '商品名稱',
                                             '商品規格',
                                             '商品SKU',
@@ -232,7 +234,7 @@ export class ShoppingOrderManager {
                                         res.response.data.map((order) => {
                                             const orderData = order.orderData;
                                             orderData.lineItems.map((item) => {
-                                                var _a, _b, _c;
+                                                var _a, _b, _c, _d, _e, _f, _g;
                                                 exportData.push({
                                                     訂單編號: order.cart_token,
                                                     訂單來源: orderData.orderSource === 'POS' ? 'POS' : '手動',
@@ -286,9 +288,11 @@ export class ShoppingOrderManager {
                                                     訂單折扣: orderData.discount,
                                                     訂單使用購物金: orderData.use_rebate,
                                                     訂單總計: orderData.total,
+                                                    分銷連結代碼: (_c = (_b = orderData.distribution_info) === null || _b === void 0 ? void 0 : _b.code) !== null && _c !== void 0 ? _c : '',
+                                                    分銷連結名稱: (_e = (_d = orderData.distribution_info) === null || _d === void 0 ? void 0 : _d.title) !== null && _e !== void 0 ? _e : '',
                                                     商品名稱: item.title,
                                                     商品規格: item.spec.length > 0 ? item.spec.join(' / ') : '單一規格',
-                                                    商品SKU: (_b = item.sku) !== null && _b !== void 0 ? _b : '',
+                                                    商品SKU: (_f = item.sku) !== null && _f !== void 0 ? _f : '',
                                                     商品購買數量: item.count,
                                                     商品價格: item.sale_price,
                                                     商品折扣: item.discount_price,
@@ -298,7 +302,7 @@ export class ShoppingOrderManager {
                                                     收件人姓名: orderData.user_info.name,
                                                     收件人手機: orderData.user_info.phone,
                                                     收件人信箱: orderData.user_info.email,
-                                                    備註: (_c = orderData.user_info.note) !== null && _c !== void 0 ? _c : '',
+                                                    備註: (_g = orderData.user_info.note) !== null && _g !== void 0 ? _g : '',
                                                 });
                                             });
                                         });
@@ -1137,17 +1141,13 @@ export class ShoppingOrderManager {
                                     var _a;
                                     const dialog = new ShareDialog(gvc.glitter);
                                     if (invoiceLoading) {
-                                        dialog.dataLoading({
-                                            visible: true,
-                                        });
-                                        return ``;
+                                        dialog.dataLoading({ visible: true });
+                                        return '';
                                     }
+                                    dialog.dataLoading({ visible: false });
                                     if (!invoiceData) {
-                                        return html ``;
+                                        return '';
                                     }
-                                    dialog.dataLoading({
-                                        visible: false,
-                                    });
                                     return BgWidget.mainCard(html `
                                                     <div class="tx_700">發票資訊</div>
                                                     ${BgWidget.mbContainer(18)}
@@ -3040,6 +3040,7 @@ export class ShoppingOrderManager {
         return html ` <div class="tx_700">付款證明回傳</div>
             <div class="border rounded-3 w-100 p-3 tx_normal">
                 ${(() => {
+            var _a;
             const array = [];
             if (orderData.customer_info.payment_select === 'cash_on_delivery') {
                 return '貨到付款';
@@ -3064,10 +3065,11 @@ export class ShoppingOrderManager {
                     }
                 });
             }
-            if (orderData.proof_purchase === undefined || orderData.customer_info.payment_from_array === undefined) {
+            if (orderData.proof_purchase === undefined || orderData.proof_purchase.paymentForm === undefined) {
                 return '發生錯誤';
             }
-            orderData.customer_info.payment_from_array.map((item) => {
+            const paymentFormList = (_a = orderData.proof_purchase.paymentForm.list) !== null && _a !== void 0 ? _a : [];
+            paymentFormList.map((item) => {
                 array.push(`${item.title} : ${orderData.proof_purchase[item.key]}`);
             });
             return array.join(BgWidget.mbContainer(8)) || '尚未回傳付款證明';

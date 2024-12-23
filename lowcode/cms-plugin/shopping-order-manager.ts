@@ -199,7 +199,6 @@ export class ShoppingOrderManager {
                 }
 
                 // 建立 Blob 物件
-
                 const saasConfig: { config: any; api: any } = (window as any).saasConfig;
                 const fileName = `訂單列表_${glitter.ut.dateFormat(new Date(), 'yyyyMMddhhmmss')}.xlsx`;
                 saasConfig.api.uploadFile(fileName).then((data: any) => {
@@ -297,6 +296,8 @@ export class ShoppingOrderManager {
                                                                 '訂單折扣',
                                                                 '訂單使用購物金',
                                                                 '訂單總計',
+                                                                '分銷連結代碼',
+                                                                '分銷連結名稱',
                                                                 // value by lineitem
                                                                 '商品名稱',
                                                                 '商品規格',
@@ -367,6 +368,8 @@ export class ShoppingOrderManager {
                                                                         訂單折扣: orderData.discount,
                                                                         訂單使用購物金: orderData.use_rebate,
                                                                         訂單總計: orderData.total,
+                                                                        分銷連結代碼: orderData.distribution_info?.code ?? '',
+                                                                        分銷連結名稱: orderData.distribution_info?.title ?? '',
                                                                         // value by lineitem
                                                                         商品名稱: item.title,
                                                                         商品規格: item.spec.length > 0 ? item.spec.join(' / ') : '單一規格',
@@ -1353,19 +1356,16 @@ export class ShoppingOrderManager {
                                             bind: 'invoiceView',
                                             view: () => {
                                                 const dialog = new ShareDialog(gvc.glitter);
-                                                if (invoiceLoading) {
-                                                    dialog.dataLoading({
-                                                        visible: true,
-                                                    });
-                                                    return ``;
-                                                }
-                                                if (!invoiceData) {
-                                                    return html``;
-                                                }
 
-                                                dialog.dataLoading({
-                                                    visible: false,
-                                                });
+                                                if (invoiceLoading) {
+                                                    dialog.dataLoading({ visible: true });
+                                                    return '';
+                                                }
+                                                dialog.dataLoading({ visible: false });
+
+                                                if (!invoiceData) {
+                                                    return '';
+                                                }
 
                                                 return BgWidget.mainCard(html`
                                                     <div class="tx_700">發票資訊</div>
@@ -1402,7 +1402,6 @@ export class ShoppingOrderManager {
                                             },
                                             divCreate: {},
                                         }),
-
                                         BgWidget.mainCard(html`
                                             <div class="tx_700">訂單記錄</div>
                                             ${BgWidget.mbContainer(18)}
@@ -3462,12 +3461,14 @@ export class ShoppingOrderManager {
                         });
                     }
 
-                    if (orderData.proof_purchase === undefined || orderData.customer_info.payment_from_array === undefined) {
+                    if (orderData.proof_purchase === undefined || orderData.proof_purchase.paymentForm === undefined) {
                         return '發生錯誤';
                     }
 
+                    const paymentFormList = orderData.proof_purchase.paymentForm.list ?? [];
+
                     // 其他付款方式
-                    orderData.customer_info.payment_from_array.map((item: any) => {
+                    paymentFormList.map((item: any) => {
                         array.push(`${item.title} : ${orderData.proof_purchase[item.key]}`);
                     });
 

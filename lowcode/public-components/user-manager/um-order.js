@@ -402,6 +402,7 @@ export class UMOrder {
                                         const from = orderData.payment_customer_form.find((item) => {
                                             return item.id === orderData.customer_info.payment_select;
                                         });
+                                        formData.paymentForm = from;
                                         if (from === undefined || from.list.length === 0) {
                                             return [];
                                         }
