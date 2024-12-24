@@ -180,7 +180,7 @@ export class User {
             const userID = findAuth ? findAuth.user : User.generateUserID();
             if (
                 register_form.list.find((dd: any) => {
-                    return dd.key === 'email' && `${dd.hidden}` !== 'true';
+                    return dd.key === 'email' && `${dd.hidden}` !== 'true' && dd.required;
                 }) &&
                 !userData.email
             ) {
@@ -190,7 +190,7 @@ export class User {
             }
             if (
                 register_form.list.find((dd: any) => {
-                    return dd.key === 'phone' && `${dd.hidden}` !== 'true';
+                    return dd.key === 'phone' && `${dd.hidden}` !== 'true' && dd.required;
                 }) &&
                 !userData.phone
             ) {
@@ -1283,20 +1283,24 @@ export class User {
                 where: querySql,
                 orderBy: query.order_string ?? '',
             });
-            const userData=(await db.query(dataSQL, [])).map((dd: any) => {
+            const userData = (await db.query(dataSQL, [])).map((dd: any) => {
                 dd.pwd = undefined;
-                dd.tag_name='一般會員'
+                dd.tag_name = '一般會員';
                 return dd;
-            })
-            for (const b of await db.query(`SELECT * FROM \`${this.app}\`.t_user_public_config where \`key\`='member_update' and user_id in (${
-                userData.map((dd:any)=>{
-                    return dd.userID
-                }).concat([-21211]).join(',')
-            }) `,[])){
-                if(b.value.value[0]){
-                    userData.find((dd:any)=>{
-                        return `${dd.userID}`===`${b.user_id}`
-                    }).tag_name=b.value.value[0].tag_name
+            });
+            for (const b of await db.query(
+                `SELECT * FROM \`${this.app}\`.t_user_public_config where \`key\`='member_update' and user_id in (${userData
+                    .map((dd: any) => {
+                        return dd.userID;
+                    })
+                    .concat([-21211])
+                    .join(',')}) `,
+                []
+            )) {
+                if (b.value.value[0]) {
+                    userData.find((dd: any) => {
+                        return `${dd.userID}` === `${b.user_id}`;
+                    }).tag_name = b.value.value[0].tag_name;
                 }
             }
             return {
@@ -1864,7 +1868,7 @@ export class User {
                 !config.find((d2: any) => {
                     return d2.key === dd && (d2.auth !== 'manager' || manager);
                 }) &&
-                !['level_status', 'level_default','contact_phone','contact_name'].includes(dd)
+                !['level_status', 'level_default', 'contact_phone', 'contact_name'].includes(dd)
             ) {
                 delete userData[dd];
             }
@@ -2129,16 +2133,16 @@ export class User {
                         return await this.getConfigV2(config);
                 }
             }
-            if((data[0] && data[0].value)){
-                data[0].value=this.checkLeakData(config.key,data[0].value) || data[0].value
-            }else if(config.key==='store-information'){
+            if (data[0] && data[0].value) {
+                data[0].value = this.checkLeakData(config.key, data[0].value) || data[0].value;
+            } else if (config.key === 'store-information') {
                 return {
-                    language_setting:{
+                    language_setting: {
                         def: 'zh-TW',
-                        support: ['zh-TW']
-                    }
-                }
-                }
+                        support: ['zh-TW'],
+                    },
+                };
+            }
             return (data[0] && data[0].value) || {};
         } catch (e) {
             console.error(e);
@@ -2146,18 +2150,18 @@ export class User {
         }
     }
 
-    public  checkLeakData(key:string,value:any){
-        if(key==='store-information'){
+    public checkLeakData(key: string, value: any) {
+        if (key === 'store-information') {
             value.language_setting = value.language_setting ?? {
                 def: 'zh-TW',
-                support: ['zh-TW']
-            }
-        }else if(['menu-setting','footer-setting'].includes(key) && Array.isArray(value)){
-           return {
-               "zh-TW":value,
-               "en-US":[],
-               "zh-CN":[]
-           }
+                support: ['zh-TW'],
+            };
+        } else if (['menu-setting', 'footer-setting'].includes(key) && Array.isArray(value)) {
+            return {
+                'zh-TW': value,
+                'en-US': [],
+                'zh-CN': [],
+            };
         }
     }
     public async checkEmailExists(email: string) {

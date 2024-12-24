@@ -131,7 +131,7 @@ class User {
             const findAuth = await this.findAuthUser(account);
             const userID = findAuth ? findAuth.user : User.generateUserID();
             if (register_form.list.find((dd) => {
-                return dd.key === 'email' && `${dd.hidden}` !== 'true';
+                return dd.key === 'email' && `${dd.hidden}` !== 'true' && dd.required;
             }) &&
                 !userData.email) {
                 throw exception_1.default.BadRequestError('BAD_REQUEST', 'Verify code error.', {
@@ -139,7 +139,7 @@ class User {
                 });
             }
             if (register_form.list.find((dd) => {
-                return dd.key === 'phone' && `${dd.hidden}` !== 'true';
+                return dd.key === 'phone' && `${dd.hidden}` !== 'true' && dd.required;
             }) &&
                 !userData.phone) {
                 throw exception_1.default.BadRequestError('BAD_REQUEST', 'Verify code error.', {
@@ -1078,9 +1078,12 @@ class User {
                 dd.tag_name = '一般會員';
                 return dd;
             });
-            for (const b of await database_1.default.query(`SELECT * FROM \`${this.app}\`.t_user_public_config where \`key\`='member_update' and user_id in (${userData.map((dd) => {
+            for (const b of await database_1.default.query(`SELECT * FROM \`${this.app}\`.t_user_public_config where \`key\`='member_update' and user_id in (${userData
+                .map((dd) => {
                 return dd.userID;
-            }).concat([-21211]).join(',')}) `, [])) {
+            })
+                .concat([-21211])
+                .join(',')}) `, [])) {
                 if (b.value.value[0]) {
                     userData.find((dd) => {
                         return `${dd.userID}` === `${b.user_id}`;
@@ -1705,15 +1708,15 @@ class User {
                         return await this.getConfigV2(config);
                 }
             }
-            if ((data[0] && data[0].value)) {
+            if (data[0] && data[0].value) {
                 data[0].value = this.checkLeakData(config.key, data[0].value) || data[0].value;
             }
             else if (config.key === 'store-information') {
                 return {
                     language_setting: {
                         def: 'zh-TW',
-                        support: ['zh-TW']
-                    }
+                        support: ['zh-TW'],
+                    },
                 };
             }
             return (data[0] && data[0].value) || {};
@@ -1728,14 +1731,14 @@ class User {
         if (key === 'store-information') {
             value.language_setting = (_a = value.language_setting) !== null && _a !== void 0 ? _a : {
                 def: 'zh-TW',
-                support: ['zh-TW']
+                support: ['zh-TW'],
             };
         }
         else if (['menu-setting', 'footer-setting'].includes(key) && Array.isArray(value)) {
             return {
-                "zh-TW": value,
-                "en-US": [],
-                "zh-CN": []
+                'zh-TW': value,
+                'en-US': [],
+                'zh-CN': [],
             };
         }
     }

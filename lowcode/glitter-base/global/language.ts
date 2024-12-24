@@ -222,6 +222,8 @@ export class Language {
             { key: 'shopping_credit', tw: '購物金', cn: '购物金', en: 'Shopping credit' },
             { key: 'distance_from_target_amount', tw: '距離目標金額還差', cn: '距离目标金额还差', en: 'Amount remaining to target' },
             { key: 'member_login', tw: '會員登入', cn: '会员登录', en: 'Login' },
+            { key: 'login', tw: '登入', cn: '登录', en: 'Login' },
+            { key: 'register', tw: '註冊', cn: '注册', en: 'Register' },
             { key: 'input_product_keyword', tw: '輸入商品關鍵字', cn: '输入商品关键字', en: 'Enter Product Keyword' },
             { key: 'find_product', tw: '找商品', cn: '找商品', en: 'Find Product' },
             { key: 'delete_success', tw: '刪除成功', cn: '删除成功', en: 'Delete Successful' },
@@ -247,8 +249,11 @@ export class Language {
             { key: 'logout', tw: '登出', cn: '登出', en: 'Logout' },
             { key: 'reset_password_event', tw: '重設密碼事件', cn: '重设密码事件', en: 'Reset Password Event' },
             { key: 'password', tw: '密碼', cn: '密码', en: 'Password' },
+            { key: 'new_password', tw: '新密碼', cn: '新密码', en: 'New Password' },
             { key: 'confirm_password', tw: '確認密碼', cn: '确认密码', en: 'Confirm Password' },
             { key: 'please_enter_password', tw: '請輸入密碼', cn: '请输入密码', en: 'Please Enter Password' },
+            { key: 'email_phone_placeholder', tw: '請輸入信箱或電話', cn: '请输入邮箱或电话', en: 'Please Enter Email or Phone Number' },
+            { key: 'email_placeholder', tw: '請輸入信箱', cn: '请输入邮箱', en: 'Please Enter Email' },
             { key: 'please_enter_password_again', tw: '請再次輸入密碼', cn: '请再次输入密码', en: 'Please Enter Password Again' },
             { key: 'reset_password_verification_code', tw: '重設密碼驗證碼', cn: '重设密码验证码', en: 'Reset Password Verification Code' },
             { key: 'verification_code_sent_to', tw: '驗證碼已發送至', cn: '验证码已发送至', en: 'Verification Code Sent to' },
@@ -363,6 +368,7 @@ export class Language {
                 en: 'Please upload a screenshot or enter transfer proof, e.g., last five digits of the account, along with payer information',
             },
             { key: 'data_submitting', tw: '資料送出中', cn: '数据提交中', en: 'Data submitting' },
+            { key: 'submit', tw: '送出', cn: '提交', en: 'Submit' },
             { key: 'return_to_order_details', tw: '返回訂單詳情', cn: '返回订单详情', en: 'Return to order details' },
             { key: 'order_details', tw: '訂單明細', cn: '订单明细', en: 'Order Details' },
             { key: 'product_not_found', tw: '找不到此產品', cn: '找不到此产品', en: 'Product not found' },
@@ -402,6 +408,7 @@ export class Language {
             { key: 'order_not_found', tw: '查無此訂單', cn: '查无此订单', en: 'Order not found' },
             { key: 'expired', tw: '已過期', cn: '已过期', en: 'Expired' },
             { key: 'not_yet_shipped', tw: '尚未出貨', cn: '尚未出货', en: 'Not yet shipped' },
+            { key: 'new_password_placeholder', tw: '請輸入新密碼', cn: '请输入新密码', en: 'Please Enter New Password' },
         ];
     }
 }
