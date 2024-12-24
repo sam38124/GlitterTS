@@ -802,6 +802,8 @@ export class ApiShop {
         code?: string;
         use_rebate?: number;
         custom_form_format?: any;
+        custom_receipt_form?:any;
+        custom_receipt_data?:any
         custom_form_data?: any;
         distribution_code?: string;
         give_away?: any;

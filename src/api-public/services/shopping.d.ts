@@ -124,6 +124,7 @@ type Cart = {
     user_rebate_sum: number;
     voucherList?: VoucherData[];
     custom_form_format?: any;
+    custom_receipt_form?: any;
     custom_form_data?: any;
     distribution_id?: number;
     distribution_info?: any;
@@ -268,6 +269,7 @@ export declare class Shopping {
         pay_status?: number;
         custom_form_format?: any;
         custom_form_data?: any;
+        custom_receipt_form?: any;
         distribution_code?: string;
         code_array: string[];
         give_away?: {

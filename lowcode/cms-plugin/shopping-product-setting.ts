@@ -4674,6 +4674,15 @@ export class ShoppingProductSetting {
                                                                             <div class="w-100"
                                                                                  style="margin: 18px 0 8px;">SEO標題
                                                                             </div>
+                                                                            ${BgWidget.editeInput({
+                                                                                gvc:gvc,
+                                                                                title:'',
+                                                                                default:language_data.seo.title,
+                                                                                callback:(text)=>{
+                                                                                    language_data.seo.title=text
+                                                                                },
+                                                                                placeHolder:''
+                                                                            })}
                                                                             <input
                                                                                     value="${language_data.seo.title ?? ''}"
                                                                                     style="width: 100%;padding: 9px 18px;border-radius: 10px;border: 1px solid #DDD;"

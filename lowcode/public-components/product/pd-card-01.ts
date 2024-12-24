@@ -265,7 +265,7 @@ export class ProductCard01 {
                 })}
             </div>
             <div class="card-collapse-parent cursor_pointer">
-                <div class="px-1">
+                <div class="">
                     <div class="row gx-0 card-title-container mb-1">
                         <div class="col-12 mb-1">
                             <div class="w-100 d-flex ${PdClass.isPad() ? 'justify-content-center' : ''}">

@@ -469,7 +469,7 @@ export class ShoppingFinanceSetting {
                                     return html `
                                                         ${BgWidget.mbContainer(12)}
                                                         <div class="tx_700">付款資訊</div>
-                                                        ${BgWidget.grayNote('於訂單確認頁面及通知郵件中顯示，告知顧客付款的銀行帳戶或其他付款說明')} ${BgWidget.mbContainer(12)}
+                                                        ${BgWidget.grayNote('於訂單確認頁面及通知郵件中顯示，告知顧客付款的銀行帳戶或其他付款說明')}${BgWidget.mbContainer(12)}
                                                         ${payData
                                         .map((key) => {
                                         if (key === 'atm') {
@@ -581,7 +581,7 @@ export class ShoppingFinanceSetting {
             return {
                 bind: id,
                 view: () => {
-                    var _a, _b;
+                    var _a;
                     return [
                         html ` <div class="d-flex justify-content-between mb-3">
                             <div class="tx_normal">付款說明</div>
@@ -590,13 +590,14 @@ export class ShoppingFinanceSetting {
                             gvc.notifyDataChange(id);
                         }))}
                         </div>`,
-                        EditorElem.richText({
+                        BgWidget.richTextEditor({
                             gvc: gvc,
-                            def: (_b = (_a = keyData.payment_info_line_pay) === null || _a === void 0 ? void 0 : _a.text) !== null && _b !== void 0 ? _b : '',
-                            callback: (text) => {
-                                keyData.payment_info_line_pay.text = text;
+                            content: (_a = keyData.payment_info_line_pay.text) !== null && _a !== void 0 ? _a : '',
+                            callback: (content) => {
+                                keyData.payment_info_line_pay.text = content;
                             },
-                        }),
+                            title: '付款說明'
+                        })
                     ].join('');
                 },
             };
@@ -613,13 +614,14 @@ export class ShoppingFinanceSetting {
                         html ` <div class="d-flex justify-content-between mb-3">
                             <div class="tx_normal">付款說明</div>
                         </div>`,
-                        EditorElem.richText({
+                        BgWidget.richTextEditor({
                             gvc: gvc,
-                            def: keyData.payment_info_custom[id].text,
-                            callback: (text) => {
-                                keyData.payment_info_custom[id].text = text;
+                            content: keyData.payment_info_custom[id].text,
+                            callback: (content) => {
+                                keyData.payment_info_custom[id].text = content;
                             },
-                        }),
+                            title: '付款說明'
+                        })
                     ].join('');
                 },
             };
@@ -690,13 +692,14 @@ export class ShoppingFinanceSetting {
                         }))}
                         </div>`,
                         ``,
-                        EditorElem.richText({
+                        BgWidget.richTextEditor({
                             gvc: gvc,
-                            def: (_b = (_a = keyData.payment_info_atm) === null || _a === void 0 ? void 0 : _a.text) !== null && _b !== void 0 ? _b : '',
-                            callback: (text) => {
-                                keyData.payment_info_atm.text = text;
+                            content: (_b = (_a = keyData.payment_info_atm) === null || _a === void 0 ? void 0 : _a.text) !== null && _b !== void 0 ? _b : '',
+                            callback: (content) => {
+                                keyData.payment_info_atm.text = content;
                             },
-                        }),
+                            title: '付款說明'
+                        })
                     ].join('');
                 },
                 divCreate: { class: 'guide2-5' },

@@ -151,6 +151,7 @@ type Cart = {
     user_rebate_sum: number;
     voucherList?: VoucherData[];
     custom_form_format?: any;
+    custom_receipt_form?:any;
     custom_form_data?: any;
     distribution_id?: number;
     distribution_info?: any;
@@ -821,6 +822,7 @@ export class Shopping {
             pay_status?: number; //自定義訂單狀態
             custom_form_format?: any; //自定義表單格式
             custom_form_data?: any; //自定義表單資料
+            custom_receipt_form?:any; //自定義配送表單格式
             distribution_code?: string; //分銷連結代碼
             code_array: string[]; // 優惠券代碼列表
             give_away?: {
@@ -1052,6 +1054,7 @@ export class Shopping {
                 useRebateInfo: { point: 0 },
                 custom_form_format: data.custom_form_format,
                 custom_form_data: data.custom_form_data,
+                custom_receipt_form:data.custom_receipt_form,
                 orderSource: data.checkOutType === 'POS' ? `POS` : ``,
                 code_array: data.code_array,
                 give_away: data.give_away as any,

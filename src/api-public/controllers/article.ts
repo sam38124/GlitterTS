@@ -35,10 +35,11 @@ router.get('/', async (req: express.Request, resp: express.Response) => {
         data.data.map((dd: any) => {
             const content = dd.content;
             if (content.language_data && content.language_data[req.headers['language'] as string]) {
-                const lang_ = content.language_data[req.headers['language'] as string]
+                const lang_ = content.language_data[req.headers['language'] as string];
                 content.name = lang_.name || content.name;
                 content.seo = lang_.seo || content.seo;
                 content.text = lang_.text || content.text;
+                content.title=lang_.title || content.title;
                 content.config = lang_.config || content.config;
             }
         })

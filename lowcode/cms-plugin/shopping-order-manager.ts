@@ -774,6 +774,7 @@ export class ShoppingOrderManager {
                     note?: string;
                     code_note?: string;
                 };
+                custom_receipt_form?:any;
                 custom_form_format?: any;
                 custom_form_data?: any;
                 proof_purchase: any;
@@ -1016,7 +1017,7 @@ export class ShoppingOrderManager {
                                                             return gvc.bindView({
                                                                 bind: glitter.getUUID(),
                                                                 view: () => {
-                                                                    return html` <div class="d-flex flex-column align-items-center justify-content-center" style="gap:5px;margin-right:12px;">
+                                                                    return html`<div class="d-flex flex-column align-items-center justify-content-center" style="gap:5px;margin-right:12px;">
                                                                             ${BgWidget.validImageBox({
                                                                                 gvc,
                                                                                 image: dd.preview_image,
@@ -1028,6 +1029,7 @@ export class ShoppingOrderManager {
                                                                             ${dd.is_gift ? `<div class="">${BgWidget.successInsignia('贈品')}</div>` : ``}
                                                                         </div>
                                                                         <div class="d-flex flex-column" style="gap:2px;">
+                                                                            ${dd.is_hidden ? `<div style="width:auto;">${BgWidget.secondaryInsignia('隱形商品')}</div>`:``}
                                                                             <div class="tx_700">${dd.title}</div>
                                                                             ${dd.spec.length > 0 ? BgWidget.grayNote(dd.spec.join(', ')) : ''}
                                                                             ${BgWidget.grayNote(`存貨單位 (SKU)：${dd.sku && dd.sku.length > 0 ? dd.sku : '無'}`)}
@@ -1455,8 +1457,10 @@ export class ShoppingOrderManager {
                                                                         class="d-flex align-items-center"
                                                                         style="color: #4D86DB;font-weight: 400; gap:8px;cursor:pointer;"
                                                                         onclick="${gvc.event(() => {
-                                                                            child_vm.userID = userData.userID;
-                                                                            child_vm.type = 'user';
+                                                                            if(userData.userID){
+                                                                                child_vm.userID = userData.userID;
+                                                                                child_vm.type = 'user';   
+                                                                            }
                                                                         })}"
                                                                     >
                                                                         ${userData?.userData?.name ?? '訪客'}
@@ -1684,7 +1688,9 @@ export class ShoppingOrderManager {
                                                     return (
                                                         html` <div style="margin-top: 24px;"></div>` +
                                                         BgWidget.mainCard(html`
-                                                            <div class="p-2" style="color: #393939;font-size: 16px;">
+                                                            <div class="tx_700 mb-2 fs-6 text-info">自訂顧客資料表單</div>
+                                                            <div class="px-2 py-1 border-start" style="color: #393939;font-size: 16px;">
+                                                               
                                                                 ${orderData.orderData.custom_form_format
                                                                     .filter((dd: any) => {
                                                                         return (orderData.orderData.custom_form_data as any)[dd.key];
@@ -1696,7 +1702,7 @@ export class ShoppingOrderManager {
                                                                             </div>
                                                                             <div style="color: #393939;font-weight: 400;">${(orderData.orderData.custom_form_data as any)[dd.key]}</div>`;
                                                                     })
-                                                                    .join('')}
+                                                                        .join('<div class="my-2 w-100 border-top"></div>')}
                                                             </div>
                                                         `)
                                                     );
@@ -1704,7 +1710,38 @@ export class ShoppingOrderManager {
                                                     return ``;
                                                 }
                                             })(),
-                                        ].join(BgWidget.mbContainer(24))}
+                                            (() => {
+                                                if (
+                                                        orderData.orderData.custom_receipt_form &&
+                                                        orderData.orderData.custom_receipt_form.filter((dd: any) => {
+                                                            return (orderData.orderData.user_info as any)[dd.key];
+                                                        }).length > 0
+                                                ) {
+                                                    return (
+                                                            html` <div style="margin-top: 24px;"></div>` +
+                                                            BgWidget.mainCard(html`
+                                                                <div class="tx_700 mb-2 fs-6 text-info">自訂收件人資料表單</div>
+                                                            <div class="px-2 py-1 border-start" style="color: #393939;font-size: 16px;">
+                                                                ${orderData.orderData.custom_receipt_form
+                                                                    .filter((dd: any) => {
+                                                                        return (orderData.orderData.user_info as any)[dd.key];
+                                                                    })
+                                                                    .map((dd: any) => {
+                                                                        return html` <div class="d-flex align-items-center">
+                                                                                <div class="tx_700">${dd.title}</div>
+                                                                                <div class="flex-fill"></div>
+                                                                            </div>
+                                                                            <div style="color: #393939;font-weight: 400;">${(orderData.orderData.user_info as any)[dd.key]}</div>`;
+                                                                    })
+                                                                        .join('<div class="my-2 w-100 border-top"></div>')}
+                                                            </div>
+                                                        `)
+                                                    );
+                                                } else {
+                                                    return ``;
+                                                }
+                                            })(),
+                                        ].filter((dd)=>{return dd}).join(BgWidget.mbContainer(24))}
                                     </div>`,
                                     ratio: 25,
                                 }
@@ -3461,15 +3498,17 @@ export class ShoppingOrderManager {
                         });
                     }
 
-                    if (orderData.proof_purchase === undefined || orderData.proof_purchase.paymentForm === undefined) {
-                        return '發生錯誤';
-                    }
+                    if(!['atm','line'].includes(orderData.customer_info.payment_select)){
+                        if (orderData.proof_purchase === undefined || orderData.proof_purchase.paymentForm === undefined) {
+                            return '尚未回傳付款證明';
+                        }
 
-                    // 其他付款方式
-                    const paymentFormList = orderData.proof_purchase.paymentForm.list ?? [];
-                    paymentFormList.map((item: any) => {
-                        array.push(`${item.title} : ${orderData.proof_purchase[item.key]}`);
-                    });
+                        // 其他付款方式
+                        const paymentFormList = orderData.proof_purchase.paymentForm.list ?? [];
+                        paymentFormList.map((item: any) => {
+                            array.push(`${item.title} : ${orderData.proof_purchase[item.key]}`);
+                        });   
+                    }
 
                     return array.join(BgWidget.mbContainer(8)) || '尚未回傳付款證明';
                 })()}

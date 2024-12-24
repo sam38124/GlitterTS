@@ -712,9 +712,17 @@ export class FormWidget {
         formData = formData || {};
         form_config_list = form_config_list || [];
         const find = form_config_list.find((dd) => {
-            return dd.require === 'true' && !formData[dd.key];
+            return `${dd.require}` === 'true' && !formData[dd.key];
         });
         return find && find.title;
+    }
+    static checkLeakDataObj(form_config_list, formData) {
+        formData = formData || {};
+        form_config_list = form_config_list || [];
+        const find = form_config_list.find((dd) => {
+            return (`${dd.require}` === 'true') && !formData[dd.key];
+        });
+        return find;
     }
 }
 Plugin.createComponent(import.meta.url, (glitter, editMode) => {

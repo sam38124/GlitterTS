@@ -575,7 +575,7 @@ export class ShoppingFinanceSetting {
                                                     return html`
                                                         ${BgWidget.mbContainer(12)}
                                                         <div class="tx_700">付款資訊</div>
-                                                        ${BgWidget.grayNote('於訂單確認頁面及通知郵件中顯示，告知顧客付款的銀行帳戶或其他付款說明')} ${BgWidget.mbContainer(12)}
+                                                        ${BgWidget.grayNote('於訂單確認頁面及通知郵件中顯示，告知顧客付款的銀行帳戶或其他付款說明')}${BgWidget.mbContainer(12)}
                                                         ${payData
                                                             .map((key) => {
                                                                 if (key === 'atm') {
@@ -707,13 +707,14 @@ export class ShoppingFinanceSetting {
                                 })
                             )}
                         </div>`,
-                        EditorElem.richText({
-                            gvc: gvc,
-                            def: keyData.payment_info_line_pay?.text ?? '',
-                            callback: (text) => {
-                                keyData.payment_info_line_pay!.text = text;
+                        BgWidget.richTextEditor({
+                            gvc:gvc,
+                            content:     keyData.payment_info_line_pay!.text ?? '',
+                            callback:(content)=>{
+                                keyData.payment_info_line_pay!.text = content;
                             },
-                        }),
+                            title:'付款說明'
+                        })
                     ].join('');
                 },
             };
@@ -734,13 +735,14 @@ export class ShoppingFinanceSetting {
                         html` <div class="d-flex justify-content-between mb-3">
                             <div class="tx_normal">付款說明</div>
                         </div>`,
-                        EditorElem.richText({
-                            gvc: gvc,
-                            def: keyData.payment_info_custom[id].text,
-                            callback: (text) => {
-                                keyData.payment_info_custom[id].text = text;
+                        BgWidget.richTextEditor({
+                            gvc:gvc,
+                            content:keyData.payment_info_custom[id].text,
+                            callback:(content)=>{
+                                keyData.payment_info_custom[id].text = content;
                             },
-                        }),
+                            title:'付款說明'
+                        })
                     ].join('');
                 },
             };
@@ -817,13 +819,14 @@ export class ShoppingFinanceSetting {
                             )}
                         </div>`,
                         ``,
-                        EditorElem.richText({
-                            gvc: gvc,
-                            def: keyData.payment_info_atm?.text ?? '',
-                            callback: (text) => {
-                                keyData.payment_info_atm!.text = text;
+                        BgWidget.richTextEditor({
+                            gvc:gvc,
+                            content:keyData.payment_info_atm?.text ?? '',
+                            callback:(content)=>{
+                                keyData.payment_info_atm!.text = content;
                             },
-                        }),
+                            title:'付款說明'
+                        })
                     ].join('');
                 },
                 divCreate: { class: 'guide2-5' },

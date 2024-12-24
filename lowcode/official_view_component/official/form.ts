@@ -8,6 +8,7 @@ import {getInitialData} from '../initial_data.js';
 import autosize from '../../glitterBundle/plugins/autosize.js';
 import {ApiPageConfig} from '../../api/pageConfig.js';
 import {NormalPageEditor} from '../../editor/normal-page-editor.js';
+import {Language} from "../../glitter-base/global/language.js";
 
 export class FormWidget {
     public static settingView(obj: {
@@ -799,9 +800,19 @@ export class FormWidget {
         formData=formData || {}
         form_config_list=form_config_list || []
         const find = form_config_list.find((dd: any) => {
-            return dd.require === 'true' && !formData[dd.key];
+            return `${dd.require}` === 'true' && !formData[dd.key];
         });
+
         return find && find.title;
+    }
+    public static checkLeakDataObj(form_config_list:any,formData:any){
+        formData=formData || {}
+        form_config_list=form_config_list || []
+        const find = form_config_list.find((dd: any) => {
+            return (`${dd.require}` === 'true') && !formData[dd.key];
+        });
+
+        return find;
     }
 }
 
