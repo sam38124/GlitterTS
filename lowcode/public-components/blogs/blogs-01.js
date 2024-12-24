@@ -1,6 +1,7 @@
 import { ShareDialog } from '../../glitterBundle/dialog/ShareDialog.js';
 import { UmClass } from '../user-manager/um-class.js';
 import { Language } from '../../glitter-base/global/language.js';
+import { ApiCart } from "../../glitter-base/route/api-cart.js";
 export class Blogs01 {
     static main(gvc, subData) {
         if (subData.content.generator !== 'page_editor') {
@@ -11,7 +12,7 @@ export class Blogs01 {
                 if (subData.content.relative_data && ['shopping', 'hidden'].includes(subData.content.page_type) && localStorage.getItem('block-refresh-cart') !== 'true') {
                     subData.content.relative_data.map((dd) => {
                         const key = [dd.product_id].concat(dd.variant.spec).join('-');
-                        const cart = gvc.glitter.share.ApiCart.cart;
+                        const cart = (new ApiCart()).cart;
                         const line_item = cart.line_items.find((dd) => {
                             return `${dd.id}-${dd.spec.join('-')}` === key;
                         });

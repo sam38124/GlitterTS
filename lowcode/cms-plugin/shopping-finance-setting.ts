@@ -517,13 +517,16 @@ export class ShoppingFinanceSetting {
                                                             name: html`${dd.name}
                                                                 <i
                                                                     class="fa-solid fa-pencil cursor_pointer ms-1"
-                                                                    onclick="${gvc.event(() => {
+                                                                    onclick="${gvc.event((e,event) => {
+                                                                       
                                                                         updateCustomFinance({
                                                                             function: 'replace',
                                                                             data: keyData.payment_info_custom.find((d1: any) => {
                                                                                 return dd.id === d1.id;
                                                                             }),
                                                                         });
+                                                                        event.stopPropagation();
+                                                                        event.preventDefault();
                                                                     })}"
                                                                 ></i>`,
                                                         };

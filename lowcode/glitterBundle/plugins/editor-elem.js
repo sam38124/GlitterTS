@@ -848,67 +848,139 @@ ${obj.structEnd ? obj.structEnd : '})()'}`,
     static richText(obj) {
         const gvc = obj.gvc;
         const glitter = gvc.glitter;
-        let loading = true;
-        const dialog = new ShareDialog(glitter);
         return gvc.bindView(() => {
+            var _a;
             const id = glitter.getUUID();
             const richID = glitter.getUUID();
-            glitter.addMtScript([
-                `https://cdnjs.cloudflare.com/ajax/libs/codemirror/6.65.7/codemirror.min.js`,
-                `https://cdnjs.cloudflare.com/ajax/libs/codemirror/6.65.7/mode/xml/xml.min.js`,
-                `https://cdnjs.cloudflare.com/ajax/libs/dompurify/2.2.7/purify.min.js`,
-                `https://cdn.jsdelivr.net/npm/froala-editor/js/languages/zh_tw.js`,
-                `froala_editor.min.js`,
-                `languages/zh_tw.js`,
-                `plugins/align.min.js`,
-                `plugins/char_counter.min.js`,
-                `plugins/code_beautifier.min.js`,
-                `plugins/code_view.min.js`,
-                `plugins/colors.min.js`,
-                `plugins/draggable.min.js`,
-                `plugins/emoticons.min.js`,
-                `plugins/entities.min.js`,
-                `plugins/file.min.js`,
-                `plugins/font_size.min.js`,
-                `plugins/font_family.min.js`,
-                `plugins/fullscreen.min.js`,
-                `plugins/image.min.js`,
-                `plugins/image_manager.min.js`,
-                `plugins/line_breaker.min.js`,
-                `plugins/inline_style.min.js`,
-                `plugins/link.min.js`,
-                `plugins/lists.min.js`,
-                `plugins/paragraph_format.min.js`,
-                `plugins/paragraph_style.min.js`,
-                `plugins/quick_insert.min.js`,
-                `plugins/quote.min.js`,
-                `plugins/table.min.js`,
-                `plugins/save.min.js`,
-                `plugins/url.min.js`,
-                `plugins/video.min.js`,
-                `plugins/help.min.js`,
-                `plugins/print.min.js`,
-                `plugins/special_characters.min.js`,
-            ].map((dd) => {
-                return { src: dd.includes('http') ? dd : new URL(`../../jslib/froala/` + dd, import.meta.url).href };
-            }), () => {
+            glitter.share.richTextRendering = (_a = glitter.share.richTextRendering) !== null && _a !== void 0 ? _a : false;
+            glitter.addMtScript([new URL(`../../jslib/froala/froala_editor.min.js`, import.meta.url).href], () => {
+                setTimeout(() => {
+                    glitter.addMtScript([
+                        `https://cdnjs.cloudflare.com/ajax/libs/codemirror/6.65.7/codemirror.min.js`,
+                        `https://cdnjs.cloudflare.com/ajax/libs/codemirror/6.65.7/mode/xml/xml.min.js`,
+                        `https://cdnjs.cloudflare.com/ajax/libs/dompurify/2.2.7/purify.min.js`,
+                        `languages/zh_tw.js`,
+                        `plugins/align.min.js`,
+                        `plugins/char_counter.min.js`,
+                        `plugins/code_beautifier.min.js`,
+                        `plugins/code_view.min.js`,
+                        `plugins/colors.min.js`,
+                        `plugins/draggable.min.js`,
+                        `plugins/emoticons.min.js`,
+                        `plugins/entities.min.js`,
+                        `plugins/file.min.js`,
+                        `plugins/font_size.min.js`,
+                        `plugins/font_family.min.js`,
+                        `plugins/fullscreen.min.js`,
+                        `plugins/image.min.js`,
+                        `plugins/image_manager.min.js`,
+                        `plugins/line_breaker.min.js`,
+                        `plugins/inline_style.min.js`,
+                        `plugins/link.min.js`,
+                        `plugins/lists.min.js`,
+                        `plugins/paragraph_format.min.js`,
+                        `plugins/paragraph_style.min.js`,
+                        `plugins/quick_insert.min.js`,
+                        `plugins/quote.min.js`,
+                        `plugins/table.min.js`,
+                        `plugins/save.min.js`,
+                        `plugins/url.min.js`,
+                        `plugins/video.min.js`,
+                        `plugins/help.min.js`,
+                        `plugins/print.min.js`,
+                        `plugins/special_characters.min.js`,
+                    ].map((dd) => {
+                        return {
+                            src: dd.includes('http') ? dd : new URL(`../../jslib/froala/` + dd, import.meta.url).href,
+                        };
+                    }), () => { }, () => { });
+                }, 200);
             }, () => { });
             gvc.addStyleLink([
                 new URL(`../../jslib/froala/css/plugins/code_view.css`, import.meta.url).href,
                 'https://cdnjs.cloudflare.com/ajax/libs/codemirror/6.65.7/codemirror.min.css',
                 'https://cdn.jsdelivr.net/npm/froala-editor@latest/css/froala_editor.pkgd.min.css',
             ]);
+            console.log(`obj.hiddenBorder: ${obj.hiddenBorder}`);
+            gvc.addStyle(`
+                #${richID} li {
+                    list-style: revert;
+                }
+                #${richID} iframe.fr-draggable{
+                    height: 600px;
+                }
+                #insertImage-1 {
+                    display: none !important;
+                }
+                #insertImage-2 {
+                    display: none !important;
+                }
+                .fr-sticky-dummy {
+                    display: none !important;
+                }
+                ${obj.hiddenBorder
+                ? css `
+                              .fr-box {
+                                  border: none !important;
+                              }
+                              .fr-box > div {
+                                  border: none !important;
+                              }
+                          `
+                : ''}
+            `);
+            function generateFontSizeArray() {
+                let fontSizes = [];
+                for (let size = 8; size <= 30; size += 1) {
+                    fontSizes.push(size.toString());
+                }
+                for (let size = 32; size <= 60; size += 2) {
+                    fontSizes.push(size.toString());
+                }
+                for (let size = 64; size <= 96; size += 4) {
+                    fontSizes.push(size.toString());
+                }
+                return fontSizes;
+            }
+            const toolBarArray = [
+                'bold',
+                'italic',
+                'underline',
+                'align',
+                '|',
+                'paragraphFormat',
+                'fontSize',
+                'fontFamily',
+                'textColor',
+                'backgroundColor',
+                'clearFormatting',
+                '|',
+                'insertTable',
+                'insertLink',
+                'insertImage',
+                'insertVideo',
+                'insertHR',
+                '|',
+                'formatOL',
+                'emoticons',
+                'html',
+            ];
             return {
                 bind: id,
                 view: () => {
-                    return html ` <div class="w-100 d-flex align-items-center justify-content-center p-3 ${richID}-loading">
-                            <div class="spinner-border" style=""></div>
+                    return html `
+                        <div class="w-100 d-flex align-items-center justify-content-center p-3 ${richID}-loading">
+                            <div class="spinner-border"></div>
                         </div>
-                        <div id="${richID}" style="position:relative;min-height:100vh;"></div>
-                    <div class="position-absolute w-100  bg-white d-flex align-items-center justify-content-center flex-column" style="top:0px;left:0px;height:${obj.rich_height || '100%'};z-index:9999;" id="hid_${id}">
-                        <div class="spinner-border"></div>
-                        載入中
-                    </div>
+                        <div id="${richID}" style="position: relative;"></div>
+                        <div
+                            class="position-absolute w-100 bg-white d-flex align-items-center justify-content-center flex-column"
+                            style="top:0px;left:0px;height:${obj.rich_height || '100%'};z-index:9999;"
+                            id="hid_${id}"
+                        >
+                            <div class="spinner-border"></div>
+                            載入中
+                        </div>
                     `;
                 },
                 divCreate: {
@@ -919,72 +991,12 @@ ${obj.structEnd ? obj.structEnd : '})()'}`,
                     let delay = true;
                     let loadingView = false;
                     const interval = setInterval(() => {
-                        if (glitter.window.FroalaEditor) {
+                        if (glitter.window.FroalaEditor && !glitter.share.richTextRendering) {
                             clearInterval(interval);
-                            console.log(`re_render=>`);
+                            glitter.share.richTextRendering = true;
                             function render() {
                                 setTimeout(() => {
                                     var _a;
-                                    gvc.addStyle(`
-                                        #${richID} li{
-                                            list-style:revert;
-                                        }
-                                        #insertImage-1 {
-                                            display: none !important;
-                                        }
-                                        #insertImage-2 {
-                                            display: none !important;
-                                        }
-                                        .fr-sticky-dummy {
-                                            display: none !important;
-                                        }
-                                        ${obj.hiddenBorder
-                                        ? css `
-                                                      .fr-box {
-                                                          border: none !important;
-                                                      }
-                                                      .fr-box > div {
-                                                          border: none !important;
-                                                      }
-                                                  `
-                                        : ''}
-                                    `);
-                                    function generateFontSizeArray() {
-                                        let fontSizes = [];
-                                        for (let size = 8; size <= 30; size += 1) {
-                                            fontSizes.push(size.toString());
-                                        }
-                                        for (let size = 32; size <= 60; size += 2) {
-                                            fontSizes.push(size.toString());
-                                        }
-                                        for (let size = 64; size <= 96; size += 4) {
-                                            fontSizes.push(size.toString());
-                                        }
-                                        return fontSizes;
-                                    }
-                                    const toolBarArray = [
-                                        'bold',
-                                        'italic',
-                                        'underline',
-                                        'align',
-                                        '|',
-                                        'paragraphFormat',
-                                        'fontSize',
-                                        'fontFamily',
-                                        'textColor',
-                                        'backgroundColor',
-                                        'clearFormatting',
-                                        '|',
-                                        'insertTable',
-                                        'insertLink',
-                                        'insertImage',
-                                        'insertVideo',
-                                        'insertHR',
-                                        '|',
-                                        'formatOL',
-                                        'emoticons',
-                                        'html',
-                                    ];
                                     const FroalaEditor = glitter.window.FroalaEditor;
                                     const editor = new FroalaEditor('#' + richID, {
                                         enter: FroalaEditor.ENTER_DIV,
@@ -1001,7 +1013,11 @@ ${obj.structEnd ? obj.structEnd : '})()'}`,
                                                 const parser = new DOMParser();
                                                 const doc = parser.parseFromString(editor.html.get(), 'text/html');
                                                 doc.documentElement.querySelectorAll('li').forEach((element) => {
-                                                    element.style["list-style"] = "revert";
+                                                    element.style['list-style'] = 'revert';
+                                                });
+                                                doc.documentElement.querySelectorAll('iframe.fr-draggable').forEach(function (videoElement) {
+                                                    videoElement.removeAttribute('height');
+                                                    videoElement.style.height = '540px';
                                                 });
                                                 obj.callback(doc.documentElement.outerHTML);
                                             },
@@ -1066,6 +1082,11 @@ ${obj.structEnd ? obj.structEnd : '})()'}`,
                                                 });
                                                 return false;
                                             },
+                                            initialized: function () {
+                                                setTimeout(() => {
+                                                    initEvent();
+                                                }, 200);
+                                            },
                                         },
                                         key: 'hWA2C-7I2B2C4B3E4E2G3wd1DBKSPF1WKTUCQOa1OURPJ1KDe2F-11D2C2D2D2C3B3C1D6B1C2==',
                                         toolbarButtons: toolBarArray,
@@ -1082,7 +1103,6 @@ ${obj.structEnd ? obj.structEnd : '})()'}`,
                                     if (glitter.document.querySelector(`.${richID}-loading`)) {
                                         glitter.document.querySelector(`.${richID}-loading`).remove();
                                     }
-                                    const dialog = new ShareDialog(gvc.glitter);
                                     if (loading) {
                                         loading = false;
                                         loadingView = true;
@@ -1092,20 +1112,18 @@ ${obj.structEnd ? obj.structEnd : '})()'}`,
                                                 gvc.glitter.document.querySelector(`#hid_${id}`).remove();
                                                 editor.html.set(obj.def || '');
                                             }
-                                        }, 500);
+                                        }, 200);
                                     }
-                                    setTimeout(() => {
-                                        const target = glitter.document.querySelector(`[data-cmd="insertImage"]`);
-                                        function checkRender() {
-                                            let checked = false;
-                                            toolBarArray.forEach((toolBar) => {
-                                                if (toolBar != "|" && !glitter.document.querySelector(`[data-cmd=${toolBar}]`)) {
-                                                    console.log(toolBar, "載入錯誤");
-                                                    checked = true;
-                                                }
-                                            });
-                                            return checked;
+                                    function checkRender() {
+                                        for (const toolBar of toolBarArray) {
+                                            if (toolBar != '|' && !glitter.document.querySelector(`#` + richID).querySelector(`[data-cmd="${toolBar}"]`)) {
+                                                console.error(`${richID} toolBar "${toolBar}" loading error`);
+                                                return true;
+                                            }
                                         }
+                                        return false;
+                                    }
+                                    function initEvent() {
                                         if (checkRender()) {
                                             try {
                                                 editor.destroy();
@@ -1113,7 +1131,7 @@ ${obj.structEnd ? obj.structEnd : '})()'}`,
                                             catch (e) { }
                                             setTimeout(() => {
                                                 render();
-                                            }, 500);
+                                            }, 300);
                                             return;
                                         }
                                         else {
@@ -1122,14 +1140,15 @@ ${obj.structEnd ? obj.structEnd : '})()'}`,
                                                 gvc.glitter.document.querySelector(`#hid_${id}`).remove();
                                                 editor.html.set(obj.def || '');
                                             }
+                                            const target = glitter.document.querySelector(`#` + richID).querySelector(`[data-cmd="insertImage"]`);
                                             target.outerHTML = html ` <button
-                                            id="insertImage-replace"
-                                            type="button"
-                                            tabindex="-1"
-                                            role="button"
-                                            class="fr-command fr-btn "
-                                            data-title="插入圖片 (⌘P)"
-                                            onclick="${obj.gvc.event(() => {
+                                                id="insertImage-replace"
+                                                type="button"
+                                                tabindex="-1"
+                                                role="button"
+                                                class="fr-command fr-btn "
+                                                data-title="插入圖片 (⌘P)"
+                                                onclick="${obj.gvc.event(() => {
                                                 if (obj.insertImageEvent) {
                                                     obj.insertImageEvent(editor);
                                                 }
@@ -1169,14 +1188,14 @@ ${obj.structEnd ? obj.structEnd : '})()'}`,
                                                     });
                                                 }
                                             })}"
-                                        >
-                                            <svg class="fr-svg" focusable="false" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                                                <path
-                                                    d="M14.2,11l3.8,5H6l3-3.9l2.1,2.7L14,11H14.2z M8.5,11c0.8,0,1.5-0.7,1.5-1.5S9.3,8,8.5,8S7,8.7,7,9.5C7,10.3,7.7,11,8.5,11z   M22,6v12c0,1.1-0.9,2-2,2H4c-1.1,0-2-0.9-2-2V6c0-1.1,0.9-2,2-2h16C21.1,4,22,4.9,22,6z M20,8.8V6H4v12h16V8.8z"
-                                                ></path>
-                                            </svg>
-                                            <span class="fr-sr-only">插入圖片</span>
-                                        </button>`;
+                                            >
+                                                <svg class="fr-svg" focusable="false" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                                    <path
+                                                        d="M14.2,11l3.8,5H6l3-3.9l2.1,2.7L14,11H14.2z M8.5,11c0.8,0,1.5-0.7,1.5-1.5S9.3,8,8.5,8S7,8.7,7,9.5C7,10.3,7.7,11,8.5,11z   M22,6v12c0,1.1-0.9,2-2,2H4c-1.1,0-2-0.9-2-2V6c0-1.1,0.9-2,2-2h16C21.1,4,22,4.9,22,6z M20,8.8V6H4v12h16V8.8z"
+                                                    ></path>
+                                                </svg>
+                                                <span class="fr-sr-only">插入圖片</span>
+                                            </button>`;
                                             if (obj.rich_height) {
                                                 glitter.document.querySelector(`#` + richID).querySelector(`.fr-view`).style.height = obj.rich_height;
                                                 glitter.document.querySelector(`#` + richID).querySelector(`.fr-view`).style.minHeight = 'auto';
@@ -1186,8 +1205,10 @@ ${obj.structEnd ? obj.structEnd : '})()'}`,
                                                 editor.edit.off();
                                                 editor.toolbar.disable();
                                             }
+                                            console.info(`${richID} rendered richtext`);
+                                            glitter.share.richTextRendering = false;
                                         }
-                                    }, 200);
+                                    }
                                 }, 100);
                             }
                             render();

@@ -828,7 +828,7 @@ export class UMOrder {
                     }
 
                     if (vm.type === 'upload') {
-                        let formData = {};
+                        let formData = {} as any;
                         return html`
                             <section class="o-h1">${Language.text('order_number')}<br />#${vm.data.cart_token}</section>
                             <section class="o-card-row" style="max-width: 100%;">
@@ -873,6 +873,8 @@ export class UMOrder {
                                                             const from = orderData.payment_customer_form.find((item: any) => {
                                                                 return item.id === orderData.customer_info.payment_select;
                                                             });
+                                                            formData.paymentForm = from;
+
                                                             if (from === undefined || from.list.length === 0) {
                                                                 return [];
                                                             }

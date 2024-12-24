@@ -41,75 +41,77 @@ class Recommend {
             const total = await database_1.default.query(`SELECT count(*) as c FROM \`${this.app}\`.t_recommend_links WHERE ${search.join(' AND ')};
             `, []);
             const shopping = new shopping_js_1.Shopping(this.app, this.token);
-            const orderList = await shopping.getCheckOut({
-                page: 0,
-                limit: 5000,
-                distribution_code: links.map((data) => data.code).join(','),
-            });
-            const monitors = await (async () => {
-                if (links.length === 0) {
-                    return [];
-                }
-                return await database_1.default.query(`SELECT id, mac_address, base_url 
+            if (!query.no_detail) {
+                const orderList = await shopping.getCheckOut({
+                    page: 0,
+                    limit: 5000,
+                    distribution_code: links.map((data) => data.code).join(','),
+                });
+                const monitors = await (async () => {
+                    if (links.length === 0) {
+                        return [];
+                    }
+                    return await database_1.default.query(`SELECT id, mac_address, base_url 
                         FROM \`${config_js_1.saasConfig.SAAS_NAME}\`.t_monitor
                         WHERE app_name = "${this.app}"
                         AND base_url in (${links.map((data) => `"/${this.app}/distribution/${data.content.link}"`).join(',')})
                      `, []);
-            })();
-            for (const data of links) {
-                const orders = orderList.data.filter((d) => {
-                    try {
-                        return d.orderData.distribution_info.code === data.code;
-                    }
-                    catch (error) {
-                        return false;
-                    }
-                });
-                const monitor = monitors.filter((d) => d.base_url === `/${this.app}/distribution/${data.content.link}`);
-                const monitorLength = monitor.length;
-                const macAddrSize = new Set(monitor.map((item) => item.mac_address)).size;
-                const totalOrders = orders.filter((order) => {
-                    return order.status === 1;
-                }).length;
-                const totalPrice = orders.reduce((sum, order) => {
-                    if (order.status === 1) {
-                        return sum + order.orderData.total - order.orderData.shipment_fee;
-                    }
-                    return sum;
-                }, 0);
-                data.orders = totalOrders;
-                data.click_times = monitorLength;
-                data.mac_address_count = macAddrSize;
-                data.conversion_rate = this.calculatePercentage(totalOrders, monitor.length, 1);
-                data.total_price = totalPrice;
-                data.sharing_bonus = 0;
-                if (data.content.lineItems) {
-                    function arraysAreEqualIgnoringOrder(arr1, arr2) {
-                        if (arr1.length !== arr2.length)
+                })();
+                for (const data of links) {
+                    const orders = orderList.data.filter((d) => {
+                        try {
+                            return d.orderData.distribution_info.code === data.code;
+                        }
+                        catch (error) {
                             return false;
-                        const set1 = new Set(arr1);
-                        const set2 = new Set(arr2);
-                        return arr1.every((value) => set2.has(value)) && arr2.every((value) => set1.has(value));
-                    }
-                    let idArray = [];
-                    let variants = data.content.lineItems.map((item) => {
-                        idArray.push(item.id);
-                        return {
-                            id: item.id,
-                            spec: item.content.variants[item.selectIndex].spec,
-                        };
+                        }
                     });
-                    orders.map((order) => {
-                        order.orderData.lineItems.forEach((item) => {
-                            if (idArray.includes(item.id)) {
-                                variants.forEach((variant) => {
-                                    if (variant.id === item.id && arraysAreEqualIgnoringOrder(variant.spec, item.spec)) {
-                                        data.sharing_bonus += Math.floor((item.sale_price * item.count * parseFloat(data.content.share_value)) / 100);
-                                    }
-                                });
-                            }
+                    const monitor = monitors.filter((d) => d.base_url === `/${this.app}/distribution/${data.content.link}`);
+                    const monitorLength = monitor.length;
+                    const macAddrSize = new Set(monitor.map((item) => item.mac_address)).size;
+                    const totalOrders = orders.filter((order) => {
+                        return order.status === 1;
+                    }).length;
+                    const totalPrice = orders.reduce((sum, order) => {
+                        if (order.status === 1) {
+                            return sum + order.orderData.total - order.orderData.shipment_fee;
+                        }
+                        return sum;
+                    }, 0);
+                    data.orders = totalOrders;
+                    data.click_times = monitorLength;
+                    data.mac_address_count = macAddrSize;
+                    data.conversion_rate = this.calculatePercentage(totalOrders, monitor.length, 1);
+                    data.total_price = totalPrice;
+                    data.sharing_bonus = 0;
+                    if (data.content.lineItems) {
+                        function arraysAreEqualIgnoringOrder(arr1, arr2) {
+                            if (arr1.length !== arr2.length)
+                                return false;
+                            const set1 = new Set(arr1);
+                            const set2 = new Set(arr2);
+                            return arr1.every((value) => set2.has(value)) && arr2.every((value) => set1.has(value));
+                        }
+                        let idArray = [];
+                        let variants = data.content.lineItems.map((item) => {
+                            idArray.push(item.id);
+                            return {
+                                id: item.id,
+                                spec: item.content.variants[item.selectIndex].spec,
+                            };
                         });
-                    });
+                        orders.map((order) => {
+                            order.orderData.lineItems.forEach((item) => {
+                                if (idArray.includes(item.id)) {
+                                    variants.forEach((variant) => {
+                                        if (variant.id === item.id && arraysAreEqualIgnoringOrder(variant.spec, item.spec)) {
+                                            data.sharing_bonus += Math.floor((item.sale_price * item.count * parseFloat(data.content.share_value)) / 100);
+                                        }
+                                    });
+                                }
+                            });
+                        });
+                    }
                 }
             }
             return { data: links, total: total[0].c };
