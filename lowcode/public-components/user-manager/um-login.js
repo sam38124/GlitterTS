@@ -134,7 +134,7 @@ export class UMLogin {
                             return html `${cell}
                                                 <div>
                                                     <label class="${gClass('label')}">${item.title}驗證碼</label>
-                                                    <input class="bgw-input" type="text" id="reg-${item.key}-verify" placeholder="" />
+                                                    <input class="bgw-input" type="text" id="reg-${item.key}-verify" placeholder="${Language.text('please_enter_verification_code')}" />
                                                 </div>
                                                 ${this.sendCodeAgain(gvc, vm.prefix, () => {
                                 this.sendVerifyEmailCode(widget, `reg-${item.key}`);
@@ -144,7 +144,7 @@ export class UMLogin {
                             return html `${cell}
                                                 <div>
                                                     <label class="${gClass('label')}">${item.title}驗證碼</label>
-                                                    <input class="bgw-input" type="text" id="reg-${item.key}-verify" placeholder="" />
+                                                    <input class="bgw-input" type="text" id="reg-${item.key}-verify" placeholder="${Language.text('please_enter_verification_code')}" />
                                                 </div>
                                                 ${this.sendCodeAgain(gvc, vm.prefix, () => {
                                 this.sendVerifyPhoneCode(widget, `reg-${item.key}`);
@@ -175,7 +175,7 @@ export class UMLogin {
                                         已經有會員了？前往<span
                                             class="${gClass('blue-note')}"
                                             onclick="${gvc.event(() => {
-                        vm.viewType = '';
+                        this.viewCallback(vm, '');
                     })}"
                                             >登入</span
                                         >
@@ -225,7 +225,7 @@ export class UMLogin {
                                     還沒有成為會員？前往<span
                                         class="${gClass('blue-note')}"
                                         onclick="${gvc.event(() => {
-                    vm.viewType = 'register';
+                    this.viewCallback(vm, 'register');
                 })}"
                                         >註冊</span
                                     >
@@ -436,15 +436,18 @@ export class UMLogin {
         const e = document.getElementById(name);
         return e && e.value ? e.value : false;
     }
+    static viewCallback(vm, type) {
+        setTimeout(() => {
+            $('html').scrollTop(0);
+        }, 100);
+        vm.viewType = type;
+    }
     static backToLogin(gvc, vm) {
         return html `<section
             class="m-auto d-flex align-items-center justify-content-center my-2"
             style="cursor: pointer;"
             onclick="${gvc.event(() => {
-            setTimeout(() => {
-                $('html').scrollTop(0);
-            }, 100);
-            vm.viewType = '';
+            this.viewCallback(vm, 'login');
         })}"
         >
             <img class="me-2" src="https://ui.homee.ai/htmlExtension/shopify/order/img/back.svg" />
@@ -916,7 +919,7 @@ export class UMLogin {
             if (r.result && r.response.result) {
                 widget.event('success', { title: '更換密碼成功' });
                 setTimeout(() => {
-                    vm.viewType = '';
+                    this.viewCallback(vm, 'login');
                 }, 1000);
             }
             else {
