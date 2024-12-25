@@ -1527,7 +1527,7 @@ export class ShoppingProductSetting {
                         updateVariants();
                         return [
                             BgWidget.container(html `
-                                <div class="title-container flex-column flex-sm-row" style="gap:10px;">
+                                <div class="title-container flex-column flex-sm-row" style="">
                                     <div class="d-flex align-items-center w-100">
                                         ${BgWidget.goBack(obj.gvc.event(() => {
                                 if (window.parent.glitter.share.checkData && !window.parent.glitter.share.checkData()) {
@@ -3949,7 +3949,7 @@ export class ShoppingProductSetting {
                                         return {
                                             bind: 'seo',
                                             view: () => {
-                                                var _b, _c, _d;
+                                                var _b, _c;
                                                 try {
                                                     language_data.seo.domain = language_data.seo.domain || language_data.title;
                                                     const href = `https://${window.parent.glitter.share.editorViewModel.domain}/${Language.getLanguageLinkPrefix(true, sel_lan())}products`;
@@ -4013,27 +4013,28 @@ export class ShoppingProductSetting {
                                                                             <div class="w-100"
                                                                                  style="margin: 18px 0 8px;">SEO標題
                                                                             </div>
-                                                                            <input
-                                                                                    value="${(_b = language_data.seo.title) !== null && _b !== void 0 ? _b : ''}"
-                                                                                    style="width: 100%;padding: 9px 18px;border-radius: 10px;border: 1px solid #DDD;"
-                                                                                    onchange="${gvc.event((e) => {
-                                                        language_data.seo.title = e.value;
-                                                        obj.gvc.notifyDataChange('seo');
-                                                    })}"
-                                                                            />
+                                                                            ${BgWidget.editeInput({
+                                                        gvc: gvc,
+                                                        title: '',
+                                                        default: language_data.seo.title,
+                                                        callback: (text) => {
+                                                            language_data.seo.title = text;
+                                                        },
+                                                        placeHolder: ''
+                                                    })}
                                                                             <div class="w-100"
                                                                                  style="margin: 18px 0 8px;">SEO描述
                                                                             </div>
                                                                             <textarea
                                                                                     rows="4"
-                                                                                    value="${(_c = language_data.seo.content) !== null && _c !== void 0 ? _c : ''}"
+                                                                                    value="${(_b = language_data.seo.content) !== null && _b !== void 0 ? _b : ''}"
                                                                                     style="width: 100%;padding: 9px 18px;border-radius: 10px;border: 1px solid #DDD;"
                                                                                     onchange="${gvc.event((e) => {
                                                         language_data.seo.content = e.value;
                                                         obj.gvc.notifyDataChange('seo');
                                                     })}"
                                                                             >
-${(_d = language_data.seo.content) !== null && _d !== void 0 ? _d : ''}</textarea
+${(_c = language_data.seo.content) !== null && _c !== void 0 ? _c : ''}</textarea
                                                                             >`;
                                                 }
                                                 catch (e) {

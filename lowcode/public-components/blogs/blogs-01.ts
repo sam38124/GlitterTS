@@ -13,31 +13,18 @@ export class Blogs01 {
                 // 隱形賣場和一頁商店，預設加入購物車
                 if (subData.content.relative_data && ['shopping', 'hidden'].includes(subData.content.page_type) && localStorage.getItem('block-refresh-cart') !== 'true') {
                     subData.content.relative_data.map((dd: any) => {
-                        const key = [dd.product_id].concat(dd.variant.spec).join('-');
-                        const cart = (new ApiCart()).cart;
-
-                        const line_item = cart.line_items.find((dd: any) => {
-                            return `${dd.id}-${dd.spec.join('-')}` === key;
-                        });
-                        let cle: any[] = [];
-                        cart.line_items.map((dd: any) => {
-                            if (
-                                !cle.find((d1) => {
-                                    return `${dd.id}-${dd.spec.join('-')}` === `${d1.id}-${d1.spec.join('-')}`;
-                                })
-                            ) {
-                                cle.push(dd);
-                            }
-                        });
-                        cart.line_items = cle;
-                        if (!line_item) {
-                            cart.line_items.push({
-                                id: dd.product_id,
-                                spec: dd.variant.spec,
-                                count: 1,
+                        (new ApiCart()).setCart((cart)=>{
+                            const line_item = cart.line_items.find((d1: any) => {
+                                return `${d1.id}-${d1.spec.join('-')}` === `${dd.product_id}-${dd.variant.spec.join('-')}`;
                             });
-                        }
-                        gvc.glitter.share.ApiCart.cart = cart;
+                            if (!line_item) {
+                                cart.line_items.push({
+                                    id: dd.product_id,
+                                    spec: dd.variant.spec,
+                                    count: 1,
+                                });
+                            }
+                        })
                     });
                 } else {
                     localStorage.setItem('block-refresh-cart', 'false');

@@ -40,7 +40,7 @@ export class Sy02 {
                                             return {
                                                 bind: id,
                                                 view: () => {
-                                                    return html` <div
+                                                    return html`<div
                                                             class="div d-flex align-items-center flex-column w-100 p-3"
                                                             style="border-bottom:1px solid ${widget.formData.theme_color['title']};"
                                                         >
@@ -191,7 +191,7 @@ export class Sy02 {
                                                 divCreate: {
                                                     class: `w-100 h-100`,
                                                     style: `z-index: 9999;overflow-y:auto;
-background: ${widget.formData.theme_color['background'] ?? '#000'};overflow-x: hidden;`,
+background: ${colors.bgr ?? '#000'};overflow-x: hidden;`,
                                                 },
                                             };
                                         }),

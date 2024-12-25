@@ -151,6 +151,7 @@ type Cart = {
     user_rebate_sum: number;
     voucherList?: VoucherData[];
     custom_form_format?: any;
+    custom_receipt_form?:any;
     custom_form_data?: any;
     distribution_id?: number;
     distribution_info?: any;
@@ -821,6 +822,7 @@ export class Shopping {
             pay_status?: number; //自定義訂單狀態
             custom_form_format?: any; //自定義表單格式
             custom_form_data?: any; //自定義表單資料
+            custom_receipt_form?:any; //自定義配送表單格式
             distribution_code?: string; //分銷連結代碼
             code_array: string[]; // 優惠券代碼列表
             give_away?: {
@@ -869,7 +871,7 @@ export class Shopping {
             console.log(`checkout-time-1=>`, new Date().getTime() - check_time);
             const userClass = new User(this.app);
             const rebateClass = new Rebate(this.app);
-
+            data.email=data.email || 'no-email'
             if (type !== 'preview' && !(this.token && this.token.userID) && !data.email && !(data.user_info && data.user_info.email)) {
                 throw exception.BadRequestError('BAD_REQUEST', 'ToCheckout 2 Error:No email address.', null);
             }
@@ -1052,6 +1054,7 @@ export class Shopping {
                 useRebateInfo: { point: 0 },
                 custom_form_format: data.custom_form_format,
                 custom_form_data: data.custom_form_data,
+                custom_receipt_form:data.custom_receipt_form,
                 orderSource: data.checkOutType === 'POS' ? `POS` : ``,
                 code_array: data.code_array,
                 give_away: data.give_away as any,
@@ -2252,8 +2255,7 @@ export class Shopping {
             }
 
             await db.query(
-                `UPDATE \`${this.app}\`.t_checkout SET orderData = ? WHERE cart_token = ?;
-                `,
+                `UPDATE \`${this.app}\`.t_checkout SET orderData = ? WHERE cart_token = ?;`,
                 [JSON.stringify(orderData), order_id]
             );
 
@@ -2452,7 +2454,9 @@ OR JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.orderStatus')) NOT IN (-99)) `);
             } else if (query.filter_type === 'normal') {
                 querySql.push(`((orderData->>'$.archived' is null) or (orderData->>'$.archived'!='true'))`);
             }
-
+            if(!(query.filter_type === 'true' || query.archived)){
+                querySql.push(`((orderData->>'$.orderStatus' is null) or (orderData->>'$.orderStatus' NOT IN (-99)))`)
+            }
             let sql = `SELECT *
                        FROM \`${this.app}\`.t_checkout
                        WHERE ${querySql.join(' and ')} ${orderString}`;

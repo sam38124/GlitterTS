@@ -121,7 +121,7 @@ export class UmClass {
                                                         return html `${Language.text('reset_password_verification_code')}
                                                                     ${BgWidget.blueNote(get_verify_timer
                                                             ? `${Language.text('verification_code_sent_to')}『${userData.userData.email}』`
-                                                            : Language.text('click_to_get_verification_code'), gvc.event(() => {
+                                                            : Language.text('get_verification_code'), gvc.event(() => {
                                                             if (!get_verify_timer) {
                                                                 const dialog = new ShareDialog(gvc.glitter);
                                                                 dialog.dataLoading({ visible: true });

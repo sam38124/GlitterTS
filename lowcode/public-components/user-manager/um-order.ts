@@ -435,14 +435,16 @@ export class UMOrder {
     static cancelOrder(gvc: GVC, id: string) {
         const dialog = new ShareDialog(gvc.glitter);
         dialog.checkYesOrNot({
-            text: '請問確定要取消此訂單嗎？',
+            text: Language.text('c_cancel_order'),
             callback: (bool: boolean) => {
                 if (bool) {
                     dialog.dataLoading({ visible: true, text: Language.text('loading') });
                     return new Promise(() => {
                         ApiShop.cancelOrder(id).then((res) => {
                             dialog.dataLoading({ visible: false });
-                            location.href = `.${Language.getLanguageLinkPrefix(true)}/order_list`;
+                            dialog.successMessage({text:Language.text('s_cancel_order')});
+                            gvc.recreateView();
+                            // gvc.glitter.href = `/order_list`;
                         });
                     });
                 }
@@ -958,7 +960,7 @@ export class UMOrder {
                                                                 dialog.dataLoading({ visible: false });
                                                                 try {
                                                                     if (data.result && data.response.data) {
-                                                                        location.href = `.${Language.getLanguageLinkPrefix(false)}/products/${data.response.data.content.seo.domain}`;
+                                                                        gvc.glitter.href = `/products/${data.response.data.content.seo.domain}`
                                                                     }
                                                                 } catch (error) {
                                                                     dialog.errorMessage({ text: Language.text('product_not_found') });
@@ -1005,7 +1007,7 @@ export class UMOrder {
                                 </div>
                             </div>
                         </section>
-                        ${orderData.method === 'off_line' && orderData.customer_info.payment_select !== 'cash_on_delivery'
+                        ${orderData.method === 'off_line' && orderData.customer_info.payment_select !== 'cash_on_delivery' && (`${orderData.orderStatus}` != '-1')
                             ? html`<section class="o-card">
                                   <h3 class="mb-3">${Language.text('payment_info')}</h3>
                                   ${payInfo()}
@@ -1129,7 +1131,7 @@ export class UMOrder {
                                             value: (() => {
                                                 switch (orderData.orderStatus) {
                                                     case '-1':
-                                                        return Language.text('cancelled');
+                                                        return `<div class="text-danger">${Language.text('cancelled')}</div>`;
                                                     case '1':
                                                         return Language.text('completed');
                                                     case '-99':
@@ -1343,7 +1345,7 @@ export class UMOrder {
                             class="m-auto d-flex align-items-center justify-content-center my-5"
                             style="cursor: pointer;"
                             onclick="${gvc.event(() => {
-                                location.href = `.${Language.getLanguageLinkPrefix(true)}/order_list`;
+                                gvc.glitter.href = `/order_list`;
                             })}"
                         >
                             <img class="me-2" src="https://ui.homee.ai/htmlExtension/shopify/order/img/back.svg" />

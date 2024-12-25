@@ -15,6 +15,16 @@ exports.SaasScheme = {
         const sqlArray = [
             {
                 scheme: config_1.saasConfig.SAAS_NAME,
+                table: 't_ip_info',
+                sql: `(
+  \`id\` INT NOT NULL AUTO_INCREMENT,
+  \`ip\` VARCHAR(45) NOT NULL,
+  \`data\` JSON NULL,
+  PRIMARY KEY (\`id\`),
+  UNIQUE INDEX \`index2\` (\`ip\` ASC) VISIBLE)`
+            },
+            {
+                scheme: config_1.saasConfig.SAAS_NAME,
                 table: 't_monitor',
                 sql: `(
   \`id\` int NOT NULL AUTO_INCREMENT,

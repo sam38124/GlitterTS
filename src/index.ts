@@ -361,6 +361,7 @@ export async function createAPP(dd: any) {
                                     localStorage.setItem('distributionCode','');
                                 `;
                             }
+
                             if ((req.query.page as string).split('/')[0] === 'distribution' && (req.query.page as string).split('/')[1]) {
                                 const redURL = new URL(`https://127.0.0.1${req.url}`);
 
@@ -374,7 +375,7 @@ export async function createAPP(dd: any) {
                                 if (page.status && isCurrentTimeWithinRange(page)) {
                                     distribution_code = `
                                         localStorage.setItem('distributionCode','${page.code}');
-                                        location.href = '${page.redirect}${redURL.search}';
+                                        location.href = '${link_prefix ? `/`:``}${link_prefix}${page.redirect}${redURL.search}';
                                     `;
                                 } else {
                                     distribution_code = `
@@ -445,13 +446,13 @@ export async function createAPP(dd: any) {
                                                         })()}"
                                                     />
                                                 ${data.tag !== req.query.page ? `<meta name="robots" content="noindex">`:``}
-                                                    <meta name="keywords" content="${d.keywords ?? '尚未設定關鍵字'}" />
+                                                    <meta name="keywords" content="${(d.keywords ?? '尚未設定關鍵字').replace(/"/g,'&quot;')}" />
                                                     <link id="appImage" rel="shortcut icon" href="${d.logo || home_seo.logo || ''}" type="image/x-icon" />
                                                     <link rel="icon" href="${d.logo || home_seo.logo || ''}" type="image/png" sizes="128x128" />
                                                     <meta property="og:image" content="${d.image || home_seo.image || ''}" />
-                                                    <meta property="og:title" content="${(d.title ?? '').replace(/\n/g, '')}" />
-                                                    <meta name="description" content="${(d.content ?? '').replace(/\n/g, '')}" />
-                                                    <meta name="og:description" content="${(d.content ?? '').replace(/\n/g, '')}" />`;
+                                                    <meta property="og:title" content="${(d.title ?? '').replace(/\n/g, '').replace(/"/g,'&quot;')}" />
+                                                    <meta name="description" content="${(d.content ?? '').replace(/\n/g, '').replace(/"/g,'&quot;')}" />
+                                                    <meta name="og:description" content="${(d.content ?? '').replace(/\n/g, '').replace(/"/g,'&quot;')}" />`;
                                             }
                                         })()}
                                         ${d.code ?? ''}
@@ -496,7 +497,8 @@ export async function createAPP(dd: any) {
                                 window.store_info = ${JSON.stringify(store_info)};
                                 window.server_execute_time = ${(new Date().getTime() - start) / 1000};
                                 window.language='${language}';
-                                ${distribution_code}
+                                ${distribution_code};
+                                window.ip_country='${(await User.ipInfo((req.query.ip || req.headers['x-real-ip'] || req.ip) as string)).country || 'TW'}'
                             </script>
                             ${[
                                 { src: 'glitterBundle/GlitterInitial.js', type: 'module' },

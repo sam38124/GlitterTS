@@ -152,6 +152,7 @@ router.post('/checkout', async (req, resp) => {
                     return 0;
                 }
             })(),
+            custom_receipt_form: req.body.custom_receipt_form,
             custom_form_format: req.body.custom_form_format,
             custom_form_data: req.body.custom_form_data,
             distribution_code: req.body.distribution_code,

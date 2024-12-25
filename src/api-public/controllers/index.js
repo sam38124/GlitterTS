@@ -34,6 +34,7 @@ const recommend = require("./recommend");
 const live_source_js_1 = require("../../live_source.js");
 const public_table_check_js_1 = require("../services/public-table-check.js");
 const monitor_js_1 = require("../services/monitor.js");
+const language_setting_js_1 = require("../services/language-setting.js");
 router.use('/api-public/*', doAuthAction);
 router.use(config_1.config.getRoute(config_1.config.public_route.user, 'public'), userRouter);
 router.use(config_1.config.getRoute(config_1.config.public_route.post, 'public'), postRouter);
@@ -92,6 +93,7 @@ const whiteList = [
     { url: config_1.config.getRoute(config_1.config.public_route.user + '/fcm', 'public'), method: 'POST' },
     { url: config_1.config.getRoute(config_1.config.public_route.user + '/public/config', 'public'), method: 'GET' },
     { url: config_1.config.getRoute(config_1.config.public_route.user + '/forget', 'public'), method: 'POST' },
+    { url: config_1.config.getRoute(config_1.config.public_route.user + '/ip/info', 'public'), method: 'GET' },
     { url: config_1.config.getRoute(config_1.config.public_route.user + '/permission/redirect', 'public'), method: 'GET' },
     { url: config_1.config.getRoute(config_1.config.public_route.sql_api, 'public'), method: 'GET' },
     { url: config_1.config.getRoute(config_1.config.public_route.sql_api, 'public'), method: 'POST' },
@@ -146,6 +148,7 @@ async function doAuthAction(req, resp, next_step) {
         return dd.app_name === req.headers['g-app'];
     });
     req.headers['g-app'] = (refer_app && refer_app.refer_app) || ((_c = req.get('g-app')) !== null && _c !== void 0 ? _c : req.query['g-app']);
+    req.headers['language'] = await language_setting_js_1.LanguageSetting.getLanguage(req.headers['language'], req.headers['g-app']);
     const logger = new logger_1.default();
     const TAG = '[DoAuthAction]';
     const url = req.baseUrl;
@@ -153,11 +156,16 @@ async function doAuthAction(req, resp, next_step) {
     const token = (_d = req.get('Authorization')) === null || _d === void 0 ? void 0 : _d.replace('Bearer ', '');
     async function checkBlockUser() {
         var _a, _b;
-        if ((await database_1.default.query(`SELECT count(1) FROM \`${(_a = req.get('g-app')) !== null && _a !== void 0 ? _a : req.query['g-app']}\`.t_user where userID=? and status=0`, [req.body.token.userID]))[0]['count(1)'] === 1) {
+        if ((await database_1.default.query(`SELECT count(1)
+                             FROM \`${(_a = req.get('g-app')) !== null && _a !== void 0 ? _a : req.query['g-app']}\`.t_user
+                             where userID = ?
+                               and status = 0`, [req.body.token.userID]))[0]['count(1)'] === 1) {
             await redis_1.default.deleteKey(token);
             return true;
         }
-        await database_1.default.execute(`update \`${(_b = req.get('g-app')) !== null && _b !== void 0 ? _b : req.query['g-app']}\`.t_user set online_time=NOW() where userID=?`, [req.body.token.userID || '-1']);
+        await database_1.default.execute(`update \`${(_b = req.get('g-app')) !== null && _b !== void 0 ? _b : req.query['g-app']}\`.t_user
+                          set online_time=NOW()
+                          where userID = ?`, [req.body.token.userID || '-1']);
         return false;
     }
     if (matches.length > 0) {
@@ -184,7 +192,9 @@ async function doAuthAction(req, resp, next_step) {
         }
         const redisToken = await redis_1.default.getValue(token);
         if (!redisToken) {
-            const tokenCheck = await database_1.default.query(`select count(1)  from  \`${config_1.saasConfig.SAAS_NAME}\`.user where editor_token=?`, [token]);
+            const tokenCheck = await database_1.default.query(`select count(1)
+                                               from \`${config_1.saasConfig.SAAS_NAME}\`.user
+                                               where editor_token = ?`, [token]);
             if (tokenCheck[0]['count(1)'] !== 1) {
                 logger.error(TAG, 'Token is not match in redis.');
                 return response_1.default.fail(resp, exception_1.default.PermissionError('INVALID_TOKEN', 'invalid token'));

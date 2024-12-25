@@ -180,9 +180,9 @@ export declare class User {
         user_id: string;
     }): Promise<any>;
     checkLeakData(key: string, value: any): {
-        "zh-TW": any[];
-        "en-US": never[];
-        "zh-CN": never[];
+        'zh-TW': any[];
+        'en-US': never[];
+        'zh-CN': never[];
     } | undefined;
     checkEmailExists(email: string): Promise<any>;
     checkPhoneExists(phone: string): Promise<any>;
@@ -196,6 +196,7 @@ export declare class User {
         query: any;
     }): Promise<any>;
     forgetPassword(email: string): Promise<void>;
+    static ipInfo(ip: string): Promise<any>;
     constructor(app: string, token?: IToken);
 }
 export {};

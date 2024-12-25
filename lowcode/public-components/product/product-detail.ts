@@ -65,6 +65,14 @@ export class ProductDetail {
 
     public static main(gvc: GVC, widget: any, subData: any) {
         ProductDetail.titleFontColor = gvc.glitter.share.globalValue['theme_color.0.title'] ?? '#333333';
+        const css = String.raw
+        gvc.addStyle(css`.pd_detail_content iframe {
+            max-width:100%;
+        }
+            .pd_detail_content img {
+                max-width:100%;
+            }
+        `)
         //移除所有查詢
         const url = new URL(location.href);
         for (const b of url.searchParams.keys()) {
@@ -151,23 +159,25 @@ export class ProductDetail {
                 const collections = await ApiShop.getCollection();
 
                 function getCollectionLink(title: string,) {
-                    let domain=''
+                    let domain = ''
+
                     function loop(array: any) {
-                        for (const b of array){
-                            if(b.title===title){
-                                domain=(b.language_data && b.language_data[Language.getLanguage()] && b.language_data[Language.getLanguage()].seo.domain) || b.code
-                                title=(b.language_data && b.language_data[Language.getLanguage()] && b.language_data[Language.getLanguage()].title) || title
+                        for (const b of array) {
+                            if (b.title === title) {
+                                domain = (b.language_data && b.language_data[Language.getLanguage()] && b.language_data[Language.getLanguage()].seo.domain) || b.code
+                                title = (b.language_data && b.language_data[Language.getLanguage()] && b.language_data[Language.getLanguage()].title) || title
                                 break
-                            }else if(b.array){
+                            } else if (b.array) {
                                 loop(b.array)
                             }
                         }
                     }
+
                     loop(collections.response.value)
                     return {
                         title: title,
                         event: () => {
-                            if(domain){
+                            if (domain) {
                                 gvc.glitter.href = `/collections/${domain}`
                             }
                         }
@@ -201,7 +211,7 @@ export class ProductDetail {
                             vm,
                             preview: true
                         })}
-                        <div class="d-flex flex-column align-items-center mt-2" style="">
+                        <div class="d-flex flex-column align-items-center mt-2" style="width:100%;">
                             ${gvc.bindView(
                                     (() => {
                                         const id = glitter.getUUID();
@@ -276,8 +286,9 @@ export class ProductDetail {
                                             return '';
                                         }
                                         return 'margin: 0 10%;';
-                                    })(),
-                                },
+                                    })() + `max-width:100%;`,
+                                    class: `pd_detail_content`
+                                }
                             })}
                         </div>
                         <div style="margin-top: 150px;"></div>

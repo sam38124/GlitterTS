@@ -1804,7 +1804,7 @@ export class ShoppingProductSetting {
                     return [
                         BgWidget.container(
                             html`
-                                <div class="title-container flex-column flex-sm-row" style="gap:10px;">
+                                <div class="title-container flex-column flex-sm-row" style="">
                                     <div class="d-flex align-items-center w-100">
                                         ${BgWidget.goBack(
                                                 obj.gvc.event(() => {
@@ -4674,14 +4674,15 @@ export class ShoppingProductSetting {
                                                                             <div class="w-100"
                                                                                  style="margin: 18px 0 8px;">SEO標題
                                                                             </div>
-                                                                            <input
-                                                                                    value="${language_data.seo.title ?? ''}"
-                                                                                    style="width: 100%;padding: 9px 18px;border-radius: 10px;border: 1px solid #DDD;"
-                                                                                    onchange="${gvc.event((e) => {
-                                                                                        language_data.seo.title = e.value;
-                                                                                        obj.gvc.notifyDataChange('seo');
-                                                                                    })}"
-                                                                            />
+                                                                            ${BgWidget.editeInput({
+                                                                                gvc:gvc,
+                                                                                title:'',
+                                                                                default:language_data.seo.title,
+                                                                                callback:(text)=>{
+                                                                                    language_data.seo.title=text
+                                                                                },
+                                                                                placeHolder:''
+                                                                            })}
                                                                             <div class="w-100"
                                                                                  style="margin: 18px 0 8px;">SEO描述
                                                                             </div>

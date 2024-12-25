@@ -57,6 +57,14 @@ export class ProductDetail {
     static main(gvc, widget, subData) {
         var _a;
         ProductDetail.titleFontColor = (_a = gvc.glitter.share.globalValue['theme_color.0.title']) !== null && _a !== void 0 ? _a : '#333333';
+        const css = String.raw;
+        gvc.addStyle(css `.pd_detail_content iframe {
+            max-width:100%;
+        }
+            .pd_detail_content img {
+                max-width:100%;
+            }
+        `);
         const url = new URL(location.href);
         for (const b of url.searchParams.keys()) {
             if (b !== 'appName') {
@@ -186,7 +194,7 @@ export class ProductDetail {
                     vm,
                     preview: true
                 })}
-                        <div class="d-flex flex-column align-items-center mt-2" style="">
+                        <div class="d-flex flex-column align-items-center mt-2" style="width:100%;">
                             ${gvc.bindView((() => {
                     const id = glitter.getUUID();
                     return {
@@ -250,8 +258,9 @@ export class ProductDetail {
                                 return '';
                             }
                             return 'margin: 0 10%;';
-                        })(),
-                    },
+                        })() + `max-width:100%;`,
+                        class: `pd_detail_content`
+                    }
                 })}
                         </div>
                         <div style="margin-top: 150px;"></div>

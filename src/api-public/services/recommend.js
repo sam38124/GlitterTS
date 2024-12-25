@@ -44,7 +44,7 @@ class Recommend {
             if (!query.no_detail) {
                 const orderList = await shopping.getCheckOut({
                     page: 0,
-                    limit: 5000,
+                    limit: 999999,
                     distribution_code: links.map((data) => data.code).join(','),
                 });
                 const monitors = await (async () => {
@@ -85,29 +85,16 @@ class Recommend {
                     data.total_price = totalPrice;
                     data.sharing_bonus = 0;
                     if (data.content.lineItems) {
-                        function arraysAreEqualIgnoringOrder(arr1, arr2) {
-                            if (arr1.length !== arr2.length)
-                                return false;
-                            const set1 = new Set(arr1);
-                            const set2 = new Set(arr2);
-                            return arr1.every((value) => set2.has(value)) && arr2.every((value) => set1.has(value));
-                        }
-                        let idArray = [];
-                        let variants = data.content.lineItems.map((item) => {
-                            idArray.push(item.id);
-                            return {
-                                id: item.id,
-                                spec: item.content.variants[item.selectIndex].spec,
-                            };
+                        let idArray = data.content.lineItems.map((item) => {
+                            return item.id;
                         });
                         orders.map((order) => {
                             order.orderData.lineItems.forEach((item) => {
                                 if (idArray.includes(item.id)) {
-                                    variants.forEach((variant) => {
-                                        if (variant.id === item.id && arraysAreEqualIgnoringOrder(variant.spec, item.spec)) {
-                                            data.sharing_bonus += Math.floor((item.sale_price * item.count * parseFloat(data.content.share_value)) / 100);
-                                        }
-                                    });
+                                    console.log(`item.sale_price=>`, item.sale_price);
+                                    console.log(`item.count=>`, item.count);
+                                    console.log(`data.content.share_value=>`, data.content.share_value);
+                                    data.sharing_bonus += Math.floor((item.sale_price * item.count * parseFloat(data.content.share_value)) / 100);
                                 }
                             });
                         });

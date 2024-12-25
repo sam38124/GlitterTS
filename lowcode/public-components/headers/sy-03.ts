@@ -178,7 +178,7 @@ export class Sy03 {
                                                 divCreate: {
                                                     class: `w-100 h-100`,
                                                     style: `z-index: 9999;overflow-y:auto;
-background: ${widget.formData.theme_color['background'] ?? '#000'};overflow-x: hidden;`,
+background: ${colors.bgr ?? '#000'};overflow-x: hidden;`,
                                                 },
                                             };
                                         }),

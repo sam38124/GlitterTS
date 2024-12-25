@@ -366,7 +366,7 @@ async function createAPP(dd) {
                             if (page.status && isCurrentTimeWithinRange(page)) {
                                 distribution_code = `
                                         localStorage.setItem('distributionCode','${page.code}');
-                                        location.href = '${page.redirect}${redURL.search}';
+                                        location.href = '${link_prefix ? `/` : ``}${link_prefix}${page.redirect}${redURL.search}';
                                     `;
                             }
                             else {
@@ -439,13 +439,13 @@ async function createAPP(dd) {
                                     })()}"
                                                     />
                                                 ${data.tag !== req.query.page ? `<meta name="robots" content="noindex">` : ``}
-                                                    <meta name="keywords" content="${(_b = d.keywords) !== null && _b !== void 0 ? _b : '尚未設定關鍵字'}" />
+                                                    <meta name="keywords" content="${((_b = d.keywords) !== null && _b !== void 0 ? _b : '尚未設定關鍵字').replace(/"/g, '&quot;')}" />
                                                     <link id="appImage" rel="shortcut icon" href="${d.logo || home_seo.logo || ''}" type="image/x-icon" />
                                                     <link rel="icon" href="${d.logo || home_seo.logo || ''}" type="image/png" sizes="128x128" />
                                                     <meta property="og:image" content="${d.image || home_seo.image || ''}" />
-                                                    <meta property="og:title" content="${((_c = d.title) !== null && _c !== void 0 ? _c : '').replace(/\n/g, '')}" />
-                                                    <meta name="description" content="${((_d = d.content) !== null && _d !== void 0 ? _d : '').replace(/\n/g, '')}" />
-                                                    <meta name="og:description" content="${((_e = d.content) !== null && _e !== void 0 ? _e : '').replace(/\n/g, '')}" />`;
+                                                    <meta property="og:title" content="${((_c = d.title) !== null && _c !== void 0 ? _c : '').replace(/\n/g, '').replace(/"/g, '&quot;')}" />
+                                                    <meta name="description" content="${((_d = d.content) !== null && _d !== void 0 ? _d : '').replace(/\n/g, '').replace(/"/g, '&quot;')}" />
+                                                    <meta name="og:description" content="${((_e = d.content) !== null && _e !== void 0 ? _e : '').replace(/\n/g, '').replace(/"/g, '&quot;')}" />`;
                                 }
                             })()}
                                         ${(_a = d.code) !== null && _a !== void 0 ? _a : ''}
@@ -493,7 +493,8 @@ async function createAPP(dd) {
                                 window.store_info = ${JSON.stringify(store_info)};
                                 window.server_execute_time = ${(new Date().getTime() - start) / 1000};
                                 window.language='${language}';
-                                ${distribution_code}
+                                ${distribution_code};
+                                window.ip_country='${(await user_js_1.User.ipInfo((req.query.ip || req.headers['x-real-ip'] || req.ip))).country || 'TW'}'
                             </script>
                             ${[
                             { src: 'glitterBundle/GlitterInitial.js', type: 'module' },

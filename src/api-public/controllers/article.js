@@ -36,6 +36,7 @@ router.get('/', async (req, resp) => {
                 content.name = lang_.name || content.name;
                 content.seo = lang_.seo || content.seo;
                 content.text = lang_.text || content.text;
+                content.title = lang_.title || content.title;
                 content.config = lang_.config || content.config;
             }
         });

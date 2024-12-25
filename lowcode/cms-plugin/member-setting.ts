@@ -85,25 +85,6 @@ ${BgWidget.grayNote(`電話是否需要驗證才能進行註冊或修改`)}
                                                     ),
                                                 ].join('')}
                                             </div>`,
-                                            html` <div class="w-100 border-top my-3"></div>`,
-                                            html` <div class="tx_normal fw-bolder mt-2" style="margin-bottom: 12px;">結帳設定</div>`,
-                                            html` <div class="d-flex align-items-center w-100" style="gap:4px;margin-bottom: 12px;">
-                                                <div class="tx_normal  d-flex flex-column">允許訪客結帳</div>
-                                                <div class="tx_normal ms-2">${vm.data.login_in_to_order ? `關閉` : `開啟`}</div>
-                                                <div class="cursor_pointer form-check form-switch m-0">
-                                                    <input
-                                                        class="form-check-input"
-                                                        type="checkbox"
-                                                        onchange="${gvc.event((e, event) => {
-                                                            vm.data.login_in_to_order = !vm.data.login_in_to_order;
-                                                            saveEvent();
-                                                            gvc.notifyDataChange(vm.id);
-                                                        })}"
-                                                        ${vm.data.login_in_to_order ? `` : `checked`}
-                                                    />
-                                                </div>
-                                                <div class="flex-fill"></div>
-                                            </div>`,
                                             html`
                                                 <div class="w-100 border-top my-3"></div>
                                                 <div class="tx_normal fw-bolder mt-2" style="margin-bottom: 12px;">商店顯示</div>
@@ -141,17 +122,6 @@ ${BgWidget.grayNote(`電話是否需要驗證才能進行註冊或修改`)}
                                     ),
                                     ...(() => {
                                         const form = BgWidget.customForm(gvc, [
-                                            {
-                                                key: 'custom_form_checkout',
-                                                title: html`
-                                                    <div class="tx_normal fw-bolder mt-2 d-flex flex-column"
-                                                         style="margin-bottom: 12px;">
-                                                        結帳頁面表單
-                                                        <span class="" style="color:#8D8D8D;font-size: 12px;">於結帳頁面中設定顧客必須填寫的資料</span>
-                                                    </div>
-
-                                                `
-                                            },
                                             {
                                                 key: 'custom_form_register',
                                                 title: html` <div class="tx_normal fw-bolder mt-2 d-flex flex-column" style="margin-bottom: 12px;">

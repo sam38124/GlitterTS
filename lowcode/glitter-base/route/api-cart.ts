@@ -27,6 +27,7 @@ export class ApiCart {
     static buyItNow: string = 'lemnoasewbuyqwji'
 
     static get checkoutCart(){
+
         return localStorage.getItem('checkoutCart') || ApiCart.globalCart
     }
     //前往購物車

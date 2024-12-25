@@ -747,7 +747,7 @@ export class BgRecommend {
                                                 }, { single: true, readonly: vm.readonly })}`,
                                             ].join(BgWidget.mbContainer(18))),
                                             BgWidget.mainCard([
-                                                html ` <div class="tx_700">分潤商品</div>`,
+                                                html ` <div class="tx_700 mb-3">分潤商品</div>`,
                                                 gvc.bindView({
                                                     bind: 'listProduct',
                                                     view: () => {

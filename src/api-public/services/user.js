@@ -101,7 +101,8 @@ class User {
             await redis_js_1.default.setValue(`verify-phone-${account}`, code);
             data.content = data.content.replace(`@{{code}}`, code);
             const sns = new sms_js_1.SMS(this.app, this.token);
-            await sns.sendSNS({ data: data.content, phone: account }, () => { });
+            await sns.sendSNS({ data: data.content, phone: account }, () => {
+            });
             return {
                 result: true,
             };
@@ -131,7 +132,7 @@ class User {
             const findAuth = await this.findAuthUser(account);
             const userID = findAuth ? findAuth.user : User.generateUserID();
             if (register_form.list.find((dd) => {
-                return dd.key === 'email' && `${dd.hidden}` !== 'true';
+                return dd.key === 'email' && `${dd.hidden}` !== 'true' && dd.required;
             }) &&
                 !userData.email) {
                 throw exception_1.default.BadRequestError('BAD_REQUEST', 'Verify code error.', {
@@ -139,7 +140,7 @@ class User {
                 });
             }
             if (register_form.list.find((dd) => {
-                return dd.key === 'phone' && `${dd.hidden}` !== 'true';
+                return dd.key === 'phone' && `${dd.hidden}` !== 'true' && dd.required;
             }) &&
                 !userData.phone) {
                 throw exception_1.default.BadRequestError('BAD_REQUEST', 'Verify code error.', {
@@ -1078,9 +1079,15 @@ class User {
                 dd.tag_name = '一般會員';
                 return dd;
             });
-            for (const b of await database_1.default.query(`SELECT * FROM \`${this.app}\`.t_user_public_config where \`key\`='member_update' and user_id in (${userData.map((dd) => {
+            for (const b of await database_1.default.query(`SELECT *
+                 FROM \`${this.app}\`.t_user_public_config
+                 where \`key\` = 'member_update'
+                   and user_id in (${userData
+                .map((dd) => {
                 return dd.userID;
-            }).concat([-21211]).join(',')}) `, [])) {
+            })
+                .concat([-21211])
+                .join(',')}) `, [])) {
                 if (b.value.value[0]) {
                     userData.find((dd) => {
                         return `${dd.userID}` === `${b.user_id}`;
@@ -1322,8 +1329,8 @@ class User {
                  FROM \`${this.app}\`.t_subscribe AS s
                           LEFT JOIN \`${this.app}\`.t_user AS u
                                     ON s.email = u.account
-                 WHERE ${querySql.length > 0 ? querySql.join(' AND ') : '1 = 1'}
-                 LIMIT ${query.page * query.limit}, ${query.limit}
+                 WHERE ${querySql.length > 0 ? querySql.join(' AND ') : '1 = 1'} LIMIT ${query.page * query.limit}
+                     , ${query.limit}
 
                 `, []);
             const subTotal = await database_1.default.query(`SELECT count(*) as c
@@ -1331,7 +1338,7 @@ class User {
                           LEFT JOIN \`${this.app}\`.t_user AS u
                                     ON s.email = u.account
                  WHERE ${querySql.length > 0 ? querySql.join(' AND ') : '1 = 1'}
-                 
+
                 `, []);
             return {
                 data: subData,
@@ -1401,7 +1408,9 @@ class User {
             form_check_js_1.FormCheck.initialRegisterForm(register_form.list);
             if (par.userData.pwd) {
                 if ((await redis_js_1.default.getValue(`verify-${userData.userData.email}`)) === par.userData.verify_code) {
-                    await database_1.default.query(`update \`${this.app}\`.\`t_user\` set pwd=? where userID = ${database_1.default.escape(userID)}`, [await tool_1.default.hashPwd(par.userData.pwd)]);
+                    await database_1.default.query(`update \`${this.app}\`.\`t_user\`
+                                    set pwd=?
+                                    where userID = ${database_1.default.escape(userID)}`, [await tool_1.default.hashPwd(par.userData.pwd)]);
                 }
                 else {
                     throw exception_1.default.BadRequestError('BAD_REQUEST', 'Verify code error.', {
@@ -1705,15 +1714,15 @@ class User {
                         return await this.getConfigV2(config);
                 }
             }
-            if ((data[0] && data[0].value)) {
+            if (data[0] && data[0].value) {
                 data[0].value = this.checkLeakData(config.key, data[0].value) || data[0].value;
             }
             else if (config.key === 'store-information') {
                 return {
                     language_setting: {
                         def: 'zh-TW',
-                        support: ['zh-TW']
-                    }
+                        support: ['zh-TW'],
+                    },
                 };
             }
             return (data[0] && data[0].value) || {};
@@ -1728,14 +1737,14 @@ class User {
         if (key === 'store-information') {
             value.language_setting = (_a = value.language_setting) !== null && _a !== void 0 ? _a : {
                 def: 'zh-TW',
-                support: ['zh-TW']
+                support: ['zh-TW'],
             };
         }
         else if (['menu-setting', 'footer-setting'].includes(key) && Array.isArray(value)) {
             return {
-                "zh-TW": value,
-                "en-US": [],
-                "zh-CN": []
+                'zh-TW': value,
+                'en-US': [],
+                'zh-CN': [],
             };
         }
     }
@@ -1792,7 +1801,8 @@ class User {
                 result: result[0]['count(1)'] === 1,
             };
         }
-        catch (e) { }
+        catch (e) {
+        }
     }
     async getNotice(cf) {
         var _a, _b, _c, _d;
@@ -1829,6 +1839,29 @@ class User {
         await redis_js_1.default.setValue(`forget-${email}`, code);
         await redis_js_1.default.setValue(`forget-count-${email}`, '0');
         (0, ses_js_1.sendmail)(`${data.name} <${process_1.default.env.smtp}>`, email, data.title, data.content.replace('@{{code}}', code));
+    }
+    static async ipInfo(ip) {
+        try {
+            let config = {
+                method: 'get',
+                maxBodyLength: Infinity,
+                url: `https://ipinfo.io/${ip}?token=` + process_1.default.env.ip_info_auth,
+                headers: {}
+            };
+            const db_data = (await database_1.default.query(`select *
+                                             from ${config_1.saasConfig.SAAS_NAME}.t_ip_info
+                                             where ip = ?`, [ip]))[0];
+            let ip_data = db_data && db_data.data;
+            if (!ip_data) {
+                ip_data = (await axios_1.default.request(config)).data;
+                await database_1.default.query(`insert into ${config_1.saasConfig.SAAS_NAME}.t_ip_info (ip, data)
+                                values (?, ?)`, [ip, JSON.stringify(ip_data)]);
+            }
+            return ip_data;
+        }
+        catch (e) {
+            throw exception_1.default.BadRequestError('ERROR', 'ERROR.' + e, null);
+        }
     }
     constructor(app, token) {
         this.normalMember = {

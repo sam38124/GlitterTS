@@ -363,7 +363,10 @@ export class PdClass {
                     <div class="bg-white shadow rounded-3" style="width: 100%; overflow-y: auto; position: relative;">
                         <div class="w-100 d-flex align-items-center p-3 border-bottom"
                              style="position: sticky; top: 0; background: #fff;z-index:12;">
-                            <div class="fw-bold fs-5" style="color:${obj.titleFontColor};">${obj.prod.title}</div>
+                            <div class="fw-bold fs-5" style="color:${obj.titleFontColor};
+                            white-space: nowrap;text-overflow: ellipsis;max-width: calc(100% - 40px);
+overflow: hidden;
+">${obj.prod.title}</div>
                             <div class="flex-fill"></div>
                             <i
                                     class="fa-regular fa-circle-xmark fs-5 text-dark"
@@ -671,7 +674,7 @@ export class PdClass {
                     <h1 class=""
                         style="color: ${titleFontColor};font-size:${(document.body.clientWidth > 991) ? `36` : `24`}px;">
                         ${prod.title}</h1>
-                    ${prod.min_qty ? `<div class="insignia mx-0 w-auto mt-0 mb-3 fw-500 fs-6 py-2" style="background: #ffe9b2;margin-left:5px;">${Language.text('min_p_count').replace('_c_', prod.min_qty)}</div>` : ``}
+                    ${(prod.min_qty && (`${prod.min_qty}`>`1`)) ? `<div class="insignia mx-0 w-auto mt-0 mb-3 fw-500 fs-6 py-2" style="background: #ffe9b2;margin-left:5px;">${Language.text('min_p_count').replace('_c_', prod.min_qty)}</div>` : ``}
                     ${(language_data && language_data.sub_title) ? `
                     <div class="mb-3">${language_data.sub_title}</div>
                     `:``}
@@ -811,6 +814,7 @@ export class PdClass {
                                     buy_it.clearCart();
                                     buy_it.addToCart(`${prod.id}`, vm.specs, vm.quantity);
                                     ApiCart.toCheckOutPage(ApiCart.buyItNow)
+                                    gvc.closeDialog()
                                 })}">${Language.text('buy_it_now')}
                                 </div>
                                 <div class="flex-fill"></div>

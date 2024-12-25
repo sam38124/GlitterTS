@@ -11,8 +11,8 @@ const exception_1 = __importDefault(require("../modules/exception"));
 const router = express_1.default.Router();
 router.post('/register', async (req, resp) => {
     try {
-        if ((await user_1.User.checkUserExists(req.body.account))) {
-            throw exception_1.default.BadRequestError('BAD_REQUEST', 'user is already exists.', null);
+        if (await user_1.User.checkUserExists(req.body.account)) {
+            throw exception_1.default.BadRequestError('BAD_REQUEST', 'user is already exists', null);
         }
         else {
             return response_1.default.succ(resp, { result: true, token: (await user_1.User.createUser(req.body.account, req.body.pwd)).token });
@@ -39,7 +39,7 @@ router.get('/editorToken', async (req, resp) => {
     try {
         return response_1.default.succ(resp, {
             result: true,
-            token: ((await database_1.default.execute(`select editor_token from \`${config_1.saasConfig.SAAS_NAME}\`.user where account=?`, [req.body.token.account]))[0]['editor_token'])
+            token: (await database_1.default.execute(`select editor_token from \`${config_1.saasConfig.SAAS_NAME}\`.user where account=?`, [req.body.token.account]))[0]['editor_token'],
         });
     }
     catch (err) {

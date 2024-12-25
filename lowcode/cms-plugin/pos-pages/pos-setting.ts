@@ -4,7 +4,6 @@ import {ShareDialog} from "../../glitterBundle/dialog/ShareDialog.js";
 import {PosBasicSetting} from "../pos-basic-setting.js";
 import {ApiUser} from "../../glitter-base/route/user.js";
 import {TableSet} from "../table-set.js";
-import {CheckoutSetting} from "../checkout-setting.js";
 const html=String.raw
 export class PosSetting {
     public static main(obj: {

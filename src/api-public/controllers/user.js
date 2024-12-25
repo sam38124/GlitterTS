@@ -66,7 +66,7 @@ router.delete('/', async (req, resp) => {
         else if (req.body.code === (await redis_js_1.default.getValue(`verify-${req.body.email}`))) {
             const user = new user_1.User(req.get('g-app'));
             return response_1.default.succ(resp, await user.deleteUser({
-                email: req.body.email
+                email: req.body.email,
             }));
         }
         else {
@@ -135,7 +135,7 @@ router.post('/register', async (req, resp) => {
     try {
         const user = new user_1.User(req.get('g-app'));
         if (await user.checkMailAndPhoneExists(req.body.userData.email, req.body.userData.phone)) {
-            throw exception_1.default.BadRequestError('BAD_REQUEST', 'user is already exists.', null);
+            throw exception_1.default.BadRequestError('BAD_REQUEST', 'user is already exists', null);
         }
         else {
             const res = await user.createUser(req.body.account, req.body.pwd, req.body.userData, req);
@@ -153,7 +153,7 @@ router.post('/manager/register', async (req, resp) => {
         if (await ut_permission_js_1.UtPermission.isManager(req)) {
             const user = new user_1.User(req.get('g-app'));
             if (await user.checkMailAndPhoneExists(req.body.userData.email, req.body.userData.phone)) {
-                throw exception_1.default.BadRequestError('BAD_REQUEST', 'user is already exists.', null);
+                throw exception_1.default.BadRequestError('BAD_REQUEST', 'user is already exists', null);
             }
             else {
                 const res = await user.createUser(req.body.account, tool_1.default.randomString(8), req.body.userData, {}, true);
@@ -560,6 +560,15 @@ router.put('/permission/invite', async (req, resp) => {
 router.get('/permission/redirect', async (req, resp) => {
     try {
         return resp.send(await share_permission_1.SharePermission.redirectHTML(`${req.query.key}`));
+    }
+    catch (err) {
+        return response_1.default.fail(resp, err);
+    }
+});
+router.get('/ip/info', async (req, resp) => {
+    try {
+        const ip = req.query.ip || req.headers['x-real-ip'] || req.ip;
+        return resp.send(await user_1.User.ipInfo(ip));
     }
     catch (err) {
         return response_1.default.fail(resp, err);

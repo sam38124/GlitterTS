@@ -3,13 +3,14 @@ import response from '../../modules/response';
 import db from '../../modules/database';
 import {User} from '../services/user';
 import exception from '../../modules/exception';
-import config from '../../config.js';
+import config, {saasConfig} from '../../config.js';
 import {UtPermission} from '../utils/ut-permission.js';
 import redis from '../../modules/redis.js';
 import {Shopping} from '../services/shopping';
 import Tool from '../../modules/tool';
 import {SharePermission} from '../services/share-permission';
-import {FilterProtectData} from "../services/filter-protect-data.js";
+import {FilterProtectData} from '../services/filter-protect-data.js';
+import axios from "axios";
 
 const router: express.Router = express.Router();
 
@@ -23,10 +24,10 @@ router.get('/', async (req: express.Request, resp: express.Response) => {
         } else if (req.query.type === 'account' && (await UtPermission.isManager(req))) {
             const user = new User(req.get('g-app') as string);
             return response.succ(resp, await user.getUserData(req.query.email as any, 'account'));
-        }else if (req.query.type === 'email' && (await UtPermission.isManager(req))) {
+        } else if (req.query.type === 'email' && (await UtPermission.isManager(req))) {
             const user = new User(req.get('g-app') as string);
             return response.succ(resp, await user.getUserData(req.query.email as any, 'email_or_phone'));
-        }else if (req.query.type === 'email_or_phone') {
+        } else if (req.query.type === 'email_or_phone') {
             const user = new User(req.get('g-app') as string);
             return response.succ(resp, await user.getUserData(req.query.search as any, 'email_or_phone'));
         } else {
@@ -64,9 +65,9 @@ router.delete('/', async (req: express.Request, resp: express.Response) => {
             return response.succ(
                 resp,
                 await user.deleteUser({
-                    email: req.body.email
+                    email: req.body.email,
                 })
-            )
+            );
         } else {
             return response.fail(resp, exception.BadRequestError('BAD_REQUEST', 'No permission.', null));
         }
@@ -128,7 +129,7 @@ router.post('/register', async (req: express.Request, resp: express.Response) =>
     try {
         const user = new User(req.get('g-app') as string);
         if (await user.checkMailAndPhoneExists(req.body.userData.email, req.body.userData.phone)) {
-            throw exception.BadRequestError('BAD_REQUEST', 'user is already exists.', null);
+            throw exception.BadRequestError('BAD_REQUEST', 'user is already exists', null);
         } else {
             const res = await user.createUser(req.body.account, req.body.pwd, req.body.userData, req);
             res.type = res.verify;
@@ -144,7 +145,7 @@ router.post('/manager/register', async (req: express.Request, resp: express.Resp
         if (await UtPermission.isManager(req)) {
             const user = new User(req.get('g-app') as string);
             if (await user.checkMailAndPhoneExists(req.body.userData.email, req.body.userData.phone)) {
-                throw exception.BadRequestError('BAD_REQUEST', 'user is already exists.', null);
+                throw exception.BadRequestError('BAD_REQUEST', 'user is already exists', null);
             } else {
                 const res = await user.createUser(req.body.account, Tool.randomString(8), req.body.userData, {}, true);
                 res.type = res.verify;
@@ -398,17 +399,20 @@ router.get('/public/config', async (req: express.Request, resp: express.Response
             return response.succ(resp, {
                 result: true,
                 value: await post.getConfigV2({
-                        key: req.query.key as string,
-                        user_id: req.query.user_id as string,
-                    }),
+                    key: req.query.key as string,
+                    user_id: req.query.user_id as string,
+                }),
             });
         } else {
             return response.succ(resp, {
                 result: true,
-                value: FilterProtectData.filter(req.query.key as string,   await post.getConfigV2({
-                    key: req.query.key as string,
-                    user_id: req.query.user_id as string,
-                })),
+                value: FilterProtectData.filter(
+                    req.query.key as string,
+                    await post.getConfigV2({
+                        key: req.query.key as string,
+                        user_id: req.query.user_id as string,
+                    })
+                ),
             });
         }
     } catch (err) {
@@ -535,6 +539,16 @@ router.put('/permission/invite', async (req: express.Request, resp: express.Resp
 router.get('/permission/redirect', async (req: express.Request, resp: express.Response) => {
     try {
         return resp.send(await SharePermission.redirectHTML(`${req.query.key}`));
+    } catch (err) {
+        return response.fail(resp, err);
+    }
+});
+
+
+router.get('/ip/info', async (req: express.Request, resp: express.Response) => {
+    try {
+        const ip:any = req.query.ip || req.headers['x-real-ip'] || req.ip;
+        return resp.send(await User.ipInfo(ip));
     } catch (err) {
         return response.fail(resp, err);
     }

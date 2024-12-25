@@ -20,7 +20,7 @@ export class Entry {
         var _a;
         Language.getLanguage();
         if (window.language !== Language.getLanguage()) {
-            const url = new URL(`${glitter.root_path}${Language.getLanguageLinkPrefix()}${window.glitter_page}${(new URL(location.href)).search}`);
+            const url = new URL(`${glitter.root_path}${Language.getLanguageLinkPrefix()}${window.glitter_page}${new URL(location.href).search}`);
             if (glitter.getUrlParameter('appName')) {
                 url.searchParams.set('appName', glitter.getUrlParameter('appName'));
             }
@@ -80,7 +80,7 @@ export class Entry {
         }
         window.renderClock = (_a = window.renderClock) !== null && _a !== void 0 ? _a : clockF();
         console.log(`Entry-time:`, window.renderClock.stop());
-        glitter.share.editerVersion = 'V_15.7.4';
+        glitter.share.editerVersion = 'V_15.8.1';
         glitter.share.start = new Date();
         const vm = {
             appConfig: [],
