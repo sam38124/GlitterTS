@@ -403,6 +403,7 @@ export class Language {
             { key: 'expired', tw: '已過期', cn: '已过期', en: 'Expired' },
             { key: 'not_yet_shipped', tw: '尚未出貨', cn: '尚未出货', en: 'Not yet shipped' },
             { key: 'new_password_placeholder', tw: '請輸入新密碼', cn: '请输入新密码', en: 'Please Enter New Password' },
+            { key: 'get_verification_code', tw: '取得驗證碼', cn: '获取验证码', en: 'Get Verification Code' },
         ];
     }
 }

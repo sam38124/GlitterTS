@@ -1,3 +1,12 @@
+var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+};
 import { UmClass } from './um-class.js';
 import { CheckInput } from '../../modules/checkInput.js';
 import { Language } from '../../glitter-base/global/language.js';
@@ -50,7 +59,7 @@ export class UMLogin {
                         this.sendResetEmail(widget, vm);
                     })}"
                                 >
-                                    <span class="${gClass('button-text')}">${Language.text('submit')}</span>
+                                    <span class="${gClass('button-text')}">${Language.text('get_verification_code')}</span>
                                 </div>
                             </div>
                             ${this.backToLogin(gvc, vm)}
@@ -371,9 +380,9 @@ export class UMLogin {
         setTimeout(() => {
             widget.event('loading', { visible: true, title: '頁面跳轉中' });
             if (localStorage.getItem('redirect_cart') === 'true') {
-                location.href = './checkout';
+                gvc.glitter.href = './checkout';
             }
-            location.href = './account_userinfo';
+            gvc.glitter.href = './account_userinfo';
         }, 700);
     }
     static authThirdPartyHTML(gvc, widget, vm) {
@@ -535,7 +544,7 @@ export class UMLogin {
                     }
                     else {
                         const redirect_url = location.origin + location.pathname;
-                        location.href = `https://access.line.me/oauth2/v2.1/authorize?response_type=code&client_id=${widget.share.line.id}&redirect_uri=${encodeURI(redirect_url)}&state=line_login&scope=profile%20openid%20email&nonce=09876xyz`;
+                        gvc.glitter.href = `https://access.line.me/oauth2/v2.1/authorize?response_type=code&client_id=${widget.share.line.id}&redirect_uri=${encodeURI(redirect_url)}&state=line_login&scope=profile%20openid%20email&nonce=09876xyz`;
                     }
                 },
             },
@@ -587,7 +596,7 @@ export class UMLogin {
                         });
                     }
                     else {
-                        location.href = `https://accounts.google.com/o/oauth2/v2/auth?client_id=${widget.share.google.id}&redirect_uri=${redirect_url}&state=google_login&response_type=code&scope=profile+email`;
+                        gvc.glitter.href = `https://accounts.google.com/o/oauth2/v2/auth?client_id=${widget.share.google.id}&redirect_uri=${redirect_url}&state=google_login&response_type=code&scope=profile+email`;
                     }
                 },
             },
@@ -599,64 +608,69 @@ export class UMLogin {
                     });
                 },
                 call: () => {
-                    const win = window;
-                    new Promise((resolve, reject) => {
-                        (function (d, s, id) {
-                            var js, fjs = d.getElementsByTagName(s)[0];
-                            if (d.getElementById(id)) {
-                                return;
-                            }
-                            js = d.createElement(s);
-                            js.id = id;
-                            js.src = 'https://connect.facebook.net/en_US/sdk.js';
-                            fjs.parentNode.insertBefore(js, fjs);
-                        })(document, 'script', 'facebook-jssdk');
-                        setTimeout(() => {
-                            win.fbAsyncInit = function () {
-                                const FB = win.FB;
-                                FB.init({
-                                    appId: widget.share.fb.id,
-                                    xfbml: true,
-                                    version: 'v19.0',
+                    const initializeFacebookSDK = () => {
+                        return new Promise((resolve) => {
+                            gvc.addMtScript([
+                                {
+                                    src: 'https://connect.facebook.net/en_US/sdk.js',
+                                },
+                            ], () => {
+                                setTimeout(() => {
+                                    const FB = window.FB;
+                                    window.fbAsyncInit = function () {
+                                        FB.init({
+                                            appId: widget.share.fb.id,
+                                            xfbml: true,
+                                            version: 'v21.0',
+                                        });
+                                        FB.AppEvents.logPageView();
+                                    };
+                                    resolve(true);
+                                }, 1000);
+                            }, () => { });
+                        });
+                    };
+                    initializeFacebookSDK()
+                        .then((result) => {
+                        console.log('Facebook SDK initialized successfully:', result);
+                        return new Promise((resolve, reject) => __awaiter(this, void 0, void 0, function* () {
+                            if (gvc.glitter.deviceType === gvc.glitter.deviceTypeEnum.Ios) {
+                                gvc.glitter.runJsInterFace('facebook_login', {}, (response) => {
+                                    if (response.result) {
+                                        ApiUser.login({
+                                            login_type: 'fb',
+                                            fb_token: response.accessToken,
+                                        }).then((r) => {
+                                            if (r.result) {
+                                                this.successCallback(gvc, widget, r.response);
+                                            }
+                                            else {
+                                                widget.event('error', { title: '臉書登入錯誤' });
+                                            }
+                                        });
+                                    }
                                 });
-                                FB.AppEvents.logPageView();
-                            };
-                            resolve(true);
-                        }, 1000);
-                    }).then(() => {
-                        if (gvc.glitter.deviceType === gvc.glitter.deviceTypeEnum.Ios) {
-                            gvc.glitter.runJsInterFace('facebook_login', {}, (response) => {
-                                if (response.result) {
+                            }
+                            else {
+                                window.FB.login((response) => {
+                                    const accessToken = response.authResponse.accessToken;
                                     ApiUser.login({
                                         login_type: 'fb',
-                                        fb_token: response.accessToken,
+                                        fb_token: accessToken,
                                     }).then((r) => {
                                         if (r.result) {
                                             this.successCallback(gvc, widget, r.response);
                                         }
                                         else {
-                                            widget.event('error', { title: 'Facebook 登入失敗' });
+                                            widget.event('error', { title: '臉書登入錯誤' });
                                         }
                                     });
-                                }
-                            });
-                        }
-                        else {
-                            win.FB.login(function (response) {
-                                const accessToken = response.authResponse.accessToken;
-                                ApiUser.login({
-                                    login_type: 'fb',
-                                    fb_token: accessToken,
-                                }).then((r) => {
-                                    if (r.result) {
-                                        UMLogin.successCallback(gvc, widget, r.response);
-                                    }
-                                    else {
-                                        widget.event('error', { title: 'Facebook 登入錯誤' });
-                                    }
-                                });
-                            }, { scope: 'public_profile,email' });
-                        }
+                                }, { scope: 'public_profile,email' });
+                            }
+                        }));
+                    })
+                        .catch((error) => {
+                        console.error('Error initializing Facebook SDK:', error);
                     });
                 },
             },
@@ -815,10 +829,15 @@ export class UMLogin {
             }
             vm.resetEmail = email;
         }
+        widget.event('loading', { visible: true });
         ApiUser.forgetPwd(vm.resetEmail).then((r) => {
+            widget.event('loading', { visible: false });
             if (r.result && r.response.result) {
+                widget.event('success', { title: '成功寄送驗證碼' });
                 if (vm.viewType !== 'validation_code') {
-                    vm.viewType = 'validation_code';
+                    setTimeout(() => {
+                        vm.viewType = 'validation_code';
+                    }, 1000);
                 }
             }
             else {
@@ -896,6 +915,7 @@ export class UMLogin {
             return;
         }
         ApiUser.resetPwdV2(vm.resetEmail, vm.validationCode, newPassword).then((r) => {
+            vm.resetEmail = '';
             if (r.result && r.response.result) {
                 widget.event('success', { title: '更換密碼成功' });
                 setTimeout(() => {
