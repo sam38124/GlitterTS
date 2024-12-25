@@ -68,6 +68,113 @@ interface ViewModel {
     filter_type: 'normal' | 'block' | 'pos';
 }
 
+interface OrderData {
+    id: number;
+    cart_token: string;
+    status: number;
+    email: string;
+    orderData: {
+        distribution_info?: {
+            code: string;
+            condition: number;
+            link: string;
+            recommend_medium: any;
+            recommend_status: string;
+            recommend_user: any;
+            redirect: string;
+            relative: string;
+            relative_data: any;
+            share_type: string;
+            share_value: number;
+            startDate: string;
+            startTime: string;
+            status: boolean;
+            title: string;
+            voucher: number;
+            voucher_status: string;
+        };
+        archived: 'true' | 'false';
+        customer_info: any;
+        editRecord: any;
+        method: string;
+        shipment_selector: {
+            name: string;
+            value: string;
+            form: any;
+        }[];
+        orderStatus: string;
+        use_wallet: number;
+        email: string;
+        total: number;
+        discount: number;
+        expectDate: string;
+        shipment_fee: number;
+        use_rebate: number;
+        lineItems: {
+            id: number;
+            spec: string[];
+            count: string;
+            sale_price: number;
+            title: string;
+        }[];
+        user_info: {
+            name: string;
+            email: string;
+            phone: string;
+            address: string;
+            custom_form_delivery?: any;
+            shipment: 'normal' | 'FAMIC2C' | 'UNIMARTC2C' | 'HILIFEC2C' | 'OKMARTC2C' | 'now' | 'shop';
+            CVSStoreName: string;
+            CVSStoreID: string;
+            CVSTelephone: string;
+            MerchantTradeNo: string;
+            CVSAddress: string;
+            note?: string;
+            code_note?: string;
+        };
+        custom_receipt_form?: any;
+        custom_form_format?: any;
+        custom_form_data?: any;
+        proof_purchase: any;
+        progress: string;
+        // progress: 'finish' | 'wait' | 'shipping' | "returns";
+        order_note: string;
+        voucherList: [
+            {
+                title: string;
+                method: 'percent' | 'fixed';
+                trigger: 'auto' | 'code';
+                value: string;
+                for: 'collection' | 'product';
+                rule: 'min_price' | 'min_count';
+                forKey: string[];
+                ruleValue: number;
+                startDate: string;
+                startTime: string;
+                endDate?: string;
+                endTime?: string;
+                status: 0 | 1 | -1;
+                type: 'voucher';
+                code?: string;
+                overlay: boolean;
+                bind?: {
+                    id: string;
+                    spec: string[];
+                    count: number;
+                    sale_price: number;
+                    collection: string[];
+                    discount_price: number;
+                }[];
+                start_ISO_Date: string;
+                end_ISO_Date: string;
+            }
+        ];
+        orderSource?: string;
+        deliveryData: Record<string, string>;
+    };
+    created_time: string;
+}
+
 const html = String.raw;
 
 export class ShoppingOrderManager {
@@ -713,111 +820,7 @@ export class ShoppingOrderManager {
     public static replaceOrder(gvc: GVC, vm: any, passOrderData?: any, backCallback?: () => any) {
         const glitter = gvc.glitter;
         const origData = JSON.parse(JSON.stringify(passOrderData ?? vm.data));
-        const orderData: {
-            id: number;
-            cart_token: string;
-            status: number;
-            email: string;
-            orderData: {
-                distribution_info?: {
-                    code: string;
-                    condition: number;
-                    link: string;
-                    recommend_medium: any;
-                    recommend_status: string;
-                    recommend_user: any;
-                    redirect: string;
-                    relative: string;
-                    relative_data: any;
-                    share_type: string;
-                    share_value: number;
-                    startDate: string;
-                    startTime: string;
-                    status: boolean;
-                    title: string;
-                    voucher: number;
-                    voucher_status: string;
-                };
-                archived: 'true' | 'false';
-                customer_info: any;
-                editRecord: any;
-                method: string;
-                shipment_selector: {
-                    name: string;
-                    value: string;
-                    form: any;
-                }[];
-                orderStatus: string;
-                use_wallet: number;
-                email: string;
-                total: number;
-                discount: number;
-                expectDate: string;
-                shipment_fee: number;
-                use_rebate: number;
-                lineItems: {
-                    id: number;
-                    spec: string[];
-                    count: string;
-                    sale_price: number;
-                }[];
-                user_info: {
-                    name: string;
-                    email: string;
-                    phone: string;
-                    address: string;
-                    custom_form_delivery?: any;
-                    shipment: 'normal' | 'FAMIC2C' | 'UNIMARTC2C' | 'HILIFEC2C' | 'OKMARTC2C' | 'now' | 'shop';
-                    CVSStoreName: string;
-                    CVSStoreID: string;
-                    CVSTelephone: string;
-                    MerchantTradeNo: string;
-                    CVSAddress: string;
-                    note?: string;
-                    code_note?: string;
-                };
-                custom_receipt_form?: any;
-                custom_form_format?: any;
-                custom_form_data?: any;
-                proof_purchase: any;
-                progress: string;
-                // progress: 'finish' | 'wait' | 'shipping' | "returns";
-                order_note: string;
-                voucherList: [
-                    {
-                        title: string;
-                        method: 'percent' | 'fixed';
-                        trigger: 'auto' | 'code';
-                        value: string;
-                        for: 'collection' | 'product';
-                        rule: 'min_price' | 'min_count';
-                        forKey: string[];
-                        ruleValue: number;
-                        startDate: string;
-                        startTime: string;
-                        endDate?: string;
-                        endTime?: string;
-                        status: 0 | 1 | -1;
-                        type: 'voucher';
-                        code?: string;
-                        overlay: boolean;
-                        bind?: {
-                            id: string;
-                            spec: string[];
-                            count: number;
-                            sale_price: number;
-                            collection: string[];
-                            discount_price: number;
-                        }[];
-                        start_ISO_Date: string;
-                        end_ISO_Date: string;
-                    }
-                ];
-                orderSource?: string;
-                deliveryData: Record<string, string>;
-            };
-            created_time: string;
-        } = passOrderData ??
+        const orderData: OrderData = passOrderData ??
             vm.data ?? {
                 id: 3469,
                 cart_token: '1699540611634',
@@ -1232,18 +1235,6 @@ export class ShoppingOrderManager {
                                                                               }),
                                                                           })
                                                                         : ''}
-                                                                    ${BgWidget.customButton({
-                                                                        button: {
-                                                                            color: 'gray',
-                                                                            size: 'sm',
-                                                                        },
-                                                                        text: {
-                                                                            name: '列印出貨單',
-                                                                        },
-                                                                        event: gvc.event(() => {
-                                                                            DeliveryHTML.print(gvc);
-                                                                        }),
-                                                                    })}
                                                                 </div>`,
                                                             html` ${['UNIMARTC2C', 'FAMIC2C', 'OKMARTC2C', 'HILIFEC2C', 'normal'].includes(orderData.orderData.user_info.shipment)
                                                                     ? html` <div class="tx_700">配送資訊</div>

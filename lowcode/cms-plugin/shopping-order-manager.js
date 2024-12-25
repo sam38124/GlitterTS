@@ -20,7 +20,6 @@ import { ApiDelivery } from '../glitter-base/route/delivery.js';
 import { ShoppingInvoiceManager } from './shopping-invoice-manager.js';
 import { BgRecommend } from '../backend-manager/bg-recommend.js';
 import { ApiRecommend } from '../glitter-base/route/recommend.js';
-import { DeliveryHTML } from './module/delivery-html.js';
 const html = String.raw;
 export class ShoppingOrderManager {
     static main(gvc, query) {
@@ -1012,18 +1011,6 @@ export class ShoppingOrderManager {
                                                     }),
                                                 })
                                                 : ''}
-                                                                    ${BgWidget.customButton({
-                                                button: {
-                                                    color: 'gray',
-                                                    size: 'sm',
-                                                },
-                                                text: {
-                                                    name: '列印出貨單',
-                                                },
-                                                event: gvc.event(() => {
-                                                    DeliveryHTML.print(gvc);
-                                                }),
-                                            })}
                                                                 </div>`,
                                             html ` ${['UNIMARTC2C', 'FAMIC2C', 'OKMARTC2C', 'HILIFEC2C', 'normal'].includes(orderData.orderData.user_info.shipment)
                                                 ? html ` <div class="tx_700">配送資訊</div>
