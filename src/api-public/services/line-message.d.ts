@@ -1,3 +1,4 @@
+/// <reference types="node" />
 import { IToken } from '../models/Auth.js';
 export interface ChatRoom {
     chat_id: string;
@@ -49,7 +50,9 @@ export declare class LineMessage {
         result: boolean;
         message: string;
     }>;
+    createOrderWithLineFlexMessage(messageData: any, message: string): Promise<void>;
     sendCustomerLine(tag: string, order_id: string, lineID: string): Promise<void>;
+    sendMessage(token: string, userId: string, message: string): Promise<void>;
     getImageContent(messageId: string, accessToken: string): Promise<string>;
     uploadFile(file_name: string, fileData: Buffer): Promise<string>;
     checkPoints(message: string, user_count: number): Promise<boolean>;

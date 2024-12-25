@@ -13,7 +13,6 @@ export class ProductSetting {
             return img || BgWidget.noImageURL;
         }
         const selected = obj.selected;
-        console.log("selected", selected);
         const html = String.raw;
         let postMD = obj.postMD
         let topGVC = (window.parent as any).glitter.pageConfig[(window.parent as any).glitter.pageConfig.length - 1].gvc

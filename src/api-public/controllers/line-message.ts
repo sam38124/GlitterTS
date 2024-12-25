@@ -32,7 +32,7 @@ router.get('/', async (req: express.Request, resp: express.Response) => {
         return response.fail(resp, err);
     }
 });
-
+//line的所有收訊
 router.post('/listenMessage', async (req: express.Request, resp: express.Response) => {
     try {
         if (Object.keys(req.body.events || {}).length == 0){
@@ -56,7 +56,7 @@ router.post('/listenMessage', async (req: express.Request, resp: express.Respons
         return response.fail(resp, err);
     }
 });
-
+//送出訊息
 router.post('/', async (req: express.Request, resp: express.Response) => {
     try {
         if (await UtPermission.isManager(req)) {
