@@ -493,7 +493,8 @@ async function createAPP(dd) {
                                 window.store_info = ${JSON.stringify(store_info)};
                                 window.server_execute_time = ${(new Date().getTime() - start) / 1000};
                                 window.language='${language}';
-                                ${distribution_code}
+                                ${distribution_code};
+                                window.ip_country='${(await user_js_1.User.ipInfo((req.query.ip || req.headers['x-real-ip'] || req.ip))).country || 'TW'}'
                             </script>
                             ${[
                             { src: 'glitterBundle/GlitterInitial.js', type: 'module' },

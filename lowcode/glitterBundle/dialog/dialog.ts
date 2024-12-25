@@ -77,7 +77,7 @@ init(import.meta.url, (gvc, glitter, gBundle) => {
                                 <i class="fa-sharp fa-solid fa-circle-info fs-1"></i>
                                 <div class="my-3 fs-6 fw-500" style="white-space: normal; overflow-wrap: anywhere;">${gBundle.obj.text ?? '系統提示訊息'}</div>
                                 <div class="dialog-absolute" onclick="${gvc.event(() => gvc.closeDialog())}">
-                                    <div class="fs-6 fw-500">確認</div>
+                                    <div class="fs-6 fw-500">${Language.text('confirm')}</div>
                                 </div>
                             </div>
                         </div>
@@ -122,7 +122,7 @@ init(import.meta.url, (gvc, glitter, gBundle) => {
                                             gBundle.callback(false);
                                         })}"
                                     >
-                                        <span class="fw-500 fs-6">取消</span>
+                                        <span class="fw-500 fs-6">${Language.text('cancel')}</span>
                                     </div>
                                     <div
                                         class="w-100 h-100 text-center pt-2 hover-save"
@@ -130,7 +130,7 @@ init(import.meta.url, (gvc, glitter, gBundle) => {
                                             gBundle.callback(true);
                                         })}"
                                     >
-                                        <span class="fw-500 fs-6 text-white">確認</span>
+                                        <span class="fw-500 fs-6 text-white">${Language.text('confirm')}</span>
                                     </div>
                                 </div>
                             </div>
@@ -161,7 +161,7 @@ init(import.meta.url, (gvc, glitter, gBundle) => {
                                             gBundle.callback(false);
                                         })}"
                                     >
-                                        <span class="tx_700">取消</span>
+                                        <span class="tx_700">${Language.text('cancel')}</span>
                                     </div>
                                     <div
                                         class="btn btn-black"
@@ -175,6 +175,7 @@ init(import.meta.url, (gvc, glitter, gBundle) => {
                             </div>
                         </div>
                     `;
+
                 default:
                     return '';
             }

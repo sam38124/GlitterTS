@@ -536,6 +536,7 @@ class Shopping {
             console.log(`checkout-time-1=>`, new Date().getTime() - check_time);
             const userClass = new user_js_1.User(this.app);
             const rebateClass = new rebate_js_1.Rebate(this.app);
+            data.email = data.email || 'no-email';
             if (type !== 'preview' && !(this.token && this.token.userID) && !data.email && !(data.user_info && data.user_info.email)) {
                 throw exception_js_1.default.BadRequestError('BAD_REQUEST', 'ToCheckout 2 Error:No email address.', null);
             }
@@ -1710,8 +1711,7 @@ class Shopping {
                     orderData.editRecord = [record];
                 }
             }
-            await database_js_1.default.query(`UPDATE \`${this.app}\`.t_checkout SET orderData = ? WHERE cart_token = ?;
-                `, [JSON.stringify(orderData), order_id]);
+            await database_js_1.default.query(`UPDATE \`${this.app}\`.t_checkout SET orderData = ? WHERE cart_token = ?;`, [JSON.stringify(orderData), order_id]);
             return { data: true };
         }
         catch (e) {
@@ -1862,6 +1862,9 @@ OR JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.orderStatus')) NOT IN (-99)) `);
             }
             else if (query.filter_type === 'normal') {
                 querySql.push(`((orderData->>'$.archived' is null) or (orderData->>'$.archived'!='true'))`);
+            }
+            if (!(query.filter_type === 'true' || query.archived)) {
+                querySql.push(`((orderData->>'$.orderStatus' is null) or (orderData->>'$.orderStatus' NOT IN (-99)))`);
             }
             let sql = `SELECT *
                        FROM \`${this.app}\`.t_checkout

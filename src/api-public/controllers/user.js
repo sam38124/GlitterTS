@@ -565,5 +565,14 @@ router.get('/permission/redirect', async (req, resp) => {
         return response_1.default.fail(resp, err);
     }
 });
+router.get('/ip/info', async (req, resp) => {
+    try {
+        const ip = req.query.ip || req.headers['x-real-ip'] || req.ip;
+        return resp.send(await user_1.User.ipInfo(ip));
+    }
+    catch (err) {
+        return response_1.default.fail(resp, err);
+    }
+});
 module.exports = router;
 //# sourceMappingURL=user.js.map

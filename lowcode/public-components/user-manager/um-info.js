@@ -411,7 +411,23 @@ export class UMInfo {
                                 return [
                                     FormWidget.editorView({
                                         gvc: gvc,
-                                        array: form_array,
+                                        array: form_array.map((dd) => {
+                                            switch (dd.key) {
+                                                case 'name':
+                                                    dd.title = Language.text('name');
+                                                    break;
+                                                case 'email':
+                                                    dd.title = Language.text('email');
+                                                    break;
+                                                case 'phone':
+                                                    dd.title = Language.text('phone');
+                                                    break;
+                                                case 'birth':
+                                                    dd.title = Language.text('birth');
+                                                    break;
+                                            }
+                                            return dd;
+                                        }),
                                         refresh: () => {
                                             setTimeout(() => {
                                                 gvc.notifyDataChange(id);

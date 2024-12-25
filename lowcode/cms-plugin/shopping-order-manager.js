@@ -734,7 +734,7 @@ export class ShoppingOrderManager {
             bind: mainViewID,
             dataList: [{ obj: child_vm, key: 'type' }],
             view: () => {
-                var _a, _b, _c, _d, _e, _f, _g, _h;
+                var _a, _b, _c, _d, _e, _f, _g, _h, _j;
                 try {
                     if (userDataLoading) {
                         return BgWidget.spinner();
@@ -1259,7 +1259,7 @@ export class ShoppingOrderManager {
                                                                         ${(_f = (_e = (_d = userData === null || userData === void 0 ? void 0 : userData.userData) === null || _d === void 0 ? void 0 : _d.phone) !== null && _e !== void 0 ? _e : orderData.orderData.user_info.phone) !== null && _f !== void 0 ? _f : '此會員未填手機'}
                                                                     </div>
                                                                     <div style="color: #393939;font-weight: 400;word-break:break-all;">
-                                                                        ${(_h = (_g = userData === null || userData === void 0 ? void 0 : userData.userData) === null || _g === void 0 ? void 0 : _g.email) !== null && _h !== void 0 ? _h : orderData.orderData.user_info.email}
+                                                                        ${(_j = (_h = (_g = userData === null || userData === void 0 ? void 0 : userData.userData) === null || _g === void 0 ? void 0 : _g.email) !== null && _h !== void 0 ? _h : orderData.orderData.user_info.email) !== null && _j !== void 0 ? _j : ''}
                                                                     </div>
                                                                 </div>`,
                                 BgWidget.horizontalLine(),

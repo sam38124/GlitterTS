@@ -95,6 +95,7 @@ const whiteList: {}[] = [
     {url: config.getRoute(config.public_route.user + '/fcm', 'public'), method: 'POST'},
     {url: config.getRoute(config.public_route.user + '/public/config', 'public'), method: 'GET'},
     {url: config.getRoute(config.public_route.user + '/forget', 'public'), method: 'POST'},
+    {url: config.getRoute(config.public_route.user + '/ip/info', 'public'), method: 'GET'},
     {url: config.getRoute(config.public_route.user + '/permission/redirect', 'public'), method: 'GET'},
     {url: config.getRoute(config.public_route.sql_api, 'public'), method: 'GET'},
     {url: config.getRoute(config.public_route.sql_api, 'public'), method: 'POST'},

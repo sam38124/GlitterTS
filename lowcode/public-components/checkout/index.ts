@@ -607,7 +607,9 @@ export class CheckoutIndex {
                             }
                             if (!widget.share.receipt_form) {
                                 const res = await ApiUser.getPublicConfig('custom_form_checkout_recipient', 'manager');
-                                widget.share.receipt_form = FormCheck.initialRecipientForm(res.response.value.list ?? []);
+                                widget.share.receipt_form = FormCheck.initialRecipientForm(res.response.value.list ?? []).filter((dd)=>{
+                                    return !dd.hidden
+                                });
                                 vm.cartData.receipt_form=widget.share.receipt_form.filter((dd: any) => {
                                     return !['name', 'email', 'phone'].includes(dd.key)
                                 });

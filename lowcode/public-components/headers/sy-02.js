@@ -38,7 +38,7 @@ export class Sy02 {
                     bind: id,
                     view: () => {
                         var _a;
-                        return html ` <div
+                        return html `<div
                                                             class="div d-flex align-items-center flex-column w-100 p-3"
                                                             style="border-bottom:1px solid ${widget.formData.theme_color['title']};"
                                                         >
@@ -189,7 +189,7 @@ export class Sy02 {
                     divCreate: {
                         class: `w-100 h-100`,
                         style: `z-index: 9999;overflow-y:auto;
-background: ${(_a = widget.formData.theme_color['background']) !== null && _a !== void 0 ? _a : '#000'};overflow-x: hidden;`,
+background: ${(_a = colors.bgr) !== null && _a !== void 0 ? _a : '#000'};overflow-x: hidden;`,
                     },
                 };
             }), () => {

@@ -196,6 +196,7 @@ export declare class User {
         query: any;
     }): Promise<any>;
     forgetPassword(email: string): Promise<void>;
+    static ipInfo(ip: string): Promise<any>;
     constructor(app: string, token?: IToken);
 }
 export {};

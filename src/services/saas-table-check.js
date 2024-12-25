@@ -3,7 +3,8 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.compare_sql_table = exports.SaasScheme = void 0;
+exports.SaasScheme = void 0;
+exports.compare_sql_table = compare_sql_table;
 const database_1 = __importDefault(require("../modules/database"));
 const config_1 = require("../config");
 exports.SaasScheme = {
@@ -13,6 +14,16 @@ exports.SaasScheme = {
         await database_1.default.execute(`CREATE SCHEMA if not exists \`${config_1.saasConfig.SAAS_NAME}_recover\` DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci ;`, []);
         await database_1.default.execute(`CREATE SCHEMA if not exists \`${config_1.saasConfig.SAAS_NAME}\` DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci ;`, []);
         const sqlArray = [
+            {
+                scheme: config_1.saasConfig.SAAS_NAME,
+                table: 't_ip_info',
+                sql: `(
+  \`id\` INT NOT NULL AUTO_INCREMENT,
+  \`ip\` VARCHAR(45) NOT NULL,
+  \`data\` JSON NULL,
+  PRIMARY KEY (\`id\`),
+  UNIQUE INDEX \`index2\` (\`ip\` ASC) VISIBLE)`
+            },
             {
                 scheme: config_1.saasConfig.SAAS_NAME,
                 table: 't_monitor',
@@ -317,5 +328,4 @@ async function compare_sql_table(scheme, table, sql) {
         return false;
     }
 }
-exports.compare_sql_table = compare_sql_table;
 //# sourceMappingURL=saas-table-check.js.map

@@ -1,15 +1,16 @@
 import express from 'express';
 import response from '../../modules/response';
 import db from '../../modules/database';
-import { User } from '../services/user';
+import {User} from '../services/user';
 import exception from '../../modules/exception';
-import config from '../../config.js';
-import { UtPermission } from '../utils/ut-permission.js';
+import config, {saasConfig} from '../../config.js';
+import {UtPermission} from '../utils/ut-permission.js';
 import redis from '../../modules/redis.js';
-import { Shopping } from '../services/shopping';
+import {Shopping} from '../services/shopping';
 import Tool from '../../modules/tool';
-import { SharePermission } from '../services/share-permission';
-import { FilterProtectData } from '../services/filter-protect-data.js';
+import {SharePermission} from '../services/share-permission';
+import {FilterProtectData} from '../services/filter-protect-data.js';
+import axios from "axios";
 
 const router: express.Router = express.Router();
 
@@ -81,18 +82,18 @@ router.get('/level', async (req: express.Request, resp: express.Response) => {
             const user = new User(req.get('g-app') as string);
             const emails = req.query.email
                 ? `${req.query.email}`.split(',').map((item) => {
-                      return { email: item };
-                  })
+                    return {email: item};
+                })
                 : [];
             const ids = req.query.id
                 ? `${req.query.id}`.split(',').map((item) => {
-                      return { userId: item };
-                  })
+                    return {userId: item};
+                })
                 : [];
             return response.succ(resp, await user.getUserLevel([...emails, ...ids]));
         } else {
             const user = new User(req.get('g-app') as string);
-            return response.succ(resp, await user.getUserLevel([{ userId: req.body.token.userID }]));
+            return response.succ(resp, await user.getUserLevel([{userId: req.body.token.userID}]));
         }
     } catch (err) {
         return response.fail(resp, err);
@@ -433,7 +434,7 @@ router.put('/public/config', async (req: express.Request, resp: express.Response
                 value: req.body.value,
             });
         }
-        return response.succ(resp, { result: true });
+        return response.succ(resp, {result: true});
     } catch (err) {
         return response.fail(resp, err);
     }
@@ -538,6 +539,16 @@ router.put('/permission/invite', async (req: express.Request, resp: express.Resp
 router.get('/permission/redirect', async (req: express.Request, resp: express.Response) => {
     try {
         return resp.send(await SharePermission.redirectHTML(`${req.query.key}`));
+    } catch (err) {
+        return response.fail(resp, err);
+    }
+});
+
+
+router.get('/ip/info', async (req: express.Request, resp: express.Response) => {
+    try {
+        const ip:any = req.query.ip || req.headers['x-real-ip'] || req.ip;
+        return resp.send(await User.ipInfo(ip));
     } catch (err) {
         return response.fail(resp, err);
     }

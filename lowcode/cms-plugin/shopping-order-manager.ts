@@ -1486,7 +1486,7 @@ export class ShoppingOrderManager {
                                                                         ${userData?.userData?.phone ?? orderData.orderData.user_info.phone ?? '此會員未填手機'}
                                                                     </div>
                                                                     <div style="color: #393939;font-weight: 400;word-break:break-all;">
-                                                                        ${userData?.userData?.email ?? orderData.orderData.user_info.email}
+                                                                        ${userData?.userData?.email ?? orderData.orderData.user_info.email ?? ''}
                                                                     </div>
                                                                 </div>`,
                                                                 BgWidget.horizontalLine(),

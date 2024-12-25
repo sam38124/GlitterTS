@@ -603,8 +603,8 @@ export class ApiShop {
             type: 'PUT',
             headers: {
                 'Content-Type': 'application/json',
-                'g-app': getConfig().config.appName,
-                Authorization: getConfig().config.token,
+                'g-app': (window as any).appName,
+                Authorization: GlobalUser.token,
             },
             data: JSON.stringify({ id }),
         });

@@ -98,7 +98,10 @@ export class Language {
 
     public static languageDataList() {
         return [
+            { key: 'c_cancel_order', tw: '請問確定要取消此訂單嗎?', cn: '请问确定要取消此订单吗?', en: `Are you sure you want to cancel this order?` },
+            { key: 's_cancel_order', tw: '取消訂單成功', cn: '取消订单成功', en: `Order canceled successfully` },
             { key: 'stock_count', tw: '商品庫存', cn: '商品库存', en: `Stock quantity` },
+            { key: 'birth', tw: '生日', cn: '生日', en: `Birth` },
             { key: 'buy_it_now', tw: '立即購買', cn: '立即购买', en: `Buy it now` },
             { key: 'cart', tw: '購物車', cn: '购物车', en: `Cart` },
             { key: 'min_p_count_d', tw: '_p_ 最少購買數量為_c_件', cn: '_p_ 最少购买数量为_c_件', en: `_p_ Minimum purchase quantity is _c_ pieces.` },
@@ -207,6 +210,7 @@ export class Language {
             { key: 'please_select_gift', tw: '請選擇「贈品」', cn: '请选择「赠品」', en: 'Please select "Gift"' },
             { key: 'customer_name', tw: '顧客姓名', cn: '顾客姓名', en: 'Customer name' },
             { key: 'customer_phone', tw: '顧客電話', cn: '顾客电话', en: 'Customer phone' },
+            { key: 'phone', tw: '電話', cn: '电话', en: 'Phone Number' },
             { key: 'customer_email', tw: '顧客信箱', cn: '顾客邮箱', en: 'Customer email' },
             { key: 'recipient_name', tw: '收件人姓名', cn: '收件人姓名', en: 'Recipient name' },
             { key: 'recipient_phone', tw: '收件人電話', cn: '收件人电话', en: 'Recipient phone' },
@@ -380,6 +384,7 @@ export class Language {
             { key: 'upload_checkout_proof', tw: '上傳結帳證明', cn: '上传结账证明', en: 'Upload checkout proof' },
             { key: 'order_information', tw: '訂單資訊', cn: '订单信息', en: 'Order Information' },
             { key: 'payment_status', tw: '付款狀態', cn: '付款状态', en: 'Payment Status' },
+            { key: 'cancel', tw: '取消', cn: '取消', en: 'Cancel' },
             { key: 'cancelled', tw: '已取消', cn: '已取消', en: 'Cancelled' },
             { key: 'completed', tw: '已完成', cn: '已完成', en: 'Completed' },
             { key: 'deleted', tw: '已刪除', cn: '已删除', en: 'Deleted' },
