@@ -632,78 +632,75 @@ export class UMLogin {
                 created: () => {
                     ApiUser.getPublicConfig('login_fb_setting', 'manager').then((dd) => {
                         widget.share.fb = dd.response.value || {};
+
+                        const loadFacebookSDK = () => {
+                            const intervalId = setInterval(() => {
+                                const FB = (window as any).FB;
+
+                                // 檢查 SDK 是否已載入
+                                if (FB) {
+                                    clearInterval(intervalId); // 清除間隔
+                                    (window as any).fbAsyncInit = () => {
+                                        FB.init({
+                                            appId: widget.share.fb.id,
+                                            xfbml: true,
+                                            version: 'v19.0',
+                                        });
+                                    };
+                                    return;
+                                }
+
+                                // 如果未載入，創建 script 標籤
+                                const sdkId = 'facebook-jssdk';
+                                if (!document.getElementById(sdkId)) {
+                                    const script = document.createElement('script');
+                                    script.id = sdkId;
+                                    script.src = 'https://connect.facebook.net/en_US/sdk.js';
+                                    const firstScript = document.getElementsByTagName('script')[0];
+                                    firstScript.parentNode?.insertBefore(script, firstScript);
+                                }
+                            }, 500);
+                        };
+
+                        loadFacebookSDK();
                     });
                 },
                 call: () => {
-                    const initializeFacebookSDK = (): Promise<boolean> => {
-                        return new Promise((resolve) => {
-                            gvc.addMtScript(
-                                [
-                                    {
-                                        src: 'https://connect.facebook.net/en_US/sdk.js',
-                                    },
-                                ],
-                                () => {
-                                    setTimeout(() => {
-                                        const FB = (window as any).FB;
-                                        (window as any).fbAsyncInit = function () {
-                                            FB.init({
-                                                appId: widget.share.fb.id,
-                                                xfbml: true,
-                                                version: 'v21.0',
-                                            });
-                                            FB.AppEvents.logPageView();
-                                        };
-                                        resolve(true);
-                                    }, 1000);
-                                },
-                                () => {}
-                            );
-                        });
-                    };
-
-                    initializeFacebookSDK()
-                        .then((result) => {
-                            console.log('Facebook SDK initialized successfully:', result);
-                            return new Promise(async (resolve, reject) => {
-                                if (gvc.glitter.deviceType === gvc.glitter.deviceTypeEnum.Ios) {
-                                    gvc.glitter.runJsInterFace('facebook_login', {}, (response) => {
-                                        if (response.result) {
-                                            ApiUser.login({
-                                                login_type: 'fb',
-                                                fb_token: response.accessToken,
-                                            }).then((r) => {
-                                                if (r.result) {
-                                                    this.successCallback(gvc, widget, r.response);
-                                                } else {
-                                                    widget.event('error', { title: '臉書登入錯誤' });
-                                                }
-                                            });
+                    return new Promise(async (resolve, reject) => {
+                        if (gvc.glitter.deviceType === gvc.glitter.deviceTypeEnum.Ios) {
+                            gvc.glitter.runJsInterFace('facebook_login', {}, (response) => {
+                                if (response.result) {
+                                    ApiUser.login({
+                                        login_type: 'fb',
+                                        fb_token: response.accessToken,
+                                    }).then((r) => {
+                                        if (r.result) {
+                                            this.successCallback(gvc, widget, r.response);
+                                        } else {
+                                            widget.event('error', { title: '臉書登入錯誤' });
                                         }
                                     });
-                                } else {
-                                    (window as any).FB.login(
-                                        (response: any) => {
-                                            const accessToken = response.authResponse.accessToken;
-                                            ApiUser.login({
-                                                login_type: 'fb',
-                                                fb_token: accessToken,
-                                            }).then((r) => {
-                                                if (r.result) {
-                                                    this.successCallback(gvc, widget, r.response);
-                                                } else {
-                                                    widget.event('error', { title: '臉書登入錯誤' });
-                                                }
-                                            });
-                                        },
-                                        { scope: 'public_profile,email' }
-                                    );
                                 }
                             });
-                        })
-                        .catch((error) => {
-                            console.error('Error initializing Facebook SDK:', error);
-                        });
+                        } else {
+                            (window as any).FB.login(
+                                (response: any) => {
+                                    const accessToken = response.authResponse.accessToken;
+                                    ApiUser.login({
+                                        login_type: 'fb',
+                                        fb_token: accessToken,
+                                    }).then((r) => {
+                                        if (r.result) {
+                                            this.successCallback(gvc, widget, r.response);
+                                        } else {
+                                            widget.event('error', { title: '臉書登入錯誤' });
+                                        }
+                                    });
+                                },
+                                { scope: 'public_profile,email' }
+                            );
+                        }
+                    });
                 },
             },
             {
