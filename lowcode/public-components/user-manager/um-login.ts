@@ -57,10 +57,10 @@ export class UMLogin {
                 if (vm.viewType === 'send_forget_pwd_email') {
                     return html`<section class="${gClass('container')}">
                         <div class="${gClass('box')}">
-                            <div class="${gClass('login-title')}">忘記密碼</div>
+                            <div class="${gClass('login-title')}">${Language.text('forgot_password')}</div>
                             <div class="w-100 d-flex flex-column gap-3">
                                 <div>
-                                    <label class="${gClass('label')}">電子信箱</label>
+                                    <label class="${gClass('label')}">${Language.text('email')}</label>
                                     <input class="bgw-input" type="text" id="vm-email" placeholder="${Language.text('email_placeholder')}" />
                                 </div>
                                 <div
@@ -80,10 +80,10 @@ export class UMLogin {
                 if (vm.viewType === 'validation_code') {
                     return html`<section class="${gClass('container')}">
                         <div class="${gClass('box')}">
-                            <div class="${gClass('login-title')}">輸入驗證碼</div>
+                            <div class="${gClass('login-title')}">${Language.text('enter_verification_code')}</div>
                             <div class="w-100 d-flex flex-column gap-3">
                                 <div>
-                                    <label class="${gClass('label')}">驗證碼</label>
+                                    <label class="${gClass('label')}">${Language.text('verification_code')}</label>
                                     <input class="bgw-input" type="text" id="vm-code" placeholder="${Language.text('please_enter_verification_code')}" />
                                 </div>
                                 ${this.sendCodeAgain(gvc, vm.prefix, () => {
@@ -106,7 +106,7 @@ export class UMLogin {
                 if (vm.viewType === 'reset_password') {
                     return html`<section class="${gClass('container')}">
                         <div class="${gClass('box')}">
-                            <div class="${gClass('login-title')}">重設密碼</div>
+                            <div class="${gClass('login-title')}">${Language.text('reset_password')}</div>
                             <div class="w-100 d-flex flex-column gap-3">
                                 <div>
                                     <label class="${gClass('label')}">${Language.text('new_password')}</label>
@@ -133,21 +133,27 @@ export class UMLogin {
                 if (vm.viewType === 'register') {
                     return html`<section class="${gClass('container')}">
                         <div class="${gClass('box')}">
-                            <div class="${gClass('login-title')}">會員註冊</div>
+                            <div class="${gClass('login-title')}">${Language.text('member_register')}</div>
                             <div class="w-100 d-flex flex-column gap-3">
                                 ${vm.registerConfig
                                     .map((item: any) => {
                                         if (item.hidden) return '';
 
+                                        const title = ['name', 'email', 'phone', 'birth'].includes(item.key) ? Language.text(`form_${item.key}`) : item.title;
                                         const cell = html`<div>
-                                            <label class="${gClass('label')}">${item.title}</label>
-                                            <input class="bgw-input" type="${item.form_config.type}" id="reg-${item.key}" placeholder="${item.form_config.place_holder}" />
+                                            <label class="${gClass('label')}">${title}</label>
+                                            <input
+                                                class="bgw-input"
+                                                type="${item.form_config.type}"
+                                                id="reg-${item.key}"
+                                                placeholder="${Language.text(`please_enter_${item.key}`) || item.form_config.place_holder || ''}"
+                                            />
                                         </div>`;
 
                                         if (item.key === 'email' && vm.loginConfig.email_verify) {
                                             return html`${cell}
                                                 <div>
-                                                    <label class="${gClass('label')}">${item.title}驗證碼</label>
+                                                    <label class="${gClass('label')}">${Language.text('email_verification_code')}</label>
                                                     <input class="bgw-input" type="text" id="reg-${item.key}-verify" placeholder="${Language.text('please_enter_verification_code')}" />
                                                 </div>
                                                 ${this.sendCodeAgain(gvc, vm.prefix, () => {
@@ -158,7 +164,7 @@ export class UMLogin {
                                         if (item.key === 'phone' && vm.loginConfig.phone_verify) {
                                             return html`${cell}
                                                 <div>
-                                                    <label class="${gClass('label')}">${item.title}驗證碼</label>
+                                                    <label class="${gClass('label')}">${Language.text('sms_verification_code')}</label>
                                                     <input class="bgw-input" type="text" id="reg-${item.key}-verify" placeholder="${Language.text('please_enter_verification_code')}" />
                                                 </div>
                                                 ${this.sendCodeAgain(gvc, vm.prefix, () => {
@@ -170,7 +176,7 @@ export class UMLogin {
                                     })
                                     .join('')}
                                 <div>
-                                    <label class="${gClass('label')}">${Language.text('new_password')}</label>
+                                    <label class="${gClass('label')}">${Language.text('password')}</label>
                                     <input class="bgw-input" type="password" id="vm-password" placeholder="${Language.text('please_enter_password')}" />
                                 </div>
                                 <div>
@@ -188,18 +194,18 @@ export class UMLogin {
                                 ${this.authThirdPartyHTML(gvc, widget, vm)}
                                 <div class="d-flex flex-column gap-2 text-center mt-1">
                                     <div class="${gClass('font-16')}">
-                                        已經有會員了？前往<span
+                                        ${Language.text('member_exists_prompt')}<span
                                             class="${gClass('blue-note')}"
                                             onclick="${gvc.event(() => {
                                                 this.viewCallback(vm, '');
                                             })}"
-                                            >登入</span
+                                            >${Language.text('login')}</span
                                         >
                                     </div>
                                     <div class="${gClass('font-14')}">
-                                        註冊完成時，即代表您同意我們的<a class="${gClass('blue-note')}" href="/pages/privacy">服務條款</a>和<a class="${gClass('blue-note')}" href="/pages/terms"
-                                            >隱私條款</a
-                                        >
+                                        ${Language.text('registration_terms_agreement')}<a class="${gClass('blue-note')}" href="/pages/privacy">${Language.text('terms_of_service')}</a>${Language.text(
+                                            'and'
+                                        )}<a class="${gClass('blue-note')}" href="/pages/terms">${Language.text('privacy_policy')}</a>
                                     </div>
                                 </div>
                             </div>
@@ -209,14 +215,14 @@ export class UMLogin {
 
                 return html`<section class="${gClass('container')}">
                     <div class="${gClass('box')}">
-                        <div class="${gClass('login-title')}">會員登入</div>
+                        <div class="${gClass('login-title')}">${Language.text('member_login')}</div>
                         <div class="w-100 d-flex flex-column gap-3">
                             <div>
-                                <label class="${gClass('label')}">信箱或電話</label>
+                                <label class="${gClass('label')}">${Language.text('email_phone')}</label>
                                 <input class="bgw-input" type="text" id="vm-account" placeholder="${Language.text('email_phone_placeholder')}" />
                             </div>
                             <div>
-                                <label class="${gClass('label')}">密碼</label>
+                                <label class="${gClass('label')}">${Language.text('password')}</label>
                                 <input class="bgw-input" type="password" id="vm-password" placeholder="${Language.text('please_enter_password')}" />
                             </div>
                             <div class="text-end">
@@ -225,7 +231,7 @@ export class UMLogin {
                                     onclick="${gvc.event(() => {
                                         vm.viewType = 'send_forget_pwd_email';
                                     })}"
-                                    >忘記密碼</span
+                                    >${Language.text('forgot_password')}</span
                                 >
                             </div>
                             <div
@@ -239,17 +245,19 @@ export class UMLogin {
                             ${this.authThirdPartyHTML(gvc, widget, vm)}
                             <div class="d-flex flex-column gap-2 text-center mt-1">
                                 <div class="${gClass('font-16')}">
-                                    還沒有成為會員？前往<span
+                                    ${Language.text('member_not_exists_prompt')}<span
                                         class="${gClass('blue-note')}"
                                         onclick="${gvc.event(() => {
                                             this.viewCallback(vm, 'register');
                                         })}"
-                                        >註冊</span
+                                        >${Language.text('register')}</span
                                     >
                                 </div>
                                 <div class="${gClass('font-14')}">
-                                    登入完成時，即代表您同意我們的<a class="${gClass('blue-note')}" href="/pages/privacy">服務條款</a>和<a class="${gClass('blue-note')}" href="/pages/terms"
-                                        >隱私條款</a
+                                    ${Language.text('login_terms_agreement')}<a class="${gClass('blue-note')}" href="/pages/privacy">${Language.text('terms_of_service')}</a>${Language.text('and')}<a
+                                        class="${gClass('blue-note')}"
+                                        href="/pages/terms"
+                                        >${Language.text('privacy_policy')}</a
                                     >
                                 </div>
                             </div>
@@ -392,9 +400,9 @@ export class UMLogin {
         GlobalUser.token = response.token;
         GlobalUser.userInfo = response;
         GlobalUser.updateUserData = JSON.parse(JSON.stringify(response));
-        widget.event('success', { title: text ?? '登入成功' });
+        widget.event('success', { title: text ?? Language.text('login_success') });
         setTimeout(() => {
-            widget.event('loading', { visible: true, title: '頁面跳轉中' });
+            widget.event('loading', { visible: true, title: Language.text('page_redirecting') });
             if (localStorage.getItem('redirect_cart') === 'true') {
                 gvc.glitter.href = './checkout';
             }
@@ -407,7 +415,7 @@ export class UMLogin {
 
         return html`<div class="w-100 d-flex align-items-center gap-2" style="color:#8D8D8D;">
                 <div class="${vm.prefix}-gray-hr"></div>
-                或
+                ${Language.text('or')}
                 <div class="${vm.prefix}-gray-hr"></div>
             </div>
             <div class="d-flex w-100 align-items-center justify-content-center gap-2">
@@ -474,7 +482,7 @@ export class UMLogin {
             })}"
         >
             <img class="me-2" src="https://ui.homee.ai/htmlExtension/shopify/order/img/back.svg" />
-            <span class="go-back-text">回到登入頁</span>
+            <span class="go-back-text">${Language.text('back_to_login_page')}</span>
         </section>`;
     }
 
@@ -496,7 +504,7 @@ export class UMLogin {
                             }, 100);
                         }
                     })}"
-                    >${n > 0 ? `${n}秒後可重新` : ''}發送驗證碼</span
+                    >${n > 0 ? Language.text('resend_code_timer').replace('xxx', n) : Language.text('get_verification_code')}</span
                 >`;
             },
             divCreate: {
@@ -540,7 +548,7 @@ export class UMLogin {
                             if (r.result) {
                                 this.successCallback(gvc, widget, r.response);
                             } else {
-                                widget.event('error', { title: 'Line 登入失敗' });
+                                widget.event('error', { title: `Line: ${Language.text('login_failure')}` });
                             }
                         });
                     } else {
@@ -550,7 +558,6 @@ export class UMLogin {
                                 widget.event('loading', { visible: true });
                                 setTimeout(() => {
                                     localStorage.setItem('login_page', 'account');
-                                    // document.querySelector('.line_bt').click();
                                 }, 100);
                             }
                         });
@@ -599,7 +606,7 @@ export class UMLogin {
                             if (r.result) {
                                 this.successCallback(gvc, widget, r.response);
                             } else {
-                                widget.event('error', { title: 'Google 登入失敗' });
+                                widget.event('error', { title: `Google: ${Language.text('login_failure')}` });
                             }
                         });
                     } else {
@@ -683,7 +690,7 @@ export class UMLogin {
                                         if (r.result) {
                                             this.successCallback(gvc, widget, r.response);
                                         } else {
-                                            widget.event('error', { title: '臉書登入錯誤' });
+                                            widget.event('error', { title: `Facebook: ${Language.text('login_failure')}` });
                                         }
                                     });
                                 }
@@ -699,7 +706,7 @@ export class UMLogin {
                                         if (r.result) {
                                             this.successCallback(gvc, widget, r.response);
                                         } else {
-                                            widget.event('error', { title: '臉書登入錯誤' });
+                                            widget.event('error', { title: `Facebook: ${Language.text('login_failure')}` });
                                         }
                                     });
                                 },
@@ -721,7 +728,7 @@ export class UMLogin {
                             if (r.result) {
                                 this.successCallback(gvc, widget, r.response);
                             } else {
-                                widget.event('error', { title: 'Apple 登入錯誤' });
+                                widget.event('error', { title: `Apple: ${Language.text('login_failure')}` });
                             }
                         });
                     } else {
@@ -759,17 +766,17 @@ export class UMLogin {
         const confirmPassword = this.checkValue('vm-confirm-password');
 
         if (!password) {
-            widget.event('error', { title: '請輸入密碼' });
+            widget.event('error', { title: Language.text('please_enter_password') });
             return;
         }
 
         if (!confirmPassword) {
-            widget.event('error', { title: '請輸入確認密碼' });
+            widget.event('error', { title: Language.text('please_confirm_password_again') });
             return;
         }
 
         if (password !== confirmPassword) {
-            widget.event('error', { title: '密碼與確認密碼不符' });
+            widget.event('error', { title: Language.text('password_mismatch') });
             return;
         }
 
@@ -782,29 +789,33 @@ export class UMLogin {
 
             if ((item.key === 'email' && vm.loginConfig.email_verify) || (item.key === 'phone' && vm.loginConfig.phone_verify)) {
                 const vData = this.checkValue(`reg-${item.key}-verify`);
-                if (!vData) {
-                    widget.event('error', { title: `請輸入${item.title}驗證碼` });
-                    return;
-                }
                 if (item.key === 'email') {
+                    if (!vData) {
+                        widget.event('error', { title: Language.text('please_enter_email_verification_code') });
+                        return;
+                    }
                     userData.verify_code = vData;
                 }
                 if (item.key === 'phone') {
+                    if (!vData) {
+                        widget.event('error', { title: Language.text('please_enter_sms_verification_code') });
+                        return;
+                    }
                     userData.verify_code_phone = vData;
                 }
             }
 
             const data = this.checkValue(`reg-${item.key}`);
             if (item.require && !data) {
-                widget.event('error', { title: `請輸入${item.title}` });
+                widget.event('error', { title: `${Language.text('please_enter')}「${item.title}」` });
                 return;
             }
             if (item.key === 'email' && data && !CheckInput.isEmail(data)) {
-                widget.event('error', { title: `請輸入有效電子信箱` });
+                widget.event('error', { title: Language.text('enter_valid_email') });
                 return;
             }
             if (item.key === 'phone' && data && !CheckInput.isTaiwanPhone(data)) {
-                widget.event('error', { title: `請輸入有效手機號碼` });
+                widget.event('error', { title: Language.text('enter_valid_phone_number') });
                 return;
             }
             userData[item.key] = data;
@@ -818,23 +829,23 @@ export class UMLogin {
         }).then((r) => {
             widget.event('loading', { visible: false });
             if (r.result) {
-                this.successCallback(gvc, widget, r.response, '註冊成功');
+                this.successCallback(gvc, widget, r.response, Language.text('registration_success'));
                 return;
             }
             if (r.response.message === 'user is already exists') {
-                widget.event('error', { title: '此為已註冊的使用者' });
+                widget.event('error', { title: Language.text('existing_user') });
                 return;
             }
             if (!r.response.data) {
-                widget.event('error', { title: '註冊失敗' });
+                widget.event('error', { title: Language.text('registration_failure') });
                 return;
             }
             if (r.response.data.msg === 'email-verify-false') {
-                widget.event('error', { title: '信箱驗證碼輸入錯誤' });
+                widget.event('error', { title: Language.text('email_verification_code_incorrect') });
                 return;
             }
             if (r.response.data.msg === 'phone-verify-false') {
-                widget.event('error', { title: '簡訊驗證碼輸入錯誤' });
+                widget.event('error', { title: Language.text('sms_verification_code_incorrect') });
                 return;
             }
         });
@@ -845,12 +856,12 @@ export class UMLogin {
         const password = this.checkValue('vm-password');
 
         if (!account) {
-            widget.event('error', { title: '請輸入帳號' });
+            widget.event('error', { title: Language.text('email_phone_placeholder') });
             return;
         }
 
         if (!password) {
-            widget.event('error', { title: '請輸入密碼' });
+            widget.event('error', { title: Language.text('please_enter_password') });
             return;
         }
 
@@ -861,7 +872,7 @@ export class UMLogin {
             if (r.result) {
                 this.successCallback(gvc, widget, r.response);
             } else {
-                widget.event('error', { title: '帳號或密碼錯誤' });
+                widget.event('error', { title: Language.text('incorrect_credentials') });
             }
         });
     }
@@ -871,12 +882,12 @@ export class UMLogin {
             const email = this.checkValue('vm-email');
 
             if (!email) {
-                widget.event('error', { title: '請輸入信箱' });
+                widget.event('error', { title: Language.text('email_placeholder') });
                 return;
             }
 
             if (!CheckInput.isEmail(email)) {
-                widget.event('error', { title: '請輸入有效信箱' });
+                widget.event('error', { title: Language.text('enter_valid_email') });
                 return;
             }
 
@@ -887,14 +898,14 @@ export class UMLogin {
         ApiUser.forgetPwd(vm.resetEmail).then((r) => {
             widget.event('loading', { visible: false });
             if (r.result && r.response.result) {
-                widget.event('success', { title: '成功寄送驗證碼' });
+                widget.event('success', { title: Language.text('verification_code_sent') });
                 if (vm.viewType !== 'validation_code') {
                     setTimeout(() => {
                         vm.viewType = 'validation_code';
                     }, 1000);
                 }
             } else {
-                widget.event('error', { title: '信件寄送錯誤' });
+                widget.event('error', { title: Language.text('system_error') });
             }
         });
     }
@@ -903,20 +914,20 @@ export class UMLogin {
         const email = this.checkValue(id);
 
         if (!email) {
-            widget.event('error', { title: '請輸入信箱' });
+            widget.event('error', { title: Language.text('email_placeholder') });
             return;
         }
 
         if (!CheckInput.isEmail(email)) {
-            widget.event('error', { title: '請輸入有效信箱' });
+            widget.event('error', { title: Language.text('enter_valid_email') });
             return;
         }
 
         ApiUser.emailVerify(email).then((r) => {
             if (r.result && r.response.result) {
-                widget.event('success', { title: '已送出驗證碼信件' });
+                widget.event('success', { title: Language.text('verification_code_sent') });
             } else {
-                widget.event('error', { title: '信件寄送錯誤' });
+                widget.event('error', { title: Language.text('system_error') });
             }
         });
     }
@@ -925,20 +936,20 @@ export class UMLogin {
         const phone = this.checkValue(id);
 
         if (!phone) {
-            widget.event('error', { title: '請輸入手機號碼' });
+            widget.event('error', { title: Language.text('enter_phone_number') });
             return;
         }
 
         if (!CheckInput.isTaiwanPhone(phone)) {
-            widget.event('error', { title: '請輸入有效的手機號碼' });
+            widget.event('error', { title: Language.text('enter_valid_phone_number') });
             return;
         }
 
         ApiUser.phoneVerify(phone).then((r) => {
             if (r.result && r.response.result) {
-                widget.event('success', { title: '已送出驗證碼簡訊' });
+                widget.event('success', { title: Language.text('verification_code_sent') });
             } else {
-                widget.event('error', { title: '簡訊寄送錯誤' });
+                widget.event('error', { title: Language.text('system_error') });
             }
         });
     }
@@ -947,7 +958,7 @@ export class UMLogin {
         const code = this.checkValue('vm-code');
 
         if (!code) {
-            widget.event('error', { title: '請輸入驗證碼' });
+            widget.event('error', { title: Language.text('please_enter_verification_code') });
             return;
         }
 
@@ -956,7 +967,7 @@ export class UMLogin {
                 vm.validationCode = code;
                 vm.viewType = 'reset_password';
             } else {
-                widget.event('error', { title: '驗證碼輸入錯誤' });
+                widget.event('error', { title: Language.text('email_verification_code_incorrect') });
             }
         });
     }
@@ -966,29 +977,29 @@ export class UMLogin {
         const confirmPassword = this.checkValue('vm-confirm-password');
 
         if (!newPassword) {
-            widget.event('error', { title: '請輸入新密碼' });
+            widget.event('error', { title: Language.text('please_enter_new_password') });
             return;
         }
 
         if (!confirmPassword) {
-            widget.event('error', { title: '請輸入確認密碼' });
+            widget.event('error', { title: Language.text('please_confirm_password_again') });
             return;
         }
 
         if (newPassword !== confirmPassword) {
-            widget.event('error', { title: '新密碼與確認密碼不符' });
+            widget.event('error', { title: Language.text('password_mismatch') });
             return;
         }
 
         ApiUser.resetPwdV2(vm.resetEmail, vm.validationCode, newPassword).then((r) => {
             vm.resetEmail = '';
             if (r.result && r.response.result) {
-                widget.event('success', { title: '更換密碼成功' });
+                widget.event('success', { title: Language.text('password_change_success') });
                 setTimeout(() => {
                     this.viewCallback(vm, 'login');
                 }, 1000);
             } else {
-                widget.event('error', { title: '更換密碼失敗' });
+                widget.event('error', { title: Language.text('password_change_failure') });
             }
         });
     }
