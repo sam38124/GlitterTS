@@ -81,7 +81,7 @@ export class UMLogin {
                                 <div
                                     class="${gClass('button')} my-2"
                                     onclick="${gvc.event(() => {
-                        this.validationCode(widget, vm);
+                        this.verifySubmitCode(widget, vm);
                     })}"
                                 >
                                     <span class="${gClass('button-text')}">${Language.text('submit')}</span>
@@ -392,7 +392,7 @@ export class UMLogin {
         }, 700);
     }
     static authThirdPartyHTML(gvc, widget, vm) {
-        const loginEvents = this.getLoginEvents(gvc, widget);
+        const loginEvents = this.getAuthLoginEvents(gvc, widget);
         return html `<div class="w-100 d-flex align-items-center gap-2" style="color:#8D8D8D;">
                 <div class="${vm.prefix}-gray-hr"></div>
                 ${Language.text('or')}
@@ -494,7 +494,7 @@ export class UMLogin {
             },
         });
     }
-    static getLoginEvents(gvc, widget) {
+    static getAuthLoginEvents(gvc, widget) {
         const glitter = gvc.glitter;
         return [
             {
@@ -893,7 +893,7 @@ export class UMLogin {
             }
         });
     }
-    static validationCode(widget, vm) {
+    static verifySubmitCode(widget, vm) {
         const code = this.checkValue('vm-code');
         if (!code) {
             widget.event('error', { title: Language.text('please_enter_verification_code') });

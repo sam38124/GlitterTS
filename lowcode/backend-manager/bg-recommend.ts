@@ -874,7 +874,7 @@ export class BgRecommend {
                                                     ),
                                                     BgWidget.mainCard(
                                                         [
-                                                            html` <div class="tx_700">分潤商品</div>`,
+                                                            html` <div class="tx_700 mb-3">分潤商品</div>`,
                                                             gvc.bindView({
                                                                 bind: 'listProduct',
                                                                 view: () => {

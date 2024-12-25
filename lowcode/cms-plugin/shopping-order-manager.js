@@ -20,50 +20,9 @@ import { ApiDelivery } from '../glitter-base/route/delivery.js';
 import { ShoppingInvoiceManager } from './shopping-invoice-manager.js';
 import { BgRecommend } from '../backend-manager/bg-recommend.js';
 import { ApiRecommend } from '../glitter-base/route/recommend.js';
+import { DeliveryHTML } from './module/delivery-html.js';
 const html = String.raw;
 export class ShoppingOrderManager {
-    static supportShipmentMethod() {
-        return [
-            {
-                title: '門市立即取貨',
-                value: 'now',
-                name: '',
-            },
-            {
-                title: '一般宅配',
-                value: 'normal',
-                name: '',
-            },
-            {
-                title: '全家店到店',
-                value: 'FAMIC2C',
-                name: '',
-            },
-            {
-                title: '萊爾富店到店',
-                value: 'HILIFEC2C',
-                name: '',
-            },
-            {
-                title: 'OK超商店到店',
-                value: 'OKMARTC2C',
-                name: '',
-            },
-            {
-                title: '7-ELEVEN超商交貨便',
-                value: 'UNIMARTC2C',
-                name: '',
-            },
-            {
-                title: '實體門市取貨',
-                value: 'shop',
-                name: '',
-            },
-        ].map((dd) => {
-            dd.name = dd.title;
-            return dd;
-        });
-    }
     static main(gvc, query) {
         const glitter = gvc.glitter;
         const dialog = new ShareDialog(gvc.glitter);
@@ -608,6 +567,48 @@ export class ShoppingOrderManager {
             },
         });
     }
+    static supportShipmentMethod() {
+        return [
+            {
+                title: '門市立即取貨',
+                value: 'now',
+                name: '',
+            },
+            {
+                title: '一般宅配',
+                value: 'normal',
+                name: '',
+            },
+            {
+                title: '全家店到店',
+                value: 'FAMIC2C',
+                name: '',
+            },
+            {
+                title: '萊爾富店到店',
+                value: 'HILIFEC2C',
+                name: '',
+            },
+            {
+                title: 'OK超商店到店',
+                value: 'OKMARTC2C',
+                name: '',
+            },
+            {
+                title: '7-ELEVEN超商交貨便',
+                value: 'UNIMARTC2C',
+                name: '',
+            },
+            {
+                title: '實體門市取貨',
+                value: 'shop',
+                name: '',
+            },
+        ].map((dd) => {
+            dd.name = dd.title;
+            return dd;
+        });
+    }
     static replaceOrder(gvc, vm, passOrderData, backCallback) {
         var _a, _b;
         const glitter = gvc.glitter;
@@ -1011,6 +1012,18 @@ export class ShoppingOrderManager {
                                                     }),
                                                 })
                                                 : ''}
+                                                                    ${BgWidget.customButton({
+                                                button: {
+                                                    color: 'gray',
+                                                    size: 'sm',
+                                                },
+                                                text: {
+                                                    name: '列印出貨單',
+                                                },
+                                                event: gvc.event(() => {
+                                                    DeliveryHTML.print(gvc);
+                                                }),
+                                            })}
                                                                 </div>`,
                                             html ` ${['UNIMARTC2C', 'FAMIC2C', 'OKMARTC2C', 'HILIFEC2C', 'normal'].includes(orderData.orderData.user_info.shipment)
                                                 ? html ` <div class="tx_700">配送資訊</div>
@@ -1453,7 +1466,6 @@ export class ShoppingOrderManager {
                                         BgWidget.mainCard(html `
                                                             <div class="tx_700 mb-2 fs-6 text-info">自訂顧客資料表單</div>
                                                             <div class="px-2 py-1 border-start" style="color: #393939;font-size: 16px;">
-                                                               
                                                                 ${orderData.orderData.custom_form_format
                                             .filter((dd) => {
                                             return orderData.orderData.custom_form_data[dd.key];
@@ -1480,7 +1492,7 @@ export class ShoppingOrderManager {
                                     }).length > 0) {
                                     return (html ` <div style="margin-top: 24px;"></div>` +
                                         BgWidget.mainCard(html `
-                                                                <div class="tx_700 mb-2 fs-6 text-info">自訂收件人資料表單</div>
+                                                            <div class="tx_700 mb-2 fs-6 text-info">自訂收件人資料表單</div>
                                                             <div class="px-2 py-1 border-start" style="color: #393939;font-size: 16px;">
                                                                 ${orderData.orderData.custom_receipt_form
                                             .filter((dd) => {
@@ -1501,7 +1513,11 @@ export class ShoppingOrderManager {
                                     return ``;
                                 }
                             })(),
-                        ].filter((dd) => { return dd; }).join(BgWidget.mbContainer(24))}
+                        ]
+                            .filter((dd) => {
+                            return dd;
+                        })
+                            .join(BgWidget.mbContainer(24))}
                                     </div>`,
                         ratio: 25,
                     })}

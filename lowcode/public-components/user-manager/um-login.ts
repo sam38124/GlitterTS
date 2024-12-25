@@ -92,7 +92,7 @@ export class UMLogin {
                                 <div
                                     class="${gClass('button')} my-2"
                                     onclick="${gvc.event(() => {
-                                        this.validationCode(widget, vm);
+                                        this.verifySubmitCode(widget, vm);
                                     })}"
                                 >
                                     <span class="${gClass('button-text')}">${Language.text('submit')}</span>
@@ -411,7 +411,7 @@ export class UMLogin {
     }
 
     static authThirdPartyHTML(gvc: GVC, widget: any, vm: VM) {
-        const loginEvents = this.getLoginEvents(gvc, widget);
+        const loginEvents = this.getAuthLoginEvents(gvc, widget);
 
         return html`<div class="w-100 d-flex align-items-center gap-2" style="color:#8D8D8D;">
                 <div class="${vm.prefix}-gray-hr"></div>
@@ -446,8 +446,8 @@ export class UMLogin {
                         if (!event) {
                             return '';
                         }
-
                         event.created();
+
                         return html`<div
                             class="${vm.prefix}-auth-thrid-button"
                             onclick="${gvc.event(() => {
@@ -521,7 +521,7 @@ export class UMLogin {
         });
     }
 
-    static getLoginEvents(gvc: GVC, widget: any): { key: string; created: () => void; call: () => void }[] {
+    static getAuthLoginEvents(gvc: GVC, widget: any): { key: string; created: () => void; call: () => void }[] {
         const glitter = gvc.glitter;
         return [
             {
@@ -648,9 +648,8 @@ export class UMLogin {
 
                         const loadFacebookSDK = () => {
                             const intervalId = setInterval(() => {
-                                const FB = (window as any).FB;
-
                                 // 檢查 SDK 是否已載入
+                                const FB = (window as any).FB;
                                 if (FB) {
                                     clearInterval(intervalId); // 清除間隔
                                     (window as any).fbAsyncInit = () => {
@@ -769,12 +768,10 @@ export class UMLogin {
             widget.event('error', { title: Language.text('please_enter_password') });
             return;
         }
-
         if (!confirmPassword) {
             widget.event('error', { title: Language.text('please_confirm_password_again') });
             return;
         }
-
         if (password !== confirmPassword) {
             widget.event('error', { title: Language.text('password_mismatch') });
             return;
@@ -859,7 +856,6 @@ export class UMLogin {
             widget.event('error', { title: Language.text('email_phone_placeholder') });
             return;
         }
-
         if (!password) {
             widget.event('error', { title: Language.text('please_enter_password') });
             return;
@@ -885,7 +881,6 @@ export class UMLogin {
                 widget.event('error', { title: Language.text('email_placeholder') });
                 return;
             }
-
             if (!CheckInput.isEmail(email)) {
                 widget.event('error', { title: Language.text('enter_valid_email') });
                 return;
@@ -917,7 +912,6 @@ export class UMLogin {
             widget.event('error', { title: Language.text('email_placeholder') });
             return;
         }
-
         if (!CheckInput.isEmail(email)) {
             widget.event('error', { title: Language.text('enter_valid_email') });
             return;
@@ -939,7 +933,6 @@ export class UMLogin {
             widget.event('error', { title: Language.text('enter_phone_number') });
             return;
         }
-
         if (!CheckInput.isTaiwanPhone(phone)) {
             widget.event('error', { title: Language.text('enter_valid_phone_number') });
             return;
@@ -954,7 +947,7 @@ export class UMLogin {
         });
     }
 
-    static validationCode(widget: any, vm: VM) {
+    static verifySubmitCode(widget: any, vm: VM) {
         const code = this.checkValue('vm-code');
 
         if (!code) {
@@ -980,12 +973,10 @@ export class UMLogin {
             widget.event('error', { title: Language.text('please_enter_new_password') });
             return;
         }
-
         if (!confirmPassword) {
             widget.event('error', { title: Language.text('please_confirm_password_again') });
             return;
         }
-
         if (newPassword !== confirmPassword) {
             widget.event('error', { title: Language.text('password_mismatch') });
             return;
