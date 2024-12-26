@@ -47,7 +47,7 @@ const logger = new Logger();
 app.options('/*', (req, res) => {
     res.header('Access-Control-Allow-Origin', '*');
     res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, PATCH');
-    res.header('Access-Control-Allow-Headers', 'Content-Type,Authorization,g-app,mac_address,language');
+    res.header('Access-Control-Allow-Headers', 'Content-Type,Authorization,g-app,mac_address,language,currency_code');
     res.status(200).send();
 });
 
@@ -498,7 +498,8 @@ export async function createAPP(dd: any) {
                                 window.server_execute_time = ${(new Date().getTime() - start) / 1000};
                                 window.language='${language}';
                                 ${distribution_code};
-                                window.ip_country='${(await User.ipInfo((req.query.ip || req.headers['x-real-ip'] || req.ip) as string)).country || 'TW'}'
+                                window.ip_country='${(await User.ipInfo((req.query.ip || req.headers['x-real-ip'] || req.ip) as string)).country || 'TW'}';
+                                window.currency_covert=${JSON.stringify(await Shopping.currencyCovert((req.query.base || 'TWD') as string))};
                             </script>
                             ${[
                                 { src: 'glitterBundle/GlitterInitial.js', type: 'module' },

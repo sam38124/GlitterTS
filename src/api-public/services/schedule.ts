@@ -283,7 +283,7 @@ export class Schedule {
     }
     async  currenciesUpdate(sec:number){
         const date=new Date()
-        const date_index=`${date.getFullYear()}-${date.getMonth()}-${date.getDate()}`
+        const date_index=`${date.getFullYear()}-${date.getMonth()+1}-${date.getDate()}`
         if((await db.query(`select count(1) from \`${saasConfig.SAAS_NAME}\`.currency_config where updated='${date_index}'`,[]))[0]['count(1)']===0){
             let config = {
                 method: 'get',
@@ -320,7 +320,7 @@ export class Schedule {
             { second: 30, status: true, func: 'resetVoucherHistory', desc: '未付款歷史優惠券重設' },
             { second: 30, status: true, func: 'autoSendMail', desc: '自動排程寄送信件' },
             { second: 30, status: true, func: 'autoSendLine', desc: '自動排程寄送line訊息' },
-            { second: 30 * 240, status: true, func: 'currenciesUpdate', desc: '多國貨幣的更新排程' },
+            { second: 3600*24, status: true, func: 'currenciesUpdate', desc: '多國貨幣的更新排程' },
             { second: 3600*24, status: true, func: 'initialSampleApp', desc: '重新刷新示範商店' },
         ];
         try {

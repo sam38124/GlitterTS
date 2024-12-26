@@ -1,4 +1,5 @@
 import {Language} from "../../glitter-base/global/language.js";
+import {Currency} from "../../glitter-base/global/currency.js";
 
 
 export class BaseApi {
@@ -15,7 +16,8 @@ export class BaseApi {
             }
             try {
                 requestOptions.headers['mac_address']=(window as any).glitter.macAddress;
-                requestOptions.headers['language']= requestOptions.headers['language'] || Language.getLanguage()
+                requestOptions.headers['language']= requestOptions.headers['language'] || Language.getLanguage();
+                requestOptions.headers['currency_code']= requestOptions.headers['currency_code'] || Currency.getCurrency()?.currency_code;
             }catch (e) {
 
             }

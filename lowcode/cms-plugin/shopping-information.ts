@@ -496,12 +496,13 @@ export class ShoppingInformation {
                                                         type="checkbox"
                                                         onchange="${gvc.event((e, event) => {
                                                             vm.data.multi_currency = !vm.data.multi_currency
+                                                            gvc.notifyDataChange('basic')
                                                         })}"
                                                         ${vm.data.multi_currency ? `checked` : ``}
                                                 />
                                             </div>
                                         </div>
-                                        <div class="d-flex flex-column " style="gap:8px;">
+                                        ${vm.data.multi_currency ? `<div class="d-flex flex-column " style="gap:8px;">
                                             <div style="color: #393939;font-size: 16px;">啟用貨幣切換</div>
                                             <div style="color: #8D8D8D;font-size:13px;">
                                                 是否開放用戶於前台自行切換幣別進行顯示
@@ -512,12 +513,12 @@ export class ShoppingInformation {
                                                         class="form-check-input m-0"
                                                         type="checkbox"
                                                         onchange="${gvc.event((e, event) => {
-                                                            vm.data.switch_currency = !vm.data.switch_currency
-                                                        })}"
+                                            vm.data.switch_currency = !vm.data.switch_currency
+                                        })}"
                                                         ${vm.data.switch_currency ? `checked` : ``}
                                                 />
                                             </div>
-                                        </div>
+                                        </div>`:``}
                                     </div>
                                 </div>
                             `, ``)

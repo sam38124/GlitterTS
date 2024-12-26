@@ -7,7 +7,7 @@ export class ConfigSetting {
     public static get is_local ():boolean{
         return process.env.is_local==='true'
     } ;
-    public static runSchedule = false;
+    public static runSchedule = true;
     public static config_path = '';
 
     public static setConfig(envPath: string) {

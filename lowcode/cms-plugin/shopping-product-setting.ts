@@ -40,6 +40,8 @@ export interface LanguageData {
 }
 
 export class ShoppingProductSetting {
+    public static select_language = (window.parent as any).store_info.language_setting.def;
+
     public static main(gvc: GVC, type: 'product' | 'addProduct' | 'giveaway' | 'hidden' = 'product') {
         const html = String.raw;
         const glitter = gvc.glitter;
@@ -500,6 +502,7 @@ export class ShoppingProductSetting {
                                                             BgWidget.darkButton(
                                                                     '新增',
                                                                     gvc.event(() => {
+                                                                        ShoppingProductSetting.select_language=((window.parent as any).store_info.language_setting.def)
                                                                         vm.type = 'add';
                                                                     }),
                                                                     {
@@ -716,6 +719,7 @@ export class ShoppingProductSetting {
                                                                                 },
                                                                                 rowClick: (data, index) => {
                                                                                     vm.replaceData = vm.dataList[index].content;
+                                                                                    ShoppingProductSetting.select_language=((window.parent as any).store_info.language_setting.def)
                                                                                     vm.type = 'replace';
                                                                                 },
                                                                                 filter: [
@@ -943,15 +947,19 @@ export class ShoppingProductSetting {
                                                         return {
                                                             bind: id,
                                                             view: () => {
+                                                                variant[`preview_image_${ShoppingProductSetting.select_language}`] = variant[`preview_image_${ShoppingProductSetting.select_language}`] || variant.preview_image;
                                                                 return html`
                                                                     <div style="font-weight: 700;">規格</div>
                                                                     <div>
                                                                         ${variant.spec.length > 0 ? variant.spec.join(' / ') : '單一規格'}
                                                                     </div>
-                                                                    <div style="font-weight: 700;">規格圖片</div>
+                                                                    <div style="font-weight: 700;gap:5px;"
+                                                                         class="d-flex align-items-center">規格圖片
+                                                                        ${BgWidget.languageInsignia(ShoppingProductSetting.select_language as any)}
+                                                                    </div>
                                                                     <div
                                                                             class="d-flex align-items-center justify-content-center rounded-3 shadow"
-                                                                            style="min-width:135px;135px;height:135px;cursor:pointer;background: 50%/cover url('${variant.preview_image || BgWidget.noImageURL}');"
+                                                                            style="min-width:135px;135px;height:135px;cursor:pointer;background: 50%/cover url('${variant[`preview_image_${ShoppingProductSetting.select_language}`] || BgWidget.noImageURL}');"
                                                                     >
                                                                         <div
                                                                                 class="w-100 h-100 d-flex align-items-center justify-content-center rounded-3 p-hover-image"
@@ -960,10 +968,10 @@ export class ShoppingProductSetting {
                                                                             <i
                                                                                     class="fa-regular fa-eye"
                                                                                     onclick="${obj.gvc.event(() => {
-                                                                                        obj.gvc.glitter.openDiaLog(
+                                                                                        (window.parent as any).glitter.openDiaLog(
                                                                                                 new URL('../dialog/image-preview.js', import.meta.url).href,
                                                                                                 'preview',
-                                                                                                variant.preview_image || BgWidget.noImageURL
+                                                                                                variant[`preview_image_${ShoppingProductSetting.select_language}`] || BgWidget.noImageURL
                                                                                         );
                                                                                     })}"
                                                                             ></i>
@@ -972,8 +980,8 @@ export class ShoppingProductSetting {
                                                                     <div
                                                                             style="width: 136px;text-align: center;color: #36B;cursor: pointer;"
                                                                             onclick="${obj.gvc.event(() => {
-                                                                                console.log('postMD -- ', postMD.preview_image);
-                                                                                imageLibrary.selectImageFromArray(postMD.preview_image, {
+                                                                                const language_data: any = (postMD.language_data as any)[ShoppingProductSetting.select_language];
+                                                                                imageLibrary.selectImageFromArray(language_data.preview_image, {
                                                                                     gvc: gvc,
                                                                                     title: html`
                                                                                         <div class="d-flex flex-column"
@@ -981,7 +989,7 @@ export class ShoppingProductSetting {
                                                                                             圖片庫
                                                                                         </div>`,
                                                                                     getSelect: (imageUrl) => {
-                                                                                        variant.preview_image = imageUrl;
+                                                                                        variant[`preview_image_${ShoppingProductSetting.select_language}`] = imageUrl;
                                                                                         gvc.notifyDataChange(id);
                                                                                     },
                                                                                 });
@@ -1777,9 +1785,14 @@ export class ShoppingProductSetting {
             }
         `);
 
-        const vm = {
+        const vm:{
+            id:string,
+            language:any,
+            content_detail:any
+        } = {
             id: gvc.glitter.getUUID(),
-            language: (window.parent as any).store_info.language_setting.def,
+            language: ShoppingProductSetting.select_language,
+            content_detail:undefined
         };
 
         function sel_lan() {
@@ -1799,7 +1812,11 @@ export class ShoppingProductSetting {
                     language_data.content = language_data.content ?? postMD.content;
                     language_data.content_array = language_data.content_array ?? postMD.content_array;
                     language_data.content_json = language_data.content_json ?? postMD.content_json;
-
+                    language_data.preview_image = language_data.preview_image ?? JSON.parse(JSON.stringify((postMD.preview_image || [])));
+                    ShoppingProductSetting.select_language = vm.language;
+                    postMD.variants.map((variant: any) => {
+                        variant.preview_image = variant[`preview_image_${ShoppingProductSetting.select_language}`] || variant.preview_image || BgWidget.noImageURL
+                    })
                     updateVariants();
                     return [
                         BgWidget.container(
@@ -1963,7 +1980,7 @@ export class ShoppingProductSetting {
                                                                                 </div>
                                                                                 <div class="flex-fill"></div>
                                                                             </div>
-                                                                            ${BgWidget.grayNote('將顯示於商品標題下方，快速表示商品內容')}
+                                                                            ${BgWidget.grayNote('將顯示於商品名稱下方，快速呈現商品重點資訊，建議精簡')}
                                                                             <div class="my-3">
                                                                                 ${gvc.bindView((() => {
                                                                                     const id = gvc.glitter.getUUID();
@@ -2106,63 +2123,85 @@ export class ShoppingProductSetting {
                                                         [
                                                             obj.gvc.bindView(() => {
                                                                 const dialog = new ShareDialog(gvc.glitter);
-                                                                const vm = {
-                                                                    id: obj.gvc.glitter.getUUID(),
-                                                                    type: 'product-detail',
-                                                                    loading: true,
-                                                                    documents: [],
-                                                                };
+                                                                const vm_this=vm
+                                                                return (()=>{
+                                                                    const vm = {
+                                                                        id: obj.gvc.glitter.getUUID(),
+                                                                        type: 'product-detail',
+                                                                        loading: true,
+                                                                        documents: [],
+                                                                    };
 
-                                                                language_data.content_array = language_data.content_array ?? [];
-                                                                language_data.content_json = language_data.content_json ?? [];
-                                                                return {
-                                                                    bind: vm.id,
-                                                                    view: async () => {
-                                                                        if (vm.loading) {
-                                                                            return BgWidget.spinner();
-                                                                        }
-
-                                                                        function formatRichtext(
-                                                                                text: string,
-                                                                                tags: {
-                                                                                    key: string;
-                                                                                    title: string;
-                                                                                    font_size: string;
-                                                                                    font_color: string;
-                                                                                    font_bgr: string;
-                                                                                }[],
-                                                                                jsonData: {
-                                                                                    key: string;
-                                                                                    value: string;
-                                                                                }[]
-                                                                        ) {
-                                                                            let gText = `${text}`;
-                                                                            if (tags && tags.length > 0) {
-                                                                                for (const item of tags) {
-                                                                                    const data = jsonData.find((j) => j.key === item.key);
-                                                                                    const textImage =
-                                                                                            data && data.value
-                                                                                                    ? html`<span
+                                                                    language_data.content_array = language_data.content_array ?? [];
+                                                                    language_data.content_json = language_data.content_json ?? [];
+                                                                    if(!vm_this.content_detail){
+                                                                        ApiUser.getPublicConfig('text-manager', 'manager').then((data: any) => {
+                                                                            vm.documents = data.response.value;
+                                                                            if (!Array.isArray(vm.documents)) {
+                                                                                vm.documents = [];
+                                                                            }
+                                                                            vm_this.content_detail=vm.documents
+                                                                            vm.loading = false;
+                                                                            gvc.notifyDataChange(vm.id);
+                                                                        });
+                                                                    }else{
+                                                                        vm.documents=vm_this.content_detail
+                                                                        vm.loading = false;
+                                                                    }
+                                                                  
+                                                                    return {
+                                                                        bind: vm.id,
+                                                                        view: async () => {
+                                                                            if (vm.loading) {
+                                                                                return BgWidget.spinner();
+                                                                            }
+                                                                            language_data.content_array = language_data.content_array.filter((id: any) => {
+                                                                                return vm.documents.some((item: any) => item.id === id);
+                                                                            });
+                                                                            language_data.content_json = language_data.content_json.filter((d: any) => {
+                                                                                return vm.documents.some((item: any) => item.id === d.id);
+                                                                            });
+                                                                            function formatRichtext(
+                                                                                    text: string,
+                                                                                    tags: {
+                                                                                        key: string;
+                                                                                        title: string;
+                                                                                        font_size: string;
+                                                                                        font_color: string;
+                                                                                        font_bgr: string;
+                                                                                    }[],
+                                                                                    jsonData: {
+                                                                                        key: string;
+                                                                                        value: string;
+                                                                                    }[]
+                                                                            ) {
+                                                                                let gText = `${text}`;
+                                                                                if (tags && tags.length > 0) {
+                                                                                    for (const item of tags) {
+                                                                                        const data = jsonData.find((j) => j.key === item.key);
+                                                                                        const textImage =
+                                                                                                data && data.value
+                                                                                                        ? html`<span
                                                                                                             style="font-size: ${item.font_size ?? '14'}px; color: ${item.font_color ??
-                                                                                                            '#393939'}; background: ${item.font_bgr ?? '#fff'}"
+                                                                                                        '#393939'}; background: ${item.font_bgr ?? '#fff'}"
                                                                                                     >${data.value}</span
                                                                                                     >`
-                                                                                                    : html`#${item.title}#`;
-                                                                                    // : html`<img
-                                                                                    //       alt="${item.key}"
-                                                                                    //       class="rounded-2"
-                                                                                    //       src="https://assets.imgix.net/~text?bg=4d86db&txtclr=f2f2f2&w=${Tool.twenLength(item.title) *
-                                                                                    //       20}&h=40&txtsize=12&txt=${item.title}&txtfont=Helvetica&txtalign=middle,center"
-                                                                                    //   />`;
+                                                                                                        : html`#${item.title}#`;
+                                                                                        // : html`<img
+                                                                                        //       alt="${item.key}"
+                                                                                        //       class="rounded-2"
+                                                                                        //       src="https://assets.imgix.net/~text?bg=4d86db&txtclr=f2f2f2&w=${Tool.twenLength(item.title) *
+                                                                                        //       20}&h=40&txtsize=12&txt=${item.title}&txtfont=Helvetica&txtalign=middle,center"
+                                                                                        //   />`;
 
-                                                                                    const regex = new RegExp(`@{{${item.key}}}`, 'g');
-                                                                                    gText = gText.replace(regex, textImage);
+                                                                                        const regex = new RegExp(`@{{${item.key}}}`, 'g');
+                                                                                        gText = gText.replace(regex, textImage);
+                                                                                    }
                                                                                 }
+                                                                                return gText;
                                                                             }
-                                                                            return gText;
-                                                                        }
 
-                                                                        return html`
+                                                                            return html`
                                                                             <div class="d-flex align-items-center justify-content-end mb-3">
                                                                                 <div class="d-flex align-items-center gap-2">
                                                                                     <div style="color: #393939; font-weight: 700;">
@@ -2174,24 +2213,24 @@ export class ShoppingProductSetting {
                                                                                 <div
                                                                                         class="cursor_pointer"
                                                                                         onclick="${gvc.event(() => {
-                                                                                            BgWidget.dialog({
-                                                                                                gvc: gvc,
-                                                                                                title: '設定',
-                                                                                                xmark: () => {
-                                                                                                    return new Promise<boolean>((resolve) => {
-                                                                                                        gvc.notifyDataChange(vm.id);
-                                                                                                        resolve(true);
-                                                                                                    });
-                                                                                                },
-                                                                                                innerHTML: (gvc) => {
-                                                                                                    const id = gvc.glitter.getUUID();
-                                                                                                    return gvc.bindView(() => {
-                                                                                                        return {
-                                                                                                            bind: id,
-                                                                                                            view: () => {
-                                                                                                                return vm.documents
-                                                                                                                        .map((dd: any) => {
-                                                                                                                            return html`
+                                                                                BgWidget.dialog({
+                                                                                    gvc: gvc,
+                                                                                    title: '設定',
+                                                                                    xmark: () => {
+                                                                                        return new Promise<boolean>((resolve) => {
+                                                                                            gvc.notifyDataChange(vm.id);
+                                                                                            resolve(true);
+                                                                                        });
+                                                                                    },
+                                                                                    innerHTML: (gvc) => {
+                                                                                        const id = gvc.glitter.getUUID();
+                                                                                        return gvc.bindView(() => {
+                                                                                            return {
+                                                                                                bind: id,
+                                                                                                view: () => {
+                                                                                                    return vm.documents
+                                                                                                            .map((dd: any) => {
+                                                                                                                return html`
                                                                                                                                 <li class="w-100 px-2">
                                                                                                                                     <div class="w-100 d-flex justify-content-between">
                                                                                                                                         <div class="d-flex justify-content-start align-items-center gap-3">
@@ -2201,107 +2240,107 @@ export class ShoppingProductSetting {
                                                                                                                                             </div>
                                                                                                                                         </div>
                                                                                                                                         ${gvc.bindView(
-                                                                                                                                                (() => {
-                                                                                                                                                    const iconId = gvc.glitter.getUUID();
-                                                                                                                                                    return {
-                                                                                                                                                        bind: iconId,
-                                                                                                                                                        view: () => {
-                                                                                                                                                            return html`
+                                                                                                                        (() => {
+                                                                                                                            const iconId = gvc.glitter.getUUID();
+                                                                                                                            return {
+                                                                                                                                bind: iconId,
+                                                                                                                                view: () => {
+                                                                                                                                    return html`
                                                                                                                                                                 <i
                                                                                                                                                                         class="${language_data.content_array.includes(dd.id)
-                                                                                                                                                                                ? 'fa-solid fa-eye'
-                                                                                                                                                                                : 'fa-sharp fa-solid fa-eye-slash'} d-flex align-items-center justify-content-center cursor_pointer"
+                                                                                                                                            ? 'fa-solid fa-eye'
+                                                                                                                                            : 'fa-sharp fa-solid fa-eye-slash'} d-flex align-items-center justify-content-center cursor_pointer"
                                                                                                                                                                         onclick="${gvc.event(() => {
-                                                                                                                                                                            if (language_data.content_array.includes(dd.id)) {
-                                                                                                                                                                                language_data.content_array =
-                                                                                                                                                                                        language_data.content_array.filter(
-                                                                                                                                                                                                (d: any) => d !== dd.id
-                                                                                                                                                                                        );
-                                                                                                                                                                            } else {
-                                                                                                                                                                                language_data.content_array.push(dd.id);
-                                                                                                                                                                            }
-                                                                                                                                                                            gvc.notifyDataChange(iconId);
-                                                                                                                                                                        })}"
+                                                                                                                                        if (language_data.content_array.includes(dd.id)) {
+                                                                                                                                            language_data.content_array =
+                                                                                                                                                    language_data.content_array.filter(
+                                                                                                                                                            (d: any) => d !== dd.id
+                                                                                                                                                    );
+                                                                                                                                        } else {
+                                                                                                                                            language_data.content_array.push(dd.id);
+                                                                                                                                        }
+                                                                                                                                        gvc.notifyDataChange(iconId);
+                                                                                                                                    })}"
                                                                                                                                                                 ></i>`;
-                                                                                                                                                        },
-                                                                                                                                                        divCreate: {
-                                                                                                                                                            class: 'd-flex',
-                                                                                                                                                        },
-                                                                                                                                                    };
-                                                                                                                                                })()
-                                                                                                                                        )}
+                                                                                                                                },
+                                                                                                                                divCreate: {
+                                                                                                                                    class: 'd-flex',
+                                                                                                                                },
+                                                                                                                            };
+                                                                                                                        })()
+                                                                                                                )}
                                                                                                                                     </div>
                                                                                                                                 </li>`;
-                                                                                                                        })
-                                                                                                                        .join('');
-                                                                                                            },
-                                                                                                            divCreate: {
-                                                                                                                elem: 'ul',
-                                                                                                                class: 'w-100 my-2 d-flex flex-column gap-4',
-                                                                                                            },
-                                                                                                            onCreate: () => {
-                                                                                                                if (!vm.loading) {
-                                                                                                                    gvc.glitter.addMtScript(
-                                                                                                                            [
-                                                                                                                                {
-                                                                                                                                    src: `https://raw.githack.com/SortableJS/Sortable/master/Sortable.js`,
-                                                                                                                                },
-                                                                                                                            ],
-                                                                                                                            () => {
-                                                                                                                            },
-                                                                                                                            () => {
-                                                                                                                            }
-                                                                                                                    );
-                                                                                                                    const interval = setInterval(() => {
-                                                                                                                        if ((window as any).Sortable) {
-                                                                                                                            try {
-                                                                                                                                gvc.addStyle(`
+                                                                                                            })
+                                                                                                            .join('');
+                                                                                                },
+                                                                                                divCreate: {
+                                                                                                    elem: 'ul',
+                                                                                                    class: 'w-100 my-2 d-flex flex-column gap-4',
+                                                                                                },
+                                                                                                onCreate: () => {
+                                                                                                    if (!vm.loading) {
+                                                                                                        gvc.glitter.addMtScript(
+                                                                                                                [
+                                                                                                                    {
+                                                                                                                        src: `https://raw.githack.com/SortableJS/Sortable/master/Sortable.js`,
+                                                                                                                    },
+                                                                                                                ],
+                                                                                                                () => {
+                                                                                                                },
+                                                                                                                () => {
+                                                                                                                }
+                                                                                                        );
+                                                                                                        const interval = setInterval(() => {
+                                                                                                            if ((window as any).Sortable) {
+                                                                                                                try {
+                                                                                                                    gvc.addStyle(`
                                                                                                                         ul {
                                                                                                                             list-style: none;
                                                                                                                             padding: 0;
                                                                                                                         }
                                                                                                                     `);
 
-                                                                                                                                function swapArr(arr: any, t1: number, t2: number) {
-                                                                                                                                    const data = arr[t1];
-                                                                                                                                    arr.splice(t1, 1);
-                                                                                                                                    arr.splice(t2, 0, data);
-                                                                                                                                }
+                                                                                                                    function swapArr(arr: any, t1: number, t2: number) {
+                                                                                                                        const data = arr[t1];
+                                                                                                                        arr.splice(t1, 1);
+                                                                                                                        arr.splice(t2, 0, data);
+                                                                                                                    }
 
-                                                                                                                                let startIndex = 0;
-                                                                                                                                //@ts-ignore
-                                                                                                                                Sortable.create(gvc.getBindViewElem(id).get(0), {
-                                                                                                                                    group: id,
-                                                                                                                                    animation: 100,
-                                                                                                                                    handle: '.dragItem',
-                                                                                                                                    onEnd: (evt: any) => {
-                                                                                                                                        swapArr(vm.documents, startIndex, evt.newIndex);
-                                                                                                                                        ApiUser.setPublicConfig({
-                                                                                                                                            key: 'text-manager',
-                                                                                                                                            user_id: 'manager',
-                                                                                                                                            value: vm.documents,
-                                                                                                                                        }).then((result) => {
-                                                                                                                                            if (!result.response.result) {
-                                                                                                                                                dialog.errorMessage({text: '設定失敗'});
-                                                                                                                                            }
-                                                                                                                                        });
-                                                                                                                                    },
-                                                                                                                                    onStart: (evt: any) => {
-                                                                                                                                        startIndex = evt.oldIndex;
-                                                                                                                                    },
-                                                                                                                                });
-                                                                                                                            } catch (e) {
-                                                                                                                            }
-                                                                                                                            clearInterval(interval);
-                                                                                                                        }
-                                                                                                                    }, 100);
+                                                                                                                    let startIndex = 0;
+                                                                                                                    //@ts-ignore
+                                                                                                                    Sortable.create(gvc.getBindViewElem(id).get(0), {
+                                                                                                                        group: id,
+                                                                                                                        animation: 100,
+                                                                                                                        handle: '.dragItem',
+                                                                                                                        onEnd: (evt: any) => {
+                                                                                                                            swapArr(vm.documents, startIndex, evt.newIndex);
+                                                                                                                            ApiUser.setPublicConfig({
+                                                                                                                                key: 'text-manager',
+                                                                                                                                user_id: 'manager',
+                                                                                                                                value: vm.documents,
+                                                                                                                            }).then((result) => {
+                                                                                                                                if (!result.response.result) {
+                                                                                                                                    dialog.errorMessage({text: '設定失敗'});
+                                                                                                                                }
+                                                                                                                            });
+                                                                                                                        },
+                                                                                                                        onStart: (evt: any) => {
+                                                                                                                            startIndex = evt.oldIndex;
+                                                                                                                        },
+                                                                                                                    });
+                                                                                                                } catch (e) {
                                                                                                                 }
-                                                                                                            },
-                                                                                                        };
-                                                                                                    });
+                                                                                                                clearInterval(interval);
+                                                                                                            }
+                                                                                                        }, 100);
+                                                                                                    }
                                                                                                 },
-                                                                                            });
-                                                                                        })}"
+                                                                                            };
+                                                                                        });
+                                                                                    },
+                                                                                });
+                                                                            })}"
                                                                                 >
                                                                                     設定<i
                                                                                         class="fa-regular fa-gear ms-1"></i>
@@ -2309,132 +2348,132 @@ export class ShoppingProductSetting {
                                                                             </div>
                                                                             <div class="my-3">
                                                                                 ${gvc.bindView((() => {
-                                                                                    const id = gvc.glitter.getUUID();
-                                                                                    return {
-                                                                                        bind: id,
-                                                                                        view: () => {
-                                                                                            return html`
+                                                                                const id = gvc.glitter.getUUID();
+                                                                                return {
+                                                                                    bind: id,
+                                                                                    view: () => {
+                                                                                        return html`
                                                                                                 <div
                                                                                                         class="d-flex justify-content-between align-items-center gap-3 mb-1"
                                                                                                         style="cursor: pointer;"
                                                                                                         onclick="${gvc.event(() => {
-                                                                                                            const originContent = `${language_data.content}`;
-                                                                                                            BgWidget.fullDialog({
-                                                                                                                gvc: gvc,
-                                                                                                                title: (gvc2) => {
-                                                                                                                    return `<div class="d-flex align-items-center" style="gap:10px;">${
-                                                                                                                            '商品描述' +
-                                                                                                                            BgWidget.aiChatButton({
-                                                                                                                                gvc: gvc2,
-                                                                                                                                select: 'writer',
-                                                                                                                                click: () => {
-                                                                                                                                    ProductAi.generateRichText(gvc, (text) => {
-                                                                                                                                        language_data.content += text;
-                                                                                                                                        gvc.notifyDataChange(vm.id);
-                                                                                                                                        gvc2.recreateView();
-                                                                                                                                    });
-                                                                                                                                },
-                                                                                                                            })
-                                                                                                                    }</div>`;
+                                                                                            const originContent = `${language_data.content}`;
+                                                                                            BgWidget.fullDialog({
+                                                                                                gvc: gvc,
+                                                                                                title: (gvc2) => {
+                                                                                                    return `<div class="d-flex align-items-center" style="gap:10px;">${
+                                                                                                            '商品描述' +
+                                                                                                            BgWidget.aiChatButton({
+                                                                                                                gvc: gvc2,
+                                                                                                                select: 'writer',
+                                                                                                                click: () => {
+                                                                                                                    ProductAi.generateRichText(gvc, (text) => {
+                                                                                                                        language_data.content += text;
+                                                                                                                        gvc.notifyDataChange(vm.id);
+                                                                                                                        gvc2.recreateView();
+                                                                                                                    });
                                                                                                                 },
-                                                                                                                innerHTML: (gvc2) => {
-                                                                                                                    return html`
+                                                                                                            })
+                                                                                                    }</div>`;
+                                                                                                },
+                                                                                                innerHTML: (gvc2) => {
+                                                                                                    return html`
                                                                                                                         <div>
                                                                                                                             ${EditorElem.richText({
-                                                                                                                                gvc: gvc2,
-                                                                                                                                def: language_data.content,
-                                                                                                                                setHeight: '100vh',
-                                                                                                                                hiddenBorder: true,
-                                                                                                                                insertImageEvent: (editor) => {
-                                                                                                                                    const mark = `{{${Tool.randomString(8)}}}`;
-                                                                                                                                    editor.selection.setAtEnd(editor.$el.get(0));
-                                                                                                                                    editor.html.insert(mark);
-                                                                                                                                    editor.undo.saveStep();
+                                                                                                        gvc: gvc2,
+                                                                                                        def: language_data.content,
+                                                                                                        setHeight: '100vh',
+                                                                                                        hiddenBorder: true,
+                                                                                                        insertImageEvent: (editor) => {
+                                                                                                            const mark = `{{${Tool.randomString(8)}}}`;
+                                                                                                            editor.selection.setAtEnd(editor.$el.get(0));
+                                                                                                            editor.html.insert(mark);
+                                                                                                            editor.undo.saveStep();
 
-                                                                                                                                    imageLibrary.selectImageLibrary(
-                                                                                                                                            gvc,
-                                                                                                                                            (urlArray) => {
-                                                                                                                                                if (urlArray.length > 0) {
-                                                                                                                                                    const imgHTML = urlArray
-                                                                                                                                                            .map((url) => {
-                                                                                                                                                                return html`
+                                                                                                            imageLibrary.selectImageLibrary(
+                                                                                                                    gvc,
+                                                                                                                    (urlArray) => {
+                                                                                                                        if (urlArray.length > 0) {
+                                                                                                                            const imgHTML = urlArray
+                                                                                                                                    .map((url) => {
+                                                                                                                                        return html`
                                                                                                                                                                     <img src="${url.data}"/>`;
-                                                                                                                                                            })
-                                                                                                                                                            .join('');
-                                                                                                                                                    editor.html.set(
-                                                                                                                                                            editor.html
-                                                                                                                                                                    .get(0)
-                                                                                                                                                                    .replace(
-                                                                                                                                                                            mark,
-                                                                                                                                                                            html`
+                                                                                                                                    })
+                                                                                                                                    .join('');
+                                                                                                                            editor.html.set(
+                                                                                                                                    editor.html
+                                                                                                                                            .get(0)
+                                                                                                                                            .replace(
+                                                                                                                                                    mark,
+                                                                                                                                                    html`
                                                                                                                                                                                 <div class="d-flex flex-column">
                                                                                                                                                                                     ${imgHTML}
                                                                                                                                                                                 </div>`
-                                                                                                                                                                    )
-                                                                                                                                                    );
-                                                                                                                                                    editor.undo.saveStep();
-                                                                                                                                                } else {
-                                                                                                                                                    const dialog = new ShareDialog(gvc.glitter);
-                                                                                                                                                    dialog.errorMessage({text: '請選擇至少一張圖片'});
-                                                                                                                                                }
-                                                                                                                                            },
-                                                                                                                                            html`
+                                                                                                                                            )
+                                                                                                                            );
+                                                                                                                            editor.undo.saveStep();
+                                                                                                                        } else {
+                                                                                                                            const dialog = new ShareDialog(gvc.glitter);
+                                                                                                                            dialog.errorMessage({text: '請選擇至少一張圖片'});
+                                                                                                                        }
+                                                                                                                    },
+                                                                                                                    html`
                                                                                                                                                 <div
                                                                                                                                                         class="d-flex flex-column"
                                                                                                                                                         style="border-radius: 10px 10px 0px 0px;background: #F2F2F2;"
                                                                                                                                                 >
                                                                                                                                                     圖片庫
                                                                                                                                                 </div>`,
-                                                                                                                                            {
-                                                                                                                                                mul: true,
-                                                                                                                                                cancelEvent: () => {
-                                                                                                                                                    editor.html.set(editor.html.get(0).replace(mark, ''));
-                                                                                                                                                    editor.undo.saveStep();
-                                                                                                                                                },
-                                                                                                                                            }
-                                                                                                                                    );
-                                                                                                                                },
-                                                                                                                                callback: (text) => {
-                                                                                                                                    language_data.content = text;
-                                                                                                                                },
-                                                                                                                                rich_height: `calc(${
-                                                                                                                                        (window.parent as any).innerHeight
-                                                                                                                                }px - 70px - 58px - 49px - 64px - 40px + ${
-                                                                                                                                        document.body.clientWidth < 800 ? `70` : `0`
-                                                                                                                                }px)`,
-                                                                                                                            })}
+                                                                                                                    {
+                                                                                                                        mul: true,
+                                                                                                                        cancelEvent: () => {
+                                                                                                                            editor.html.set(editor.html.get(0).replace(mark, ''));
+                                                                                                                            editor.undo.saveStep();
+                                                                                                                        },
+                                                                                                                    }
+                                                                                                            );
+                                                                                                        },
+                                                                                                        callback: (text) => {
+                                                                                                            language_data.content = text;
+                                                                                                        },
+                                                                                                        rich_height: `calc(${
+                                                                                                                (window.parent as any).innerHeight
+                                                                                                        }px - 70px - 58px - 49px - 64px - 40px + ${
+                                                                                                                document.body.clientWidth < 800 ? `70` : `0`
+                                                                                                        }px)`,
+                                                                                                    })}
                                                                                                                         </div>`;
-                                                                                                                },
-                                                                                                                footer_html: (gvc2: GVC) => {
-                                                                                                                    return [
-                                                                                                                        BgWidget.cancel(
-                                                                                                                                gvc2.event(() => {
-                                                                                                                                    language_data.content = originContent;
-                                                                                                                                    gvc2.closeDialog();
-                                                                                                                                })
-                                                                                                                        ),
-                                                                                                                        BgWidget.save(
-                                                                                                                                gvc2.event(() => {
-                                                                                                                                    gvc2.closeDialog();
-                                                                                                                                    gvc.notifyDataChange(id);
-                                                                                                                                })
-                                                                                                                        ),
-                                                                                                                    ].join('');
-                                                                                                                },
-                                                                                                                closeCallback: () => {
+                                                                                                },
+                                                                                                footer_html: (gvc2: GVC) => {
+                                                                                                    return [
+                                                                                                        BgWidget.cancel(
+                                                                                                                gvc2.event(() => {
                                                                                                                     language_data.content = originContent;
-                                                                                                                },
-                                                                                                            });
-                                                                                                        })}"
+                                                                                                                    gvc2.closeDialog();
+                                                                                                                })
+                                                                                                        ),
+                                                                                                        BgWidget.save(
+                                                                                                                gvc2.event(() => {
+                                                                                                                    gvc2.closeDialog();
+                                                                                                                    gvc.notifyDataChange(id);
+                                                                                                                })
+                                                                                                        ),
+                                                                                                    ].join('');
+                                                                                                },
+                                                                                                closeCallback: () => {
+                                                                                                    language_data.content = originContent;
+                                                                                                },
+                                                                                            });
+                                                                                        })}"
                                                                                                 >
                                                                                                     ${(() => {
-                                                                                                        const text = gvc.glitter.utText.removeTag(language_data.content);
-                                                                                                        return BgWidget.richTextView(Tool.truncateString(text, 100));
-                                                                                                    })()}
+                                                                                            const text = gvc.glitter.utText.removeTag(language_data.content);
+                                                                                            return BgWidget.richTextView(Tool.truncateString(text, 100));
+                                                                                        })()}
                                                                                                 </div>`;
-                                                                                        },
-                                                                                    };
-                                                                                })())}
+                                                                                    },
+                                                                                };
+                                                                            })())}
                                                                             </div>
                                                                             ${(vm.documents || [])
                                                                                     .filter((item: any) => {
@@ -2452,125 +2491,125 @@ export class ShoppingProductSetting {
                                                                                                         <div
                                                                                                                 class="cursor_pointer text-end me-1 mb-2"
                                                                                                                 onclick="${gvc.event(() => {
-                                                                                                                    const originJson = JSON.parse(JSON.stringify(language_data.content_json));
-                                                                                                                    BgWidget.settingDialog({
-                                                                                                                        gvc: gvc,
-                                                                                                                        title: '設定',
-                                                                                                                        innerHTML: (gvc) => {
-                                                                                                                            return html`
+                                                                                                        const originJson = JSON.parse(JSON.stringify(language_data.content_json));
+                                                                                                        BgWidget.settingDialog({
+                                                                                                            gvc: gvc,
+                                                                                                            title: '設定',
+                                                                                                            innerHTML: (gvc) => {
+                                                                                                                return html`
                                                                                                                                 <div>
                                                                                                                                     ${item.data.tags
-                                                                                                                                            .map((tag: {
-                                                                                                                                                key: string;
-                                                                                                                                                title: string
-                                                                                                                                            }) => {
-                                                                                                                                                return html`
+                                                                                                                        .map((tag: {
+                                                                                                                            key: string;
+                                                                                                                            title: string
+                                                                                                                        }) => {
+                                                                                                                            return html`
                                                                                                                                                     <div>
                                                                                                                                                         ${BgWidget.editeInput({
-                                                                                                                                                            gvc,
-                                                                                                                                                            title: tag.title,
-                                                                                                                                                            default: (() => {
-                                                                                                                                                                const docIndex = language_data.content_json.findIndex(
-                                                                                                                                                                        (c: any) => c.id === item.id
-                                                                                                                                                                );
-                                                                                                                                                                if (docIndex === -1) {
-                                                                                                                                                                    return '';
-                                                                                                                                                                }
-                                                                                                                                                                if (language_data.content_json[docIndex].list === undefined) {
-                                                                                                                                                                    return '';
-                                                                                                                                                                }
-                                                                                                                                                                const keyIndex = language_data.content_json[
-                                                                                                                                                                        docIndex
-                                                                                                                                                                        ].list.findIndex((l: any) => l.key === tag.key);
-                                                                                                                                                                if (keyIndex === -1) {
-                                                                                                                                                                    return '';
-                                                                                                                                                                }
-                                                                                                                                                                return language_data.content_json[docIndex].list[keyIndex].value;
-                                                                                                                                                            })(),
-                                                                                                                                                            callback: (text) => {
-                                                                                                                                                                const docIndex = language_data.content_json.findIndex(
-                                                                                                                                                                        (c: any) => c.id === item.id
-                                                                                                                                                                );
-                                                                                                                                                                if (docIndex === -1) {
-                                                                                                                                                                    language_data.content_json.push({
-                                                                                                                                                                        id: item.id,
-                                                                                                                                                                        list: [
-                                                                                                                                                                            {
-                                                                                                                                                                                key: tag.key,
-                                                                                                                                                                                value: text,
-                                                                                                                                                                            },
-                                                                                                                                                                        ],
-                                                                                                                                                                    });
-                                                                                                                                                                    return;
-                                                                                                                                                                }
-                                                                                                                                                                if (language_data.content_json[docIndex].list === undefined) {
-                                                                                                                                                                    language_data.content_json[docIndex].list = [
-                                                                                                                                                                        {
-                                                                                                                                                                            key: tag.key,
-                                                                                                                                                                            value: text,
-                                                                                                                                                                        },
-                                                                                                                                                                    ];
-                                                                                                                                                                    return;
-                                                                                                                                                                }
-                                                                                                                                                                const keyIndex = language_data.content_json[
-                                                                                                                                                                        docIndex
-                                                                                                                                                                        ].list.findIndex((l: any) => l.key === tag.key);
-                                                                                                                                                                if (keyIndex === -1) {
-                                                                                                                                                                    language_data.content_json[docIndex].list.push({
-                                                                                                                                                                        key: tag.key,
-                                                                                                                                                                        value: text,
-                                                                                                                                                                    });
-                                                                                                                                                                    return;
-                                                                                                                                                                }
-                                                                                                                                                                language_data.content_json[docIndex].list[keyIndex].value = text;
-                                                                                                                                                            },
-                                                                                                                                                            placeHolder: '輸入文本標籤',
-                                                                                                                                                        })}
+                                                                                                                                gvc,
+                                                                                                                                title: tag.title,
+                                                                                                                                default: (() => {
+                                                                                                                                    const docIndex = language_data.content_json.findIndex(
+                                                                                                                                            (c: any) => c.id === item.id
+                                                                                                                                    );
+                                                                                                                                    if (docIndex === -1) {
+                                                                                                                                        return '';
+                                                                                                                                    }
+                                                                                                                                    if (language_data.content_json[docIndex].list === undefined) {
+                                                                                                                                        return '';
+                                                                                                                                    }
+                                                                                                                                    const keyIndex = language_data.content_json[
+                                                                                                                                            docIndex
+                                                                                                                                            ].list.findIndex((l: any) => l.key === tag.key);
+                                                                                                                                    if (keyIndex === -1) {
+                                                                                                                                        return '';
+                                                                                                                                    }
+                                                                                                                                    return language_data.content_json[docIndex].list[keyIndex].value;
+                                                                                                                                })(),
+                                                                                                                                callback: (text) => {
+                                                                                                                                    const docIndex = language_data.content_json.findIndex(
+                                                                                                                                            (c: any) => c.id === item.id
+                                                                                                                                    );
+                                                                                                                                    if (docIndex === -1) {
+                                                                                                                                        language_data.content_json.push({
+                                                                                                                                            id: item.id,
+                                                                                                                                            list: [
+                                                                                                                                                {
+                                                                                                                                                    key: tag.key,
+                                                                                                                                                    value: text,
+                                                                                                                                                },
+                                                                                                                                            ],
+                                                                                                                                        });
+                                                                                                                                        return;
+                                                                                                                                    }
+                                                                                                                                    if (language_data.content_json[docIndex].list === undefined) {
+                                                                                                                                        language_data.content_json[docIndex].list = [
+                                                                                                                                            {
+                                                                                                                                                key: tag.key,
+                                                                                                                                                value: text,
+                                                                                                                                            },
+                                                                                                                                        ];
+                                                                                                                                        return;
+                                                                                                                                    }
+                                                                                                                                    const keyIndex = language_data.content_json[
+                                                                                                                                            docIndex
+                                                                                                                                            ].list.findIndex((l: any) => l.key === tag.key);
+                                                                                                                                    if (keyIndex === -1) {
+                                                                                                                                        language_data.content_json[docIndex].list.push({
+                                                                                                                                            key: tag.key,
+                                                                                                                                            value: text,
+                                                                                                                                        });
+                                                                                                                                        return;
+                                                                                                                                    }
+                                                                                                                                    language_data.content_json[docIndex].list[keyIndex].value = text;
+                                                                                                                                },
+                                                                                                                                placeHolder: '輸入文本標籤',
+                                                                                                                            })}
                                                                                                                                                     </div>`;
-                                                                                                                                            })
-                                                                                                                                            .join(BgWidget.mbContainer(12))}
+                                                                                                                        })
+                                                                                                                        .join(BgWidget.mbContainer(12))}
                                                                                                                                 </div>`;
-                                                                                                                        },
-                                                                                                                        footer_html: (gvc2: GVC) => {
-                                                                                                                            return [
-                                                                                                                                BgWidget.cancel(
-                                                                                                                                        gvc2.event(() => {
-                                                                                                                                            language_data.content_json = originJson;
-                                                                                                                                            gvc2.closeDialog();
-                                                                                                                                        })
-                                                                                                                                ),
-                                                                                                                                BgWidget.save(
-                                                                                                                                        gvc2.event(() => {
-                                                                                                                                            gvc2.closeDialog();
-                                                                                                                                            gvc.notifyDataChange(`${id}-${index}`);
-                                                                                                                                        })
-                                                                                                                                ),
-                                                                                                                            ].join('');
-                                                                                                                        },
-                                                                                                                        closeCallback: () => {
-                                                                                                                            language_data.content_json = originJson;
-                                                                                                                        },
-                                                                                                                    });
-                                                                                                                })}"
+                                                                                                            },
+                                                                                                            footer_html: (gvc2: GVC) => {
+                                                                                                                return [
+                                                                                                                    BgWidget.cancel(
+                                                                                                                            gvc2.event(() => {
+                                                                                                                                language_data.content_json = originJson;
+                                                                                                                                gvc2.closeDialog();
+                                                                                                                            })
+                                                                                                                    ),
+                                                                                                                    BgWidget.save(
+                                                                                                                            gvc2.event(() => {
+                                                                                                                                gvc2.closeDialog();
+                                                                                                                                gvc.notifyDataChange(`${id}-${index}`);
+                                                                                                                            })
+                                                                                                                    ),
+                                                                                                                ].join('');
+                                                                                                            },
+                                                                                                            closeCallback: () => {
+                                                                                                                language_data.content_json = originJson;
+                                                                                                            },
+                                                                                                        });
+                                                                                                    })}"
                                                                                                         >
                                                                                                             標籤設值
                                                                                                         </div>
                                                                                                         ${gvc.bindView(
-                                                                                                                (() => {
-                                                                                                                    return {
-                                                                                                                        bind: `${id}-${index}`,
-                                                                                                                        view: () => {
-                                                                                                                            const content = item.data.content || '';
-                                                                                                                            const tags = item.data.tags;
-                                                                                                                            const jsonData = language_data.content_json.find((c: any) => c.id === item.id);
-                                                                                                                            return html`
+                                                                                                            (() => {
+                                                                                                                return {
+                                                                                                                    bind: `${id}-${index}`,
+                                                                                                                    view: () => {
+                                                                                                                        const content = item.data.content || '';
+                                                                                                                        const tags = item.data.tags;
+                                                                                                                        const jsonData = language_data.content_json.find((c: any) => c.id === item.id);
+                                                                                                                        return html`
                                                                                                                                 <div style="border: 2px #DDDDDD solid; border-radius: 6px; padding: 12px;">
                                                                                                                                     ${tags ? formatRichtext(content, tags, jsonData ? jsonData.list : []) : content}
                                                                                                                                 </div>`;
-                                                                                                                        },
-                                                                                                                    };
-                                                                                                                })()
-                                                                                                        )}`;
+                                                                                                                    },
+                                                                                                                };
+                                                                                                            })()
+                                                                                                    )}`;
                                                                                                 }
                                                                                                 return html`
                                                                                                     <div style="border: 1px #DDDDDD solid; border-radius: 6px; padding: 12px">
@@ -2580,27 +2619,10 @@ export class ShoppingProductSetting {
                                                                                         });
                                                                                     })
                                                                                     .join(BgWidget.mbContainer(8))}`;
-                                                                    },
-                                                                    divCreate: {},
-                                                                    onCreate: () => {
-                                                                        if (vm.loading) {
-                                                                            ApiUser.getPublicConfig('text-manager', 'manager').then((data: any) => {
-                                                                                vm.documents = data.response.value;
-                                                                                if (!Array.isArray(vm.documents)) {
-                                                                                    vm.documents = [];
-                                                                                }
-                                                                                language_data.content_array = language_data.content_array.filter((id: any) => {
-                                                                                    return vm.documents.some((item: any) => item.id === id);
-                                                                                });
-                                                                                language_data.content_json = language_data.content_json.filter((d: any) => {
-                                                                                    return vm.documents.some((item: any) => item.id === d.id);
-                                                                                });
-                                                                                vm.loading = false;
-                                                                                gvc.notifyDataChange(vm.id);
-                                                                            });
-                                                                        }
-                                                                    },
-                                                                };
+                                                                        },
+                                                                        divCreate: {}
+                                                                    };
+                                                                })()
                                                             }),
                                                         ].join(BgWidget.mbContainer(12))
                                                 ),
@@ -2608,7 +2630,9 @@ export class ShoppingProductSetting {
                                                         html`
                                                             <div class="d-flex align-items-center justify-content-between"
                                                                  style="color: #393939;font-size: 16px;font-weight: 700;margin-bottom: 18px;">
-                                                                圖片
+                                                                <div class="d-flex align-items-center">
+                                                                        圖片${BgWidget.languageInsignia(sel_lan(), 'margin-left:5px;')}
+                                                                </div>
                                                                 ${BgWidget.customButton({
                                                                     button: {
                                                                         color: 'black',
@@ -2622,7 +2646,7 @@ export class ShoppingProductSetting {
                                                                                 gvc,
                                                                                 (urlArray) => {
                                                                                     if (urlArray.length > 0) {
-                                                                                        postMD.preview_image.push(
+                                                                                        language_data.preview_image.push(
                                                                                                 ...urlArray.map((data: any) => {
                                                                                                     return data.data;
                                                                                                 })
@@ -2652,13 +2676,13 @@ export class ShoppingProductSetting {
                                                                                     <div class="my-2"></div>` +
                                                                                 EditorElem.flexMediaManagerV2({
                                                                                     gvc: obj.gvc,
-                                                                                    data: postMD.preview_image,
+                                                                                    data: language_data.preview_image,
                                                                                 })
                                                                         );
                                                                     },
                                                                     divCreate: {
                                                                         class: `d-flex w-100`,
-                                                                        style: `overflow-y:scroll`,
+                                                                        style: `overflow-y:scroll;height:150px;`,
                                                                     },
                                                                 };
                                                             })}
@@ -2673,8 +2697,10 @@ export class ShoppingProductSetting {
                                                                 dataList: [{obj: createPage, key: 'page'}],
                                                                 view: () => {
                                                                     let returnHTML = html`
-                                                                        <div style="font-size: 16px;font-weight: 700;">
+                                                                        <div class="d-flex align-items-center justify-content-between"
+                                                                             style="font-size: 16px;font-weight: 700;">
                                                                             商品規格
+                                                                            ${BgWidget.languageInsignia(sel_lan(), '')}
                                                                         </div> `;
                                                                     let editSpectPage: any = [];
                                                                     if (postMD.specs.length > 0) {
@@ -2735,6 +2761,8 @@ export class ShoppingProductSetting {
                                                                                                     },
                                                                                                 ],
                                                                                                 view: () => {
+                                                                                                
+                                                                                                    dd.language_title = (dd.language_title ?? ({} as any)) as any;
                                                                                                     if (editSpectPage[specIndex].type == 'show') {
                                                                                                         gvc.addStyle(`
                                                                                                     .option {
@@ -2745,18 +2773,19 @@ export class ShoppingProductSetting {
                                                                                                     }
                                                                                                 `);
                                                                                                         return html`
-                                                                                                            <div class="d-flex flex-column"
+                                                                                                            <div class="d-flex flex-column "
                                                                                                                  style="gap:6px;align-items: flex-start;padding: 12px 0;">
                                                                                                                 <div style="font-size: 16px;">
-                                                                                                                    ${dd.title}
+                                                                                                                    ${(dd.language_title as any)[sel_lan()] || dd.title}
                                                                                                                 </div>
                                                                                                                 ${(() => {
                                                                                                                     let returnHTML = ``;
                                                                                                                     dd.option.map((opt: any) => {
+                                                                                                                        opt.language_title = (opt.language_title ?? ({} as any)) as any;
                                                                                                                         returnHTML += html`
                                                                                                                             <div class="option"
                                                                                                                                  style="border-radius: 5px;;padding: 1px 9px;font-size: 14px;">
-                                                                                                                                ${opt.title}
+                                                                                                                                ${(opt.language_title as any)[sel_lan()] || opt.title}
                                                                                                                             </div>
                                                                                                                         `;
                                                                                                                     });
@@ -2807,33 +2836,122 @@ export class ShoppingProductSetting {
                                                                                                             </div>`;
                                                                                                     }
                                                                                                     temp = JSON.parse(JSON.stringify(dd));
-
-                                                                                                    return html`
-                                                                                                        <div
-                                                                                                                style="background-color:white;display: flex;padding: 20px;flex-direction: column;align-items: flex-end;gap: 24px;align-self: stretch;border-radius: 10px;border: 1px solid #DDD;"
-                                                                                                        >
+                                                                                                    if (sel_lan() !== ((window.parent as any).store_info.language_setting.def)) {
+                                                                                                        return obj.gvc.bindView(() => {
+                                                                                                            let editIndex = -1;
+                                                                                                            return {
+                                                                                                                bind: 'spec_text_show',
+                                                                                                                dataList: [{
+                                                                                                                    obj: createPage,
+                                                                                                                    key: 'page'
+                                                                                                                }],
+                                                                                                                view: () => {
+                                                                                                                    let returnHTML = html``
+                                                                                                                    let specs_in_line: string[] = [];
+                                                                                                                    temp.option = temp.option ?? [];
+                                                                                                                    specs_in_line.push(html`
+                                                                                                                            <div class="d-flex flex-column w-100">
+                                                                                                                                <div class="d-flex  flex-column"
+                                                                                                                                     style="gap:10px;">
+                                                                                                                                    <div class="fw-500">
+                                                                                                                                        規格種類
+                                                                                                                                        -
+                                                                                                                                        ${temp.title}
+                                                                                                                                    </div>
+                                                                                                                                    <input
+                                                                                                                                            class="form-control w-100"
+                                                                                                                                            placeholder="${temp.title}"
+                                                                                                                                            style="width:100px;height: 35px;"
+                                                                                                                                            value="${(temp.language_title as any)[vm.language] || ''}"
+                                                                                                                                            onchange="${gvc.event((e, event) => {
+                                                                                                                        (temp.language_title as any)[vm.language] = e.value;
+                                                                                                                    })}"
+                                                                                                                                    />
+                                                                                                                                </div>
+                                                                                                                                <div class="d-flex flex-column w-100"
+                                                                                                                                     style="gap:5px;">
+                                                                                                                                    ${temp.option
+                                                                                                                            .map((d: any, index: number) => {
+                                                                                                                                d.language_title = d.language_title ?? ({} as any);
+                                                                                                                                return html`
+                                                                                                                                                    <div class="d-flex flex-column mt-2"
+                                                                                                                                                         style="gap:10px;">
+                                                                                                                                                        <div class="fw-500">
+                                                                                                                                                                選項${index + 1}
+                                                                                                                                                            -
+                                                                                                                                                            ${d.title}
+                                                                                                                                                        </div>
+                                                                                                                                                        <input
+                                                                                                                                                                class="form-control w-100"
+                                                                                                                                                                placeholder="${d.title}"
+                                                                                                                                                                style="width:100px;height: 35px;"
+                                                                                                                                                                value="${(d.language_title as any)[vm.language] || ''}"
+                                                                                                                                                                onchange="${gvc.event((e, event) => {
+                                                                                                                                    (d.language_title as any)[vm.language] = e.value;
+                                                                                                                                })}"
+                                                                                                                                                        />
+                                                                                                                                                    </div>`;
+                                                                                                                            })
+                                                                                                                            .join('<div class="mx-1"></div>')}
+                                                                                                                                </div>
+                                                                                                                            </div>`);
+                                                                                                                    returnHTML += specs_in_line.join(`<div class="w-100 border-top"></div>`);
+                                                                                                                    returnHTML += html`
+                                                                                                                        <div class="d-flex w-100 justify-content-end align-items-center w-100 bg-white"
+                                                                                                                             style="gap:14px; margin-top: 12px;">
+                                                                                                                            ${BgWidget.cancel(
+                                                                                                                            obj.gvc.event(() => {
+                                                                                                                                editIndex = -1;
+                                                                                                                                gvc.notifyDataChange(vm.id);
+                                                                                                                            })
+                                                                                                                    )}
+                                                                                                                            ${BgWidget.save(
+                                                                                                                                    obj.gvc.event(() => {
+                                                                                                                                        console.log('save',temp)
+                                                                                                                                        postMD.specs[specIndex] = temp;
+                                                                                                                                        updateVariants();
+                                                                                                                                        gvc.notifyDataChange(vm.id);
+                                                                                                                            }),
+                                                                                                                            '完成'
+                                                                                                                    )}
+                                                                                                                        </div>`
+                                                                                                                    return returnHTML;
+                                                                                                                },
+                                                                                                                divCreate: {
+                                                                                                                    class: `d-flex flex-column p-3 my-2 border rounded-3`,
+                                                                                                                    style: `gap:18px;background:white;`,
+                                                                                                                },
+                                                                                                            };
+                                                                                                        })
+                                                                                                    } else {
+                                                                                                        return html`
                                                                                                             <div
-                                                                                                                    style="display: flex;flex-direction: column;align-items: flex-end;gap: 18px;align-self: stretch;"
+                                                                                                                    style="background-color:white !important;display: flex;padding: 20px;flex-direction: column;align-items: flex-end;gap: 24px;align-self: stretch;border-radius: 10px;border: 1px solid #DDD;"
                                                                                                             >
-                                                                                                                <div style="width:100%;display: flex;flex-direction: column;align-items: flex-end;gap: 18px;">
-                                                                                                                    ${ShoppingProductSetting.specInput(gvc, temp, {
-                                                                                                                        cancel: () => {
-                                                                                                                            editSpectPage[specIndex].type = 'show';
-                                                                                                                            editIndex = -1;
-                                                                                                                            gvc.notifyDataChange(specid);
-                                                                                                                        },
-                                                                                                                        save: () => {
-                                                                                                                            editSpectPage[specIndex].type = 'show';
-                                                                                                                            postMD.specs[specIndex] = temp;
-                                                                                                                            checkSpecSingle();
-                                                                                                                            updateVariants();
-                                                                                                                            gvc.notifyDataChange(vm.id);
-                                                                                                                        },
-                                                                                                                    })}
+                                                                                                                <div
+                                                                                                                        style="display: flex;flex-direction: column;align-items: flex-end;gap: 18px;align-self: stretch;background-color:white !important;"
+                                                                                                                >
+                                                                                                                    <div style="width:100%;display: flex;flex-direction: column;align-items: flex-end;gap: 18px;background-color:white !important;">
+                                                                                                                        ${ShoppingProductSetting.specInput(gvc, temp, {
+                                                                                                                            cancel: () => {
+                                                                                                                                editSpectPage[specIndex].type = 'show';
+                                                                                                                                editIndex = -1;
+                                                                                                                                gvc.notifyDataChange(specid);
+                                                                                                                            },
+                                                                                                                            save: () => {
+                                                                                                                                editSpectPage[specIndex].type = 'show';
+                                                                                                                                postMD.specs[specIndex] = temp;
+                                                                                                                                checkSpecSingle();
+                                                                                                                                updateVariants();
+                                                                                                                                gvc.notifyDataChange(vm.id);
+                                                                                                                            },
+                                                                                                                        })}
+                                                                                                                    </div>
                                                                                                                 </div>
                                                                                                             </div>
-                                                                                                        </div>
-                                                                                                    `;
+                                                                                                        `;
+                                                                                                    }
+
                                                                                                 },
                                                                                                 divCreate: {class: `w-100 position-relative`},
                                                                                             }),
@@ -2848,6 +2966,7 @@ export class ShoppingProductSetting {
                                                                             })}
                                                                         `;
                                                                     }
+                                                                   
                                                                     if (createPage.page == 'edit' && editIndex === -1) {
                                                                         let temp: any = {
                                                                             title: '',
@@ -2873,6 +2992,8 @@ export class ShoppingProductSetting {
                                                                                 </div>
                                                                             `)}
                                                                         `;
+                                                                    }else if (sel_lan() !== ((window.parent as any).store_info.language_setting.def)) {
+                                                                        returnHTML += `<div class="w-100 d-flex align-items-center justify-content-center">${BgWidget.grayNote('若要新增規格請切換至預設語言新增')}</div>`
                                                                     } else {
                                                                         returnHTML += html`
                                                                             <div
@@ -2900,6 +3021,7 @@ export class ShoppingProductSetting {
                                                                             </div>
                                                                         `;
                                                                     }
+                                                                    
                                                                     return returnHTML;
                                                                 },
                                                                 divCreate: {
@@ -2909,227 +3031,6 @@ export class ShoppingProductSetting {
                                                             };
                                                         })
                                                 ),
-                                                postMD.specs.length
-                                                        ? BgWidget.mainCard(
-                                                                obj.gvc.bindView(() => {
-                                                                    let editIndex = -1;
-                                                                    return {
-                                                                        bind: 'spec_text_show',
-                                                                        dataList: [{obj: createPage, key: 'page'}],
-                                                                        view: () => {
-                                                                            let returnHTML = html`
-                                                                                <div style="font-size: 16px;font-weight: 700;gap:2px;"
-                                                                                     class="d-flex flex-column">
-                                                                                    <div class="d-flex align-items-center">
-                                                                                        前台規格顯示文字
-                                                                                        ${BgWidget.languageInsignia(sel_lan(), 'margin-left:5px;')}
-                                                                                    </div>
-                                                                                    ${BgWidget.grayNote(`未設定則參照預設`)}
-                                                                                </div>
-                                                                            `;
-                                                                            let editSpectPage: any = [];
-                                                                            if (postMD.specs.length > 0) {
-                                                                                let specs_in_line: string[] = [];
-                                                                                postMD.specs.map((d, index) => {
-                                                                                    d.language_title = (d.language_title ?? ({} as any)) as any;
-                                                                                    d.option = d.option ?? [];
-                                                                                    specs_in_line.push(html`
-                                                                                        <div class="d-flex flex-column">
-                                                                                            <div class="d-flex align-items-center"
-                                                                                                 style="gap:10px;">
-                                                                                                <div class="fw-500">${d.title}
-                                                                                                </div>
-                                                                                                <input
-                                                                                                        class="form-control"
-                                                                                                        placeholder="${d.title}"
-                                                                                                        style="width:100px;height: 35px;"
-                                                                                                        value="${(d.language_title as any)[vm.language] || ''}"
-                                                                                                        onchange="${gvc.event((e, event) => {
-                                                                                                            (d.language_title as any)[vm.language] = e.value;
-                                                                                                        })}"
-                                                                                                />
-                                                                                            </div>
-                                                                                            <div class="d-flex flex-wrap"
-                                                                                                 style="gap:5px;">
-                                                                                                ${d.option
-                                                                                                        .map((d: any, index: number) => {
-                                                                                                            d.language_title = d.language_title ?? ({} as any);
-                                                                                                            return html`
-                                                                                                                <div class="d-flex align-items-center mt-2"
-                                                                                                                     style="gap:10px;">
-                                                                                                                    <div class="fw-500">
-                                                                                                                        ${d.title}
-                                                                                                                    </div>
-                                                                                                                    <input
-                                                                                                                            class="form-control"
-                                                                                                                            placeholder="${d.title}"
-                                                                                                                            style="width:100px;height: 35px;"
-                                                                                                                            value="${(d.language_title as any)[vm.language] || ''}"
-                                                                                                                            onchange="${gvc.event((e, event) => {
-                                                                                                                                (d.language_title as any)[vm.language] = e.value;
-                                                                                                                            })}"
-                                                                                                                    />
-                                                                                                                </div>`;
-                                                                                                        })
-                                                                                                        .join('<div class="mx-1"></div>')}
-                                                                                            </div>
-                                                                                        </div>`);
-                                                                                });
-                                                                                returnHTML += specs_in_line.join(`<div class="w-100 border-top"></div>`);
-                                                                                // returnHTML += html`
-                                                                                //     ${EditorElem.arrayItem({
-                                                                                //     customEditor: true,
-                                                                                //     gvc: obj.gvc,
-                                                                                //     title: '',
-                                                                                //     hoverGray: true,
-                                                                                //     position: 'front',
-                                                                                //     height: 100,
-                                                                                //     originalArray: postMD.specs,
-                                                                                //     expand: true,
-                                                                                //     copyable: false,
-                                                                                //     hr: true,
-                                                                                //     minus: false,
-                                                                                //     refreshComponent: (fromIndex, toIndex) => {
-                                                                                //     },
-                                                                                //     array: () => {
-                                                                                //         return postMD.specs.map((dd, specIndex: number) => {
-                                                                                //             let temp: any = {
-                                                                                //                 title: '',
-                                                                                //                 option: [],
-                                                                                //             };
-                                                                                //             return {
-                                                                                //                 title: gvc.bindView({
-                                                                                //                     bind: `editSpec${specIndex}`,
-                                                                                //                     dataList: [
-                                                                                //                         {
-                                                                                //                             obj: editSpectPage[specIndex],
-                                                                                //                             key: 'type',
-                                                                                //                         },
-                                                                                //                     ],
-                                                                                //                     view: () => {
-                                                                                //                         if (editSpectPage[specIndex].type == 'show') {
-                                                                                //                             gvc.addStyle(`
-                                                                                //                             .option {
-                                                                                //                                 background-color: #f7f7f7;
-                                                                                //                             }
-                                                                                //                             .pen {
-                                                                                //                                 display: none;
-                                                                                //                             }
-                                                                                //                         `);
-                                                                                //                             return html`
-                                                                                //                                     <div class="d-flex flex-column"
-                                                                                //                                          style="gap:6px;align-items: flex-start;padding: 12px 0;">
-                                                                                //                                         <div style="font-size: 16px;">
-                                                                                //                                             ${dd.title}
-                                                                                //                                         </div>
-                                                                                //                                         ${(() => {
-                                                                                //                                 let returnHTML = ``;
-                                                                                //                                 dd.option.map((opt: any) => {
-                                                                                //                                     returnHTML += html`
-                                                                                //                                                     <div class="option"
-                                                                                //                                                          style="border-radius: 5px;;padding: 1px 9px;font-size: 14px;">
-                                                                                //                                                         ${opt.title}
-                                                                                //                                                     </div>
-                                                                                //                                                 `;
-                                                                                //                                 });
-                                                                                //                                 return html`
-                                                                                //                                                 <div class="d-flex w-100 "
-                                                                                //                                                      style="gap:8px; flex-wrap: wrap">
-                                                                                //                                                     ${returnHTML}
-                                                                                //                                                     <div
-                                                                                //                                                             class="position-absolute "
-                                                                                //                                                             style="right:12px;top:50%;transform: translateY(-50%);"
-                                                                                //                                                             onclick="${gvc.event(() => {
-                                                                                //                                     createPage.page = 'add';
-                                                                                //                                     editIndex = specIndex;
-                                                                                //                                     gvc.notifyDataChange(specid);
-                                                                                //                                 })}"
-                                                                                //                                                     >
-                                                                                //                                                         <svg
-                                                                                //                                                                 class="pen"
-                                                                                //                                                                 style="cursor:pointer"
-                                                                                //                                                                 xmlns="http://www.w3.org/2000/svg"
-                                                                                //                                                                 width="16"
-                                                                                //                                                                 height="17"
-                                                                                //                                                                 viewBox="0 0 16 17"
-                                                                                //                                                                 fill="none"
-                                                                                //                                                         >
-                                                                                //                                                             <g clip-path="url(#clip0_8114_2928)">
-                                                                                //                                                                 <path
-                                                                                //                                                                         d="M1.13728 11.7785L0.418533 14.2191L0.0310334 15.5379C-0.0470916 15.8035 0.0247834 16.0879 0.218533 16.2816C0.412283 16.4754 0.696658 16.5473 0.959158 16.4723L2.28103 16.0816L4.72166 15.3629C5.04666 15.2691 5.34978 15.1129 5.61541 14.9098L5.62478 14.916L5.64041 14.891C5.68416 14.8566 5.72478 14.8223 5.76541 14.7879C5.80916 14.7504 5.84978 14.7098 5.89041 14.6691L15.3967 5.16602C16.081 4.48164 16.1654 3.42852 15.6529 2.65039C15.581 2.54102 15.4935 2.43477 15.3967 2.33789L14.1654 1.10352C13.3842 0.322266 12.1185 0.322266 11.3373 1.10352L1.83103 10.6098C1.75291 10.6879 1.67791 10.7723 1.60916 10.8598L1.58416 10.8754L1.59041 10.8848C1.38728 11.1504 1.23416 11.4535 1.13728 11.7785ZM11.9685 6.46914L6.16853 12.2691L4.61853 11.8816L4.23103 10.3316L10.031 4.53164L11.9685 6.46914ZM3.03103 11.716L3.27166 12.6848C3.33728 12.9535 3.54978 13.1629 3.81853 13.2316L4.78728 13.4723L4.55603 13.8223C4.47478 13.866 4.39041 13.9035 4.30291 13.9285L3.57166 14.1441L1.85603 14.6441L2.35916 12.9316L2.57478 12.2004C2.59978 12.1129 2.63728 12.0254 2.68103 11.9473L3.03103 11.716ZM9.85291 7.33477C10.0467 7.14102 10.0467 6.82227 9.85291 6.62852C9.65916 6.43477 9.34041 6.43477 9.14666 6.62852L6.14666 9.62852C5.95291 9.82227 5.95291 10.141 6.14666 10.3348C6.34041 10.5285 6.65916 10.5285 6.85291 10.3348L9.85291 7.33477Z"
-                                                                                //                                                                         fill="#393939"
-                                                                                //                                                                 />
-                                                                                //                                                             </g>
-                                                                                //                                                             <defs>
-                                                                                //                                                                 <clipPath
-                                                                                //                                                                         id="clip0_8114_2928">
-                                                                                //                                                                     <rect
-                                                                                //                                                                             width="16"
-                                                                                //                                                                             height="16"
-                                                                                //                                                                             fill="white"
-                                                                                //                                                                             transform="translate(0 0.5)"
-                                                                                //                                                                     />
-                                                                                //                                                                 </clipPath>
-                                                                                //                                                             </defs>
-                                                                                //                                                         </svg>
-                                                                                //                                                     </div>
-                                                                                //                                                 </div>
-                                                                                //                                             `;
-                                                                                //                             })()}
-                                                                                //                                     </div>`;
-                                                                                //                         }
-                                                                                //                         temp = JSON.parse(JSON.stringify(dd));
-                                                                                //
-                                                                                //                         return html`
-                                                                                //                                 <div
-                                                                                //                                         style="background-color:white;display: flex;padding: 20px;flex-direction: column;align-items: flex-end;gap: 24px;align-self: stretch;border-radius: 10px;border: 1px solid #DDD;"
-                                                                                //                                 >
-                                                                                //                                     <div
-                                                                                //                                             style="display: flex;flex-direction: column;align-items: flex-end;gap: 18px;align-self: stretch;"
-                                                                                //                                     >
-                                                                                //                                         <div style="width:100%;display: flex;flex-direction: column;align-items: flex-end;gap: 18px;">
-                                                                                //                                             ${ShoppingProductSetting.specInput(gvc, temp, {
-                                                                                //                             cancel: () => {
-                                                                                //                                 editSpectPage[specIndex].type = 'show';
-                                                                                //                                 editIndex = -1;
-                                                                                //                                 gvc.notifyDataChange(specid);
-                                                                                //                             },
-                                                                                //                             save: () => {
-                                                                                //                                 editSpectPage[specIndex].type = 'show';
-                                                                                //                                 postMD.specs[specIndex] = temp;
-                                                                                //                                 checkSpecSingle();
-                                                                                //                                 updateVariants();
-                                                                                //                                 gvc.notifyDataChange(vm.id);
-                                                                                //                             },
-                                                                                //                         })}
-                                                                                //                                         </div>
-                                                                                //                                     </div>
-                                                                                //                                 </div>
-                                                                                //                             `;
-                                                                                //                     },
-                                                                                //                     divCreate: {class: `w-100 position-relative`},
-                                                                                //                 }),
-                                                                                //                 innerHtml: (gvc: GVC) => {
-                                                                                //                     return ``;
-                                                                                //                 },
-                                                                                //                 editTitle: `編輯規格`,
-                                                                                //                 draggable: editSpectPage[specIndex].type === 'show',
-                                                                                //             };
-                                                                                //         });
-                                                                                //     },
-                                                                                // })}
-                                                                                // `;
-                                                                            }
-                                                                            return returnHTML;
-                                                                        },
-                                                                        divCreate: {
-                                                                            class: `d-flex flex-column`,
-                                                                            style: `gap:18px;`,
-                                                                        },
-                                                                    };
-                                                                })
-                                                        )
-                                                        : ``,
                                                 (() => {
                                                     if (postMD.variants.length === 1) {
                                                         try {
@@ -3156,6 +3057,23 @@ export class ShoppingProductSetting {
                                                                 obj.gvc.bindView(() => {
                                                                     function getPreviewImage(img?: string) {
                                                                         return img || BgWidget.noImageURL;
+                                                                    }
+                                                                    function getSpecTitle(first:string,second?:string){
+                                                                       
+                                                                        let first_t:any=postMD.specs.find((dd)=>{
+                                                                            return dd.title===first
+                                                                        })!;
+                                                                        console.log(`first=>${first}=>`,postMD.specs)
+                                                                        console.log(`first=>${first}=>`,first_t)
+                                                                        first_t.language_title=first_t.language_title ?? {}
+                                                                        if(!second){
+                                                                            return first_t.language_title[sel_lan()] ?? first_t.title
+                                                                        }
+                                                                        let second_t=first_t.option.find((dd:any)=>{
+                                                                            return dd.title===second
+                                                                        })
+                                                                        second_t.language_title=second_t.language_title ?? {}
+                                                                        return second_t.language_title[sel_lan()] ?? second_t.title
                                                                     }
 
                                                                     postMD.specs[0].option = postMD.specs[0].option ?? [];
@@ -3812,11 +3730,11 @@ export class ShoppingProductSetting {
                                                                                                                      style="margin-right: 18px;">
                                                                                                                     <div style="border-radius: 7px;border: 1px solid #DDD;background: #FFF;box-shadow: 0 0 10px 0 rgba(0, 0, 0, 0.10);padding: 3px 13px;cursor: pointer;"
                                                                                                                          onclick="${gvc.event(() => {
-                                                                                                                            ProductSetting.showBatchEditDialog({
-                                                                                                                               gvc : gvc,
-                                                                                                                               postMD : postMD,
-                                                                                                                               selected : selected
-                                                                                                                            });
+                                                                                                                             ProductSetting.showBatchEditDialog({
+                                                                                                                                 gvc: gvc,
+                                                                                                                                 postMD: postMD,
+                                                                                                                                 selected: selected
+                                                                                                                             });
                                                                                                                          })}">
                                                                                                                         批量編輯
                                                                                                                     </div>
@@ -4077,7 +3995,7 @@ export class ShoppingProductSetting {
                                                                                                                                 >
                                                                                                                                     <div
                                                                                                                                             onclick="${gvc.event(() => {
-                                                                                                                                                imageLibrary.selectImageFromArray(postMD.preview_image, {
+                                                                                                                                                imageLibrary.selectImageFromArray(language_data.preview_image, {
                                                                                                                                                     gvc: gvc,
                                                                                                                                                     title: html`
                                                                                                                                                         <div
@@ -4097,32 +4015,6 @@ export class ShoppingProductSetting {
                                                                                                                                                         obj.gvc.notifyDataChange(vm.id);
                                                                                                                                                     },
                                                                                                                                                 });
-                                                                                                                                                // imageLibrary.selectImageLibrary(
-                                                                                                                                                //         gvc,
-                                                                                                                                                //         (urlArray) => {
-                                                                                                                                                //             if (urlArray.length > 0) {
-                                                                                                                                                //                 postMD.variants
-                                                                                                                                                //                         .filter((dd) => {
-                                                                                                                                                //                             return dd.spec[0] === spec.title;
-                                                                                                                                                //                         })
-                                                                                                                                                //                         .forEach((d1) => {
-                                                                                                                                                //                             d1.preview_image = urlArray[0].data;
-                                                                                                                                                //                         });
-                                                                                                                                                //                 obj.gvc.notifyDataChange(vm.id);
-                                                                                                                                                //             } else {
-                                                                                                                                                //                 const dialog = new ShareDialog(gvc.glitter);
-                                                                                                                                                //                 dialog.errorMessage({text: '請選擇至少一張圖片'});
-                                                                                                                                                //             }
-                                                                                                                                                //         },
-                                                                                                                                                //         html`
-                                                                                                                                                //             <div
-                                                                                                                                                //                     class="d-flex flex-column"
-                                                                                                                                                //                     style="border-radius: 10px 10px 0px 0px;background: #F2F2F2;"
-                                                                                                                                                //             >
-                                                                                                                                                //                 統一設定圖片
-                                                                                                                                                //             </div>`,
-                                                                                                                                                //         {}
-                                                                                                                                                // );
                                                                                                                                             })}"
                                                                                                                                     >
                                                                                                                                         ${BgWidget.validImageBox({
@@ -4144,7 +4036,7 @@ export class ShoppingProductSetting {
                                                                                                                                                 gvc.notifyDataChange(vm.id);
                                                                                                                                             })}"
                                                                                                                                     >
-                                                                                                                                        ${spec.title}
+                                                                                                                                        ${getSpecTitle(postMD.specs[0].title,spec.title)}
                                                                                                                                         ${spec.expand
                                                                                                                                                 ? html`
                                                                                                                                                     <i class="fa-regular fa-chevron-up"></i>`
@@ -4352,7 +4244,9 @@ export class ShoppingProductSetting {
                                                                                                                                                                 <div class="hover-underline">
                                                                                                                                                   <span>
                                                                                                                                                       ${Tool.truncateString(
-                                                                                                                                                              data.spec.join(' / '),
+                                                                                                                                                              data.spec.map((dd,index)=>{
+                                                                                                                                                                 return  getSpecTitle(postMD.specs[index].title,dd)
+                                                                                                                                                              }).join(' / '),
                                                                                                                                                               14
                                                                                                                                                       )}</span
                                                                                                                                                   >
@@ -4675,13 +4569,13 @@ export class ShoppingProductSetting {
                                                                                  style="margin: 18px 0 8px;">SEO標題
                                                                             </div>
                                                                             ${BgWidget.editeInput({
-                                                                                gvc:gvc,
-                                                                                title:'',
-                                                                                default:language_data.seo.title,
-                                                                                callback:(text)=>{
-                                                                                    language_data.seo.title=text
+                                                                                gvc: gvc,
+                                                                                title: '',
+                                                                                default: language_data.seo.title,
+                                                                                callback: (text) => {
+                                                                                    language_data.seo.title = text
                                                                                 },
-                                                                                placeHolder:''
+                                                                                placeHolder: ''
                                                                             })}
                                                                             <div class="w-100"
                                                                                  style="margin: 18px 0 8px;">SEO描述
@@ -5279,11 +5173,12 @@ ${language_data.seo.content ?? ''}</textarea
             <div class="bg-white w-100">
                 ${[
                     html`
-                        <div class="w-100" style="display: flex;gap: 8px;flex-direction: column;">
-                            <div style="width: 70px">規格種類</div>
+                        <div class="w-100"
+                             style="background-color:white !important;display: flex;gap: 8px;flex-direction: column;">
+                            <div style="background-color:white !important;width: 70px">規格種類</div>
                             <input
                                     class="w-100"
-                                    style="height: 40px;padding: 0px 18px;border-radius: 10px;border: 1px solid #DDD;"
+                                    style="background-color:white !important;height: 40px;padding: 0px 18px;border-radius: 10px;border: 1px solid #DDD;"
                                     placeholder="例如 : 顏色、大小"
                                     value="${temp.title}"
                                     onchange="${gvc.event((e) => {
@@ -5295,12 +5190,15 @@ ${language_data.seo.content ?? ''}</textarea
                         bind: vm.viewId,
                         view: () => {
                             return html`
-                                <div class="w-100" style="margin-top: 8px;">選項 (輸入完請按enter)</div>
+                                <div class="w-100" style="background-color:white !important;margin-top: 8px;">選項
+                                    (輸入完請按enter)
+                                </div>
                                 <div
                                         class="w-100 d-flex align-items-center position-relative"
-                                        style="line-height: 40px;min-height: 40px;padding: 10px 18px;border-radius: 10px;border: 1px solid #DDD;gap: 10px; flex-wrap: wrap;"
+                                        style="background-color:white !important;line-height: 40px;min-height: 40px;padding: 10px 18px;border-radius: 10px;border: 1px solid #DDD;gap: 10px; flex-wrap: wrap;"
                                 >
-                                    <div class="d-flex align-items-center" style="gap: 10px; flex-wrap: wrap;">
+                                    <div class="d-flex align-items-center"
+                                         style="gap: 10px; flex-wrap: wrap;background-color:white !important;">
                                         ${(() => {
                                             const tempHTML = [];
                                             temp.option.map((data: any, index: number) => {
@@ -5324,20 +5222,21 @@ ${language_data.seo.content ?? ''}</textarea
                                             });
                                             tempHTML.push(html`<input
                                                     id="${vm.enterId}"
-                                                    class="flex-fill d-flex align-items-center border-0 specInput-${vm.enterId} h-100"
+                                                    class="flex-fill d-flex align-items-center border specInput-${vm.enterId} h-100 p-2"
                                                     value=""
+                                                    style="background-color:white !important;"
                                                     placeholder="${temp.option.length > 0 ? '請繼續輸入' : ''}"
                                             />`);
                                             return tempHTML.join('');
                                         })()}
                                     </div>
                                     <div
-                                            class="d-flex align-items-center ${temp.option.length > 0 ? 'd-none' : ''}"
-                                            style="color: #8D8D8D;width: 100%;height:100%;position: absolute;left: 18px;top: 0"
+                                            class="d-flex align-items-center ${temp.option.length > 0 ? 'd-none' : ''} ps-2"
+                                            style="color: #8D8D8D;width: 100%;height:100%;position: absolute;left: 18px;top: 0;"
                                             onclick="${gvc.event((e) => {
                                                 e.classList.add('d-none');
                                                 setTimeout(() => {
-                                                    (document.querySelector('.specInput-${vm.enterId}') as HTMLButtonElement)!.focus();
+                                                    (document.querySelector(`.specInput-${vm.enterId}`) as HTMLButtonElement)!.focus();
                                                 }, 100);
                                             })}"
                                     >

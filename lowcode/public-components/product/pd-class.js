@@ -14,6 +14,7 @@ import { GlobalUser } from '../../glitter-base/global/global-user.js';
 import { CheckInput } from '../../modules/checkInput.js';
 import { Ad } from '../public/ad.js';
 import { Language } from "../../glitter-base/global/language.js";
+import { Currency } from "../../glitter-base/global/currency.js";
 const html = String.raw;
 export class PdClass {
     static jumpAlert(obj) {
@@ -413,7 +414,6 @@ overflow: hidden;
                                     return variant == v.preview_image;
                                 });
                                 if (index && obj.vm.swiper) {
-                                    obj.vm.swiper.slideTo(index);
                                 }
                             }
                             clearInterval(si);
@@ -511,7 +511,7 @@ overflow: hidden;
                 const v = prod.variants.find((variant) => {
                     return PdClass.ObjCompare(variant.spec, vm.specs);
                 });
-                return v ? `$ ${v.sale_price.toLocaleString()}` : '錯誤';
+                return v ? Currency.convertCurrencyText(v.sale_price) : '錯誤';
             },
         })}
                     </h2>

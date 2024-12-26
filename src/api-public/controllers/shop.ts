@@ -35,12 +35,7 @@ router.post('/worker', async (req: express.Request, resp: express.Response) => {
 //多國貨幣
 router.get('/currency-covert', async (req: express.Request, resp: express.Response) => {
     try {
-        const data:any=(await db.query(`SELECT * FROM ${saasConfig.SAAS_NAME}.currency_config  order by id desc limit 0,1;`,[]))[0]['json']['rates'];
-        const base:any=req.query.base || 'TWD'
-        Object.keys(data).map((dd)=>{
-            data[dd]=(data[dd]/data[base])
-        })
-        return response.succ(resp, { data:data});
+        return response.succ(resp, { data:await Shopping.currencyCovert((req.query.base || 'TWD') as string)});
     } catch (err) {
         return response.fail(resp, err);
     }
@@ -918,6 +913,7 @@ router.get('/product', async (req: express.Request, resp: express.Response) => {
             productType: req.query.productType as any,
             filter_visible: req.query.filter_visible as any,
             language: req.headers['language'] as string,
+            currency_code:req.headers['currency_code'] as string
         });
         return response.succ(resp, shopping);
     } catch (err) {

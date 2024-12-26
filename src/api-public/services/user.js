@@ -1860,7 +1860,9 @@ class User {
             return ip_data;
         }
         catch (e) {
-            throw exception_1.default.BadRequestError('ERROR', 'ERROR.' + e, null);
+            return {
+                country: 'TW'
+            };
         }
     }
     constructor(app, token) {

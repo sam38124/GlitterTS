@@ -144,7 +144,7 @@ export declare class Shopping {
         type: string;
         divisor: number;
         executionTime: string;
-        queryStatus: "error" | "success";
+        queryStatus: "success" | "error";
         queryData: any;
     } | {
         type: string;
@@ -174,6 +174,7 @@ export declare class Shopping {
         productType?: string;
         filter_visible?: string;
         language?: string;
+        currency_code?: string;
     }): Promise<{
         data: any;
         result: boolean;
@@ -531,5 +532,6 @@ export declare class Shopping {
         allowanceNo: string;
         voidReason: string;
     }): Promise<void>;
+    static currencyCovert(base: string): Promise<any>;
 }
 export {};

@@ -2310,7 +2310,9 @@ export class User {
             }
             return ip_data
         } catch (e) {
-            throw exception.BadRequestError('ERROR', 'ERROR.' + e, null);
+            return {
+                country:'TW'
+            }
         }
     }
 

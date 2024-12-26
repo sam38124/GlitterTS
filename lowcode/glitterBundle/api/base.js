@@ -8,9 +8,11 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 import { Language } from "../../glitter-base/global/language.js";
+import { Currency } from "../../glitter-base/global/currency.js";
 export class BaseApi {
     static create(config) {
         return new Promise((resolve, reject) => {
+            var _a;
             const requestOptions = {
                 method: config.type,
                 headers: config.headers,
@@ -23,6 +25,7 @@ export class BaseApi {
             try {
                 requestOptions.headers['mac_address'] = window.glitter.macAddress;
                 requestOptions.headers['language'] = requestOptions.headers['language'] || Language.getLanguage();
+                requestOptions.headers['currency_code'] = requestOptions.headers['currency_code'] || ((_a = Currency.getCurrency()) === null || _a === void 0 ? void 0 : _a.currency_code);
             }
             catch (e) {
             }

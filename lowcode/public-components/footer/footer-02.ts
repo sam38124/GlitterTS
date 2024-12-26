@@ -171,11 +171,11 @@ export class Footer02 {
                                 }
                             })()}
                         </div>
-                        ${(window as any).store_info.language_setting.support.length > 1 && document.body.clientWidth < 800
+                        ${(((window as any).store_info.language_setting.support.length > 1 || (window as any).store_info.multi_currency) && document.body.clientWidth < 800)
                             ? html`<div class="col-12 d-flex justify-content-center mb-3">${LanguageView.selectLanguage(gvc, colors)}</div>`
                             : ``}
                         <div class="col-12 col-md-3 col-lg-6 f-title-container d-flex flex-column ms-auto">
-                            ${(window as any).store_info.language_setting.support.length > 1 && document.body.clientWidth >= 800
+                            ${((window as any).store_info.language_setting.support.length > 1 || (window as any).store_info.multi_currency) && document.body.clientWidth >= 800
                                 ? html`<div class="d-flex justify-content-end mb-3">${LanguageView.selectLanguage(gvc, colors)}</div>`
                                 : ``}
                             <div class="d-flex gap-2 p-0 pb-3 justify-content-${document.body.clientWidth > 768 ? 'end' : 'center'}">

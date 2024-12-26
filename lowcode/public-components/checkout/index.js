@@ -22,6 +22,7 @@ import { Ad } from '../public/ad.js';
 import { Language } from '../../glitter-base/global/language.js';
 import { FakeOrder } from './fake-order.js';
 import { FormCheck } from "../../cms-plugin/module/form-check.js";
+import { Currency } from "../../glitter-base/global/currency.js";
 const html = String.raw;
 export class CheckoutIndex {
     static main(gvc, widget, subData) {
@@ -693,9 +694,9 @@ export class CheckoutIndex {
                                                                                                             <div class="">
                                                                                                                 ${(() => {
                                                         if (item.is_gift) {
-                                                            return `NT.0`;
+                                                            return Currency.convertCurrencyText(0);
                                                         }
-                                                        return `NT.${parseInt(item.sale_price, 10).toLocaleString()}`;
+                                                        return Currency.convertCurrencyText(parseFloat(item.sale_price));
                                                     })()}
                                                                                                             </div>
                                                                                                         </div>
@@ -741,15 +742,14 @@ export class CheckoutIndex {
                                                                                                         </div>
                                                                                                         <span class="d-block d-md-none"
                                                                                                               style="position: absolute;bottom:0px;right:0px;"
-                                                                                                        >${Language.text('total')} NT.
-                                                                                                ${(item.discount_price
+                                                                                                        >${Currency.convertCurrencyText((item.discount_price
                                                         ? (item.sale_price - item.discount_price) * item.count
-                                                        : item.sale_price * item.count).toLocaleString()}</span
+                                                        : item.sale_price * item.count))}</span
                                                                                                         >
                                                                                                         <div class="${gClass('td')}  d-none d-md-flex"
                                                                                                              style="bottom:0px;right:10px;">
                                                                                                 <span class="d-none d-md-block"
-                                                                                                >${Language.text('total')} NT. ${(item.sale_price * item.count).toLocaleString()}</span
+                                                                                                >${Language.text('total')} ${Currency.convertCurrencyText((item.sale_price * item.count))}</span
                                                                                                 >
                                                                                                             <div
                                                                                                                     class="d-none d-md-block"
@@ -817,20 +817,20 @@ export class CheckoutIndex {
                                                                 <div class="${gClass('price-container')}">
                                                                     <div class="${gClass(['price-row', 'text-2'])}">
                                                                         <div>${Language.text('total_products')}</div>
-                                                                        <div>NT.
-                                                                            ${(vm.cartData.total + vm.cartData.discount - vm.cartData.shipment_fee + vm.cartData.use_rebate).toLocaleString()}
+                                                                        <div>
+                                                                            ${Currency.convertCurrencyText((vm.cartData.total - vm.cartData.shipment_fee))}
                                                                         </div>
                                                                     </div>
                                                                     <div class="${gClass(['price-row', 'text-2'])}">
                                                                         <div>${Language.text('shipping_fee')}</div>
-                                                                        <div>NT.
-                                                                            ${vm.cartData.shipment_fee.toLocaleString()}
+                                                                        <div>
+                                                                            ${Currency.convertCurrencyText((vm.cartData.shipment_fee))}
                                                                         </div>
                                                                     </div>
                                                                     <div class="${gClass(['price-row', 'text-2'])}">
                                                                         <div>${Language.text('discount_coupon')}</div>
-                                                                        <div>- NT.
-                                                                            ${vm.cartData.discount.toLocaleString()}
+                                                                        <div>- 
+                                                                            ${Currency.convertCurrencyText((vm.cartData.discount))}
                                                                         </div>
                                                                     </div>
                                                                     <div class="${gClass(['price-row', 'text-2'])}">
@@ -1137,8 +1137,7 @@ export class CheckoutIndex {
                                                                                             ${Language.text('special_discount')}
                                                                                             : ${vm.rebateConfig.title}
                                                                                         </div>
-                                                                                        <div>- NT.
-                                                                                            ${vm.cartData.use_rebate.toLocaleString()}
+                                                                                        <div>- ${Currency.convertCurrencyText((vm.cartData.use_rebate))}
                                                                                         </div>
                                                                                     </div>
 
@@ -1254,7 +1253,7 @@ export class CheckoutIndex {
                                         <div class="${gClass('price-container')}">
                                             <div class="${gClass(['price-row', 'text-1', 'bold'])}">
                                                 <div>${Language.text('total_amount')}</div>
-                                                <div>NT. ${vm.cartData.total.toLocaleString()}</div>
+                                                <div>${Currency.convertCurrencyText(vm.cartData.total)}</div>
                                             </div>
                                         </div>
                                     </section>
@@ -1300,7 +1299,7 @@ export class CheckoutIndex {
                                                                                             ${dd.content.title}
                                                                                         </div>
                                                                                         <div class="ntd-font-14">
-                                                                                                NT.${dd.content.min_price.toLocaleString()}
+                                                                                            ${Currency.convertCurrencyText(dd.content.min_price)}
                                                                                         </div>
                                                                                         <button
                                                                                                 class="${gClass('button-bgr')} mb-0 mt-2"
@@ -1415,7 +1414,7 @@ export class CheckoutIndex {
                                                                                             ${pd.title}
                                                                                         </div>
                                                                                         <div class="text-decoration-line-through text-danger ntd-font-14">
-                                                                                                NT.${pd.min_price.toLocaleString()}
+                                                                                            ${Currency.convertCurrencyText(pd.min_price)}
                                                                                         </div>
                                                                                         <button
                                                                                                 class="${gClass('button-bgr')} mb-0 mt-2"

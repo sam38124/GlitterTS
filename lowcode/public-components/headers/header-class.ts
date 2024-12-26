@@ -3,6 +3,7 @@ import { ApiShop } from '../../glitter-base/route/shopping.js';
 import { ApiCart } from '../../glitter-base/route/api-cart.js';
 import { Tool } from '../../modules/tool.js';
 import { Language } from '../../glitter-base/global/language.js';
+import {Currency} from "../../glitter-base/global/currency.js";
 
 const html = String.raw;
 
@@ -245,8 +246,8 @@ export class HeaderClass {
                                                                 <div class="${classPrefix}-title">${item.title}</div>
                                                                 <div class="${classPrefix}-spec">${item.spec.join(' / ')}</div>
                                                                 <div class="d-flex align-items-center justify-content-between">
-                                                                    <div class="d-flex align-items-center gap-1">
-                                                                        數量：<select
+                                                                    <div class="d-flex align-items-center gap-1" style="font-size:14px;">
+                                                                        ${Language.text('quantity')}：<select
                                                                             class="${classPrefix}-select"
                                                                             style="width: 100px;"
                                                                             onchange="${gvc.event((e) => {
@@ -265,7 +266,7 @@ export class HeaderClass {
                                                                                 .join('')}
                                                                         </select>
                                                                     </div>
-                                                                    NT$ ${(item.price * item.count).toLocaleString()}
+${Currency.convertCurrencyText((item.price * item.count))}
                                                                 </div>
                                                             </div>
                                                         </div>`;

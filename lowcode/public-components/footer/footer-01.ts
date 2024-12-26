@@ -127,7 +127,7 @@ export class Footer01 {
                     <div class="row py-sm-5 f-container ">
                         <div class="col-12 col-md-3 col-lg-4 f-title-container pt-3 pt-sm-0 ${document.body.clientWidth < 800 ? ` d-flex flex-column align-items-center justify-content-center` : ``}">
                             <img src="${formData.logo}" style="max-height: 90px" />
-                            ${(window as any).store_info.language_setting.support.length > 1 && document.body.clientWidth < 800 ? LanguageView.selectLanguage(gvc, colors) : ``}
+                            ${((window as any).store_info.language_setting.support.length > 1 || (window as any).store_info.multi_currency) && document.body.clientWidth < 800 ? LanguageView.selectLanguage(gvc, colors) : ``}
                             <ul class="d-flex list-unstyled list-inline mt-3 mb-md-0 text-gray-350">
                                 ${(() => {
                                     try {
@@ -172,7 +172,7 @@ export class Footer01 {
                             <div>
                                 <h4 class="f-intro mb-0">${formData.intro ? formData.intro.replace(/\n/g, '<br/>') : ''}</h4>
                             </div>
-                            ${(window as any).store_info.language_setting.support.length > 1 && document.body.clientWidth >= 800 ? LanguageView.selectLanguage(gvc, colors) : ``}
+                            ${((window as any).store_info.language_setting.support.length > 1 || (window as any).store_info.multi_currency) && document.body.clientWidth >= 800 ? LanguageView.selectLanguage(gvc, colors) : ``}
                         </div>
                         <div class="col f-content-container ${document.body.clientWidth > 768 ? '' : 'row'}">
                             ${(() => {

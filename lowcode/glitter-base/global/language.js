@@ -1,14 +1,17 @@
 export class Language {
     static getLanguage() {
+        if (window.glitter.getUrlParameter('function') === 'backend-manger') {
+            return `zh-TW`;
+        }
         let last_select = localStorage.getItem('select_language_' + window.appName) || navigator.language;
         if (!window.store_info.language_setting.support.includes(last_select)) {
             last_select = window.store_info.language_setting.def;
         }
         return last_select;
     }
-    static getLanguageLinkPrefix(pre = true, compare) {
+    static getLanguageLinkPrefix(pre = true, compare, d_window) {
         const lan = (() => {
-            if ((compare || Language.getLanguage()) !== window.store_info.language_setting.def) {
+            if ((compare || Language.getLanguage()) !== (d_window || window).store_info.language_setting.def) {
                 switch (compare || Language.getLanguage()) {
                     case 'en-US':
                         return `en`;
@@ -124,7 +127,7 @@ export class Language {
             { key: 'total_products', tw: '商品總計', cn: '商品总计', en: 'Total products' },
             { key: 'shipping_fee', tw: '運費', cn: '运费', en: 'Shipping fee' },
             { key: 'discount_coupon', tw: '優惠券折抵', cn: '优惠券折抵', en: 'Discount coupon' },
-            { key: 'promo_code', tw: '優惠代碼', cn: '优惠码', en: 'Promo code' },
+            { key: 'promo_code', tw: '優惠代碼', cn: '优惠码', en: 'Coupon code' },
             { key: 'discount', tw: '折抵', cn: '折抵', en: 'Discount' },
             { key: 'remaining_balance', tw: '您目前剩餘', cn: '您目前剩余', en: 'Your remaining balance' },
             { key: 'point', tw: '點', cn: '点', en: '' },
@@ -172,7 +175,7 @@ export class Language {
             { key: 'select_to_use', tw: '選擇使用', cn: '选择使用', en: 'Select to use' },
             { key: 'not_meet_usage_criteria', tw: '未達使用標準', cn: '未达使用标准', en: 'Does not meet usage criteria' },
             { key: 'code_unusable', tw: '此代碼無法使用', cn: '此代码无法使用', en: 'This code cannot be used' },
-            { key: 'enter_promo_code', tw: '請輸入優惠代碼', cn: '请输入优惠代码', en: 'Please enter promo code' },
+            { key: 'enter_promo_code', tw: '請輸入優惠代碼', cn: '请输入优惠代码', en: 'Please enter coupon code' },
             { key: 'confirm', tw: '確認', cn: '确认', en: 'Confirm' },
             { key: 'enter_value', tw: '請輸入數值', cn: '请输入数值', en: 'Please enter a value' },
             { key: 'apply', tw: '套用', cn: '应用', en: 'Apply' },

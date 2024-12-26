@@ -13,6 +13,7 @@ import { CheckInput } from '../../modules/checkInput.js';
 import { PdClass } from './pd-class.js';
 import { ApiUser } from "../../glitter-base/route/user.js";
 import { Language } from "../../glitter-base/global/language.js";
+import { Currency } from "../../glitter-base/global/currency.js";
 const html = String.raw;
 export class ProductCard01 {
     static main(gvc, widget, subData) {
@@ -111,13 +112,22 @@ export class ProductCard01 {
                 padding-top: 10px;
             }
             .card-title-text {
-                font-size: 16px;
+                 font-size: ${glitter.ut.frSize({ sm: '16' }, '14')}px;
                 font-style: normal;
                 font-weight: 500;
                 line-height: normal;
                 letter-spacing: 1.76px;
                 color: #322b25;
             }
+            .ellipsis {
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    -webkit-line-clamp: 2; /* 限制顯示的行數 */
+    line-height: 1.5; /* 行高，可以調整 */
+    max-height: calc(1.5em * 2); /* 設定最大高度，對應行高和行數 */
+}
             .card-price-container {
                 gap: 10px;
                 align-items: baseline;
@@ -127,7 +137,7 @@ export class ProductCard01 {
                 text-align: center;
                 font-style: normal;
                 line-height: normal;
-                font-size: 16px;
+                font-size: ${glitter.ut.frSize({ sm: '16' }, '14')}px;
                 opacity: 0.9;
                 color: #322b25;
             }
@@ -266,16 +276,16 @@ export class ProductCard01 {
                     <div class="row gx-0 card-title-container mb-1">
                         <div class="col-12 mb-1">
                             <div class="w-100 d-flex ${PdClass.isPad() ? 'justify-content-center' : ''}">
-                                <span class="card-title-text">${prod.title}</span>
+                                <span class="card-title-text ellipsis">${prod.title}</span>
                             </div>
                         </div>
                         <div class="d-flex d-sm-block d-lg-flex col-12 p-0 card-price-container">
-                            <div class="fs-6 fw-500 card-sale-price">
+                            <div class="fw-500 card-sale-price">
                                 ${(() => {
             const minPrice = Math.min(...prod.variants.map((dd) => {
                 return dd.sale_price;
             }));
-            return `NT.$ ${minPrice.toLocaleString()}`;
+            return `${(Currency.convertCurrencyText(minPrice)).toLocaleString()}`;
         })()}
                             </div>
                             ${(() => {
@@ -287,7 +297,7 @@ export class ProductCard01 {
                 return dd.sale_price === minPrice;
             })) !== null && _a !== void 0 ? _a : {}).compare_price) !== null && _b !== void 0 ? _b : 0;
             if (comparePrice > 0 && minPrice < comparePrice) {
-                return html ` <div class="text-decoration-line-through card-cost-price">NT.$ ${comparePrice.toLocaleString()}</div>`;
+                return html ` <div class="text-decoration-line-through card-cost-price">${Currency.convertCurrencyText(comparePrice)}</div>`;
             }
             return '';
         })()}

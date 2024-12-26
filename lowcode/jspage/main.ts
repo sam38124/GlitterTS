@@ -248,7 +248,7 @@ init(import.meta.url, (gvc, glitter, gBundle) => {
                                 Article.get({
                                     page: 0,
                                     limit: 1,
-                                    tag: glitter.getUrlParameter('page').split('/')[1]
+                                    id: glitter.getUrlParameter('page-id')
                                 }).then(async (data) => {
                                     const content=data.response.data[0].content
                                     if(content.language_data && content.language_data[glitter.getUrlParameter('language')] && content.language_data[glitter.getUrlParameter('language')].config){
@@ -460,7 +460,7 @@ init(import.meta.url, (gvc, glitter, gBundle) => {
                                     Article.get({
                                         page: 0,
                                         limit: 1,
-                                        tag: glitter.getUrlParameter('page').split('/')[1]
+                                        id: glitter.getUrlParameter('page-id')
                                     }).then(async (data) => {
                                         const content=data.response.data[0].content
                                         function empty(){

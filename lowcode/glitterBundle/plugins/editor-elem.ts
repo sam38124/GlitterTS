@@ -334,7 +334,7 @@ export class EditorElem {
                         return html` <div class="w-100 d-flex align-items-center justify-content-center fw-bold fs-6 alert m-0 bgf6">尚未新增任何檔案...</div>`;
                     }
                     return html`
-                        <ul id="${bid}" class="d-flex" style="gap:10px;overflow-x: auto;max-width: 700px;">
+                        <ul id="${bid}" class="d-flex" style="gap:10px;overflow-x: auto;">
                             ${data
                                 .map((dd, index) => {
                                     return html` <li
@@ -1120,7 +1120,6 @@ ${obj.structEnd ? obj.structEnd : '})()'}`,
 
                                                 doc.documentElement.querySelectorAll('iframe.fr-draggable').forEach(function (videoElement: any) {
                                                     videoElement.removeAttribute('height');
-                                                    videoElement.style.height = '540px';
                                                 });
 
                                                 obj.callback(doc.documentElement.outerHTML);
@@ -2773,13 +2772,14 @@ ${obj.gvc.bindView(() => {
                     );
                     if (obj.hoverGray) {
                         gvc.addStyle(`
-                            #${parId} :hover :not(.btn-black, .tx_700_white){
+                          
+                            #${parId} .li_item:hover{
                                 background-color: #F7F7F7;
                             }
-                            #${parId} :hover .option{
+                            #${parId} .li_item:hover .option{
                                 background-color:#DDD;
                             }
-                            #${parId} :hover .pen{
+                            #${parId} .li_item:hover .pen{
                                 display:block;
                             }
                         `);
@@ -2795,8 +2795,9 @@ ${obj.gvc.bindView(() => {
                                         event.preventDefault();
                                         event.stopPropagation();
                                     });
+
                                     return html`
-                                        <li class="btn-group" style="margin-top:1px;margin-bottom:1px;${obj.hr ? `border-bottom: 1px solid #f6f6f6; ` : ``};">
+                                        <li class="btn-group li_item" style="margin-top:1px;margin-bottom:1px;${obj.hr ? `border-bottom: 1px solid #f6f6f6; ` : ``};">
                                             <div
                                                 class="h-auto align-items-center px-2 my-0 hi me-n1 ${dd.isSelect ? `bgf6 border` : ``}"
                                                 style="cursor: pointer;min-height:36px;width: calc(100% - 10px);display: flex;font-size: 14px;line-height: 20px;font-weight: 500;text-rendering: optimizelegibility;user-select: none;margin: 5px 10px;"
@@ -3153,7 +3154,7 @@ ${obj.gvc.bindView(() => {
                     );
                     if (obj.hoverGray) {
                         gvc.addStyle(`
-                            #${parId} :hover :not(.btn-black, .tx_700_white){
+                            #${parId}:hover{
                                 background-color: #F7F7F7;
                             }
                             #${parId} :hover .option{

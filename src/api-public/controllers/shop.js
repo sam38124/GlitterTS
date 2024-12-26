@@ -17,7 +17,6 @@ const post_js_1 = require("../services/post.js");
 const shopping_1 = require("../services/shopping");
 const rebate_1 = require("../services/rebate");
 const axios_1 = __importDefault(require("axios"));
-const config_js_1 = require("../../config.js");
 const router = express_1.default.Router();
 router.post('/worker', async (req, resp) => {
     try {
@@ -32,12 +31,7 @@ router.post('/worker', async (req, resp) => {
 });
 router.get('/currency-covert', async (req, resp) => {
     try {
-        const data = (await database_js_1.default.query(`SELECT * FROM ${config_js_1.saasConfig.SAAS_NAME}.currency_config  order by id desc limit 0,1;`, []))[0]['json']['rates'];
-        const base = req.query.base || 'TWD';
-        Object.keys(data).map((dd) => {
-            data[dd] = (data[dd] / data[base]);
-        });
-        return response_1.default.succ(resp, { data: data });
+        return response_1.default.succ(resp, { data: await shopping_1.Shopping.currencyCovert((req.query.base || 'TWD')) });
     }
     catch (err) {
         return response_1.default.fail(resp, err);
@@ -833,6 +827,7 @@ router.get('/product', async (req, resp) => {
             productType: req.query.productType,
             filter_visible: req.query.filter_visible,
             language: req.headers['language'],
+            currency_code: req.headers['currency_code']
         });
         return response_1.default.succ(resp, shopping);
     }

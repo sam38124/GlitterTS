@@ -13,6 +13,7 @@ import { CheckInput } from '../../modules/checkInput.js';
 import { PdClass } from './pd-class.js';
 import { ApiUser } from '../../glitter-base/route/user.js';
 import { Language } from '../../glitter-base/global/language.js';
+import { Currency } from "../../glitter-base/global/currency.js";
 const html = String.raw;
 export class ProductCard03 {
     static main(gvc, widget, subData) {
@@ -267,7 +268,7 @@ export class ProductCard03 {
             const minPrice = Math.min(...prod.variants.map((dd) => {
                 return dd.sale_price;
             }));
-            return `NT.$ ${minPrice.toLocaleString()}`;
+            return `${(Currency.convertCurrencyText(minPrice)).toLocaleString()}`;
         })()}
                                 </div>
                                 ${(() => {
@@ -281,7 +282,7 @@ export class ProductCard03 {
             if (comparePrice > 0 && minPrice < comparePrice) {
                 return html `
                                             <div class="text-decoration-line-through card-cost-price">NT.$
-                                                ${comparePrice.toLocaleString()}
+                                                ${Currency.convertCurrencyText(comparePrice)}
                                             </div>`;
             }
             return '';

@@ -749,7 +749,7 @@ function detail(gvc, cf, vm, cVm, page_tab) {
                                     return [
                                         BgWidget.mainCard((() => {
                                             var _a;
-                                            const prefixURL = `https://${window.parent.glitter.share.editorViewModel.domain}/${Language.getLanguageLinkPrefix(true, language)}${cf.is_page
+                                            const prefixURL = `https://${window.parent.glitter.share.editorViewModel.domain}/${Language.getLanguageLinkPrefix(true, language, window.parent)}${cf.is_page
                                                 ? (() => {
                                                     switch (page_tab) {
                                                         case 'shopping':
@@ -785,7 +785,7 @@ function detail(gvc, cf, vm, cVm, page_tab) {
                                                 html `
                                                                         <div>
                                                                             <div class="tx_normal fw-normal mb-2">
-                                                                                    自訂網址${BgWidget.languageInsignia(language, 'margin-left:5px;')}
+                                                                                    自訂網址
                                                                             </div>
                                                                             <div
                                                                                     style="justify-content: flex-start; align-items: center; display: inline-flex;border:1px solid #EAEAEA;border-radius: 10px;overflow: hidden; ${document

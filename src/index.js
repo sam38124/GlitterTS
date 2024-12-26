@@ -26,7 +26,9 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.createAPP = exports.initial = exports.app = void 0;
+exports.app = void 0;
+exports.initial = initial;
+exports.createAPP = createAPP;
 const path_1 = __importDefault(require("path"));
 const express_1 = __importDefault(require("express"));
 const cors_1 = __importDefault(require("cors"));
@@ -72,7 +74,7 @@ const logger = new logger_1.default();
 exports.app.options('/*', (req, res) => {
     res.header('Access-Control-Allow-Origin', '*');
     res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, PATCH');
-    res.header('Access-Control-Allow-Headers', 'Content-Type,Authorization,g-app,mac_address,language');
+    res.header('Access-Control-Allow-Headers', 'Content-Type,Authorization,g-app,mac_address,language,currency_code');
     res.status(200).send();
 });
 exports.app.use((0, express_session_1.default)({
@@ -118,7 +120,6 @@ async function initial(serverPort) {
         console.log('Starting up the server now.');
     })();
 }
-exports.initial = initial;
 function createContext(req, res, next) {
     const uuid = (0, uuid_1.v4)();
     const ip = req.ip;
@@ -494,7 +495,8 @@ async function createAPP(dd) {
                                 window.server_execute_time = ${(new Date().getTime() - start) / 1000};
                                 window.language='${language}';
                                 ${distribution_code};
-                                window.ip_country='${(await user_js_1.User.ipInfo((req.query.ip || req.headers['x-real-ip'] || req.ip))).country || 'TW'}'
+                                window.ip_country='${(await user_js_1.User.ipInfo((req.query.ip || req.headers['x-real-ip'] || req.ip))).country || 'TW'}';
+                                window.currency_covert=${JSON.stringify(await shopping_js_1.Shopping.currencyCovert((req.query.base || 'TWD')))};
                             </script>
                             ${[
                             { src: 'glitterBundle/GlitterInitial.js', type: 'module' },
@@ -748,7 +750,6 @@ Sitemap: https://${domain}/sitemap.xml`;
         };
     }));
 }
-exports.createAPP = createAPP;
 async function getSeoDetail(appName, req) {
     const sqlData = await private_config_js_1.Private_config.getConfig({
         appName: appName,

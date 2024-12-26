@@ -34,7 +34,7 @@ export class FormModule {
         return [
             title,
             gvc.bindView(() => {
-                gvc.addMtScript([
+                gvc.glitter.addMtScript([
                     {
                         src: `https://raw.githack.com/SortableJS/Sortable/master/Sortable.js`,
                     },
@@ -380,7 +380,8 @@ export class FormModule {
                     },
                     onCreate: () => {
                         const interval = setInterval(() => {
-                            if (window.Sortable) {
+                            console.log(`form-module=====>`);
+                            if (gvc.glitter.window.Sortable) {
                                 try {
                                     function swapArr(arr, index1, index2) {
                                         const data = arr[index1];
@@ -388,7 +389,7 @@ export class FormModule {
                                         arr.splice(index2, 0, data);
                                     }
                                     let startIndex = 0;
-                                    Sortable.create(document.getElementById(vm.id), {
+                                    gvc.glitter.window.Sortable.create(gvc.glitter.document.getElementById(vm.id), {
                                         group: gvc.glitter.getUUID(),
                                         animation: 100,
                                         handle: '.dragItem',

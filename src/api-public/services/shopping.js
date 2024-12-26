@@ -96,6 +96,7 @@ class Shopping {
         try {
             query.language = (_a = query.language) !== null && _a !== void 0 ? _a : (await app_js_1.App.getDefLanguage(this.app));
             query.show_hidden = (_b = query.show_hidden) !== null && _b !== void 0 ? _b : 'true';
+            console.log(`currency_code=>`, query.currency_code);
             let querySql = [`(content->>'$.type'='product')`];
             if (query.search) {
                 switch (query.searchType) {
@@ -349,6 +350,10 @@ class Shopping {
                     dd.content.content = dd.content.language_data[`${query.language}`].content || dd.content.content;
                     dd.content.content_array = dd.content.language_data[`${query.language}`].content_array || dd.content.content_array;
                     dd.content.content_json = dd.content.language_data[`${query.language}`].content_json || dd.content.content_json;
+                    dd.content.preview_image = dd.content.language_data[`${query.language}`].preview_image || dd.content.preview_image;
+                    (dd.content.variants || []).map((variant) => {
+                        variant.preview_image = variant[`preview_image_${query.language}`] || variant.preview_image;
+                    });
                 }
             });
             if (query.domain && products.data[0]) {
@@ -3556,6 +3561,14 @@ OR JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.orderStatus')) NOT IN (-99)) `);
             allowance_data: passData,
             beta: config.point === 'beta',
         });
+    }
+    static async currencyCovert(base) {
+        const data = (await database_js_1.default.query(`SELECT * FROM ${config_js_1.saasConfig.SAAS_NAME}.currency_config  order by id desc limit 0,1;`, []))[0]['json']['rates'];
+        const base_m = data[base];
+        Object.keys(data).map((dd) => {
+            data[dd] = (data[dd] / base_m);
+        });
+        return data;
     }
 }
 exports.Shopping = Shopping;

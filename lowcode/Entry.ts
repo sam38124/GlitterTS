@@ -10,7 +10,6 @@ import { Language } from './glitter-base/global/language.js';
 
 export class Entry {
     public static onCreate(glitter: Glitter) {
-        Language.getLanguage();
         if ((window as any).language !== Language.getLanguage()) {
             const url = new URL(`${glitter.root_path}${Language.getLanguageLinkPrefix()}${(window as any).glitter_page}${new URL(location.href).search}`);
             if (glitter.getUrlParameter('appName')) {
@@ -82,7 +81,7 @@ export class Entry {
 
         (window as any).renderClock = (window as any).renderClock ?? clockF();
         console.log(`Entry-time:`, (window as any).renderClock.stop());
-        glitter.share.editerVersion = 'V_15.8.1';
+        glitter.share.editerVersion = 'V_15.8.4';
         glitter.share.start = new Date();
         const vm: {
             appConfig: any;

@@ -106,7 +106,7 @@ export class Footer02 {
                         <div>
                             <h4 class="f-content">${formData.intro ? formData.intro.replace(/\n/g, '<br/>') : ''}</h4>
                         </div>
-                        ${(window as any).store_info.language_setting.support.length > 1
+                        ${((window as any).store_info.language_setting.support.length > 1 || (window as any).store_info.multi_currency)
                             ? html`<div class="col-12 d-flex justify-content-center mb-3">${LanguageView.selectLanguage(gvc, colors)}</div>`
                             : ``}
                         <div class="d-flex justify-content-center gap-2 p-0 pb-3">

@@ -6,6 +6,7 @@ import { PdClass } from './pd-class.js';
 import { Tool } from '../../modules/tool.js';
 import {ApiUser} from "../../glitter-base/route/user.js";
 import {Language} from "../../glitter-base/global/language.js";
+import {Currency} from "../../glitter-base/global/currency.js";
 
 const html = String.raw;
 
@@ -131,7 +132,7 @@ export class ProductCard02 {
                 text-align: center;
                 font-style: normal;
                 line-height: normal;
-                font-size: 16px;
+                font-size: 15px;
                 opacity: 0.9;
                 color: #322b25;
             }
@@ -260,14 +261,14 @@ export class ProductCard02 {
                             </div>
                         </div>
                         <div class="d-flex d-sm-block d-lg-flex col-12 p-0 card-price-container ${PdClass.isPhone() ? 'gap-0 flex-column' : ''}">
-                            <div class="fs-6 fw-500 card-sale-price">
+                            <div class=" fw-500 card-sale-price">
                                 ${(() => {
                                     const minPrice = Math.min(
                                         ...prod.variants.map((dd: { sale_price: number }) => {
                                             return dd.sale_price;
                                         })
                                     );
-                                    return `NT.$ ${minPrice.toLocaleString()}`;
+                                    return `${(Currency.convertCurrencyText(minPrice)).toLocaleString()}`;
                                 })()}
                             </div>
                             ${(() => {
@@ -283,7 +284,7 @@ export class ProductCard02 {
                                         }) ?? {}
                                     ).compare_price ?? 0;
                                 if (comparePrice > 0 && minPrice < comparePrice) {
-                                    return html`<div class="text-decoration-line-through card-cost-price">NT.$ ${comparePrice.toLocaleString()}</div>`;
+                                    return html`<div class="text-decoration-line-through card-cost-price">${Currency.convertCurrencyText(comparePrice)}</div>`;
                                 }
                                 return '';
                             })()}

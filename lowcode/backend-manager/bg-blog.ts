@@ -828,7 +828,7 @@ function detail(gvc: GVC, cf: any, vm: any, cVm: any, page_tab: 'page' | 'hidden
                                                 return [
                                                     BgWidget.mainCard(
                                                             (() => {
-                                                                const prefixURL = `https://${(window.parent as any).glitter.share.editorViewModel.domain}/${Language.getLanguageLinkPrefix(true,language)}${
+                                                                const prefixURL = `https://${(window.parent as any).glitter.share.editorViewModel.domain}/${Language.getLanguageLinkPrefix(true,language,window.parent)}${
                                                                         cf.is_page
                                                                                 ? (() => {
                                                                                     switch (page_tab) {
@@ -866,7 +866,7 @@ function detail(gvc: GVC, cf: any, vm: any, cVm: any, page_tab: 'page' | 'hidden
                                                                     html`
                                                                         <div>
                                                                             <div class="tx_normal fw-normal mb-2">
-                                                                                    自訂網址${BgWidget.languageInsignia(language, 'margin-left:5px;')}
+                                                                                    自訂網址
                                                                             </div>
                                                                             <div
                                                                                     style="justify-content: flex-start; align-items: center; display: inline-flex;border:1px solid #EAEAEA;border-radius: 10px;overflow: hidden; ${document
