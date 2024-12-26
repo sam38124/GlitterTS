@@ -13,6 +13,7 @@ import { ShoppingInvoiceManager } from './shopping-invoice-manager.js';
 import { BgRecommend } from '../backend-manager/bg-recommend.js';
 import { ApiRecommend } from '../glitter-base/route/recommend.js';
 import { DeliveryHTML } from './module/delivery-html.js';
+import { ApiPageConfig } from '../api/pageConfig.js';
 
 interface VoucherData {
     id: number;
@@ -116,6 +117,7 @@ interface OrderData {
             count: string;
             sale_price: number;
             title: string;
+            sku: string;
         }[];
         user_info: {
             name: string;
@@ -1173,16 +1175,23 @@ export class ShoppingOrderManager {
                                             </div>
                                         `),
                                         BgWidget.mainCard(
-                                            gvc.bindView(() => {
+                                            (() => {
+                                                let loading = true;
+                                                let deliveryConfig = {} as any;
                                                 const vm: {
                                                     mode: 'edit' | 'read';
                                                 } = {
                                                     mode: 'read',
                                                 };
-                                                return {
+
+                                                return gvc.bindView({
                                                     bind: 'Edit',
                                                     dataList: [{ obj: vm, key: 'mode' }],
                                                     view: () => {
+                                                        if (loading) {
+                                                            return '';
+                                                        }
+                                                        console.log(deliveryConfig);
                                                         return [
                                                             html` <div class="tx_700">配送 / 收件人資訊</div>`,
                                                             html` <div class="tx_700">配送狀態</div>
@@ -1235,16 +1244,20 @@ export class ShoppingOrderManager {
                                                                               }),
                                                                           })
                                                                         : ''}
+                                                                    ${deliveryConfig.toggle === 'true'
+                                                                        ? BgWidget.customButton({
+                                                                              button: { color: 'gray', size: 'sm' },
+                                                                              text: { name: '列印出貨單' },
+                                                                              event: gvc.event(() => {
+                                                                                  DeliveryHTML.print(gvc, orderData, 'shipment');
+                                                                              }),
+                                                                          })
+                                                                        : ''}
                                                                     ${BgWidget.customButton({
-                                                                        button: {
-                                                                            color: 'gray',
-                                                                            size: 'sm',
-                                                                        },
-                                                                        text: {
-                                                                            name: '列印出貨單',
-                                                                        },
+                                                                        button: { color: 'gray', size: 'sm' },
+                                                                        text: { name: '列印揀貨單' },
                                                                         event: gvc.event(() => {
-                                                                            DeliveryHTML.print(gvc, orderData);
+                                                                            DeliveryHTML.print(gvc, orderData, 'pick');
                                                                         }),
                                                                     })}
                                                                 </div>`,
@@ -1353,8 +1366,23 @@ export class ShoppingOrderManager {
                                                         ].join(BgWidget.mbContainer(18));
                                                     },
                                                     divCreate: { class: 'd-flex flex-column' },
-                                                };
-                                            })
+                                                    onCreate: () => {
+                                                        if (loading) {
+                                                            ApiPageConfig.getPrivateConfig((window.parent as any).appName, 'glitter_delivery').then((res) => {
+                                                                deliveryConfig = (() => {
+                                                                    try {
+                                                                        return res.response.result[0].value;
+                                                                    } catch (error) {
+                                                                        return {};
+                                                                    }
+                                                                })();
+                                                                loading = false;
+                                                                gvc.notifyDataChange('Edit');
+                                                            });
+                                                        }
+                                                    },
+                                                });
+                                            })()
                                         ),
                                         BgWidget.mainCard(html`
                                             <div class="tx_700">訂單備註</div>

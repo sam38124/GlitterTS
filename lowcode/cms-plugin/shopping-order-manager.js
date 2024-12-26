@@ -21,6 +21,7 @@ import { ShoppingInvoiceManager } from './shopping-invoice-manager.js';
 import { BgRecommend } from '../backend-manager/bg-recommend.js';
 import { ApiRecommend } from '../glitter-base/route/recommend.js';
 import { DeliveryHTML } from './module/delivery-html.js';
+import { ApiPageConfig } from '../api/pageConfig.js';
 const html = String.raw;
 export class ShoppingOrderManager {
     static main(gvc, query) {
@@ -952,14 +953,20 @@ export class ShoppingOrderManager {
                                                 ${ShoppingOrderManager.getProofPurchaseString(orderData.orderData, gvc)}
                                             </div>
                                         `),
-                            BgWidget.mainCard(gvc.bindView(() => {
+                            BgWidget.mainCard((() => {
+                                let loading = true;
+                                let deliveryConfig = {};
                                 const vm = {
                                     mode: 'read',
                                 };
-                                return {
+                                return gvc.bindView({
                                     bind: 'Edit',
                                     dataList: [{ obj: vm, key: 'mode' }],
                                     view: () => {
+                                        if (loading) {
+                                            return '';
+                                        }
+                                        console.log(deliveryConfig);
                                         return [
                                             html ` <div class="tx_700">配送 / 收件人資訊</div>`,
                                             html ` <div class="tx_700">配送狀態</div>
@@ -1012,16 +1019,20 @@ export class ShoppingOrderManager {
                                                     }),
                                                 })
                                                 : ''}
+                                                                    ${deliveryConfig.toggle === 'true'
+                                                ? BgWidget.customButton({
+                                                    button: { color: 'gray', size: 'sm' },
+                                                    text: { name: '列印出貨單' },
+                                                    event: gvc.event(() => {
+                                                        DeliveryHTML.print(gvc, orderData, 'shipment');
+                                                    }),
+                                                })
+                                                : ''}
                                                                     ${BgWidget.customButton({
-                                                button: {
-                                                    color: 'gray',
-                                                    size: 'sm',
-                                                },
-                                                text: {
-                                                    name: '列印出貨單',
-                                                },
+                                                button: { color: 'gray', size: 'sm' },
+                                                text: { name: '列印揀貨單' },
                                                 event: gvc.event(() => {
-                                                    DeliveryHTML.print(gvc, orderData);
+                                                    DeliveryHTML.print(gvc, orderData, 'pick');
                                                 }),
                                             })}
                                                                 </div>`,
@@ -1132,8 +1143,24 @@ export class ShoppingOrderManager {
                                         ].join(BgWidget.mbContainer(18));
                                     },
                                     divCreate: { class: 'd-flex flex-column' },
-                                };
-                            })),
+                                    onCreate: () => {
+                                        if (loading) {
+                                            ApiPageConfig.getPrivateConfig(window.parent.appName, 'glitter_delivery').then((res) => {
+                                                deliveryConfig = (() => {
+                                                    try {
+                                                        return res.response.result[0].value;
+                                                    }
+                                                    catch (error) {
+                                                        return {};
+                                                    }
+                                                })();
+                                                loading = false;
+                                                gvc.notifyDataChange('Edit');
+                                            });
+                                        }
+                                    },
+                                });
+                            })()),
                             BgWidget.mainCard(html `
                                             <div class="tx_700">訂單備註</div>
                                             ${BgWidget.mbContainer(18)}

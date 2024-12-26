@@ -384,7 +384,6 @@ export class UMLogin {
         GlobalUser.updateUserData = JSON.parse(JSON.stringify(response));
         widget.event('success', { title: text !== null && text !== void 0 ? text : Language.text('login_success') });
         setTimeout(() => {
-            widget.event('loading', { visible: true, title: Language.text('page_redirecting') });
             if (localStorage.getItem('redirect_cart') === 'true') {
                 gvc.glitter.href = './checkout';
             }
