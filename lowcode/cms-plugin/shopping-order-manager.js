@@ -502,6 +502,43 @@ export class ShoppingOrderManager {
                                     },
                                 },
                                 {
+                                    name: '列印出貨單',
+                                    option: true,
+                                    event: () => {
+                                        const checkArray = vm.dataList.filter((dd) => dd.checked);
+                                        const infoHTML = html `
+                                                        <div class="text-center">
+                                                            物流追蹤設定尚未開啟<br />
+                                                            請前往「配送設定」啟用後即可列印
+                                                        </div>
+                                                    `;
+                                        dialog.dataLoading({ visible: true });
+                                        ApiPageConfig.getPrivateConfig(window.parent.appName, 'glitter_delivery').then((res) => {
+                                            dialog.dataLoading({ visible: false });
+                                            try {
+                                                if (res.response.result[0].value.toggle === 'true') {
+                                                    DeliveryHTML.print(gvc, checkArray, 'shipment');
+                                                    return;
+                                                }
+                                                else {
+                                                    dialog.infoMessage({ text: infoHTML });
+                                                }
+                                            }
+                                            catch (error) {
+                                                dialog.infoMessage({ text: infoHTML });
+                                            }
+                                        });
+                                    },
+                                },
+                                {
+                                    name: '列印揀貨單',
+                                    option: true,
+                                    event: () => {
+                                        const checkArray = vm.dataList.filter((dd) => dd.checked);
+                                        return DeliveryHTML.print(gvc, checkArray, 'pick');
+                                    },
+                                },
+                                {
                                     name: query.isArchived ? '解除封存' : '批量封存',
                                     event: () => {
                                         dialog.checkYesOrNot({
@@ -966,7 +1003,6 @@ export class ShoppingOrderManager {
                                         if (loading) {
                                             return '';
                                         }
-                                        console.log(deliveryConfig);
                                         return [
                                             html ` <div class="tx_700">配送 / 收件人資訊</div>`,
                                             html ` <div class="tx_700">配送狀態</div>
@@ -1024,7 +1060,7 @@ export class ShoppingOrderManager {
                                                     button: { color: 'gray', size: 'sm' },
                                                     text: { name: '列印出貨單' },
                                                     event: gvc.event(() => {
-                                                        DeliveryHTML.print(gvc, orderData, 'shipment');
+                                                        DeliveryHTML.print(gvc, [orderData], 'shipment');
                                                     }),
                                                 })
                                                 : ''}
@@ -1032,7 +1068,7 @@ export class ShoppingOrderManager {
                                                 button: { color: 'gray', size: 'sm' },
                                                 text: { name: '列印揀貨單' },
                                                 event: gvc.event(() => {
-                                                    DeliveryHTML.print(gvc, orderData, 'pick');
+                                                    DeliveryHTML.print(gvc, [orderData], 'pick');
                                                 }),
                                             })}
                                                                 </div>`,
