@@ -119,8 +119,6 @@ export class DeliveryHTML {
         const containerID = Tool.randomString(5);
         const orderData = data.orderData;
 
-        console.log();
-
         return BgWidget.fullDialog({
             gvc: ogvc,
             title: (gvc) => {
@@ -184,7 +182,7 @@ export class DeliveryHTML {
                                                             <td class="text-left">${item.title} (${item.spec.join('/')})</td>
                                                             <td class="text-right">${item.sale_price.toLocaleString()}</td>
                                                             <td class="text-right">${item.count}</td>
-                                                            <td class="text-right">${(item.sale_price * parseInt(item.count, 10)).toLocaleString()}</td>
+                                                            <td class="text-right">$ ${(item.sale_price * parseInt(item.count, 10)).toLocaleString()}</td>
                                                         </tr>
                                                     `;
                                                 })
@@ -196,7 +194,7 @@ export class DeliveryHTML {
                                     <table>
                                         <tr>
                                             <td>小計：</td>
-                                            <td>$${(orderData.total + orderData.discount - orderData.shipment_fee + orderData.use_rebate).toLocaleString()}</td>
+                                            <td>$ ${(orderData.total + orderData.discount - orderData.shipment_fee + orderData.use_rebate).toLocaleString()}</td>
                                         </tr>
                                         <tr>
                                             <td>運費：</td>
@@ -212,7 +210,7 @@ export class DeliveryHTML {
                                         </tr>
                                         <tr>
                                             <td>總計：</td>
-                                            <td>${orderData.total.toLocaleString()}</td>
+                                            <td>$ ${orderData.total.toLocaleString()}</td>
                                         </tr>
                                     </table>
                                 </div>

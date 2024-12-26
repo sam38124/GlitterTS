@@ -1235,6 +1235,18 @@ export class ShoppingOrderManager {
                                                                               }),
                                                                           })
                                                                         : ''}
+                                                                    ${BgWidget.customButton({
+                                                                        button: {
+                                                                            color: 'gray',
+                                                                            size: 'sm',
+                                                                        },
+                                                                        text: {
+                                                                            name: '列印出貨單',
+                                                                        },
+                                                                        event: gvc.event(() => {
+                                                                            DeliveryHTML.print(gvc, orderData);
+                                                                        }),
+                                                                    })}
                                                                 </div>`,
                                                             html` ${['UNIMARTC2C', 'FAMIC2C', 'OKMARTC2C', 'HILIFEC2C', 'normal'].includes(orderData.orderData.user_info.shipment)
                                                                     ? html` <div class="tx_700">配送資訊</div>
