@@ -13,6 +13,7 @@ import { ShoppingInvoiceManager } from './shopping-invoice-manager.js';
 import { BgRecommend } from '../backend-manager/bg-recommend.js';
 import { ApiRecommend } from '../glitter-base/route/recommend.js';
 import { DeliveryHTML } from './module/delivery-html.js';
+import { ApiPageConfig } from '../api/pageConfig.js';
 
 interface VoucherData {
     id: number;
@@ -116,6 +117,7 @@ interface OrderData {
             count: string;
             sale_price: number;
             title: string;
+            sku: string;
         }[];
         user_info: {
             name: string;
@@ -710,6 +712,42 @@ export class ShoppingOrderManager {
                                                 },
                                             },
                                             {
+                                                name: '列印出貨單',
+                                                option: true,
+                                                event: () => {
+                                                    const checkArray = vm.dataList.filter((dd: any) => dd.checked);
+                                                    const infoHTML = html`
+                                                        <div class="text-center">
+                                                            物流追蹤設定尚未開啟<br />
+                                                            請前往「配送設定」啟用後即可列印
+                                                        </div>
+                                                    `;
+
+                                                    dialog.dataLoading({ visible: true });
+                                                    ApiPageConfig.getPrivateConfig((window.parent as any).appName, 'glitter_delivery').then((res) => {
+                                                        dialog.dataLoading({ visible: false });
+                                                        try {
+                                                            if (res.response.result[0].value.toggle === 'true') {
+                                                                DeliveryHTML.print(gvc, checkArray, 'shipment');
+                                                                return;
+                                                            } else {
+                                                                dialog.infoMessage({ text: infoHTML });
+                                                            }
+                                                        } catch (error) {
+                                                            dialog.infoMessage({ text: infoHTML });
+                                                        }
+                                                    });
+                                                },
+                                            },
+                                            {
+                                                name: '列印揀貨單',
+                                                option: true,
+                                                event: () => {
+                                                    const checkArray = vm.dataList.filter((dd: any) => dd.checked);
+                                                    return DeliveryHTML.print(gvc, checkArray, 'pick');
+                                                },
+                                            },
+                                            {
                                                 name: query.isArchived ? '解除封存' : '批量封存',
                                                 event: () => {
                                                     dialog.checkYesOrNot({
@@ -1173,16 +1211,22 @@ export class ShoppingOrderManager {
                                             </div>
                                         `),
                                         BgWidget.mainCard(
-                                            gvc.bindView(() => {
+                                            (() => {
+                                                let loading = true;
+                                                let deliveryConfig = {} as any;
                                                 const vm: {
                                                     mode: 'edit' | 'read';
                                                 } = {
                                                     mode: 'read',
                                                 };
-                                                return {
+
+                                                return gvc.bindView({
                                                     bind: 'Edit',
                                                     dataList: [{ obj: vm, key: 'mode' }],
                                                     view: () => {
+                                                        if (loading) {
+                                                            return '';
+                                                        }
                                                         return [
                                                             html` <div class="tx_700">配送 / 收件人資訊</div>`,
                                                             html` <div class="tx_700">配送狀態</div>
@@ -1235,6 +1279,22 @@ export class ShoppingOrderManager {
                                                                               }),
                                                                           })
                                                                         : ''}
+                                                                    ${deliveryConfig.toggle === 'true'
+                                                                        ? BgWidget.customButton({
+                                                                              button: { color: 'gray', size: 'sm' },
+                                                                              text: { name: '列印出貨單' },
+                                                                              event: gvc.event(() => {
+                                                                                  DeliveryHTML.print(gvc, [orderData], 'shipment');
+                                                                              }),
+                                                                          })
+                                                                        : ''}
+                                                                    ${BgWidget.customButton({
+                                                                        button: { color: 'gray', size: 'sm' },
+                                                                        text: { name: '列印揀貨單' },
+                                                                        event: gvc.event(() => {
+                                                                            DeliveryHTML.print(gvc, [orderData], 'pick');
+                                                                        }),
+                                                                    })}
                                                                 </div>`,
                                                             html` ${['UNIMARTC2C', 'FAMIC2C', 'OKMARTC2C', 'HILIFEC2C', 'normal'].includes(orderData.orderData.user_info.shipment)
                                                                     ? html` <div class="tx_700">配送資訊</div>
@@ -1341,8 +1401,23 @@ export class ShoppingOrderManager {
                                                         ].join(BgWidget.mbContainer(18));
                                                     },
                                                     divCreate: { class: 'd-flex flex-column' },
-                                                };
-                                            })
+                                                    onCreate: () => {
+                                                        if (loading) {
+                                                            ApiPageConfig.getPrivateConfig((window.parent as any).appName, 'glitter_delivery').then((res) => {
+                                                                deliveryConfig = (() => {
+                                                                    try {
+                                                                        return res.response.result[0].value;
+                                                                    } catch (error) {
+                                                                        return {};
+                                                                    }
+                                                                })();
+                                                                loading = false;
+                                                                gvc.notifyDataChange('Edit');
+                                                            });
+                                                        }
+                                                    },
+                                                });
+                                            })()
                                         ),
                                         BgWidget.mainCard(html`
                                             <div class="tx_700">訂單備註</div>

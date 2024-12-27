@@ -506,3 +506,11 @@ FilterOptions.permissionOrderBy = [
     { key: 'online_time_asc', value: '最後登入時間早 > 晚' },
     { key: 'online_time_desc', value: '最後登入時間晚 > 早' },
 ];
+FilterOptions.storesFilterFrame = {};
+FilterOptions.storesSelect = [{ key: 'name', value: '庫存點名稱' }];
+FilterOptions.storesFunnel = [];
+FilterOptions.storesOrderBy = [];
+FilterOptions.vendorsFilterFrame = {};
+FilterOptions.vendorsSelect = [{ key: 'name', value: '庫存點名稱' }];
+FilterOptions.vendorsFunnel = [];
+FilterOptions.vendorsOrderBy = [];

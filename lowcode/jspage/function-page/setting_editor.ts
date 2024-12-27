@@ -1,13 +1,13 @@
-import {GVC} from '../../glitterBundle/GVController.js';
-import {ShareDialog} from '../../glitterBundle/dialog/ShareDialog.js';
-import {EditorElem} from '../../glitterBundle/plugins/editor-elem.js';
-import {Storage} from '../../glitterBundle/helper/storage.js';
-import {ApiPageConfig} from '../../api/pageConfig.js';
-import {NormalPageEditor} from '../../editor/normal-page-editor.js';
-import {AddComponent} from '../../editor/add-component.js';
-import {EditorConfig} from '../../editor-config.js';
-import {ApiUser} from '../../glitter-base/route/user.js';
-import {BgWidget} from '../../backend-manager/bg-widget.js';
+import { GVC } from '../../glitterBundle/GVController.js';
+import { ShareDialog } from '../../glitterBundle/dialog/ShareDialog.js';
+import { EditorElem } from '../../glitterBundle/plugins/editor-elem.js';
+import { Storage } from '../../glitterBundle/helper/storage.js';
+import { ApiPageConfig } from '../../api/pageConfig.js';
+import { NormalPageEditor } from '../../editor/normal-page-editor.js';
+import { AddComponent } from '../../editor/add-component.js';
+import { EditorConfig } from '../../editor-config.js';
+import { ApiUser } from '../../glitter-base/route/user.js';
+import { BgWidget } from '../../backend-manager/bg-widget.js';
 
 export class Setting_editor {
     static pluginUrl = '';
@@ -49,7 +49,7 @@ export class Setting_editor {
                 title: '結帳設定',
                 appName: 'cms_system',
                 groupIcon: 'https://d3jnmi1tfjgtti.cloudfront.net/file/252530754/1716566571091-Property 1=gear-regular.svg',
-                moduleName: '金流 / 物流 / 發票'
+                moduleName: '金流 / 物流 / 發票',
             },
             {
                 icon: '',
@@ -114,7 +114,7 @@ export class Setting_editor {
                 group: '商品管理',
                 title: '商品列表',
                 appName: 'cms_system',
-                groupIcon: 'https://d3jnmi1tfjgtti.cloudfront.net/file/234285319/1716652645450-boxes-stacked-regular (1).svg',
+                groupIcon: 'https://d3jnmi1tfjgtti.cloudfront.net/file/252530754/product_icon.svg',
                 moduleName: '商品管理',
                 guideClass: 'guide5-2',
             },
@@ -124,15 +124,7 @@ export class Setting_editor {
                 group: '商品管理',
                 title: '商品分類',
                 appName: 'cms_system',
-                groupIcon: 'https://d3jnmi1tfjgtti.cloudfront.net/file/234285319/1716652645450-boxes-stacked-regular (1).svg',
-            },
-            {
-                icon: '',
-                page: 'stock',
-                group: '商品管理',
-                title: '庫存列表',
-                appName: 'cms_system',
-                groupIcon: 'https://d3jnmi1tfjgtti.cloudfront.net/file/234285319/1716652645450-boxes-stacked-regular (1).svg',
+                groupIcon: 'https://d3jnmi1tfjgtti.cloudfront.net/file/252530754/product_icon.svg',
             },
             {
                 icon: '',
@@ -140,7 +132,7 @@ export class Setting_editor {
                 group: '商品管理',
                 title: '加購商品',
                 appName: 'cms_system',
-                groupIcon: 'https://d3jnmi1tfjgtti.cloudfront.net/file/234285319/1716652645450-boxes-stacked-regular (1).svg',
+                groupIcon: 'https://d3jnmi1tfjgtti.cloudfront.net/file/252530754/product_icon.svg',
                 moduleName: '商品管理',
                 guideClass: 'guide5-2',
             },
@@ -150,7 +142,7 @@ export class Setting_editor {
                 group: '商品管理',
                 title: '滿額贈品',
                 appName: 'cms_system',
-                groupIcon: 'https://d3jnmi1tfjgtti.cloudfront.net/file/234285319/1716652645450-boxes-stacked-regular (1).svg',
+                groupIcon: 'https://d3jnmi1tfjgtti.cloudfront.net/file/252530754/product_icon.svg',
                 moduleName: '商品管理',
                 guideClass: 'guide5-2',
             },
@@ -160,7 +152,7 @@ export class Setting_editor {
                 group: '商品管理',
                 title: '隱形商品',
                 appName: 'cms_system',
-                groupIcon: 'https://d3jnmi1tfjgtti.cloudfront.net/file/234285319/1716652645450-boxes-stacked-regular (1).svg',
+                groupIcon: 'https://d3jnmi1tfjgtti.cloudfront.net/file/252530754/product_icon.svg',
                 moduleName: '商品管理',
                 guideClass: 'guide5-2',
             },
@@ -170,9 +162,33 @@ export class Setting_editor {
                 group: '商品管理',
                 title: '商品顯示',
                 appName: 'cms_system',
-                groupIcon: 'https://d3jnmi1tfjgtti.cloudfront.net/file/234285319/1716652645450-boxes-stacked-regular (1).svg',
+                groupIcon: 'https://d3jnmi1tfjgtti.cloudfront.net/file/252530754/product_icon.svg',
                 moduleName: '商品管理',
             },
+            {
+                icon: '',
+                page: 'stock',
+                group: '庫存管理',
+                title: '庫存列表',
+                appName: 'cms_system',
+                groupIcon: 'https://d3jnmi1tfjgtti.cloudfront.net/file/234285319/1716652645450-boxes-stacked-regular (1).svg',
+            },
+            // {
+            //     icon: '',
+            //     page: 'stock_stores',
+            //     group: '庫存管理',
+            //     title: '庫存點管理',
+            //     appName: 'cms_system',
+            //     groupIcon: 'https://d3jnmi1tfjgtti.cloudfront.net/file/234285319/1716652645450-boxes-stacked-regular (1).svg',
+            // },
+            // {
+            //     icon: '',
+            //     page: 'stock_vendors',
+            //     group: '庫存管理',
+            //     title: '供應商管理',
+            //     appName: 'cms_system',
+            //     groupIcon: 'https://d3jnmi1tfjgtti.cloudfront.net/file/234285319/1716652645450-boxes-stacked-regular (1).svg',
+            // },
             {
                 icon: '',
                 page: 'order_list',
@@ -514,7 +530,6 @@ export class Setting_editor {
                 moduleName: '美安',
             },
             {
-
                 icon: '',
                 page: 'web_theme',
                 group: '品牌官網',
@@ -680,8 +695,8 @@ export class Setting_editor {
         const html = String.raw;
         const glitter = gvc.glitter;
         glitter.share.checkData = () => {
-            return true
-        }
+            return true;
+        };
         return gvc.bindView(() => {
             const id = glitter.getUUID();
             let initial = false;
@@ -724,7 +739,7 @@ export class Setting_editor {
                     }).then((data) => {
                         if (data.result) {
                             permissionTitle = data.response.store_permission_title;
-                            permissionData = data.response.data[0] ?? {config: {auth: []}};
+                            permissionData = data.response.data[0] ?? { config: { auth: [] } };
                             resolve();
                         } else {
                             reject();
@@ -732,18 +747,20 @@ export class Setting_editor {
                     });
                 }).then(() => {
                     loading = false;
-                    removeInvoice()
+                    removeInvoice();
                     gvc.notifyDataChange(id);
                 });
             });
             //當發票設定只有選擇線下結帳時，要把發票的功能拿掉．
-            function removeInvoice(){
-                ApiPageConfig.getPrivateConfigV2('invoice_setting').then((res)=>{
-                    if (res.response.result[0].value.fincial == "off_line"){
-                        items = items.filter((dd: any) => {return dd.page != "invoice_list" && dd.page != "allowance_list"});
+            function removeInvoice() {
+                ApiPageConfig.getPrivateConfigV2('invoice_setting').then((res) => {
+                    if (res.response.result[0].value.fincial == 'off_line') {
+                        items = items.filter((dd: any) => {
+                            return dd.page != 'invoice_list' && dd.page != 'allowance_list';
+                        });
                         gvc.notifyDataChange(id);
                     }
-                })
+                });
             }
 
             return {
@@ -752,38 +769,39 @@ export class Setting_editor {
                     Storage.select_bg_btn = 'custom';
                     return html`
                         <div
-                                class="d-flex p-3 bg-white border-bottom align-items-end d-lg-none"
-                                style="${parseInt(glitter.share.top_inset, 10) ? `padding-top:${glitter.share.top_inset}px !important;` : ``}"
+                            class="d-flex p-3 bg-white border-bottom align-items-end d-lg-none"
+                            style="${parseInt(glitter.share.top_inset, 10) ? `padding-top:${glitter.share.top_inset}px !important;` : ``}"
                         >
-                            <img src="https://d3jnmi1tfjgtti.cloudfront.net/file/252530754/1718986163099-logo.svg"/>
-                            <span class="ms-1"
-                                  style="font-size: 12px;color: orange;">${glitter.share.editerVersion}</span>
+                            <img src="https://d3jnmi1tfjgtti.cloudfront.net/file/252530754/1718986163099-logo.svg" />
+                            <span class="ms-1" style="font-size: 12px;color: orange;">${glitter.share.editerVersion}</span>
                         </div>
-                        <div class="w-100 bg-white"
-                             style="overflow-y:auto; ${document.body.offsetWidth > 768 ? `padding-top: ${EditorConfig.getPaddingTop(gvc)}px;` : ''}">
+                        <div class="w-100 bg-white" style="overflow-y:auto; ${document.body.offsetWidth > 768 ? `padding-top: ${EditorConfig.getPaddingTop(gvc)}px;` : ''}">
                             ${(() => {
                                 if (loading) {
-                                    return BgWidget.spinner({text: {visible: false}});
+                                    return BgWidget.spinner({ text: { visible: false } });
                                 }
-                                
+
                                 function renderHTML(items: any) {
                                     const authConfig = permissionData.config.auth;
                                     let list: any = [];
                                     async function click_item(index: any) {
-                                        if (glitter.share.checkData && (!glitter.share.checkData())) {
-                                            const dialog = new ShareDialog(glitter)
-                                            const result = await new Promise((resolve, reject)=>{
+                                        if (glitter.share.checkData && !glitter.share.checkData()) {
+                                            const dialog = new ShareDialog(glitter);
+                                            const result = await new Promise((resolve, reject) => {
                                                 dialog.checkYesOrNot({
-                                                    text: '尚未儲存內容，是否確認跳轉?', callback: (response) => {
-                                                        resolve(response)
-                                                    }
-                                                })
-                                            })
-                                            if(!result){
-                                                return false
+                                                    text: '尚未儲存內容，是否確認跳轉?',
+                                                    callback: (response) => {
+                                                        resolve(response);
+                                                    },
+                                                });
+                                            });
+                                            if (!result) {
+                                                return false;
                                             }
                                         }
-                                        glitter.share.checkData=()=>{return true}
+                                        glitter.share.checkData = () => {
+                                            return true;
+                                        };
                                         const itemPage = items[parseInt(index)].page;
                                         const page = permissionTitle === 'employee' && !getCRUD(itemPage).read ? 'noPermission' : itemPage;
                                         if (['page_layout', 'dev_mode'].indexOf(page) !== -1) {
@@ -821,72 +839,68 @@ export class Setting_editor {
                                             //     // resolve(d2.response.result[0])
                                             // })
 
-                                       
-                                            $('#editerCenter').html(html`
-                                                <iframe src="${url.href}"
-                                                        style="border: none;height: calc(100%);"></iframe>`);
-
+                                            $('#editerCenter').html(html` <iframe src="${url.href}" style="border: none;height: calc(100%);"></iframe>`);
                                         }
                                         return true;
                                     }
 
                                     items
-                                            .filter((dd: any) => {
-                                                if ((window as any).memberType === 'noLimit') {
-                                                    return true;
-                                                } else {
-                                                    return ['code_info', 'web_hook_checkout', 'template_upload'].indexOf(dd.page) === -1;
-                                                }
-                                            })
-                                            .map((dd: any, index: number) => {
-                                                let container = list;
-                                                const group = dd.group.split('/');
-                                                if (dd.group) {
-                                                    group.map((d3: any) => {
-                                                        if (!container.find((dd: any) => dd.title === d3)) {
-                                                            container.push({
-                                                                type: 'container',
-                                                                title: d3,
-                                                                child: [],
-                                                                toggle: false,
-                                                                icon: dd.groupIcon,
-                                                            });
-                                                        }
-                                                        if (Storage.select_item === `${index}`) {
-                                                            container.find((dd: any) => {
-                                                                return dd.title === d3 && dd.type === 'container';
-                                                            }).toggle = true;
-                                                        }
-                                                        container = container.find((dd: any) => {
+                                        .filter((dd: any) => {
+                                            if ((window as any).memberType === 'noLimit') {
+                                                return true;
+                                            } else {
+                                                return ['code_info', 'web_hook_checkout', 'template_upload'].indexOf(dd.page) === -1;
+                                            }
+                                        })
+                                        .map((dd: any, index: number) => {
+                                            let container = list;
+                                            const group = dd.group.split('/');
+                                            if (dd.group) {
+                                                group.map((d3: any) => {
+                                                    if (!container.find((dd: any) => dd.title === d3)) {
+                                                        container.push({
+                                                            type: 'container',
+                                                            title: d3,
+                                                            child: [],
+                                                            toggle: false,
+                                                            icon: dd.groupIcon,
+                                                        });
+                                                    }
+                                                    if (Storage.select_item === `${index}`) {
+                                                        container.find((dd: any) => {
                                                             return dd.title === d3 && dd.type === 'container';
-                                                        }).child;
-                                                    });
-                                                    if (dd.groupIcon) {
-                                                        items
-                                                                .filter((d2: any) => {
-                                                                    return d2.group === dd.group;
-                                                                })
-                                                                .map((d1: any) => {
-                                                                    d1.groupIcon = dd.groupIcon;
-                                                                });
+                                                        }).toggle = true;
                                                     }
-                                                }
-                                                if (Storage.select_item === `${index}` && !initial) {
-                                                    initial = true;
-                                                    if (['page_layout', 'dev_mode'].indexOf(items[index].page) !== -1) {
-                                                        Storage.select_item = `5`;
-                                                        click_item(Storage.select_item);
-                                                    } else {
-                                                        click_item(index);
-                                                    }
-                                                }
-                                                container.push({
-                                                    title: dd.title,
-                                                    index: index,
-                                                    info: dd,
-                                                    toggle: Storage.select_item === `${index}`,
+                                                    container = container.find((dd: any) => {
+                                                        return dd.title === d3 && dd.type === 'container';
+                                                    }).child;
                                                 });
+                                                if (dd.groupIcon) {
+                                                    items
+                                                        .filter((d2: any) => {
+                                                            return d2.group === dd.group;
+                                                        })
+                                                        .map((d1: any) => {
+                                                            d1.groupIcon = dd.groupIcon;
+                                                        });
+                                                }
+                                            }
+                                            if (Storage.select_item === `${index}` && !initial) {
+                                                initial = true;
+                                                if (['page_layout', 'dev_mode'].indexOf(items[index].page) !== -1) {
+                                                    Storage.select_item = `5`;
+                                                    click_item(Storage.select_item);
+                                                } else {
+                                                    click_item(index);
+                                                }
+                                            }
+                                            container.push({
+                                                title: dd.title,
+                                                index: index,
+                                                info: dd,
+                                                toggle: Storage.select_item === `${index}`,
                                             });
+                                        });
 
                                     function refreshContainer() {
                                         gvc.notifyDataChange(id);
@@ -901,7 +915,7 @@ export class Setting_editor {
 
                                     function getCRUD(page: string): { read: boolean } {
                                         const data = authConfig.find((item: any) => item.key === page);
-                                        return data ? data.value : {read: false};
+                                        return data ? data.value : { read: false };
                                     }
 
                                     function renderItem(list: any) {
@@ -911,75 +925,65 @@ export class Setting_editor {
                                                 bind: id,
                                                 view: () => {
                                                     return list
-                                                            .map((dd: any, index: any) => {
-                                                                // 權限判斷
-                                                                if (permissionTitle === 'employee') {
-                                                                    if (dd.child) {
-                                                                        if (!dd.child.some((item: any) => getCRUD(item.info.page).read)) {
-                                                                            return '';
-                                                                        }
-                                                                    } else {
-                                                                        if (!getCRUD(dd.info.page).read) {
-                                                                            return '';
-                                                                        }
+                                                        .map((dd: any, index: any) => {
+                                                            // 權限判斷
+                                                            if (permissionTitle === 'employee') {
+                                                                if (dd.child) {
+                                                                    if (!dd.child.some((item: any) => getCRUD(item.info.page).read)) {
+                                                                        return '';
+                                                                    }
+                                                                } else {
+                                                                    if (!getCRUD(dd.info.page).read) {
+                                                                        return '';
                                                                     }
                                                                 }
+                                                            }
 
-                                                                return html`
-                                                                    ${dd.title === '品牌官網' ? `<div class="my-4 border-top"></div>` : ``}
-                                                                    <li>
-                                                                        <div
-                                                                                class="w-100 fw-500 d-flex align-items-center fs-6 hoverBtn h_item rounded px-2 tx_700 
+                                                            return html`
+                                                                ${dd.title === '品牌官網' ? `<div class="my-4 border-top"></div>` : ``}
+                                                                <li>
+                                                                    <div
+                                                                        class="w-100 fw-500 d-flex align-items-center fs-6 hoverBtn h_item rounded px-2 tx_700 
                                                                                 ${dd?.info?.guideClass ?? ''} ${dd.type === 'container' ? ` mainRow${index}` : ''}"
-                                                                                style="gap:7px;color:#393939;${dd.toggle ? `border-radius: 5px;background: #F2F2F2;` : ``}"
-                                                                                onclick="${gvc.event(async() => {
-                                                                                    gvc.glitter.setUrlParameter('page-id')
-                                                                                    if (dd.type === 'container') {
-                                                                                        list.map((d1: any) => {
-                                                                                            d1.toggle = false;
-                                                                                        });
-                                                                                        dd.toggle = !dd.toggle;
-                                                                                        gvc.notifyDataChange(id);
-                                                                                    } else {
-                                                                                        if (items[parseInt(dd.index)].page === 'app-design') {
-                                                                                            localStorage.setItem('lastSelect', '');
-                                                                                            localStorage.setItem('ViewType', 'mobile');
-                                                                                            glitter.share.switch_to_web_builder('index-mobile', 'mobile')
-                                                                                            return;
-                                                                                        }
-                                                                                        // app-design
-                                                                                        if (await click_item(dd.index) && ['page_layout', 'dev_mode'].indexOf(items[parseInt(dd.index)].page) === -1) {
-                                                                                            dd.toggle = true;
-                                                                                            refreshContainer();
-                                                                                        }
-                                                                                        glitter.closeDrawer();
-                                                                                    }
-                                                                                })}"
-                                                                        >
-                                                                            ${dd.icon ? html`<img src="${dd.icon}"
-                                                                                                  style="width:18px;height:18px;"/>` : ``}
-                                                                            <span>${dd.title}</span>
-                                                                            <div class="flex-fill"></div>
-                                                                            ${dd.type === 'container'
-                                                                                    ? !dd.toggle
-                                                                                            ? html` <i
-                                                                                                    class="fa-regular fa-angle-right hoverBtn me-1"
-                                                                                                    aria-hidden="true"></i> `
-                                                                                            : html` <i
-                                                                                                    class="fa-regular fa-angle-down hoverBtn me-1"
-                                                                                                    aria-hidden="true"></i>`
-                                                                                    : html` ${dd.info && dd.info.icon ? `<img src="${dd.info.icon}" style="width:18px;height:18px;">` : ``} `}
-                                                                        </div>
+                                                                        style="gap:7px;color:#393939;${dd.toggle ? `border-radius: 5px;background: #F2F2F2;` : ``}"
+                                                                        onclick="${gvc.event(async () => {
+                                                                            gvc.glitter.setUrlParameter('page-id');
+                                                                            if (dd.type === 'container') {
+                                                                                list.map((d1: any) => {
+                                                                                    d1.toggle = false;
+                                                                                });
+                                                                                dd.toggle = !dd.toggle;
+                                                                                gvc.notifyDataChange(id);
+                                                                            } else {
+                                                                                if (items[parseInt(dd.index)].page === 'app-design') {
+                                                                                    localStorage.setItem('lastSelect', '');
+                                                                                    localStorage.setItem('ViewType', 'mobile');
+                                                                                    glitter.share.switch_to_web_builder('index-mobile', 'mobile');
+                                                                                    return;
+                                                                                }
+                                                                                // app-design
+                                                                                if ((await click_item(dd.index)) && ['page_layout', 'dev_mode'].indexOf(items[parseInt(dd.index)].page) === -1) {
+                                                                                    dd.toggle = true;
+                                                                                    refreshContainer();
+                                                                                }
+                                                                                glitter.closeDrawer();
+                                                                            }
+                                                                        })}"
+                                                                    >
+                                                                        ${dd.icon ? html`<img src="${dd.icon}" style="width:18px;height:18px;" />` : ``}
+                                                                        <span>${dd.title}</span>
+                                                                        <div class="flex-fill"></div>
                                                                         ${dd.type === 'container'
-                                                                                ? html`
-                                                                                    <div class="ps-4 pt-2 pb-2 ${dd.toggle ? `` : `d-none`}">
-                                                                                        ${renderItem(dd.child)}
-                                                                                    </div>`
-                                                                                : ``}
-                                                                    </li>
-                                                                `;
-                                                            })
-                                                            .join('<div class="my-1"></div>');
+                                                                            ? !dd.toggle
+                                                                                ? html` <i class="fa-regular fa-angle-right hoverBtn me-1" aria-hidden="true"></i> `
+                                                                                : html` <i class="fa-regular fa-angle-down hoverBtn me-1" aria-hidden="true"></i>`
+                                                                            : html` ${dd.info && dd.info.icon ? `<img src="${dd.info.icon}" style="width:18px;height:18px;">` : ``} `}
+                                                                    </div>
+                                                                    ${dd.type === 'container' ? html` <div class="ps-4 pt-2 pb-2 ${dd.toggle ? `` : `d-none`}">${renderItem(dd.child)}</div>` : ``}
+                                                                </li>
+                                                            `;
+                                                        })
+                                                        .join('<div class="my-1"></div>');
                                                 },
                                                 divCreate: {
                                                     elem: 'ul',
@@ -991,44 +995,41 @@ export class Setting_editor {
                                                         },
                                                     ],
                                                 },
-                                                onCreate: () => {
-                                                },
+                                                onCreate: () => {},
                                             };
                                         });
                                     }
 
-                                    return html`
-                                        <div class="p-2">${renderItem(list)}</div>`;
+                                    return html` <div class="p-2">${renderItem(list)}</div>`;
                                 }
-                                
+
                                 return renderHTML(items);
                             })()}
                         </div>
                         <div
-                                class="bg-white w-100 align-items-center d-flex editor_item_title start-0 z-index-9 ps-2 border-bottom border-top position-absolute bottom-0 border-end d-none"
-                                style="z-index: 999;border:none;"
+                            class="bg-white w-100 align-items-center d-flex editor_item_title start-0 z-index-9 ps-2 border-bottom border-top position-absolute bottom-0 border-end d-none"
+                            style="z-index: 999;border:none;"
                         >
                             <div
-                                    class="hoverBtn d-flex align-items-center justify-content-center   border  me-2"
-                                    style="height:30px;width:30px;border-radius:5px;cursor:pointer;color:#151515;"
-                                    onclick="${gvc.event(() => {
-                                        Setting_editor.addPlugin(gvc, () => {
-                                            gvc.notifyDataChange(id);
-                                        });
-                                    })}"
+                                class="hoverBtn d-flex align-items-center justify-content-center   border  me-2"
+                                style="height:30px;width:30px;border-radius:5px;cursor:pointer;color:#151515;"
+                                onclick="${gvc.event(() => {
+                                    Setting_editor.addPlugin(gvc, () => {
+                                        gvc.notifyDataChange(id);
+                                    });
+                                })}"
                             >
                                 <i class="fa-solid fa-puzzle-piece-simple" aria-hidden="true"></i>
                             </div>
                         </div>
                     `;
                 },
-                divCreate: {style: ``}
+                divCreate: { style: `` },
             };
         });
     }
 
-    public static center(gvc: GVC, viewModel: any, createID: string) {
-    }
+    public static center(gvc: GVC, viewModel: any, createID: string) {}
 
     public static addPlugin(gvc: GVC, callback: () => void) {
         const saasConfig: { config: any; api: any } = (window as any).saasConfig;
@@ -1054,16 +1055,15 @@ export class Setting_editor {
                     view: () => {
                         return html`
                             <div class="position-relative bgf6 d-flex align-items-center p-2 border-bottom shadow">
-                                <span class="fs-6 fw-bold "
-                                      style="color:black;">${updateModel ? `插件設定` : '新增插件'}</span>
+                                <span class="fs-6 fw-bold " style="color:black;">${updateModel ? `插件設定` : '新增插件'}</span>
                                 <div class="flex-fill"></div>
                                 <button
-                                        class="btn btn-primary-c ${updateModel ? `d-none` : ``}"
-                                        style="height: 28px;width:40px;font-size:14px;"
-                                        onclick="${gvc.event(() => {
-                                            items.push(postMd);
-                                            NormalPageEditor.back();
-                                        })}"
+                                    class="btn btn-primary-c ${updateModel ? `d-none` : ``}"
+                                    style="height: 28px;width:40px;font-size:14px;"
+                                    onclick="${gvc.event(() => {
+                                        items.push(postMd);
+                                        NormalPageEditor.back();
+                                    })}"
                                 >
                                     儲存
                                 </button>
@@ -1082,18 +1082,17 @@ export class Setting_editor {
                                     EditorElem.searchInput({
                                         gvc: gvc,
                                         title: html`群組分類
-                                        <div class="alert alert-info p-2 mt-2 fs-base fw-500 mb-0"
-                                             style="word-break: break-all;white-space:normal">
-                                            加入 / 進行分類:<br/>例如:頁面/登入/註冊設定
-                                        </div>`,
+                                            <div class="alert alert-info p-2 mt-2 fs-base fw-500 mb-0" style="word-break: break-all;white-space:normal">
+                                                加入 / 進行分類:<br />例如:頁面/登入/註冊設定
+                                            </div>`,
                                         def: postMd.group,
                                         array: (() => {
                                             let array: any = [];
                                             items.map((dd: any) => {
                                                 if (
-                                                        !array.find((d1: any) => {
-                                                            return d1 === dd.group;
-                                                        })
+                                                    !array.find((d1: any) => {
+                                                        return d1 === dd.group;
+                                                    })
                                                 ) {
                                                     array.push(dd.group);
                                                 }
@@ -1104,9 +1103,9 @@ export class Setting_editor {
                                         callback: (text) => {
                                             postMd.group = text;
                                             if (
-                                                    items.find((dd: any) => {
-                                                        return dd.group === text && dd.groupIcon;
-                                                    })
+                                                items.find((dd: any) => {
+                                                    return dd.group === text && dd.groupIcon;
+                                                })
                                             ) {
                                                 postMd.groupIcon = items.find((dd: any) => {
                                                     return dd.group === text && dd.groupIcon;
@@ -1124,36 +1123,36 @@ export class Setting_editor {
                                         },
                                     }),
                                     EditorElem.buttonPrimary(
-                                            postMd.moduleName || '選擇模塊',
-                                            gvc.event(() => {
-                                                NormalPageEditor.toggle({
-                                                    visible: true,
-                                                    view: gvc.bindView(() => {
-                                                        return {
-                                                            bind: gvc.glitter.getUUID(),
-                                                            view: () => {
-                                                                return new Promise((resolve, reject) => {
-                                                                    resolve(
-                                                                            AddComponent.addModuleView(
-                                                                                    gvc,
-                                                                                    'backend',
-                                                                                    (tData: any) => {
-                                                                                        postMd.appName = tData.copyApp;
-                                                                                        postMd.page = tData.copy;
-                                                                                        postMd.moduleName = tData.title;
-                                                                                        NormalPageEditor.back();
-                                                                                    },
-                                                                                    false,
-                                                                                    true
-                                                                            )
-                                                                    );
-                                                                });
-                                                            },
-                                                        };
-                                                    }),
-                                                    title: '選擇插件',
-                                                });
-                                            })
+                                        postMd.moduleName || '選擇模塊',
+                                        gvc.event(() => {
+                                            NormalPageEditor.toggle({
+                                                visible: true,
+                                                view: gvc.bindView(() => {
+                                                    return {
+                                                        bind: gvc.glitter.getUUID(),
+                                                        view: () => {
+                                                            return new Promise((resolve, reject) => {
+                                                                resolve(
+                                                                    AddComponent.addModuleView(
+                                                                        gvc,
+                                                                        'backend',
+                                                                        (tData: any) => {
+                                                                            postMd.appName = tData.copyApp;
+                                                                            postMd.page = tData.copy;
+                                                                            postMd.moduleName = tData.title;
+                                                                            NormalPageEditor.back();
+                                                                        },
+                                                                        false,
+                                                                        true
+                                                                    )
+                                                                );
+                                                            });
+                                                        },
+                                                    };
+                                                }),
+                                                title: '選擇插件',
+                                            });
+                                        })
                                     ),
                                 ].join('')}
                             </div>
@@ -1173,12 +1172,10 @@ export class Setting_editor {
             view: (() => {
                 const viewComponent = {
                     add_plus: (title: string, event: string) => {
-                        return html`
-                            <div class="w-100 fw-500 d-flex align-items-center justify-content-center fs-6 hoverBtn h_item border rounded"
-                                 style="gap:5px;color:#3366BB;" onclick="${event}">
-                                <i class="fa-solid fa-plus"></i>
-                                <span>${title}</span>
-                            </div>`;
+                        return html` <div class="w-100 fw-500 d-flex align-items-center justify-content-center fs-6 hoverBtn h_item border rounded" style="gap:5px;color:#3366BB;" onclick="${event}">
+                            <i class="fa-solid fa-plus"></i>
+                            <span>${title}</span>
+                        </div>`;
                     },
                 };
                 return gvc.bindView(() => {
@@ -1243,70 +1240,63 @@ export class Setting_editor {
                                                     return html`
                                                         <li>
                                                             <div
-                                                                    class="w-100 fw-500 d-flex align-items-center  fs-6 hoverBtn h_item  rounded px-2"
-                                                                    style="gap:5px;color:#393939;"
-                                                                    onclick="${gvc.event(() => {
-                                                                        if (dd.type === 'container') {
-                                                                            dd.toggle = !dd.toggle;
-                                                                            gvc.notifyDataChange(id);
-                                                                        }
-                                                                    })}"
+                                                                class="w-100 fw-500 d-flex align-items-center  fs-6 hoverBtn h_item  rounded px-2"
+                                                                style="gap:5px;color:#393939;"
+                                                                onclick="${gvc.event(() => {
+                                                                    if (dd.type === 'container') {
+                                                                        dd.toggle = !dd.toggle;
+                                                                        gvc.notifyDataChange(id);
+                                                                    }
+                                                                })}"
                                                             >
                                                                 ${dd.type === 'container'
-                                                                        ? !dd.toggle
-                                                                                ? html` <i
-                                                                                        class="fa-regular fa-angle-right hoverBtn me-1"
-                                                                                        aria-hidden="true"></i> `
-                                                                                : html`<i
-                                                                                        class="fa-regular fa-angle-down hoverBtn me-1"
-                                                                                        aria-hidden="true"></i>`
-                                                                        : html` ${dd.info && dd.info.icon ? `<img src="${dd.info.icon}" style="width:18px;height:18px;">` : ``} `}
+                                                                    ? !dd.toggle
+                                                                        ? html` <i class="fa-regular fa-angle-right hoverBtn me-1" aria-hidden="true"></i> `
+                                                                        : html`<i class="fa-regular fa-angle-down hoverBtn me-1" aria-hidden="true"></i>`
+                                                                    : html` ${dd.info && dd.info.icon ? `<img src="${dd.info.icon}" style="width:18px;height:18px;">` : ``} `}
                                                                 ${dd.icon ? `<img src="${dd.icon}" style="width:18px;height:18px;">` : ``}
                                                                 <span>${dd.title}</span>
                                                                 <div class="flex-fill"></div>
                                                                 ${dd.type === 'container'
-                                                                        ? ``
-                                                                        : html`
-                                                                            <i
-                                                                                    class="fa-solid fa-pencil text-black hoverBtn me-2 child"
-                                                                                    onclick="${gvc.event(() => {
-                                                                                        select = dd.info;
-                                                                                        NormalPageEditor.toggle({
-                                                                                            visible: true,
-                                                                                            view: addPlugin(select),
-                                                                                            title: dd.title,
-                                                                                        });
-                                                                                    })}"
-                                                                            ></i>
-                                                                            <i
-                                                                                    class="fa-sharp fa-solid fa-trash-can text-black hoverBtn me-2 child"
-                                                                                    onclick="${gvc.event(() => {
-                                                                                        const dialog = new ShareDialog(gvc.glitter);
-                                                                                        dialog.checkYesOrNot({
-                                                                                            callback: (response) => {
-                                                                                                if (response) {
-                                                                                                    items = items.filter((d2: any, index: any) => {
-                                                                                                        return index !== dd.index;
-                                                                                                    });
-                                                                                                    list.splice(index, 1);
-                                                                                                    if (list.length === 0) {
-                                                                                                        refreshContainer();
-                                                                                                    } else {
-                                                                                                        gvc.notifyDataChange(id);
-                                                                                                    }
-                                                                                                }
-                                                                                            },
-                                                                                            text: '是否確認刪除插件?',
-                                                                                        });
-                                                                                    })}"
-                                                                            ></i>
-                                                                        `}
+                                                                    ? ``
+                                                                    : html`
+                                                                          <i
+                                                                              class="fa-solid fa-pencil text-black hoverBtn me-2 child"
+                                                                              onclick="${gvc.event(() => {
+                                                                                  select = dd.info;
+                                                                                  NormalPageEditor.toggle({
+                                                                                      visible: true,
+                                                                                      view: addPlugin(select),
+                                                                                      title: dd.title,
+                                                                                  });
+                                                                              })}"
+                                                                          ></i>
+                                                                          <i
+                                                                              class="fa-sharp fa-solid fa-trash-can text-black hoverBtn me-2 child"
+                                                                              onclick="${gvc.event(() => {
+                                                                                  const dialog = new ShareDialog(gvc.glitter);
+                                                                                  dialog.checkYesOrNot({
+                                                                                      callback: (response) => {
+                                                                                          if (response) {
+                                                                                              items = items.filter((d2: any, index: any) => {
+                                                                                                  return index !== dd.index;
+                                                                                              });
+                                                                                              list.splice(index, 1);
+                                                                                              if (list.length === 0) {
+                                                                                                  refreshContainer();
+                                                                                              } else {
+                                                                                                  gvc.notifyDataChange(id);
+                                                                                              }
+                                                                                          }
+                                                                                      },
+                                                                                      text: '是否確認刪除插件?',
+                                                                                  });
+                                                                              })}"
+                                                                          ></i>
+                                                                      `}
                                                                 <i class="fa-solid fa-grip-dots-vertical"></i>
                                                             </div>
-                                                            ${dd.type === 'container' ? html`
-                                                                <div class="ps-2 ${dd.toggle ? `` : `d-none`}">
-                                                                    ${renderItems(dd.child)}
-                                                                </div>` : ``}
+                                                            ${dd.type === 'container' ? html` <div class="ps-2 ${dd.toggle ? `` : `d-none`}">${renderItems(dd.child)}</div>` : ``}
                                                         </li>
                                                     `;
                                                 })
@@ -1333,8 +1323,7 @@ export class Setting_editor {
                                             Sortable.create(document.getElementById(id), {
                                                 group: gvc.glitter.getUUID(),
                                                 animation: 100,
-                                                onChange: function (evt: any) {
-                                                },
+                                                onChange: function (evt: any) {},
                                                 onEnd: (evt: any) => {
                                                     let changeItemStart = 0;
                                                     let changeItemEnd = 0;
@@ -1375,22 +1364,22 @@ export class Setting_editor {
                                     <span class="fs-6 fw-bold " style="color:black;">插件設定</span>
                                     <div class="flex-fill"></div>
                                     <button
-                                            class="btn btn-primary-c"
-                                            style="height: 28px;width:40px;font-size:14px;"
-                                            onclick="${gvc.event(() => {
-                                                dialog.dataLoading({visible: true});
-                                                ApiPageConfig.setPrivateConfigV2({
-                                                    key: 'backend_list',
-                                                    value: JSON.stringify(items),
-                                                }).then((res) => {
-                                                    dialog.dataLoading({visible: false});
-                                                    if (res.result) {
-                                                        dialog.successMessage({text: '儲存成功'});
-                                                    } else {
-                                                        dialog.errorMessage({text: '伺服器異常'});
-                                                    }
-                                                });
-                                            })}"
+                                        class="btn btn-primary-c"
+                                        style="height: 28px;width:40px;font-size:14px;"
+                                        onclick="${gvc.event(() => {
+                                            dialog.dataLoading({ visible: true });
+                                            ApiPageConfig.setPrivateConfigV2({
+                                                key: 'backend_list',
+                                                value: JSON.stringify(items),
+                                            }).then((res) => {
+                                                dialog.dataLoading({ visible: false });
+                                                if (res.result) {
+                                                    dialog.successMessage({ text: '儲存成功' });
+                                                } else {
+                                                    dialog.errorMessage({ text: '伺服器異常' });
+                                                }
+                                            });
+                                        })}"
                                     >
                                         儲存
                                     </button>
@@ -1400,14 +1389,14 @@ export class Setting_editor {
                                     <div class="my-1"></div>
                                     ${[
                                         viewComponent.add_plus(
-                                                '新增插件',
-                                                gvc.event(() => {
-                                                    NormalPageEditor.toggle({
-                                                        visible: true,
-                                                        view: addPlugin(),
-                                                        title: '新增插件',
-                                                    });
-                                                })
+                                            '新增插件',
+                                            gvc.event(() => {
+                                                NormalPageEditor.toggle({
+                                                    visible: true,
+                                                    view: addPlugin(),
+                                                    title: '新增插件',
+                                                });
+                                            })
                                         ),
                                     ].join(``)}
                                 </div>

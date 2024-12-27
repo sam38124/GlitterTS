@@ -97,55 +97,62 @@ export class BgListComponent {
                     view: () => {
                         return html `<!-- Accordion: 篩選 -->
                             <div class="accordion" id="accordion${vmShow.id}">
-                                ${gvc.map(items.map((item) => {
-                            let contentHTML = '';
-                            switch (item.type) {
-                                case 'during':
-                                    contentHTML +=
-                                        item.data && item.data.list.length > 0
-                                            ? BgWidget.duringInputContainer(gvc, item.data, this.vm.filter[item.key], (value) => {
-                                                this.vm.filter[item.key] = value;
-                                            })
-                                            : '';
-                                    break;
-                                case 'multi_checkbox':
-                                    contentHTML +=
-                                        item.data.length > 0
-                                            ? BgWidget.multiCheckboxContainer(gvc, item.data, this.vm.filter[item.key], (value) => {
-                                                this.vm.filter[item.key] = value;
-                                            })
-                                            : '';
-                                    break;
-                                case 'radio_and_input':
-                                    contentHTML +=
-                                        item.data.length > 0
-                                            ? BgWidget.radioInputContainer(gvc, item.data, this.vm.filter[item.key], (value) => {
-                                                this.vm.filter[item.key] = value;
-                                            })
-                                            : '';
-                                    break;
-                            }
-                            return contentHTML.length > 0
-                                ? html `<!-- Item -->
-                                                  <div class="accordion-item border-0 rounded-3 mb-3">
-                                                      <h3 class="accordion-header" id="heading${item.key}">
-                                                          <button
-                                                              class="accordion-button shadow-none rounded-3 p-0 collapsed"
-                                                              type="button"
-                                                              data-bs-toggle="collapse"
-                                                              data-bs-target="#collapse${item.key}"
-                                                              aria-expanded="false"
-                                                              aria-controls="collapse${item.key}"
-                                                          >
-                                                              ${item.name}
-                                                          </button>
-                                                      </h3>
-                                                      <div class="accordion-collapse collapse" id="collapse${item.key}" aria-labelledby="heading${item.key}" data-bs-parent="#accordion${vmShow.id}">
-                                                          <div class="accordion-body p-0 pt-1">${contentHTML}</div>
-                                                      </div>
-                                                  </div> `
-                                : '';
-                        }))}
+                                ${gvc.map(items.length > 0
+                            ? items.map((item) => {
+                                let contentHTML = '';
+                                switch (item.type) {
+                                    case 'during':
+                                        contentHTML +=
+                                            item.data && item.data.list.length > 0
+                                                ? BgWidget.duringInputContainer(gvc, item.data, this.vm.filter[item.key], (value) => {
+                                                    this.vm.filter[item.key] = value;
+                                                })
+                                                : '';
+                                        break;
+                                    case 'multi_checkbox':
+                                        contentHTML +=
+                                            item.data.length > 0
+                                                ? BgWidget.multiCheckboxContainer(gvc, item.data, this.vm.filter[item.key], (value) => {
+                                                    this.vm.filter[item.key] = value;
+                                                })
+                                                : '';
+                                        break;
+                                    case 'radio_and_input':
+                                        contentHTML +=
+                                            item.data.length > 0
+                                                ? BgWidget.radioInputContainer(gvc, item.data, this.vm.filter[item.key], (value) => {
+                                                    this.vm.filter[item.key] = value;
+                                                })
+                                                : '';
+                                        break;
+                                }
+                                return contentHTML.length > 0
+                                    ? html `<!-- Item -->
+                                                        <div class="accordion-item border-0 rounded-3 mb-3">
+                                                            <h3 class="accordion-header" id="heading${item.key}">
+                                                                <button
+                                                                    class="accordion-button shadow-none rounded-3 p-0 collapsed"
+                                                                    type="button"
+                                                                    data-bs-toggle="collapse"
+                                                                    data-bs-target="#collapse${item.key}"
+                                                                    aria-expanded="false"
+                                                                    aria-controls="collapse${item.key}"
+                                                                >
+                                                                    ${item.name}
+                                                                </button>
+                                                            </h3>
+                                                            <div
+                                                                class="accordion-collapse collapse"
+                                                                id="collapse${item.key}"
+                                                                aria-labelledby="heading${item.key}"
+                                                                data-bs-parent="#accordion${vmShow.id}"
+                                                            >
+                                                                <div class="accordion-body p-0 pt-1">${contentHTML}</div>
+                                                            </div>
+                                                        </div> `
+                                    : '';
+                            })
+                            : ['無篩選項目'])}
                             </div>
                             <div class="position-absolute bottom-0 left-0 w-100 d-flex align-items-center justify-content-end p-3 border-top pe-4" style="gap:10px;">
                                 ${BgWidget.cancel(gvc.event(() => {
