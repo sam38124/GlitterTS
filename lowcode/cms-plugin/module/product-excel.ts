@@ -320,7 +320,7 @@ export class ProductExcel {
                 // 商品連結若為空，則預設值為商品名稱
                 const domainList = data
                     .filter((item: string[]) => {
-                        return item[1];
+                        return item[0];
                     })
                     .map((item: string[]) => {
                         if (CheckInput.isEmpty(item[5])) {

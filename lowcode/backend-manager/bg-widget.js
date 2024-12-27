@@ -2051,6 +2051,9 @@ ${(_c = obj.default) !== null && _c !== void 0 ? _c : ''}</textarea
             bind: vm.id,
             view: () => {
                 if (vm.show) {
+                    if (obj.options.length === 0) {
+                        return '';
+                    }
                     return html ` <div class="c_absolute" style="top: 20px; right: 20px;">
                             <div class="form-check d-flex flex-column" style="gap: 16px">
                                 ${obj.gvc.map(obj.options.map((opt) => {

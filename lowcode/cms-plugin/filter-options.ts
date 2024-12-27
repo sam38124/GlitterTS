@@ -203,6 +203,7 @@ export class FilterOptions {
             },
         },
     ];
+
     static invoiceFunnel = [
         {
             key: 'invoice_type',
@@ -244,6 +245,7 @@ export class FilterOptions {
             },
         },
     ];
+
     static allowanceFunnel = [
         {
             key: 'status',
@@ -287,6 +289,7 @@ export class FilterOptions {
         { key: 'order_total_desc', value: '發票金額高 > 低' },
         { key: 'order_total_asc', value: '發票金額低 > 高' },
     ];
+
     static allowanceOrderBy = [
         { key: 'created_time_desc', value: '發票時間新 > 舊' },
         { key: 'created_time_asc', value: '發票時間舊 > 新' },
@@ -319,6 +322,7 @@ export class FilterOptions {
         { key: 'product_name', value: '商品名稱' },
         { key: 'product_number', value: '商品編號' },
     ];
+
     static allowanceSelect = [
         { key: 'allowance_no', value: '折讓單編號' },
         { key: 'invoice_no', value: '原發票編號' },
@@ -565,4 +569,20 @@ export class FilterOptions {
         { key: 'online_time_asc', value: '最後登入時間早 > 晚' },
         { key: 'online_time_desc', value: '最後登入時間晚 > 早' },
     ];
+
+    static storesFilterFrame = {};
+
+    static storesSelect = [{ key: 'name', value: '庫存點名稱' }];
+
+    static storesFunnel = [];
+
+    static storesOrderBy = [];
+
+    static vendorsFilterFrame = {};
+
+    static vendorsSelect = [{ key: 'name', value: '庫存點名稱' }];
+
+    static vendorsFunnel = [];
+
+    static vendorsOrderBy = [];
 }

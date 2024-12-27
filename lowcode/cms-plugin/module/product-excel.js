@@ -218,7 +218,7 @@ export class ProductExcel {
                     }
                     const domainList = data
                         .filter((item) => {
-                        return item[1];
+                        return item[0];
                     })
                         .map((item) => {
                         if (CheckInput.isEmpty(item[5])) {
