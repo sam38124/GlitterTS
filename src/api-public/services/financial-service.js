@@ -632,7 +632,6 @@ class LinePay {
         const head = `${this.LinePay_SECRET}/v3${uri}${JSON.stringify(body)}${nonce}`;
         const signature = crypto_1.default.createHmac('sha256', this.LinePay_SECRET).update(head).digest('base64');
         const url = `${this.LinePay_BASE_URL}/v3${uri}`;
-        console.log("url -- ", url);
         const config = {
             method: "POST",
             url: url,

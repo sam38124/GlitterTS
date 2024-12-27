@@ -1575,6 +1575,8 @@ export class Shopping {
                         kd.ReturnURL = `${process.env.DOMAIN}/api-public/v1/ec/redirect?g-app=${this.app}&return=${id}`;
                         kd.NotifyURL = `${process.env.DOMAIN}/api-public/v1/ec/notify?g-app=${this.app}`;
                         return await new LinePay(this.app, kd).createOrder(carData);
+                    case 'paynow':
+
                     default:
                         carData.method = 'off_line';
                         // 訂單成立信件通知

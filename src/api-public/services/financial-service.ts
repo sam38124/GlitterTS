@@ -840,7 +840,6 @@ export class LinePay {
         //sha256加密
         const signature = crypto.createHmac('sha256', this.LinePay_SECRET).update(head).digest('base64');
         const url = `${this.LinePay_BASE_URL}/v3${uri}`;
-        console.log("url -- " , url)
         const config: AxiosRequestConfig = {
             method: "POST",
             url: url,
@@ -863,6 +862,106 @@ export class LinePay {
             return response.data;
         } catch (error:any) {
             console.error("Error linePay:", error.response?.data || error.message);
+            throw error;
+        }
+    }
+}
+
+// paynow金流
+export class PayNow金流 {
+    keyData: {
+        ReturnURL?:string,
+        NotifyURL?:string,
+        LinePay_CLIENT_ID:string,
+        LinePay_SECRET:string,
+        BETA:string
+    };
+    appName: string;
+    PublicKey:string;
+    PrivateKey:string;
+    BASE_URL:string
+    //todo LinePay_CLIENT_ID LinePay_SECRET 會是動態的 還有 LinePay_BASE_URL的沙箱環境
+    constructor(appName: string, keyData:any) {
+        this.keyData = keyData;
+        this.appName = appName;
+        this.PublicKey = keyData.CLIENT_ID; // 替換為您的 Client ID
+        this.PrivateKey = keyData.SECRET; // 替換為您的 Secret Key
+        this.BASE_URL = (keyData.BETA == 'true') ? "https://sandboxapi.paynow.com.tw":"https://api.paynow.com.tw"; // 沙箱環境
+    }
+
+    async confirmAndCaptureOrder(transactionId:string){
+
+        let config = {
+            method: 'get',
+            maxBodyLength: Infinity,
+            url: `https://sandboxapi.paynow.com.tw/api/v1/payment-intents/${transactionId}`,
+            headers: {
+                'Accept': 'application/json',
+                'Authorization': this.PrivateKey
+            }
+        };
+        try {
+            const response = await axios.request(config);
+            console.log("response -- " , response);
+            return response;
+        } catch (error:any) {
+            console.error("Error linePay:", error.response?.data.data || error.message);
+            throw error;
+        }
+    }
+    async createOrder(orderData: {
+        lineItems: {
+            id: string;
+            spec: string[];
+            count: number;
+            sale_price: number;
+            title: string;
+        }[];
+        total: number;
+        email: string;
+        shipment_fee: number;
+        orderID: string;
+        use_wallet: number;
+        user_email: string;
+        method: string;
+    }) {
+        const data = JSON.stringify({
+            "paymentNo": "string",
+            "amount": 0,
+            "currency": "string",
+            "description": "string",
+            "resultUrl": "string",
+            "webhookUrl": "string",
+            "allowedPaymentMethods": [
+                "string"
+            ],
+            "allowInstallments": [
+                0
+            ],
+            "expireDays": 0
+        });
+        const config = {
+            method: 'post',
+            maxBodyLength: Infinity,
+            url: 'https://sandboxapi.paynow.com.tw/api/v1/payment-intents',
+            headers: {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json',
+                'Authorization': this.PrivateKey
+            },
+            data : data
+        };
+        try {
+            const response = await axios.request(config);
+            await db.execute(
+                `INSERT INTO \`${this.appName}\`.t_checkout (cart_token, status, email, orderData) VALUES (?, ?, ?, ?)
+            `,
+                [orderData.orderID, 0, orderData.user_email, orderData]
+            );
+            await redis.setValue('paynow'+orderData.orderID,response.requestId)
+            return response.data;
+        } catch (error:any) {
+            console.error("Error payNow:", error.response?.data || error.message);
             throw error;
         }
     }

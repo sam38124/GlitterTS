@@ -532,6 +532,9 @@ export class CheckoutIndex {
                             {
                                 src: `https://unpkg.com/@lottiefiles/lottie-player@latest/dist/lottie-player.js`,
                             },
+                            {
+                                src: `https://js.paynow.com.tw/sdk/v1/index.js`,
+                            },
                         ],
                         () => {
                         },
@@ -2420,6 +2423,19 @@ export class CheckoutIndex {
                                             <button
                                                     class="${gClass('button-bgr')}"
                                                     onclick="${gvc.event(() => {
+                                                        // glitter.innerDialog((gvc:GVC)=>{
+                                                        //     return gvc.bindView({
+                                                        //         bind:`paynow`,
+                                                        //         view:()=>{
+                                                        //             return html`<div class="w-100 h-100">
+                                                        //                 <div id="paynow-container"></div>
+                                                        //             </div>`
+                                                        //         },divCreate:{
+                                                        //            
+                                                        //         },onCreate:()=>{}
+                                                        //     })
+                                                        //    
+                                                        // },`paynow`)
                                                         const dialog = new ShareDialog(gvc.glitter);
                                                         if (!this.checkFormData(gvc, vm.cartData, widget)) {
                                                             return;

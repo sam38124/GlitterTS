@@ -485,6 +485,9 @@ export class CheckoutIndex {
                         {
                             src: `https://unpkg.com/@lottiefiles/lottie-player@latest/dist/lottie-player.js`,
                         },
+                        {
+                            src: `https://js.paynow.com.tw/sdk/v1/index.js`,
+                        },
                     ], () => {
                     }, () => {
                     });

@@ -613,7 +613,9 @@ async function redirect_link(req: express.Request, resp: express.Response) {
                 await new Shopping(req.query.appName as string).releaseCheckout(1, req.query.orderID as string);
             }
         }
+        if (req.query.paynow === 'true'){
 
+        }
         const html = String.raw;
         return resp.send(html`<!DOCTYPE html>
             <html lang="en">
