@@ -385,9 +385,9 @@ export class UMLogin {
         widget.event('success', { title: text !== null && text !== void 0 ? text : Language.text('login_success') });
         setTimeout(() => {
             if (localStorage.getItem('redirect_cart') === 'true') {
-                gvc.glitter.href = './checkout';
+                gvc.glitter.href = '/checkout';
             }
-            gvc.glitter.href = './account_userinfo';
+            gvc.glitter.href = '/account_userinfo';
         }, 700);
     }
     static authThirdPartyHTML(gvc, widget, vm) {

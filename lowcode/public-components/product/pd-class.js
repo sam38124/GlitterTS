@@ -328,12 +328,15 @@ overflow: hidden;
                 height: 100%;
                 object-fit: cover;
             }`);
-        obj.vm.specs =
-            obj.vm.specs.length > 0
-                ? obj.vm.specs
-                : obj.vm.specs.map((spec) => {
-                    return spec.option[0].title;
-                });
+        obj.vm.specs = obj.vm.specs.length > 0
+            ? obj.vm.specs
+            : obj.vm.specs.map((spec) => {
+                return spec.option[0].title;
+            });
+        obj.prod.preview_image = obj.prod.preview_image
+            .filter((dd) => {
+            return dd !== 'https://d3jnmi1tfjgtti.cloudfront.net/file/234285319/1722936949034-default_image.jpg';
+        });
         return obj.gvc.bindView(() => {
             const id = obj.gvc.glitter.getUUID();
             return {
@@ -341,8 +344,7 @@ overflow: hidden;
                 view: () => {
                     return `<div class="swiper${id}" id="dynamic-swiper${id}" style="position:relative;overflow: hidden;">
                     <div class="swiper-wrapper">
-                        ${obj.prod.preview_image
-                        .map((image, index) => {
+                        ${obj.prod.preview_image.map((image, index) => {
                         return html `
                                 <div class="swiper-slide swiper-slide-def">
                                     <img src="${image}" alt="${obj.prod.title}-${index}"/>

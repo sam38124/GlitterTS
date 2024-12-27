@@ -147,20 +147,20 @@ export class StockVendors {
                                                 vm.query || '',
                                                 '搜尋庫存點名稱'
                                             ),
-                                            BgWidget.funnelFilter({
-                                                gvc,
-                                                callback: () => ListComp.showRightMenu(FilterOptions.vendorsFunnel),
-                                            }),
-                                            BgWidget.updownFilter({
-                                                gvc,
-                                                callback: (value: any) => {
-                                                    vm.orderString = value;
-                                                    gvc.notifyDataChange(vm.tableId);
-                                                    gvc.notifyDataChange(id);
-                                                },
-                                                default: vm.orderString || 'default',
-                                                options: FilterOptions.vendorsOrderBy,
-                                            }),
+                                            // BgWidget.funnelFilter({
+                                            //     gvc,
+                                            //     callback: () => ListComp.showRightMenu(FilterOptions.vendorsFunnel),
+                                            // }),
+                                            // BgWidget.updownFilter({
+                                            //     gvc,
+                                            //     callback: (value: any) => {
+                                            //         vm.orderString = value;
+                                            //         gvc.notifyDataChange(vm.tableId);
+                                            //         gvc.notifyDataChange(id);
+                                            //     },
+                                            //     default: vm.orderString || 'default',
+                                            //     options: FilterOptions.vendorsOrderBy,
+                                            // }),
                                         ];
 
                                         const filterTags = ListComp.getFilterTags(FilterOptions.vendorsFunnel);
@@ -169,10 +169,7 @@ export class StockVendors {
                                             // 手機版
                                             return html` <div style="display: flex; align-items: center; gap: 10px; width: 100%; justify-content: space-between">
                                                     <div>${filterList[0]}</div>
-                                                    <div style="display: flex;">
-                                                        <div class="me-2">${filterList[2]}</div>
-                                                        ${filterList[3]}
-                                                    </div>
+                                                    <div style="display: flex;">${filterList[2] ? `<div class="me-2">${filterList[2]}</div>` : ''} ${filterList[3] ?? ''}</div>
                                                 </div>
                                                 <div style="display: flex; margin-top: 8px;">${filterList[1]}</div>
                                                 <div>${filterTags}</div>`;
@@ -191,17 +188,12 @@ export class StockVendors {
                                         gvc: gvc,
                                         getData: (vd) => {
                                             vmi = vd;
-                                            const limit = 20;
-
-                                            // ApiUser.setPublicConfig({
-                                            //     key: 'vendor_manager',
-                                            //     value: {},
-                                            //     user_id: 'manager',
-                                            // });
-
+                                            const limit = 100;
                                             this.getPublicData().then((data: any) => {
-                                                console.log(data.list);
                                                 if (data.list) {
+                                                    data.list = data.list.filter((item: VendorData) => {
+                                                        return vm.query === '' || item.name.includes(vm.query);
+                                                    });
                                                     vm.dataList = data.list;
                                                     vmi.pageSize = Math.ceil(data.list.length / limit);
                                                     vmi.originalData = vm.dataList;
@@ -333,22 +325,25 @@ export class StockVendors {
                               gvc.event(() => {
                                   dialog.checkYesOrNot({
                                       text: '確定要刪除此供應商？',
-                                      callback: () => {
-                                          this.getPublicData().then((vendors: any) => {
-                                              ApiUser.setPublicConfig({
-                                                  key: 'vendor_manager',
-                                                  value: {
-                                                      list: vendors.list.filter((item: VendorData) => item.id !== vm.data.id),
-                                                  },
-                                                  user_id: 'manager',
-                                              }).then((dd: any) => {
-                                                  dialog.dataLoading({ visible: false });
-                                                  dialog.successMessage({ text: '刪除成功' });
-                                                  setTimeout(() => {
-                                                      vm.type = 'list';
-                                                  }, 500);
+                                      callback: (bool) => {
+                                          if (bool) {
+                                              dialog.dataLoading({ visible: true });
+                                              this.getPublicData().then((vendors: any) => {
+                                                  ApiUser.setPublicConfig({
+                                                      key: 'vendor_manager',
+                                                      value: {
+                                                          list: vendors.list.filter((item: VendorData) => item.id !== vm.data.id),
+                                                      },
+                                                      user_id: 'manager',
+                                                  }).then(() => {
+                                                      dialog.dataLoading({ visible: false });
+                                                      dialog.successMessage({ text: '刪除成功' });
+                                                      setTimeout(() => {
+                                                          vm.type = 'list';
+                                                      }, 500);
+                                                  });
                                               });
-                                          });
+                                          }
                                       },
                                   });
                               })
@@ -361,19 +356,16 @@ export class StockVendors {
                     )}
                     ${BgWidget.save(
                         gvc.event(() => {
-                            // 未填寫驗證
-                            const valids: {
-                                key: 'name' | 'address';
-                                text: string;
-                            }[] = [
-                                { key: 'name', text: '供應商名稱不得為空白' },
-                                { key: 'address', text: '地址不得為空白' },
-                            ];
-                            for (const v of valids) {
-                                if (vm.data[v.key] === undefined || vm.data[v.key].length === 0 || vm.data[v.key] === null) {
-                                    dialog.infoMessage({ text: v.text });
-                                    return;
-                                }
+                            // 名稱未填寫驗證
+                            if (CheckInput.isEmpty(vm.data.name)) {
+                                dialog.infoMessage({ text: '供應商名稱不得為空白' });
+                                return;
+                            }
+
+                            // 地址未填寫驗證
+                            if (CheckInput.isEmpty(vm.data.address)) {
+                                dialog.infoMessage({ text: '地址不得為空白' });
+                                return;
                             }
 
                             // 正則表達式來驗證台灣行動電話號碼格式

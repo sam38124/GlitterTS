@@ -174,7 +174,7 @@ app.set('trust proxy', true);
 // 判斷現在時間是否在 start 和 end 之間的函數
 function isCurrentTimeWithinRange(data: { startDate: string; startTime: string; endDate?: string; endTime?: string }): boolean {
     const now = new Date();
-
+    now.setTime(now.getTime() + 8 * 3600 * 1000);
     // 組合 start 的完整日期時間
     const startDateTime = new Date(`${data.startDate}T${data.startTime}`);
 
@@ -327,9 +327,16 @@ export async function createAPP(dd: any) {
                                 data.page_config = data.page_config ?? {};
                                 data.page_config.seo = data.page_config.seo ?? {};
                                 if (article.data[0]) {
-                                    data.page_config.seo.title = article.data[0].content.seo.title;
-                                    data.page_config.seo.content = article.data[0].content.seo.content;
-                                    data.page_config.seo.keywords = article.data[0].content.seo.keywords;
+                                    if(article.data[0].content.language_data[language]){
+                                        data.page_config.seo.title = article.data[0].content.language_data[language].seo.title;
+                                        data.page_config.seo.content = article.data[0].content.language_data[language].seo.content;
+                                        data.page_config.seo.keywords = article.data[0].content.language_data[language].seo.keywords;
+                                    }else{
+                                        data.page_config.seo.title = article.data[0].content.seo.title;
+                                        data.page_config.seo.content = article.data[0].content.seo.content;
+                                        data.page_config.seo.keywords = article.data[0].content.seo.keywords;
+                                    }
+
                                 }
                             } else if (d.type !== 'custom') {
                                 data = home_page_data;
@@ -361,7 +368,6 @@ export async function createAPP(dd: any) {
                                     localStorage.setItem('distributionCode','');
                                 `;
                             }
-
                             if ((req.query.page as string).split('/')[0] === 'distribution' && (req.query.page as string).split('/')[1]) {
                                 const redURL = new URL(`https://127.0.0.1${req.url}`);
 
@@ -373,6 +379,26 @@ export async function createAPP(dd: any) {
                                 const page = rec[0] && rec[0].content ? rec[0].content : { status: false };
 
                                 if (page.status && isCurrentTimeWithinRange(page)) {
+                                    let query = [`(content->>'$.type'='article')`, `(content->>'$.tag'='${page.redirect.split('/')[2]}')`];
+                                    const article: any = await new UtDatabase(appName, `t_manager_post`).querySql(query, {
+                                        page: 0,
+                                        limit: 1,
+                                    });
+                                    data = await Seo.getPageInfo(appName, data.config.homePage, language);
+                                    data.page_config = data.page_config ?? {};
+                                    data.page_config.seo = data.page_config.seo ?? {};
+                                    if (article.data[0]) {
+                                        if(article.data[0].content.language_data[language]){
+                                            data.page_config.seo.title = article.data[0].content.language_data[language].seo.title;
+                                            data.page_config.seo.content = article.data[0].content.language_data[language].seo.content;
+                                            data.page_config.seo.keywords = article.data[0].content.language_data[language].seo.keywords;
+                                        }else{
+                                            data.page_config.seo.title = article.data[0].content.seo.title;
+                                            data.page_config.seo.content = article.data[0].content.seo.content;
+                                            data.page_config.seo.keywords = article.data[0].content.seo.keywords;
+                                        }
+
+                                    }
                                     distribution_code = `
                                         localStorage.setItem('distributionCode','${page.code}');
                                         location.href = '${link_prefix ? `/`:``}${link_prefix}${page.redirect}${redURL.search}';

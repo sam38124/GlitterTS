@@ -79,7 +79,7 @@ export class Entry {
         }
         window.renderClock = (_a = window.renderClock) !== null && _a !== void 0 ? _a : clockF();
         console.log(`Entry-time:`, window.renderClock.stop());
-        glitter.share.editerVersion = 'V_15.8.4';
+        glitter.share.editerVersion = 'V_16.0.4';
         glitter.share.start = new Date();
         const vm = {
             appConfig: [],
@@ -178,7 +178,8 @@ export class Entry {
             if (glitter.getUrlParameter('type') === 'editor') {
                 const dialog = new ShareDialog(glitter);
                 dialog.dataLoading({ visible: true, text: '後台載入中' });
-                Entry.toBackendEditor(glitter, () => { });
+                Entry.toBackendEditor(glitter, () => {
+                });
             }
             else if (glitter.getUrlParameter('type') === 'htmlEditor') {
                 Entry.toHtmlEditor(glitter, vm, () => {
@@ -262,17 +263,19 @@ export class Entry {
         }
     }
     static toBackendEditor(glitter, callback) {
+        const css = String.raw;
         if (localStorage.getItem('on-pos') === 'true' && glitter.getUrlParameter('page') !== 'pos') {
             localStorage.removeItem('on-pos');
             location.href = glitter.root_path + 'pos?app-id=t_1725992531001';
         }
-        glitter.addStyle(`
+        glitter.addStyle(css `
             @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@100..900&family=Noto+Sans:ital,wght@0,100..900;1,100..900&display=swap');
             @media (prefers-reduced-motion: no-preference) {
                 :root {
                     scroll-behavior: auto !important;
                 }
             }
+
             ::-webkit-scrollbar {
                 width: 0px !important; /* 滚动条宽度 */
                 height: 0px !important;
@@ -322,6 +325,11 @@ export class Entry {
                     if (data.response.result.length === 0 && glitter.getUrlParameter('page') !== 'cms') {
                         glitter.setUrlParameter('page', data.response.redirect);
                     }
+                    glitter.addStyle(css `
+                        .page-box {
+                            min-height: ${window.innerHeight}px !important;
+                        }
+                    `);
                     glitter.setHome('jspage/main.js', glitter.getUrlParameter('page'), {
                         appName: config.appName,
                     }, {
@@ -356,7 +364,9 @@ export class Entry {
             {
                 src: 'https://kit.fontawesome.com/cccedec0f8.js',
             },
-        ], () => { }, () => { });
+        ], () => {
+        }, () => {
+        });
         glitter.addStyle(`
             @media (prefers-reduced-motion: no-preference) {
                 :root {
@@ -390,7 +400,9 @@ export class Entry {
                 src: `${glitter.htmlGenerate.configureCDN(glitter.htmlGenerate.resourceHook(dd.js))}`,
                 type: 'module',
             };
-        }), () => { }, () => { }, [{ key: 'async', value: 'true' }]);
+        }), () => {
+        }, () => {
+        }, [{ key: 'async', value: 'true' }]);
         glitter.htmlGenerate.loadScript(glitter, window.parent.editerData.setting
             .filter((dd) => {
             return ['widget', 'container', 'code'].indexOf(dd.type) === -1;
@@ -426,7 +438,9 @@ export class Entry {
             {
                 src: `https://unpkg.com/@lottiefiles/lottie-player@latest/dist/lottie-player.js`,
             },
-        ], () => { }, () => { });
+        ], () => {
+        }, () => {
+        });
         if (glitter.getUrlParameter('token') && glitter.getUrlParameter('return_type') === 'resetPassword') {
             GlobalUser.token = glitter.getUrlParameter('token');
             glitter.setUrlParameter('token');
@@ -459,7 +473,8 @@ export class Entry {
                 .map((dd) => {
                 return {
                     src: `${glitter.htmlGenerate.configureCDN(glitter.htmlGenerate.resourceHook(dd.js))}`,
-                    callback: () => { },
+                    callback: () => {
+                    },
                 };
             }));
             function authPass() {

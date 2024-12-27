@@ -21,6 +21,7 @@ router.post('/sync-data', async (req, resp) => {
         apiKey: process.env.OPENAI_API_KEY,
     });
     const type = req.body.type;
+    const start_sync = new Date().getTime();
     try {
         const exportData = [];
         let cf = ((_a = (await private_config_js_1.Private_config.getConfig({
@@ -130,6 +131,7 @@ router.post('/sync-data', async (req, resp) => {
             key: 'ai_config',
             value: cf,
         });
+        console.log(`end=>`, new Date().getTime() - start_sync);
         return response_js_1.default.succ(resp, {
             result: true
         });

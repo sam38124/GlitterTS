@@ -568,7 +568,7 @@ export class ShoppingProductSetting {
                                                                                                 <div class="me-2">
                                                                                                     ${filterList[2]}
                                                                                                 </div>
-                                                                                                ${filterList[3]}
+                                                                                                ${filterList[3] ?? ''}
                                                                                             </div>
                                                                                         </div>
                                                                                         <div style="display: flex; margin-top: 8px;">

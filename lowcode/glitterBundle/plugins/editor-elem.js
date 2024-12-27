@@ -968,18 +968,18 @@ ${obj.structEnd ? obj.structEnd : '})()'}`,
             return {
                 bind: id,
                 view: () => {
+                    var _a;
                     return html `
-                        <div class="w-100 d-flex align-items-center justify-content-center p-3 ${richID}-loading">
-                            <div class="spinner-border"></div>
-                        </div>
-                        <div id="${richID}" style="position: relative;"></div>
                         <div
-                            class="position-absolute w-100 bg-white d-flex align-items-center justify-content-center flex-column"
-                            style="top:0px;left:0px;height:${obj.rich_height || '100%'};z-index:9999;"
-                            id="hid_${id}"
+                                class="w-100 bg-white d-flex align-items-center justify-content-center flex-column "
+                                style="top:0px;left:0px;height:${obj.rich_height || '100%'};min-height:${(_a = obj.setHeight) !== null && _a !== void 0 ? _a : 350};z-index:9999;"
+                                id="hid_${id}"
                         >
                             <div class="spinner-border"></div>
                             載入中
+                        </div>
+                        <div id="c_${richID}" class="w-100" style="visibility: hidden;">
+                            <div id="${richID}" style="position: relative;"></div>
                         </div>
                     `;
                 },
@@ -1099,20 +1099,6 @@ ${obj.structEnd ? obj.structEnd : '})()'}`,
                                             H6: '標題 6',
                                         },
                                     });
-                                    if (glitter.document.querySelector(`.${richID}-loading`)) {
-                                        glitter.document.querySelector(`.${richID}-loading`).remove();
-                                    }
-                                    if (loading) {
-                                        loading = false;
-                                        loadingView = true;
-                                        setTimeout(() => {
-                                            delay = false;
-                                            if (!loadingView && !delay) {
-                                                gvc.glitter.document.querySelector(`#hid_${id}`).remove();
-                                                editor.html.set(obj.def || '');
-                                            }
-                                        }, 200);
-                                    }
                                     function checkRender() {
                                         for (const toolBar of toolBarArray) {
                                             if (toolBar != '|' && !glitter.document.querySelector(`#` + richID).querySelector(`[data-cmd="${toolBar}"]`)) {
@@ -1135,10 +1121,6 @@ ${obj.structEnd ? obj.structEnd : '})()'}`,
                                         }
                                         else {
                                             loadingView = false;
-                                            if (!loadingView && !delay) {
-                                                gvc.glitter.document.querySelector(`#hid_${id}`).remove();
-                                                editor.html.set(obj.def || '');
-                                            }
                                             const target = glitter.document.querySelector(`#` + richID).querySelector(`[data-cmd="insertImage"]`);
                                             target.outerHTML = html ` <button
                                                 id="insertImage-replace"
@@ -1200,12 +1182,15 @@ ${obj.structEnd ? obj.structEnd : '})()'}`,
                                                 glitter.document.querySelector(`#` + richID).querySelector(`.fr-view`).style.minHeight = 'auto';
                                                 glitter.document.querySelector(`#` + richID).querySelector(`.fr-view`).style.overflowY = 'auto';
                                             }
+                                            editor.html.set(obj.def || '');
                                             if (obj.readonly) {
                                                 editor.edit.off();
                                                 editor.toolbar.disable();
                                             }
                                             console.info(`${richID} rendered richtext`);
                                             glitter.share.richTextRendering = false;
+                                            gvc.glitter.document.querySelector(`#hid_${id}`).remove();
+                                            glitter.document.getElementById(`c_${richID}`).style.visibility = 'visible';
                                         }
                                     }
                                 }, 100);

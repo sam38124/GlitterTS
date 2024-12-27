@@ -681,6 +681,38 @@ function detail(gvc, cf, vm, cVm, page_tab) {
         function refreshProductPage() {
             gvc.notifyDataChange(id);
         }
+        let origin = (JSON.stringify(vm.data));
+        setTimeout(() => {
+            origin = (JSON.stringify(vm.data));
+        }, 400);
+        function checkSwitchToUiEditor() {
+            function next() {
+                window.parent.glitter.setUrlParameter('page-id', vm.data.id);
+                window.parent.glitter.setUrlParameter('language', language);
+                window.parent.glitter.share.switch_to_web_builder(`${domainPrefix}/${vm.data.content.tag}`);
+            }
+            if (origin !== JSON.stringify(vm.data)) {
+                const dialog = new ShareDialog(gvc.glitter);
+                dialog.checkYesOrNot({
+                    text: '偵測到內容變更，是否保留更改?',
+                    callback: (response) => {
+                        if (response) {
+                            saveData(gvc, cf, vm, cVm, false).then((res) => {
+                                if (res) {
+                                    next();
+                                }
+                            });
+                        }
+                        else {
+                            next();
+                        }
+                    }
+                });
+            }
+            else {
+                next();
+            }
+        }
         return {
             bind: id,
             view: () => {
@@ -731,9 +763,7 @@ function detail(gvc, cf, vm, cVm, page_tab) {
                 }))}
                             <div class="mx-1"></div>
                             ${BgWidget.grayButton('前往設計', gvc.event(() => {
-                    window.parent.glitter.setUrlParameter('page-id', vm.data.id);
-                    window.parent.glitter.setUrlParameter('language', language);
-                    window.parent.glitter.share.switch_to_web_builder(`${domainPrefix}/${vm.data.content.tag}`);
+                    checkSwitchToUiEditor();
                 }))}
                         </div>
                     </div>
@@ -1598,16 +1628,18 @@ function detail(gvc, cf, vm, cVm, page_tab) {
     });
 }
 function saveData(gvc, cf, vm, cVm, silence) {
-    return __awaiter(this, void 0, void 0, function* () {
+    return new Promise((res_, reject) => __awaiter(this, void 0, void 0, function* () {
         if (!vm.data.content.tag) {
             yield cf.widget.event('error', {
                 title: '請設定連結',
             });
+            res_(false);
         }
         else if (!vm.data.content.name) {
             yield cf.widget.event('error', {
                 title: '請設定名稱',
             });
+            res_(false);
         }
         else {
             if (!silence) {
@@ -1625,11 +1657,13 @@ function saveData(gvc, cf, vm, cVm, silence) {
                         yield cf.widget.event('success', {
                             title: '設定成功',
                         });
+                        res_(true);
                     }
                     else {
                         yield cf.widget.event('error', {
                             title: '此連結已被使用',
                         });
+                        res_(false);
                     }
                 }));
             }
@@ -1651,16 +1685,18 @@ function saveData(gvc, cf, vm, cVm, silence) {
                         }
                         cVm.type = 'detail';
                         gvc.notifyDataChange(cVm.id);
+                        res_(true);
                     }
                     else {
                         yield cf.widget.event('error', {
                             title: '此連結已被使用',
                         });
+                        res_(false);
                     }
                 }));
             }
         }
-    });
+    }));
 }
 function setCollection(cf) {
     const vm = {

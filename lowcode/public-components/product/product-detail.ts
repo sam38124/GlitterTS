@@ -72,7 +72,9 @@ export class ProductDetail {
             .pd_detail_content img {
                 max-width:100%;
             }
-        `)
+        `);
+        const product_id = gvc.glitter.getUrlParameter('product_id')
+
         //移除所有查詢
         const url = new URL(location.href);
         for (const b of url.searchParams.keys()) {
@@ -391,14 +393,25 @@ export class ProductDetail {
             onCreate: () => {
                 if (loadings.page) {
                     const title = glitter.getUrlParameter('page').split('/')[1];
-                    if (title) {
+                    if (title || product_id) {
                         const inputObj = {
                             page: 0,
                             limit: 1,
                             collection: '',
                             maxPrice: '',
                             minPrice: '',
-                            domain: decodeURIComponent(title),
+                            ...(()=>{
+                                if (product_id){
+                                    return {
+                                        id:product_id
+                                    }
+                                }else{
+                                    return  {
+                                        domain: decodeURIComponent(title)
+                                    }
+                                }
+                            })()
+                            ,
                             status: 'inRange',
                             channel: 'normal',
                             orderBy: '',
@@ -406,6 +419,7 @@ export class ProductDetail {
                             show_hidden: true,
                         };
 
+                        console.log(`inputObj===>`,inputObj)
                         Promise.all([
                             new Promise<{ result: boolean; response: any }>((resolve, reject) => {
                                 ApiUser.getPublicConfig('text-manager', 'manager', (window as any).appName).then((data) => {
@@ -427,7 +441,18 @@ export class ProductDetail {
                                 vm.content_manager = dataArray[0].response.value;
                             }
                             if (dataArray[1].result && dataArray[1].response.data) {
-                                vm.data = dataArray[1].response.data;
+                               try {
+                                   if(Array.isArray(dataArray[1].response.data)){
+                                       vm.data = dataArray[1].response.data[0];
+                                       glitter.setUrlParameter('page','products/'+encodeURIComponent(vm.data.content.seo.domain))
+                                   }else{
+                                       vm.data = dataArray[1].response.data;
+                                       glitter.setUrlParameter('page','products/'+encodeURIComponent(vm.data.content.seo.domain))
+                                   }
+
+                               }catch (e) {
+                                   (vm.data as any)={}
+                               }
                             }
                             if (dataArray[2].result && dataArray[2].response.data) {
                                 vm.wishStatus = dataArray[2].response.data.some((item: Product) => item.id === vm.data.id);

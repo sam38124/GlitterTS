@@ -161,6 +161,7 @@ export class UserList {
                                 return gvc.bindView({
                                     bind: id,
                                     view: () => {
+                                        var _a;
                                         const filterList = [
                                             BgWidget.selectFilter({
                                                 gvc,
@@ -197,8 +198,8 @@ export class UserList {
                                             return html ` <div style="display: flex; align-items: center; gap: 10px; width: 100%; justify-content: space-between">
                                                                     <div>${filterList[0]}</div>
                                                                     <div style="display: flex;">
-                                                                        <div class="me-2">${filterList[2]}</div>
-                                                                        ${filterList[3]}
+                                                                        ${filterList[2] ? `<div class="me-2">${filterList[2]}</div>` : ''}
+                                                                        ${(_a = filterList[3]) !== null && _a !== void 0 ? _a : ''}
                                                                     </div>
                                                                 </div>
                                                                 <div style="display: flex; margin-top: 8px;">${filterList[1]}</div>
@@ -368,6 +369,7 @@ export class UserList {
                             return gvc.bindView({
                                 bind: id,
                                 view: () => {
+                                    var _a;
                                     const filterList = [
                                         BgWidget.selectFilter({
                                             gvc,
@@ -404,8 +406,8 @@ export class UserList {
                                         return html ` <div style="display: flex; align-items: center; gap: 10px; width: 100%; justify-content: space-between">
                                                 <div>${filterList[0]}</div>
                                                 <div style="display: flex;">
-                                                    <div class="me-2">${filterList[2]}</div>
-                                                    ${filterList[3]}
+                                                    ${filterList[2] ? `<div class="me-2">${filterList[2]}</div>` : ''}
+                                                    ${(_a = filterList[3]) !== null && _a !== void 0 ? _a : ''}
                                                 </div>
                                             </div>
                                             <div style="display: flex; margin-top: 8px;">${filterList[1]}</div>
