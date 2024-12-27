@@ -1144,6 +1144,7 @@ class Shopping {
                         kd.ReturnURL = `${process.env.DOMAIN}/api-public/v1/ec/redirect?g-app=${this.app}&return=${id}`;
                         kd.NotifyURL = `${process.env.DOMAIN}/api-public/v1/ec/notify?g-app=${this.app}`;
                         return await new financial_service_js_1.LinePay(this.app, kd).createOrder(carData);
+                    case 'paynow':
                     default:
                         carData.method = 'off_line';
                         new notify_js_1.ManagerNotify(this.app).checkout({

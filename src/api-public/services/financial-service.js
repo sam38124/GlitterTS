@@ -3,7 +3,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.LinePay = exports.PayPal = exports.EcPay = exports.EzPay = void 0;
+exports.PayNow金流 = exports.LinePay = exports.PayPal = exports.EcPay = exports.EzPay = void 0;
 const crypto_1 = __importDefault(require("crypto"));
 const database_js_1 = __importDefault(require("../../modules/database.js"));
 const moment_timezone_1 = __importDefault(require("moment-timezone"));
@@ -657,4 +657,74 @@ class LinePay {
     }
 }
 exports.LinePay = LinePay;
+class PayNow金流 {
+    constructor(appName, keyData) {
+        this.keyData = keyData;
+        this.appName = appName;
+        this.PublicKey = keyData.CLIENT_ID;
+        this.PrivateKey = keyData.SECRET;
+        this.BASE_URL = (keyData.BETA == 'true') ? "https://sandboxapi.paynow.com.tw" : "https://api.paynow.com.tw";
+    }
+    async confirmAndCaptureOrder(transactionId) {
+        var _a;
+        let config = {
+            method: 'get',
+            maxBodyLength: Infinity,
+            url: `https://sandboxapi.paynow.com.tw/api/v1/payment-intents/${transactionId}`,
+            headers: {
+                'Accept': 'application/json',
+                'Authorization': this.PrivateKey
+            }
+        };
+        try {
+            const response = await axios_1.default.request(config);
+            console.log("response -- ", response);
+            return response;
+        }
+        catch (error) {
+            console.error("Error linePay:", ((_a = error.response) === null || _a === void 0 ? void 0 : _a.data.data) || error.message);
+            throw error;
+        }
+    }
+    async createOrder(orderData) {
+        var _a;
+        const data = JSON.stringify({
+            "paymentNo": "string",
+            "amount": 0,
+            "currency": "string",
+            "description": "string",
+            "resultUrl": "string",
+            "webhookUrl": "string",
+            "allowedPaymentMethods": [
+                "string"
+            ],
+            "allowInstallments": [
+                0
+            ],
+            "expireDays": 0
+        });
+        const config = {
+            method: 'post',
+            maxBodyLength: Infinity,
+            url: 'https://sandboxapi.paynow.com.tw/api/v1/payment-intents',
+            headers: {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json',
+                'Authorization': this.PrivateKey
+            },
+            data: data
+        };
+        try {
+            const response = await axios_1.default.request(config);
+            await database_js_1.default.execute(`INSERT INTO \`${this.appName}\`.t_checkout (cart_token, status, email, orderData) VALUES (?, ?, ?, ?)
+            `, [orderData.orderID, 0, orderData.user_email, orderData]);
+            return response.data;
+        }
+        catch (error) {
+            console.error("Error payNow:", ((_a = error.response) === null || _a === void 0 ? void 0 : _a.data) || error.message);
+            throw error;
+        }
+    }
+}
+exports.PayNow金流 = PayNow金流;
 //# sourceMappingURL=financial-service.js.map

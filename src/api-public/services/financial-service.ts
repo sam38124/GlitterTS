@@ -958,7 +958,7 @@ export class PayNow金流 {
             `,
                 [orderData.orderID, 0, orderData.user_email, orderData]
             );
-            await redis.setValue('paynow'+orderData.orderID,response.requestId)
+            // await redis.setValue('paynow'+orderData.orderID, `${response.requestId}`)
             return response.data;
         } catch (error:any) {
             console.error("Error payNow:", error.response?.data || error.message);

@@ -182,4 +182,35 @@ export declare class LinePay {
         method: string;
     }): Promise<any>;
 }
+export declare class PayNow金流 {
+    keyData: {
+        ReturnURL?: string;
+        NotifyURL?: string;
+        LinePay_CLIENT_ID: string;
+        LinePay_SECRET: string;
+        BETA: string;
+    };
+    appName: string;
+    PublicKey: string;
+    PrivateKey: string;
+    BASE_URL: string;
+    constructor(appName: string, keyData: any);
+    confirmAndCaptureOrder(transactionId: string): Promise<axios.AxiosResponse<any, any>>;
+    createOrder(orderData: {
+        lineItems: {
+            id: string;
+            spec: string[];
+            count: number;
+            sale_price: number;
+            title: string;
+        }[];
+        total: number;
+        email: string;
+        shipment_fee: number;
+        orderID: string;
+        use_wallet: number;
+        user_email: string;
+        method: string;
+    }): Promise<any>;
+}
 export {};
