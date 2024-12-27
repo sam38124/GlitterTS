@@ -216,7 +216,11 @@ export class ProductExcel {
                             dialog.infoMessage({ text });
                         }
                     }
-                    const domainList = data.map((item) => {
+                    const domainList = data
+                        .filter((item) => {
+                        return item[1];
+                    })
+                        .map((item) => {
                         if (CheckInput.isEmpty(item[5])) {
                             item[5] = item[0];
                         }
