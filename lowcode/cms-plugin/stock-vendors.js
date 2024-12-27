@@ -257,6 +257,7 @@ export class StockVendors {
                         text: '確定要刪除此供應商？',
                         callback: (bool) => {
                             if (bool) {
+                                dialog.dataLoading({ visible: true });
                                 this.getPublicData().then((vendors) => {
                                     ApiUser.setPublicConfig({
                                         key: 'vendor_manager',
@@ -264,7 +265,7 @@ export class StockVendors {
                                             list: vendors.list.filter((item) => item.id !== vm.data.id),
                                         },
                                         user_id: 'manager',
-                                    }).then((dd) => {
+                                    }).then(() => {
                                         dialog.dataLoading({ visible: false });
                                         dialog.successMessage({ text: '刪除成功' });
                                         setTimeout(() => {
@@ -281,15 +282,13 @@ export class StockVendors {
                 vm.type = 'list';
             }))}
                     ${BgWidget.save(gvc.event(() => {
-                const valids = [
-                    { key: 'name', text: '供應商名稱不得為空白' },
-                    { key: 'address', text: '地址不得為空白' },
-                ];
-                for (const v of valids) {
-                    if (vm.data[v.key] === undefined || vm.data[v.key].length === 0 || vm.data[v.key] === null) {
-                        dialog.infoMessage({ text: v.text });
-                        return;
-                    }
+                if (CheckInput.isEmpty(vm.data.name)) {
+                    dialog.infoMessage({ text: '供應商名稱不得為空白' });
+                    return;
+                }
+                if (CheckInput.isEmpty(vm.data.address)) {
+                    dialog.infoMessage({ text: '地址不得為空白' });
+                    return;
                 }
                 if (!CheckInput.isTaiwanPhone(vm.data.manager_phone)) {
                     dialog.infoMessage({ text: BgWidget.taiwanPhoneAlert() });

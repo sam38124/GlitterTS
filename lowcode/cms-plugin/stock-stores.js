@@ -14,13 +14,23 @@ export class StockStores {
             id: glitter.getUUID(),
             tableId: glitter.getUUID(),
             type: 'list',
-            data: this.emptyData(),
+            data: emptyData(),
             dataList: [],
             query: '',
             queryType: '',
             filter: {},
             orderString: '',
         };
+        function emptyData() {
+            return {
+                id: '',
+                name: '',
+                address: '',
+                manager_name: '',
+                manager_phone: '',
+                note: '',
+            };
+        }
         return gvc.bindView({
             bind: vm.id,
             dataList: [{ obj: vm, key: 'type' }],
@@ -32,7 +42,7 @@ export class StockStores {
                     return this.detailPage(gvc, vm, 'replace');
                 }
                 if (vm.type === 'create') {
-                    vm.data = this.emptyData();
+                    vm.data = emptyData();
                     return this.detailPage(gvc, vm, 'create');
                 }
                 return '';
@@ -271,9 +281,11 @@ export class StockStores {
                         text: '確定要刪除此庫存點？',
                         callback: (bool) => {
                             if (bool) {
+                                dialog.dataLoading({ visible: true });
                                 this.getPublicData().then((stores) => {
                                     const filterList = stores.list.filter((item) => item.id !== vm.data.id);
                                     if (filterList.length === 0) {
+                                        dialog.dataLoading({ visible: false });
                                         dialog.errorMessage({ text: '庫存點數量不可小於0' });
                                         return;
                                     }
@@ -283,7 +295,7 @@ export class StockStores {
                                             list: filterList,
                                         },
                                         user_id: 'manager',
-                                    }).then((dd) => {
+                                    }).then(() => {
                                         dialog.dataLoading({ visible: false });
                                         dialog.successMessage({ text: '刪除成功' });
                                         setTimeout(() => {
@@ -300,24 +312,21 @@ export class StockStores {
                 vm.type = 'list';
             }))}
                     ${BgWidget.save(gvc.event(() => {
-                const valids = [
-                    { key: 'name', text: '庫存點名稱不得為空白' },
-                    { key: 'address', text: '地址不得為空白' },
-                ];
-                for (const v of valids) {
-                    if (vm.data[v.key] === undefined || vm.data[v.key].length === 0 || vm.data[v.key] === null) {
-                        dialog.infoMessage({ text: v.text });
+                this.getPublicData().then((stores) => {
+                    if (CheckInput.isEmpty(vm.data.name)) {
+                        dialog.infoMessage({ text: '庫存點名稱不得為空白' });
                         return;
                     }
-                }
-                if (!CheckInput.isTaiwanPhone(vm.data.manager_phone)) {
-                    dialog.infoMessage({ text: BgWidget.taiwanPhoneAlert() });
-                    return;
-                }
-                dialog.dataLoading({ visible: true });
-                this.getPublicData().then((stores) => {
-                    var _a;
-                    stores.list = (_a = stores.list) !== null && _a !== void 0 ? _a : [];
+                    if (type === 'replace' && stores.list.length > 1) {
+                        if (CheckInput.isEmpty(vm.data.address)) {
+                            dialog.infoMessage({ text: '地址不得為空白' });
+                            return;
+                        }
+                        if (!CheckInput.isTaiwanPhone(vm.data.manager_phone)) {
+                            dialog.infoMessage({ text: BgWidget.taiwanPhoneAlert() });
+                            return;
+                        }
+                    }
                     if (type === 'replace') {
                         const store = stores.list.find((item) => item.id === vm.data.id);
                         if (store) {
@@ -328,6 +337,7 @@ export class StockStores {
                         vm.data.id = this.getNewID(stores.list);
                         stores.list.push(vm.data);
                     }
+                    dialog.dataLoading({ visible: true });
                     ApiUser.setPublicConfig({
                         key: 'store_manager',
                         value: {
@@ -366,14 +376,4 @@ export class StockStores {
         return newId;
     }
 }
-StockStores.emptyData = () => {
-    return {
-        id: '',
-        name: '',
-        address: '',
-        manager_name: '',
-        manager_phone: '',
-        note: '',
-    };
-};
 window.glitter.setModule(import.meta.url, StockStores);

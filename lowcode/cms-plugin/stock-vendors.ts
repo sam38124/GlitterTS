@@ -327,6 +327,7 @@ export class StockVendors {
                                       text: '確定要刪除此供應商？',
                                       callback: (bool) => {
                                           if (bool) {
+                                              dialog.dataLoading({ visible: true });
                                               this.getPublicData().then((vendors: any) => {
                                                   ApiUser.setPublicConfig({
                                                       key: 'vendor_manager',
@@ -334,7 +335,7 @@ export class StockVendors {
                                                           list: vendors.list.filter((item: VendorData) => item.id !== vm.data.id),
                                                       },
                                                       user_id: 'manager',
-                                                  }).then((dd: any) => {
+                                                  }).then(() => {
                                                       dialog.dataLoading({ visible: false });
                                                       dialog.successMessage({ text: '刪除成功' });
                                                       setTimeout(() => {
@@ -355,19 +356,16 @@ export class StockVendors {
                     )}
                     ${BgWidget.save(
                         gvc.event(() => {
-                            // 未填寫驗證
-                            const valids: {
-                                key: 'name' | 'address';
-                                text: string;
-                            }[] = [
-                                { key: 'name', text: '供應商名稱不得為空白' },
-                                { key: 'address', text: '地址不得為空白' },
-                            ];
-                            for (const v of valids) {
-                                if (vm.data[v.key] === undefined || vm.data[v.key].length === 0 || vm.data[v.key] === null) {
-                                    dialog.infoMessage({ text: v.text });
-                                    return;
-                                }
+                            // 名稱未填寫驗證
+                            if (CheckInput.isEmpty(vm.data.name)) {
+                                dialog.infoMessage({ text: '供應商名稱不得為空白' });
+                                return;
+                            }
+
+                            // 地址未填寫驗證
+                            if (CheckInput.isEmpty(vm.data.address)) {
+                                dialog.infoMessage({ text: '地址不得為空白' });
+                                return;
                             }
 
                             // 正則表達式來驗證台灣行動電話號碼格式
