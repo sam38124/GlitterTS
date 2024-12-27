@@ -209,7 +209,7 @@ export class StockStores {
                                                     const defaultList = [
                                                         {
                                                             id: this.getNewID([]),
-                                                            name: '庫存點1（預設）',
+                                                            name: '庫存點1(預設)',
                                                             address: '',
                                                             manager_name: '',
                                                             manager_phone: '',
@@ -389,28 +389,26 @@ export class StockStores {
                     )}
                     ${BgWidget.save(
                         gvc.event(() => {
+                            // 名稱未填寫驗證
+                            if (CheckInput.isEmpty(vm.data.name)) {
+                                dialog.infoMessage({ text: '庫存點名稱不得為空白' });
+                                return;
+                            }
+
+                            // 地址未填寫驗證
+                            if (CheckInput.isEmpty(vm.data.address)) {
+                                dialog.infoMessage({ text: '地址不得為空白' });
+                                return;
+                            }
+
+                            // 正則表達式來驗證台灣行動電話號碼格式
+                            if (!CheckInput.isTaiwanPhone(vm.data.manager_phone)) {
+                                dialog.infoMessage({ text: BgWidget.taiwanPhoneAlert() });
+                                return;
+                            }
+
+                            dialog.dataLoading({ visible: true });
                             this.getPublicData().then((stores: any) => {
-                                // 名稱未填寫驗證
-                                if (CheckInput.isEmpty(vm.data.name)) {
-                                    dialog.infoMessage({ text: '庫存點名稱不得為空白' });
-                                    return;
-                                }
-
-                                if (type === 'replace' && stores.list.length > 1) {
-                                    // 地址未填寫驗證
-                                    if (CheckInput.isEmpty(vm.data.address)) {
-                                        dialog.infoMessage({ text: '地址不得為空白' });
-                                        return;
-                                    }
-
-                                    // 正則表達式來驗證台灣行動電話號碼格式
-                                    if (!CheckInput.isTaiwanPhone(vm.data.manager_phone)) {
-                                        dialog.infoMessage({ text: BgWidget.taiwanPhoneAlert() });
-                                        return;
-                                    }
-                                }
-
-                                // Update Array
                                 if (type === 'replace') {
                                     const store = stores.list.find((item: StoreData) => item.id === vm.data.id);
                                     if (store) {
@@ -421,8 +419,6 @@ export class StockStores {
                                     stores.list.push(vm.data);
                                 }
 
-                                // Set PublicConfig
-                                dialog.dataLoading({ visible: true });
                                 ApiUser.setPublicConfig({
                                     key: 'store_manager',
                                     value: {
@@ -448,6 +444,7 @@ export class StockStores {
         return new Promise<any>((resolve, reject) => {
             ApiUser.getPublicConfig('store_manager', 'manager').then((dd: any) => {
                 if (dd.result && dd.response.value) {
+                    console.log(dd.response.value);
                     resolve(dd.response.value);
                 } else {
                     resolve({});

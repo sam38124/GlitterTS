@@ -149,7 +149,7 @@ export class StockStores {
                                     const defaultList = [
                                         {
                                             id: this.getNewID([]),
-                                            name: '庫存點1（預設）',
+                                            name: '庫存點1(預設)',
                                             address: '',
                                             manager_name: '',
                                             manager_phone: '',
@@ -312,21 +312,20 @@ export class StockStores {
                 vm.type = 'list';
             }))}
                     ${BgWidget.save(gvc.event(() => {
+                if (CheckInput.isEmpty(vm.data.name)) {
+                    dialog.infoMessage({ text: '庫存點名稱不得為空白' });
+                    return;
+                }
+                if (CheckInput.isEmpty(vm.data.address)) {
+                    dialog.infoMessage({ text: '地址不得為空白' });
+                    return;
+                }
+                if (!CheckInput.isTaiwanPhone(vm.data.manager_phone)) {
+                    dialog.infoMessage({ text: BgWidget.taiwanPhoneAlert() });
+                    return;
+                }
+                dialog.dataLoading({ visible: true });
                 this.getPublicData().then((stores) => {
-                    if (CheckInput.isEmpty(vm.data.name)) {
-                        dialog.infoMessage({ text: '庫存點名稱不得為空白' });
-                        return;
-                    }
-                    if (type === 'replace' && stores.list.length > 1) {
-                        if (CheckInput.isEmpty(vm.data.address)) {
-                            dialog.infoMessage({ text: '地址不得為空白' });
-                            return;
-                        }
-                        if (!CheckInput.isTaiwanPhone(vm.data.manager_phone)) {
-                            dialog.infoMessage({ text: BgWidget.taiwanPhoneAlert() });
-                            return;
-                        }
-                    }
                     if (type === 'replace') {
                         const store = stores.list.find((item) => item.id === vm.data.id);
                         if (store) {
@@ -337,7 +336,6 @@ export class StockStores {
                         vm.data.id = this.getNewID(stores.list);
                         stores.list.push(vm.data);
                     }
-                    dialog.dataLoading({ visible: true });
                     ApiUser.setPublicConfig({
                         key: 'store_manager',
                         value: {
@@ -360,6 +358,7 @@ export class StockStores {
         return new Promise((resolve, reject) => {
             ApiUser.getPublicConfig('store_manager', 'manager').then((dd) => {
                 if (dd.result && dd.response.value) {
+                    console.log(dd.response.value);
                     resolve(dd.response.value);
                 }
                 else {
