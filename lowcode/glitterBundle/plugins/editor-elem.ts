@@ -1071,17 +1071,16 @@ ${obj.structEnd ? obj.structEnd : '})()'}`,
                 bind: id,
                 view: () => {
                     return html`
-                        <div class="w-100 d-flex align-items-center justify-content-center p-3 ${richID}-loading">
-                            <div class="spinner-border"></div>
-                        </div>
-                        <div id="${richID}" style="position: relative;"></div>
                         <div
-                            class="position-absolute w-100 bg-white d-flex align-items-center justify-content-center flex-column"
-                            style="top:0px;left:0px;height:${obj.rich_height || '100%'};z-index:9999;"
-                            id="hid_${id}"
+                                class="w-100 bg-white d-flex align-items-center justify-content-center flex-column "
+                                style="top:0px;left:0px;height:${obj.rich_height || '100%'};min-height:${obj.setHeight ?? 350};z-index:9999;"
+                                id="hid_${id}"
                         >
                             <div class="spinner-border"></div>
                             載入中
+                        </div>
+                        <div id="c_${richID}" class="w-100" style="visibility: hidden;">
+                            <div id="${richID}" style="position: relative;"></div>
                         </div>
                     `;
                 },
@@ -1210,22 +1209,17 @@ ${obj.structEnd ? obj.structEnd : '})()'}`,
                                             H6: '標題 6',
                                         },
                                     });
-
-                                    if (glitter.document.querySelector(`.${richID}-loading`) as any) {
-                                        (glitter.document.querySelector(`.${richID}-loading`) as any).remove();
-                                    }
-
-                                    if (loading) {
-                                        loading = false;
-                                        loadingView = true;
-                                        setTimeout(() => {
-                                            delay = false;
-                                            if (!loadingView && !delay) {
-                                                gvc.glitter.document.querySelector(`#hid_${id}`)!!.remove();
-                                                editor.html.set(obj.def || '');
-                                            }
-                                        }, 200);
-                                    }
+                                    // if (loading) {
+                                    //     loading = false;
+                                    //     loadingView = true;
+                                    //     setTimeout(() => {
+                                    //         delay = false;
+                                    //         if (!loadingView && !delay) {
+                                    //             gvc.glitter.document.querySelector(`#hid_${id}`)!!.remove();
+                                    //             editor.html.set(obj.def || '');
+                                    //         }
+                                    //     }, 200);
+                                    // }
 
                                     function checkRender() {
                                         for (const toolBar of toolBarArray) {
@@ -1248,10 +1242,6 @@ ${obj.structEnd ? obj.structEnd : '})()'}`,
                                             return;
                                         } else {
                                             loadingView = false;
-                                            if (!loadingView && !delay) {
-                                                gvc.glitter.document.querySelector(`#hid_${id}`)!!.remove();
-                                                editor.html.set(obj.def || '');
-                                            }
                                             const target: any = glitter.document.querySelector(`#` + richID).querySelector(`[data-cmd="insertImage"]`);
                                             target.outerHTML = html` <button
                                                 id="insertImage-replace"
@@ -1312,7 +1302,7 @@ ${obj.structEnd ? obj.structEnd : '})()'}`,
                                                 glitter.document.querySelector(`#` + richID).querySelector(`.fr-view`).style.minHeight = 'auto';
                                                 glitter.document.querySelector(`#` + richID).querySelector(`.fr-view`).style.overflowY = 'auto';
                                             }
-
+                                            editor.html.set(obj.def || '');
                                             if (obj.readonly) {
                                                 editor.edit.off();
                                                 editor.toolbar.disable();
@@ -1320,6 +1310,8 @@ ${obj.structEnd ? obj.structEnd : '})()'}`,
 
                                             console.info(`${richID} rendered richtext`);
                                             glitter.share.richTextRendering = false;
+                                            gvc.glitter.document.querySelector(`#hid_${id}`)!!.remove();
+                                            (glitter.document.getElementById(`c_${richID}`) as any).style.visibility = 'visible';
                                         }
                                     }
                                 }, 100);

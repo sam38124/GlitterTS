@@ -178,6 +178,7 @@ function extractProds(data) {
 exports.app.set('trust proxy', true);
 function isCurrentTimeWithinRange(data) {
     const now = new Date();
+    now.setTime(now.getTime() + 8 * 3600 * 1000);
     const startDateTime = new Date(`${data.startDate}T${data.startTime}`);
     const hasEnd = data.endDate && data.endTime;
     const endDateTime = hasEnd ? new Date(`${data.endDate}T${data.endTime}`) : null;
@@ -200,7 +201,7 @@ async function createAPP(dd) {
             app_name: dd.appName,
             root_path: '/' + encodeURI(dd.appName) + '/',
             seoManager: async (req) => {
-                var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m, _o;
+                var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m, _o, _p, _q;
                 try {
                     if (req.query.state === 'google_login') {
                         req.query.page = 'login';
@@ -322,9 +323,16 @@ async function createAPP(dd) {
                             data.page_config = (_g = data.page_config) !== null && _g !== void 0 ? _g : {};
                             data.page_config.seo = (_h = data.page_config.seo) !== null && _h !== void 0 ? _h : {};
                             if (article.data[0]) {
-                                data.page_config.seo.title = article.data[0].content.seo.title;
-                                data.page_config.seo.content = article.data[0].content.seo.content;
-                                data.page_config.seo.keywords = article.data[0].content.seo.keywords;
+                                if (article.data[0].content.language_data[language]) {
+                                    data.page_config.seo.title = article.data[0].content.language_data[language].seo.title;
+                                    data.page_config.seo.content = article.data[0].content.language_data[language].seo.content;
+                                    data.page_config.seo.keywords = article.data[0].content.language_data[language].seo.keywords;
+                                }
+                                else {
+                                    data.page_config.seo.title = article.data[0].content.seo.title;
+                                    data.page_config.seo.content = article.data[0].content.seo.content;
+                                    data.page_config.seo.keywords = article.data[0].content.seo.keywords;
+                                }
                             }
                         }
                         else if (d.type !== 'custom') {
@@ -364,6 +372,26 @@ async function createAPP(dd) {
                                     `, [req.query.page.split('/')[1]]);
                             const page = rec[0] && rec[0].content ? rec[0].content : { status: false };
                             if (page.status && isCurrentTimeWithinRange(page)) {
+                                let query = [`(content->>'$.type'='article')`, `(content->>'$.tag'='${page.redirect.split('/')[2]}')`];
+                                const article = await new ut_database_js_1.UtDatabase(appName, `t_manager_post`).querySql(query, {
+                                    page: 0,
+                                    limit: 1,
+                                });
+                                data = await seo_js_1.Seo.getPageInfo(appName, data.config.homePage, language);
+                                data.page_config = (_l = data.page_config) !== null && _l !== void 0 ? _l : {};
+                                data.page_config.seo = (_m = data.page_config.seo) !== null && _m !== void 0 ? _m : {};
+                                if (article.data[0]) {
+                                    if (article.data[0].content.language_data[language]) {
+                                        data.page_config.seo.title = article.data[0].content.language_data[language].seo.title;
+                                        data.page_config.seo.content = article.data[0].content.language_data[language].seo.content;
+                                        data.page_config.seo.keywords = article.data[0].content.language_data[language].seo.keywords;
+                                    }
+                                    else {
+                                        data.page_config.seo.title = article.data[0].content.seo.title;
+                                        data.page_config.seo.content = article.data[0].content.seo.content;
+                                        data.page_config.seo.keywords = article.data[0].content.seo.keywords;
+                                    }
+                                }
                                 distribution_code = `
                                         localStorage.setItem('distributionCode','${page.code}');
                                         location.href = '${link_prefix ? `/` : ``}${link_prefix}${page.redirect}${redURL.search}';
@@ -376,11 +404,11 @@ async function createAPP(dd) {
                             }
                         }
                         if (req.query.page.split('/')[0] === 'collections' && req.query.page.split('/')[1]) {
-                            const cols = (_l = (await manager_js_1.Manager.getConfig({
+                            const cols = (_o = (await manager_js_1.Manager.getConfig({
                                 appName: appName,
                                 key: 'collection',
                                 language: language,
-                            }))[0]) !== null && _l !== void 0 ? _l : {};
+                            }))[0]) !== null && _o !== void 0 ? _o : {};
                             const colJson = extractCols(cols);
                             const urlCode = decodeURI(req.query.page.split('/')[1]);
                             const colData = colJson.find((item) => item.code === urlCode);
@@ -479,7 +507,7 @@ async function createAPP(dd) {
                                 `;
                         })()}
                             <script>
-                                ${(_m = d.custom_script) !== null && _m !== void 0 ? _m : ''};
+                                ${(_p = d.custom_script) !== null && _p !== void 0 ? _p : ''};
                                 window.login_config = ${JSON.stringify(login_config)};
                                 window.appName = '${appName}';
                                 window.glitterBase = '${brandAndMemberType.brand}';
@@ -508,7 +536,7 @@ async function createAPP(dd) {
                             return html ` <script src="/${link_prefix && `${link_prefix}/`}${dd.src}" type="${dd.type}"></script>`;
                         })
                             .join('')}
-                            ${((_o = preload.event) !== null && _o !== void 0 ? _o : [])
+                            ${((_q = preload.event) !== null && _q !== void 0 ? _q : [])
                             .filter((dd) => {
                             return dd;
                         })

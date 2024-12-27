@@ -13,12 +13,16 @@ export class UtDatabase {
         if (querySql.length === 0) {
             querySql.push(`1=1`);
         }
+        if(query.id){
+            querySql.push(`id=${query.id}`)
+        }
         let sql = `SELECT ${select || '*'}
                    FROM \`${this.app}\`.\`${this.table}\`
                    where ${querySql.map((dd)=>{
                        return `(${dd})`
                    }).join(' and ')}
                    ${query.order_string ? query.order_string : `order by id desc`}`;
+
         if (query.id) {
             const data = (
                 await db.query(

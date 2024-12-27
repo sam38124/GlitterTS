@@ -694,6 +694,9 @@ export class Setting_editor {
     static left(gvc: GVC, viewModel: any, createID: string, gBundle: any) {
         const html = String.raw;
         const glitter = gvc.glitter;
+        if(!glitter.getUrlParameter('tab')){
+            glitter.setUrlParameter('tab','home_page')
+        }
         glitter.share.checkData = () => {
             return true;
         };
@@ -767,6 +770,7 @@ export class Setting_editor {
                 bind: id,
                 view: () => {
                     Storage.select_bg_btn = 'custom';
+
                     return html`
                         <div
                             class="d-flex p-3 bg-white border-bottom align-items-end d-lg-none"
@@ -821,6 +825,7 @@ export class Setting_editor {
                                             url.searchParams.set('appName', items[parseInt(index)].appName);
                                             url.searchParams.set('cms', 'true');
                                             url.searchParams.set('page', page);
+                                            gvc.notifyDataChange('top-notice')
                                             // ((window as any).glitterInitialHelper).getPageData({
                                             //     tag: page,
                                             //     appName: items[parseInt(index)].appName
@@ -885,7 +890,8 @@ export class Setting_editor {
                                                         });
                                                 }
                                             }
-                                            if (Storage.select_item === `${index}` && !initial) {
+                                            
+                                            if ((glitter.getUrlParameter('tab') === dd.page) && !initial) {
                                                 initial = true;
                                                 if (['page_layout', 'dev_mode'].indexOf(items[index].page) !== -1) {
                                                     Storage.select_item = `5`;
@@ -898,8 +904,7 @@ export class Setting_editor {
                                                 title: dd.title,
                                                 index: index,
                                                 info: dd,
-                                                toggle: Storage.select_item === `${index}`,
-                                            });
+                                                toggle: (glitter.getUrlParameter('tab') === dd.page)});
                                         });
 
                                     function refreshContainer() {

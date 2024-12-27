@@ -223,6 +223,9 @@ init(import.meta.url, (gvc, glitter, gBundle) => {
 
         const waitGetData = [
             async () => {
+            if((EditorConfig.backend_page() === 'backend-manger') && !(gvc.glitter.getUrlParameter('tab'))){
+                gvc.glitter.setUrlParameter('tab','home_page')
+            }
                 return await new Promise(async (resolve, reject) => {
                     ApiPageConfig.getAppConfig().then((res) => {
                         viewModel.app_config_original = res.response.result[0];
@@ -672,6 +675,7 @@ ${Storage.page_setting_item === `${da.index}` ? `background:${EditorConfig.edito
                                                             bind: 'MainEditorLeft',
                                                             view: () => {
                                                                 const view = (() => {
+                                                                  
                                                                     switch (Storage.select_function) {
                                                                         case 'backend-manger':
                                                                             return Setting_editor.left(gvc, viewModel, editorContainerID, gBundle);
@@ -775,11 +779,11 @@ ${Storage.page_setting_item === `${da.index}` ? `background:${EditorConfig.edito
                                             }
                                         })
                                     }else {
-                                        if(!localStorage.getItem('see_bg_mobile_guide')){
-                                            let bgMobileGuide = new BgMobileGuide(gvc,1);
-                                            bgMobileGuide.drawGuide();
-                                            localStorage.setItem('see_bg_mobile_guide','true')
-                                        }
+                                        // if(!localStorage.getItem('see_bg_mobile_guide')){
+                                        //     let bgMobileGuide = new BgMobileGuide(gvc,1);
+                                        //     bgMobileGuide.drawGuide();
+                                        //     localStorage.setItem('see_bg_mobile_guide','true')
+                                        // }
                                     }
                                 }
                                 //如未填寫聯絡資訊則固定跳彈窗出來

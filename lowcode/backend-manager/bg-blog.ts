@@ -746,6 +746,36 @@ function detail(gvc: GVC, cf: any, vm: any, cVm: any, page_tab: 'page' | 'hidden
             gvc.notifyDataChange(id)
         }
 
+        let origin=(JSON.stringify(vm.data))
+        setTimeout(()=>{
+            origin=(JSON.stringify(vm.data))
+        },400)
+        function checkSwitchToUiEditor(){
+            function next(){
+                (window.parent as any).glitter.setUrlParameter('page-id', vm.data.id);
+                (window.parent as any).glitter.setUrlParameter('language', language);
+                (window.parent as any).glitter.share.switch_to_web_builder(`${domainPrefix}/${vm.data.content.tag}`);
+            }
+            if(origin!==JSON.stringify(vm.data)){
+                const dialog=new ShareDialog(gvc.glitter)
+                dialog.checkYesOrNot({
+                    text:'偵測到內容變更，是否保留更改?',
+                    callback:(response)=>{
+                        if(response){
+                            saveData(gvc, cf, vm, cVm, false).then((res)=>{
+                                if(res){
+                                    next()
+                                }
+                            });
+                        }else{
+                            next()
+                        }
+                    }
+                })
+            }else{
+                next()
+            }
+        }
         return {
             bind: id,
             view: () => {
@@ -809,9 +839,7 @@ function detail(gvc: GVC, cf: any, vm: any, cVm: any, page_tab: 'page' | 'hidden
                             ${BgWidget.grayButton(
                                     '前往設計',
                                     gvc.event(() => {
-                                        (window.parent as any).glitter.setUrlParameter('page-id', vm.data.id);
-                                        (window.parent as any).glitter.setUrlParameter('language', language);
-                                        (window.parent as any).glitter.share.switch_to_web_builder(`${domainPrefix}/${vm.data.content.tag}`);
+                                        checkSwitchToUiEditor()
                                     })
                             )}
                         </div>
@@ -1751,64 +1779,72 @@ function detail(gvc: GVC, cf: any, vm: any, cVm: any, page_tab: 'page' | 'hidden
     });
 }
 
-async function saveData(gvc: GVC, cf: any, vm: any, cVm: any, silence: boolean) {
-    if (!vm.data.content.tag) {
-        await cf.widget.event('error', {
-            title: '請設定連結',
-        });
-    } else if (!vm.data.content.name) {
-        await cf.widget.event('error', {
-            title: '請設定名稱',
-        });
-    } else {
-        if (!silence) {
-            await cf.widget.event('loading', {
-                title: '儲存中...',
-            });
-        }
+ function saveData(gvc: GVC, cf: any, vm: any, cVm: any, silence: boolean) {
+   return new Promise(async (res_,reject)=>{
+       if (!vm.data.content.tag) {
+           await cf.widget.event('error', {
+               title: '請設定連結',
+           });
+           res_(false)
+       } else if (!vm.data.content.name) {
+           await cf.widget.event('error', {
+               title: '請設定名稱',
+           });
+           res_(false)
+       } else {
+           if (!silence) {
+               await cf.widget.event('loading', {
+                   title: '儲存中...',
+               });
+           }
 
-        if (vm.data.id) {
-            Article.put(vm.data).then(async (res) => {
-                await cf.widget.event('loading', {
-                    title: '儲存中...',
-                    visible: false,
-                });
-                if (res.result) {
-                    await cf.widget.event('success', {
-                        title: '設定成功',
-                    });
-                } else {
-                    await cf.widget.event('error', {
-                        title: '此連結已被使用',
-                    });
-                }
-            });
-        } else {
-            await cf.widget.event('loading', {
-                title: '儲存中...',
-            });
-            Article.post(vm.data.content, vm.data.status).then(async (res) => {
-                await cf.widget.event('loading', {
-                    title: '儲存中...',
-                    visible: false,
-                });
-                if (res.result) {
-                    vm.data.id = res.response.result;
-                    if (!silence) {
-                        await cf.widget.event('success', {
-                            title: '新增成功',
-                        });
-                    }
-                    cVm.type = 'detail';
-                    gvc.notifyDataChange(cVm.id);
-                } else {
-                    await cf.widget.event('error', {
-                        title: '此連結已被使用',
-                    });
-                }
-            });
-        }
-    }
+           if (vm.data.id) {
+               Article.put(vm.data).then(async (res) => {
+                   await cf.widget.event('loading', {
+                       title: '儲存中...',
+                       visible: false,
+                   });
+                   if (res.result) {
+                       await cf.widget.event('success', {
+                           title: '設定成功',
+                       });
+                       res_(true)
+                   } else {
+                       await cf.widget.event('error', {
+                           title: '此連結已被使用',
+                       });
+                       res_(false)
+                   }
+               });
+           } else {
+               await cf.widget.event('loading', {
+                   title: '儲存中...',
+               });
+               Article.post(vm.data.content, vm.data.status).then(async (res) => {
+                   await cf.widget.event('loading', {
+                       title: '儲存中...',
+                       visible: false,
+                   });
+                   if (res.result) {
+                       vm.data.id = res.response.result;
+                       if (!silence) {
+                           await cf.widget.event('success', {
+                               title: '新增成功',
+                           });
+                       }
+                       cVm.type = 'detail';
+                       gvc.notifyDataChange(cVm.id);
+                       res_(true)
+                   } else {
+                       await cf.widget.event('error', {
+                           title: '此連結已被使用',
+                       });
+                       res_(false)
+                   }
+               });
+           }
+       }
+   })
 }
 
 //分類選擇頁面

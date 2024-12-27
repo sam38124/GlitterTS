@@ -39,7 +39,6 @@ import { BaseApi } from "../glitterBundle/api/base.js";
 import { GlobalUser } from "../glitter-base/global/global-user.js";
 import { Article } from "../glitter-base/route/article.js";
 import { AiChat } from "../glitter-base/route/ai-chat.js";
-import { BgMobileGuide } from "../backend-manager/bg-mobile-guide.js";
 import { SaasViewModel } from "../view-model/saas-view-model.js";
 const html = String.raw;
 const editorContainerID = `HtmlEditorContainer`;
@@ -198,6 +197,9 @@ init(import.meta.url, (gvc, glitter, gBundle) => {
             }
             const waitGetData = [
                 () => __awaiter(this, void 0, void 0, function* () {
+                    if ((EditorConfig.backend_page() === 'backend-manger') && !(gvc.glitter.getUrlParameter('tab'))) {
+                        gvc.glitter.setUrlParameter('tab', 'home_page');
+                    }
                     return yield new Promise((resolve, reject) => __awaiter(this, void 0, void 0, function* () {
                         ApiPageConfig.getAppConfig().then((res) => {
                             viewModel.app_config_original = res.response.result[0];
@@ -725,11 +727,6 @@ ${Storage.page_setting_item === `${da.index}` ? `background:${EditorConfig.edito
                                         });
                                     }
                                     else {
-                                        if (!localStorage.getItem('see_bg_mobile_guide')) {
-                                            let bgMobileGuide = new BgMobileGuide(gvc, 1);
-                                            bgMobileGuide.drawGuide();
-                                            localStorage.setItem('see_bg_mobile_guide', 'true');
-                                        }
                                     }
                                 }
                                 (ApiUser.getSaasUserData(GlobalUser.saas_token, 'me')).then((res) => {

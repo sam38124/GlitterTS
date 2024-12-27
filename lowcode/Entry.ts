@@ -1,12 +1,12 @@
 'use strict';
-import { Glitter } from './glitterBundle/Glitter.js';
-import { config } from './config.js';
-import { ApiPageConfig } from './api/pageConfig.js';
-import { BaseApi } from './glitterBundle/api/base.js';
-import { GlobalUser } from './glitter-base/global/global-user.js';
-import { EditorConfig } from './editor-config.js';
-import { ShareDialog } from './glitterBundle/dialog/ShareDialog.js';
-import { Language } from './glitter-base/global/language.js';
+import {Glitter} from './glitterBundle/Glitter.js';
+import {config} from './config.js';
+import {ApiPageConfig} from './api/pageConfig.js';
+import {BaseApi} from './glitterBundle/api/base.js';
+import {GlobalUser} from './glitter-base/global/global-user.js';
+import {EditorConfig} from './editor-config.js';
+import {ShareDialog} from './glitterBundle/dialog/ShareDialog.js';
+import {Language} from './glitter-base/global/language.js';
 
 export class Entry {
     public static onCreate(glitter: Glitter) {
@@ -81,7 +81,7 @@ export class Entry {
 
         (window as any).renderClock = (window as any).renderClock ?? clockF();
         console.log(`Entry-time:`, (window as any).renderClock.stop());
-        glitter.share.editerVersion = 'V_15.8.4';
+        glitter.share.editerVersion = 'V_16.0.4';
         glitter.share.start = new Date();
         const vm: {
             appConfig: any;
@@ -99,14 +99,14 @@ export class Entry {
         Entry.resourceInitial(glitter, vm, async (dd) => {
             glitter.addStyle(`
                 ${
-                    parseInt((window.parent as any).glitter.share.bottom_inset, 10)
-                        ? `
+                parseInt((window.parent as any).glitter.share.bottom_inset, 10)
+                    ? `
                               .update-bar-container {
                                   padding-bottom: ${(window.parent as any).glitter.share.bottom_inset}px !important;
                               }
                           `
-                        : ``
-                }
+                    : ``
+            }
 
                 .editorParent .editorChild {
                     display: none;
@@ -186,9 +186,10 @@ export class Entry {
             await Entry.globalStyle(glitter, dd);
             if (glitter.getUrlParameter('type') === 'editor') {
                 const dialog = new ShareDialog(glitter);
-                dialog.dataLoading({ visible: true, text: '後台載入中' });
+                dialog.dataLoading({visible: true, text: '後台載入中'});
                 // 頁面編輯器
-                Entry.toBackendEditor(glitter, () => {});
+                Entry.toBackendEditor(glitter, () => {
+                });
             } else if (glitter.getUrlParameter('type') === 'htmlEditor') {
                 // Iframe預覽區塊
                 Entry.toHtmlEditor(glitter, vm, () => {
@@ -273,17 +274,19 @@ export class Entry {
 
     // 跳轉至頁面編輯器
     public static toBackendEditor(glitter: Glitter, callback: () => void) {
+        const css = String.raw
         if (localStorage.getItem('on-pos') === 'true' && glitter.getUrlParameter('page') !== 'pos') {
             localStorage.removeItem('on-pos');
             location.href = glitter.root_path + 'pos?app-id=t_1725992531001';
         }
-        glitter.addStyle(`
+        glitter.addStyle(css`
             @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@100..900&family=Noto+Sans:ital,wght@0,100..900;1,100..900&display=swap');
             @media (prefers-reduced-motion: no-preference) {
                 :root {
                     scroll-behavior: auto !important;
                 }
             }
+
             ::-webkit-scrollbar {
                 width: 0px !important; /* 滚动条宽度 */
                 height: 0px !important;
@@ -340,6 +343,11 @@ export class Entry {
                         glitter.setUrlParameter('page', data.response.redirect);
                     }
 
+                    glitter.addStyle(css`
+                        .page-box {
+                            min-height: ${window.innerHeight}px !important;
+                        }
+                    `)
                     glitter.setHome(
                         'jspage/main.js',
                         glitter.getUrlParameter('page'),
@@ -382,8 +390,10 @@ export class Entry {
                     src: 'https://kit.fontawesome.com/cccedec0f8.js',
                 },
             ],
-            () => {},
-            () => {}
+            () => {
+            },
+            () => {
+            }
         );
         glitter.addStyle(`
             @media (prefers-reduced-motion: no-preference) {
@@ -424,9 +434,11 @@ export class Entry {
                     type: 'module',
                 };
             }),
-            () => {},
-            () => {},
-            [{ key: 'async', value: 'true' }]
+            () => {
+            },
+            () => {
+            },
+            [{key: 'async', value: 'true'}]
         );
 
         // Preload page script
@@ -447,7 +459,7 @@ export class Entry {
             return eval(evals);
         };
         setTimeout(() => {
-            (window.parent as any).glitter.share.loading_dialog.dataLoading({ text: '', visible: false });
+            (window.parent as any).glitter.share.loading_dialog.dataLoading({text: '', visible: false});
         }, 2000);
         glitter.htmlGenerate.setHome({
             app_config: vm.appConfig,
@@ -472,8 +484,10 @@ export class Entry {
                     src: `https://unpkg.com/@lottiefiles/lottie-player@latest/dist/lottie-player.js`,
                 },
             ],
-            () => {},
-            () => {}
+            () => {
+            },
+            () => {
+            }
         );
         if (glitter.getUrlParameter('token') && glitter.getUrlParameter('return_type') === 'resetPassword') {
             GlobalUser.token = glitter.getUrlParameter('token');
@@ -511,7 +525,8 @@ export class Entry {
                     .map((dd: any) => {
                         return {
                             src: `${glitter.htmlGenerate.configureCDN(glitter.htmlGenerate.resourceHook(dd.js))}`,
-                            callback: () => {},
+                            callback: () => {
+                            },
                         };
                     })
             );
@@ -527,6 +542,7 @@ export class Entry {
                     });
                     callback();
                 }
+
                 const login_config = (window as any).login_config;
                 if (login_config.password_to_see && localStorage.getItem('password_to_see') !== login_config.shop_pwd) {
                     const pwd = window.prompt('請輸入網站密碼', '');
@@ -581,7 +597,7 @@ export class Entry {
             },
             {
                 webFunction: () => {
-                    return { data: 0 };
+                    return {data: 0};
                 },
             }
         );
@@ -594,7 +610,7 @@ export class Entry {
             },
             {
                 webFunction: () => {
-                    return { data: 0 };
+                    return {data: 0};
                 },
             }
         );
@@ -625,11 +641,11 @@ export class Entry {
                 glitter.addStyle(`
                     @charset "UTF-8";
                     ${glitter.share.font_theme
-                        .map((dd: any) => {
-                            glitter.share.initial_fonts.push(dd.value);
-                            return `@import url('https://fonts.googleapis.com/css2?family=${dd.value}&display=swap');`;
-                        })
-                        .join('\n')}
+                    .map((dd: any) => {
+                        glitter.share.initial_fonts.push(dd.value);
+                        return `@import url('https://fonts.googleapis.com/css2?family=${dd.value}&display=swap');`;
+                    })
+                    .join('\n')}
                     body {
                         font-family: '${glitter.share.font_theme[0].value}' !important;
                         font-optical-sizing: auto;

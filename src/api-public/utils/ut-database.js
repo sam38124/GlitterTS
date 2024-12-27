@@ -14,6 +14,9 @@ class UtDatabase {
         if (querySql.length === 0) {
             querySql.push(`1=1`);
         }
+        if (query.id) {
+            querySql.push(`id=${query.id}`);
+        }
         let sql = `SELECT ${select || '*'}
                    FROM \`${this.app}\`.\`${this.table}\`
                    where ${querySql.map((dd) => {

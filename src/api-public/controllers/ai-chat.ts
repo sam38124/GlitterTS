@@ -24,7 +24,8 @@ router.post('/sync-data', async (req: express.Request, resp: express.Response) =
     const openai = new OpenAI({
         apiKey: process.env.OPENAI_API_KEY,
     });
-    const  type:'writer' | 'order_analysis' | 'operation_guide' | 'design' =req.body.type
+    const  type:'writer' | 'order_analysis' | 'operation_guide' | 'design' =req.body.type;
+    const start_sync=new Date().getTime();
     try {
         const exportData: any = [];
         let cf = (
@@ -142,6 +143,7 @@ return {
             key: 'ai_config',
             value: cf,
         });
+        console.log(`end=>`,new Date().getTime()-start_sync)
         return response.succ(resp, {
             result: true
         });

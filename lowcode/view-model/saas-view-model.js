@@ -892,10 +892,10 @@ export class SaasViewModel {
         `);
         gvc.glitter.addStyleLink(gvc.glitter.root_path + `/css/editor.css`);
         const hr = html `
-            <div style="width: 600px;max-width: calc(100vw - 20px); overflow-y: auto;max-height: 100vh;"
-                 class="bg-white shadow rounded-3">
+            <div style="${(document.body.clientWidth < 800) ? `width: 100%;` : `width: 600px;max-width: calc(100vw - 20px); overflow-y: auto;max-height: 100vh;`}"
+                 class="bg-white shadow ${(document.body.clientWidth > 800) ? `rounded-3` : ``}">
                 <div class="w-100 d-flex align-items-center p-3 border-bottom">
-                    <div class="fw-500 color39">建立您的商店</div>
+                    <div class="fw-500 color39" style="padding-top: ${gvc.glitter.share.top_inset}px;">建立您的商店</div>
                     <div class="flex-fill"></div>
                     <i
                             class="fa-regular fa-circle-xmark fs-5 color39 ${register ? `d-none` : ``}"
@@ -960,7 +960,7 @@ ${['選擇初始模板', BgWidget.grayNote('請選擇初始模板，後續可在
                                 </div>`;
                 },
                 divCreate: {
-                    style: `max-height:calc(100vh - 250px);overflow-y:auto;`,
+                    style: `max-height:calc(${window.innerHeight - gvc.glitter.share.top_inset - gvc.glitter.share.bottom_inset}px - 115px);overflow-y:auto;`,
                     class: ``,
                 },
             };
@@ -990,6 +990,11 @@ ${['選擇初始模板', BgWidget.grayNote('請選擇初始模板，後續可在
                 </div>
             </div>`;
         if (register) {
+            if (document.body.clientWidth < 800) {
+                return `<div class="position-fixed w-100 vh-100 bg-white" style="top:0px;left:0px;">
+${hr}
+</div>`;
+            }
             return html `
                 <div
                         class="position-fixed vw-100 vh-100 d-flex align-items-center justify-content-center bg-white"

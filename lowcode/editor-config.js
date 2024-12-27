@@ -17,32 +17,96 @@ export class EditorConfig {
         if (EditorConfig.backend_page() !== 'backend-manger') {
             return ``;
         }
-        const plan = EditorConfig.getPaymentStatus();
-        let text = '';
-        let paymentBtn = `<span style="color: white; font-size: 16px; font-family: Noto Sans; font-weight: 700; text-decoration: underline; word-wrap: break-word;cursor: pointer;"  class="" onclick="${gvc.event(() => {
-            gvc.glitter.setUrlParameter('tab', 'member_plan');
-            gvc.recreateView();
-        })}">前往續約</span>`;
-        let differenceInTime = new Date(plan.dead_line).getTime() - new Date().getTime();
-        let differenceInDays = (differenceInTime / (1000 * 3600 * 24)).toFixed(0);
-        if (plan.plan === 'free' && differenceInDays > 1) {
-            text = `<span style="color: white; font-size: 16px; font-family: Noto Sans; font-weight: 700;" class="me-3">方案提醒：當前為免費試用方案，立即升級方案，享受全方位支援服務。</span>${paymentBtn}`;
+        let bg_color = '#FEAD20';
+        gvc.glitter.addStyle(`
+        .notice_text {
+        color: white; font-size: 16px; font-family: Noto Sans; font-weight: 700;
         }
-        else if (new Date(plan.dead_line).getTime() < new Date().getTime()) {
-            text = `<span style="color: white; font-size: 16px; font-family: Noto Sans; font-weight: 700; ">方案到期提醒：您的方案已過期，為維護您的權益，請儘速${paymentBtn}。</span>`;
+        `);
+        function getText() {
+            bg_color = '#FEAD20';
+            const plan = EditorConfig.getPaymentStatus();
+            let text = '';
+            let paymentBtn = `<span style="color: white; font-size: 16px; font-family: Noto Sans; font-weight: 700; text-decoration: underline; word-wrap: break-word;cursor: pointer;"  class="" onclick="${gvc.event(() => {
+                gvc.glitter.setUrlParameter('tab', 'member_plan');
+                gvc.recreateView();
+            })}">前往續約</span>`;
+            let differenceInTime = new Date(plan.dead_line).getTime() - new Date().getTime();
+            let differenceInDays = (differenceInTime / (1000 * 3600 * 24)).toFixed(0);
+            if (plan.plan === 'free' && differenceInDays > 1) {
+                if (gvc.glitter.getUrlParameter('tab') === 'home_page' || ((gvc.glitter.deviceType !== gvc.glitter.deviceTypeEnum.Web) || document.body.clientWidth > 800)) {
+                    text = `<div class="d-flex  flex-column flex-sm-row align-items-center justify-content-center" style="gap:5px;">
+<span class="notice_text">立即聯繫開店顧問，專人協助打造高質感官網</span>
+<button class="btn btn-black " type="button" style="height:30px;" onclick="${gvc.event(() => {
+                        if (gvc.glitter.deviceType !== gvc.glitter.deviceTypeEnum.Web) {
+                            location.href = 'https://liff.line.me/1645278921-kWRPP32q/?accountId=shopnex';
+                        }
+                        else {
+                            gvc.glitter.openNewTab(`https://liff.line.me/1645278921-kWRPP32q/?accountId=shopnex`);
+                        }
+                    })}">
+            <span class="tx_700_white">聯繫顧問</span>
+        </button>
+</div>`;
+                }
+                else {
+                    bg_color = '#ff6c02';
+                    text = `
+
+<div class="d-flex  flex-column flex-sm-row align-items-center justify-content-center" style="gap:5px;">
+<span class="notice_text">立即下載行動後台APP，享受流暢操作體驗</span>
+<button class="btn btn-black " type="button" style="height:30px;" onclick="${gvc.event(() => {
+                        function isAppleDevice() {
+                            return /iPhone|iPad|iPod/i.test(navigator.userAgent);
+                        }
+                        function isAndroidDevice() {
+                            return /Android/i.test(navigator.userAgent);
+                        }
+                        if (isAppleDevice()) {
+                            gvc.glitter.openNewTab(`https://apps.apple.com/us/app/shopnex-%E5%85%A8%E9%80%9A%E8%B7%AF%E6%95%B4%E5%90%88%E9%96%8B%E5%BA%97%E5%B9%B3%E5%8F%B0/id6736935325`);
+                        }
+                        else if (isAndroidDevice()) {
+                            gvc.glitter.openNewTab(`https://play.google.com/store/apps/details?id=shopnex.cc`);
+                        }
+                    })}">
+            <span class="tx_700_white">前往下載</span>
+        </button>
+</div>
+`;
+                }
+            }
+            else if (new Date(plan.dead_line).getTime() < new Date().getTime()) {
+                text = ` <i class="fa-sharp fa-solid fa-bullhorn" style="color: white;"></i><span style="color: white; font-size: 16px; font-family: Noto Sans; font-weight: 700; ">方案到期提醒：您的方案已過期，為維護您的權益，請儘速${paymentBtn}。</span>`;
+            }
+            else if (differenceInDays < 30) {
+                text = ` <i class="fa-sharp fa-solid fa-bullhorn" style="color: white;"></i><span style="color: white; font-size: 16px; font-family: Noto Sans; font-weight: 700; ">方案到期提醒：您的方案將於${differenceInDays}天後到期，為維護您的權益，請儘速${paymentBtn}。</span>`;
+            }
+            else {
+                return ``;
+            }
+            return text;
         }
-        else if (differenceInDays < 30) {
-            text = `<span style="color: white; font-size: 16px; font-family: Noto Sans; font-weight: 700; ">方案到期提醒：您的方案將於${differenceInDays}天後到期，為維護您的權益，請儘速${paymentBtn}。</span>`;
-        }
-        else {
+        const html = String.raw;
+        if (!getText()) {
             return ``;
         }
-        return `<div class="position-fixed vw-100 p-2" style="z-index:999;margin-top:${56 + (parseInt(gvc.glitter.share.top_inset, 10) ? (parseInt(gvc.glitter.share.top_inset, 10) + 10) : 0)}px;width: 100%; min-height: 42px; background: #FEAD20; box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.08); ">
-  <div style="text-align: center;white-space:normal;" class="w-100">
-    <i class="fa-sharp fa-solid fa-bullhorn" style="color: white;"></i>
-    ${text}
-  </div>
-</div>`;
+        return gvc.bindView(() => {
+            return {
+                bind: 'top-notice',
+                view: () => {
+                    return html `
+                        <div style="text-align: center;white-space:normal;" class="w-100">
+                            ${getText()}
+                        </div>`;
+                },
+                divCreate: () => {
+                    return {
+                        class: `position-fixed vw-100 p-2`,
+                        style: `z-index:999;margin-top:${56 + (parseInt(gvc.glitter.share.top_inset, 10) ? (parseInt(gvc.glitter.share.top_inset, 10) + 10) : 0)}px;width: 100%; min-height: 42px; background: ${bg_color}; box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.08);`
+                    };
+                }
+            };
+        });
     }
     static getPaddingTop(gvc) {
         return EditorConfig.paymentInfo(gvc)
