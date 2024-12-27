@@ -102,6 +102,7 @@ export class ShoppingProductSetting {
             weightUnit: '',
             stockPolicy: '',
             stock: '',
+            stockList:[],
             save_stock: '',
             barcode: '',
         };
@@ -421,7 +422,7 @@ export class ShoppingProductSetting {
                                                                                                         dialog.dataLoading({visible: false});
                                                                                                         const expo = new ProductExcel(gvc, excelHeader, Object.keys(rowInitData));
                                                                                                         let exportData: any[] = [];
-
+                                                                                                        // todo stocklist還沒放
                                                                                                         response.response.data.forEach((productData: any) => {
                                                                                                             const baseRowData = (index: number): RowInitData => ({
                                                                                                                 id: index === 0 ? productData.content.id || '' : '',
@@ -466,6 +467,7 @@ export class ShoppingProductSetting {
                                                                                                                 stockPolicy:
                                                                                                                         productData.content.variants[index]?.show_understocking === 'true' ? '追蹤' : '不追蹤',
                                                                                                                 stock: expo.checkNumber(productData.content.variants[index]?.stock),
+                                                                                                                stockList:[],
                                                                                                                 save_stock: expo.checkNumber(productData.content.variants[index]?.save_stock),
                                                                                                                 barcode: expo.checkString(productData.content.variants[index]?.barcode),
                                                                                                             });
@@ -881,11 +883,22 @@ export class ShoppingProductSetting {
         };
     }) {
         const html = String.raw;
+        const gvc = obj.gvc;
+        const stockId = gvc.glitter.getUUID();
         let postMD: any = obj.defData;
         let variant: any = {};
         let orignData: any = {};
         let index: number = 0;
-        const gvc = obj.gvc;
+        let stockList:{
+            address:string,
+            id:string,
+            manager_name:string,
+            manager_phone:string,
+            name:string,
+            note:string
+        }[] = []
+
+
         postMD.variants.map((data: any, ind: number) => {
             if (data.editable) {
                 index = ind;
@@ -916,6 +929,21 @@ export class ShoppingProductSetting {
             }
         }
 
+        function getStockStore(){
+            if (stockList.length == 0) {
+                ApiUser.getPublicConfig('store_manager',
+                    'manager'
+                ).then((storeData:any)=>{
+                    if (storeData.result){
+                        stockList = storeData.response.value.list;
+                        gvc.notifyDataChange(stockId);
+                    }
+                })
+            }
+
+        }
+
+        getStockStore()
         document.querySelector('.pd-w-c')!.scrollTop = 0;
         return html`
             <div class="d-flex"
@@ -1196,31 +1224,60 @@ export class ShoppingProductSetting {
                                     `)}
                                     ${BgWidget.mainCard(html`
                                         <div class="d-flex flex-column" style="gap: 18px;">
-                                            <div style="font-weight: 700;">庫存政策</div>
+                                            <div style="font-weight: 700;">庫存政策test</div>
                                             ${gvc.bindView(() => {
                                                 const id = gvc.glitter.getUUID();
                                                 return {
-                                                    bind: id,
+                                                    bind: stockId,
                                                     view: () => {
-                                                        return html`
-                                                            <div class="d-flex flex-column w-100">
-                                                                <div
-                                                                        class="d-flex align-items-center"
-                                                                        style="gap:6px;cursor: pointer;"
-                                                                        onclick="${gvc.event(() => {
-                                                                            variant.show_understocking = 'true';
-                                                                            gvc.notifyDataChange(id);
-                                                                        })}"
-                                                                >
-                                                                    ${variant.show_understocking != 'false'
-                                                                            ? html`
-                                                                                <div style="width: 16px;height: 16px;border-radius: 20px;border: 4px solid #393939;"></div>`
-                                                                            : html`
-                                                                                <div style="width: 16px;height: 16px;border-radius: 20px;border: 1px solid #DDD;"></div>`}
-                                                                    追蹤商品庫存
-                                                                </div>
-                                                                ${variant.show_understocking != 'false'
-                                                                        ? html`
+                                                        function showStockView(){
+                                                            if (stockList.length > 1 ){
+                                                                if (!variant.stockList || variant.stockList.length == 0){
+                                                                    variant.stockList = stockList.map((stockSpot,index:number)=>{
+                                                                        return {
+                                                                            id:stockSpot.id,
+                                                                            value:(index==0)?variant.stock:0
+                                                                        }
+                                                                    })
+                                                                }
+                                 
+                                                                return html`
+                                                                    <div
+                                                                            class="w-100 align-items-center"
+                                                                            style="display: flex;padding-left: 8px;align-items: flex-start;gap: 14px;align-self: stretch;margin-top: 8px;"
+                                                                    >
+                                                                        <div class="flex-fill d-flex flex-column"
+                                                                             style="gap: 8px;border-left:solid 1px #E5E5E5;padding-left:14px;">
+                                                                            <div class="w-100" style="font-size: 14px;font-weight: 400;color: #8D8D8D;">線上販售的商品將優先從庫存量較多的庫存點中扣除</div>
+                                                                            ${(()=>{
+                                                                                return  stockList.map((stockSpot) => {
+                                                                                    return html`
+                                                                                        <div>${stockSpot.name}</div>
+                                                                                        <input
+                                                                                                class="w-100"
+                                                                                                value="${variant.stockList.find((stock:any)=>{return stock.id == stockSpot.id}).value?? '0'}"
+                                                                                                style="padding: 9px 18px;border-radius: 10px;border: 1px solid #DDD;"
+                                                                                                placeholder="請輸入該庫存點庫存數量"
+                                                                                                onchange="${gvc.event((e) => {
+                                                                                                    // variant.stock = e.value;
+                                                                                                    // const target = data.find(item => item.id === 'any');
+                                                                                                    variant.stockList.forEach((stock:{id:string,value:number})=>{
+                                                                                                        if (stock.id == stockSpot.id){
+                                                                                                            stock.value += e.value;
+                                                                                                        }
+                                                                                                    })
+                                                                                                    variant.stock += e.value;
+                                                                                                    
+                                                                                                })}"
+                                                                                        />
+                                                                                    `
+                                                                                }).join(``)
+                                                                            })()}
+                                                                        </div>
+
+                                                                    </div>`
+                                                            }else{
+                                                                return html`
                                                                             <div
                                                                                     class="w-100 align-items-center"
                                                                                     style="display: flex;padding-left: 8px;align-items: flex-start;gap: 14px;align-self: stretch;margin-top: 8px;"
@@ -1235,24 +1292,33 @@ export class ShoppingProductSetting {
                                                                                             style="padding: 9px 18px;border-radius: 10px;border: 1px solid #DDD;"
                                                                                             placeholder="請輸入庫存數量"
                                                                                             onchange="${gvc.event((e) => {
-                                                                                                variant.stock = e.value;
-                                                                                            })}"
+                                                                    variant.stock = e.value;
+                                                                })}"
                                                                                     />
                                                                                 </div>
-                                                                                <div class="flex-fill d-flex flex-column"
-                                                                                     style="gap: 8px">
-                                                                                    <div>安全庫存</div>
-                                                                                    <input
-                                                                                            class="w-100"
-                                                                                            value="${variant.save_stock ?? '0'}"
-                                                                                            style="padding: 9px 18px;border-radius: 10px;border: 1px solid #DDD;"
-                                                                                            placeholder="請輸入安全庫存"
-                                                                                            onchange="${gvc.event((e) => {
-                                                                                                variant.save_stock = e.value;
-                                                                                            })}"
-                                                                                    />
-                                                                                </div>
+                                                                                
                                                                             </div>`
+                                                            }
+                                                        }
+                                                        return html`
+                                                            <div class="d-flex flex-column w-100">
+                                                                <div
+                                                                        class="d-flex align-items-center"
+                                                                        style="gap:6px;cursor: pointer;"
+                                                                        onclick="${gvc.event(() => {
+                                                                            variant.show_understocking = 'true';
+                                                                            gvc.notifyDataChange(stockId);
+                                                                        })}"
+                                                                >
+                                                                    ${variant.show_understocking != 'false'
+                                                                            ? html`
+                                                                                <div style="width: 16px;height: 16px;border-radius: 20px;border: 4px solid #393939;"></div>`
+                                                                            : html`
+                                                                                <div style="width: 16px;height: 16px;border-radius: 20px;border: 1px solid #DDD;"></div>`}
+                                                                    追蹤商品庫存
+                                                                </div>
+                                                                ${variant.show_understocking != 'false'
+                                                                        ? showStockView()
                                                                         : ``}
                                                             </div>
                                                             <div
@@ -1260,7 +1326,7 @@ export class ShoppingProductSetting {
                                                                     style="gap:6px;cursor: pointer;"
                                                                     onclick="${gvc.event(() => {
                                                                         variant.show_understocking = 'false';
-                                                                        gvc.notifyDataChange(id);
+                                                                        gvc.notifyDataChange(stockId);
                                                                     })}"
                                                             >
                                                                 ${variant.show_understocking == 'false'
@@ -1269,6 +1335,20 @@ export class ShoppingProductSetting {
                                                                         : html`
                                                                             <div style="width: 16px;height: 16px;border-radius: 20px;border: 1px solid #DDD;"></div>`}
                                                                 不追蹤
+                                                            </div>
+                                                            <div style="width:100%;height:1px;backgound:#DDDDDD;"></div>
+                                                            <div class="flex-fill d-flex flex-column"
+                                                                 style="gap: 8px;font-size: 16px;font-weight: 700;">
+                                                                <div>安全庫存</div>
+                                                                <input
+                                                                        class="w-100"
+                                                                        value="${variant.save_stock ?? '0'}"
+                                                                        style="padding: 9px 18px;border-radius: 10px;border: 1px solid #DDD;"
+                                                                        placeholder="請輸入安全庫存"
+                                                                        onchange="${gvc.event((e) => {
+                                                                            variant.save_stock = e.value;
+                                                                        })}"
+                                                                />
                                                             </div>
                                                         `;
                                                     },
@@ -1607,6 +1687,7 @@ export class ShoppingProductSetting {
         const saasConfig: { config: any; api: any } = (window.parent as any).saasConfig;
         let selectFunRow = false;
         let shipment_config: any = await saasConfig.api.getPrivateConfig(saasConfig.config.appName, `glitter_shipment`);
+
         if (shipment_config.response.result[0]) {
             shipment_config = shipment_config.response.result[0].value || {};
         } else {
@@ -1691,6 +1772,7 @@ export class ShoppingProductSetting {
                         sku: '',
                         barcode: '',
                         stock: 0,
+                        stockList:[],
                         preview_image: '',
                     });
                 }
@@ -1745,6 +1827,7 @@ export class ShoppingProductSetting {
                     sku: '',
                     barcode: '',
                     stock: 0,
+                    stockList:[],
                     preview_image: '',
                 });
             }
@@ -5140,6 +5223,7 @@ ${language_data.seo.content ?? ''}</textarea
                                 ${BgWidget.save(
                                         obj.gvc.event(() => {
                                             setTimeout(() => {
+                                                console.log(postMD)
                                                 ProductService.checkData(postMD, obj, vm, () => {
                                                     refreshProductPage();
                                                 });

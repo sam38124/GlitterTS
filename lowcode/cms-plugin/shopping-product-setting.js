@@ -75,6 +75,7 @@ export class ShoppingProductSetting {
             weightUnit: '',
             stockPolicy: '',
             stock: '',
+            stockList: [],
             save_stock: '',
             barcode: '',
         };
@@ -402,6 +403,7 @@ export class ShoppingProductSetting {
                                                                         weightUnit: expo.checkString(((_2 = productData.content.variants[index]) === null || _2 === void 0 ? void 0 : _2.weightUnit) || 'KG'),
                                                                         stockPolicy: ((_3 = productData.content.variants[index]) === null || _3 === void 0 ? void 0 : _3.show_understocking) === 'true' ? '追蹤' : '不追蹤',
                                                                         stock: expo.checkNumber((_4 = productData.content.variants[index]) === null || _4 === void 0 ? void 0 : _4.stock),
+                                                                        stockList: [],
                                                                         save_stock: expo.checkNumber((_5 = productData.content.variants[index]) === null || _5 === void 0 ? void 0 : _5.save_stock),
                                                                         barcode: expo.checkString((_6 = productData.content.variants[index]) === null || _6 === void 0 ? void 0 : _6.barcode),
                                                                     });
@@ -790,11 +792,13 @@ export class ShoppingProductSetting {
     static editProductSpec(obj) {
         var _b, _c;
         const html = String.raw;
+        const gvc = obj.gvc;
+        const stockId = gvc.glitter.getUUID();
         let postMD = obj.defData;
         let variant = {};
         let orignData = {};
         let index = 0;
-        const gvc = obj.gvc;
+        let stockList = [];
         postMD.variants.map((data, ind) => {
             if (data.editable) {
                 index = ind;
@@ -824,6 +828,17 @@ export class ShoppingProductSetting {
                 next();
             }
         }
+        function getStockStore() {
+            if (stockList.length == 0) {
+                ApiUser.getPublicConfig('store_manager', 'manager').then((storeData) => {
+                    if (storeData.result) {
+                        stockList = storeData.response.value.list;
+                        gvc.notifyDataChange(stockId);
+                    }
+                });
+            }
+        }
+        getStockStore();
         document.querySelector('.pd-w-c').scrollTop = 0;
         return html `
             <div class="d-flex"
@@ -1067,32 +1082,60 @@ export class ShoppingProductSetting {
                                     `)}
                                     ${BgWidget.mainCard(html `
                                         <div class="d-flex flex-column" style="gap: 18px;">
-                                            <div style="font-weight: 700;">庫存政策</div>
+                                            <div style="font-weight: 700;">庫存政策test</div>
                                             ${gvc.bindView(() => {
             const id = gvc.glitter.getUUID();
             return {
-                bind: id,
+                bind: stockId,
                 view: () => {
-                    var _b, _c;
-                    return html `
-                                                            <div class="d-flex flex-column w-100">
-                                                                <div
-                                                                        class="d-flex align-items-center"
-                                                                        style="gap:6px;cursor: pointer;"
-                                                                        onclick="${gvc.event(() => {
-                        variant.show_understocking = 'true';
-                        gvc.notifyDataChange(id);
-                    })}"
-                                                                >
-                                                                    ${variant.show_understocking != 'false'
-                        ? html `
-                                                                                <div style="width: 16px;height: 16px;border-radius: 20px;border: 4px solid #393939;"></div>`
-                        : html `
-                                                                                <div style="width: 16px;height: 16px;border-radius: 20px;border: 1px solid #DDD;"></div>`}
-                                                                    追蹤商品庫存
-                                                                </div>
-                                                                ${variant.show_understocking != 'false'
-                        ? html `
+                    var _b;
+                    function showStockView() {
+                        var _b;
+                        if (stockList.length > 1) {
+                            if (!variant.stockList || variant.stockList.length == 0) {
+                                variant.stockList = stockList.map((stockSpot, index) => {
+                                    return {
+                                        id: stockSpot.id,
+                                        value: (index == 0) ? variant.stock : 0
+                                    };
+                                });
+                            }
+                            return html `
+                                                                    <div
+                                                                            class="w-100 align-items-center"
+                                                                            style="display: flex;padding-left: 8px;align-items: flex-start;gap: 14px;align-self: stretch;margin-top: 8px;"
+                                                                    >
+                                                                        <div class="flex-fill d-flex flex-column"
+                                                                             style="gap: 8px;border-left:solid 1px #E5E5E5;padding-left:14px;">
+                                                                            <div class="w-100" style="font-size: 14px;font-weight: 400;color: #8D8D8D;">線上販售的商品將優先從庫存量較多的庫存點中扣除</div>
+                                                                            ${(() => {
+                                return stockList.map((stockSpot) => {
+                                    var _b;
+                                    return html `
+                                                                                        <div>${stockSpot.name}</div>
+                                                                                        <input
+                                                                                                class="w-100"
+                                                                                                value="${(_b = variant.stockList.find((stock) => { return stock.id == stockSpot.id; }).value) !== null && _b !== void 0 ? _b : '0'}"
+                                                                                                style="padding: 9px 18px;border-radius: 10px;border: 1px solid #DDD;"
+                                                                                                placeholder="請輸入該庫存點庫存數量"
+                                                                                                onchange="${gvc.event((e) => {
+                                        variant.stockList.forEach((stock) => {
+                                            if (stock.id == stockSpot.id) {
+                                                stock.value += e.value;
+                                            }
+                                        });
+                                        variant.stock += e.value;
+                                    })}"
+                                                                                        />
+                                                                                    `;
+                                }).join(``);
+                            })()}
+                                                                        </div>
+
+                                                                    </div>`;
+                        }
+                        else {
+                            return html `
                                                                             <div
                                                                                     class="w-100 align-items-center"
                                                                                     style="display: flex;padding-left: 8px;align-items: flex-start;gap: 14px;align-self: stretch;margin-top: 8px;"
@@ -1107,24 +1150,33 @@ export class ShoppingProductSetting {
                                                                                             style="padding: 9px 18px;border-radius: 10px;border: 1px solid #DDD;"
                                                                                             placeholder="請輸入庫存數量"
                                                                                             onchange="${gvc.event((e) => {
-                            variant.stock = e.value;
-                        })}"
+                                variant.stock = e.value;
+                            })}"
                                                                                     />
                                                                                 </div>
-                                                                                <div class="flex-fill d-flex flex-column"
-                                                                                     style="gap: 8px">
-                                                                                    <div>安全庫存</div>
-                                                                                    <input
-                                                                                            class="w-100"
-                                                                                            value="${(_c = variant.save_stock) !== null && _c !== void 0 ? _c : '0'}"
-                                                                                            style="padding: 9px 18px;border-radius: 10px;border: 1px solid #DDD;"
-                                                                                            placeholder="請輸入安全庫存"
-                                                                                            onchange="${gvc.event((e) => {
-                            variant.save_stock = e.value;
-                        })}"
-                                                                                    />
-                                                                                </div>
-                                                                            </div>`
+                                                                                
+                                                                            </div>`;
+                        }
+                    }
+                    return html `
+                                                            <div class="d-flex flex-column w-100">
+                                                                <div
+                                                                        class="d-flex align-items-center"
+                                                                        style="gap:6px;cursor: pointer;"
+                                                                        onclick="${gvc.event(() => {
+                        variant.show_understocking = 'true';
+                        gvc.notifyDataChange(stockId);
+                    })}"
+                                                                >
+                                                                    ${variant.show_understocking != 'false'
+                        ? html `
+                                                                                <div style="width: 16px;height: 16px;border-radius: 20px;border: 4px solid #393939;"></div>`
+                        : html `
+                                                                                <div style="width: 16px;height: 16px;border-radius: 20px;border: 1px solid #DDD;"></div>`}
+                                                                    追蹤商品庫存
+                                                                </div>
+                                                                ${variant.show_understocking != 'false'
+                        ? showStockView()
                         : ``}
                                                             </div>
                                                             <div
@@ -1132,7 +1184,7 @@ export class ShoppingProductSetting {
                                                                     style="gap:6px;cursor: pointer;"
                                                                     onclick="${gvc.event(() => {
                         variant.show_understocking = 'false';
-                        gvc.notifyDataChange(id);
+                        gvc.notifyDataChange(stockId);
                     })}"
                                                             >
                                                                 ${variant.show_understocking == 'false'
@@ -1141,6 +1193,20 @@ export class ShoppingProductSetting {
                         : html `
                                                                             <div style="width: 16px;height: 16px;border-radius: 20px;border: 1px solid #DDD;"></div>`}
                                                                 不追蹤
+                                                            </div>
+                                                            <div style="width:100%;height:1px;backgound:#DDDDDD;"></div>
+                                                            <div class="flex-fill d-flex flex-column"
+                                                                 style="gap: 8px;font-size: 16px;font-weight: 700;">
+                                                                <div>安全庫存</div>
+                                                                <input
+                                                                        class="w-100"
+                                                                        value="${(_b = variant.save_stock) !== null && _b !== void 0 ? _b : '0'}"
+                                                                        style="padding: 9px 18px;border-radius: 10px;border: 1px solid #DDD;"
+                                                                        placeholder="請輸入安全庫存"
+                                                                        onchange="${gvc.event((e) => {
+                        variant.save_stock = e.value;
+                    })}"
+                                                                />
                                                             </div>
                                                         `;
                 },
@@ -1433,6 +1499,7 @@ export class ShoppingProductSetting {
                             sku: '',
                             barcode: '',
                             stock: 0,
+                            stockList: [],
                             preview_image: '',
                         });
                     }
@@ -1481,6 +1548,7 @@ export class ShoppingProductSetting {
                         sku: '',
                         barcode: '',
                         stock: 0,
+                        stockList: [],
                         preview_image: '',
                     });
                 }
@@ -4573,6 +4641,7 @@ ${(_c = language_data.seo.content) !== null && _c !== void 0 ? _c : ''}</textare
                             }))}
                                 ${BgWidget.save(obj.gvc.event(() => {
                                 setTimeout(() => {
+                                    console.log(postMD);
                                     ProductService.checkData(postMD, obj, vm, () => {
                                         refreshProductPage();
                                     });

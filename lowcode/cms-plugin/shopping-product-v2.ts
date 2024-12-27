@@ -84,6 +84,7 @@ export class ShoppingProductSetting {
             weightUnit: '',
             stockPolicy: '',
             stock: '',
+            stockList:[],
             save_stock: '',
             barcode: '',
         };
@@ -442,6 +443,7 @@ export class ShoppingProductSetting {
                                                                                                                 stockPolicy:
                                                                                                                         productData.content.variants[index]?.show_understocking === 'true' ? '追蹤' : '不追蹤',
                                                                                                                 stock: expo.checkNumber(productData.content.variants[index]?.stock),
+                                                                                                                stockList: expo.checkString(productData.content.variants[index]?.stockList),
                                                                                                                 save_stock: expo.checkNumber(productData.content.variants[index]?.save_stock),
                                                                                                                 barcode: expo.checkString(productData.content.variants[index]?.barcode),
                                                                                                             });
@@ -1680,6 +1682,7 @@ export class ShoppingProductSetting {
                         sku: '',
                         barcode: '',
                         stock: 0,
+                        stockList:[],
                         preview_image: '',
                     });
                 }
@@ -1734,6 +1737,7 @@ export class ShoppingProductSetting {
                     sku: '',
                     barcode: '',
                     stock: 0,
+                    stockList:[],
                     preview_image: '',
                 });
             }
@@ -1774,6 +1778,7 @@ export class ShoppingProductSetting {
         const vm = {
             id: gvc.glitter.getUUID(),
         };
+
 
         return gvc.bindView(() => {
             return {

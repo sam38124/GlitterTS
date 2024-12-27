@@ -69,6 +69,7 @@ export class ShoppingProductSetting {
             weightUnit: '',
             stockPolicy: '',
             stock: '',
+            stockList: [],
             save_stock: '',
             barcode: '',
         };
@@ -349,7 +350,7 @@ export class ShoppingProductSetting {
                                                             let exportData = [];
                                                             response.response.data.forEach((productData) => {
                                                                 const baseRowData = (index) => {
-                                                                    var _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m, _o, _p, _q, _r, _s, _t, _u, _v, _w, _x, _y, _z, _0, _1, _2, _3, _4, _5, _6;
+                                                                    var _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m, _o, _p, _q, _r, _s, _t, _u, _v, _w, _x, _y, _z, _0, _1, _2, _3, _4, _5, _6, _7;
                                                                     return ({
                                                                         id: index === 0 ? productData.content.id || '' : '',
                                                                         name: index === 0 ? productData.content.title || '未命名商品' : '',
@@ -391,8 +392,9 @@ export class ShoppingProductSetting {
                                                                         weightUnit: expo.checkString(((_2 = productData.content.variants[index]) === null || _2 === void 0 ? void 0 : _2.weightUnit) || 'KG'),
                                                                         stockPolicy: ((_3 = productData.content.variants[index]) === null || _3 === void 0 ? void 0 : _3.show_understocking) === 'true' ? '追蹤' : '不追蹤',
                                                                         stock: expo.checkNumber((_4 = productData.content.variants[index]) === null || _4 === void 0 ? void 0 : _4.stock),
-                                                                        save_stock: expo.checkNumber((_5 = productData.content.variants[index]) === null || _5 === void 0 ? void 0 : _5.save_stock),
-                                                                        barcode: expo.checkString((_6 = productData.content.variants[index]) === null || _6 === void 0 ? void 0 : _6.barcode),
+                                                                        stockList: expo.checkString((_5 = productData.content.variants[index]) === null || _5 === void 0 ? void 0 : _5.stockList),
+                                                                        save_stock: expo.checkNumber((_6 = productData.content.variants[index]) === null || _6 === void 0 ? void 0 : _6.save_stock),
+                                                                        barcode: expo.checkString((_7 = productData.content.variants[index]) === null || _7 === void 0 ? void 0 : _7.barcode),
                                                                     });
                                                                 };
                                                                 const getShipmentType = (type) => {
@@ -1441,6 +1443,7 @@ export class ShoppingProductSetting {
                             sku: '',
                             barcode: '',
                             stock: 0,
+                            stockList: [],
                             preview_image: '',
                         });
                     }
@@ -1489,6 +1492,7 @@ export class ShoppingProductSetting {
                         sku: '',
                         barcode: '',
                         stock: 0,
+                        stockList: [],
                         preview_image: '',
                     });
                 }

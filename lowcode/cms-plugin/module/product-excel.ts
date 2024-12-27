@@ -18,6 +18,10 @@ export interface Variant {
     sku: string;
     barcode: string;
     stock: number;
+    stockList:{
+        id: string;
+        value: string;
+    }[];
     preview_image: string;
     show_understocking: string;
     type: string;
@@ -52,6 +56,10 @@ export interface RowInitData {
     weightUnit: string;
     stockPolicy: string;
     stock: string;
+    stockList:{
+        id: string;
+        value: string;
+    }[];
     save_stock: string;
     barcode: string;
 }
@@ -295,6 +303,7 @@ export class ProductExcel {
                         sku: '',
                         spec: [],
                         stock: 0,
+                        stockList:[],
                         type: '',
                         v_height: 0,
                         v_length: 0,
