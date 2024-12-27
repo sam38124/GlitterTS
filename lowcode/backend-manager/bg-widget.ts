@@ -1370,7 +1370,7 @@ ${obj.default ?? ''}</textarea
             option?: boolean;
             event: (data: any) => void;
         }[];
-        item_select?: () => void;
+        itemSelect?: () => void;
         hiddenPageSplit?: boolean;
     }) {
         const gvc = obj.gvc;
@@ -1447,7 +1447,7 @@ ${obj.default ?? ''}</textarea
                                         }
                                     });
                                     gvc.notifyDataChange(ids.filter);
-                                    obj.item_select && obj.item_select();
+                                    obj.itemSelect && obj.itemSelect();
                                     changeHeaderStyle();
                                 },
                                 stopChangeView: changeView,
@@ -1484,7 +1484,7 @@ ${obj.default ?? ''}</textarea
                                                     vm.originalData[index].checked = result;
                                                     gvc.notifyDataChange(ids.filter);
                                                     changeHeaderStyle();
-                                                    obj.item_select && obj.item_select();
+                                                    obj.itemSelect && obj.itemSelect();
                                                 },
                                             }),
                                         },
@@ -1580,7 +1580,8 @@ ${obj.default ?? ''}</textarea
                                                             const htmlTags = new RegExp(/<[^>]*>/);
                                                             header?.querySelectorAll('div').forEach((div: any) => {
                                                                 if (div.classList.contains(ids.headerCell)) {
-                                                                    const baseWidth = htmlTags.test(div.innerHTML) ? 0 : div.innerHTML.replace(/\n/g, '').trim().length * 24;
+                                                                    const innerHTML = div.innerHTML.replace(/\n/g, '').trim();
+                                                                    const baseWidth = htmlTags.test(div.innerHTML) ? 0 : Tool.twenLength(innerHTML) * 24;
                                                                     widthList[n] = div.offsetWidth > baseWidth ? div.offsetWidth : baseWidth;
                                                                     n++;
                                                                 }

@@ -1,9 +1,9 @@
 import { GVC } from '../glitterBundle/GVController.js';
-import { EditorElem } from '../glitterBundle/plugins/editor-elem.js';
 import { BgWidget } from '../backend-manager/bg-widget.js';
 import { BgListComponent } from '../backend-manager/bg-list-component.js';
 import { ShareDialog } from '../glitterBundle/dialog/ShareDialog.js';
 import { ApiShop } from '../glitter-base/route/shopping.js';
+import { ApiUser } from '../glitter-base/route/user.js';
 import { FilterOptions } from './filter-options.js';
 import { BgProduct, OptionsItem } from '../backend-manager/bg-product.js';
 import { ShoppingProductSetting } from './shopping-product-setting.js';
@@ -11,7 +11,16 @@ import { Tool } from '../modules/tool.js';
 
 const html = String.raw;
 
-interface ViewModel {
+type StockStore = {
+    id: string;
+    name: string;
+    address: string;
+    manager_name: string;
+    manager_phone: string;
+    note: string;
+};
+
+type VM = {
     id: string;
     filterId: string;
     tableId: string;
@@ -23,10 +32,13 @@ interface ViewModel {
     queryType?: string;
     orderString?: string;
     filter?: any;
-    stockList: number[];
-    stockOriginList: number[];
+    stockArray: { id: string; value: number }[][];
+    stockOriginArray: { id: string; value: number }[][];
     replaceData?: any;
-}
+    stockStores: StockStore[];
+};
+
+type ProductType = 'product' | 'addProduct' | 'giveaway' | 'hidden' | 'all';
 
 export class StockList {
     public static main(
@@ -42,11 +54,12 @@ export class StockList {
             select_mode: false,
             filter_variants: [],
         },
-        productType: 'product' | 'addProduct' | 'giveaway' | 'hidden' | 'all' = 'all'
+        productType: ProductType = 'all'
     ) {
         const glitter = gvc.glitter;
+        const defaultNull = '－';
 
-        const vm: ViewModel = {
+        const vm: VM = {
             id: glitter.getUUID(),
             type: 'list',
             data: {},
@@ -58,9 +71,10 @@ export class StockList {
             filterId: glitter.getUUID(),
             tableId: glitter.getUUID(),
             updateId: glitter.getUUID(),
-            stockList: [] as number[],
-            stockOriginList: [] as number[],
+            stockArray: [],
+            stockOriginArray: [],
             replaceData: {},
+            stockStores: [],
         };
 
         const ListComp = new BgListComponent(gvc, vm, FilterOptions.stockFilterFrame);
@@ -69,11 +83,26 @@ export class StockList {
 
         function getDatalist() {
             return vm.dataList.map((dd: any, index: number) => {
-                vm.stockList[index] = dd.variant_content.stock;
+                dd.variant_content.stockList = vm.stockStores.map((store, index) => {
+                    if (!dd.variant_content.stockList) {
+                        return {
+                            id: store.id,
+                            value: index === 0 ? dd.variant_content.stock : 0,
+                        };
+                    }
+                    const st = dd.variant_content.stockList?.find((item: any) => item.id === store.id);
+                    return {
+                        id: store.id,
+                        value: st ? st.value : 0,
+                    };
+                });
+
+                vm.stockArray[index] = dd.variant_content.stockList;
+
                 return [
                     {
                         key: '商品名稱',
-                        value: html` <div class="d-flex align-items-center gap-3">
+                        value: html` <div class="d-flex align-items-center gap-3" style="min-width: 250px;">
                             ${BgWidget.validImageBox({
                                 gvc,
                                 image: dd.product_content.preview_image[0],
@@ -88,54 +117,73 @@ export class StockList {
                     },
                     {
                         key: '庫存單位（SKU）',
-                        value: `<span class="fs-7">${dd.variant_content.sku && dd.variant_content.sku.length > 0 ? dd.variant_content.sku : '沒有庫存單位'}</span>`,
+                        value: html`<span class="fs-7">${dd.variant_content.sku && dd.variant_content.sku.length > 0 ? dd.variant_content.sku : '沒有庫存單位'}</span>`,
+                    },
+                    {
+                        key: '成本',
+                        value: html`<div class="fs-7" style="min-width: 100px;">${dd.variant_content.cost ? `$${parseInt(`${dd.variant_content.cost}`, 10).toLocaleString()}` : defaultNull}</div>`,
                     },
                     {
                         key: '安全庫存',
-                        value: `<span class="fs-7">${dd.variant_content.save_stock ?? '-'}</span>`,
+                        value: html`<span class="fs-7">${dd.variant_content.save_stock ?? defaultNull}</span>`,
+                    },
+                    ...vm.stockStores.map((store) => {
+                        const stockData = dd.variant_content.stockList.find((stock: any) => stock.id === store.id);
+                        return {
+                            key: store.name,
+                            value:
+                                dd.variant_content.show_understocking === 'true'
+                                    ? option.select_mode
+                                        ? html`<span class="fs-7">${stockData.value ?? 0}</span>`
+                                        : html` <div
+                                              style="width: 95px"
+                                              onclick="${gvc.event((e, event) => {
+                                                  event.stopPropagation();
+                                              })}"
+                                          >
+                                              <input
+                                                  class="form-control"
+                                                  type="number"
+                                                  min="0"
+                                                  style="border-radius: 10px; border: 1px solid #DDD; padding-left: 18px;"
+                                                  placeholder="請輸入數值"
+                                                  onchange="${gvc.event((e) => {
+                                                      let n = parseInt(e.value, 10);
+                                                      if (n < 0) {
+                                                          e.value = 0;
+                                                          n = 0;
+                                                      }
+                                                      stockData.value = n;
+
+                                                      dd.product_content.variants.map((variant: { spec: string[]; stock: number }) => {
+                                                          if (JSON.stringify(variant.spec) === JSON.stringify(dd.variant_content.spec)) {
+                                                              variant.stock = dd.variant_content.stockList.reduce((sum: number, item: { value: number }) => {
+                                                                  return sum + item.value;
+                                                              }, 0);
+                                                          }
+                                                      });
+
+                                                      vm.dataList.map((item: any) => {
+                                                          if (item.product_id === dd.product_id) {
+                                                              item.product_content = dd.product_content;
+                                                          }
+                                                      });
+
+                                                      gvc.notifyDataChange(vm.updateId);
+                                                  })}"
+                                                  value="${stockData.value ?? 0}"
+                                              />
+                                          </div>`
+                                    : html`<span class="fs-7">${defaultNull}</div>`,
+                        };
+                    }),
+                    {
+                        key: '商品種類',
+                        value: html`<div class="fs-7" style="min-width: 120px;">${ShoppingProductSetting.getProductTypeString(dd.product_content)}</div>`,
                     },
                     {
-                        key: '庫存數量',
-                        value: option.select_mode
-                            ? html`<span class="fs-7">${dd.variant_content.stock ?? 0}</span>`
-                            : html` <div
-                                  style="width: 95px"
-                                  onclick="${gvc.event((e, event) => {
-                                      event.stopPropagation();
-                                  })}"
-                              >
-                                  <input
-                                      class="form-control"
-                                      type="number"
-                                      min="0"
-                                      style="border-radius: 10px; border: 1px solid #DDD; padding-left: 18px;"
-                                      placeholder="請輸入數值"
-                                      onchange="${gvc.event((e) => {
-                                          let n = parseInt(e.value, 10);
-                                          if (n < 0) {
-                                              e.value = 0;
-                                              n = 0;
-                                          }
-                                          dd.variant_content.stock = n;
-
-                                          dd.product_content.variants.map((variant: { spec: string[]; stock: number }) => {
-                                              if (JSON.stringify(variant.spec) === JSON.stringify(dd.variant_content.spec)) {
-                                                  variant.stock = n;
-                                              }
-                                          });
-
-                                          vm.dataList.map((item: any) => {
-                                              if (item.product_id === dd.product_id) {
-                                                  item.product_content = dd.product_content;
-                                              }
-                                          });
-
-                                          vm.stockList[index] = n;
-                                          gvc.notifyDataChange(vm.updateId);
-                                      })}"
-                                      value="${dd.variant_content.stock ?? 0}"
-                                  />
-                              </div>`,
+                        key: '商品狀態',
+                        value: ShoppingProductSetting.getOnboardStatus(dd.product_content),
                     },
                 ];
             });
@@ -235,10 +283,7 @@ export class StockList {
                                                             // 手機版
                                                             return html` <div style="display: flex; align-items: center; gap: 10px; width: 100%; justify-content: space-between">
                                                                     <div>${filterList[0]}</div>
-                                                                    <div style="display: flex;">
-                                                                        ${filterList[2] ? `<div class="me-2">${filterList[2]}</div>` : ''}
-                                                                        ${filterList[3] ?? ''}
-                                                                    </div>
+                                                                    <div style="display: flex;">${filterList[2] ? `<div class="me-2">${filterList[2]}</div>` : ''} ${filterList[3] ?? ''}</div>
                                                                 </div>
                                                                 <div style="display: flex; margin-top: 8px;">${filterList[1]}</div>
                                                                 <div>${filterTags}</div>`;
@@ -267,38 +312,57 @@ export class StockList {
                                                             getData: (vd) => {
                                                                 vmi = vd;
                                                                 const limit = 15;
-                                                                ApiShop.getVariants({
-                                                                    page: vmi.page - 1,
-                                                                    limit: limit,
-                                                                    search: vm.query || undefined,
-                                                                    searchType: vm.queryType || 'title',
-                                                                    orderBy: vm.orderString || undefined,
-                                                                    status: (() => {
-                                                                        if (vm.filter.status && vm.filter.status.length > 0) {
-                                                                            return vm.filter.status.join(',');
-                                                                        }
-                                                                        return undefined;
-                                                                    })(),
-                                                                    collection: vm.filter.collection,
-                                                                    stockCount: vm.filter.count,
-                                                                    accurate_search_collection: true,
-                                                                    productType: productType,
-                                                                }).then((data) => {
+
+                                                                Promise.all([
+                                                                    new Promise((resolve, reject) => {
+                                                                        ApiUser.getPublicConfig('store_manager', 'manager').then((dd: any) => {
+                                                                            if (dd.result && dd.response.value && dd.response.value.list) {
+                                                                                resolve(dd.response.value.list);
+                                                                            } else {
+                                                                                resolve({});
+                                                                            }
+                                                                        });
+                                                                    }),
+                                                                    new Promise((resolve, reject) => {
+                                                                        ApiShop.getVariants({
+                                                                            page: vmi.page - 1,
+                                                                            limit: limit,
+                                                                            search: vm.query || undefined,
+                                                                            searchType: vm.queryType || 'title',
+                                                                            orderBy: vm.orderString || undefined,
+                                                                            status: (() => {
+                                                                                if (vm.filter.status && vm.filter.status.length > 0) {
+                                                                                    return vm.filter.status.join(',');
+                                                                                }
+                                                                                return undefined;
+                                                                            })(),
+                                                                            collection: vm.filter.collection,
+                                                                            stockCount: vm.filter.count,
+                                                                            accurate_search_collection: true,
+                                                                            productType: productType,
+                                                                        }).then((data) => {
+                                                                            resolve(data);
+                                                                        });
+                                                                    }),
+                                                                ]).then((dataArray: any) => {
+                                                                    vm.stockStores = dataArray[0];
+
+                                                                    const data = dataArray[1];
                                                                     data.response.data = data.response.data.filter((dd: any) => {
                                                                         return !option.filter_variants.includes([dd.product_id].concat(dd.variant_content.spec).join('-'));
                                                                     });
+
                                                                     vm.dataList = data.response.data;
                                                                     vmi.pageSize = Math.ceil(data.response.total / limit);
                                                                     vmi.originalData = vm.dataList;
                                                                     vmi.tableData = getDatalist();
-                                                                    vm.stockOriginList = vm.stockList.concat();
+                                                                    vm.stockOriginArray = JSON.parse(JSON.stringify(vm.stockArray));
                                                                     gvc.notifyDataChange(vm.updateId);
                                                                     vmi.loading = false;
                                                                     vmi.callback();
                                                                 });
                                                             },
-                                                            item_select: () => {
-                                                                console.log(vm.dataList);
+                                                            itemSelect: () => {
                                                                 while (option.select_data.length > 0) {
                                                                     option.select_data.shift();
                                                                 }
@@ -310,16 +374,6 @@ export class StockList {
                                                                         });
                                                                     }
                                                                 }
-                                                                // if(vm.dataList[index].checked){
-                                                                //     option.select_data.push({
-                                                                //         variant:vm.dataList[index].variant,
-                                                                //         product_id:vm.dataList[index].product_content.id
-                                                                //     })
-                                                                //     console.log(vm.dataList[index])
-                                                                // }
-                                                                // vmi.data = getDatalist();
-                                                                // gvc.glitter.recreateView('.check-box-item');
-                                                                // gvc.notifyDataChange(vm.filterId);
                                                             },
                                                             rowClick: (data, index) => {
                                                                 if (option.select_mode) {
@@ -337,13 +391,13 @@ export class StockList {
                                                                 ? [
                                                                       {
                                                                           name: '選擇項目',
-                                                                          event: (checkedData) => {},
+                                                                          event: () => {},
                                                                       },
                                                                   ]
                                                                 : [],
                                                         });
                                                     } catch (e) {
-                                                        console.log(e);
+                                                        console.error(e);
                                                         return `${e}`;
                                                     }
                                                 },
@@ -356,9 +410,17 @@ export class StockList {
                                     gvc.bindView({
                                         bind: vm.updateId,
                                         view: () => {
-                                            for (let i = 0; i < vm.stockList.length; i++) {
-                                                const element = vm.stockList[i];
-                                                if (element !== vm.stockOriginList[i]) {
+                                            function areArraysEqual<T>(arr1: T[], arr2: T[]): boolean {
+                                                if (arr1.length !== arr2.length) return false;
+
+                                                return arr1.every((item, index) => {
+                                                    const otherItem = arr2[index];
+                                                    return JSON.stringify(item) === JSON.stringify(otherItem);
+                                                });
+                                            }
+
+                                            for (let i = 0; i < vm.stockArray.length; i++) {
+                                                if (!areArraysEqual(vm.stockArray[i], vm.stockOriginArray[i])) {
                                                     return html` <div class="update-bar-container">
                                                         ${BgWidget.cancel(
                                                             gvc.event(() => {

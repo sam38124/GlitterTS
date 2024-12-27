@@ -589,23 +589,7 @@ export class ShoppingProductSetting {
                                                                                     return {
                                                                                         bind: id,
                                                                                         view: () => {
-                                                                                            if (dd.content.status === 'draft') {
-                                                                                                return BgWidget.secondaryInsignia('草稿');
-                                                                                            }
-                                                                                            if (!dd.content.active_schedule) {
-                                                                                                return BgWidget.infoInsignia('上架');
-                                                                                            }
-                                                                                            const state = ShoppingProductSetting.getTimeState(dd.content.active_schedule);
-                                                                                            switch (state) {
-                                                                                                case 'afterEnd':
-                                                                                                    return BgWidget.secondaryInsignia('下架');
-                                                                                                case 'beforeStart':
-                                                                                                    return BgWidget.warningInsignia('待上架');
-                                                                                                case 'inRange':
-                                                                                                    return BgWidget.infoInsignia('上架');
-                                                                                                default:
-                                                                                                    return BgWidget.secondaryInsignia('草稿');
-                                                                                            }
+                                                                                            return ShoppingProductSetting.getOnboardStatus(dd.content);
                                                                                         },
                                                                                         divCreate: {
                                                                                             option: [
@@ -4795,6 +4779,25 @@ ${(_c = language_data.seo.content) !== null && _c !== void 0 ? _c : ''}</textare
             return '贈品';
         }
         return '未知';
+    }
+    static getOnboardStatus(content) {
+        if (content.status === 'draft') {
+            return BgWidget.secondaryInsignia('草稿');
+        }
+        if (!content.active_schedule) {
+            return BgWidget.infoInsignia('上架');
+        }
+        const state = ShoppingProductSetting.getTimeState(content.active_schedule);
+        switch (state) {
+            case 'afterEnd':
+                return BgWidget.secondaryInsignia('下架');
+            case 'beforeStart':
+                return BgWidget.warningInsignia('待上架');
+            case 'inRange':
+                return BgWidget.infoInsignia('上架');
+            default:
+                return BgWidget.secondaryInsignia('草稿');
+        }
     }
 }
 _a = ShoppingProductSetting;

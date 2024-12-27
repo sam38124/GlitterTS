@@ -403,7 +403,7 @@ export class FilterOptions {
 
     static stockSelect = [
         { key: 'title', value: '商品名稱' },
-        { key: 'sku', value: '商品貨號' },
+        { key: 'sku', value: '庫存單位（SKU）' },
     ];
 
     static stockFunnel = [
