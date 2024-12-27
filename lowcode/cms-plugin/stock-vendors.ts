@@ -169,10 +169,7 @@ export class StockVendors {
                                             // 手機版
                                             return html` <div style="display: flex; align-items: center; gap: 10px; width: 100%; justify-content: space-between">
                                                     <div>${filterList[0]}</div>
-                                                    <div style="display: flex;">
-                                                        ${filterList[2] ? `<div class="me-2">${filterList[2]}</div>` : ''}
-                                                        ${filterList[3] ?? ''}
-                                                    </div>
+                                                    <div style="display: flex;">${filterList[2] ? `<div class="me-2">${filterList[2]}</div>` : ''} ${filterList[3] ?? ''}</div>
                                                 </div>
                                                 <div style="display: flex; margin-top: 8px;">${filterList[1]}</div>
                                                 <div>${filterTags}</div>`;
@@ -328,22 +325,24 @@ export class StockVendors {
                               gvc.event(() => {
                                   dialog.checkYesOrNot({
                                       text: '確定要刪除此供應商？',
-                                      callback: () => {
-                                          this.getPublicData().then((vendors: any) => {
-                                              ApiUser.setPublicConfig({
-                                                  key: 'vendor_manager',
-                                                  value: {
-                                                      list: vendors.list.filter((item: VendorData) => item.id !== vm.data.id),
-                                                  },
-                                                  user_id: 'manager',
-                                              }).then((dd: any) => {
-                                                  dialog.dataLoading({ visible: false });
-                                                  dialog.successMessage({ text: '刪除成功' });
-                                                  setTimeout(() => {
-                                                      vm.type = 'list';
-                                                  }, 500);
+                                      callback: (bool) => {
+                                          if (bool) {
+                                              this.getPublicData().then((vendors: any) => {
+                                                  ApiUser.setPublicConfig({
+                                                      key: 'vendor_manager',
+                                                      value: {
+                                                          list: vendors.list.filter((item: VendorData) => item.id !== vm.data.id),
+                                                      },
+                                                      user_id: 'manager',
+                                                  }).then((dd: any) => {
+                                                      dialog.dataLoading({ visible: false });
+                                                      dialog.successMessage({ text: '刪除成功' });
+                                                      setTimeout(() => {
+                                                          vm.type = 'list';
+                                                      }, 500);
+                                                  });
                                               });
-                                          });
+                                          }
                                       },
                                   });
                               })

@@ -850,6 +850,22 @@ Setting_editor.menuItems = () => {
         },
         {
             icon: '',
+            page: 'stock_stores',
+            group: '庫存管理',
+            title: '庫存點管理',
+            appName: 'cms_system',
+            groupIcon: 'https://d3jnmi1tfjgtti.cloudfront.net/file/234285319/1716652645450-boxes-stacked-regular (1).svg',
+        },
+        {
+            icon: '',
+            page: 'stock_vendors',
+            group: '庫存管理',
+            title: '供應商管理',
+            appName: 'cms_system',
+            groupIcon: 'https://d3jnmi1tfjgtti.cloudfront.net/file/234285319/1716652645450-boxes-stacked-regular (1).svg',
+        },
+        {
+            icon: '',
             page: 'order_list',
             group: '訂單管理',
             title: '訂單列表',

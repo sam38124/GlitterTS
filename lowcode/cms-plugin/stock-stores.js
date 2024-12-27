@@ -10,21 +10,11 @@ const html = String.raw;
 export class StockStores {
     static main(gvc) {
         const glitter = gvc.glitter;
-        const emptyData = () => {
-            return {
-                id: '',
-                name: '',
-                address: '',
-                manager_name: '',
-                manager_phone: '',
-                note: '',
-            };
-        };
         const vm = {
             id: glitter.getUUID(),
             tableId: glitter.getUUID(),
             type: 'list',
-            data: emptyData(),
+            data: this.emptyData(),
             dataList: [],
             query: '',
             queryType: '',
@@ -42,7 +32,7 @@ export class StockStores {
                     return this.detailPage(gvc, vm, 'replace');
                 }
                 if (vm.type === 'create') {
-                    vm.data = emptyData();
+                    vm.data = this.emptyData();
                     return this.detailPage(gvc, vm, 'create');
                 }
                 return '';
@@ -62,15 +52,15 @@ export class StockStores {
                     },
                     {
                         key: '地址',
-                        value: `<span class="fs-7">${dd.address}</span>`,
+                        value: `<span class="fs-7">${dd.address || '-'}</span>`,
                     },
                     {
                         key: '電話',
-                        value: `<span class="fs-7">${dd.manager_phone}</span>`,
+                        value: `<span class="fs-7">${dd.manager_phone || '-'}</span>`,
                     },
                     {
                         key: '聯絡人姓名',
-                        value: `<span class="fs-7">${dd.manager_name}</span>`,
+                        value: `<span class="fs-7">${dd.manager_name || '-'}</span>`,
                     },
                 ];
             });
@@ -110,10 +100,7 @@ export class StockStores {
                         if (document.body.clientWidth < 768) {
                             return html ` <div style="display: flex; align-items: center; gap: 10px; width: 100%; justify-content: space-between">
                                                     <div>${filterList[0]}</div>
-                                                    <div style="display: flex;">
-                                                        ${filterList[2] ? `<div class="me-2">${filterList[2]}</div>` : ''}
-                                                        ${(_a = filterList[3]) !== null && _a !== void 0 ? _a : ''}
-                                                    </div>
+                                                    <div style="display: flex;">${filterList[2] ? `<div class="me-2">${filterList[2]}</div>` : ''} ${(_a = filterList[3]) !== null && _a !== void 0 ? _a : ''}</div>
                                                 </div>
                                                 <div style="display: flex; margin-top: 8px;">${filterList[1]}</div>
                                                 <div>${filterTags}</div>`;
@@ -133,18 +120,42 @@ export class StockStores {
                         getData: (vd) => {
                             vmi = vd;
                             const limit = 100;
+                            function callback(list) {
+                                vm.dataList = list;
+                                vmi.pageSize = Math.ceil(list.length / limit);
+                                vmi.originalData = vm.dataList;
+                                vmi.tableData = getDatalist();
+                                vmi.loading = false;
+                                vmi.callback();
+                            }
                             this.getPublicData().then((data) => {
-                                if (data.list) {
+                                if (data.list && data.list.length > 0) {
                                     data.list = data.list.filter((item) => {
                                         return vm.query === '' || item.name.includes(vm.query);
                                     });
-                                    vm.dataList = data.list;
-                                    vmi.pageSize = Math.ceil(data.list.length / limit);
-                                    vmi.originalData = vm.dataList;
-                                    vmi.tableData = getDatalist();
+                                    callback(data.list);
                                 }
-                                vmi.loading = false;
-                                vmi.callback();
+                                else {
+                                    const defaultList = [
+                                        {
+                                            id: this.getNewID([]),
+                                            name: '庫存點1（預設）',
+                                            address: '',
+                                            manager_name: '',
+                                            manager_phone: '',
+                                            note: '',
+                                        },
+                                    ];
+                                    ApiUser.setPublicConfig({
+                                        key: 'store_manager',
+                                        value: {
+                                            list: defaultList,
+                                        },
+                                        user_id: 'manager',
+                                    }).then(() => {
+                                        callback(defaultList);
+                                    });
+                                }
                             });
                         },
                         rowClick: (data, index) => {
@@ -258,22 +269,29 @@ export class StockStores {
                 ? BgWidget.danger(gvc.event(() => {
                     dialog.checkYesOrNot({
                         text: '確定要刪除此庫存點？',
-                        callback: () => {
-                            this.getPublicData().then((stores) => {
-                                ApiUser.setPublicConfig({
-                                    key: 'store_manager',
-                                    value: {
-                                        list: stores.list.filter((item) => item.id !== vm.data.id),
-                                    },
-                                    user_id: 'manager',
-                                }).then((dd) => {
-                                    dialog.dataLoading({ visible: false });
-                                    dialog.successMessage({ text: '刪除成功' });
-                                    setTimeout(() => {
-                                        vm.type = 'list';
-                                    }, 500);
+                        callback: (bool) => {
+                            if (bool) {
+                                this.getPublicData().then((stores) => {
+                                    const filterList = stores.list.filter((item) => item.id !== vm.data.id);
+                                    if (filterList.length === 0) {
+                                        dialog.errorMessage({ text: '庫存點數量不可小於0' });
+                                        return;
+                                    }
+                                    ApiUser.setPublicConfig({
+                                        key: 'store_manager',
+                                        value: {
+                                            list: filterList,
+                                        },
+                                        user_id: 'manager',
+                                    }).then((dd) => {
+                                        dialog.dataLoading({ visible: false });
+                                        dialog.successMessage({ text: '刪除成功' });
+                                        setTimeout(() => {
+                                            vm.type = 'list';
+                                        }, 500);
+                                    });
                                 });
-                            });
+                            }
                         },
                     });
                 }))
@@ -348,4 +366,14 @@ export class StockStores {
         return newId;
     }
 }
+StockStores.emptyData = () => {
+    return {
+        id: '',
+        name: '',
+        address: '',
+        manager_name: '',
+        manager_phone: '',
+        note: '',
+    };
+};
 window.glitter.setModule(import.meta.url, StockStores);
