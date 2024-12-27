@@ -88,6 +88,7 @@ export class StockStores {
                 return gvc.bindView({
                     bind: id,
                     view: () => {
+                        var _a;
                         const filterList = [
                             BgWidget.selectFilter({
                                 gvc,
@@ -104,28 +105,14 @@ export class StockStores {
                                 gvc.notifyDataChange(vm.tableId);
                                 gvc.notifyDataChange(id);
                             }), vm.query || '', '搜尋庫存點名稱'),
-                            BgWidget.funnelFilter({
-                                gvc,
-                                callback: () => ListComp.showRightMenu(FilterOptions.storesFunnel),
-                            }),
-                            BgWidget.updownFilter({
-                                gvc,
-                                callback: (value) => {
-                                    vm.orderString = value;
-                                    gvc.notifyDataChange(vm.tableId);
-                                    gvc.notifyDataChange(id);
-                                },
-                                default: vm.orderString || 'default',
-                                options: FilterOptions.storesOrderBy,
-                            }),
                         ];
                         const filterTags = ListComp.getFilterTags(FilterOptions.storesFunnel);
                         if (document.body.clientWidth < 768) {
                             return html ` <div style="display: flex; align-items: center; gap: 10px; width: 100%; justify-content: space-between">
                                                     <div>${filterList[0]}</div>
                                                     <div style="display: flex;">
-                                                        <div class="me-2">${filterList[2]}</div>
-                                                        ${filterList[3]}
+                                                        ${filterList[2] ? `<div class="me-2">${filterList[2]}</div>` : ''}
+                                                        ${(_a = filterList[3]) !== null && _a !== void 0 ? _a : ''}
                                                     </div>
                                                 </div>
                                                 <div style="display: flex; margin-top: 8px;">${filterList[1]}</div>
@@ -145,10 +132,12 @@ export class StockStores {
                         gvc: gvc,
                         getData: (vd) => {
                             vmi = vd;
-                            const limit = 20;
+                            const limit = 100;
                             this.getPublicData().then((data) => {
-                                console.log(data.list);
                                 if (data.list) {
+                                    data.list = data.list.filter((item) => {
+                                        return vm.query === '' || item.name.includes(vm.query);
+                                    });
                                     vm.dataList = data.list;
                                     vmi.pageSize = Math.ceil(data.list.length / limit);
                                     vmi.originalData = vm.dataList;

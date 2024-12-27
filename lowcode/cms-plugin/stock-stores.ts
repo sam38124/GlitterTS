@@ -147,20 +147,20 @@ export class StockStores {
                                                 vm.query || '',
                                                 '搜尋庫存點名稱'
                                             ),
-                                            BgWidget.funnelFilter({
-                                                gvc,
-                                                callback: () => ListComp.showRightMenu(FilterOptions.storesFunnel),
-                                            }),
-                                            BgWidget.updownFilter({
-                                                gvc,
-                                                callback: (value: any) => {
-                                                    vm.orderString = value;
-                                                    gvc.notifyDataChange(vm.tableId);
-                                                    gvc.notifyDataChange(id);
-                                                },
-                                                default: vm.orderString || 'default',
-                                                options: FilterOptions.storesOrderBy,
-                                            }),
+                                            // BgWidget.funnelFilter({
+                                            //     gvc,
+                                            //     callback: () => ListComp.showRightMenu(FilterOptions.storesFunnel),
+                                            // }),
+                                            // BgWidget.updownFilter({
+                                            //     gvc,
+                                            //     callback: (value: any) => {
+                                            //         vm.orderString = value;
+                                            //         gvc.notifyDataChange(vm.tableId);
+                                            //         gvc.notifyDataChange(id);
+                                            //     },
+                                            //     default: vm.orderString || 'default',
+                                            //     options: FilterOptions.storesOrderBy,
+                                            // }),
                                         ];
 
                                         const filterTags = ListComp.getFilterTags(FilterOptions.storesFunnel);
@@ -170,8 +170,8 @@ export class StockStores {
                                             return html` <div style="display: flex; align-items: center; gap: 10px; width: 100%; justify-content: space-between">
                                                     <div>${filterList[0]}</div>
                                                     <div style="display: flex;">
-                                                        <div class="me-2">${filterList[2]}</div>
-                                                        ${filterList[3]}
+                                                        ${filterList[2] ? `<div class="me-2">${filterList[2]}</div>` : ''}
+                                                        ${filterList[3] ?? ''}
                                                     </div>
                                                 </div>
                                                 <div style="display: flex; margin-top: 8px;">${filterList[1]}</div>
@@ -191,17 +191,12 @@ export class StockStores {
                                         gvc: gvc,
                                         getData: (vd) => {
                                             vmi = vd;
-                                            const limit = 20;
-
-                                            // ApiUser.setPublicConfig({
-                                            //     key: 'store_manager',
-                                            //     value: {},
-                                            //     user_id: 'manager',
-                                            // });
-
+                                            const limit = 100;
                                             this.getPublicData().then((data: any) => {
-                                                console.log(data.list);
                                                 if (data.list) {
+                                                    data.list = data.list.filter((item: StoreData) => {
+                                                        return vm.query === '' || item.name.includes(vm.query);
+                                                    });
                                                     vm.dataList = data.list;
                                                     vmi.pageSize = Math.ceil(data.list.length / limit);
                                                     vmi.originalData = vm.dataList;

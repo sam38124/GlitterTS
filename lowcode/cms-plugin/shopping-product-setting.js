@@ -445,6 +445,7 @@ export class ShoppingProductSetting {
                                                 return gvc.bindView({
                                                     bind: id,
                                                     view: () => {
+                                                        var _b;
                                                         const filterList = [
                                                             BgWidget.selectFilter({
                                                                 gvc,
@@ -486,7 +487,7 @@ export class ShoppingProductSetting {
                                                                                                 <div class="me-2">
                                                                                                     ${filterList[2]}
                                                                                                 </div>
-                                                                                                ${filterList[3]}
+                                                                                                ${(_b = filterList[3]) !== null && _b !== void 0 ? _b : ''}
                                                                                             </div>
                                                                                         </div>
                                                                                         <div style="display: flex; margin-top: 8px;">
