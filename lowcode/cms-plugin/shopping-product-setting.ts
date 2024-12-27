@@ -1667,13 +1667,14 @@ export class ShoppingProductSetting {
                     }),
                     currentCombination
                 );
-
                 const waitAdd = cType.find((dd: any) => {
                     return !postMD.variants.find((d2) => {
                         return JSON.stringify(d2.spec) === JSON.stringify(dd);
                     });
                 });
-                if (waitAdd) {
+                if (waitAdd && postMD.variants[0].spec.length == 0){
+                    postMD.variants[0].spec = waitAdd;
+                }else if (waitAdd) {
                     postMD.variants.push({
                         show_understocking: 'true',
                         type: 'variants',
@@ -2688,6 +2689,24 @@ export class ShoppingProductSetting {
                                                             })}
                                                         `
                                                 ),
+                                                
+                                                (() => {
+                                                    if (postMD.variants.length === 1) {
+                                                        try {
+                                                            (postMD.variants[0] as any).editable = true;
+                                                            return ShoppingProductSetting.editProductSpec({
+                                                                vm: obj.vm,
+                                                                defData: postMD,
+                                                                gvc: gvc,
+                                                                single: true,
+                                                            });
+                                                        } catch (e) {
+                                                            console.error(e);
+                                                            return '';
+                                                        }
+                                                    }
+                                                    return '';
+                                                })(),
                                                 BgWidget.mainCard(
                                                         obj.gvc.bindView(() => {
                                                             const specid = obj.gvc.glitter.getUUID();
@@ -2711,60 +2730,60 @@ export class ShoppingProductSetting {
                                                                         });
                                                                         returnHTML += html`
                                                                             ${EditorElem.arrayItem({
-                                                                                customEditor: true,
-                                                                                gvc: obj.gvc,
-                                                                                title: '',
-                                                                                hoverGray: true,
-                                                                                position: 'front',
-                                                                                height: 100,
-                                                                                originalArray: postMD.specs,
-                                                                                expand: true,
-                                                                                copyable: false,
-                                                                                hr: true,
-                                                                                minus: false,
-                                                                                refreshComponent: (fromIndex, toIndex) => {
-                                                                                    postMD.variants.map((item) => {
-                                                                                        // 確保索引值在數組範圍內
-                                                                                        if (
-                                                                                                fromIndex === undefined ||
-                                                                                                toIndex === undefined ||
-                                                                                                fromIndex < 0 ||
-                                                                                                fromIndex >= item.spec.length ||
-                                                                                                toIndex < 0 ||
-                                                                                                toIndex >= item.spec.length
-                                                                                        ) {
-                                                                                            throw new Error('索引超出範圍');
-                                                                                        }
+                                                                            customEditor: true,
+                                                                            gvc: obj.gvc,
+                                                                            title: '',
+                                                                            hoverGray: true,
+                                                                            position: 'front',
+                                                                            height: 100,
+                                                                            originalArray: postMD.specs,
+                                                                            expand: true,
+                                                                            copyable: false,
+                                                                            hr: true,
+                                                                            minus: false,
+                                                                            refreshComponent: (fromIndex, toIndex) => {
+                                                                                postMD.variants.map((item) => {
+                                                                                    // 確保索引值在數組範圍內
+                                                                                    if (
+                                                                                            fromIndex === undefined ||
+                                                                                            toIndex === undefined ||
+                                                                                            fromIndex < 0 ||
+                                                                                            fromIndex >= item.spec.length ||
+                                                                                            toIndex < 0 ||
+                                                                                            toIndex >= item.spec.length
+                                                                                    ) {
+                                                                                        throw new Error('索引超出範圍');
+                                                                                    }
 
-                                                                                        // 取出元素並插入元素到新位置
-                                                                                        let element = item.spec.splice(fromIndex, 1)[0];
-                                                                                        item.spec.splice(toIndex, 0, element);
+                                                                                    // 取出元素並插入元素到新位置
+                                                                                    let element = item.spec.splice(fromIndex, 1)[0];
+                                                                                    item.spec.splice(toIndex, 0, element);
 
-                                                                                        return item;
-                                                                                    });
+                                                                                    return item;
+                                                                                });
 
-                                                                                    obj.gvc.notifyDataChange([specid, 'productInf', 'spec_text_show']);
-                                                                                },
-                                                                                array: () => {
-                                                                                    return postMD.specs.map((dd, specIndex: number) => {
-                                                                                        let temp: any = {
-                                                                                            title: '',
-                                                                                            option: [],
-                                                                                        };
-                                                                                        return {
-                                                                                            title: gvc.bindView({
-                                                                                                bind: `editSpec${specIndex}`,
-                                                                                                dataList: [
-                                                                                                    {
-                                                                                                        obj: editSpectPage[specIndex],
-                                                                                                        key: 'type',
-                                                                                                    },
-                                                                                                ],
-                                                                                                view: () => {
-                                                                                                
-                                                                                                    dd.language_title = (dd.language_title ?? ({} as any)) as any;
-                                                                                                    if (editSpectPage[specIndex].type == 'show') {
-                                                                                                        gvc.addStyle(`
+                                                                                obj.gvc.notifyDataChange([specid, 'productInf', 'spec_text_show']);
+                                                                            },
+                                                                            array: () => {
+                                                                                return postMD.specs.map((dd, specIndex: number) => {
+                                                                                    let temp: any = {
+                                                                                        title: '',
+                                                                                        option: [],
+                                                                                    };
+                                                                                    return {
+                                                                                        title: gvc.bindView({
+                                                                                            bind: `editSpec${specIndex}`,
+                                                                                            dataList: [
+                                                                                                {
+                                                                                                    obj: editSpectPage[specIndex],
+                                                                                                    key: 'type',
+                                                                                                },
+                                                                                            ],
+                                                                                            view: () => {
+
+                                                                                                dd.language_title = (dd.language_title ?? ({} as any)) as any;
+                                                                                                if (editSpectPage[specIndex].type == 'show') {
+                                                                                                    gvc.addStyle(`
                                                                                                     .option {
                                                                                                         background-color: #f7f7f7;
                                                                                                     }
@@ -2772,24 +2791,24 @@ export class ShoppingProductSetting {
                                                                                                         display: none;
                                                                                                     }
                                                                                                 `);
-                                                                                                        return html`
+                                                                                                    return html`
                                                                                                             <div class="d-flex flex-column "
                                                                                                                  style="gap:6px;align-items: flex-start;padding: 12px 0;">
                                                                                                                 <div style="font-size: 16px;">
                                                                                                                     ${(dd.language_title as any)[sel_lan()] || dd.title}
                                                                                                                 </div>
                                                                                                                 ${(() => {
-                                                                                                                    let returnHTML = ``;
-                                                                                                                    dd.option.map((opt: any) => {
-                                                                                                                        opt.language_title = (opt.language_title ?? ({} as any)) as any;
-                                                                                                                        returnHTML += html`
+                                                                                                        let returnHTML = ``;
+                                                                                                        dd.option.map((opt: any) => {
+                                                                                                            opt.language_title = (opt.language_title ?? ({} as any)) as any;
+                                                                                                            returnHTML += html`
                                                                                                                             <div class="option"
                                                                                                                                  style="border-radius: 5px;;padding: 1px 9px;font-size: 14px;">
                                                                                                                                 ${(opt.language_title as any)[sel_lan()] || opt.title}
                                                                                                                             </div>
                                                                                                                         `;
-                                                                                                                    });
-                                                                                                                    return html`
+                                                                                                        });
+                                                                                                        return html`
                                                                                                                         <div class="d-flex w-100 "
                                                                                                                              style="gap:8px; flex-wrap: wrap">
                                                                                                                             ${returnHTML}
@@ -2797,10 +2816,10 @@ export class ShoppingProductSetting {
                                                                                                                                     class="position-absolute "
                                                                                                                                     style="right:12px;top:50%;transform: translateY(-50%);"
                                                                                                                                     onclick="${gvc.event(() => {
-                                                                                                                                        createPage.page = 'add';
-                                                                                                                                        editIndex = specIndex;
-                                                                                                                                        gvc.notifyDataChange(specid);
-                                                                                                                                    })}"
+                                                                                                            createPage.page = 'add';
+                                                                                                            editIndex = specIndex;
+                                                                                                            gvc.notifyDataChange(specid);
+                                                                                                        })}"
                                                                                                                             >
                                                                                                                                 <svg
                                                                                                                                         class="pen"
@@ -2832,24 +2851,24 @@ export class ShoppingProductSetting {
                                                                                                                             </div>
                                                                                                                         </div>
                                                                                                                     `;
-                                                                                                                })()}
+                                                                                                    })()}
                                                                                                             </div>`;
-                                                                                                    }
-                                                                                                    temp = JSON.parse(JSON.stringify(dd));
-                                                                                                    if (sel_lan() !== ((window.parent as any).store_info.language_setting.def)) {
-                                                                                                        return obj.gvc.bindView(() => {
-                                                                                                            let editIndex = -1;
-                                                                                                            return {
-                                                                                                                bind: 'spec_text_show',
-                                                                                                                dataList: [{
-                                                                                                                    obj: createPage,
-                                                                                                                    key: 'page'
-                                                                                                                }],
-                                                                                                                view: () => {
-                                                                                                                    let returnHTML = html``
-                                                                                                                    let specs_in_line: string[] = [];
-                                                                                                                    temp.option = temp.option ?? [];
-                                                                                                                    specs_in_line.push(html`
+                                                                                                }
+                                                                                                temp = JSON.parse(JSON.stringify(dd));
+                                                                                                if (sel_lan() !== ((window.parent as any).store_info.language_setting.def)) {
+                                                                                                    return obj.gvc.bindView(() => {
+                                                                                                        let editIndex = -1;
+                                                                                                        return {
+                                                                                                            bind: 'spec_text_show',
+                                                                                                            dataList: [{
+                                                                                                                obj: createPage,
+                                                                                                                key: 'page'
+                                                                                                            }],
+                                                                                                            view: () => {
+                                                                                                                let returnHTML = html``
+                                                                                                                let specs_in_line: string[] = [];
+                                                                                                                temp.option = temp.option ?? [];
+                                                                                                                specs_in_line.push(html`
                                                                                                                             <div class="d-flex flex-column w-100">
                                                                                                                                 <div class="d-flex  flex-column"
                                                                                                                                      style="gap:10px;">
@@ -2864,16 +2883,16 @@ export class ShoppingProductSetting {
                                                                                                                                             style="width:100px;height: 35px;"
                                                                                                                                             value="${(temp.language_title as any)[vm.language] || ''}"
                                                                                                                                             onchange="${gvc.event((e, event) => {
-                                                                                                                        (temp.language_title as any)[vm.language] = e.value;
-                                                                                                                    })}"
+                                                                                                                    (temp.language_title as any)[vm.language] = e.value;
+                                                                                                                })}"
                                                                                                                                     />
                                                                                                                                 </div>
                                                                                                                                 <div class="d-flex flex-column w-100"
                                                                                                                                      style="gap:5px;">
                                                                                                                                     ${temp.option
-                                                                                                                            .map((d: any, index: number) => {
-                                                                                                                                d.language_title = d.language_title ?? ({} as any);
-                                                                                                                                return html`
+                                                                                                                        .map((d: any, index: number) => {
+                                                                                                                            d.language_title = d.language_title ?? ({} as any);
+                                                                                                                            return html`
                                                                                                                                                     <div class="d-flex flex-column mt-2"
                                                                                                                                                          style="gap:10px;">
                                                                                                                                                         <div class="fw-500">
@@ -2887,44 +2906,44 @@ export class ShoppingProductSetting {
                                                                                                                                                                 style="width:100px;height: 35px;"
                                                                                                                                                                 value="${(d.language_title as any)[vm.language] || ''}"
                                                                                                                                                                 onchange="${gvc.event((e, event) => {
-                                                                                                                                    (d.language_title as any)[vm.language] = e.value;
-                                                                                                                                })}"
+                                                                                                                                (d.language_title as any)[vm.language] = e.value;
+                                                                                                                            })}"
                                                                                                                                                         />
                                                                                                                                                     </div>`;
-                                                                                                                            })
-                                                                                                                            .join('<div class="mx-1"></div>')}
+                                                                                                                        })
+                                                                                                                        .join('<div class="mx-1"></div>')}
                                                                                                                                 </div>
                                                                                                                             </div>`);
-                                                                                                                    returnHTML += specs_in_line.join(`<div class="w-100 border-top"></div>`);
-                                                                                                                    returnHTML += html`
+                                                                                                                returnHTML += specs_in_line.join(`<div class="w-100 border-top"></div>`);
+                                                                                                                returnHTML += html`
                                                                                                                         <div class="d-flex w-100 justify-content-end align-items-center w-100 bg-white"
                                                                                                                              style="gap:14px; margin-top: 12px;">
                                                                                                                             ${BgWidget.cancel(
-                                                                                                                            obj.gvc.event(() => {
-                                                                                                                                editIndex = -1;
-                                                                                                                                gvc.notifyDataChange(vm.id);
-                                                                                                                            })
-                                                                                                                    )}
+                                                                                                                        obj.gvc.event(() => {
+                                                                                                                            editIndex = -1;
+                                                                                                                            gvc.notifyDataChange(vm.id);
+                                                                                                                        })
+                                                                                                                )}
                                                                                                                             ${BgWidget.save(
-                                                                                                                                    obj.gvc.event(() => {
-                                                                                                                                        console.log('save',temp)
-                                                                                                                                        postMD.specs[specIndex] = temp;
-                                                                                                                                        updateVariants();
-                                                                                                                                        gvc.notifyDataChange(vm.id);
-                                                                                                                            }),
-                                                                                                                            '完成'
-                                                                                                                    )}
+                                                                                                                        obj.gvc.event(() => {
+                                                                                                                            
+                                                                                                                            postMD.specs[specIndex] = temp;
+                                                                                                                            updateVariants();
+                                                                                                                            gvc.notifyDataChange(vm.id);
+                                                                                                                        }),
+                                                                                                                        '完成'
+                                                                                                                )}
                                                                                                                         </div>`
-                                                                                                                    return returnHTML;
-                                                                                                                },
-                                                                                                                divCreate: {
-                                                                                                                    class: `d-flex flex-column p-3 my-2 border rounded-3`,
-                                                                                                                    style: `gap:18px;background:white;`,
-                                                                                                                },
-                                                                                                            };
-                                                                                                        })
-                                                                                                    } else {
-                                                                                                        return html`
+                                                                                                                return returnHTML;
+                                                                                                            },
+                                                                                                            divCreate: {
+                                                                                                                class: `d-flex flex-column p-3 my-2 border rounded-3`,
+                                                                                                                style: `gap:18px;background:white;`,
+                                                                                                            },
+                                                                                                        };
+                                                                                                    })
+                                                                                                } else {
+                                                                                                    return html`
                                                                                                             <div
                                                                                                                     style="background-color:white !important;display: flex;padding: 20px;flex-direction: column;align-items: flex-end;gap: 24px;align-self: stretch;border-radius: 10px;border: 1px solid #DDD;"
                                                                                                             >
@@ -2933,40 +2952,41 @@ export class ShoppingProductSetting {
                                                                                                                 >
                                                                                                                     <div style="width:100%;display: flex;flex-direction: column;align-items: flex-end;gap: 18px;background-color:white !important;">
                                                                                                                         ${ShoppingProductSetting.specInput(gvc, temp, {
-                                                                                                                            cancel: () => {
-                                                                                                                                editSpectPage[specIndex].type = 'show';
-                                                                                                                                editIndex = -1;
-                                                                                                                                gvc.notifyDataChange(specid);
-                                                                                                                            },
-                                                                                                                            save: () => {
-                                                                                                                                editSpectPage[specIndex].type = 'show';
-                                                                                                                                postMD.specs[specIndex] = temp;
-                                                                                                                                checkSpecSingle();
-                                                                                                                                updateVariants();
-                                                                                                                                gvc.notifyDataChange(vm.id);
-                                                                                                                            },
-                                                                                                                        })}
+                                                                                                        cancel: () => {
+                                                                                                            editSpectPage[specIndex].type = 'show';
+                                                                                                            editIndex = -1;
+                                                                                                            gvc.notifyDataChange(specid);
+                                                                                                        },
+                                                                                                        save: () => {
+                                                                                                           
+                                                                                                            editSpectPage[specIndex].type = 'show';
+                                                                                                            postMD.specs[specIndex] = temp;
+                                                                                                            checkSpecSingle();
+                                                                                                            updateVariants();
+                                                                                                            gvc.notifyDataChange(vm.id);
+                                                                                                        },
+                                                                                                    })}
                                                                                                                     </div>
                                                                                                                 </div>
                                                                                                             </div>
                                                                                                         `;
-                                                                                                    }
+                                                                                                }
 
-                                                                                                },
-                                                                                                divCreate: {class: `w-100 position-relative`},
-                                                                                            }),
-                                                                                            innerHtml: (gvc: GVC) => {
-                                                                                                return ``;
                                                                                             },
-                                                                                            editTitle: `編輯規格`,
-                                                                                            draggable: editSpectPage[specIndex].type === 'show',
-                                                                                        };
-                                                                                    });
-                                                                                },
-                                                                            })}
+                                                                                            divCreate: {class: `w-100 position-relative`},
+                                                                                        }),
+                                                                                        innerHtml: (gvc: GVC) => {
+                                                                                            return ``;
+                                                                                        },
+                                                                                        editTitle: `編輯規格`,
+                                                                                        draggable: editSpectPage[specIndex].type === 'show',
+                                                                                    };
+                                                                                });
+                                                                            },
+                                                                        })}
                                                                         `;
                                                                     }
-                                                                   
+
                                                                     if (createPage.page == 'edit' && editIndex === -1) {
                                                                         let temp: any = {
                                                                             title: '',
@@ -2977,17 +2997,18 @@ export class ShoppingProductSetting {
                                                                                 <div style="display: flex;flex-direction: column;align-items: flex-end;gap: 18px;align-self: stretch;">
                                                                                     <div style="width:100%;display: flex;flex-direction: column;align-items: flex-end;gap: 18px;">
                                                                                         ${ShoppingProductSetting.specInput(gvc, temp, {
-                                                                                            cancel: () => {
-                                                                                                createPage.page = 'add';
-                                                                                            },
-                                                                                            save: () => {
-                                                                                                postMD.specs.push(temp);
-                                                                                                createPage.page = 'add';
-                                                                                                checkSpecSingle();
-                                                                                                updateVariants();
-                                                                                                gvc.notifyDataChange([vm.id]);
-                                                                                            },
-                                                                                        })}
+                                                                            cancel: () => {
+                                                                                createPage.page = 'add';
+                                                                            },
+                                                                            save: () => {
+                                                                                postMD.specs.push(temp);
+                                                                                
+                                                                                createPage.page = 'add';
+                                                                                checkSpecSingle();
+                                                                                updateVariants();
+                                                                                gvc.notifyDataChange([vm.id]);
+                                                                            },
+                                                                        })}
                                                                                     </div>
                                                                                 </div>
                                                                             `)}
@@ -2999,9 +3020,9 @@ export class ShoppingProductSetting {
                                                                             <div
                                                                                     style="width:100%;display:flex;align-items: center;justify-content: center;color: #36B;gap:6px;cursor: pointer;"
                                                                                     onclick="${gvc.event(() => {
-                                                                                        editIndex = -1;
-                                                                                        createPage.page = 'edit';
-                                                                                    })}"
+                                                                            editIndex = -1;
+                                                                            createPage.page = 'edit';
+                                                                        })}"
                                                                             >
                                                                                 新增規格
                                                                                 <svg xmlns="http://www.w3.org/2000/svg"
@@ -3021,7 +3042,7 @@ export class ShoppingProductSetting {
                                                                             </div>
                                                                         `;
                                                                     }
-                                                                    
+
                                                                     return returnHTML;
                                                                 },
                                                                 divCreate: {
@@ -3031,23 +3052,6 @@ export class ShoppingProductSetting {
                                                             };
                                                         })
                                                 ),
-                                                (() => {
-                                                    if (postMD.variants.length === 1) {
-                                                        try {
-                                                            (postMD.variants[0] as any).editable = true;
-                                                            return ShoppingProductSetting.editProductSpec({
-                                                                vm: obj.vm,
-                                                                defData: postMD,
-                                                                gvc: gvc,
-                                                                single: true,
-                                                            });
-                                                        } catch (e) {
-                                                            console.error(e);
-                                                            return '';
-                                                        }
-                                                    }
-                                                    return '';
-                                                })(),
                                                 postMD.variants.length > 1
                                                         ? BgWidget.mainCard(
                                                                 html`

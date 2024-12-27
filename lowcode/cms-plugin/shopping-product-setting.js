@@ -1412,7 +1412,10 @@ export class ShoppingProductSetting {
                             return JSON.stringify(d2.spec) === JSON.stringify(dd);
                         });
                     });
-                    if (waitAdd) {
+                    if (waitAdd && postMD.variants[0].spec.length == 0) {
+                        postMD.variants[0].spec = waitAdd;
+                    }
+                    else if (waitAdd) {
                         postMD.variants.push({
                             show_understocking: 'true',
                             type: 'variants',
@@ -2281,6 +2284,24 @@ export class ShoppingProductSetting {
                                         };
                                     })}
                                                         `),
+                                    (() => {
+                                        if (postMD.variants.length === 1) {
+                                            try {
+                                                postMD.variants[0].editable = true;
+                                                return ShoppingProductSetting.editProductSpec({
+                                                    vm: obj.vm,
+                                                    defData: postMD,
+                                                    gvc: gvc,
+                                                    single: true,
+                                                });
+                                            }
+                                            catch (e) {
+                                                console.error(e);
+                                                return '';
+                                            }
+                                        }
+                                        return '';
+                                    })(),
                                     BgWidget.mainCard(obj.gvc.bindView(() => {
                                         const specid = obj.gvc.glitter.getUUID();
                                         let editIndex = -1;
@@ -2492,7 +2513,6 @@ export class ShoppingProductSetting {
                                                                                                 gvc.notifyDataChange(vm.id);
                                                                                             }))}
                                                                                                                             ${BgWidget.save(obj.gvc.event(() => {
-                                                                                                console.log('save', temp);
                                                                                                 postMD.specs[specIndex] = temp;
                                                                                                 updateVariants();
                                                                                                 gvc.notifyDataChange(vm.id);
@@ -2613,24 +2633,6 @@ export class ShoppingProductSetting {
                                             },
                                         };
                                     })),
-                                    (() => {
-                                        if (postMD.variants.length === 1) {
-                                            try {
-                                                postMD.variants[0].editable = true;
-                                                return ShoppingProductSetting.editProductSpec({
-                                                    vm: obj.vm,
-                                                    defData: postMD,
-                                                    gvc: gvc,
-                                                    single: true,
-                                                });
-                                            }
-                                            catch (e) {
-                                                console.error(e);
-                                                return '';
-                                            }
-                                        }
-                                        return '';
-                                    })(),
                                     postMD.variants.length > 1
                                         ? BgWidget.mainCard(html `
                                                                     <div style="font-size: 16px;font-weight: 700;color:#393939;margin-bottom: 18px;">
