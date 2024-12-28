@@ -328,7 +328,7 @@ export class LineMessage {
             let n = 0;
             await new Promise<void>((resolve) => {
                 for (const email of emails) {
-                    AutoSendEmail.getDefCompare(this.app, email.content.type).then((dd) => {
+                    AutoSendEmail.getDefCompare(this.app, email.content.type,'zh-TW').then((dd) => {
                         email.content.typeName = dd && dd.tag_name ? dd.tag_name : '手動發送';
                         n++;
                     });
@@ -849,7 +849,7 @@ export class LineMessage {
     }
 
     public async sendCustomerLine(tag: string, order_id: string, lineID: string) {
-        const customerMail = await AutoSendEmail.getDefCompare(this.app, tag);
+        const customerMail = await AutoSendEmail.getDefCompare(this.app, tag,'zh-TW');
         if (customerMail.toggle) {
             await new Promise(async (resolve) => {
                 resolve(await this.sendLine({

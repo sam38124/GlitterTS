@@ -541,7 +541,6 @@ class Shopping {
             console.log(`checkout-time-1=>`, new Date().getTime() - check_time);
             const userClass = new user_js_1.User(this.app);
             const rebateClass = new rebate_js_1.Rebate(this.app);
-            data.email = data.email || 'no-email';
             if (type !== 'preview' && !(this.token && this.token.userID) && !data.email && !(data.user_info && data.user_info.email)) {
                 throw exception_js_1.default.BadRequestError('BAD_REQUEST', 'ToCheckout 2 Error:No email address.', null);
             }
@@ -564,11 +563,8 @@ class Shopping {
                     data.email = data.user_info.email;
                 }
                 else {
-                    throw exception_js_1.default.BadRequestError('BAD_REQUEST', 'ToCheckout 3 Error:No email address.', null);
+                    data.email = data.email || 'no-email';
                 }
-            }
-            if (!data.email && type !== 'preview') {
-                throw exception_js_1.default.BadRequestError('BAD_REQUEST', 'ToCheckout 4 Error:No email address.', null);
             }
             if (data.use_rebate && data.use_rebate > 0) {
                 if (userData) {
@@ -708,6 +704,7 @@ class Shopping {
                 code_array: data.code_array,
                 give_away: data.give_away,
                 user_rebate_sum: 0,
+                language: data.language
             };
             function calculateShipment(dataList, value) {
                 if (value === 0) {
@@ -1161,7 +1158,7 @@ class Shopping {
                             await line.sendCustomerLine('auto-line-order-create', carData.orderID, carData.customer_info.lineID);
                             console.log('訂單line訊息寄送成功');
                         }
-                        await auto_send_email_js_1.AutoSendEmail.customerOrder(this.app, 'auto-email-order-create', carData.orderID, carData.email);
+                        await auto_send_email_js_1.AutoSendEmail.customerOrder(this.app, 'auto-email-order-create', carData.orderID, carData.email, carData.language);
                         await database_js_1.default.execute(`INSERT INTO \`${this.app}\`.t_checkout (cart_token, status, email, orderData)
                              values (?, ?, ?, ?)`, [carData.orderID, 0, carData.email, carData]);
                         return {
@@ -1663,7 +1660,7 @@ class Shopping {
                         await line.sendCustomerLine('auto-line-shipment', data.orderData.orderID, data.orderData.customer_info.lineID);
                         console.log('付款成功line訊息寄送成功');
                     }
-                    await auto_send_email_js_1.AutoSendEmail.customerOrder(this.app, 'auto-email-shipment', data.orderData.orderID, data.orderData.email);
+                    await auto_send_email_js_1.AutoSendEmail.customerOrder(this.app, 'auto-email-shipment', data.orderData.orderID, data.orderData.email, data.orderData.language);
                 }
                 if (origin[0].orderData.progress !== 'arrived' && updateProgress === 'arrived') {
                     if (data.orderData.customer_info.phone) {
@@ -1675,7 +1672,7 @@ class Shopping {
                         await line.sendCustomerLine('auto-line-shipment-arrival', data.orderData.orderID, data.orderData.customer_info.lineID);
                         console.log('付款成功line訊息寄送成功');
                     }
-                    await auto_send_email_js_1.AutoSendEmail.customerOrder(this.app, 'auto-email-shipment-arrival', data.orderData.orderID, data.orderData.email);
+                    await auto_send_email_js_1.AutoSendEmail.customerOrder(this.app, 'auto-email-shipment-arrival', data.orderData.orderID, data.orderData.email, data.orderData.language);
                 }
                 if (origin[0].status !== 1 && update.status === 1) {
                     await this.releaseCheckout(1, data.orderData.orderID);
@@ -1744,7 +1741,7 @@ class Shopping {
                      where cart_token = ?`, [order_id]))[0]['orderData'];
             orderData.proof_purchase = text;
             new notify_js_1.ManagerNotify(this.app).uploadProof({ orderData: orderData });
-            await auto_send_email_js_1.AutoSendEmail.customerOrder(this.app, 'proof-purchase', order_id, orderData.email);
+            await auto_send_email_js_1.AutoSendEmail.customerOrder(this.app, 'proof-purchase', order_id, orderData.email, orderData.language);
             if (orderData.customer_info.phone) {
                 let sns = new sms_js_1.SMS(this.app);
                 await sns.sendCustomerSns('sns-proof-purchase', order_id, orderData.customer_info.phone);
@@ -1946,7 +1943,7 @@ OR JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.orderStatus')) NOT IN (-99)) `);
                     orderData: cartData.orderData,
                     status: status,
                 });
-                await auto_send_email_js_1.AutoSendEmail.customerOrder(this.app, 'auto-email-payment-successful', order_id, cartData.email);
+                await auto_send_email_js_1.AutoSendEmail.customerOrder(this.app, 'auto-email-payment-successful', order_id, cartData.email, cartData.orderData.language);
                 if (cartData.orderData.customer_info.phone) {
                     let sns = new sms_js_1.SMS(this.app);
                     await sns.sendCustomerSns('auto-sns-payment-successful', order_id, cartData.orderData.customer_info.phone);

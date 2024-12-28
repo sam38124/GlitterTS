@@ -685,8 +685,7 @@ export class FormWidget {
                 groupList[dd.group].push(dd);
             });
         }
-        return html `
-            <div class="row m-0 p-0">
+        return html `<div class="row m-0 p-0">
                 ${Object.keys(groupList)
             .map((key) => {
             if (key) {

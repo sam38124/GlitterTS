@@ -8,6 +8,7 @@ import { LanguageBackend } from './language-backend.js';
 import { Tool } from '../modules/tool.js';
 import { ProductAi } from './ai-generator/product-ai.js';
 import { imageLibrary } from '../modules/image-library.js';
+import {Language} from "../glitter-base/global/language.js";
 
 const html = String.raw;
 
@@ -114,7 +115,7 @@ export class ShoppingFinanceSetting {
             let form: any = undefined;
             BgWidget.settingDialog({
                 gvc: gvc,
-                title: '新增自訂物流',
+                title: '新增自訂金流',
                 innerHTML: (gvc) => {
                     form = BgWidget.customForm(gvc, [
                         {
@@ -141,6 +142,7 @@ export class ShoppingFinanceSetting {
                                                 custom_finance.name = text;
                                             },
                                             placeHolder: '請輸入自訂金流名稱',
+                                            global_language:true
                                         }),
                                         form.view,
                                     ].join(BgWidget.mbContainer(12));
@@ -219,14 +221,6 @@ export class ShoppingFinanceSetting {
                     html` <div class="title-container">
                         ${BgWidget.title(`金流設定`)}
                         <div class="flex-fill"></div>
-                        <div style="display: flex; gap: 14px;">
-                            ${BgWidget.grayButton(
-                                '新增自訂金流',
-                                gvc.event(() => {
-                                    updateCustomFinance({ function: 'plus' });
-                                })
-                            )}
-                        </div>
                     </div>`,
                     gvc.bindView({
                         bind: vm.id,
@@ -504,8 +498,20 @@ export class ShoppingFinanceSetting {
                                     ),
                                     BgWidget.mainCard(
                                         html`
-                                            <div class="tx_700">線下金流</div>
-                                            ${BgWidget.grayNote('不執行線上付款，由店家自行與消費者商議付款方式')} ${BgWidget.mbContainer(12)}
+                                            <div style="display: flex; gap: 14px;" class="align-items-center">
+                                                <div class="tx_700">線下金流</div>
+                                                <div class="flex-fill"></div>
+                                                ${BgWidget.grayButton(
+                                                        '新增自訂金流',
+                                                        gvc.event(() => {
+                                                            updateCustomFinance({ function: 'plus' });
+                                                        })
+                                                )}
+                                            </div>
+                                      
+                                            ${BgWidget.grayNote('不執行線上付款，由店家自行與消費者商議付款方式')} 
+                                            
+                                            ${BgWidget.mbContainer(12)}
                                             ${(() => {
                                                 const offlinePayArray = [
                                                     { key: 'atm', name: 'ATM銀行轉帳', customerClass: 'guide2-3' },
@@ -514,7 +520,7 @@ export class ShoppingFinanceSetting {
                                                     ...keyData.payment_info_custom.map((dd) => {
                                                         return {
                                                             key: dd.id,
-                                                            name: html`${dd.name}
+                                                            name: html`${Language.getLanguageCustomText(dd.name)}
                                                                 <i
                                                                     class="fa-solid fa-pencil cursor_pointer ms-1"
                                                                     onclick="${gvc.event((e,event) => {
@@ -609,7 +615,7 @@ export class ShoppingFinanceSetting {
                                                                 return BgWidget.openBoxContainer({
                                                                     gvc,
                                                                     tag: 'detail',
-                                                                    title: `自訂金流：${customer.name}` + redDot,
+                                                                    title: `自訂金流：${Language.getLanguageCustomText(customer.name)}` + redDot,
                                                                     insideHTML: ShoppingFinanceSetting.customerText(gvc, keyData, i),
                                                                     height: 700,
                                                                 });
@@ -1116,7 +1122,7 @@ export class ShoppingFinanceSetting {
                                     })
                                 )}
                             </div>
-                           <div class="title-container mt-1"> ${BgWidget.grayNote('郵政、黑貓、四大超商僅會於台灣地區進行顯示，如需設定跨境配送，可添加自訂物流表單。')}</div>
+                           <div class="title-container mt-1"> ${BgWidget.grayNote('如需設定跨境配送，可添加自訂物流表單。')}</div>
                             ${gvc.bindView(() => {
                                 const id = gvc.glitter.getUUID();
 
@@ -1173,6 +1179,7 @@ export class ShoppingFinanceSetting {
                                                                         custom_delivery.name = text;
                                                                     },
                                                                     placeHolder: '請輸入自訂物流名稱',
+                                                                    global_language:true
                                                                 }),
                                                                 form.view,
                                                             ].join(BgWidget.mbContainer(12));
@@ -1289,7 +1296,7 @@ export class ShoppingFinanceSetting {
                                             .concat(
                                                 (vm.data.custom_delivery ?? []).map((dd: any) => {
                                                     return {
-                                                        title: dd.name,
+                                                        title: Language.getLanguageCustomText(dd.name),
                                                         value: dd.id,
                                                         custom: true,
                                                         type: 'font_awesome',
@@ -1443,7 +1450,7 @@ export class ShoppingFinanceSetting {
                                                                     gvc: gvc,
                                                                     title: (gvc2) => {
                                                                         return `<div class="d-flex align-items-center" style="gap:10px;">${
-                                                                            '商品描述' +
+                                                                            '配送資訊' +
                                                                             BgWidget.aiChatButton({
                                                                                 gvc: gvc2,
                                                                                 select: 'writer',

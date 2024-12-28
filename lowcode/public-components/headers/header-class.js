@@ -221,7 +221,27 @@ export class HeaderClass {
                                                             </div>
                                                             <div class="d-flex flex-column gap-1 flex-fill">
                                                                 <div class="${classPrefix}-title">${item.title}</div>
-                                                                <div class="${classPrefix}-spec">${item.spec.join(' / ')}</div>
+                                                                <div class="${classPrefix}-spec ">${(() => {
+                                            console.log(`item.spec=>`, item);
+                                            const spec = (() => {
+                                                if (item.spec) {
+                                                    return item.spec.map((dd, index) => {
+                                                        try {
+                                                            return (item.specs[index].option.find((d1) => {
+                                                                return d1.title === dd;
+                                                            }).language_title[Language.getLanguage()] || dd);
+                                                        }
+                                                        catch (e) {
+                                                            return dd;
+                                                        }
+                                                    });
+                                                }
+                                                else {
+                                                    return [];
+                                                }
+                                            })();
+                                            return spec.join(' / ');
+                                        })()}</div>
                                                                 <div class="d-flex align-items-center justify-content-between">
                                                                     <div class="d-flex align-items-center gap-1" style="font-size:14px;">
                                                                         ${Language.text('quantity')}：<select
@@ -286,6 +306,7 @@ ${Currency.convertCurrencyText((item.price * item.count))}
                                                 title: product.content.title,
                                                 count: item.count,
                                                 spec: item.spec,
+                                                specs: product.content.specs,
                                                 price: variant ? variant.sale_price : 0,
                                                 image: yield (() => __awaiter(this, void 0, void 0, function* () {
                                                     if (!variant) {

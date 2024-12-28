@@ -1972,15 +1972,6 @@ export class ShoppingProductSetting {
                                                             }),
                                                             {}
                                                     ),
-                                            // BgWidget.grayButton(
-                                            //         'AI 生成',
-                                            //         gvc.event(() => {
-                                            //             ProductAi.setProduct(gvc, postMD, () => {
-                                            //                 gvc.notifyDataChange(vm.id);
-                                            //             });
-                                            //         }),
-                                            //         {}
-                                            // ),
                                             postMD.id
                                                     ? BgWidget.grayButton(
                                                             document.body.clientWidth > 768 ? '預覽商品' : '預覽',
@@ -3138,13 +3129,13 @@ export class ShoppingProductSetting {
                                                                         console.log(`first=>${first}=>`,first_t)
                                                                         first_t.language_title=first_t.language_title ?? {}
                                                                         if(!second){
-                                                                            return first_t.language_title[sel_lan()] ?? first_t.title
+                                                                            return first_t.language_title[sel_lan()] || first_t.title
                                                                         }
                                                                         let second_t=first_t.option.find((dd:any)=>{
                                                                             return dd.title===second
                                                                         })
                                                                         second_t.language_title=second_t.language_title ?? {}
-                                                                        return second_t.language_title[sel_lan()] ?? second_t.title
+                                                                        return second_t.language_title[sel_lan()] || second_t.title
                                                                     }
 
                                                                     postMD.specs[0].option = postMD.specs[0].option ?? [];

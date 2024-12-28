@@ -3,7 +3,7 @@ import { Mail } from '../services/mail.js';
 import {App} from "../../services/app.js";
 
 export class AutoSendEmail {
-    public static async getDefCompare(app: string, tag: string) {
+    public static async getDefCompare(app: string, tag: string,language:string) {
         const dataList: any = [
             {
                 tag: 'auto-email-shipment',
@@ -276,10 +276,11 @@ export class AutoSendEmail {
         })!;
         if (b) {
             if (keyData) {
-                b.title = keyData.title || b.title;
+               const c= keyData[language] || keyData
+                b.title = c.title || b.title;
                 b.toggle = keyData.toggle ?? true;
-                b.content = keyData.content || b.content;
-                b.name = keyData.name || b.name;
+                b.content = c.content || b.content;
+                b.name = c.name || b.name;
                 b.updated_time = new Date(keyData.updated_time);
             }
             Object.keys(b).map((dd) => {
@@ -493,8 +494,8 @@ export class AutoSendEmail {
         </table>`;
     }
 
-    public static async customerOrder(app: string, tag: string, order_id: string, email: string) {
-        const customerMail = await this.getDefCompare(app, tag);
+    public static async customerOrder(app: string, tag: string, order_id: string, email: string,language:string) {
+        const customerMail = await this.getDefCompare(app, tag,language);
         const brandAndMemberType = await App.checkBrandAndMemberType(app);
         if (customerMail.toggle) {
             await new Mail(app).postMail({

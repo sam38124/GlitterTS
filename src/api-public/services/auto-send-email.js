@@ -5,7 +5,7 @@ const user_js_1 = require("../services/user.js");
 const mail_js_1 = require("../services/mail.js");
 const app_js_1 = require("../../services/app.js");
 class AutoSendEmail {
-    static async getDefCompare(app, tag) {
+    static async getDefCompare(app, tag, language) {
         var _a;
         const dataList = [
             {
@@ -278,10 +278,11 @@ class AutoSendEmail {
         });
         if (b) {
             if (keyData) {
-                b.title = keyData.title || b.title;
+                const c = keyData[language] || keyData;
+                b.title = c.title || b.title;
                 b.toggle = (_a = keyData.toggle) !== null && _a !== void 0 ? _a : true;
-                b.content = keyData.content || b.content;
-                b.name = keyData.name || b.name;
+                b.content = c.content || b.content;
+                b.name = c.name || b.name;
                 b.updated_time = new Date(keyData.updated_time);
             }
             Object.keys(b).map((dd) => {
@@ -493,8 +494,8 @@ class AutoSendEmail {
             </tbody>
         </table>`;
     }
-    static async customerOrder(app, tag, order_id, email) {
-        const customerMail = await this.getDefCompare(app, tag);
+    static async customerOrder(app, tag, order_id, email, language) {
+        const customerMail = await this.getDefCompare(app, tag, language);
         const brandAndMemberType = await app_js_1.App.checkBrandAndMemberType(app);
         if (customerMail.toggle) {
             await new mail_js_1.Mail(app).postMail({

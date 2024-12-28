@@ -3,6 +3,7 @@ import { ShareDialog } from '../../glitterBundle/dialog/ShareDialog.js';
 import { GVC } from '../../glitterBundle/GVController.js';
 import { EditorElem } from '../../glitterBundle/plugins/editor-elem.js';
 import { ApiPageConfig } from '../../api/pageConfig.js';
+import {Language} from "../../glitter-base/global/language.js";
 
 export class FormModule {
     public static editor(gvc: GVC, data: any, title: string, update?: () => void) {
@@ -90,7 +91,7 @@ export class FormModule {
                                                     }
                                                 })()}
                                             </div>
-                                            ${dd.title || opc.title}${(() => {
+                                            ${(Language.getLanguageCustomText(dd.title || opc.title))}${(() => {
                                                 if (dd.deletable === false) {
                                                     return `<div class="ms-2">${BgWidget.blueNote(`系統預設`)}</div>`;
                                                 } else {
@@ -277,6 +278,7 @@ export class FormModule {
                                                                               gvc.notifyDataChange(vm.id);
                                                                           },
                                                                           placeHolder: '請輸入自訂欄位名稱',
+                                                                          global_language:true
                                                                       }),
                                                                       BgWidget.editeInput({
                                                                           gvc: gvc,
@@ -288,6 +290,7 @@ export class FormModule {
                                                                               gvc.notifyDataChange(vm.id);
                                                                           },
                                                                           placeHolder: '請輸入關於這項欄位的描述或指引',
+                                                                          global_language:true
                                                                       }),
                                                                       ...editor_option,
                                                                   ].join('<div class="my-2"></div>');
@@ -305,6 +308,7 @@ export class FormModule {
                                                                               gvc.notifyDataChange(vm.id);
                                                                           },
                                                                           placeHolder: '請輸入自訂欄位名稱',
+                                                                          global_language:true
                                                                       }),
                                                                       html`
                                                                           <div class="tx_normal fw-normal mb-2">選項</div>
@@ -319,18 +323,23 @@ export class FormModule {
                                                                                           dd.form_config.option
                                                                                               .map((d1: any, index: number) => {
                                                                                                   return html`
-                                                                                                      <div class="d-flex align-items-center mb-2" style="gap: 10px;">
-                                                                                                          <input
-                                                                                                              class="form-control flex-fill"
-                                                                                                              placeholder="請輸入選項內容"
-                                                                                                              value="${d1.name}"
-                                                                                                              onchange="${gvc.event((e, event) => {
-                                                                                                                  d1.value = e.value;
-                                                                                                                  d1.name = e.value;
-                                                                                                                  update && update();
-                                                                                                                  gvc.notifyDataChange(cVm.id);
-                                                                                                              })}"
-                                                                                                          />
+                                                                                                      <div class="d-flex align-items-center mb-2 w-100" style="gap: 10px;">
+                                                                                                          ${
+                                                                                                                  BgWidget.editeInput({
+                                                                                                                      gvc: gvc,
+                                                                                                                      title: '',
+                                                                                                                      default: d1.value || '',
+                                                                                                                      callback: (text) => {
+                                                                                                                          d1.value = text;
+                                                                                                                          d1.name = text;
+                                                                                                                          update && update();
+                                                                                                                          gvc.notifyDataChange(cVm.id);
+                                                                                                                      },
+                                                                                                                      placeHolder: '請輸入自訂欄位名稱',
+                                                                                                                      global_language:true,
+                                                                                                                      divStyle:`width:100%;`
+                                                                                                                  })
+                                                                                                          }
                                                                                                           <i
                                                                                                               class="fa-solid fa-xmark"
                                                                                                               style="color:#8d8d8d;cursor: pointer; "

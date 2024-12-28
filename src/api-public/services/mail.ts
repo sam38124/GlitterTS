@@ -77,7 +77,7 @@ export class Mail {
             let n = 0;
             await new Promise<void>((resolve) => {
                 for (const email of emails) {
-                    AutoSendEmail.getDefCompare(this.app, email.content.type).then((dd) => {
+                    AutoSendEmail.getDefCompare(this.app, email.content.type,'zh-TW').then((dd) => {
                         email.content.typeName = dd && dd.tag_name ? dd.tag_name : '手動發送';
                         n++;
                     });

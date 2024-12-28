@@ -151,7 +151,7 @@ export class Schedule {
             try {
                 if (await this.perload(app)) {
                     const mailType = 'auto-email-birthday';
-                    const customerMail = await AutoSendEmail.getDefCompare(app, mailType);
+                    const customerMail = await AutoSendEmail.getDefCompare(app, mailType,'zh-TW');
                     if (customerMail.toggle) {
                         // 歷史生日祝福寄件紀錄
                         const mailClass = new Mail(app);
@@ -321,7 +321,7 @@ export class Schedule {
             { second: 30, status: true, func: 'autoSendMail', desc: '自動排程寄送信件' },
             { second: 30, status: true, func: 'autoSendLine', desc: '自動排程寄送line訊息' },
             { second: 3600*24, status: true, func: 'currenciesUpdate', desc: '多國貨幣的更新排程' },
-            { second: 3600*24, status: true, func: 'initialSampleApp', desc: '重新刷新示範商店' },
+            { second: 3600*24, status: false, func: 'initialSampleApp', desc: '重新刷新示範商店' },
         ];
         try {
             scheduleList.forEach((schedule) => {

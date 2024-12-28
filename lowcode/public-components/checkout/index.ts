@@ -1660,7 +1660,7 @@ export class CheckoutIndex {
                                                                         return html`
                                                                             <option value="${dd.value}"
                                                                                     ${localStorage.getItem('checkout-payment') === dd.value ? `selected` : ``}>
-                                                                                ${dd.name}
+                                                                                ${Language.text(dd.value) || Language.getLanguageCustomText(dd.name)}
                                                                             </option>`;
                                                                     })
                                                                     .join('');
@@ -1714,18 +1714,19 @@ export class CheckoutIndex {
                                                                                     return html`
                                                                                         <option value="${dd.value}"
                                                                                                 ${vm.cartData.user_info.shipment === dd.value ? `selected` : ``}>
-                                                                                            ${Language.text(`ship_${dd.value}`) || dd.name}
+                                                                                            ${Language.text(`ship_${dd.value}`) || Language.getLanguageCustomText(dd.name)}
                                                                                         </option>`;
                                                                                 })
                                                                                 .join('');
                                                                     })()}
                                                                 </select>
                                                             </div>
+                                                           
                                                             ${vm.cartData.total > 20000 ? html`<p
-                                                                    class="${gClass('shipping-hint')}">
+                                                                    class="${gClass('shipping-hint')} d-none">
                                                                 若總金額超過20,000元，無法提供四大超商配送</p>` : ''}
                                                             ${vm.goodsWeight > 20 ? html`<p
-                                                                    class="${gClass('shipping-hint')}">
+                                                                    class="${gClass('shipping-hint')} d-none">
                                                                 若訂單總重超過20公斤，無法提供中華郵政/黑貓宅配服務</p>` : ''}`;
                                                     },
                                                 })}
@@ -1796,7 +1797,7 @@ export class CheckoutIndex {
                                                             refresh: () => {
                                                                 this.storeLocalData(vm.cartData);
                                                             },
-                                                            formData: vm.cartData.user_info.custom_form_delivery,
+                                                            formData: vm.cartData.user_info.custom_form_delivery
                                                         }),
                                                     ].join('');
                                                 } catch (e) {

@@ -54,11 +54,9 @@ export class Entry {
         };
         glitter.page = (window as any).glitter_page;
         glitter.share.GlobalUser = GlobalUser;
-
         if (glitter.getUrlParameter('page') !== 'backend_manager') {
             Entry.checkRedirectPage(glitter);
         }
-
         glitter.share.logID = glitter.getUUID();
         glitter.addStyle(`
             @media (prefers-reduced-motion: no-preference) {
@@ -78,10 +76,9 @@ export class Entry {
         if (glitter.getUrlParameter('appName')) {
             (window as any).appName = glitter.getUrlParameter('appName');
         }
-
         (window as any).renderClock = (window as any).renderClock ?? clockF();
         console.log(`Entry-time:`, (window as any).renderClock.stop());
-        glitter.share.editerVersion = 'V_16.0.4';
+        glitter.share.editerVersion = 'V_16.0.9';
         glitter.share.start = new Date();
         const vm: {
             appConfig: any;
@@ -245,6 +242,7 @@ export class Entry {
                 });
             }
         });
+        glitter.share.LanguageApi = Language;
     }
 
     // 判斷是否為Iframe來覆寫Glitter代碼

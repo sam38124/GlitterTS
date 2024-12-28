@@ -7,6 +7,7 @@ import {BaseApi} from "../glitterBundle/api/base.js";
 import {config} from "../config.js";
 import {ApiShop} from "../glitter-base/route/shopping.js";
 import {Currency} from "../glitter-base/global/currency.js";
+import {Language} from "../glitter-base/global/language.js";
 
 export class ShoppingInformation {
     public static main(gvc: GVC) {
@@ -361,6 +362,11 @@ export class ShoppingInformation {
                                                     return html`
                                                         <div class="mt-2" style="color: #393939;font-size: 16px;">
                                                             多國語言
+                                                            <span class="cursor_pointer" style="font-size: 13px;color:#36B;" onclick="${gvc.event(()=>{
+                                                                BgWidget.selectLanguage({})
+                                                            })}"> 
+                                                                管理語言包
+                                                            </span>
                                                         </div>
                                                         <div style="color: #8D8D8D;font-size:13px;">
                                                             初次載入時將優先預設為用戶裝置所設定的語言
@@ -403,62 +409,66 @@ export class ShoppingInformation {
 </div>
 `
                                                             }).join('')}
-                                                            ${(all_lan.length !== vm.data.language_setting.support.length) ? html`
+                                                          <div class="d-flex align-items-center">
+                                                              ${[((all_lan.length !== vm.data.language_setting.support.length) ? html`
                                                                 <div class=" d-flex align-items-center justify-content-center cursor_pointer"
                                                                      style="color: #36B; font-size: 16px; font-weight: 400;"
                                                                      onclick="${gvc.event(() => {
-                                                                         let add = ''
-                                                                         BgWidget.settingDialog({
-                                                                             gvc: gvc,
-                                                                             title: '新增語言',
-                                                                             innerHTML: (gvc: GVC) => {
-                                                                                 const can_add = [{
-                                                                                     key: 'en-US',
-                                                                                     value: '英文'
-                                                                                 },
-                                                                                     {
-                                                                                         key: 'zh-CN',
-                                                                                         value: '簡體中文'
-                                                                                     },
-                                                                                     {
-                                                                                         key: 'zh-TW',
-                                                                                         value: '繁體中文'
-                                                                                     }].filter((dd) => {
-                                                                                     return !vm.data.language_setting.support.includes(dd.key)
-                                                                                 });
-                                                                                 add = can_add[0].key
-                                                                                 return [
-                                                                                     BgWidget.select({
-                                                                                         gvc: gvc,
-                                                                                         default: can_add[0].key,
-                                                                                         options: can_add,
-                                                                                         callback: (text) => {
-                                                                                             add = text
-                                                                                         },
-                                                                                     })
-                                                                                 ].join('')
-                                                                             },
-                                                                             footer_html: (gvc: GVC) => {
-                                                                                 return BgWidget.save(gvc.event(() => {
-                                                                                     vm.data.language_setting.support.push(add)
-                                                                                     gvc.closeDialog()
-                                                                                     setTimeout(() => {
-                                                                                         refreshLanguage()
-                                                                                     }, 100)
+                                                                  let add = ''
+                                                                  BgWidget.settingDialog({
+                                                                      gvc: gvc,
+                                                                      title: '新增語言',
+                                                                      innerHTML: (gvc: GVC) => {
+                                                                          const can_add = [{
+                                                                              key: 'en-US',
+                                                                              value: '英文'
+                                                                          },
+                                                                              {
+                                                                                  key: 'zh-CN',
+                                                                                  value: '簡體中文'
+                                                                              },
+                                                                              {
+                                                                                  key: 'zh-TW',
+                                                                                  value: '繁體中文'
+                                                                              }].filter((dd) => {
+                                                                              return !vm.data.language_setting.support.includes(dd.key)
+                                                                          });
+                                                                          add = can_add[0].key
+                                                                          return [
+                                                                              BgWidget.select({
+                                                                                  gvc: gvc,
+                                                                                  default: can_add[0].key,
+                                                                                  options: can_add,
+                                                                                  callback: (text) => {
+                                                                                      add = text
+                                                                                  },
+                                                                              })
+                                                                          ].join('')
+                                                                      },
+                                                                      footer_html: (gvc: GVC) => {
+                                                                          return BgWidget.save(gvc.event(() => {
+                                                                              vm.data.language_setting.support.push(add)
+                                                                              gvc.closeDialog()
+                                                                              setTimeout(() => {
+                                                                                  refreshLanguage()
+                                                                              }, 100)
 
-                                                                                 }), '新增')
-                                                                             },
-                                                                             width: 200
-                                                                         })
-                                                                     })}">
-                                                                    <div>新增語言</div>
-                                                                    <div>
-                                                                        <i class="fa-solid fa-plus ps-2"
-                                                                           style="font-size: 16px; height: 14px; width: 14px;"
+                                                                          }), '新增')
+                                                                      },
+                                                                      width: 200
+                                                                  })
+                                                              })}">
+                                                                    <div>新增語系</div>
+                                                                    <div class="d-flex align-items-center justify-content-center p-2">
+                                                                        <i class="fa-solid fa-plus fs-6"
+                                                                           style="font-size: 16px; "
                                                                            aria-hidden="true"></i>
                                                                     </div>
                                                                 </div>
-                                                            ` : ``}
+                                                            ` : ``)].filter((dd)=>{
+                                                                  return dd.trim()
+                                                              }).join(``)}
+                                                          </div>
                                                         </div>`
                                                 }
                                             }

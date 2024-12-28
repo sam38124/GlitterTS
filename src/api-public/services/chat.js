@@ -375,7 +375,7 @@ class Chat {
                                 }
                             }
                             else if (room.user_id === 'manager') {
-                                const template = await auto_send_email_js_1.AutoSendEmail.getDefCompare(this.app, 'get-customer-message');
+                                const template = await auto_send_email_js_1.AutoSendEmail.getDefCompare(this.app, 'get-customer-message', 'zh-TW');
                                 await (0, ses_js_1.sendmail)(`service@ncdesign.info`, dd.userData.email, template.title, template.content.replace(/@{{text}}/g, room.message.text).replace(/@{{link}}/g, managerUser.domain));
                             }
                             else {
@@ -412,7 +412,7 @@ class Chat {
                         });
                     }
                 }
-                const template = await auto_send_email_js_1.AutoSendEmail.getDefCompare(this.app, 'get-customer-message');
+                const template = await auto_send_email_js_1.AutoSendEmail.getDefCompare(this.app, 'get-customer-message', 'zh-TW');
                 await new notify_js_1.ManagerNotify(this.app).customerMessager({
                     title: template.title,
                     content: template.content.replace(/@{{text}}/g, room.message.text).replace(/@{{link}}/g, managerUser.domain),

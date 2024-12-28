@@ -214,19 +214,20 @@ export async function createAPP(dd: any) {
                         req.headers['g-app'] = appName;
                         const start = new Date().getTime();
                         console.log(`getPageInfo==>`, (new Date().getTime() - start) / 1000);
-                        let customCode = await new User(appName).getConfigV2({
+
+                        let [customCode,FBCode,store_info,language_label]= await Promise.all([new User(appName).getConfigV2({
                             key: 'ga4_config',
                             user_id: 'manager',
-                        });
-                        let FBCode = await new User(appName).getConfigV2({
+                        }), new User(appName).getConfigV2({
                             key: 'login_fb_setting',
                             user_id: 'manager',
-                        });
-                        let store_info = await new User(appName).getConfigV2({
+                        }), new User(appName).getConfigV2({
                             key: 'store-information',
                             user_id: 'manager',
-                        });
-                        console.log(`req.query.page.prefix===>`, req.query.page);
+                        }),new User(appName).getConfigV2({
+                            key: 'language-label',
+                            user_id: 'manager',
+                        })])
                         //取得多國語言
                         const language = (() => {
                             function checkIncludes(lan: string) {
@@ -526,6 +527,7 @@ export async function createAPP(dd: any) {
                                 ${distribution_code};
                                 window.ip_country='${(await User.ipInfo((req.query.ip || req.headers['x-real-ip'] || req.ip) as string)).country || 'TW'}';
                                 window.currency_covert=${JSON.stringify(await Shopping.currencyCovert((req.query.base || 'TWD') as string))};
+                                window.language_list=${JSON.stringify(language_label.label)};
                             </script>
                             ${[
                                 { src: 'glitterBundle/GlitterInitial.js', type: 'module' },

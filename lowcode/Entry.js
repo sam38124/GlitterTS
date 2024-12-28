@@ -79,7 +79,7 @@ export class Entry {
         }
         window.renderClock = (_a = window.renderClock) !== null && _a !== void 0 ? _a : clockF();
         console.log(`Entry-time:`, window.renderClock.stop());
-        glitter.share.editerVersion = 'V_16.0.4';
+        glitter.share.editerVersion = 'V_16.0.9';
         glitter.share.start = new Date();
         const vm = {
             appConfig: [],
@@ -237,6 +237,7 @@ export class Entry {
                 });
             }
         }));
+        glitter.share.LanguageApi = Language;
     }
     static checkIframe(glitter) {
         if (glitter.getUrlParameter('isIframe') === 'true') {

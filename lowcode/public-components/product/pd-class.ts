@@ -618,6 +618,7 @@ overflow: hidden;
         })
     }
 
+
     static selectSpec(obj: {
         gvc: GVC;
         titleFontColor: string;

@@ -124,7 +124,7 @@ export class User {
         //超過30秒可在次發送
         if (!time || new Date().getTime() - new Date(time).getTime() > 1000 * 30) {
             await redis.setValue(`verify-${account}-last-time`, new Date().toISOString());
-            const data = await AutoSendEmail.getDefCompare(this.app, 'auto-email-verify-update');
+            const data = await AutoSendEmail.getDefCompare(this.app, 'auto-email-verify-update','zh-TW');
             const code = Tool.randomNumber(6);
             await redis.setValue(`verify-${account}`, code);
             data.content = data.content.replace(`@{{code}}`, code);
@@ -144,7 +144,7 @@ export class User {
         //超過30秒可在次發送
         if (!time || new Date().getTime() - new Date(time).getTime() > 1000 * 30) {
             await redis.setValue(`verify-phone-${account}-last-time`, new Date().toISOString());
-            const data = await AutoSendEmail.getDefCompare(this.app, 'auto-phone-verify-update');
+            const data = await AutoSendEmail.getDefCompare(this.app, 'auto-phone-verify-update','zh-TW');
             const code = Tool.randomNumber(6);
             await redis.setValue(`verify-phone-${account}`, code);
             data.content = data.content.replace(`@{{code}}`, code);
@@ -268,7 +268,7 @@ export class User {
                 userID,
             ]
         );
-        const data = await AutoSendEmail.getDefCompare(this.app, 'auto-email-welcome');
+        const data = await AutoSendEmail.getDefCompare(this.app, 'auto-email-welcome','zh-TW');
         if (data.toggle) {
             sendmail(`${data.name} <${process.env.smtp}>`, usData.account, data.title, data.content);
         }
@@ -2137,6 +2137,15 @@ export class User {
                             },
                         });
                         return await this.getConfigV2(config);
+                    case 'language-label':
+                        await this.setConfig({
+                            key: config.key,
+                            user_id: config.user_id,
+                            value: {
+                                "label": []
+                            },
+                        });
+                        return await this.getConfigV2(config);
                 }
             }
             if (data[0] && data[0].value) {
@@ -2283,7 +2292,7 @@ export class User {
     }
 
     public async forgetPassword(email: string) {
-        const data = await AutoSendEmail.getDefCompare(this.app, 'auto-email-forget');
+        const data = await AutoSendEmail.getDefCompare(this.app, 'auto-email-forget','zh-TW');
         const code = Tool.randomNumber(6);
         await redis.setValue(`forget-${email}`, code);
         await redis.setValue(`forget-count-${email}`, '0');

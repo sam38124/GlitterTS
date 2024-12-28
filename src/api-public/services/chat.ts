@@ -497,7 +497,7 @@ export class Chat {
                                 }
                             } else if (room.user_id === 'manager') {
                                 // 商家寄給消費者，消費者會收到信件
-                                const template = await AutoSendEmail.getDefCompare(this.app, 'get-customer-message');
+                                const template = await AutoSendEmail.getDefCompare(this.app, 'get-customer-message','zh-TW');
                                 await sendmail(
                                     `service@ncdesign.info`,
                                     dd.userData.email,
@@ -542,7 +542,7 @@ export class Chat {
                        })
                     }
                 }
-                const template = await AutoSendEmail.getDefCompare(this.app, 'get-customer-message');
+                const template = await AutoSendEmail.getDefCompare(this.app, 'get-customer-message','zh-TW');
                 await new ManagerNotify(this.app).customerMessager({
                     title: template.title,
                     content: template.content.replace(/@{{text}}/g, room.message.text).replace(/@{{link}}/g, managerUser.domain),

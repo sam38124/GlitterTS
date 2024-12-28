@@ -216,7 +216,7 @@ export class SMS {
             let n = 0;
             await new Promise<void>((resolve) => {
                 for (const email of emails) {
-                    AutoSendEmail.getDefCompare(this.app, email.content.type).then((dd) => {
+                    AutoSendEmail.getDefCompare(this.app, email.content.type,'zh-TW').then((dd) => {
                         email.content.typeName = dd && dd.tag_name ? dd.tag_name : '手動發送';
                         n++;
                     });
@@ -292,7 +292,7 @@ export class SMS {
         }
     }
     public async sendCustomerSns(tag: string, order_id: string, phone: string) {
-        const customerMail = await AutoSendEmail.getDefCompare(this.app, tag);
+        const customerMail = await AutoSendEmail.getDefCompare(this.app, tag,'zh-TW');
         if (customerMail.toggle) {
             await new Promise(async (resolve) => {
                 resolve(await this.sendSNS({ data: customerMail.content.replace(/@\{\{訂單號碼\}\}/g, order_id), phone: phone, order_id: order_id }, (res) => {}));

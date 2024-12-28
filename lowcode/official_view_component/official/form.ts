@@ -410,7 +410,6 @@ export class FormWidget {
         const glitter = obj.gvc.glitter;
         const gvc = obj.gvc;
         const formData = obj.formData;
-
         function getRaw(array: []) {
             return array
                 .map(
@@ -763,7 +762,6 @@ export class FormWidget {
                 )
                 .join('');
         }
-
         let groupList: any = {};
         if (Array.isArray(obj.array)) {
             obj.array.map((dd: any) => {
@@ -773,8 +771,7 @@ export class FormWidget {
             });
         }
 
-        return html`
-            <div class="row m-0 p-0">
+        return html`<div class="row m-0 p-0">
                 ${Object.keys(groupList)
                         .map((key) => {
                             if (key) {

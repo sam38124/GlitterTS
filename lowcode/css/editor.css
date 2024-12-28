@@ -605,6 +605,21 @@ h6 {
     background: var(--main-black-hover) !important;
 }
 
+.btn-orange {
+    display: flex;
+    padding: 8px 14px;
+    max-height: 36px;
+    justify-content: center;
+    align-items: center;
+    gap: 8px;
+    border: 0;
+    border-radius: 10px;
+    background: orange;
+    cursor: pointer;
+    color:#585858;
+}
+
+
 .btn-red {
     display: flex;
     padding: 8px 14px;

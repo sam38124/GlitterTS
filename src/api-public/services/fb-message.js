@@ -190,7 +190,7 @@ class FbMessage {
             let n = 0;
             await new Promise((resolve) => {
                 for (const email of emails) {
-                    auto_send_email_js_1.AutoSendEmail.getDefCompare(this.app, email.content.type).then((dd) => {
+                    auto_send_email_js_1.AutoSendEmail.getDefCompare(this.app, email.content.type, 'zh-TW').then((dd) => {
                         email.content.typeName = dd && dd.tag_name ? dd.tag_name : '手動發送';
                         n++;
                     });
@@ -421,7 +421,7 @@ class FbMessage {
         }
     }
     async sendCustomerFB(tag, order_id, fb_id) {
-        const customerMail = await auto_send_email_js_1.AutoSendEmail.getDefCompare(this.app, tag);
+        const customerMail = await auto_send_email_js_1.AutoSendEmail.getDefCompare(this.app, tag, 'zh-TW');
         customerMail.tag = "POST_PURCHASE_UPDATE";
         if (customerMail.toggle) {
             await new Promise(async (resolve) => {

@@ -77,7 +77,7 @@ class User {
         const time = await redis_js_1.default.getValue(`verify-${account}-last-time`);
         if (!time || new Date().getTime() - new Date(time).getTime() > 1000 * 30) {
             await redis_js_1.default.setValue(`verify-${account}-last-time`, new Date().toISOString());
-            const data = await auto_send_email_js_1.AutoSendEmail.getDefCompare(this.app, 'auto-email-verify-update');
+            const data = await auto_send_email_js_1.AutoSendEmail.getDefCompare(this.app, 'auto-email-verify-update', 'zh-TW');
             const code = tool_js_1.default.randomNumber(6);
             await redis_js_1.default.setValue(`verify-${account}`, code);
             data.content = data.content.replace(`@{{code}}`, code);
@@ -96,7 +96,7 @@ class User {
         const time = await redis_js_1.default.getValue(`verify-phone-${account}-last-time`);
         if (!time || new Date().getTime() - new Date(time).getTime() > 1000 * 30) {
             await redis_js_1.default.setValue(`verify-phone-${account}-last-time`, new Date().toISOString());
-            const data = await auto_send_email_js_1.AutoSendEmail.getDefCompare(this.app, 'auto-phone-verify-update');
+            const data = await auto_send_email_js_1.AutoSendEmail.getDefCompare(this.app, 'auto-phone-verify-update', 'zh-TW');
             const code = tool_js_1.default.randomNumber(6);
             await redis_js_1.default.setValue(`verify-phone-${account}`, code);
             data.content = data.content.replace(`@{{code}}`, code);
@@ -199,7 +199,7 @@ class User {
             })),
             userID,
         ]);
-        const data = await auto_send_email_js_1.AutoSendEmail.getDefCompare(this.app, 'auto-email-welcome');
+        const data = await auto_send_email_js_1.AutoSendEmail.getDefCompare(this.app, 'auto-email-welcome', 'zh-TW');
         if (data.toggle) {
             (0, ses_js_1.sendmail)(`${data.name} <${process_1.default.env.smtp}>`, usData.account, data.title, data.content);
         }
@@ -1712,6 +1712,15 @@ class User {
                             },
                         });
                         return await this.getConfigV2(config);
+                    case 'language-label':
+                        await this.setConfig({
+                            key: config.key,
+                            user_id: config.user_id,
+                            value: {
+                                "label": []
+                            },
+                        });
+                        return await this.getConfigV2(config);
                 }
             }
             if (data[0] && data[0].value) {
@@ -1834,7 +1843,7 @@ class User {
         }
     }
     async forgetPassword(email) {
-        const data = await auto_send_email_js_1.AutoSendEmail.getDefCompare(this.app, 'auto-email-forget');
+        const data = await auto_send_email_js_1.AutoSendEmail.getDefCompare(this.app, 'auto-email-forget', 'zh-TW');
         const code = tool_js_1.default.randomNumber(6);
         await redis_js_1.default.setValue(`forget-${email}`, code);
         await redis_js_1.default.setValue(`forget-count-${email}`, '0');

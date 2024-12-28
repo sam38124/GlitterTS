@@ -2697,7 +2697,7 @@ export class ShoppingProductSetting {
                                                     return img || BgWidget.noImageURL;
                                                 }
                                                 function getSpecTitle(first, second) {
-                                                    var _b, _c, _d, _e;
+                                                    var _b, _c;
                                                     let first_t = postMD.specs.find((dd) => {
                                                         return dd.title === first;
                                                     });
@@ -2705,13 +2705,13 @@ export class ShoppingProductSetting {
                                                     console.log(`first=>${first}=>`, first_t);
                                                     first_t.language_title = (_b = first_t.language_title) !== null && _b !== void 0 ? _b : {};
                                                     if (!second) {
-                                                        return (_c = first_t.language_title[sel_lan()]) !== null && _c !== void 0 ? _c : first_t.title;
+                                                        return first_t.language_title[sel_lan()] || first_t.title;
                                                     }
                                                     let second_t = first_t.option.find((dd) => {
                                                         return dd.title === second;
                                                     });
-                                                    second_t.language_title = (_d = second_t.language_title) !== null && _d !== void 0 ? _d : {};
-                                                    return (_e = second_t.language_title[sel_lan()]) !== null && _e !== void 0 ? _e : second_t.title;
+                                                    second_t.language_title = (_c = second_t.language_title) !== null && _c !== void 0 ? _c : {};
+                                                    return second_t.language_title[sel_lan()] || second_t.title;
                                                 }
                                                 postMD.specs[0].option = (_b = postMD.specs[0].option) !== null && _b !== void 0 ? _b : [];
                                                 return {

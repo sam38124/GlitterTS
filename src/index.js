@@ -26,7 +26,9 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.createAPP = exports.initial = exports.app = void 0;
+exports.app = void 0;
+exports.initial = initial;
+exports.createAPP = createAPP;
 const path_1 = __importDefault(require("path"));
 const express_1 = __importDefault(require("express"));
 const cors_1 = __importDefault(require("cors"));
@@ -118,7 +120,6 @@ async function initial(serverPort) {
         console.log('Starting up the server now.');
     })();
 }
-exports.initial = initial;
 function createContext(req, res, next) {
     const uuid = (0, uuid_1.v4)();
     const ip = req.ip;
@@ -213,19 +214,19 @@ async function createAPP(dd) {
                     req.headers['g-app'] = appName;
                     const start = new Date().getTime();
                     console.log(`getPageInfo==>`, (new Date().getTime() - start) / 1000);
-                    let customCode = await new user_js_1.User(appName).getConfigV2({
-                        key: 'ga4_config',
-                        user_id: 'manager',
-                    });
-                    let FBCode = await new user_js_1.User(appName).getConfigV2({
-                        key: 'login_fb_setting',
-                        user_id: 'manager',
-                    });
-                    let store_info = await new user_js_1.User(appName).getConfigV2({
-                        key: 'store-information',
-                        user_id: 'manager',
-                    });
-                    console.log(`req.query.page.prefix===>`, req.query.page);
+                    let [customCode, FBCode, store_info, language_label] = await Promise.all([new user_js_1.User(appName).getConfigV2({
+                            key: 'ga4_config',
+                            user_id: 'manager',
+                        }), new user_js_1.User(appName).getConfigV2({
+                            key: 'login_fb_setting',
+                            user_id: 'manager',
+                        }), new user_js_1.User(appName).getConfigV2({
+                            key: 'store-information',
+                            user_id: 'manager',
+                        }), new user_js_1.User(appName).getConfigV2({
+                            key: 'language-label',
+                            user_id: 'manager',
+                        })]);
                     const language = (() => {
                         function checkIncludes(lan) {
                             return store_info.language_setting.support.includes(lan);
@@ -524,6 +525,7 @@ async function createAPP(dd) {
                                 ${distribution_code};
                                 window.ip_country='${(await user_js_1.User.ipInfo((req.query.ip || req.headers['x-real-ip'] || req.ip))).country || 'TW'}';
                                 window.currency_covert=${JSON.stringify(await shopping_js_1.Shopping.currencyCovert((req.query.base || 'TWD')))};
+                                window.language_list=${JSON.stringify(language_label.label)};
                             </script>
                             ${[
                             { src: 'glitterBundle/GlitterInitial.js', type: 'module' },
@@ -777,7 +779,6 @@ Sitemap: https://${domain}/sitemap.xml`;
         };
     }));
 }
-exports.createAPP = createAPP;
 async function getSeoDetail(appName, req) {
     const sqlData = await private_config_js_1.Private_config.getConfig({
         appName: appName,

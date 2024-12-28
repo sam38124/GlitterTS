@@ -132,6 +132,7 @@ type Cart = {
     code_array: string[];
     deliveryData?: DeliveryData;
     give_away: CartItem[];
+    language?: string;
 };
 export declare class Shopping {
     app: string;

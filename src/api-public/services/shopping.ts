@@ -159,6 +159,7 @@ type Cart = {
     code_array: string[];
     deliveryData?: DeliveryData;
     give_away: CartItem[];
+    language?:string
 };
 
 export class Shopping {
@@ -877,11 +878,9 @@ export class Shopping {
             console.log(`checkout-time-1=>`, new Date().getTime() - check_time);
             const userClass = new User(this.app);
             const rebateClass = new Rebate(this.app);
-            data.email=data.email || 'no-email'
             if (type !== 'preview' && !(this.token && this.token.userID) && !data.email && !(data.user_info && data.user_info.email)) {
                 throw exception.BadRequestError('BAD_REQUEST', 'ToCheckout 2 Error:No email address.', null);
             }
-
             const userData = await (async () => {
                 if (type !== 'preview' || (this.token && this.token.userID)) {
                     return this.token && this.token.userID
@@ -901,14 +900,9 @@ export class Shopping {
                 if (data.user_info && data.user_info.email) {
                     data.email = data.user_info.email;
                 } else {
-                    throw exception.BadRequestError('BAD_REQUEST', 'ToCheckout 3 Error:No email address.', null);
+                    data.email=data.email || 'no-email';
                 }
             }
-
-            if (!data.email && type !== 'preview') {
-                throw exception.BadRequestError('BAD_REQUEST', 'ToCheckout 4 Error:No email address.', null);
-            }
-
             // 判斷購物金是否可用
             if (data.use_rebate && data.use_rebate > 0) {
                 if (userData) {
@@ -1065,8 +1059,8 @@ export class Shopping {
                 code_array: data.code_array,
                 give_away: data.give_away as any,
                 user_rebate_sum: 0,
+                language:data.language
             };
-
             function calculateShipment(dataList: { key: string; value: string }[], value: number | string) {
                 if (value === 0) {
                     return 0;
@@ -1089,7 +1083,6 @@ export class Shopping {
                 // 如果商品值大於所有的key，返回最後一個value
                 return parseInt(dataList[dataList.length - 1].value);
             }
-
             const add_on_items: any[] = [];
             let gift_product: any[] = [];
             for (const b of data.line_items) {
@@ -1323,7 +1316,6 @@ export class Shopping {
                 }
             }
             console.log(`checkout-time-11=>`, new Date().getTime() - check_time);
-
             // 付款資訊設定
             const keyData: paymentInterface = (
                 await Private_config.getConfig({
@@ -1331,7 +1323,6 @@ export class Shopping {
                     key: 'glitter_finance',
                 })
             )[0].value;
-
             (carData as any).payment_info_custom = keyData.payment_info_custom;
 
             await new Promise<void>((resolve) => {
@@ -1599,7 +1590,7 @@ export class Shopping {
                         //     await fb.sendCustomerFB('auto-fb-order-create', carData.orderID, carData.customer_info.fb_id);
                         //     console.log('訂單FB訊息寄送成功');
                         // }
-                        await AutoSendEmail.customerOrder(this.app, 'auto-email-order-create', carData.orderID, carData.email);
+                        await AutoSendEmail.customerOrder(this.app, 'auto-email-order-create', carData.orderID, carData.email,carData.language!!);
 
                         await db.execute(
                             `INSERT INTO \`${this.app}\`.t_checkout (cart_token, status, email, orderData)
@@ -2194,7 +2185,7 @@ export class Shopping {
                         await line.sendCustomerLine('auto-line-shipment', data.orderData.orderID, data.orderData.customer_info.lineID);
                         console.log('付款成功line訊息寄送成功');
                     }
-                    await AutoSendEmail.customerOrder(this.app, 'auto-email-shipment', data.orderData.orderID, data.orderData.email);
+                    await AutoSendEmail.customerOrder(this.app, 'auto-email-shipment', data.orderData.orderID, data.orderData.email,data.orderData.language);
                 }
 
                 // 商品到貨信件通知（消費者）
@@ -2208,7 +2199,7 @@ export class Shopping {
                         await line.sendCustomerLine('auto-line-shipment-arrival', data.orderData.orderID, data.orderData.customer_info.lineID);
                         console.log('付款成功line訊息寄送成功');
                     }
-                    await AutoSendEmail.customerOrder(this.app, 'auto-email-shipment-arrival', data.orderData.orderID, data.orderData.email);
+                    await AutoSendEmail.customerOrder(this.app, 'auto-email-shipment-arrival', data.orderData.orderID, data.orderData.email,data.orderData.language);
                 }
 
                 if (origin[0].status !== 1 && update.status === 1) {
@@ -2303,7 +2294,7 @@ export class Shopping {
 
             // 訂單待核款信件通知
             new ManagerNotify(this.app).uploadProof({ orderData: orderData });
-            await AutoSendEmail.customerOrder(this.app, 'proof-purchase', order_id, orderData.email);
+            await AutoSendEmail.customerOrder(this.app, 'proof-purchase', order_id, orderData.email,orderData.language);
 
             if (orderData.customer_info.phone) {
                 let sns = new SMS(this.app);
@@ -2580,7 +2571,7 @@ OR JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.orderStatus')) NOT IN (-99)) `);
                     status: status,
                 });
 
-                await AutoSendEmail.customerOrder(this.app, 'auto-email-payment-successful', order_id, cartData.email);
+                await AutoSendEmail.customerOrder(this.app, 'auto-email-payment-successful', order_id, cartData.email,cartData.orderData.language);
 
                 if (cartData.orderData.customer_info.phone) {
                     let sns = new SMS(this.app);
