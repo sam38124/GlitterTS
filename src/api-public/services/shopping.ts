@@ -152,7 +152,7 @@ type Cart = {
     user_rebate_sum: number;
     voucherList?: VoucherData[];
     custom_form_format?: any;
-    custom_receipt_form?:any;
+    custom_receipt_form?: any;
     custom_form_data?: any;
     distribution_id?: number;
     distribution_info?: any;
@@ -160,7 +160,7 @@ type Cart = {
     code_array: string[];
     deliveryData?: DeliveryData;
     give_away: CartItem[];
-    language?:string
+    language?: string;
 };
 
 export class Shopping {
@@ -242,12 +242,12 @@ export class Shopping {
         productType?: string;
         filter_visible?: string;
         language?: string;
-        currency_code?:string
+        currency_code?: string;
     }) {
         try {
             query.language = query.language ?? (await App.getDefLanguage(this.app));
             query.show_hidden = query.show_hidden ?? 'true';
-            console.log(`currency_code=>`,query.currency_code)
+            console.log(`currency_code=>`, query.currency_code);
             let querySql = [`(content->>'$.type'='product')`];
             if (query.search) {
                 switch (query.searchType) {
@@ -569,10 +569,10 @@ export class Shopping {
                     dd.content.content = dd.content.language_data[`${query.language}`].content || dd.content.content;
                     dd.content.content_array = dd.content.language_data[`${query.language}`].content_array || dd.content.content_array;
                     dd.content.content_json = dd.content.language_data[`${query.language}`].content_json || dd.content.content_json;
-                    dd.content.preview_image =  dd.content.language_data[`${query.language}`].preview_image || dd.content.preview_image;
-                    (dd.content.variants || []).map((variant:any)=>{
-                        variant.preview_image=variant[`preview_image_${query.language}`] || variant.preview_image
-                    })
+                    dd.content.preview_image = dd.content.language_data[`${query.language}`].preview_image || dd.content.preview_image;
+                    (dd.content.variants || []).map((variant: any) => {
+                        variant.preview_image = variant[`preview_image_${query.language}`] || variant.preview_image;
+                    });
                 }
             });
 
@@ -831,7 +831,7 @@ export class Shopping {
             pay_status?: number; //自定義訂單狀態
             custom_form_format?: any; //自定義表單格式
             custom_form_data?: any; //自定義表單資料
-            custom_receipt_form?:any; //自定義配送表單格式
+            custom_receipt_form?: any; //自定義配送表單格式
             distribution_code?: string; //分銷連結代碼
             code_array: string[]; // 優惠券代碼列表
             give_away?: {
@@ -902,7 +902,7 @@ export class Shopping {
                 if (data.user_info && data.user_info.email) {
                     data.email = data.user_info.email;
                 } else {
-                    data.email=data.email || 'no-email';
+                    data.email = data.email || 'no-email';
                 }
             }
             // 判斷購物金是否可用
@@ -1056,12 +1056,12 @@ export class Shopping {
                 useRebateInfo: { point: 0 },
                 custom_form_format: data.custom_form_format,
                 custom_form_data: data.custom_form_data,
-                custom_receipt_form:data.custom_receipt_form,
+                custom_receipt_form: data.custom_receipt_form,
                 orderSource: data.checkOutType === 'POS' ? `POS` : ``,
                 code_array: data.code_array,
                 give_away: data.give_away as any,
                 user_rebate_sum: 0,
-                language:data.language
+                language: data.language,
             };
             function calculateShipment(dataList: { key: string; value: string }[], value: number | string) {
                 if (value === 0) {
@@ -1239,7 +1239,7 @@ export class Shopping {
                     limit: 99999,
                     code: data.distribution_code,
                     status: true,
-                    no_detail:true
+                    no_detail: true,
                 });
                 if (linkList.data.length > 0) {
                     const content = linkList.data[0].content;
@@ -1609,7 +1609,7 @@ export class Shopping {
                         //     await fb.sendCustomerFB('auto-fb-order-create', carData.orderID, carData.customer_info.fb_id);
                         //     console.log('訂單FB訊息寄送成功');
                         // }
-                        await AutoSendEmail.customerOrder(this.app, 'auto-email-order-create', carData.orderID, carData.email,carData.language!!);
+                        await AutoSendEmail.customerOrder(this.app, 'auto-email-order-create', carData.orderID, carData.email, carData.language!!);
 
                         await db.execute(
                             `INSERT INTO \`${this.app}\`.t_checkout (cart_token, status, email, orderData)
@@ -1936,13 +1936,13 @@ export class Shopping {
                     return userData && userData.id && dd.targetList.includes(userData.userID);
                 }
                 if (dd.target === 'levels') {
-                    if(userData && userData.member){
-                        const find=userData.member.find((dd:any)=>{
-                            return dd.trigger
+                    if (userData && userData.member) {
+                        const find = userData.member.find((dd: any) => {
+                            return dd.trigger;
                         });
                         return find && dd.targetList.includes(find.id);
-                    }else{
-                        return  false
+                    } else {
+                        return false;
                     }
                 }
                 return true; // 所有顧客皆可使用
@@ -2204,7 +2204,7 @@ export class Shopping {
                         await line.sendCustomerLine('auto-line-shipment', data.orderData.orderID, data.orderData.customer_info.lineID);
                         console.log('付款成功line訊息寄送成功');
                     }
-                    await AutoSendEmail.customerOrder(this.app, 'auto-email-shipment', data.orderData.orderID, data.orderData.email,data.orderData.language);
+                    await AutoSendEmail.customerOrder(this.app, 'auto-email-shipment', data.orderData.orderID, data.orderData.email, data.orderData.language);
                 }
 
                 // 商品到貨信件通知（消費者）
@@ -2218,7 +2218,7 @@ export class Shopping {
                         await line.sendCustomerLine('auto-line-shipment-arrival', data.orderData.orderID, data.orderData.customer_info.lineID);
                         console.log('付款成功line訊息寄送成功');
                     }
-                    await AutoSendEmail.customerOrder(this.app, 'auto-email-shipment-arrival', data.orderData.orderID, data.orderData.email,data.orderData.language);
+                    await AutoSendEmail.customerOrder(this.app, 'auto-email-shipment-arrival', data.orderData.orderID, data.orderData.email, data.orderData.language);
                 }
 
                 if (origin[0].status !== 1 && update.status === 1) {
@@ -2272,10 +2272,7 @@ export class Shopping {
                 }
             }
 
-            await db.query(
-                `UPDATE \`${this.app}\`.t_checkout SET orderData = ? WHERE cart_token = ?;`,
-                [JSON.stringify(orderData), order_id]
-            );
+            await db.query(`UPDATE \`${this.app}\`.t_checkout SET orderData = ? WHERE cart_token = ?;`, [JSON.stringify(orderData), order_id]);
 
             return { data: true };
         } catch (e) {
@@ -2313,7 +2310,7 @@ export class Shopping {
 
             // 訂單待核款信件通知
             new ManagerNotify(this.app).uploadProof({ orderData: orderData });
-            await AutoSendEmail.customerOrder(this.app, 'proof-purchase', order_id, orderData.email,orderData.language);
+            await AutoSendEmail.customerOrder(this.app, 'proof-purchase', order_id, orderData.email, orderData.language);
 
             if (orderData.customer_info.phone) {
                 let sns = new SMS(this.app);
@@ -2472,8 +2469,8 @@ OR JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.orderStatus')) NOT IN (-99)) `);
             } else if (query.filter_type === 'normal') {
                 querySql.push(`((orderData->>'$.archived' is null) or (orderData->>'$.archived'!='true'))`);
             }
-            if(!(query.filter_type === 'true' || query.archived)){
-                querySql.push(`((orderData->>'$.orderStatus' is null) or (orderData->>'$.orderStatus' NOT IN (-99)))`)
+            if (!(query.filter_type === 'true' || query.archived)) {
+                querySql.push(`((orderData->>'$.orderStatus' is null) or (orderData->>'$.orderStatus' NOT IN (-99)))`);
             }
             let sql = `SELECT *
                        FROM \`${this.app}\`.t_checkout
@@ -2590,7 +2587,7 @@ OR JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.orderStatus')) NOT IN (-99)) `);
                     status: status,
                 });
 
-                await AutoSendEmail.customerOrder(this.app, 'auto-email-payment-successful', order_id, cartData.email,cartData.orderData.language);
+                await AutoSendEmail.customerOrder(this.app, 'auto-email-payment-successful', order_id, cartData.email, cartData.orderData.language);
 
                 if (cartData.orderData.customer_info.phone) {
                     let sns = new SMS(this.app);
@@ -4449,12 +4446,12 @@ OR JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.orderStatus')) NOT IN (-99)) `);
         });
     }
 
-    static async currencyCovert(base:string){
-        const data:any=(await db.query(`SELECT * FROM ${saasConfig.SAAS_NAME}.currency_config  order by id desc limit 0,1;`,[]))[0]['json']['rates'];
-        const base_m=data[base]
-        Object.keys(data).map((dd)=>{
-            data[dd]=(data[dd]/base_m)
-        })
-        return data
+    static async currencyCovert(base: string) {
+        const data: any = (await db.query(`SELECT * FROM ${saasConfig.SAAS_NAME}.currency_config  order by id desc limit 0,1;`, []))[0]['json']['rates'];
+        const base_m = data[base];
+        Object.keys(data).map((dd) => {
+            data[dd] = data[dd] / base_m;
+        });
+        return data;
     }
 }

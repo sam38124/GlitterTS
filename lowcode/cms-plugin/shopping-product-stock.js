@@ -72,7 +72,17 @@ export class StockList {
                             class: 'rounded border ms-1',
                         })}
                             <div class="d-flex flex-column">
-                                <span class="tx_normal">${Tool.truncateString(dd.product_content.title)}</span>
+                                <span class="tx_normal"
+                                    >${Tool.truncateString((() => {
+                            try {
+                                return dd.product_content.language_data['zh-TW'].title;
+                            }
+                            catch (error) {
+                                console.error(`variant id ${dd.id} 沒有 zh-TW 的標題，使用原標題`);
+                                return dd.product_content.title;
+                            }
+                        })())}</span
+                                >
                                 ${BgWidget.grayNote(Tool.truncateString(dd.variant_content.spec.length > 0 ? dd.variant_content.spec.join(' / ') : '單一規格', 25), 'font-size: 16px;')}
                             </div>
                         </div>`,
@@ -121,8 +131,8 @@ export class StockList {
                                         dd.product_content.variants.map((variant) => {
                                             if (JSON.stringify(variant.spec) === JSON.stringify(dd.variant_content.spec)) {
                                                 variant.stock = sumStockCounts(dd.variant_content.stockList);
+                                                variant.stockList = dd.variant_content.stockList;
                                             }
-                                            variant.stockList = dd.variant_content.stockList;
                                         });
                                         vm.dataList.map((item) => {
                                             if (item.product_id === dd.product_id) {

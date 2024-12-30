@@ -33,6 +33,7 @@ export class Stock {
                 `,
                 []
             );
+
             let data = await db.query(
                 `
                     SELECT * FROM \`${this.app}\`.t_variants
@@ -45,7 +46,7 @@ export class Stock {
             if (data.length > 0) {
                 const idString = data.map((item: any) => `"${item.product_id}"`).join(',');
                 const productData = await db.query(
-                    `SELECT id, content->>'$.title' AS title FROM \`${this.app}\`.t_manager_post
+                    `SELECT id, content FROM \`${this.app}\`.t_manager_post
                     WHERE id in (${idString})
                     `,
                     []
@@ -55,7 +56,14 @@ export class Stock {
                     if (!prod) {
                         return false;
                     }
-                    item.title = prod.title;
+                    item.title = (() => {
+                        try {
+                            return prod.content.language_data['zh-TW'].title;
+                        } catch (error) {
+                            console.error(`product id ${prod.id} 沒有 zh-TW 的標題，使用原標題`);
+                            return prod.content.title;
+                        }
+                    })();
                     item.count = item.content.stockList[json.search].count;
                     return true;
                 });
@@ -68,7 +76,87 @@ export class Stock {
         } catch (error) {
             console.error(error);
             if (error instanceof Error) {
-                throw exception.BadRequestError('store productList Error: ', error.message, null);
+                throw exception.BadRequestError('stock productList Error: ', error.message, null);
+            }
+        }
+    }
+
+    async deleteStoreProduct(store_id: string) {
+        try {
+            const start = new Date();
+            const productList: { [k: string]: any } = {};
+            const variants = await db.query(
+                `SELECT * FROM \`${this.app}\`.t_variants
+                 WHERE content->>'$.stockList.${store_id}.count' is not null;
+                `,
+                []
+            );
+
+            if (variants.length == 0) {
+                return { data: true, process: '' };
+            }
+
+            const promise = await new Promise<void>((resolve) => {
+                let n = 0;
+                for (const variant of variants) {
+                    delete variant.content.stockList[store_id];
+                    db.query(
+                        `UPDATE \`${this.app}\`.t_variants SET ? WHERE id = ?
+                        `,
+                        [{ content: JSON.stringify(variant.content) }, variant.id]
+                    ).then(() => {
+                        const p = productList[`${variant.product_id}`];
+                        if (p) {
+                            p.push(variant.content);
+                        } else {
+                            productList[`${variant.product_id}`] = [variant.content];
+                        }
+                        n++;
+                        if (n === variants.length) {
+                            resolve();
+                        }
+                    });
+                }
+            }).then(async () => {
+                const idString = Object.keys(productList)
+                    .map((item) => `"${item}"`)
+                    .join(',');
+
+                if (idString.length > 0) {
+                    const products = await db.query(
+                        `SELECT * FROM \`${this.app}\`.t_manager_post WHERE id in (${idString});
+                        `,
+                        []
+                    );
+
+                    return await new Promise<void>((resolve) => {
+                        let n = 0;
+                        for (const product of products) {
+                            product.content.variants = productList[`${product.id}`];
+                            db.query(
+                                `UPDATE \`${this.app}\`.t_manager_post
+                                 SET ?
+                                 WHERE id = ?`,
+                                [{ content: JSON.stringify(product.content) }, product.id]
+                            ).then(() => {
+                                n++;
+                                if (n === products.length) {
+                                    resolve();
+                                }
+                            });
+                        }
+                    }).then(() => {
+                        return { data: true, process: 't_variants, t_manager_post' };
+                    });
+                }
+                return { data: true, process: 't_variants' };
+            });
+
+            return promise;
+        } catch (error) {
+            console.error(error);
+            if (error instanceof Error) {
+                throw exception.BadRequestError('stock deleteStore Error: ', error.message, null);
             }
         }
     }
