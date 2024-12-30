@@ -37,24 +37,30 @@ export class StockList {
         const ListComp = new BgListComponent(gvc, vm, FilterOptions.stockFilterFrame);
         vm.filter = ListComp.getFilterObject();
         let vmi = undefined;
+        function sumStockCounts(list) {
+            let totalStockCount = 0;
+            for (const key in list) {
+                if (list.hasOwnProperty(key)) {
+                    totalStockCount += list[key].count;
+                }
+            }
+            return totalStockCount;
+        }
         function getDatalist() {
-            return vm.dataList.map((dd, index) => {
-                var _a;
-                dd.variant_content.stockList = vm.stockStores.map((store, index) => {
-                    var _a;
-                    if (!dd.variant_content.stockList) {
-                        return {
-                            id: store.id,
-                            value: index === 0 ? dd.variant_content.stock : 0,
-                        };
-                    }
-                    const st = (_a = dd.variant_content.stockList) === null || _a === void 0 ? void 0 : _a.find((item) => item.id === store.id);
-                    return {
-                        id: store.id,
-                        value: st ? st.value : 0,
-                    };
-                });
-                vm.stockArray[index] = dd.variant_content.stockList;
+            return vm.dataList.map((dd) => {
+                var _a, _b;
+                if (Array.isArray(dd.variant_content.stockList)) {
+                    dd.variant_content.stockList = dd.variant_content.stockList.reduce((acc, item) => {
+                        var _a;
+                        const id = item.id;
+                        const count = (_a = item.value) !== null && _a !== void 0 ? _a : 0;
+                        acc[id] = { count };
+                        return acc;
+                    }, {});
+                }
+                else {
+                    dd.variant_content.stockList = (_a = dd.variant_content.stockList) !== null && _a !== void 0 ? _a : {};
+                }
                 return [
                     {
                         key: '商品名稱',
@@ -81,16 +87,18 @@ export class StockList {
                     },
                     {
                         key: '安全庫存',
-                        value: html `<span class="fs-7">${(_a = dd.variant_content.save_stock) !== null && _a !== void 0 ? _a : defaultNull}</span>`,
+                        value: html `<span class="fs-7">${(_b = dd.variant_content.save_stock) !== null && _b !== void 0 ? _b : defaultNull}</span>`,
                     },
                     ...vm.stockStores.map((store) => {
-                        var _a, _b;
-                        const stockData = dd.variant_content.stockList.find((stock) => stock.id === store.id);
+                        var _a, _b, _c;
+                        vm.stockArray.push(dd.variant_content.stockList);
+                        dd.variant_content.stockList[store.id] = (_a = dd.variant_content.stockList[store.id]) !== null && _a !== void 0 ? _a : { count: 0 };
+                        const stockData = dd.variant_content.stockList[store.id];
                         return {
                             key: store.name,
                             value: dd.variant_content.show_understocking === 'true'
                                 ? option.select_mode
-                                    ? html `<span class="fs-7">${(_a = stockData.value) !== null && _a !== void 0 ? _a : 0}</span>`
+                                    ? html `<span class="fs-7">${(_b = stockData.count) !== null && _b !== void 0 ? _b : 0}</span>`
                                     : html ` <div
                                               style="width: 95px"
                                               onclick="${gvc.event((e, event) => {
@@ -109,13 +117,12 @@ export class StockList {
                                             e.value = 0;
                                             n = 0;
                                         }
-                                        stockData.value = n;
+                                        stockData.count = n;
                                         dd.product_content.variants.map((variant) => {
                                             if (JSON.stringify(variant.spec) === JSON.stringify(dd.variant_content.spec)) {
-                                                variant.stock = dd.variant_content.stockList.reduce((sum, item) => {
-                                                    return sum + item.value;
-                                                }, 0);
+                                                variant.stock = sumStockCounts(dd.variant_content.stockList);
                                             }
+                                            variant.stockList = dd.variant_content.stockList;
                                         });
                                         vm.dataList.map((item) => {
                                             if (item.product_id === dd.product_id) {
@@ -124,7 +131,7 @@ export class StockList {
                                         });
                                         gvc.notifyDataChange(vm.updateId);
                                     })}"
-                                                  value="${(_b = stockData.value) !== null && _b !== void 0 ? _b : 0}"
+                                                  value="${(_c = stockData.count) !== null && _c !== void 0 ? _c : 0}"
                                               />
                                           </div>`
                                 : html `<span class="fs-7">${defaultNull}</div>`,
@@ -348,34 +355,32 @@ export class StockList {
                                         return JSON.stringify(item) === JSON.stringify(otherItem);
                                     });
                                 }
-                                for (let i = 0; i < vm.stockArray.length; i++) {
-                                    if (!areArraysEqual(vm.stockArray[i], vm.stockOriginArray[i])) {
-                                        return html ` <div class="update-bar-container">
-                                                        ${BgWidget.cancel(gvc.event(() => {
-                                            gvc.notifyDataChange(vm.tableId);
-                                        }))}
-                                                        ${BgWidget.save(gvc.event(() => {
-                                            const dialog = new ShareDialog(gvc.glitter);
-                                            dialog.dataLoading({
-                                                text: '更新庫存中',
-                                                visible: true,
-                                            });
-                                            ApiShop.putVariants({
-                                                data: vm.dataList,
-                                                token: window.parent.config.token,
-                                            }).then((re) => {
-                                                dialog.dataLoading({ visible: false });
-                                                if (re.result) {
-                                                    dialog.successMessage({ text: '更新成功' });
-                                                    gvc.notifyDataChange(vm.tableId);
-                                                }
-                                                else {
-                                                    dialog.errorMessage({ text: '更新失敗' });
-                                                }
-                                            });
-                                        }))}
-                                                    </div>`;
-                                    }
+                                if (!areArraysEqual(vm.stockArray, vm.stockOriginArray)) {
+                                    return html ` <div class="update-bar-container">
+                                                    ${BgWidget.cancel(gvc.event(() => {
+                                        gvc.notifyDataChange(vm.tableId);
+                                    }))}
+                                                    ${BgWidget.save(gvc.event(() => {
+                                        const dialog = new ShareDialog(gvc.glitter);
+                                        dialog.dataLoading({
+                                            text: '更新庫存中',
+                                            visible: true,
+                                        });
+                                        ApiShop.putVariants({
+                                            data: vm.dataList,
+                                            token: window.parent.config.token,
+                                        }).then((re) => {
+                                            dialog.dataLoading({ visible: false });
+                                            if (re.result) {
+                                                dialog.successMessage({ text: '更新成功' });
+                                                gvc.notifyDataChange(vm.tableId);
+                                            }
+                                            else {
+                                                dialog.errorMessage({ text: '更新失敗' });
+                                            }
+                                        });
+                                    }))}
+                                                </div>`;
                                 }
                                 return '';
                             },

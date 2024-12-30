@@ -11,6 +11,10 @@ import { Tool } from '../modules/tool.js';
 
 const html = String.raw;
 
+type StockListObj = {
+    [k: string]: { count: number };
+}[];
+
 type StockStore = {
     id: string;
     name: string;
@@ -32,8 +36,8 @@ type VM = {
     queryType?: string;
     orderString?: string;
     filter?: any;
-    stockArray: { id: string; value: number }[][];
-    stockOriginArray: { id: string; value: number }[][];
+    stockArray: StockListObj;
+    stockOriginArray: StockListObj;
     replaceData?: any;
     stockStores: StockStore[];
 };
@@ -81,23 +85,28 @@ export class StockList {
         vm.filter = ListComp.getFilterObject();
         let vmi: any = undefined;
 
-        function getDatalist() {
-            return vm.dataList.map((dd: any, index: number) => {
-                dd.variant_content.stockList = vm.stockStores.map((store, index) => {
-                    if (!dd.variant_content.stockList) {
-                        return {
-                            id: store.id,
-                            value: index === 0 ? dd.variant_content.stock : 0,
-                        };
-                    }
-                    const st = dd.variant_content.stockList?.find((item: any) => item.id === store.id);
-                    return {
-                        id: store.id,
-                        value: st ? st.value : 0,
-                    };
-                });
+        function sumStockCounts(list: StockListObj[]): number {
+            let totalStockCount = 0;
+            for (const key in list) {
+                if (list.hasOwnProperty(key)) {
+                    totalStockCount += (list as any)[key].count;
+                }
+            }
+            return totalStockCount;
+        }
 
-                vm.stockArray[index] = dd.variant_content.stockList;
+        function getDatalist() {
+            return vm.dataList.map((dd: any) => {
+                if (Array.isArray(dd.variant_content.stockList)) {
+                    dd.variant_content.stockList = dd.variant_content.stockList.reduce((acc: any, item: any) => {
+                        const id = item.id;
+                        const count = item.value ?? 0;
+                        acc[id] = { count };
+                        return acc;
+                    }, {});
+                } else {
+                    dd.variant_content.stockList = dd.variant_content.stockList ?? {};
+                }
 
                 return [
                     {
@@ -128,13 +137,15 @@ export class StockList {
                         value: html`<span class="fs-7">${dd.variant_content.save_stock ?? defaultNull}</span>`,
                     },
                     ...vm.stockStores.map((store) => {
-                        const stockData = dd.variant_content.stockList.find((stock: any) => stock.id === store.id);
+                        vm.stockArray.push(dd.variant_content.stockList);
+                        dd.variant_content.stockList[store.id] = dd.variant_content.stockList[store.id] ?? { count: 0 };
+                        const stockData = dd.variant_content.stockList[store.id];
                         return {
                             key: store.name,
                             value:
                                 dd.variant_content.show_understocking === 'true'
                                     ? option.select_mode
-                                        ? html`<span class="fs-7">${stockData.value ?? 0}</span>`
+                                        ? html`<span class="fs-7">${stockData.count ?? 0}</span>`
                                         : html` <div
                                               style="width: 95px"
                                               onclick="${gvc.event((e, event) => {
@@ -153,14 +164,13 @@ export class StockList {
                                                           e.value = 0;
                                                           n = 0;
                                                       }
-                                                      stockData.value = n;
+                                                      stockData.count = n;
 
-                                                      dd.product_content.variants.map((variant: { spec: string[]; stock: number }) => {
+                                                      dd.product_content.variants.map((variant: { spec: string[]; stock: number; stockList: StockListObj[] }) => {
                                                           if (JSON.stringify(variant.spec) === JSON.stringify(dd.variant_content.spec)) {
-                                                              variant.stock = dd.variant_content.stockList.reduce((sum: number, item: { value: number }) => {
-                                                                  return sum + item.value;
-                                                              }, 0);
+                                                              variant.stock = sumStockCounts(dd.variant_content.stockList);
                                                           }
+                                                          variant.stockList = dd.variant_content.stockList
                                                       });
 
                                                       vm.dataList.map((item: any) => {
@@ -171,7 +181,7 @@ export class StockList {
 
                                                       gvc.notifyDataChange(vm.updateId);
                                                   })}"
-                                                  value="${stockData.value ?? 0}"
+                                                  value="${stockData.count ?? 0}"
                                               />
                                           </div>`
                                     : html`<span class="fs-7">${defaultNull}</div>`,
@@ -419,37 +429,35 @@ export class StockList {
                                                 });
                                             }
 
-                                            for (let i = 0; i < vm.stockArray.length; i++) {
-                                                if (!areArraysEqual(vm.stockArray[i], vm.stockOriginArray[i])) {
-                                                    return html` <div class="update-bar-container">
-                                                        ${BgWidget.cancel(
-                                                            gvc.event(() => {
-                                                                gvc.notifyDataChange(vm.tableId);
-                                                            })
-                                                        )}
-                                                        ${BgWidget.save(
-                                                            gvc.event(() => {
-                                                                const dialog = new ShareDialog(gvc.glitter);
-                                                                dialog.dataLoading({
-                                                                    text: '更新庫存中',
-                                                                    visible: true,
-                                                                });
-                                                                ApiShop.putVariants({
-                                                                    data: vm.dataList,
-                                                                    token: (window.parent as any).config.token,
-                                                                }).then((re) => {
-                                                                    dialog.dataLoading({ visible: false });
-                                                                    if (re.result) {
-                                                                        dialog.successMessage({ text: '更新成功' });
-                                                                        gvc.notifyDataChange(vm.tableId);
-                                                                    } else {
-                                                                        dialog.errorMessage({ text: '更新失敗' });
-                                                                    }
-                                                                });
-                                                            })
-                                                        )}
-                                                    </div>`;
-                                                }
+                                            if (!areArraysEqual(vm.stockArray, vm.stockOriginArray)) {
+                                                return html` <div class="update-bar-container">
+                                                    ${BgWidget.cancel(
+                                                        gvc.event(() => {
+                                                            gvc.notifyDataChange(vm.tableId);
+                                                        })
+                                                    )}
+                                                    ${BgWidget.save(
+                                                        gvc.event(() => {
+                                                            const dialog = new ShareDialog(gvc.glitter);
+                                                            dialog.dataLoading({
+                                                                text: '更新庫存中',
+                                                                visible: true,
+                                                            });
+                                                            ApiShop.putVariants({
+                                                                data: vm.dataList,
+                                                                token: (window.parent as any).config.token,
+                                                            }).then((re) => {
+                                                                dialog.dataLoading({ visible: false });
+                                                                if (re.result) {
+                                                                    dialog.successMessage({ text: '更新成功' });
+                                                                    gvc.notifyDataChange(vm.tableId);
+                                                                } else {
+                                                                    dialog.errorMessage({ text: '更新失敗' });
+                                                                }
+                                                            });
+                                                        })
+                                                    )}
+                                                </div>`;
                                             }
                                             return '';
                                         },
