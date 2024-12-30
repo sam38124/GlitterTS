@@ -75,7 +75,7 @@ export class ShoppingProductSetting {
             weightUnit: '',
             stockPolicy: '',
             stock: '',
-            stockList: [],
+            stockList: {},
             save_stock: '',
             barcode: '',
         };
@@ -403,7 +403,7 @@ export class ShoppingProductSetting {
                                                                         weightUnit: expo.checkString(((_2 = productData.content.variants[index]) === null || _2 === void 0 ? void 0 : _2.weightUnit) || 'KG'),
                                                                         stockPolicy: ((_3 = productData.content.variants[index]) === null || _3 === void 0 ? void 0 : _3.show_understocking) === 'true' ? '追蹤' : '不追蹤',
                                                                         stock: expo.checkNumber((_4 = productData.content.variants[index]) === null || _4 === void 0 ? void 0 : _4.stock),
-                                                                        stockList: [],
+                                                                        stockList: {},
                                                                         save_stock: expo.checkNumber((_5 = productData.content.variants[index]) === null || _5 === void 0 ? void 0 : _5.save_stock),
                                                                         barcode: expo.checkString((_6 = productData.content.variants[index]) === null || _6 === void 0 ? void 0 : _6.barcode),
                                                                     });
@@ -813,7 +813,7 @@ export class ShoppingProductSetting {
             }
         }
         function getStockStore() {
-            if (stockList.length == 0) {
+            if (Object.entries(stockList).length == 0) {
                 ApiUser.getPublicConfig('store_manager', 'manager').then((storeData) => {
                     if (storeData.result) {
                         stockList = storeData.response.value.list;
@@ -1066,7 +1066,7 @@ export class ShoppingProductSetting {
                                     `)}
                                     ${BgWidget.mainCard(html `
                                         <div class="d-flex flex-column" style="gap: 18px;">
-                                            <div style="font-weight: 700;">庫存政策test</div>
+                                            <div style="font-weight: 700;">庫存政策</div>
                                             ${gvc.bindView(() => {
             const id = gvc.glitter.getUUID();
             return {
@@ -1075,14 +1075,30 @@ export class ShoppingProductSetting {
                     var _b;
                     function showStockView() {
                         var _b;
-                        if (stockList.length > 1) {
-                            if (!variant.stockList || variant.stockList.length == 0) {
-                                variant.stockList = stockList.map((stockSpot, index) => {
-                                    return {
-                                        id: stockSpot.id,
-                                        value: (index == 0) ? variant.stock : 0
+                        function initStockList() {
+                            let newList = {};
+                            if (variant.stockList && Object.entries(variant.stockList).length > 0) {
+                                variant.stockList.forEach((stock) => {
+                                    newList[stock.id] = {
+                                        count: stock.value
                                     };
                                 });
+                            }
+                            else {
+                                stockList.forEach((stock) => {
+                                    newList[stock.id] = {
+                                        count: 0
+                                    };
+                                });
+                            }
+                            variant.stockList = newList;
+                        }
+                        if (Array.isArray(variant.stockList) && variant.stockList.length > 0) {
+                            initStockList();
+                        }
+                        if (stockList.length > 1) {
+                            if (!variant.stockList || Object.entries(variant.stockList).length == 0) {
+                                initStockList();
                             }
                             return html `
                                                                     <div
@@ -1099,16 +1115,15 @@ export class ShoppingProductSetting {
                                                                                         <div>${stockSpot.name}</div>
                                                                                         <input
                                                                                                 class="w-100"
-                                                                                                value="${(_b = variant.stockList.find((stock) => { return stock.id == stockSpot.id; }).value) !== null && _b !== void 0 ? _b : '0'}"
+                                                                                                value="${(_b = variant.stockList[stockSpot.id].count) !== null && _b !== void 0 ? _b : 0}"
+                                                                                                type="number"
                                                                                                 style="padding: 9px 18px;border-radius: 10px;border: 1px solid #DDD;"
                                                                                                 placeholder="請輸入該庫存點庫存數量"
                                                                                                 onchange="${gvc.event((e) => {
-                                        variant.stockList.forEach((stock) => {
-                                            if (stock.id == stockSpot.id) {
-                                                stock.value += e.value;
-                                            }
-                                        });
-                                        variant.stock += e.value;
+                                        const inputValue = parseInt(e.value, 10) || 0;
+                                        variant.stockList[stockSpot.id].count = inputValue;
+                                        variant.stock += inputValue;
+                                        console.log("variant.stock -- ", variant.stock);
                                     })}"
                                                                                         />
                                                                                     `;
@@ -1130,6 +1145,7 @@ export class ShoppingProductSetting {
                                                                                     <div>庫存數量</div>
                                                                                     <input
                                                                                             class="w-100"
+                                                                                            type="number"
                                                                                             value="${(_b = variant.stock) !== null && _b !== void 0 ? _b : '0'}"
                                                                                             style="padding: 9px 18px;border-radius: 10px;border: 1px solid #DDD;"
                                                                                             placeholder="請輸入庫存數量"
@@ -1483,7 +1499,7 @@ export class ShoppingProductSetting {
                             sku: '',
                             barcode: '',
                             stock: 0,
-                            stockList: [],
+                            stockList: {},
                             preview_image: '',
                         });
                     }
@@ -1532,7 +1548,7 @@ export class ShoppingProductSetting {
                         sku: '',
                         barcode: '',
                         stock: 0,
-                        stockList: [],
+                        stockList: {},
                         preview_image: '',
                     });
                 }
@@ -2701,8 +2717,6 @@ export class ShoppingProductSetting {
                                                     let first_t = postMD.specs.find((dd) => {
                                                         return dd.title === first;
                                                     });
-                                                    console.log(`first=>${first}=>`, postMD.specs);
-                                                    console.log(`first=>${first}=>`, first_t);
                                                     first_t.language_title = (_b = first_t.language_title) !== null && _b !== void 0 ? _b : {};
                                                     if (!second) {
                                                         return first_t.language_title[sel_lan()] || first_t.title;
@@ -3325,7 +3339,7 @@ export class ShoppingProductSetting {
                                                                                         ProductSetting.showBatchEditDialog({
                                                                                             gvc: gvc,
                                                                                             postMD: postMD,
-                                                                                            selected: selected
+                                                                                            selected: selected,
                                                                                         });
                                                                                     })}">
                                                                                                                         批量編輯
@@ -4625,7 +4639,6 @@ ${(_c = language_data.seo.content) !== null && _c !== void 0 ? _c : ''}</textare
                             }))}
                                 ${BgWidget.save(obj.gvc.event(() => {
                                 setTimeout(() => {
-                                    console.log(postMD);
                                     ProductService.checkData(postMD, obj, vm, () => {
                                         refreshProductPage();
                                     });

@@ -199,7 +199,7 @@ export class ProductExcel {
                             sku: '',
                             spec: [],
                             stock: 0,
-                            stockList: [],
+                            stockList: {},
                             type: '',
                             v_height: 0,
                             v_length: 0,

@@ -102,7 +102,7 @@ export class ShoppingProductSetting {
             weightUnit: '',
             stockPolicy: '',
             stock: '',
-            stockList:[],
+            stockList:{},
             save_stock: '',
             barcode: '',
         };
@@ -467,7 +467,7 @@ export class ShoppingProductSetting {
                                                                                                                 stockPolicy:
                                                                                                                         productData.content.variants[index]?.show_understocking === 'true' ? '追蹤' : '不追蹤',
                                                                                                                 stock: expo.checkNumber(productData.content.variants[index]?.stock),
-                                                                                                                stockList:[],
+                                                                                                                stockList:{},
                                                                                                                 save_stock: expo.checkNumber(productData.content.variants[index]?.save_stock),
                                                                                                                 barcode: expo.checkString(productData.content.variants[index]?.barcode),
                                                                                                             });
@@ -873,14 +873,7 @@ export class ShoppingProductSetting {
         let variant: any = {};
         let orignData: any = {};
         let index: number = 0;
-        let stockList:{
-            address:string,
-            id:string,
-            manager_name:string,
-            manager_phone:string,
-            name:string,
-            note:string
-        }[] = []
+        let stockList:any = []
 
 
         postMD.variants.map((data: any, ind: number) => {
@@ -914,7 +907,7 @@ export class ShoppingProductSetting {
         }
 
         function getStockStore(){
-            if (stockList.length == 0) {
+            if (Object.entries(stockList).length == 0) {
                 ApiUser.getPublicConfig('store_manager',
                     'manager'
                 ).then((storeData:any)=>{
@@ -1208,23 +1201,45 @@ export class ShoppingProductSetting {
                                     `)}
                                     ${BgWidget.mainCard(html`
                                         <div class="d-flex flex-column" style="gap: 18px;">
-                                            <div style="font-weight: 700;">庫存政策test</div>
+                                            <div style="font-weight: 700;">庫存政策</div>
                                             ${gvc.bindView(() => {
                                                 const id = gvc.glitter.getUUID();
                                                 return {
                                                     bind: stockId,
                                                     view: () => {
                                                         function showStockView(){
-                                                            if (stockList.length > 1 ){
-                                                                if (!variant.stockList || variant.stockList.length == 0){
-                                                                    variant.stockList = stockList.map((stockSpot,index:number)=>{
-                                                                        return {
-                                                                            id:stockSpot.id,
-                                                                            value:(index==0)?variant.stock:0
-                                                                        }
+                                                            function initStockList(){
+                                                                let newList:any = {};
+                                                                //用於原本的陣列轉object
+                                                                if (variant.stockList && Object.entries(variant.stockList).length > 0){
+                                                                    variant.stockList.forEach((stock:{id:string , value:number})=>{
+                                                                        newList[stock.id] = {
+                                                                            count : stock.value
+                                                                        };
+                                                                    })
+                                                                }else {
+                                                                    stockList.forEach((stock:{id:string , value:number})=>{
+                                                                        newList[stock.id] = {
+                                                                            count : 0
+                                                                        };
                                                                     })
                                                                 }
-                                 
+                                                                
+                                                                
+                                                                variant.stockList = newList;
+                                                            }
+                                                            // 把variant的stockList 從陣列改成object
+                                                            if (Array.isArray(variant.stockList) && variant.stockList.length > 0){
+                                                                initStockList()
+                                                            }
+                                                            // 庫存倉庫超過一個
+                                                            if (stockList.length > 1 ){
+                                                                
+                                                                //先確認商品資訊是否有被正確記錄，沒有的話先初始化，或是先從陣列轉為object
+                                                                if (!variant.stockList || Object.entries(variant.stockList).length == 0){
+                                                                    initStockList();
+                                                                }
+                                                                
                                                                 return html`
                                                                     <div
                                                                             class="w-100 align-items-center"
@@ -1234,24 +1249,22 @@ export class ShoppingProductSetting {
                                                                              style="gap: 8px;border-left:solid 1px #E5E5E5;padding-left:14px;">
                                                                             <div class="w-100" style="font-size: 14px;font-weight: 400;color: #8D8D8D;">線上販售的商品將優先從庫存量較多的庫存點中扣除</div>
                                                                             ${(()=>{
-                                                                                return  stockList.map((stockSpot) => {
+                                                                                return  stockList.map((stockSpot:any) => {
                                                                                     return html`
                                                                                         <div>${stockSpot.name}</div>
                                                                                         <input
                                                                                                 class="w-100"
-                                                                                                value="${variant.stockList.find((stock:any)=>{return stock.id == stockSpot.id}).value?? '0'}"
+                                                                                                value="${variant.stockList[stockSpot.id].count??0}"
+                                                                                                type="number"
                                                                                                 style="padding: 9px 18px;border-radius: 10px;border: 1px solid #DDD;"
                                                                                                 placeholder="請輸入該庫存點庫存數量"
                                                                                                 onchange="${gvc.event((e) => {
                                                                                                     // variant.stock = e.value;
                                                                                                     // const target = data.find(item => item.id === 'any');
-                                                                                                    variant.stockList.forEach((stock:{id:string,value:number})=>{
-                                                                                                        if (stock.id == stockSpot.id){
-                                                                                                            stock.value += e.value;
-                                                                                                        }
-                                                                                                    })
-                                                                                                    variant.stock += e.value;
-                                                                                                    
+                                                                                                    const inputValue = parseInt(e.value, 10) || 0;
+                                                                                                    variant.stockList[stockSpot.id].count = inputValue;
+                                                                                                    variant.stock +=  inputValue;
+                                                                                                    console.log("variant.stock -- " , variant.stock)
                                                                                                 })}"
                                                                                         />
                                                                                     `
@@ -1272,12 +1285,13 @@ export class ShoppingProductSetting {
                                                                                     <div>庫存數量</div>
                                                                                     <input
                                                                                             class="w-100"
+                                                                                            type="number"
                                                                                             value="${variant.stock ?? '0'}"
                                                                                             style="padding: 9px 18px;border-radius: 10px;border: 1px solid #DDD;"
                                                                                             placeholder="請輸入庫存數量"
                                                                                             onchange="${gvc.event((e) => {
-                                                                    variant.stock = e.value;
-                                                                })}"
+                                                                                                variant.stock = e.value;
+                                                                                            })}"
                                                                                     />
                                                                                 </div>
                                                                                 
@@ -1756,7 +1770,7 @@ export class ShoppingProductSetting {
                         sku: '',
                         barcode: '',
                         stock: 0,
-                        stockList:[],
+                        stockList:{},
                         preview_image: '',
                     });
                 }
@@ -1811,7 +1825,7 @@ export class ShoppingProductSetting {
                     sku: '',
                     barcode: '',
                     stock: 0,
-                    stockList:[],
+                    stockList:{},
                     preview_image: '',
                 });
             }
@@ -3125,8 +3139,6 @@ export class ShoppingProductSetting {
                                                                         let first_t:any=postMD.specs.find((dd)=>{
                                                                             return dd.title===first
                                                                         })!;
-                                                                        console.log(`first=>${first}=>`,postMD.specs)
-                                                                        console.log(`first=>${first}=>`,first_t)
                                                                         first_t.language_title=first_t.language_title ?? {}
                                                                         if(!second){
                                                                             return first_t.language_title[sel_lan()] || first_t.title
@@ -3792,10 +3804,11 @@ export class ShoppingProductSetting {
                                                                                                                      style="margin-right: 18px;">
                                                                                                                     <div style="border-radius: 7px;border: 1px solid #DDD;background: #FFF;box-shadow: 0 0 10px 0 rgba(0, 0, 0, 0.10);padding: 3px 13px;cursor: pointer;"
                                                                                                                          onclick="${gvc.event(() => {
+                                                                                                                             
                                                                                                                              ProductSetting.showBatchEditDialog({
                                                                                                                                  gvc: gvc,
                                                                                                                                  postMD: postMD,
-                                                                                                                                 selected: selected
+                                                                                                                                 selected: selected,
                                                                                                                              });
                                                                                                                          })}">
                                                                                                                         批量編輯
@@ -5198,7 +5211,6 @@ ${language_data.seo.content ?? ''}</textarea
                                 ${BgWidget.save(
                                         obj.gvc.event(() => {
                                             setTimeout(() => {
-                                                console.log(postMD)
                                                 ProductService.checkData(postMD, obj, vm, () => {
                                                     refreshProductPage();
                                                 });

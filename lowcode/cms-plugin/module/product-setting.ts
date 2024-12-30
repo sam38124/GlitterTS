@@ -2,29 +2,45 @@ import {GVC} from "../../glitterBundle/GVController.js";
 import {Variant} from "./product-excel.js";
 import {BgWidget} from "../../backend-manager/bg-widget.js";
 import {Tool} from "../../modules/tool.js";
+import {ApiUser} from "../../glitter-base/route/user.js";
 
 export class ProductSetting {
     public static showBatchEditDialog(obj: {
         gvc: GVC,
         postMD: any,
-        selected:any
+        selected:any,
     }) {
+        let stockList:any = [];
         function getPreviewImage(img?: string) {
             return img || BgWidget.noImageURL;
         }
+
         const selected = obj.selected;
         const html = String.raw;
         let postMD = obj.postMD
         let topGVC = (window.parent as any).glitter.pageConfig[(window.parent as any).glitter.pageConfig.length - 1].gvc
         topGVC.glitter.innerDialog((gvc: GVC) => {
-
+            function getStockStore(){
+                if (Object.entries(stockList).length == 0) {
+                    ApiUser.getPublicConfig('store_manager',
+                        'manager'
+                    ).then((storeData:any)=>{
+                        if (storeData.result){
+                            stockList = storeData.response.value.list;
+                            gvc.notifyDataChange('editDialog');
+                        }
+                    })
+                }
+            }
             let origData = JSON.parse(JSON.stringify(postMD))
+            getStockStore()
 
             return gvc.bindView({
                 bind: "editDialog",
                 view: () => {
                     const titleLength = 400;
                     const elementLength = 160;
+                    console.log("stockList - " , stockList)
                     return html`
                         <div class="d-flex flex-column"
                              style="width: 100vw;height:100vh;position: absolute;left: 0;top:0;background-color: white;z-index:1;">
@@ -56,7 +72,11 @@ export class ProductSetting {
                             <div class="overflow-scroll" style="padding:24px 32px;">
                                 <div class="d-flex " style="margin-bottom:24px;gap:24px;">
                                     ${(() => {
-                                        let titleArray = [
+                                        type TitleItem = {
+                                            title: string;
+                                            width: string;
+                                        };
+                                        let titleArray:TitleItem[] = [
                                             {
                                                 title: "商品名稱",
                                                 width: `${elementLength - 24}px`
@@ -89,6 +109,21 @@ export class ProductSetting {
                                                 width: `${elementLength}px`
                                             }
                                         ];
+
+                                        function insertSubStocks(titleArray: TitleItem[], subStocks: string[]): TitleItem[] {
+                                            const targetIndex = titleArray.findIndex(item => item.title === "庫存");
+                                            if (targetIndex !== -1) {
+                                                // 格式化細分庫存
+                                                const formattedSubStocks: TitleItem[] = subStocks.map(stockTitle => ({
+                                                    title: stockTitle,
+                                                    width: titleArray[targetIndex].width // 使用原"庫存"的寬度
+                                                }));
+                                                // 替換 "庫存" 為細分庫存
+                                                titleArray.splice(targetIndex, 1, ...formattedSubStocks);
+                                            }
+                                            return titleArray;
+                                        }
+                                        titleArray = insertSubStocks(titleArray, stockList.map((item:any) => {return item.name}));
                                         return titleArray.map((title) => {
                                             return html`
                                                 <div class="d-flex flex-shrink-0"
@@ -203,6 +238,9 @@ export class ProductSetting {
                                                                                                         );
                                                                                                     })
                                                                                                     .map((dd) => {
+                                                                                                        if (dd === 'stock') {
+                                                                                                            console.log("stockList -- " , stockList);
+                                                                                                        }
                                                                                                         return html`
                                                                                                             <div class="flex-shrink-0"
                                                                                                                  style="color:#393939;font-size: 16px;font-weight: 400;width:${elementLength}px;"

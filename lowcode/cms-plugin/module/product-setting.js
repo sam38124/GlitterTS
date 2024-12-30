@@ -1,7 +1,9 @@
 import { BgWidget } from "../../backend-manager/bg-widget.js";
 import { Tool } from "../../modules/tool.js";
+import { ApiUser } from "../../glitter-base/route/user.js";
 export class ProductSetting {
     static showBatchEditDialog(obj) {
+        let stockList = [];
         function getPreviewImage(img) {
             return img || BgWidget.noImageURL;
         }
@@ -10,12 +12,24 @@ export class ProductSetting {
         let postMD = obj.postMD;
         let topGVC = window.parent.glitter.pageConfig[window.parent.glitter.pageConfig.length - 1].gvc;
         topGVC.glitter.innerDialog((gvc) => {
+            function getStockStore() {
+                if (Object.entries(stockList).length == 0) {
+                    ApiUser.getPublicConfig('store_manager', 'manager').then((storeData) => {
+                        if (storeData.result) {
+                            stockList = storeData.response.value.list;
+                            gvc.notifyDataChange('editDialog');
+                        }
+                    });
+                }
+            }
             let origData = JSON.parse(JSON.stringify(postMD));
+            getStockStore();
             return gvc.bindView({
                 bind: "editDialog",
                 view: () => {
                     const titleLength = 400;
                     const elementLength = 160;
+                    console.log("stockList - ", stockList);
                     return html `
                         <div class="d-flex flex-column"
                              style="width: 100vw;height:100vh;position: absolute;left: 0;top:0;background-color: white;z-index:1;">
@@ -80,6 +94,18 @@ export class ProductSetting {
                                 width: `${elementLength}px`
                             }
                         ];
+                        function insertSubStocks(titleArray, subStocks) {
+                            const targetIndex = titleArray.findIndex(item => item.title === "庫存");
+                            if (targetIndex !== -1) {
+                                const formattedSubStocks = subStocks.map(stockTitle => ({
+                                    title: stockTitle,
+                                    width: titleArray[targetIndex].width
+                                }));
+                                titleArray.splice(targetIndex, 1, ...formattedSubStocks);
+                            }
+                            return titleArray;
+                        }
+                        titleArray = insertSubStocks(titleArray, stockList.map((item) => { return item.name; }));
                         return titleArray.map((title) => {
                             return html `
                                                 <div class="d-flex flex-shrink-0"
@@ -176,6 +202,9 @@ export class ProductSetting {
                                                 })
                                                     .map((dd) => {
                                                     var _a;
+                                                    if (dd === 'stock') {
+                                                        console.log("stockList -- ", stockList);
+                                                    }
                                                     return html `
                                                                                                             <div class="flex-shrink-0"
                                                                                                                  style="color:#393939;font-size: 16px;font-weight: 400;width:${elementLength}px;"

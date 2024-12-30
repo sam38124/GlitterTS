@@ -69,7 +69,7 @@ export class ShoppingProductSetting {
             weightUnit: '',
             stockPolicy: '',
             stock: '',
-            stockList: [],
+            stockList: {},
             save_stock: '',
             barcode: '',
         };
@@ -1443,7 +1443,7 @@ export class ShoppingProductSetting {
                             sku: '',
                             barcode: '',
                             stock: 0,
-                            stockList: [],
+                            stockList: {},
                             preview_image: '',
                         });
                     }
