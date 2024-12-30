@@ -51,6 +51,7 @@ const EcInvoice_1 = require("./EcInvoice");
 const app_1 = __importDefault(require("../../app"));
 const glitter_finance_js_1 = require("../models/glitter-finance.js");
 const app_js_1 = require("../../services/app.js");
+const stock_1 = require("./stock");
 class Shopping {
     constructor(app, token) {
         this.app = app;
@@ -779,24 +780,18 @@ class Shopping {
                                 }
                             }
                             if (type !== 'preview' && type !== 'manual' && type !== 'manual-preview') {
+                                let stock_change = {};
+                                let count = parseInt(JSON.parse(JSON.stringify(b.count)), 10);
+                                console.log("variant -- ", variant.stockList);
+                                const returnData = new stock_1.Stock(this.app, this.token).allocateStock(variant.stockList, b.count);
+                                console.log("returnData -- ", returnData);
                                 const countless = variant.stock - b.count;
                                 variant.stock = countless > 0 ? countless : 0;
+                                b.deduction_log = returnData.deductionLog;
                                 await database_js_1.default.query(`UPDATE \`${this.app}\`.\`t_manager_post\`
                                      SET ?
                                      WHERE 1 = 1
                                        and id = ${pdDqlData.id}`, [{ content: JSON.stringify(pd) }]);
-                                let deadTime = new Date();
-                                deadTime.setMinutes(deadTime.getMinutes() + 15);
-                                await database_js_1.default.query(`INSERT INTO \`${this.app}\`.\`t_stock_recover\`
-                                     set ?`, [
-                                    {
-                                        product_id: pdDqlData.id,
-                                        spec: variant.spec.join('-'),
-                                        dead_line: deadTime,
-                                        order_id: carData.orderID,
-                                        count: b.count,
-                                    },
-                                ]);
                             }
                         }
                         if (!pd.productType.product && pd.productType.addProduct) {

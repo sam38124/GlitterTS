@@ -1394,6 +1394,7 @@ export class ShoppingProductSetting {
         var _b, _c;
         return __awaiter(this, void 0, void 0, function* () {
             let postMD = obj.initial_data || ProductConfig.getInitial(obj);
+            let stockList = [];
             function setProductType() {
                 switch (obj.product_type) {
                     case 'product':
@@ -1414,6 +1415,17 @@ export class ShoppingProductSetting {
                         break;
                 }
             }
+            function getStockStore() {
+                if (stockList.length == 0) {
+                    ApiUser.getPublicConfig('store_manager', 'manager').then((storeData) => {
+                        if (storeData.result) {
+                            stockList = storeData.response.value.list;
+                            gvc.notifyDataChange('selectFunRow');
+                        }
+                    });
+                }
+            }
+            getStockStore();
             setProductType();
             postMD.content_array = (_b = postMD.content_array) !== null && _b !== void 0 ? _b : [];
             postMD.content_json = (_c = postMD.content_json) !== null && _c !== void 0 ? _c : [];
@@ -3493,7 +3505,7 @@ export class ShoppingProductSetting {
                                                                                 }
                                                                                 return html `
                                                                                                         <div
-                                                                                                                style="border-radius: 10px;border: 1px solid #DDD;width: 100%;display: flex;height: 40px;padding: 8px 0px 8px 18px;align-items: center;"
+                                                                                                                style="border-radius: 10px;border: 1px solid #DDD;;display: flex;height: 40px;padding: 8px 0px 8px 18px;align-items: center;"
                                                                                                         >
                                                                                                             <i
                                                                                                                     class="${selected.length ? `fa-solid fa-square-check` : `fa-regular fa-square`}"
@@ -3507,7 +3519,7 @@ export class ShoppingProductSetting {
                                                                                     gvc.notifyDataChange([variantsViewID]);
                                                                                 })}"
                                                                                                             ></i>
-                                                                                                            <div style="flex:1 0 0;font-size: 16px;font-weight: 400;">
+                                                                                                            <div style="width:40%;font-size: 16px;font-weight: 400;">
                                                                                                                 規格
                                                                                                             </div>
                                                                                                             ${document.body.clientWidth < 768
@@ -4649,6 +4661,15 @@ ${(_c = language_data.seo.content) !== null && _c !== void 0 ? _c : ''}</textare
                             }))}
                                 ${BgWidget.save(obj.gvc.event(() => {
                                 setTimeout(() => {
+                                    console.log(postMD);
+                                    postMD.variants.forEach((variant) => {
+                                        if (Object.keys(variant.stockList).length > 0) {
+                                            variant.stock = 0;
+                                            Object.values(variant.stockList).forEach((data) => {
+                                                variant.stock += parseInt(data.count);
+                                            });
+                                        }
+                                    });
                                     ProductService.checkData(postMD, obj, vm, () => {
                                         refreshProductPage();
                                     });

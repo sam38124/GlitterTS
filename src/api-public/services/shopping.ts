@@ -24,6 +24,7 @@ import { EcInvoice } from './EcInvoice';
 import app from '../../app';
 import { onlinePayArray, paymentInterface } from '../models/glitter-finance.js';
 import { App } from '../../services/app.js';
+import {Stock} from "./stock";
 
 type BindItem = {
     id: string;
@@ -800,6 +801,7 @@ export class Shopping {
     public async toCheckout(
         data: {
             line_items: {
+                deduction_log?: { [p: string]: number };
                 id: string;
                 spec: string[];
                 count: number;
@@ -1085,6 +1087,7 @@ export class Shopping {
             }
             const add_on_items: any[] = [];
             let gift_product: any[] = [];
+
             for (const b of data.line_items) {
                 try {
                     const pdDqlData = (
@@ -1140,8 +1143,22 @@ export class Shopping {
                             }
                             // 當為結帳時則更改商品庫存數量
                             if (type !== 'preview' && type !== 'manual' && type !== 'manual-preview') {
+                                //取得此variant資訊
+                                type StockList = {
+                                    [key: string]: { count: number };
+                                };
+                                //找到最大的倉儲量
+                                let stock_change:any = {};
+                                let count = parseInt(JSON.parse(JSON.stringify(b.count)) , 10) ;
+                                //扣除掉count，並且檢查是否超出最大值，如果是，則根據大小排序扣除
+                                console.log("variant -- " , variant.stockList);
+                                const returnData = new Stock(this.app,this.token).allocateStock(variant.stockList,b.count)
+                                console.log("returnData -- " , returnData)
+                                //
                                 const countless = variant.stock - b.count;
                                 variant.stock = countless > 0 ? countless : 0;
+                                b.deduction_log = returnData.deductionLog
+                                //這裡更新資訊
                                 await db.query(
                                     `UPDATE \`${this.app}\`.\`t_manager_post\`
                                      SET ?
@@ -1150,23 +1167,24 @@ export class Shopping {
                                     [{ content: JSON.stringify(pd) }]
                                 );
                                 // 獲取當前時間
-                                let deadTime = new Date();
-                                // 添加10分鐘
-                                deadTime.setMinutes(deadTime.getMinutes() + 15);
-                                // 設定15分鐘後回寫訂單庫存
-                                await db.query(
-                                    `INSERT INTO \`${this.app}\`.\`t_stock_recover\`
-                                     set ?`,
-                                    [
-                                        {
-                                            product_id: pdDqlData.id,
-                                            spec: variant.spec.join('-'),
-                                            dead_line: deadTime,
-                                            order_id: carData.orderID,
-                                            count: b.count,
-                                        },
-                                    ]
-                                );
+                                // let deadTime = new Date();
+                                // // 添加10分鐘
+                                //
+                                // deadTime.setMinutes(deadTime.getMinutes() + 15);
+                                // // 設定15分鐘後回寫訂單庫存
+                                // await db.query(
+                                //     `INSERT INTO \`${this.app}\`.\`t_stock_recover\`
+                                //      set ?`,
+                                //     [
+                                //         {
+                                //             product_id: pdDqlData.id,
+                                //             spec: variant.spec.join('-'),
+                                //             dead_line: deadTime,
+                                //             order_id: carData.orderID,
+                                //             count: b.count,
+                                //         },
+                                //     ]
+                                // );
                             }
                         }
                         if (!pd.productType.product && pd.productType.addProduct) {
@@ -1380,6 +1398,7 @@ export class Shopping {
             if (type === 'preview' || type === 'manual-preview') return { data: carData };
             // ================================ Add DOWN ================================
             console.log(`checkout-time-12=>`, new Date().getTime() - check_time);
+
             // 手動結帳地方判定
             if (type === 'manual') {
                 carData.orderSource = 'manual';
@@ -2745,7 +2764,7 @@ OR JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.orderStatus')) NOT IN (-99)) `);
                     []
                 );
             }
-
+            //
             const formatJsonData = content.variants.map((a: any) => {
                 content.min_price = content.min_price ?? a.sale_price;
                 content.max_price = content.max_price ?? a.sale_price;

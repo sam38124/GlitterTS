@@ -52,6 +52,28 @@ class Stock {
             }
         }
     }
+    allocateStock(stockList, requiredCount) {
+        let remainingCount = requiredCount;
+        let totalDeduction = 0;
+        const deductionLog = {};
+        const sortedStock = Object.entries(stockList).sort(([, a], [, b]) => b.count - a.count);
+        for (const [key, stock] of sortedStock) {
+            if (remainingCount === 0)
+                break;
+            const deduction = Math.min(stock.count, remainingCount);
+            remainingCount -= deduction;
+            totalDeduction += deduction;
+            stock.count -= deduction;
+            deductionLog[key] = deduction;
+        }
+        const maxDeduction = Math.max(...Object.values(deductionLog), 0);
+        return {
+            stockList,
+            deductionLog,
+            totalDeduction,
+            remainingCount,
+        };
+    }
 }
 exports.Stock = Stock;
 //# sourceMappingURL=stock.js.map

@@ -3,35 +3,41 @@ import {Variant} from "./product-excel.js";
 import {BgWidget} from "../../backend-manager/bg-widget.js";
 import {Tool} from "../../modules/tool.js";
 import {ApiUser} from "../../glitter-base/route/user.js";
+import {ShareDialog} from "../../dialog/ShareDialog.js";
 
 export class ProductSetting {
     public static showBatchEditDialog(obj: {
         gvc: GVC,
         postMD: any,
-        selected:any,
+        selected: any,
     }) {
-        let stockList:any = [];
+        let stockList: any = [];
+
         function getPreviewImage(img?: string) {
             return img || BgWidget.noImageURL;
         }
 
         const selected = obj.selected;
         const html = String.raw;
+        let loading = true;
         let postMD = obj.postMD
         let topGVC = (window.parent as any).glitter.pageConfig[(window.parent as any).glitter.pageConfig.length - 1].gvc
         topGVC.glitter.innerDialog((gvc: GVC) => {
-            function getStockStore(){
-                if (Object.entries(stockList).length == 0) {
+            function getStockStore() {
+                if (stockList.length == 0) {
                     ApiUser.getPublicConfig('store_manager',
                         'manager'
-                    ).then((storeData:any)=>{
-                        if (storeData.result){
+                    ).then((storeData: any) => {
+                        if (storeData.result) {
                             stockList = storeData.response.value.list;
+                            loading = false;
                             gvc.notifyDataChange('editDialog');
                         }
                     })
                 }
             }
+            let loading = true
+            let dialog = new ShareDialog(topGVC.glitter);
             let origData = JSON.parse(JSON.stringify(postMD))
             getStockStore()
 
@@ -40,9 +46,19 @@ export class ProductSetting {
                 view: () => {
                     const titleLength = 400;
                     const elementLength = 160;
-                    console.log("stockList - " , stockList)
+                    console.log("stockList - ", stockList)
+                    if (loading){
+
+                        dialog.dataLoading({
+                            visible:true,
+                        })
+                        return ``
+                    }
+                    dialog.dataLoading({
+                        visible:false,
+                    })
                     return html`
-                        <div class="d-flex flex-column"
+                        <div class="d-flex flex-column px -5"
                              style="width: 100vw;height:100vh;position: absolute;left: 0;top:0;background-color: white;z-index:1;">
                             <div class="d-flex align-items-center"
                                  style="height: 60px;width: 100vw;border-bottom: solid 1px #DDD;font-size: 16px;font-style: normal;font-weight: 700;color: #393939;">
@@ -76,11 +92,11 @@ export class ProductSetting {
                                             title: string;
                                             width: string;
                                         };
-                                        let titleArray:TitleItem[] = [
+                                        let titleArray: TitleItem[] = [
                                             {
                                                 title: "商品名稱",
                                                 width: `${elementLength - 24}px`
-                                            },{
+                                            }, {
                                                 title: "商品規格",
                                                 width: `${elementLength}px`
                                             }, {
@@ -123,7 +139,10 @@ export class ProductSetting {
                                             }
                                             return titleArray;
                                         }
-                                        titleArray = insertSubStocks(titleArray, stockList.map((item:any) => {return item.name}));
+
+                                        titleArray = insertSubStocks(titleArray, stockList.map((item: any) => {
+                                            return item.name
+                                        }));
                                         return titleArray.map((title) => {
                                             return html`
                                                 <div class="d-flex flex-shrink-0"
@@ -239,8 +258,41 @@ export class ProductSetting {
                                                                                                     })
                                                                                                     .map((dd) => {
                                                                                                         if (dd === 'stock') {
-                                                                                                            console.log("stockList -- " , stockList);
+                                                                                                            console.log("dd -- ", dd);
+                                                                                                            return stockList.map((item: any) => {
+                                                                                                                if (!(data as any)['stockList']) {
+                                                                                                                    (data as any)['stockList'] = {}
+                                                                                                                }
+                                                                                                                if (!(data as any)['stockList'][item.id]) {
+                                                                                                                    (data as any)['stockList'][item.id] = {
+                                                                                                                        count: 0
+                                                                                                                    }
+                                                                                                                }
+                                                                                                                return html`
+                                                                                                                    <div class="flex-shrink-0"
+                                                                                                                         style="color:#393939;font-size: 16px;font-weight: 400;width:${elementLength}px;"
+                                                                                                                    >
+                                                                                                                        <input
+                                                                                                                                style="width: 100%;height: 40px;padding: 0px 18px;border-radius: 10px;border: 1px solid #DDD;background: #FFF;"
+                                                                                                                                value="${(data as any)['stockList'][item.id].count ?? 0}"
+                                                                                                                                min="0"
+                                                                                                                                oninput="${gvc.event((e) => {
+                                                                                                                                    const regex = /^[0-9]*$/;
+                                                                                                                                    if (!regex.test(e.value)) {
+                                                                                                                                        e.value = e.value
+                                                                                                                                                .replace(/[^0-9]/g, '')
+                                                                                                                                                .replace(/e/gi, '');
+                                                                                                                                    }
+                                                                                                                                })}"
+                                                                                                                                onchange="${gvc.event((e) => {
+                                                                                                                                    (data as any)['stockList'][item.id].count = e.value;
+                                                                                                                                    gvc.notifyDataChange(vm.id);
+                                                                                                                                })}"
+                                                                                                                        />
+                                                                                                                    </div>`;
+                                                                                                            }).join('')
                                                                                                         }
+
                                                                                                         return html`
                                                                                                             <div class="flex-shrink-0"
                                                                                                                  style="color:#393939;font-size: 16px;font-weight: 400;width:${elementLength}px;"

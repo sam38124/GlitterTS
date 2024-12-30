@@ -145,7 +145,7 @@ export declare class Shopping {
         type: string;
         divisor: number;
         executionTime: string;
-        queryStatus: "error" | "success";
+        queryStatus: "success" | "error";
         queryData: any;
     } | {
         type: string;
@@ -242,6 +242,9 @@ export declare class Shopping {
     getPostAddressData(address: string): Promise<any>;
     toCheckout(data: {
         line_items: {
+            deduction_log?: {
+                [p: string]: number;
+            };
             id: string;
             spec: string[];
             count: number;

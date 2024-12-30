@@ -1652,7 +1652,7 @@ export class ShoppingProductSetting {
             channel: ('normal' | 'pos')[];
             min_qty?: number;
         } = obj.initial_data || ProductConfig.getInitial(obj);
-
+        let stockList : any = [];
         function setProductType() {
             switch (obj.product_type) {
                 case 'product':
@@ -1673,7 +1673,19 @@ export class ShoppingProductSetting {
                     break;
             }
         }
-
+        function getStockStore() {
+            if (stockList.length == 0) {
+                ApiUser.getPublicConfig('store_manager',
+                    'manager'
+                ).then((storeData: any) => {
+                    if (storeData.result) {
+                        stockList = storeData.response.value.list;
+                        gvc.notifyDataChange('selectFunRow');
+                    }
+                })
+            }
+        }
+        getStockStore();
         setProductType();
         postMD.content_array = postMD.content_array ?? [];
         postMD.content_json = postMD.content_json ?? [];
@@ -3173,7 +3185,6 @@ export class ShoppingProductSetting {
                                                                                                     let selected = postMD.variants.filter((dd) => {
                                                                                                         return (dd as any).checked;
                                                                                                     });
-
                                                                                                     if (selected.length) {
                                                                                                         function saveQueue(key: string, value: any) {
                                                                                                             postMD.variants.filter((dd) => {
@@ -3960,7 +3971,7 @@ export class ShoppingProductSetting {
                                                                                                     }
                                                                                                     return html`
                                                                                                         <div
-                                                                                                                style="border-radius: 10px;border: 1px solid #DDD;width: 100%;display: flex;height: 40px;padding: 8px 0px 8px 18px;align-items: center;"
+                                                                                                                style="border-radius: 10px;border: 1px solid #DDD;;display: flex;height: 40px;padding: 8px 0px 8px 18px;align-items: center;"
                                                                                                         >
                                                                                                             <i
                                                                                                                     class="${selected.length ? `fa-solid fa-square-check` : `fa-regular fa-square`}"
@@ -3974,7 +3985,7 @@ export class ShoppingProductSetting {
                                                                                                                         gvc.notifyDataChange([variantsViewID]);
                                                                                                                     })}"
                                                                                                             ></i>
-                                                                                                            <div style="flex:1 0 0;font-size: 16px;font-weight: 400;">
+                                                                                                            <div style="width:40%;font-size: 16px;font-weight: 400;">
                                                                                                                 規格
                                                                                                             </div>
                                                                                                             ${document.body.clientWidth < 768
@@ -3985,6 +3996,17 @@ export class ShoppingProductSetting {
                                                                                                                         </div>`
                                                                                                                     : `${['售價*', '庫存數量*', '運費計算方式']
                                                                                                                             .map((dd) => {
+                                                                                                                                // if (dd == "庫存數量*"){
+                                                                                                                                //     console.log("stockList -- " , stockList)
+                                                                                                                                //     return stockList.map((stock:any)=>{
+                                                                                                                                //         return html`
+                                                                                                                                //     <div
+                                                                                                                                //             style="color:#393939;font-size: 16px;font-weight: 400;width: 20%; "
+                                                                                                                                //     >
+                                                                                                                                //         ${stock.name}
+                                                                                                                                //     </div>`;
+                                                                                                                                //     })
+                                                                                                                                // }
                                                                                                                                 return html`
                                                                                                                                     <div
                                                                                                                                             style="color:#393939;font-size: 16px;font-weight: 400;width: 20%; "
@@ -5219,6 +5241,15 @@ ${language_data.seo.content ?? ''}</textarea
                                 ${BgWidget.save(
                                         obj.gvc.event(() => {
                                             setTimeout(() => {
+                                                console.log(postMD);
+                                                postMD.variants.forEach((variant)=>{
+                                                   if (Object.keys(variant.stockList).length > 0){
+                                                       variant.stock = 0;
+                                                       Object.values(variant.stockList).forEach((data:any)=>{
+                                                           variant.stock += parseInt(data.count)
+                                                       })
+                                                   }
+                                                })
                                                 ProductService.checkData(postMD, obj, vm, () => {
                                                     refreshProductPage();
                                                 });
@@ -5431,6 +5462,7 @@ ${language_data.seo.content ?? ''}</textarea
             dd.checked = undefined;
             return dd;
         });
+
         ApiShop.postProduct({
             data: postMD,
             token: (window.parent as any).config.token,
