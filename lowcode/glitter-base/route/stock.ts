@@ -17,6 +17,19 @@ export class ApiStock {
             },
         });
     }
+
+    static deleteStore(json: { id: string }) {
+        return BaseApi.create({
+            url: getBaseUrl() + `/api-public/v1/stock/store`,
+            type: 'DELETE',
+            headers: {
+                'Content-Type': 'application/json',
+                'g-app': getConfig().config.appName,
+                Authorization: getConfig().config.token,
+            },
+            data: JSON.stringify(json),
+        });
+    }
 }
 
 function getConfig() {

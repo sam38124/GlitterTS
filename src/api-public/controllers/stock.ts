@@ -29,3 +29,15 @@ router.get('/store/productList', async (req: express.Request, resp: express.Resp
         return response.fail(resp, err);
     }
 });
+
+router.delete('/store', async (req: express.Request, resp: express.Response) => {
+    try {
+        if (await UtPermission.isManager(req)) {
+            return response.succ(resp, await new Stock(req.get('g-app') as string, req.body.token).deleteStoreProduct(req.body.id));
+        } else {
+            throw exception.BadRequestError('BAD_REQUEST', 'No permission.', null);
+        }
+    } catch (err) {
+        return response.fail(resp, err);
+    }
+});

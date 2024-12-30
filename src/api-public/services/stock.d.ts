@@ -11,4 +11,8 @@ export declare class Stock {
         total: any;
         data: any;
     } | undefined>;
+    deleteStoreProduct(store_id: string): Promise<{
+        data: boolean;
+        process: string;
+    } | undefined>;
 }

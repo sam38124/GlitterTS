@@ -211,7 +211,7 @@ export class StockStores {
         }
         return BgWidget.container([
             html ` <div class="title-container">
-                        <div class="mt-1">
+                        <div>
                             ${BgWidget.goBack(gvc.event(() => {
                 vm.type = 'list';
             }))}
@@ -291,67 +291,92 @@ export class StockStores {
                         },
                     })}`,
                 ].join(BgWidget.mbContainer(18))),
-                BgWidget.mainCard([
-                    html ` <div class="tx_700">追蹤此庫存點的商品</div>`,
-                    BgWidget.tableV3({
-                        gvc: gvc,
-                        getData: (vd) => {
-                            let vmi = vd;
-                            const limit = 10;
-                            ApiStock.getStoreProductList({
-                                page: 0,
-                                limit: limit,
-                                search: vm.data.id,
-                            }).then((r) => {
-                                if (r.result && r.response.data) {
-                                    vm.dataList = r.response.data;
-                                    vmi.pageSize = Math.ceil(r.response.data.length / limit);
-                                    vmi.originalData = vm.dataList;
-                                    vmi.tableData = getDatalist();
+                type === 'create'
+                    ? ''
+                    : BgWidget.mainCard([
+                        html ` <div class="tx_700">追蹤此庫存點的商品</div>`,
+                        BgWidget.tableV3({
+                            gvc: gvc,
+                            getData: (vd) => {
+                                let vmi = vd;
+                                const limit = 10;
+                                ApiStock.getStoreProductList({
+                                    page: vmi.page - 1,
+                                    limit: limit,
+                                    search: vm.data.id,
+                                }).then((r) => {
+                                    if (r.result && r.response.data) {
+                                        vm.dataList = r.response.data;
+                                        vmi.pageSize = Math.ceil(r.response.total / limit);
+                                        vmi.originalData = vm.dataList;
+                                        vmi.tableData = getDatalist();
+                                    }
+                                    else {
+                                        vm.dataList = [];
+                                        vmi.pageSize = 0;
+                                        vmi.originalData = [];
+                                        vmi.tableData = [];
+                                    }
                                     vmi.loading = false;
                                     vmi.callback();
-                                }
-                            });
-                        },
-                        rowClick: () => { },
-                        filter: [],
-                    }),
-                ].join(BgWidget.mbContainer(18))),
+                                });
+                            },
+                            rowClick: () => { },
+                            filter: [],
+                        }),
+                    ].join(BgWidget.mbContainer(18))),
             ].join(BgWidget.mbContainer(24)))}
                 </div>`,
             BgWidget.mbContainer(240),
             html ` <div class="update-bar-container">
                     ${type === 'replace'
                 ? BgWidget.danger(gvc.event(() => {
-                    dialog.checkYesOrNot({
-                        text: '確定要刪除此庫存點？',
-                        callback: (bool) => {
-                            if (bool) {
-                                dialog.dataLoading({ visible: true });
-                                this.getPublicData().then((stores) => {
-                                    const filterList = stores.list.filter((item) => item.id !== vm.data.id);
-                                    if (filterList.length === 0) {
-                                        dialog.dataLoading({ visible: false });
-                                        dialog.errorMessage({ text: '庫存點數量不可小於0' });
-                                        return;
-                                    }
-                                    ApiUser.setPublicConfig({
-                                        key: 'store_manager',
-                                        value: {
-                                            list: filterList,
-                                        },
-                                        user_id: 'manager',
-                                    }).then(() => {
-                                        dialog.dataLoading({ visible: false });
-                                        dialog.successMessage({ text: '刪除成功' });
-                                        setTimeout(() => {
-                                            vm.type = 'list';
-                                        }, 500);
+                    const cleanDelete = () => {
+                        dialog.checkYesOrNot({
+                            text: html `此操作無法恢復此庫存點<br />以及商品庫存數<br />確定要刪除此庫存點？`,
+                            callback: (bool) => {
+                                if (bool) {
+                                    dialog.dataLoading({ visible: true });
+                                    this.getPublicData().then((stores) => {
+                                        const filterList = stores.list.filter((item) => item.id !== vm.data.id);
+                                        if (filterList.length === 0) {
+                                            dialog.dataLoading({ visible: false });
+                                            dialog.errorMessage({ text: '庫存點數量不可小於0' });
+                                            return;
+                                        }
+                                        ApiStock.deleteStore({ id: vm.data.id }).then((d) => {
+                                            ApiUser.setPublicConfig({
+                                                key: 'store_manager',
+                                                value: {
+                                                    list: filterList,
+                                                },
+                                                user_id: 'manager',
+                                            }).then(() => {
+                                                dialog.dataLoading({ visible: false });
+                                                dialog.successMessage({ text: '刪除成功' });
+                                                setTimeout(() => {
+                                                    vm.type = 'list';
+                                                }, 500);
+                                            });
+                                        });
                                     });
-                                });
-                            }
-                        },
-                    });
+                                }
+                            },
+                        });
+                    };
+                    if (vm.dataList.length === 0) {
+                        cleanDelete();
+                    }
+                    else {
+                        dialog.warningMessage({
+                            text: html `此庫存點還有商品庫存<br />建議刪除前透過「調撥單」清理所有庫存商品<br />或按下「確定」即可強制刪除庫存點`,
+                            callback: (b) => {
+                                if (b) {
+                                    cleanDelete();
+                                }
+                            },
+                        });
+                    }
                 }))
                 : ''}
                     ${BgWidget.cancel(gvc.event(() => {

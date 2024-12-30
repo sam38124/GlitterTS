@@ -704,7 +704,7 @@ class Shopping {
                 code_array: data.code_array,
                 give_away: data.give_away,
                 user_rebate_sum: 0,
-                language: data.language
+                language: data.language,
             };
             function calculateShipment(dataList, value) {
                 if (value === 0) {
@@ -851,7 +851,7 @@ class Shopping {
                     limit: 99999,
                     code: data.distribution_code,
                     status: true,
-                    no_detail: true
+                    no_detail: true,
                 });
                 if (linkList.data.length > 0) {
                     const content = linkList.data[0].content;
@@ -3564,7 +3564,7 @@ OR JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.orderStatus')) NOT IN (-99)) `);
         const data = (await database_js_1.default.query(`SELECT * FROM ${config_js_1.saasConfig.SAAS_NAME}.currency_config  order by id desc limit 0,1;`, []))[0]['json']['rates'];
         const base_m = data[base];
         Object.keys(data).map((dd) => {
-            data[dd] = (data[dd] / base_m);
+            data[dd] = data[dd] / base_m;
         });
         return data;
     }
