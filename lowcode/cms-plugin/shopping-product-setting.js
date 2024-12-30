@@ -804,8 +804,18 @@ export class ShoppingProductSetting {
                             cancel();
                             return;
                         }
-                        obj && obj.goBackEvent ? obj.goBackEvent.save(postMD) : next();
-                    },
+                        if (obj && obj.goBackEvent) {
+                            if (response) {
+                                obj.goBackEvent.save(postMD);
+                            }
+                            else {
+                                obj.goBackEvent.cancel();
+                            }
+                        }
+                        else {
+                            next();
+                        }
+                    }
                 });
             }
             else {
