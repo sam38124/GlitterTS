@@ -31,6 +31,7 @@ const article = require("./article");
 const delivery = require("./delivery");
 const rebate = require("./rebate");
 const recommend = require("./recommend");
+const stock = require("./stock");
 const live_source_js_1 = require("../../live_source.js");
 const public_table_check_js_1 = require("../services/public-table-check.js");
 const monitor_js_1 = require("../services/monitor.js");
@@ -55,6 +56,7 @@ router.use(config_1.config.getRoute(config_1.config.public_route.article, 'publi
 router.use(config_1.config.getRoute(config_1.config.public_route.delivery, 'public'), delivery);
 router.use(config_1.config.getRoute(config_1.config.public_route.rebate, 'public'), rebate);
 router.use(config_1.config.getRoute(config_1.config.public_route.recommend, 'public'), recommend);
+router.use(config_1.config.getRoute(config_1.config.public_route.stock, 'public'), stock);
 router.use(config_1.config.getRoute(config_1.config.public_route.graph_api, 'public'), require('./graph-api'));
 router.use(config_1.config.getRoute(config_1.config.public_route.ai_chat, 'public'), require('./ai-chat'));
 router.use(config_1.config.getRoute(config_1.config.public_route.ai_points, 'public'), require('./ai-points'));

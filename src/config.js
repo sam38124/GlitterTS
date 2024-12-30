@@ -11,7 +11,6 @@ class ConfigSetting {
     static get is_local() {
         return process_1.default.env.is_local === 'true';
     }
-    ;
     static setConfig(envPath) {
         ConfigSetting.config_path = envPath;
         dotenv_1.default.config({
@@ -131,6 +130,7 @@ exports.config = {
         fb_message: '/fb_message',
         ai_points: '/ai/points',
         sms_points: '/sms/points',
+        stock: '/stock',
     },
     route: {
         line_message: '/line_message',

@@ -5,6 +5,7 @@ import { BgListComponent } from '../backend-manager/bg-list-component.js';
 import { ShareDialog } from '../glitterBundle/dialog/ShareDialog.js';
 import { FilterOptions } from './filter-options.js';
 import { ApiUser } from '../glitter-base/route/user.js';
+import { ApiStock } from '../glitter-base/route/stock.js';
 import { CheckInput } from '../modules/checkInput.js';
 import { Tool } from '../modules/tool.js';
 
@@ -245,6 +246,34 @@ export class StockStores {
     static detailPage(gvc: GVC, vm: VM, type: 'replace' | 'create') {
         const glitter = gvc.glitter;
         const dialog = new ShareDialog(glitter);
+
+        function getDatalist() {
+            return vm.dataList.map((dd: any) => {
+                return [
+                    {
+                        key: '商品',
+                        value: `<span class="fs-7">${dd.title || '－'}</span>`,
+                    },
+                    {
+                        key: '規格',
+                        value: `<span class="fs-7">${dd.content.spec.length > 0 ? dd.content.spec.join('/') : '單一規格'}</span>`,
+                    },
+                    {
+                        key: '存貨單位(SKU)',
+                        value: `<span class="fs-7">${dd.content.sku || '－'}</span>`,
+                    },
+                    {
+                        key: '商品條碼',
+                        value: `<span class="fs-7">${dd.content.barcode || '－'}</span>`,
+                    },
+                    {
+                        key: '庫存數量',
+                        value: `<span class="fs-7">${dd.count}</span>`,
+                    },
+                ];
+            });
+        }
+
         return BgWidget.container(
             [
                 html` <div class="title-container">
@@ -260,87 +289,108 @@ export class StockStores {
                     <div class="flex-fill"></div>`,
                 html` <div class="d-flex justify-content-center ${document.body.clientWidth < 768 ? 'flex-column' : ''}" style="gap: 24px">
                     ${BgWidget.container(
-                        gvc.bindView(() => {
-                            const id = glitter.getUUID();
-                            return {
-                                bind: id,
-                                view: () => {
-                                    return BgWidget.mainCard(
-                                        [
-                                            html` <div class="tx_700">庫存點資訊</div>`,
-                                            html` <div class="row">
-                                                <div class="col-12 col-md-6">
-                                                    <div class="tx_normal">庫存點名稱</div>
-                                                    ${BgWidget.mbContainer(8)}
-                                                    ${BgWidget.editeInput({
-                                                        gvc: gvc,
-                                                        title: '',
-                                                        default: vm.data.name ?? '',
-                                                        placeHolder: '請輸入庫存點名稱',
-                                                        callback: (text) => {
-                                                            vm.data.name = text;
-                                                        },
-                                                    })}
-                                                </div>
-                                                ${document.body.clientWidth > 768 ? '' : BgWidget.mbContainer(18)}
-                                                <div class="col-12 col-md-6">
-                                                    <div class="tx_normal">庫存點地址</div>
-                                                    ${BgWidget.mbContainer(8)}
-                                                    ${BgWidget.editeInput({
-                                                        gvc: gvc,
-                                                        title: '',
-                                                        default: vm.data.address ?? '',
-                                                        placeHolder: '請輸入庫存點地址',
-                                                        callback: (text) => {
-                                                            vm.data.address = text;
-                                                        },
-                                                    })}
-                                                </div>
-                                            </div>`,
-                                            html`<div class="row">
-                                                <div class="col-12 col-md-6">
-                                                    <div class="tx_normal">聯絡人姓名</div>
-                                                    ${BgWidget.mbContainer(8)}
-                                                    ${BgWidget.editeInput({
-                                                        gvc: gvc,
-                                                        title: '',
-                                                        default: vm.data.manager_name ?? '',
-                                                        placeHolder: '請輸入聯絡人姓名',
-                                                        callback: (text) => {
-                                                            vm.data.manager_name = text;
-                                                        },
-                                                    })}
-                                                </div>
-                                                <div class="col-12 col-md-6">
-                                                    <div class="tx_normal">電話</div>
-                                                    ${BgWidget.mbContainer(8)}
-                                                    ${BgWidget.editeInput({
-                                                        gvc: gvc,
-                                                        title: '',
-                                                        default: vm.data.manager_phone ?? '',
-                                                        placeHolder: '請輸入電話',
-                                                        callback: (text) => {
-                                                            vm.data.manager_phone = text;
-                                                        },
-                                                    })}
-                                                </div>
-                                            </div> `,
-                                            html` <div class="tx_normal">備註</div>
-                                                ${EditorElem.editeText({
-                                                    gvc: gvc,
-                                                    title: '',
-                                                    default: vm.data.note ?? '',
-                                                    placeHolder: '請輸入備註',
-                                                    callback: (text) => {
-                                                        vm.data.note = text;
-                                                    },
-                                                })}`,
-                                        ].join(BgWidget.mbContainer(18))
-                                    );
-                                },
-                                divCreate: { class: 'p-0' },
-                            };
-                        })
+                        [
+                            BgWidget.mainCard(
+                                [
+                                    html` <div class="tx_700">庫存點資訊</div>`,
+                                    html` <div class="row">
+                                        <div class="col-12 col-md-6">
+                                            <div class="tx_normal">庫存點名稱</div>
+                                            ${BgWidget.mbContainer(8)}
+                                            ${BgWidget.editeInput({
+                                                gvc: gvc,
+                                                title: '',
+                                                default: vm.data.name ?? '',
+                                                placeHolder: '請輸入庫存點名稱',
+                                                callback: (text) => {
+                                                    vm.data.name = text;
+                                                },
+                                            })}
+                                        </div>
+                                        ${document.body.clientWidth > 768 ? '' : BgWidget.mbContainer(18)}
+                                        <div class="col-12 col-md-6">
+                                            <div class="tx_normal">庫存點地址</div>
+                                            ${BgWidget.mbContainer(8)}
+                                            ${BgWidget.editeInput({
+                                                gvc: gvc,
+                                                title: '',
+                                                default: vm.data.address ?? '',
+                                                placeHolder: '請輸入庫存點地址',
+                                                callback: (text) => {
+                                                    vm.data.address = text;
+                                                },
+                                            })}
+                                        </div>
+                                    </div>`,
+                                    html`<div class="row">
+                                        <div class="col-12 col-md-6">
+                                            <div class="tx_normal">聯絡人姓名</div>
+                                            ${BgWidget.mbContainer(8)}
+                                            ${BgWidget.editeInput({
+                                                gvc: gvc,
+                                                title: '',
+                                                default: vm.data.manager_name ?? '',
+                                                placeHolder: '請輸入聯絡人姓名',
+                                                callback: (text) => {
+                                                    vm.data.manager_name = text;
+                                                },
+                                            })}
+                                        </div>
+                                        <div class="col-12 col-md-6">
+                                            <div class="tx_normal">電話</div>
+                                            ${BgWidget.mbContainer(8)}
+                                            ${BgWidget.editeInput({
+                                                gvc: gvc,
+                                                title: '',
+                                                default: vm.data.manager_phone ?? '',
+                                                placeHolder: '請輸入電話',
+                                                callback: (text) => {
+                                                    vm.data.manager_phone = text;
+                                                },
+                                            })}
+                                        </div>
+                                    </div> `,
+                                    html` <div class="tx_normal">備註</div>
+                                        ${EditorElem.editeText({
+                                            gvc: gvc,
+                                            title: '',
+                                            default: vm.data.note ?? '',
+                                            placeHolder: '請輸入備註',
+                                            callback: (text) => {
+                                                vm.data.note = text;
+                                            },
+                                        })}`,
+                                ].join(BgWidget.mbContainer(18))
+                            ),
+                            BgWidget.mainCard(
+                                [
+                                    html` <div class="tx_700">追蹤此庫存點的商品</div>`,
+                                    BgWidget.tableV3({
+                                        gvc: gvc,
+                                        getData: (vd) => {
+                                            let vmi = vd;
+                                            const limit = 10;
+                                            ApiStock.getStoreProductList({
+                                                page: 0,
+                                                limit: limit,
+                                                search: vm.data.id,
+                                            }).then((r) => {
+                                                if (r.result && r.response.data) {
+                                                    vm.dataList = r.response.data;
+                                                    vmi.pageSize = Math.ceil(r.response.data.length / limit);
+                                                    vmi.originalData = vm.dataList;
+                                                    vmi.tableData = getDatalist();
+                                                    vmi.loading = false;
+                                                    vmi.callback();
+                                                }
+                                            });
+                                        },
+                                        rowClick: () => {},
+                                        filter: [],
+                                    }),
+                                ].join(BgWidget.mbContainer(18))
+                            ),
+                        ].join(BgWidget.mbContainer(24))
                     )}
                 </div>`,
                 BgWidget.mbContainer(240),
@@ -444,7 +494,6 @@ export class StockStores {
         return new Promise<any>((resolve, reject) => {
             ApiUser.getPublicConfig('store_manager', 'manager').then((dd: any) => {
                 if (dd.result && dd.response.value) {
-                    console.log(dd.response.value);
                     resolve(dd.response.value);
                 } else {
                     resolve({});

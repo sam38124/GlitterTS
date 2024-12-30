@@ -170,7 +170,7 @@ export class StockList {
                                                           if (JSON.stringify(variant.spec) === JSON.stringify(dd.variant_content.spec)) {
                                                               variant.stock = sumStockCounts(dd.variant_content.stockList);
                                                           }
-                                                          variant.stockList = dd.variant_content.stockList
+                                                          variant.stockList = dd.variant_content.stockList;
                                                       });
 
                                                       vm.dataList.map((item: any) => {

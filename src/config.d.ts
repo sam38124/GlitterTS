@@ -64,6 +64,7 @@ export declare const config: {
         fb_message: string;
         ai_points: string;
         sms_points: string;
+        stock: string;
     };
     route: {
         line_message: string;

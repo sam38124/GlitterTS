@@ -1,12 +1,12 @@
 'use strict';
 import path from 'path';
 import dotenv from 'dotenv';
-import process from "process";
+import process from 'process';
 
 export class ConfigSetting {
-    public static get is_local ():boolean{
-        return process.env.is_local==='true'
-    } ;
+    public static get is_local(): boolean {
+        return process.env.is_local === 'true';
+    }
     public static runSchedule = true;
     public static config_path = '';
 
@@ -41,14 +41,14 @@ export const config = {
     DB_CONN_LIMIT: 0,
     DB_QUEUE_LIMIT: 0,
     DB_SHOW_INFO: false,
-    get SNSAccount(){
-        return process.env.SNSAccount
+    get SNSAccount() {
+        return process.env.SNSAccount;
     },
-    get SNSPWD(){
-        return process.env.SNSPWD
+    get SNSPWD() {
+        return process.env.SNSPWD;
     },
-    get SNS_URL(){
-        return process.env.SNS_URL
+    get SNS_URL() {
+        return process.env.SNS_URL;
     },
     get DB_URL() {
         return process.env.DB_URL;
@@ -132,6 +132,7 @@ export const config = {
         fb_message: '/fb_message',
         ai_points: '/ai/points',
         sms_points: '/sms/points',
+        stock: '/stock',
     },
     route: {
         line_message: '/line_message',
