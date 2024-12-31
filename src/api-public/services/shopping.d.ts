@@ -260,6 +260,7 @@ export declare class Shopping {
                 value: number;
             };
             is_gift?: boolean;
+            stock: number;
         }[];
         customer_info?: any;
         email?: string;

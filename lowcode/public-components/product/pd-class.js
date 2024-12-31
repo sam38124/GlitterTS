@@ -13,8 +13,8 @@ import { ApiCart } from '../../glitter-base/route/api-cart.js';
 import { GlobalUser } from '../../glitter-base/global/global-user.js';
 import { CheckInput } from '../../modules/checkInput.js';
 import { Ad } from '../public/ad.js';
-import { Language } from "../../glitter-base/global/language.js";
-import { Currency } from "../../glitter-base/global/currency.js";
+import { Language } from '../../glitter-base/global/language.js';
+import { Currency } from '../../glitter-base/global/currency.js';
 const html = String.raw;
 export class PdClass {
     static jumpAlert(obj) {
@@ -66,8 +66,7 @@ export class PdClass {
                 }
             }
         `);
-        const htmlString = html `
-            <div class="bounce-effect-${className}">${obj.text}</div>`;
+        const htmlString = html ` <div class="bounce-effect-${className}">${obj.text}</div>`;
         obj.gvc.glitter.document.body.insertAdjacentHTML('beforeend', htmlString);
         setTimeout(() => {
             const element = document.querySelector(`.bounce-effect-${className}`);
@@ -149,7 +148,6 @@ export class PdClass {
                 transition: 0.3s;
             }
 
-
             .add-cart-imd-btn {
                 display: inline-flex;
                 align-items: center;
@@ -160,7 +158,6 @@ export class PdClass {
                 height: 100%;
                 transition: 0.3s;
             }
-
 
             .no-stock {
                 display: inline-flex;
@@ -211,43 +208,42 @@ export class PdClass {
     }
     static addCartAction(obj) {
         obj.gvc.glitter.innerDialog((gvc) => {
-            return html `
-                <div
-                        class="bg-white shadow rounded-3"
-                        style="overflow-y: auto; ${document.body.clientWidth > 768 ? `min-width: 400px; width: 1000px;` : 'width:calc(100vw - 20px);'}"
-                >
-                    <div class="bg-white shadow rounded-3" style="width: 100%; overflow-y: auto; position: relative;">
-                        <div class="w-100 d-flex align-items-center p-3 border-bottom"
-                             style="position: sticky; top: 0; background: #fff;z-index:12;">
-                            <div class="fw-bold fs-5" style="color:${obj.titleFontColor};
+            return html ` <div class="bg-white shadow rounded-3" style="overflow-y: auto; ${document.body.clientWidth > 768 ? `min-width: 400px; width: 1000px;` : 'width:calc(100vw - 20px);'}">
+                <div class="bg-white shadow rounded-3" style="width: 100%; overflow-y: auto; position: relative;">
+                    <div class="w-100 d-flex align-items-center p-3 border-bottom" style="position: sticky; top: 0; background: #fff;z-index:12;">
+                        <div
+                            class="fw-bold fs-5"
+                            style="color:${obj.titleFontColor};
                             white-space: nowrap;text-overflow: ellipsis;max-width: calc(100% - 40px);
 overflow: hidden;
-">${obj.prod.title}</div>
-                            <div class="flex-fill"></div>
-                            <i
-                                    class="fa-regular fa-circle-xmark fs-5 text-dark"
-                                    style="cursor: pointer"
-                                    onclick="${gvc.event(() => {
+"
+                        >
+                            ${obj.prod.title}
+                        </div>
+                        <div class="flex-fill"></div>
+                        <i
+                            class="fa-regular fa-circle-xmark fs-5 text-dark"
+                            style="cursor: pointer"
+                            onclick="${gvc.event(() => {
                 gvc.closeDialog();
             })}"
-                            ></i>
-                        </div>
-                        <div class="c_dialog">
-                            <div class="c_dialog_body">
-                                <div class="c_dialog_main"
-                                     style="gap: 24px;  max-height: calc(100vh - 100px); ${document.body.clientWidth < 800 ? `padding: 12px 20px;` : `padding: 30px;`}">
-                                    ${PdClass.selectSpec({
+                        ></i>
+                    </div>
+                    <div class="c_dialog">
+                        <div class="c_dialog_body">
+                            <div class="c_dialog_main" style="gap: 24px;  max-height: calc(100vh - 100px); ${document.body.clientWidth < 800 ? `padding: 12px 20px;` : `padding: 30px;`}">
+                                ${PdClass.selectSpec({
                 gvc,
                 titleFontColor: obj.titleFontColor,
                 prod: obj.prod,
                 vm: obj.vm,
-                preview: true
+                preview: true,
             })}
-                                </div>
                             </div>
                         </div>
                     </div>
-                </div>`;
+                </div>
+            </div>`;
         }, Tool.randomString(7));
     }
     static showSwiper(obj) {
@@ -255,17 +251,15 @@ overflow: hidden;
         const css = String.raw;
         const isPhone = document.body.clientWidth < 768;
         obj.gvc.glitter.addStyleLink(['https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css']);
-        obj.gvc.glitter.addMtScript([{ src: `https://unpkg.com/@lottiefiles/lottie-player@latest/dist/lottie-player.js` },
-            { src: `https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js` }], () => {
-        }, () => {
-        });
-        obj.prod.variants.forEach(variant => {
+        obj.gvc.glitter.addMtScript([{ src: `https://unpkg.com/@lottiefiles/lottie-player@latest/dist/lottie-player.js` }, { src: `https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js` }], () => { }, () => { });
+        obj.prod.variants.forEach((variant) => {
             if (variant.preview_image && !obj.prod.preview_image.includes(variant.preview_image)) {
                 obj.prod.preview_image.push(variant.preview_image);
             }
         });
         PdClass.addSpecStyle(obj.gvc);
-        obj.gvc.glitter.addStyle(css `/***請輸入設計代碼***/
+        obj.gvc.glitter.addStyle(css `
+            /***請輸入設計代碼***/
 
             .swiper {
                 width: 100%;
@@ -287,7 +281,6 @@ overflow: hidden;
                 height: 100%;
                 object-fit: cover;
             }
-
 
             .swiper {
                 width: 100%;
@@ -327,14 +320,15 @@ overflow: hidden;
                 width: 100%;
                 height: 100%;
                 object-fit: cover;
-            }`);
-        obj.vm.specs = obj.vm.specs.length > 0
-            ? obj.vm.specs
-            : obj.vm.specs.map((spec) => {
-                return spec.option[0].title;
-            });
-        obj.prod.preview_image = obj.prod.preview_image
-            .filter((dd) => {
+            }
+        `);
+        obj.vm.specs =
+            obj.vm.specs.length > 0
+                ? obj.vm.specs
+                : obj.vm.specs.map((spec) => {
+                    return spec.option[0].title;
+                });
+        obj.prod.preview_image = obj.prod.preview_image.filter((dd) => {
             return dd !== 'https://d3jnmi1tfjgtti.cloudfront.net/file/234285319/1722936949034-default_image.jpg';
         });
         return obj.gvc.bindView(() => {
@@ -344,10 +338,10 @@ overflow: hidden;
                 view: () => {
                     return `<div class="swiper${id}" id="dynamic-swiper${id}" style="position:relative;overflow: hidden;">
                     <div class="swiper-wrapper">
-                        ${obj.prod.preview_image.map((image, index) => {
-                        return html `
-                                <div class="swiper-slide swiper-slide-def">
-                                    <img src="${image}" alt="${obj.prod.title}-${index}"/>
+                        ${obj.prod.preview_image
+                        .map((image, index) => {
+                        return html ` <div class="swiper-slide swiper-slide-def">
+                                    <img src="${image}" alt="${obj.prod.title}-${index}" />
                                 </div>`;
                     })
                         .join('')}
@@ -355,25 +349,25 @@ overflow: hidden;
                     <div class="swiper-button-prev"></div>
                     <div class="swiper-button-next"></div>
                 </div>
-                ${obj.prod.preview_image.length > 1 ? `<div class="swiper-sm${id} mt-2" style="height: ${isPhone ? 75 : 100}px; overflow: hidden;">
+                ${obj.prod.preview_image.length > 1
+                        ? `<div class="swiper-sm${id} mt-2" style="height: ${isPhone ? 75 : 100}px; overflow: hidden;">
                     <div class="swiper-wrapper">
                         ${obj.prod.preview_image
-                        .map((image, index) => {
-                        return html `
-                                <div class="swiper-slide swiper-slide-sm" data-image-index="${index}">
-                                    <img src="${image}" alt="${obj.prod.title}-${index}-sm"/>
+                            .map((image, index) => {
+                            return html ` <div class="swiper-slide swiper-slide-sm" data-image-index="${index}">
+                                    <img src="${image}" alt="${obj.prod.title}-${index}-sm" />
                                 </div>`;
-                    })
-                        .join('')}
+                        })
+                            .join('')}
                     </div>
-                </div>` : ``}
+                </div>`
+                        : ``}
                 `;
                 },
                 divCreate: {
-                    class: `${obj.class || 'col-12 col-md-6 px-0 px-md-3'}`, option: [
-                        { key: 'id', value: id }
-                    ],
-                    style: `overflow:hidden;position:relative;`
+                    class: `${obj.class || 'col-12 col-md-6 px-0 px-md-3'}`,
+                    option: [{ key: 'id', value: id }],
+                    style: `overflow:hidden;position:relative;`,
                 },
                 onCreate: () => {
                     const si = setInterval(() => {
@@ -402,7 +396,7 @@ overflow: hidden;
                                     navigation: {
                                         nextEl: '.swiper-button-next',
                                         prevEl: '.swiper-button-prev',
-                                    }
+                                    },
                                 });
                             }
                             const prod = obj.prod;
@@ -434,7 +428,7 @@ overflow: hidden;
                     }
                     updateSwiperHeight();
                     window.addEventListener('resize', updateSwiperHeight);
-                }
+                },
             };
         });
     }
@@ -468,44 +462,44 @@ overflow: hidden;
             price: glitter.getUUID(),
             wishStatus: glitter.getUUID(),
             addCartButton: glitter.getUUID(),
-            stock_count: glitter.getUUID()
+            stock_count: glitter.getUUID(),
         };
         obj.gvc.addStyle(`
-
-.insignia {
-    border-radius: 0.5rem;
-    padding: 6px 8px;
-    font-size: 14px;
-    display: inline-block;
-    font-weight: 500;
-    line-height: 1.5;
-    text-align: center;
-    white-space: normal;
-    vertical-align: baseline;
-}
-`);
-        let changePage = (index, type, subData) => {
-        };
+            .insignia {
+                border-radius: 0.5rem;
+                padding: 6px 8px;
+                font-size: 14px;
+                display: inline-block;
+                font-weight: 500;
+                line-height: 1.5;
+                text-align: center;
+                white-space: normal;
+                vertical-align: baseline;
+            }
+        `);
+        let changePage = (index, type, subData) => { };
         gvc.glitter.getModule(new URL('./official_event/page/change-page.js', gvc.glitter.root_path).href, (cl) => {
             changePage = cl.changePage;
         });
         const language_data = prod.language_data && prod.language_data[Language.getLanguage()];
         return html `
-            <div class="d-flex flex-column flex-lg-row w-100" style="gap:${(document.body.clientWidth > 800) ? 40 : 20}px;">
-                ${obj.preview ? PdClass.showSwiper({
-            gvc: gvc,
-            prod: obj.prod,
-            vm: obj.vm,
-            class: `w-100`
-        }) : ``}
+            <div class="d-flex flex-column flex-lg-row w-100" style="gap:${document.body.clientWidth > 800 ? 40 : 20}px;">
+                ${obj.preview
+            ? PdClass.showSwiper({
+                gvc: gvc,
+                prod: obj.prod,
+                vm: obj.vm,
+                class: `w-100`,
+            })
+            : ``}
                 <div class="w-100">
-                    <h1 class=""
-                        style="color: ${titleFontColor};font-size:${(document.body.clientWidth > 991) ? `36` : `24`}px;">
-                        ${prod.title}</h1>
-                    ${(prod.min_qty && (`${prod.min_qty}` > `1`)) ? `<div class="insignia mx-0 w-auto mt-0 mb-3 fw-500 fs-6 py-2" style="background: #ffe9b2;margin-left:5px;">${Language.text('min_p_count').replace('_c_', prod.min_qty)}</div>` : ``}
-                    ${(language_data && language_data.sub_title) ? `
-                    <div class="mb-3">${language_data.sub_title}</div>
-                    ` : ``}
+                    <h1 class="" style="color: ${titleFontColor};font-size:${document.body.clientWidth > 991 ? `36` : `24`}px;">${prod.title}</h1>
+                    ${prod.min_qty && `${prod.min_qty}` > `1`
+            ? html `<div class="insignia mx-0 w-auto mt-0 mb-3 fw-500 fs-6 py-2" style="background: #ffe9b2;margin-left:5px;">
+                              ${Language.text('min_p_count').replace('_c_', prod.min_qty)}
+                          </div>`
+            : ``}
+                    ${language_data && language_data.sub_title ? html ` <div class="mb-3">${language_data.sub_title}</div> ` : ``}
                     <h2 class="" style="color: ${titleFontColor};font-size: 24px;">
                         ${gvc.bindView({
             bind: ids.price,
@@ -518,17 +512,16 @@ overflow: hidden;
         })}
                     </h2>
                     ${gvc.map(prod.specs.map((spec, index1) => {
-            return html `
-                                    <div>
-                                        <h5 class="mb-2" style="color: ${titleFontColor};font-size:14px;">
-                                            ${(spec.language_title && spec.language_title[Language.getLanguage()]) || spec.title}</h5>
-                                        <div class="d-flex gap-2 flex-wrap">
-                                            ${gvc.map(spec.option.map((opt) => {
-                return html `
-                                                            <div
-                                                                    gvc-option="spec-option-${index1}"
-                                                                    class="spec-option ${vm.specs[index1] === opt.title ? 'selected-option' : ''}"
-                                                                    onclick="${gvc.event((e) => {
+            return html ` <div>
+                                    <h5 class="mb-2" style="color: ${titleFontColor};font-size:14px;">
+                                        ${(spec.language_title && spec.language_title[Language.getLanguage()]) || spec.title}
+                                    </h5>
+                                    <div class="d-flex gap-2 flex-wrap">
+                                        ${gvc.map(spec.option.map((opt) => {
+                return html ` <div
+                                                    gvc-option="spec-option-${index1}"
+                                                    class="spec-option ${vm.specs[index1] === opt.title ? 'selected-option' : ''}"
+                                                    onclick="${gvc.event((e) => {
                     const allOptions = document.querySelectorAll(`div[gvc-option=spec-option-${index1}]`);
                     allOptions.forEach((option) => {
                         option.classList.remove('selected-option');
@@ -549,28 +542,33 @@ overflow: hidden;
                     gvc.notifyDataChange(ids.price);
                     gvc.notifyDataChange([ids.addCartButton, ids.stock_count]);
                 })}"
-                                                            >
-                                                                <span style="font-size: 15px; font-weight: 500; letter-spacing: 1.76px;">${(opt.language_title && opt.language_title[Language.getLanguage()]) || opt.title}</span>
-                                                            </div>`;
+                                                >
+                                                    <span style="font-size: 15px; font-weight: 500; letter-spacing: 1.76px;"
+                                                        >${(opt.language_title && opt.language_title[Language.getLanguage()]) || opt.title}</span
+                                                    >
+                                                </div>`;
             }))}
-                                        </div>
                                     </div>
-                                    <div class="mt-3"></div>`;
+                                </div>
+                                <div class="mt-3"></div>`;
         }))}
-                    <div class="flex-column gap-2  ${(obj.with_qty === false) ? `d-none` : `d-flex`} ">
-                        <h5 class="mb-0" style="color: ${titleFontColor};font-size:14px;">
-                            ${Language.text('quantity')}</h5>
+                    <div class="flex-column gap-2  ${obj.with_qty === false ? `d-none` : `d-flex`} ">
+                        <h5 class="mb-0" style="color: ${titleFontColor};font-size:14px;">${Language.text('quantity')}</h5>
                         <select
-                                class="form-select custom-select"
-                                style="border-radius: 5px; color: #575757; width: 100px;height:38px;"
-                                onchange="${gvc.event((e) => {
+                            class="form-select custom-select"
+                            style="border-radius: 5px; color: #575757; width: 100px;height:38px;"
+                            onchange="${gvc.event((e) => {
             vm.quantity = e.value;
             gvc.notifyDataChange([ids.addCartButton, ids.stock_count]);
         })}"
                         >
-                            ${gvc.map([...new Array(50)].map((item, index) => {
-            return html `
-                                            <option value="${index + 1}">${index + 1}</option>`;
+                            ${gvc.map([
+            ...new Array((() => {
+                const variant = prod.variants.find((item) => PdClass.ObjCompare(item.spec, vm.specs));
+                return variant && variant.stock < 50 ? variant.stock : 50;
+            })()),
+        ].map((item, index) => {
+            return html ` <option value="${index + 1}">${index + 1}</option>`;
         }))}
                         </select>
                     </div>
@@ -580,24 +578,24 @@ overflow: hidden;
                 view: () => {
                     const variant = prod.variants.find((item) => PdClass.ObjCompare(item.spec, vm.specs));
                     if ((variant === null || variant === void 0 ? void 0 : variant.show_understocking) !== 'false') {
-                        return `<div class="${`${variant === null || variant === void 0 ? void 0 : variant.stock}` === '0' ? `text-danger` : ``} fw-500 mt-2" style="font-size:14px;color:${titleFontColor};">${Language.text('stock_count')}：${variant === null || variant === void 0 ? void 0 : variant.stock}</div>`;
+                        return html `<div class="${`${variant === null || variant === void 0 ? void 0 : variant.stock}` === '0' ? `text-danger` : ``} fw-500 mt-2" style="font-size:14px;color:${titleFontColor};">
+                                        ${Language.text('stock_count')}：${variant === null || variant === void 0 ? void 0 : variant.stock}
+                                    </div>`;
                     }
                     else {
                         return ``;
                     }
                 },
-                divCreate: {}
+                divCreate: {},
             };
         })}
-
                     ${gvc.bindView({
             bind: ids.addCartButton,
             view: () => {
                 const variant = prod.variants.find((item) => PdClass.ObjCompare(item.spec, vm.specs));
                 const cartItem = new ApiCart().cart.line_items.find((item) => PdClass.ObjCompare(item.spec, vm.specs));
                 if (!variant) {
-                    return html `
-                                    <button class="no-stock w-100" disabled>發生錯誤</button>`;
+                    return html ` <button class="no-stock w-100" disabled>發生錯誤</button>`;
                 }
                 Ad.gtagEvent('view_item', {
                     currency: 'TWD',
@@ -623,24 +621,29 @@ overflow: hidden;
                     value: variant.sale_price,
                     currency: 'TWD',
                 });
-                if ((variant.stock < parseInt(vm.quantity, 10) || (cartItem && variant.stock < cartItem.count + parseInt(vm.quantity, 10))) && `${variant.show_understocking}` !== 'false') {
-                    return html `
-                                    <button class="no-stock w-100" disabled>${Language.text('out_of_stock')}</button>`;
+                if ((variant.stock < parseInt(vm.quantity, 10) || (cartItem && variant.stock < cartItem.count + parseInt(vm.quantity, 10))) &&
+                    `${variant.show_understocking}` !== 'false') {
+                    return html ` <button class="no-stock w-100" disabled>${Language.text('out_of_stock')}</button>`;
                 }
                 return html `
-                                <div class="add-cart-imd-btn fw-bold h-100 "
-                                     style="width:calc(50% - 5px);cursor: pointer;" onclick="${gvc.event(() => {
+                                <div
+                                    class="add-cart-imd-btn fw-bold h-100 "
+                                    style="width:calc(50% - 5px);cursor: pointer;"
+                                    onclick="${gvc.event(() => {
                     const buy_it = new ApiCart(ApiCart.buyItNow);
                     buy_it.clearCart();
                     buy_it.addToCart(`${prod.id}`, vm.specs, vm.quantity);
                     ApiCart.toCheckOutPage(ApiCart.buyItNow);
                     gvc.closeDialog();
-                })}">${Language.text('buy_it_now')}
+                })}"
+                                >
+                                    ${Language.text('buy_it_now')}
                                 </div>
                                 <div class="flex-fill"></div>
                                 <button
-                                        class="add-cart-btn fw-bold " style="width:calc(50% - 5px);"
-                                        onclick="${gvc.event(() => {
+                                    class="add-cart-btn fw-bold "
+                                    style="width:calc(50% - 5px);"
+                                    onclick="${gvc.event(() => {
                     if (obj.only_select) {
                         obj.only_select({ id: prod.id, specs: vm.specs });
                     }
@@ -661,18 +664,17 @@ overflow: hidden;
                                 >
                                     ${Language.text('add_to_cart')}
                                 </button>
-
                             `;
             },
             divCreate: {
-                style: `height: 38px;width:${(document.body.clientWidth > 800) ? `400px` : `100%`};`,
-                class: `d-flex mt-3`
+                style: `height: 38px;width:${document.body.clientWidth > 800 ? `400px` : `100%`};`,
+                class: `d-flex mt-3`,
             },
         })}
                     <div class="d-flex py-3" style="color: #554233">
-                <span
-                        class="d-flex nav-link p-0 add-wish-container"
-                        onclick="${gvc.event(() => {
+                        <span
+                            class="d-flex nav-link p-0 add-wish-container"
+                            onclick="${gvc.event(() => {
             if (CheckInput.isEmpty(GlobalUser.token)) {
                 changePage('login', 'page', {});
                 return;
@@ -731,8 +733,8 @@ overflow: hidden;
                 }
             });
         })}"
-                >
-                    ${gvc.bindView({
+                        >
+                            ${gvc.bindView({
             bind: ids.wishStatus,
             view: () => {
                 if (window.store_info.wishlist == false) {
@@ -741,19 +743,20 @@ overflow: hidden;
                 else {
                     if (vm.wishStatus) {
                         return html ` <i class="fa-solid fa-heart"></i>
-                                    <span>${Language.text('remove_to_wishlist')}</span>`;
+                                                <span>${Language.text('remove_to_wishlist')}</span>`;
                     }
                     else {
                         return html ` <i class="fa-regular fa-heart"></i>
-                                    <span>${Language.text('add_to_wishlist')}</span>`;
+                                                <span>${Language.text('add_to_wishlist')}</span>`;
                     }
                 }
             },
         })}
-                </span>
+                        </span>
                     </div>
                 </div>
-            </div> `;
+            </div>
+        `;
     }
     static isPhone() {
         return document.body.clientWidth < 768;

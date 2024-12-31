@@ -774,6 +774,7 @@ export class Shopping {
                     value: number;
                 };
                 is_gift?: boolean;
+                stock: number;
             }[];
             customer_info?: any; //顧客資訊 訂單人
             email?: string;
@@ -1088,6 +1089,7 @@ export class Shopping {
                                 b.sale_price = variant.sale_price;
                                 b.collection = pd['collection'];
                                 b.sku = variant.sku;
+                                b.stock = variant.stock;
                                 b.shipment_obj = {
                                     type: variant.shipment_type,
                                     value: (() => {
