@@ -832,6 +832,7 @@ export class ShoppingProductSetting {
                                 document.querySelector('.pd-w-c')!.scrollTop = vm.last_scroll;
                                 vm.last_scroll = 0;
                             }, 200);
+                            dialog.dataLoading({visible: true});
                             return ShoppingProductSetting.editProduct({
                                 vm: vm,
                                 gvc: gvc,
@@ -1348,19 +1349,21 @@ export class ShoppingProductSetting {
                                                                 不追蹤
                                                             </div>
                                                             <div style="width:100%;height:1px;backgound:#DDDDDD;"></div>
-                                                            <div class="flex-fill d-flex flex-column"
-                                                                 style="gap: 8px;font-size: 16px;font-weight: 700;">
-                                                                <div>安全庫存</div>
-                                                                <input
-                                                                        class="w-100"
-                                                                        value="${variant.save_stock ?? '0'}"
-                                                                        style="padding: 9px 18px;border-radius: 10px;border: 1px solid #DDD;"
-                                                                        placeholder="請輸入安全庫存"
-                                                                        onchange="${gvc.event((e) => {
-                                                                            variant.save_stock = e.value;
-                                                                        })}"
-                                                                />
-                                                            </div>
+                                                            ${
+                                                                variant.show_understocking == 'false' ? '' : html`<div class="flex-fill d-flex flex-column"
+                                                                style="gap: 8px;font-size: 16px;font-weight: 700;">
+                                                               <div>安全庫存</div>
+                                                               <input
+                                                                       class="w-100"
+                                                                       value="${variant.save_stock ?? '0'}"
+                                                                       style="padding: 9px 18px;border-radius: 10px;border: 1px solid #DDD;"
+                                                                       placeholder="請輸入安全庫存"
+                                                                       onchange="${gvc.event((e) => {
+                                                                           variant.save_stock = e.value;
+                                                                       })}"
+                                                               />
+                                                           </div>`
+                                                            }
                                                         `;
                                                     },
                                                     divCreate: {style: `display: flex;flex-direction: column;align-items: flex-start;gap: 12px;align-self: stretch;`},
@@ -1706,6 +1709,7 @@ export class ShoppingProductSetting {
         (window.parent as any).glitter.share.checkData = () => origin_data === JSON.stringify(postMD);
         const html = String.raw;
         const gvc = obj.gvc;
+        const dialog = new ShareDialog(gvc.glitter);
         const variantsViewID = gvc.glitter.getUUID();
         const saasConfig: { config: any; api: any } = (window.parent as any).saasConfig;
         let selectFunRow = false;
@@ -1933,7 +1937,6 @@ export class ShoppingProductSetting {
                                         ${BgWidget.goBack(
                                                 obj.gvc.event(() => {
                                                     if ((window.parent as any).glitter.share.checkData && !(window.parent as any).glitter.share.checkData()) {
-                                                        const dialog = new ShareDialog(gvc.glitter);
                                                         dialog.checkYesOrNot({
                                                             text: '尚未儲存內容，是否確認跳轉?',
                                                             callback: (response) => {
@@ -5292,6 +5295,9 @@ ${language_data.seo.content ?? ''}</textarea
                     class: `d-flex`,
                     style: `font-size: 16px;color:#393939;position: relative;padding-bottom:240px;`,
                 },
+                onCreate: ()=>{
+                    dialog.dataLoading({visible: false});
+                }
             };
         });
     }
