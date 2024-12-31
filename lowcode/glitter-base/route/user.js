@@ -588,6 +588,7 @@ export class ApiUser {
             headers: {
                 'Content-Type': 'application/json',
                 'g-app': json.app_name || getConfig().config.appName,
+                Authorization: json.token
             },
             data: JSON.stringify(json),
         });

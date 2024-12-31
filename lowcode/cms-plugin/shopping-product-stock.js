@@ -407,6 +407,7 @@ export class StockList {
                             goBackEvent: {
                                 save: (postMD) => {
                                     const dialog = new ShareDialog(gvc.glitter);
+                                    dialog.dataLoading({ visible: true });
                                     ApiShop.putProduct({
                                         data: postMD,
                                         token: window.parent.config.token,

@@ -3,7 +3,9 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.getEC2INFO = exports.terminateInstances = exports.createEC2Instance = void 0;
+exports.createEC2Instance = createEC2Instance;
+exports.terminateInstances = terminateInstances;
+exports.getEC2INFO = getEC2INFO;
 const aws_sdk_1 = __importDefault(require("aws-sdk"));
 const process_1 = __importDefault(require("process"));
 aws_sdk_1.default.config.update({
@@ -32,7 +34,6 @@ async function createEC2Instance() {
         console.error('Error creating EC2 instance:', error);
     }
 }
-exports.createEC2Instance = createEC2Instance;
 async function terminateInstances(instanceId) {
     const ec2 = new aws_sdk_1.default.EC2();
     const params = {
@@ -48,7 +49,6 @@ async function terminateInstances(instanceId) {
         return false;
     }
 }
-exports.terminateInstances = terminateInstances;
 function getEC2INFO(instanceId) {
     const ec2 = new aws_sdk_1.default.EC2();
     const params = {
@@ -69,5 +69,4 @@ function getEC2INFO(instanceId) {
         });
     });
 }
-exports.getEC2INFO = getEC2INFO;
 //# sourceMappingURL=create-instance.js.map

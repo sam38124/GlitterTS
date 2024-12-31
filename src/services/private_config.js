@@ -128,6 +128,20 @@ class Private_config {
                         toggle: false
                     };
                 }
+                if (!keyData.line_pay_scan) {
+                    keyData.line_pay_scan = {
+                        CLIENT_ID: '',
+                        SECRET: '',
+                        BETA: false,
+                        toggle: false
+                    };
+                }
+                if (!keyData.ut_credit_card) {
+                    keyData.ut_credit_card = {
+                        pwd: '',
+                        toggle: false
+                    };
+                }
                 ['paypal', 'newWebPay', 'ecPay'].map((dd) => {
                     if (keyData[dd].toggle) {
                         keyData.TYPE = dd;

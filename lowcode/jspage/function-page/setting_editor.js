@@ -16,6 +16,7 @@ import { AddComponent } from '../../editor/add-component.js';
 import { EditorConfig } from '../../editor-config.js';
 import { ApiUser } from '../../glitter-base/route/user.js';
 import { BgWidget } from '../../backend-manager/bg-widget.js';
+import { GlobalUser } from "../../glitter-base/global/global-user.js";
 export class Setting_editor {
     static left(gvc, viewModel, createID, gBundle) {
         const html = String.raw;
@@ -61,12 +62,14 @@ export class Setting_editor {
                 new Promise((resolve, reject) => {
                     ApiUser.getPermission({
                         page: 0,
-                        limit: 1,
+                        limit: 1000,
                     }).then((data) => {
-                        var _a;
                         if (data.result) {
-                            permissionTitle = data.response.store_permission_title;
-                            permissionData = (_a = data.response.data[0]) !== null && _a !== void 0 ? _a : { config: { auth: [] } };
+                            const find_dd = data.response.data.find((dd) => {
+                                return `${dd.user}` === `${GlobalUser.parseJWT(GlobalUser.saas_token).payload.userID}` && (dd.id !== -1);
+                            });
+                            permissionTitle = (find_dd) ? `employee` : data.response.store_permission_title;
+                            permissionData = find_dd !== null && find_dd !== void 0 ? find_dd : { config: { auth: [] } };
                             resolve();
                         }
                         else {

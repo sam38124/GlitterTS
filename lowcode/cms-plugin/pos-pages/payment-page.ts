@@ -14,6 +14,9 @@ import {PayConfig} from './pay-config.js';
 import {ApiDelivery} from '../../glitter-base/route/delivery.js';
 import {IminModule} from "./imin-module.js";
 import {ConnectionMode} from "./connection-mode.js";
+import {PosFunction} from "./pos-function.js";
+import {PosCheckoutSetting} from "../pos-checkout-setting.js";
+import {PosBasicSetting} from "../pos-basic-setting.js";
 
 const html = String.raw;
 
@@ -799,6 +802,7 @@ background: #EAEAEA;box-shadow: 0px 0px 10px 0px rgba(0, 0, 0, 0.15);`,
                                             {
                                                 title: `現金`,
                                                 value: 'cash',
+                                                key:'cash',
                                                 event: () => {
                                                     vm.paySelect = 'cash';
                                                 },
@@ -806,19 +810,23 @@ background: #EAEAEA;box-shadow: 0px 0px 10px 0px rgba(0, 0, 0, 0.15);`,
                                             {
                                                 title: `刷卡`,
                                                 value: 'creditCard',
+                                                key: 'ut_credit_card',
                                                 event: () => {
                                                     vm.paySelect = 'creditCard';
                                                 },
                                             },
                                             {
-                                                title: `Line pay`,
+                                                title: `Line Pay`,
                                                 value: 'line',
+                                                key: 'line_pay_scan',
                                                 event: () => {
                                                     vm.paySelect = 'line';
                                                 },
                                             },
                                         ].filter((dd) => {
-                                            return (ap_config.support_pos_payment as any).includes(dd.value)
+                                            return (dd.key==='cash') || (orderDetail.payment_setting.find((d1:any)=>{
+                                                return dd.key===d1.key
+                                            }))
                                         });
                                         return btnArray
                                                 .map((btn) => {
@@ -1066,10 +1074,16 @@ text-transform: uppercase;" onclick="${gvc.event(() => {
                             </div>
                             <input style="display: flex;width: 143px;padding: 9px 18px;border-radius: 10px;border: 1px solid #DDD;text-align: right;"
                                    class="ms-auto" value="${realTotal}"
+                                   onclick="${gvc.event(()=>{
+                                       PosFunction.setMoney(gvc,(money)=>{
+                                           realTotal=parseInt(money,10) || parseInt(orderDetail.total as any, 10)
+                                           gvc.notifyDataChange(vm_id);
+                                       })
+                                                })}"
                                    onchange="${gvc.event((e) => {
                                                     realTotal = e.value;
                                                     gvc.notifyDataChange(vm_id);
-                                                })}">
+                                                })}" readonly>
                         </div>
                         <div class="d-flex"
                              style="color: #393939;font-size: 18px;font-weight: 700;letter-spacing: 0.72px;margin-bottom: 12px;">
@@ -1094,7 +1108,9 @@ text-transform: uppercase;" onclick="${gvc.event(() => {
                                                                 return;
                                                             }
                                                             //設定POS機資訊
-                                                            orderDetail.pos_info = {};
+                                                            orderDetail.pos_info = {
+                                                                who:gvc.glitter.share.select_member
+                                                            };
                                                             orderDetail.pos_info.payment = vm.paySelect;
                                                             orderDetail.user_info = obj.ogOrderData.user_info;
                                                             let passData = JSON.parse(JSON.stringify(orderDetail));
@@ -1112,7 +1128,7 @@ text-transform: uppercase;" onclick="${gvc.event(() => {
                                                             }
                                                         })}"
                                                 >
-                                                    前往結賬
+                                                    前往結帳
                                                 </div>`);
                                             return view.join('');
                                         },
@@ -1253,7 +1269,9 @@ text-transform: uppercase;" onclick="${gvc.event(() => {
             PaymentPage.selectInvoice(gvc, orderDetail, vm, passData);
         }
 
-        console.log(`orderDetail=>`, orderDetail)
+        const pwd=orderDetail.payment_setting.find((dd:any)=>{
+            return dd.key==='ut_credit_card'
+        }).pwd
         gvc.glitter.innerDialog(
             (gvc: GVC) => {
                 if (PayConfig.deviceType === 'pos') {
@@ -1262,6 +1280,7 @@ text-transform: uppercase;" onclick="${gvc.event(() => {
                         {
                             amount: `${orderDetail.total}`,
                             memo: `訂單ID:${orderDetail.orderID}`,
+                            pwd: pwd
                         },
                         (res: any) => {
                             if (res.result) {
@@ -1287,6 +1306,7 @@ text-transform: uppercase;" onclick="${gvc.event(() => {
                         cmd: 'credit_card',
                         amount: `${orderDetail.total}`,
                         memo: `訂單ID:${orderDetail.orderID}`,
+                        pwd: pwd
                     })
                 } else {
                     setTimeout(() => {
@@ -1551,7 +1571,10 @@ text-transform: uppercase;" onclick="${gvc.event(() => {
 
         gvc.glitter.innerDialog(
             (gvc: GVC) => {
-                gvc.glitter.share.scan_back = (text: string) => {
+
+                let block=false
+                PayConfig.onPayment=(scanText)=>{
+                    if(block){return}
                     dialog.dataLoading({visible: true});
                     ApiShop.toPOSLinePay({
                         amount: orderDetail.total,
@@ -1562,17 +1585,19 @@ text-transform: uppercase;" onclick="${gvc.event(() => {
                                 return `${data.title} * ${data.count}`;
                             })
                             .join(','),
-                        oneTimeKey: text,
+                        oneTimeKey: scanText,
                     }).then((res) => {
                         dialog.dataLoading({visible: false});
                         if (!res.result || !res.response.result) {
                             dialog.errorMessage({text: '交易失敗'});
                         } else {
                             gvc.closeDialog();
+                            PayConfig.onPayment=undefined
                             next();
                         }
                     });
-                };
+                }
+                let m_text=''
                 return html`
                     <div class="dialog-box">
                         <div class="dialog-content position-relative "
@@ -1583,12 +1608,61 @@ text-transform: uppercase;" onclick="${gvc.event(() => {
                             </div>
                             <img class="mt-3" style="max-width:70%;"
                                  src="https://d3jnmi1tfjgtti.cloudfront.net/file/234285319/size1440_s*px$_s6sfs4scs5s3s0sa_Screenshot2024-09-06at12.28.00 PM.jpg"></img>
-                            <div class="fw-500 w-100 mt-3"
-                                 style="border-radius: 10px;border: 1px solid #DDD;background: #FFF;padding: 12px 24px;color: #393939;width:120px;text-align:center;"
-                                 onclick="${gvc.event(() => {
-                                     // clearTimeout(timer)
-                                     gvc.glitter.closeDiaLog();
-                                 })}">取消付款
+                            <div class="d-flex w-100 align-items-center mt-3"
+                                 style="border:1px solid grey;height: 50px;">
+                                <input
+                                        class="form-control h-100"
+                                        style="border: none;"
+                                        placeholder="請輸入或掃描付款代碼"
+                                        onchange="${gvc.event((e, event) => {
+                                            m_text=e.value
+                                        })}"
+                                        value="${m_text || ''}"
+                                        onfocus="${gvc.event(()=>{block=true})}"
+                                        onblur="${gvc.event(()=>{
+                                            block=false
+                                        })}"
+                                />
+                                <div class="flex-fill"></div>
+                                <div
+                                        style="background: grey;width: 50px;"
+                                        class="d-flex align-items-center justify-content-center text-white h-100"
+                                        onclick="${gvc.event(() => {
+                                            gvc.glitter.runJsInterFace('start_scan', {}, (res) => {
+                                                PayConfig.onPayment!(res.text);
+                                            });
+                                        })}"
+                                >
+                                    <i class="fa-regular fa-barcode-read"></i>
+                                </div>
+                            </div>
+                            <div class="d-flex align-items-center justify-content-center w-100"
+                                 style="margin-top: 24px;font-size: 16px;font-weight: 700;letter-spacing: 0.64px;">
+                                <div
+                                        class="flex-fill"
+                                        style="border-radius: 10px;border: 1px solid #DDD;background: #FFF;padding: 12px 24px;color: #393939;text-align:center;"
+                                        onclick="${gvc.event(() => {
+                                            PayConfig.onPayment=undefined
+                                            gvc.glitter.closeDiaLog();
+                                        })}"
+                                >
+                                    取消
+                                </div>
+                                <div class="mx-2"></div>
+                                <div
+                                        class="flex-fill"
+                                        style="border-radius: 10px;background: #393939;padding: 12px 24px;color: #FFF;text-align:center;"
+                                        onclick="${gvc.event(async () => {
+                                            if(!m_text){
+                                                dialog.errorMessage({text:'請輸入交易條碼'})
+                                                return 
+                                            }
+                                            block=false
+                                            PayConfig.onPayment!(m_text)
+                                        })}"
+                                >
+                                    確定
+                                </div>
                             </div>
                         </div>
                     </div>

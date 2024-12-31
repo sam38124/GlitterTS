@@ -1,0 +1,6 @@
+//POS LinePay 流程
+//掃描用戶條碼進行請款
+https://developers-pay.line.me/offline/implement-payment#scan-mycode
+
+//POS 付款測試用
+https://sandbox-web-pay.line.me/web/sandbox/payment/oneTimeKey?countryCode=TW&paymentMethod=card&preset=1

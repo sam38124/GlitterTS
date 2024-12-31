@@ -583,13 +583,7 @@ export class HtmlGenerate {
         glitter.setHome(
             'glitterBundle/plugins/html-render.js',
             obj.tag,
-            {
-                app_config: obj.app_config,
-                page_config: obj.page_config ?? {},
-                config: obj.config,
-                editMode: obj.editMode,
-                data: obj.data,
-            },
+           obj,
             obj.option ?? {}
         );
     };
@@ -2660,7 +2654,7 @@ transform: translateY(5px);
                     while (!glitter.share.editorViewModel) {
                         glitter = (window.parent as any).glitter;
                     }
-                    const gvc = glitter.pageConfig[0].gvc;
+                    const gvc = glitter.pageConfig[glitter.pageConfig.length-1].gvc;
                     const document = glitter.document;
                     for (let a = 0; a < container_items.length; a++) {
                         if (container_items[a] == item) {

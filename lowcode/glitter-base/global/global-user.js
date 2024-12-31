@@ -36,7 +36,25 @@ export class GlobalUser {
     static set language(value) {
         GlobalUser.getWindow().glitter.setCookie(GlobalUser.getTag('language'), value);
     }
+    static parseJWT(token) {
+        const parts = token.split(".");
+        if (parts.length !== 3) {
+            throw new Error("Invalid JWT format");
+        }
+        const header = base64UrlDecode(parts[0]);
+        const payload = base64UrlDecode(parts[1]);
+        const signature = parts[2];
+        return {
+            header,
+            payload,
+            signature
+        };
+    }
 }
 GlobalUser.tagId = 'sjnsannsai23ij3as';
 GlobalUser.userInfo = undefined;
 GlobalUser.updateUserData = {};
+function base64UrlDecode(base64Url) {
+    const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+    return JSON.parse(atob(base64));
+}

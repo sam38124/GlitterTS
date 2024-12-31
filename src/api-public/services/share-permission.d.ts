@@ -32,6 +32,7 @@ export declare class SharePermission {
         brand: any;
         domain: any;
         app: string;
+        user: any;
     } | undefined>;
     getStoreAuth(): Promise<any>;
     getPermission(json: {
@@ -67,11 +68,12 @@ export declare class SharePermission {
         redirect_url: any;
         email: string;
         config: any;
-        status?: number | undefined;
+        status?: number;
         saas: string | undefined;
         brand: any;
         domain: any;
         app: string;
+        user: any;
         result: boolean;
         message?: undefined;
     }>;
@@ -83,6 +85,7 @@ export declare class SharePermission {
         brand: any;
         domain: any;
         app: string;
+        user: any;
         result: boolean;
     }>;
     toggleStatus(email: string): Promise<{
@@ -94,6 +97,7 @@ export declare class SharePermission {
         brand: any;
         domain: any;
         app: string;
+        user: any;
         result: boolean;
     }>;
     triggerInvited(email: string): Promise<{
@@ -105,6 +109,7 @@ export declare class SharePermission {
         brand: any;
         domain: any;
         app: string;
+        user: any;
         result: boolean;
     }>;
     static generateToken(userObj: AppPermission): Promise<string>;

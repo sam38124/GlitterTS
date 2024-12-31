@@ -1,4 +1,9 @@
 import { IToken } from '../models/Auth.js';
+type StockList = {
+    [key: string]: {
+        count: number;
+    };
+};
 export declare class Stock {
     app: string;
     token: IToken | undefined;
@@ -15,4 +20,13 @@ export declare class Stock {
         data: boolean;
         process: string;
     } | undefined>;
+    allocateStock(stockList: StockList, requiredCount: number): {
+        stockList: StockList;
+        deductionLog: {
+            [key: string]: number;
+        };
+        totalDeduction: number;
+        remainingCount: number;
+    };
 }
+export {};

@@ -19,8 +19,12 @@ class SharePermission {
     }
     async getBaseData() {
         try {
-            const appData = (await database_1.default.query(`SELECT domain, brand FROM \`${config_1.saasConfig.SAAS_NAME}\`.app_config WHERE appName = ? AND user = ?;
-                `, [this.appName, this.token.userID]))[0];
+            const appData = (await database_1.default.query(`SELECT domain, brand,user FROM \`${config_1.saasConfig.SAAS_NAME}\`.app_config WHERE  (user = ? and appName = ?)
+                                                                                         OR appName in (
+                                                                                          (SELECT appName FROM \`${config_1.saasConfig.SAAS_NAME}\`.app_auth_config
+                        WHERE user = ? AND status = 1 AND invited = 1 AND appName = ?)
+                        );
+                `, [this.token.userID, this.appName, this.token.userID, this.appName]))[0];
             return appData === undefined
                 ? undefined
                 : {
@@ -28,6 +32,7 @@ class SharePermission {
                     brand: appData.brand,
                     domain: appData.domain,
                     app: this.appName,
+                    user: appData.user
                 };
         }
         catch (e) {
@@ -47,7 +52,7 @@ class SharePermission {
     async getPermission(json) {
         var _a, _b;
         try {
-            const base = await this.getBaseData();
+            let base = await this.getBaseData();
             if (!base) {
                 const authConfig = await this.getStoreAuth();
                 if (authConfig) {
@@ -156,6 +161,27 @@ class SharePermission {
                 default:
                     break;
             }
+            if (base) {
+                const user_data = await new user_1.User(base.brand).getUserData(`${base.user}`, 'userID');
+                user_data.userData.auth_config = user_data.userData.auth_config || {
+                    pin: user_data.userData.pin,
+                    auth: [],
+                    name: user_data.userData.name,
+                    phone: user_data.userData.phone,
+                    title: '管理員',
+                    member_id: ''
+                };
+                authDataList.unshift({
+                    id: -1,
+                    user: `${base.user}`,
+                    appName: this.appName,
+                    config: user_data.userData.auth_config,
+                    email: user_data.account,
+                    invited: 1,
+                    status: 1,
+                    online_time: new Date()
+                });
+            }
             return {
                 data: authDataList.slice(start, end),
                 total: authDataList.length,
@@ -172,7 +198,7 @@ class SharePermission {
             if (!base) {
                 return { result: false };
             }
-            let userData = (await database_1.default.query(`SELECT userID FROM \`${base.brand}\`.t_user WHERE account = ?;
+            let userData = (await database_1.default.query(`SELECT userID,userData FROM \`${base.brand}\`.t_user WHERE account = ?;
                 `, [data.email]))[0];
             if (userData === undefined) {
                 const findAuth = (await database_1.default.query(`SELECT * FROM \`${config_1.saasConfig.SAAS_NAME}\`.app_auth_config 
@@ -187,7 +213,9 @@ class SharePermission {
                 data.config.verifyEmail = data.email;
             }
             if (userData.userID === this.token.userID) {
-                return { result: false };
+                userData.userData.auth_config = data.config;
+                await database_1.default.query(`update \`${base.brand}\`.t_user set userData=? where account = ?`, [JSON.stringify(userData.userData), data.email]);
+                return { result: true };
             }
             const authData = (await database_1.default.query(`SELECT * FROM \`${config_1.saasConfig.SAAS_NAME}\`.app_auth_config WHERE user = ? AND appName = ?;
                 `, [userData.userID, base.app]))[0];

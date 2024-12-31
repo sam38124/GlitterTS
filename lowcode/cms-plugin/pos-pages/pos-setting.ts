@@ -22,10 +22,6 @@ export class PosSetting {
                 page: 'list'
             }
 
-            function toSettingPage() {
-
-            }
-
             const dialog = new ShareDialog(gvc.glitter)
             return {
                 bind: vm.id,

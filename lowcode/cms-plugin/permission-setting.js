@@ -119,6 +119,9 @@ export class PermissionSetting {
                             return {
                                 bind: id,
                                 view: () => {
+                                    if (dd.id === -1) {
+                                        return `擁有者`;
+                                    }
                                     return BgWidget.switchTextButton(gvc, dd.status, {
                                         left: dd.status ? '啟用' : '關閉',
                                     }, () => {
@@ -155,7 +158,14 @@ export class PermissionSetting {
                             return [
                                 {
                                     key: '邀請狀態',
-                                    value: dd.invited ? BgWidget.infoInsignia('已接受') : BgWidget.notifyInsignia('邀請中'),
+                                    value: (() => {
+                                        if (dd.id === -1) {
+                                            return BgWidget.successInsignia('擁有者');
+                                        }
+                                        else {
+                                            return dd.invited ? BgWidget.infoInsignia('已接受') : BgWidget.notifyInsignia('邀請中');
+                                        }
+                                    })(),
                                 },
                             ];
                         }
@@ -370,13 +380,13 @@ export class PermissionSetting {
                                 ? BgWidget.mainCard(html `
                                           <div class="tx_700">登錄存取權</div>
                                           ${BgWidget.mbContainer(18)}
-                                          <div class="d-flex align-items-center gap-2 mb-2">
+                                          <div class="${(vm.data.id === -1) ? `d-none` : `d-flex`} align-items-center gap-2 mb-2">
                                               <div class="tx_normal">存取權開啟</div>
                                               ${BgWidget.switchButton(gvc, vm.data.status === 1, () => {
                                     vm.data.status = (vm.data.status - 1) * -1;
                                 })}
                                           </div>
-                                          ${BgWidget.grayNote('一鍵開啟或關閉此員工的登入存取權，停用後員工將無法登入店家管理後台。')}
+                                          ${BgWidget.grayNote(vm.data.id === -1 ? '此帳號為商店擁有者，擁有最高權限，如需轉讓權限請聯絡 SHOPNEX 客服。' : '一鍵開啟或關閉此員工的登入存取權，停用後員工將無法登入店家管理後台。')}
                                       `)
                                 : '',
                             BgWidget.mainCard(html `
@@ -421,6 +431,33 @@ export class PermissionSetting {
                                         vm.data.config.phone = text;
                                     },
                                 }),
+                                BgWidget.editeInput({
+                                    gvc: gvc,
+                                    title: '員工編號',
+                                    placeHolder: '此員工編號會用作POS登入帳號',
+                                    default: vm.data.config.member_id || '',
+                                    callback: (text) => {
+                                        vm.data.config.member_id = text;
+                                    },
+                                }),
+                                BgWidget.editeInput({
+                                    gvc: gvc,
+                                    title: 'PIN碼 ' + BgWidget.grayNote(`*請輸入6碼數字`),
+                                    type: 'number',
+                                    placeHolder: `此PIN碼會用作POS登入密碼`,
+                                    default: vm.data.config.pin || '',
+                                    callback: (text) => {
+                                        vm.data.config.pin = text;
+                                        gvc.notifyDataChange(viewID);
+                                    },
+                                    pattern: '0-9',
+                                    oninput: (text) => {
+                                        if (text.length >= 6) {
+                                            vm.data.config.pin = text.substring(0, 6);
+                                            gvc.notifyDataChange(viewID);
+                                        }
+                                    },
+                                }),
                             ]
                                 .filter((str) => {
                                 return str.length > 0;
@@ -431,8 +468,9 @@ export class PermissionSetting {
                                 .join('')}
                                         </div>
                                     `),
-                            BgWidget.mainCard(html ` <div class="tx_700">權限指派</div>
-                                    ${BgWidget.mbContainer(18)} ${this.permissionOptions(gvc, vm.data.config.auth)}`),
+                            (vm.data.id !== -1) ?
+                                BgWidget.mainCard(html ` <div class="tx_700">權限指派</div>
+                                    ${BgWidget.mbContainer(18)} ${this.permissionOptions(gvc, vm.data.config.auth)}`) : ``,
                         ]
                             .filter((dd) => {
                             return dd;
@@ -494,6 +532,9 @@ export class PermissionSetting {
                                     title: vm.data.config.title,
                                     phone: vm.data.config.phone,
                                     auth: vm.data.config.auth,
+                                    member_id: vm.data.config.member_id,
+                                    pin: vm.data.config.pin,
+                                    is_manager: vm.data.id === -1
                                 },
                                 status: obj.type === 'add' ? 1 : vm.data.status,
                             }).then((res) => {
@@ -541,13 +582,13 @@ export class PermissionSetting {
                                 ? BgWidget.mainCard(html `
                                           <div class="tx_700">登錄存取權</div>
                                           ${BgWidget.mbContainer(18)}
-                                          <div class="d-flex align-items-center gap-2 mb-2">
+                                          <div class="d-flex align-items-center gap-2 mb-2 ${vm.data.id === -1 ? `d-none` : ``}">
                                               <div class="tx_normal">存取權開啟</div>
                                               ${BgWidget.switchButton(gvc, vm.data.status === 1, () => {
                                     vm.data.status = (vm.data.status - 1) * -1;
                                 })}
                                           </div>
-                                          ${BgWidget.grayNote('一鍵開啟或關閉此員工的登入存取權，停用後員工將無法登入店家管理後台。')}
+                                          ${BgWidget.grayNote(vm.data.id === -1 ? `當前為商店擁有者，如需更換商店擁有者請聯絡SHOPNEX客服` : '一鍵開啟或關閉此員工的登入存取權，停用後員工將無法登入店家管理後台。')}
                                       `)
                                 : '',
                             BgWidget.mainCard(html `
@@ -595,7 +636,7 @@ export class PermissionSetting {
                                 BgWidget.editeInput({
                                     gvc: gvc,
                                     title: '員工編號',
-                                    placeHolder: '此員工編號會用作POS登入帳號',
+                                    placeHolder: '請輸入員工編號',
                                     default: vm.data.config.member_id,
                                     callback: (text) => {
                                         vm.data.config.member_id = text;

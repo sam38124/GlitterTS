@@ -2504,14 +2504,14 @@ export class CheckoutIndex {
         const form = this.getShipmentMethod(cartData).find((dd) => dd.value === subData['shipment']).form;
         if (FormWidget.checkLeakData(form, subData.custom_form_delivery)) {
             dialog.errorMessage({
-                text: `${Language.text('please_enter')}「${FormWidget.checkLeakData(form, subData)}」`,
+                text: `${Language.text('please_enter')}「${Language.getLanguageCustomText(FormWidget.checkLeakData(form, subData))}」`,
             });
             return false;
         }
         const leakData = FormWidget.checkLeakData(cartData.custom_form_format, cartData.custom_form_data);
         if (leakData) {
             dialog.errorMessage({
-                text: `${Language.text('please_enter')}「${leakData}」`,
+                text: `${Language.text('please_enter')}「${Language.getLanguageCustomText(leakData)}」`,
             });
             return false;
         }

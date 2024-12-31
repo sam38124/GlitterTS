@@ -121,5 +121,6 @@ export  type ViewModel = {
     categorySearch: boolean;
     categories: any[];
     paySelect: string;
+    loading:boolean
 };
 

@@ -76,7 +76,8 @@ export class ConnectionMode {
                                     case 'credit_card':
                                         gvc.glitter.runJsInterFace('credit_card', {
                                             amount: data.function.amount,
-                                            memo: data.function.memo
+                                            memo: data.function.memo,
+                                            pwd: data.function.pwd
                                         }, (res) => {
                                             res.cmd = 'credit_card';
                                             ConnectionMode.sendCommandToPaired(res);

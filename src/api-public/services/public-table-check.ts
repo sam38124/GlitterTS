@@ -4,13 +4,14 @@ import {compare_sql_table} from '../../services/saas-table-check.js';
 import tool from '../../services/tool.js';
 import {Ai} from "../../services/ai.js";
 import {AiRobot} from "./ai-robot.js";
+import {User} from "./user.js";
+import {Shopping} from "./shopping.js";
 
 
 export class ApiPublic {
     public static checkApp: { app_name: string; refer_app: string }[] = [];
 
     public static async createScheme(appName: string) {
-        // console.log(`createScheme=>`,appName)
         if (
             ApiPublic.checkApp.find((dd) => {
                 return dd.app_name === appName;
@@ -513,6 +514,7 @@ export class ApiPublic {
                 });
             }
             await (AiRobot.syncAiRobot(appName))
+            await (ApiPublic.migrateVariants(appName))
         } catch (e) {
             console.error(e);
             ApiPublic.checkApp = ApiPublic.checkApp.filter((dd) => {
@@ -544,6 +546,46 @@ export class ApiPublic {
                 await trans.commit();
                 await trans.release();
             } catch (e) {
+            }
+        }
+    }
+
+    public static async migrateVariants(app: string) {
+        //判斷當前庫存的版本
+        const store_version = await new User(app).getConfigV2({
+            key: 'store_version',
+            user_id: 'manager'
+        });
+        //migrate成分倉版本
+        if (store_version.version === 'v1') {
+            for (const b of await db.query(`select *
+                                            from \`${app}\`.t_manager_post
+                                            where (content ->>'$.type'='product')`, [])) {
+                //庫存點列出
+                const stock_list = await new User(app).getConfigV2({
+                    key: 'store_manager',
+                    user_id: 'manager'
+                });
+                for (const c of b.content.variants) {
+
+                    c.stockList={}
+                    stock_list.list.map((dd:any)=>{
+                        c.stockList[dd.id]={
+                            count:0
+                        }
+                    })
+                    c.stockList[stock_list.list[0].id].count=c.stock;
+                }
+                await new Shopping(app).putProduct(b.content)
+                store_version.version='v2'
+                await new User(app).setConfig({
+                    key:'store_version',
+                    user_id: 'manager',
+                    value: {
+                        version:'v2'
+                    }
+                })
+                console.log(`migrate-分艙:`,b)
             }
         }
     }
