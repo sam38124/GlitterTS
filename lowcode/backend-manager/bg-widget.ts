@@ -3927,6 +3927,7 @@ ${obj.default ?? ''}</textarea
                                 return this.spinner({
                                     container: {class: 'mt-0'},
                                     text: {visible: false},
+                                    circle: { width: 12 },
                                 });
                             },
                             divCreate: {

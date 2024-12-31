@@ -3348,6 +3348,7 @@ ${(_c = obj.default) !== null && _c !== void 0 ? _c : ''}</textarea
                                 return this.spinner({
                                     container: { class: 'mt-0' },
                                     text: { visible: false },
+                                    circle: { width: 12 },
                                 });
                             },
                             divCreate: {
