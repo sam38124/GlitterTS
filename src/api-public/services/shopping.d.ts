@@ -261,6 +261,7 @@ export declare class Shopping {
             };
             is_gift?: boolean;
             stock: number;
+            show_understocking: 'true' | 'false';
         }[];
         customer_info?: any;
         email?: string;

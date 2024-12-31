@@ -775,6 +775,7 @@ export class Shopping {
                 };
                 is_gift?: boolean;
                 stock: number;
+                show_understocking: 'true' | 'false';
             }[];
             customer_info?: any; //顧客資訊 訂單人
             email?: string;
@@ -1090,6 +1091,7 @@ export class Shopping {
                                 b.collection = pd['collection'];
                                 b.sku = variant.sku;
                                 b.stock = variant.stock;
+                                b.show_understocking = variant.show_understocking;
                                 b.shipment_obj = {
                                     type: variant.shipment_type,
                                     value: (() => {

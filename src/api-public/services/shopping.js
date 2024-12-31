@@ -735,6 +735,7 @@ class Shopping {
                                 b.collection = pd['collection'];
                                 b.sku = variant.sku;
                                 b.stock = variant.stock;
+                                b.show_understocking = variant.show_understocking;
                                 b.shipment_obj = {
                                     type: variant.shipment_type,
                                     value: (() => {

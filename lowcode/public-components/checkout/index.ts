@@ -698,7 +698,7 @@ export class CheckoutIndex {
                                                                             }
                                                                             return html`
                                                                                 <div class="d-flex flex-column border-bottom p-lg-3 px-1 py-3 gap-3">
-                                                                                    <div class="d-flex w-100   position-relative" style="gap:20px;">
+                                                                                    <div class="d-flex w-100 position-relative" style="gap:20px;">
                                                                                         <div class="${gClass('first-td')} justify-content-start  d-sm-none">
                                                                                             <div
                                                                                                 style="width: 88px;height: 88px;border-radius: 20px;background: 50%/cover url('${item.preview_image}')"
@@ -742,7 +742,16 @@ export class CheckoutIndex {
                                                                                                     })}"
                                                                                                     ${item.is_gift ? `disabled` : ``}
                                                                                                 >
-                                                                                                    ${[...new Array(item.stock && item.stock < 50 ? item.stock : 50)]
+                                                                                                    ${[
+                                                                                                        ...new Array(
+                                                                                                            (() => {
+                                                                                                                if (item.show_understocking === 'false') {
+                                                                                                                    return 50;
+                                                                                                                }
+                                                                                                                return item.stock < 50 ? item.stock : 50;
+                                                                                                            })()
+                                                                                                        ),
+                                                                                                    ]
                                                                                                         .map((_, index) => {
                                                                                                             return html` <option value="${index + 1}" ${index + 1 === item.count ? `selected` : ``}>
                                                                                                                 ${index + 1}

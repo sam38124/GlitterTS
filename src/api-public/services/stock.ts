@@ -27,47 +27,36 @@ export class Stock {
 
         try {
             const getStockTotal = await db.query(
-                `
-                    SELECT count(id) as c FROM \`${this.app}\`.t_variants
-                    WHERE content->>'$.stockList.${json.search ?? 'store'}.count' > 0;
+                `SELECT count(v.id) as c
+                    FROM \`${this.app}\`.t_variants as v, \`${this.app}\`.t_manager_post as p
+                    WHERE v.content->>'$.stockList.${json.search ?? 'store'}.count' > 0 
+                    AND v.product_id = p.id
                 `,
                 []
             );
 
             let data = await db.query(
-                `
-                    SELECT * FROM \`${this.app}\`.t_variants
-                    WHERE content->>'$.stockList.${json.search ?? 'store'}.count' > 0
+                `SELECT v.*, p.content as product_content 
+                    FROM \`${this.app}\`.t_variants as v, \`${this.app}\`.t_manager_post as p
+                    WHERE v.content->>'$.stockList.${json.search ?? 'store'}.count' > 0 
+                    AND v.product_id = p.id
                     LIMIT ${page * limit}, ${limit};
                 `,
                 []
             );
 
-            if (data.length > 0) {
-                const idString = data.map((item: any) => `"${item.product_id}"`).join(',');
-                const productData = await db.query(
-                    `SELECT id, content FROM \`${this.app}\`.t_manager_post
-                    WHERE id in (${idString})
-                    `,
-                    []
-                );
-                data = data.filter((item: any) => {
-                    const prod = productData.find((p: any) => p.id === item.product_id);
-                    if (!prod) {
-                        return false;
+            data.map((item: any) => {
+                item.count = item.content.stockList[json.search].count;
+                item.title = (() => {
+                    try {
+                        return item.product_content.language_data['zh-TW'].title;
+                    } catch (error) {
+                        console.error(`product id ${item.product_id} 沒有 zh-TW 的標題，使用原標題`);
+                        return item.product_content.title;
                     }
-                    item.title = (() => {
-                        try {
-                            return prod.content.language_data['zh-TW'].title;
-                        } catch (error) {
-                            console.error(`product id ${prod.id} 沒有 zh-TW 的標題，使用原標題`);
-                            return prod.content.title;
-                        }
-                    })();
-                    item.count = item.content.stockList[json.search].count;
-                    return true;
-                });
-            }
+                })();
+                return item;
+            });
 
             return {
                 total: getStockTotal[0].c,
@@ -83,7 +72,6 @@ export class Stock {
 
     async deleteStoreProduct(store_id: string) {
         try {
-            const start = new Date();
             const productList: { [k: string]: any } = {};
             const variants = await db.query(
                 `SELECT * FROM \`${this.app}\`.t_variants
@@ -161,7 +149,7 @@ export class Stock {
         }
     }
 
-    public allocateStock(stockList: StockList, requiredCount: number){
+    public allocateStock(stockList: StockList, requiredCount: number) {
         let remainingCount = requiredCount;
         let totalDeduction = 0; // 紀錄所有扣除的總數
         const deductionLog: { [key: string]: number } = {}; // 記錄每個倉庫的扣除值

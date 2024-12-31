@@ -552,26 +552,38 @@ overflow: hidden;
                                 </div>
                                 <div class="mt-3"></div>`;
         }))}
-                    <div class="flex-column gap-2  ${obj.with_qty === false ? `d-none` : `d-flex`} ">
-                        <h5 class="mb-0" style="color: ${titleFontColor};font-size:14px;">${Language.text('quantity')}</h5>
-                        <select
-                            class="form-select custom-select"
-                            style="border-radius: 5px; color: #575757; width: 100px;height:38px;"
-                            onchange="${gvc.event((e) => {
-            vm.quantity = e.value;
-            gvc.notifyDataChange([ids.addCartButton, ids.stock_count]);
-        })}"
-                        >
-                            ${gvc.map([
-            ...new Array((() => {
-                const variant = prod.variants.find((item) => PdClass.ObjCompare(item.spec, vm.specs));
-                return variant && variant.stock < 50 ? variant.stock : 50;
-            })()),
-        ].map((item, index) => {
-            return html ` <option value="${index + 1}">${index + 1}</option>`;
-        }))}
-                        </select>
-                    </div>
+                    ${(() => {
+            const variant = prod.variants.find((item) => PdClass.ObjCompare(item.spec, vm.specs));
+            const cartItem = new ApiCart().cart.line_items.find((item) => PdClass.ObjCompare(item.spec, vm.specs));
+            if (variant &&
+                (variant.stock < parseInt(vm.quantity, 10) || (cartItem && variant.stock < cartItem.count + parseInt(vm.quantity, 10))) &&
+                `${variant.show_understocking}` !== 'false') {
+                return '';
+            }
+            return html `<div class="flex-column gap-2  ${obj.with_qty === false ? `d-none` : `d-flex`} ">
+                            <h5 class="mb-0" style="color: ${titleFontColor};font-size:14px;">${Language.text('quantity')}</h5>
+                            <select
+                                class="form-select custom-select"
+                                style="border-radius: 5px; color: #575757; width: 100px;height:38px;"
+                                onchange="${gvc.event((e) => {
+                vm.quantity = e.value;
+                gvc.notifyDataChange([ids.addCartButton, ids.stock_count]);
+            })}"
+                            >
+                                ${gvc.map([
+                ...new Array((() => {
+                    const variant = prod.variants.find((item) => PdClass.ObjCompare(item.spec, vm.specs));
+                    if (!variant || variant.show_understocking === 'false') {
+                        return 50;
+                    }
+                    return variant.stock < 50 ? variant.stock : 50;
+                })()),
+            ].map((item, index) => {
+                return html ` <option value="${index + 1}">${index + 1}</option>`;
+            }))}
+                            </select>
+                        </div> `;
+        })()}
                     ${gvc.bindView(() => {
             return {
                 bind: ids.stock_count,
