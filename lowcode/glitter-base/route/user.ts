@@ -623,12 +623,14 @@ export class ApiUser {
     public static login(json: {
         app_name?: string;
         account?: string;
+        user_id?:string;
         pwd?: string;
-        login_type?: 'fb' | 'normal' | 'line' | 'google' | 'apple';
+        login_type?: 'fb' | 'normal' | 'line' | 'google' | 'apple' | 'pin';
         google_token?: string;
         fb_token?: string;
         token?: string;
         line_token?: string;
+        pin?:string;
         redirect?: string;
     }) {
         return BaseApi.create({
@@ -637,6 +639,7 @@ export class ApiUser {
             headers: {
                 'Content-Type': 'application/json',
                 'g-app': json.app_name || getConfig().config.appName,
+                Authorization:json.token
             },
             data: JSON.stringify(json),
         });
@@ -785,6 +788,9 @@ export class ApiUser {
             title: string;
             phone: string;
             auth: any;
+            member_id:any,
+            pin:any,
+            is_manager?:boolean
         };
         status: number;
     }) {

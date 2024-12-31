@@ -2158,7 +2158,7 @@ transform: translateY(5px);
                     while (!glitter.share.editorViewModel) {
                         glitter = window.parent.glitter;
                     }
-                    const gvc = glitter.pageConfig[0].gvc;
+                    const gvc = glitter.pageConfig[glitter.pageConfig.length - 1].gvc;
                     const document = glitter.document;
                     for (let a = 0; a < container_items.length; a++) {
                         if (container_items[a] == item) {
@@ -2381,20 +2381,14 @@ HtmlGenerate.renameWidgetID = (dd) => {
     return dd;
 };
 HtmlGenerate.setHome = (obj) => {
-    var _a, _b;
+    var _a;
     const glitter = Glitter.glitter;
     if (obj.tag === 'backend_manager') {
         glitter.setUrlParameter('page', 'backend_manager');
         location.reload();
         return;
     }
-    glitter.setHome('glitterBundle/plugins/html-render.js', obj.tag, {
-        app_config: obj.app_config,
-        page_config: (_a = obj.page_config) !== null && _a !== void 0 ? _a : {},
-        config: obj.config,
-        editMode: obj.editMode,
-        data: obj.data,
-    }, (_b = obj.option) !== null && _b !== void 0 ? _b : {});
+    glitter.setHome('glitterBundle/plugins/html-render.js', obj.tag, obj, (_a = obj.option) !== null && _a !== void 0 ? _a : {});
 };
 HtmlGenerate.changePage = (obj) => {
     var _a, _b;

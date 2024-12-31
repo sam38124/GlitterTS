@@ -45,4 +45,28 @@ export class GlobalUser {
     public static userInfo: any = undefined;
 
     public static updateUserData: any = {};
+
+    public static parseJWT(token:any) {
+        const parts = token.split(".");
+        if (parts.length !== 3) {
+            throw new Error("Invalid JWT format");
+        }
+
+        const header = base64UrlDecode(parts[0]);
+        const payload = base64UrlDecode(parts[1]);
+        const signature = parts[2];
+
+        return {
+            header,
+            payload,
+            signature
+        };
+    }
+
+}
+
+
+function base64UrlDecode(base64Url:any) {
+    const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+    return JSON.parse(atob(base64));
 }

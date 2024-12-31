@@ -132,12 +132,28 @@ export class Private_config {
                         toggle: false
                     }
                 }
-                //PayPal
+                //LinePay
                 if (!(keyData as any).line_pay) {
                     keyData.line_pay = {
                         CLIENT_ID: '',
                         SECRET: '',
                         BETA: false,
+                        toggle: false
+                    }
+                }
+                //LinePay POS
+                if (!(keyData as any).line_pay_scan) {
+                    keyData.line_pay_scan = {
+                        CLIENT_ID: '',
+                        SECRET: '',
+                        BETA: false,
+                        toggle: false
+                    }
+                }
+                //POS 實體信用卡
+                if (!(keyData as any).ut_credit_card) {
+                    keyData.ut_credit_card = {
+                        pwd:'',
                         toggle: false
                     }
                 }

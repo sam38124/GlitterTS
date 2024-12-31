@@ -88,7 +88,7 @@ export async function initial(serverPort: number) {
         fs.mkdirSync(path.resolve(__filename, '../app-project/work-space'), { recursive: true });
         Release.removeAllFilesInFolder(path.resolve(__filename, '../app-project/work-space'));
         if (process.env.firebase) {
-            await Firebase.initial();
+        await Firebase.initial();
         }
         // await UpdateScript.run()
         if (ConfigSetting.runSchedule) {
@@ -328,7 +328,7 @@ export async function createAPP(dd: any) {
                                 data.page_config = data.page_config ?? {};
                                 data.page_config.seo = data.page_config.seo ?? {};
                                 if (article.data[0]) {
-                                    if(article.data[0].content.language_data[language]){
+                                    if(article.data[0].content.language_data && article.data[0].content.language_data[language]){
                                         data.page_config.seo.title = article.data[0].content.language_data[language].seo.title;
                                         data.page_config.seo.content = article.data[0].content.language_data[language].seo.content;
                                         data.page_config.seo.keywords = article.data[0].content.language_data[language].seo.keywords;

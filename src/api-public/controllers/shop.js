@@ -173,7 +173,7 @@ router.post('/checkout/preview', async (req, resp) => {
     try {
         return response_1.default.succ(resp, await new shopping_1.Shopping(req.get('g-app'), req.body.token).toCheckout({
             line_items: req.body.line_items,
-            email: (req.body.token && req.body.token.account) || req.body.email,
+            email: (req.body.checkOutType === 'POS') ? undefined : ((req.body.token && req.body.token.account) || req.body.email),
             return_url: req.body.return_url,
             user_info: req.body.user_info,
             code: req.body.code,
@@ -978,6 +978,7 @@ router.post('/pos/checkout', async (req, resp) => {
             total: req.body.total,
             pay_status: req.body.pay_status,
             code_array: req.body.code_array,
+            pos_info: req.body.pos_info
         }, 'POS'));
     }
     try {

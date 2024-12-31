@@ -11,6 +11,7 @@ export class ProductSetting {
         postMD: any,
         selected: any,
     }) {
+        console.log(`obj.selected=>`,obj.selected)
         let stockList: any = [];
 
         function getPreviewImage(img?: string) {

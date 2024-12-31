@@ -89,12 +89,12 @@ export class ConnectionMode {
                                         IminModule.printInvoice(data.function.invoice, data.function.orderID, data.function.staff_title)
                                         break
                                     case 'credit_card':
-
                                         gvc.glitter.runJsInterFace(
                                             'credit_card',
                                             {
                                                 amount: data.function.amount,
-                                                memo: data.function.memo
+                                                memo: data.function.memo,
+                                                pwd:data.function.pwd
                                             },
                                             (res: any) => {
                                                 res.cmd='credit_card'

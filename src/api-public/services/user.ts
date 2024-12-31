@@ -24,6 +24,8 @@ import {SMS} from './sms.js';
 import {FormCheck} from './form-check.js';
 import {LoginTicket} from 'google-auth-library/build/src/auth/loginticket.js';
 import {AiRobot} from './ai-robot.js';
+import {UtPermission} from "../utils/ut-permission.js";
+import {SharePermission} from "./share-permission.js";
 
 interface UserQuery {
     page?: number;
@@ -629,6 +631,38 @@ export class User {
         }
     }
 
+    //POS切換
+    public async loginWithPin(user_id:string,pin: string) {
+        try {
+           if(await UtPermission.isManagerTokenCheck(this.app,`${this.token!!.userID}`)){
+               const per_c=new SharePermission(this.app,this.token!!)
+              const permission:any=((await per_c.getPermission({
+                  page:0,
+                  limit:1000
+              })) as any).data;
+              if(permission.find((dd:any)=>{
+                  return `${dd.user}`===`${user_id}` && `${dd.config.pin}`===pin
+              })){
+                  const user_ = new User((await per_c.getBaseData())?.brand);
+                  const usData: any = await user_.getUserData(user_id, 'userID');
+                  usData.pwd = undefined;
+                  usData.token = await UserUtil.generateToken({
+                      user_id: usData['userID'],
+                      account: usData['account'],
+                      userData: {},
+                  });
+                  return  usData
+              }else{
+                  throw exception.BadRequestError('BAD_REQUEST', 'Auth failed', null);
+              }
+           }else{
+               throw exception.BadRequestError('BAD_REQUEST', 'Auth failed', null);
+           }
+            return {};
+        } catch (e) {
+            throw exception.BadRequestError('BAD_REQUEST', e as any, null);
+        }
+    }
     public async loginWithApple(token: string) {
         try {
             const config = await this.getConfigV2({
@@ -2128,6 +2162,33 @@ export class User {
             if (!data[0] && config.user_id === 'manager') {
                 //特定Key沒有值要補值進去
                 switch (config.key) {
+                    case 'store_version':
+                        await this.setConfig({
+                            key:config.key,
+                            user_id:config.user_id,
+                            value:{
+                                version:'v1'
+                            }
+                        })
+                        return await this.getConfigV2(config)
+                    case 'store_manager':
+                        await this.setConfig({
+                            key:config.key,
+                            user_id:config.user_id,
+                            value:{
+                                list: [
+                                    {
+                                        "id": "store_default",
+                                        "name": "庫存點1(預設)",
+                                        "note": "",
+                                        "address": "",
+                                        "manager_name": "",
+                                        "manager_phone": ""
+                                    }
+                                ]
+                            }
+                        })
+                        return await this.getConfigV2(config)
                     case 'member_level_config':
                         await this.setConfig({
                             key: config.key,
@@ -2177,6 +2238,18 @@ export class User {
                 'en-US': [],
                 'zh-CN': [],
             };
+        }else if(key==='store_manager'){
+            value.list = value.list ?? [
+                {
+                    "id": "store_default",
+                    "name": "庫存點1(預設)",
+                    "note": "",
+                    "address": "",
+                    "manager_name": "",
+                    "manager_phone": ""
+                }
+            ]
+
         }
     }
 
@@ -2244,9 +2317,12 @@ export class User {
             const result = await db.query(
                 `select count(1)
                  from ${process.env.GLITTER_DB}.app_config
-                 where appName = ?
-                   and user = ?`,
-                [this.app, this.token?.userID]
+                 where (appName = ?
+                     and user = ?)   OR appName in (
+                     (SELECT appName FROM \`${saasConfig.SAAS_NAME}\`.app_auth_config
+                      WHERE user = ? AND status = 1 AND invited = 1 AND appName = ?)
+                 );`,
+                [this.app, this.token?.userID,this.token?.userID,this.app]
             );
             return {
                 result: result[0]['count(1)'] === 1,

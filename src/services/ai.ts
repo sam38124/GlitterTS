@@ -11,19 +11,22 @@ export class Ai {
     };
 
     public static async initial() {
+        try {
+            const jsonStringQA = JSON.stringify(this.defaultQA);
+            const file1 = tool.randomString(10) + '.json';
+            const openai = new OpenAI({
+                apiKey: process.env.OPENAI_API_KEY,
+            });
+            fs.writeFileSync(file1, jsonStringQA);
+            const file = await openai.files.create({
+                file: fs.createReadStream(file1),
+                purpose: 'assistants',
+            });
+            Ai.files.guide = file.id;
+            fs.rmSync(file1);
+        }catch (e) {
 
-        const jsonStringQA = JSON.stringify(this.defaultQA);
-        const file1 = tool.randomString(10) + '.json';
-        const openai = new OpenAI({
-            apiKey: process.env.OPENAI_API_KEY,
-        });
-        fs.writeFileSync(file1, jsonStringQA);
-        const file = await openai.files.create({
-            file: fs.createReadStream(file1),
-            purpose: 'assistants',
-        });
-        Ai.files.guide = file.id;
-        fs.rmSync(file1);
+        }
     }
 
     public static defaultQA = [

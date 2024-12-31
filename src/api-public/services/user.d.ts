@@ -62,6 +62,7 @@ export declare class User {
     loginWithFb(token: string): Promise<any>;
     loginWithLine(code: string, redirect: string): Promise<any>;
     loginWithGoogle(code: string, redirect: string): Promise<any>;
+    loginWithPin(user_id: string, pin: string): Promise<any>;
     loginWithApple(token: string): Promise<any>;
     getUserData(query: string, type?: 'userID' | 'account' | 'email_or_phone'): Promise<any>;
     checkMember(userData: any, trigger: boolean): Promise<{

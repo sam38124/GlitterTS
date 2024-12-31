@@ -16,38 +16,30 @@ class Stock {
         const page = json.page ? parseInt(`${json.page}`, 10) : 0;
         const limit = json.limit ? parseInt(`${json.limit}`, 10) : 20;
         try {
-            const getStockTotal = await database_1.default.query(`
-                    SELECT count(id) as c FROM \`${this.app}\`.t_variants
-                    WHERE content->>'$.stockList.${(_a = json.search) !== null && _a !== void 0 ? _a : 'store'}.count' > 0;
+            const getStockTotal = await database_1.default.query(`SELECT count(v.id) as c
+                    FROM \`${this.app}\`.t_variants as v, \`${this.app}\`.t_manager_post as p
+                    WHERE v.content->>'$.stockList.${(_a = json.search) !== null && _a !== void 0 ? _a : 'store'}.count' > 0 
+                    AND v.product_id = p.id
                 `, []);
-            let data = await database_1.default.query(`
-                    SELECT * FROM \`${this.app}\`.t_variants
-                    WHERE content->>'$.stockList.${(_b = json.search) !== null && _b !== void 0 ? _b : 'store'}.count' > 0
+            let data = await database_1.default.query(`SELECT v.*, p.content as product_content 
+                    FROM \`${this.app}\`.t_variants as v, \`${this.app}\`.t_manager_post as p
+                    WHERE v.content->>'$.stockList.${(_b = json.search) !== null && _b !== void 0 ? _b : 'store'}.count' > 0 
+                    AND v.product_id = p.id
                     LIMIT ${page * limit}, ${limit};
                 `, []);
-            if (data.length > 0) {
-                const idString = data.map((item) => `"${item.product_id}"`).join(',');
-                const productData = await database_1.default.query(`SELECT id, content FROM \`${this.app}\`.t_manager_post
-                    WHERE id in (${idString})
-                    `, []);
-                data = data.filter((item) => {
-                    const prod = productData.find((p) => p.id === item.product_id);
-                    if (!prod) {
-                        return false;
+            data.map((item) => {
+                item.count = item.content.stockList[json.search].count;
+                item.title = (() => {
+                    try {
+                        return item.product_content.language_data['zh-TW'].title;
                     }
-                    item.title = (() => {
-                        try {
-                            return prod.content.language_data['zh-TW'].title;
-                        }
-                        catch (error) {
-                            console.error(`product id ${prod.id} 沒有 zh-TW 的標題，使用原標題`);
-                            return prod.content.title;
-                        }
-                    })();
-                    item.count = item.content.stockList[json.search].count;
-                    return true;
-                });
-            }
+                    catch (error) {
+                        console.error(`product id ${item.product_id} 沒有 zh-TW 的標題，使用原標題`);
+                        return item.product_content.title;
+                    }
+                })();
+                return item;
+            });
             return {
                 total: getStockTotal[0].c,
                 data,

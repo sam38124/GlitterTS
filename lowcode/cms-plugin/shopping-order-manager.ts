@@ -174,6 +174,24 @@ interface OrderData {
         ];
         orderSource?: string;
         deliveryData: Record<string, string>;
+        pos_info:{
+            payment:'cash'|'credit'|'line_pay',
+            who:{
+                "id": number,
+                "user": string,
+                "config": {
+                    "pin": string,
+                    "auth": any,
+                    "name": string,
+                    "phone": string,
+                    "title": string,
+                    "come_from": string,
+                    "member_id": string,
+                    "verifyEmail": string
+                },
+                "status": 1
+            }
+        }
     };
     created_time: string;
 }
@@ -1209,49 +1227,54 @@ export class ShoppingOrderManager {
                                                         </div>
                                                     `
                                             ),
-                                            BgWidget.mainCard(html`
-                                                <div style="display: flex;flex-direction: column;align-items: flex-start;gap: 12px;align-self: stretch;">
-                                                    <div class="tx_700">付款狀態</div>
-                                                    <div class="ms-auto w-100">
-                                                        ${EditorElem.select({
-                                                            title: ``,
-                                                            gvc: gvc,
-                                                            def: `${orderData.status}`,
-                                                            array: [
-                                                                {
-                                                                    title: '變更付款狀態',
-                                                                    value: '',
-                                                                },
-                                                                {
-                                                                    title: '已付款',
-                                                                    value: '1',
-                                                                },
-                                                                {
-                                                                    title: orderData.orderData.proof_purchase ? `待核款` : `未付款`,
-                                                                    value: '0',
-                                                                },
-                                                                {
-                                                                    title: '已退款',
-                                                                    value: '-2',
-                                                                },
-                                                            ],
-                                                            callback: (text) => {
-                                                                if (text && text !== `${orderData.status}`) {
-                                                                    orderData.status = parseInt(text, 10);
-                                                                }
-                                                            },
-                                                        })}
-                                                    </div>
-                                                </div>
-                                                ${BgWidget.mbContainer(18)}
-                                                <div style="display: flex;flex-direction: column;align-items: flex-start;gap: 12px;align-self: stretch;">
-                                                    <div class="tx_700">付款方式</div>
-                                                    <div class="tx_normal">
-                                                        ${ShoppingOrderManager.getPaymentMethodText(orderData.orderData.method, orderData.orderData)}
-                                                    </div>
-                                                    ${ShoppingOrderManager.getProofPurchaseString(orderData.orderData, gvc)}
-                                                </div>
-                                            `),
+                                            BgWidget.mainCard(
+                                                    [
+                                                        html`
+                                                            <div style="display: flex;flex-direction: column;align-items: flex-start;gap: 12px;align-self: stretch;">
+                                                                <div class="tx_700">付款狀態</div>
+                                                                <div class="ms-auto w-100">
+                                                                    ${EditorElem.select({
+                                                                        title: ``,
+                                                                        gvc: gvc,
+                                                                        def: `${orderData.status}`,
+                                                                        array: [
+                                                                            {
+                                                                                title: '變更付款狀態',
+                                                                                value: '',
+                                                                            },
+                                                                            {
+                                                                                title: '已付款',
+                                                                                value: '1',
+                                                                            },
+                                                                            {
+                                                                                title: orderData.orderData.proof_purchase ? `待核款` : `未付款`,
+                                                                                value: '0',
+                                                                            },
+                                                                            {
+                                                                                title: '已退款',
+                                                                                value: '-2',
+                                                                            },
+                                                                        ],
+                                                                        callback: (text) => {
+                                                                            if (text && text !== `${orderData.status}`) {
+                                                                                orderData.status = parseInt(text, 10);
+                                                                            }
+                                                                        },
+                                                                    })}
+                                                                </div>
+                                                            </div>`,
+                                                        html`
+                                                            <div style="display: flex;flex-direction: column;align-items: flex-start;gap: 12px;align-self: stretch;">
+                                                                <div class="tx_700">付款方式</div>
+                                                                <div class="tx_normal">
+                                                                    ${ShoppingOrderManager.getPaymentMethodText(orderData.orderData.method, orderData.orderData)}
+                                                                </div>
+                                                                ${ShoppingOrderManager.getProofPurchaseString(orderData.orderData, gvc)}
+                                                            </div>`
+                                                    ].filter((dd)=>{
+                                                        return dd
+                                                    }).join(BgWidget.mbContainer(18))
+                                            ),
                                             BgWidget.mainCard(
                                                     (() => {
                                                         let loading = true;
@@ -1483,7 +1506,9 @@ export class ShoppingOrderManager {
                                                                                                     })
                                                                                                     .map((dd: any) => {
                                                                                                         return html`
-                                                                                                            <div>${Language.getLanguageCustomText(dd.title)}:
+                                                                                                            <div>
+                                                                                                                ${Language.getLanguageCustomText(dd.title)}
+                                                                                                                    :
                                                                                                                 ${(orderData.orderData.user_info as any)[dd.key]}
                                                                                                             </div>`;
                                                                                                     })
@@ -1515,10 +1540,12 @@ export class ShoppingOrderManager {
                                                                                                     })
                                                                                                     .map((dd: any) => {
                                                                                                         return html`
-                                                                                                            <div>${Language.getLanguageCustomText(dd.title)}:
+                                                                                                            <div>
+                                                                                                                ${Language.getLanguageCustomText(dd.title)}
+                                                                                                                    :
                                                                                                                 ${(orderData.orderData.custom_form_data as any)[dd.key]}
                                                                                                             </div>
-                                                                                                           `;
+                                                                                                        `;
                                                                                                     })
                                                                                                     .join('')}
                                                                                         </div>`
@@ -1597,7 +1624,7 @@ export class ShoppingOrderManager {
                                                                  style="color: #4D86DB;">${invoiceData.invoice_no}
                                                             </div>
                                                             <div class="col-3 text-center d-flex align-items-center justify-content-center">
-                                                                ${invoiceData.invoice_data.invoiceAmount ?? 0}
+                                                                ${(invoiceData.invoice_data.invoiceAmount ?? orderData.orderData.total)}
                                                             </div>
                                                             <div class="col-2 text-center d-flex align-items-center justify-content-center">
                                                                 ${invoiceData.status == 1
@@ -1811,6 +1838,18 @@ export class ShoppingOrderManager {
                                                                                                     }
                                                                                             }
                                                                                         })()}
+                                                                                        ${(orderData.orderData.orderSource === 'POS') ? `
+                                                                                        <div class="tx_700">
+                                                                                                結帳人員
+                                                                                            </div>
+                                                                                            <div class="tx_normal" style="line-height: 140%;">
+                                                                                                ${(orderData.orderData.pos_info.who.config.name==='manager') ? `店長`:[
+                                                                                            orderData.orderData.pos_info.who.config.title,
+                                                                                            orderData.orderData.pos_info.who.config.name,
+                                                                                            orderData.orderData.pos_info.who.config.member_id,
+                                                                                        ].join(' / ')}
+                                                                                            </div>
+                                                                                        `:``}
                                                                                     `);
                                                                                     return view.join(`<div class="my-2"></div>`);
                                                                                 },
@@ -3750,7 +3789,16 @@ export class ShoppingOrderManager {
 
     public static getPaymentMethodText(key: string, orderData: any) {
         if (orderData.orderSource === 'POS') {
-            return `門市POS付款`;
+            return `門市『 ${(()=>{
+                switch (orderData.pos_info.payment){
+                    case 'creditCard':
+                        return '信用卡'
+                    case 'line':
+                        return 'Line Pay'
+                    case 'cash':
+                        return '現金'
+                }
+            })()} 』付款`;
         }
         switch (orderData.customer_info.payment_select) {
             case 'off_line':

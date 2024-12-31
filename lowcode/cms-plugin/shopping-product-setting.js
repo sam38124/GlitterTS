@@ -796,24 +796,25 @@ export class ShoppingProductSetting {
                 dialog.checkYesOrNot({
                     text: '內容已變更是否儲存?',
                     callback: (response) => {
-                        if (response) {
-                            postMD.variants[index] = variant;
-                            next();
-                        }
-                        if (cancel) {
-                            cancel();
-                            return;
-                        }
                         if (obj && obj.goBackEvent) {
                             if (response) {
                                 obj.goBackEvent.save(postMD);
                             }
                             else {
                                 obj.goBackEvent.cancel();
+                                next();
                             }
                         }
                         else {
-                            next();
+                            if (response) {
+                                postMD.variants[index] = variant;
+                                next();
+                            }
+                            if (cancel) {
+                                cancel();
+                                next();
+                                return;
+                            }
                         }
                     }
                 });
@@ -1120,12 +1121,15 @@ export class ShoppingProductSetting {
                                                                             <div class="w-100" style="font-size: 14px;font-weight: 400;color: #8D8D8D;">線上販售的商品將優先從庫存量較多的庫存點中扣除</div>
                                                                             ${(() => {
                                 return stockList.map((stockSpot) => {
-                                    var _b;
+                                    var _b, _c, _d;
+                                    console.log(`stockSpot.id=>`, stockSpot.id);
+                                    variant.stockList = (_b = variant.stockList) !== null && _b !== void 0 ? _b : {};
+                                    variant.stockList[stockSpot.id] = (_c = variant.stockList[stockSpot.id]) !== null && _c !== void 0 ? _c : { count: 0 };
                                     return html `
                                                                                         <div>${stockSpot.name}</div>
                                                                                         <input
                                                                                                 class="w-100"
-                                                                                                value="${(_b = variant.stockList[stockSpot.id].count) !== null && _b !== void 0 ? _b : 0}"
+                                                                                                value="${(_d = variant.stockList[stockSpot.id].count) !== null && _d !== void 0 ? _d : 0}"
                                                                                                 type="number"
                                                                                                 style="padding: 9px 18px;border-radius: 10px;border: 1px solid #DDD;"
                                                                                                 placeholder="請輸入該庫存點庫存數量"
@@ -2866,7 +2870,7 @@ export class ShoppingProductSetting {
                                                                                                                         <div
                                                                                                                                 style="cursor: pointer;display: flex;width: 569px;padding-bottom: 20px;flex-direction: column;align-items: center;gap: 24px;border-radius: 10px;background: #FFF;max-width: calc(100vw - 20px);"
                                                                                                                         >
-                                                                                                                            <div
+                                                                                                                            <div class="d-none"
                                                                                                                                     style="font-size: 16px;font-weight: 700;display: flex;padding: 12px 0px 12px 20px;align-items: center;align-self: stretch;border-radius: 10px 10px 0px 0px;background: #F2F2F2;"
                                                                                                                             >
                                                                                                                                 編輯庫存數量
@@ -3425,6 +3429,7 @@ export class ShoppingProductSetting {
                                                                                                                                         編輯原價
                                                                                                                                     </div>
                                                                                                                                     <div
+                                                                                                                                             class="d-none"
                                                                                                                                             style="cursor: pointer;"
                                                                                                                                             onclick="${gvc.event(() => {
                                                                                             gvc.glitter.innerDialog((gvc) => {
@@ -3528,7 +3533,9 @@ export class ShoppingProductSetting {
                                                                                                                              class="me-3">
                                                                                                                             售價*
                                                                                                                         </div>`
-                                                                                    : `${['售價*', '庫存數量*', '運費計算方式']
+                                                                                    : `${['售價*',
+                                                                                        '庫存數量*',
+                                                                                        '運費計算方式']
                                                                                         .map((dd) => {
                                                                                         return html `
                                                                                                                                     <div
@@ -3677,7 +3684,7 @@ export class ShoppingProductSetting {
                                                                                                 .filter((dd) => {
                                                                                                 return dd.key === 'sale_price' || document.body.clientWidth > 768;
                                                                                             })
-                                                                                                .map((dd) => {
+                                                                                                .map((dd, index) => {
                                                                                                 let minPrice = Infinity;
                                                                                                 let maxPrice = 0;
                                                                                                 let stock = 0;
@@ -3711,6 +3718,15 @@ export class ShoppingProductSetting {
                                                                                                                                                             placeholder="${dd.title}"
                                                                                                                                                             type="number"
                                                                                                                                                             min="0"
+                                                                                                                                                            onclick="${gvc.event(() => {
+                                                                                                    if (index === 1) {
+                                                                                                        ProductSetting.showBatchEditDialog({
+                                                                                                            gvc: gvc,
+                                                                                                            postMD: postMD,
+                                                                                                            selected: postMD.variants,
+                                                                                                        });
+                                                                                                    }
+                                                                                                })}"
                                                                                                                                                             onchange="${gvc.event((e) => {
                                                                                                     postMD.variants
                                                                                                         .filter((dd) => {
@@ -3869,7 +3885,7 @@ export class ShoppingProductSetting {
                                                                                                             return (dd === 'sale_price' ||
                                                                                                                 document.body.clientWidth > 768);
                                                                                                         })
-                                                                                                            .map((dd) => {
+                                                                                                            .map((dd, index) => {
                                                                                                             var _b;
                                                                                                             return html `
                                                                                                                                                                             <div
@@ -3885,6 +3901,15 @@ export class ShoppingProductSetting {
                                                                                                                                                                                         style="width: 100%;height: 40px;padding: 0px 18px;border-radius: 10px;border: 1px solid #DDD;background: #FFF;"
                                                                                                                                                                                         value="${(_b = data[dd]) !== null && _b !== void 0 ? _b : 0}"
                                                                                                                                                                                         min="0"
+                                                                                                                                                                                        onclick="${gvc.event(() => {
+                                                                                                                if (index === 1) {
+                                                                                                                    ProductSetting.showBatchEditDialog({
+                                                                                                                        gvc: gvc,
+                                                                                                                        postMD: postMD,
+                                                                                                                        selected: postMD.variants,
+                                                                                                                    });
+                                                                                                                }
+                                                                                                            })}"
                                                                                                                                                                                         oninput="${gvc.event((e) => {
                                                                                                                 const regex = /^[0-9]*$/;
                                                                                                                 if (!regex.test(e.value)) {

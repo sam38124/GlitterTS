@@ -184,7 +184,7 @@ router.post('/checkout/preview', async (req: express.Request, resp: express.Resp
             await new Shopping(req.get('g-app') as string, req.body.token).toCheckout(
                 {
                     line_items: req.body.line_items as any,
-                    email: (req.body.token && req.body.token.account) || req.body.email,
+                    email: (req.body.checkOutType === 'POS') ? undefined:((req.body.token && req.body.token.account) || req.body.email),
                     return_url: req.body.return_url,
                     user_info: req.body.user_info,
                     code: req.body.code,
@@ -1057,6 +1057,7 @@ router.post('/pos/checkout', async (req: express.Request, resp: express.Response
                     total: req.body.total,
                     pay_status: req.body.pay_status,
                     code_array: req.body.code_array,
+                    pos_info:req.body.pos_info
                 },
                 'POS'
             )

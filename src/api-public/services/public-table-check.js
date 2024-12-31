@@ -9,6 +9,8 @@ const config_js_1 = require("../../config.js");
 const saas_table_check_js_1 = require("../../services/saas-table-check.js");
 const tool_js_1 = __importDefault(require("../../services/tool.js"));
 const ai_robot_js_1 = require("./ai-robot.js");
+const user_js_1 = require("./user.js");
+const shopping_js_1 = require("./shopping.js");
 class ApiPublic {
     static async createScheme(appName) {
         if (ApiPublic.checkApp.find((dd) => {
@@ -493,6 +495,7 @@ class ApiPublic {
                 });
             }
             await (ai_robot_js_1.AiRobot.syncAiRobot(appName));
+            await (ApiPublic.migrateVariants(appName));
         }
         catch (e) {
             console.error(e);
@@ -520,6 +523,41 @@ class ApiPublic {
                 await trans.release();
             }
             catch (e) {
+            }
+        }
+    }
+    static async migrateVariants(app) {
+        const store_version = await new user_js_1.User(app).getConfigV2({
+            key: 'store_version',
+            user_id: 'manager'
+        });
+        if (store_version.version === 'v1') {
+            for (const b of await database_1.default.query(`select *
+                                            from \`${app}\`.t_manager_post
+                                            where (content ->>'$.type'='product')`, [])) {
+                const stock_list = await new user_js_1.User(app).getConfigV2({
+                    key: 'store_manager',
+                    user_id: 'manager'
+                });
+                for (const c of b.content.variants) {
+                    c.stockList = {};
+                    stock_list.list.map((dd) => {
+                        c.stockList[dd.id] = {
+                            count: 0
+                        };
+                    });
+                    c.stockList[stock_list.list[0].id].count = c.stock;
+                }
+                await new shopping_js_1.Shopping(app).putProduct(b.content);
+                store_version.version = 'v2';
+                await new user_js_1.User(app).setConfig({
+                    key: 'store_version',
+                    user_id: 'manager',
+                    value: {
+                        version: 'v2'
+                    }
+                });
+                console.log(`migrate-分艙:`, b);
             }
         }
     }

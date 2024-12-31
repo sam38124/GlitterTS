@@ -286,40 +286,6 @@ class Shopping {
                     b.content.id = b.id;
                 }
             }
-            if (productList.length > 0) {
-                const stockList = await database_js_1.default.query(`SELECT *, \`${this.app}\`.t_stock_recover.id as recoverID
-                     FROM \`${this.app}\`.t_stock_recover,
-                          \`${this.app}\`.t_checkout
-                     WHERE product_id in (${productList
-                    .map((dd) => {
-                    return dd.id;
-                })
-                    .join(',')})
-                       and order_id = cart_token
-                       and dead_line < ?;`, [new Date()]);
-                const trans = await database_js_1.default.Transaction.build();
-                for (const stock of stockList) {
-                    const product = productList.find((dd) => {
-                        return `${dd.id}` === `${stock.product_id}`;
-                    });
-                    const variant = product.content.variants.find((dd) => {
-                        return dd.spec.join('-') === stock.spec;
-                    });
-                    if (variant) {
-                        variant.stock += stock.count;
-                        if (stock.status != 1) {
-                            await trans.execute(`UPDATE \`${this.app}\`.\`t_manager_post\`
-                                 SET ?
-                                 WHERE 1 = 1
-                                   and id = ${stock.product_id}`, [{ content: JSON.stringify(product.content) }]);
-                        }
-                        await trans.execute(`DELETE
-                             FROM \`${this.app}\`.t_stock_recover
-                             WHERE id = ?`, [stock.recoverID]);
-                    }
-                }
-                await trans.commit();
-            }
             if (query.id_list) {
                 let tempData = [];
                 query.id_list.split(',').map((id) => {
@@ -344,7 +310,7 @@ class Shopping {
                     return dd;
                 });
             }
-            (Array.isArray(products.data) ? products.data : [products.data]).map((dd) => {
+            for (const dd of Array.isArray(products.data) ? products.data : [products.data]) {
                 if (query.language && dd.content.language_data && dd.content.language_data[`${query.language}`]) {
                     dd.content.seo = dd.content.language_data[`${query.language}`].seo;
                     dd.content.title = dd.content.language_data[`${query.language}`].title || dd.content.title;
@@ -356,7 +322,7 @@ class Shopping {
                         variant.preview_image = variant[`preview_image_${query.language}`] || variant.preview_image;
                     });
                 }
-            });
+            }
             if (query.domain && products.data[0]) {
                 products.data = products.data[0];
             }
@@ -476,13 +442,17 @@ class Shopping {
     }
     async linePay(data) {
         return new Promise(async (resolve, reject) => {
+            const keyData = ((await private_config_js_1.Private_config.getConfig({
+                appName: this.app,
+                key: 'glitter_finance',
+            }))[0].value).line_pay_scan;
             let config = {
                 method: 'post',
                 maxBodyLength: Infinity,
-                url: 'https://sandbox-api-pay.line.me/v2/payments/oneTimeKeys/pay',
+                url: (keyData.BETA == 'true') ? 'https://sandbox-api-pay.line.me/v2/payments/oneTimeKeys/pay' : "https://api-pay.line.me/v2/payments/oneTimeKeys/pay",
                 headers: {
-                    'X-LINE-ChannelId': '2006263059',
-                    'X-LINE-ChannelSecret': '9bcca1d8f66b9ec60cd1a3498be253e2',
+                    'X-LINE-ChannelId': keyData.CLIENT_ID,
+                    'X-LINE-ChannelSecret': keyData.SECRET,
                     'Content-Type': 'application/json',
                 },
                 data: JSON.stringify(data),
@@ -490,6 +460,7 @@ class Shopping {
             axios_1.default
                 .request(config)
                 .then((response) => {
+                console.log(response);
                 resolve(response.data.returnCode === '0000');
             })
                 .catch((error) => {
@@ -514,7 +485,7 @@ class Shopping {
         }
     }
     async toCheckout(data, type = 'add', replace_order_id) {
-        var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k;
+        var _a, _b, _c, _d, _e, _f, _g, _h, _j;
         const check_time = new Date().getTime();
         try {
             data.line_items = (_a = (data.line_items || data.lineItems)) !== null && _a !== void 0 ? _a : [];
@@ -538,6 +509,9 @@ class Shopping {
                 else {
                     throw exception_js_1.default.BadRequestError('BAD_REQUEST', 'ToCheckout 1 Error:Cant find this orderID.', null);
                 }
+            }
+            if (data.checkOutType === 'POS') {
+                this.token = undefined;
             }
             console.log(`checkout-time-1=>`, new Date().getTime() - check_time);
             const userClass = new user_js_1.User(this.app);
@@ -696,7 +670,7 @@ class Shopping {
                 }),
                 use_wallet: 0,
                 method: data.user_info && data.user_info.method,
-                user_email: (userData && userData.account) || ((_g = data.email) !== null && _g !== void 0 ? _g : ((data.user_info && data.user_info.email) || '')),
+                user_email: (userData && userData.account) || (data.email || ((data.user_info && data.user_info.email) || '')),
                 useRebateInfo: { point: 0 },
                 custom_form_format: data.custom_form_format,
                 custom_form_data: data.custom_form_data,
@@ -706,7 +680,12 @@ class Shopping {
                 give_away: data.give_away,
                 user_rebate_sum: 0,
                 language: data.language,
+                pos_info: data.pos_info
             };
+            if (!data.user_info.name && userData && userData.userData) {
+                carData.user_info.name = userData.userData.name;
+                carData.user_info.phone = userData.userData.phone;
+            }
             function calculateShipment(dataList, value) {
                 if (value === 0) {
                     return 0;
@@ -755,6 +734,8 @@ class Shopping {
                                 b.sale_price = variant.sale_price;
                                 b.collection = pd['collection'];
                                 b.sku = variant.sku;
+                                b.stock = variant.stock;
+                                b.show_understocking = variant.show_understocking;
                                 b.shipment_obj = {
                                     type: variant.shipment_type,
                                     value: (() => {
@@ -807,10 +788,14 @@ class Shopping {
                         }
                     }
                 }
-                catch (e) { }
+                catch (e) {
+                }
             }
             console.log(`checkout-time-7=>`, new Date().getTime() - check_time);
             carData.shipment_fee = (() => {
+                if (data.user_info.shipment === 'now') {
+                    return 0;
+                }
                 let total_volume = 0;
                 let total_weight = 0;
                 carData.lineItems.map((item) => {
@@ -842,7 +827,7 @@ class Shopping {
                     limit: 99999,
                     code: data.distribution_code,
                     status: true,
-                    no_detail: true,
+                    no_detail: true
                 });
                 if (linkList.data.length > 0) {
                     const content = linkList.data[0].content;
@@ -873,7 +858,8 @@ class Shopping {
                             carData.lineItems.push(dd);
                         }
                     }
-                    catch (e) { }
+                    catch (e) {
+                    }
                 });
                 await this.checkVoucher(carData);
                 console.log(`checkout-time-check-voucher2=>`, new Date().getTime() - check_time);
@@ -909,15 +895,15 @@ class Shopping {
                     return dd.reBackType === 'giveaway';
                 })) {
                     let index = -1;
-                    for (const b of (_h = dd.add_on_products) !== null && _h !== void 0 ? _h : []) {
+                    for (const b of (_g = dd.add_on_products) !== null && _g !== void 0 ? _g : []) {
                         index++;
-                        const pdDqlData = ((_j = (await this.getProduct({
+                        const pdDqlData = ((_h = (await this.getProduct({
                             page: 0,
                             limit: 50,
                             id: `${b}`,
                             status: 'inRange',
                             channel: data.checkOutType === 'POS' ? 'pos' : undefined,
-                        })).data) !== null && _j !== void 0 ? _j : { content: {} }).content;
+                        })).data) !== null && _h !== void 0 ? _h : { content: {} }).content;
                         pdDqlData.voucher_id = dd.id;
                         dd.add_on_products[index] = pdDqlData;
                     }
@@ -956,6 +942,16 @@ class Shopping {
             });
             carData.payment_setting = glitter_finance_js_1.onlinePayArray.filter((dd) => {
                 return keyData[dd.key] && keyData[dd.key].toggle;
+            }).filter((dd) => {
+                if (carData.orderSource === 'POS') {
+                    if (dd.key === 'ut_credit_card') {
+                        dd.pwd = keyData[dd.key]['pwd'];
+                    }
+                    return dd.type === 'pos';
+                }
+                else {
+                    return dd.type !== 'pos';
+                }
             });
             carData.off_line_support = keyData.off_line_support;
             carData.payment_info_line_pay = keyData.payment_info_line_pay;
@@ -1016,7 +1012,7 @@ class Shopping {
                 carData.discount = data.discount;
                 carData.voucherList = [tempVoucher];
                 carData.customer_info = data.customer_info;
-                carData.total = (_k = data.total) !== null && _k !== void 0 ? _k : 0;
+                carData.total = (_j = data.total) !== null && _j !== void 0 ? _j : 0;
                 carData.rebate = tempVoucher.rebate_total;
                 if (tempVoucher.reBackType == 'shipment_free') {
                     carData.shipment_fee = 0;
@@ -1362,6 +1358,7 @@ class Shopping {
             }
             return [];
         }
+        console.log(`cart.email==>`, cart.email);
         const userData = (_a = (await userClass.getUserData(cart.email, 'email_or_phone'))) !== null && _a !== void 0 ? _a : { userID: -1 };
         const allVoucher = (await this.querySql([`(content->>'$.type'='voucher')`], {
             page: 0,
@@ -1684,7 +1681,9 @@ class Shopping {
     }
     async cancelOrder(order_id) {
         try {
-            const orderList = await database_js_1.default.query(`SELECT * FROM \`${this.app}\`.t_checkout WHERE cart_token = ?;
+            const orderList = await database_js_1.default.query(`SELECT *
+                 FROM \`${this.app}\`.t_checkout
+                 WHERE cart_token = ?;
                 `, [order_id]);
             if (orderList.length !== 1) {
                 return { data: false };
@@ -1705,7 +1704,9 @@ class Shopping {
                     orderData.editRecord = [record];
                 }
             }
-            await database_js_1.default.query(`UPDATE \`${this.app}\`.t_checkout SET orderData = ? WHERE cart_token = ?;`, [JSON.stringify(orderData), order_id]);
+            await database_js_1.default.query(`UPDATE \`${this.app}\`.t_checkout
+                            SET orderData = ?
+                            WHERE cart_token = ?;`, [JSON.stringify(orderData), order_id]);
             return { data: true };
         }
         catch (e) {
@@ -2081,7 +2082,7 @@ OR JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.orderStatus')) NOT IN (-99)) `);
                        AND id > 0
                     `, []);
             }
-            const formatJsonData = content.variants.map((a) => {
+            await Promise.all(content.variants.map((a) => {
                 var _a, _b;
                 content.min_price = (_a = content.min_price) !== null && _a !== void 0 ? _a : a.sale_price;
                 content.max_price = (_b = content.max_price) !== null && _b !== void 0 ? _b : a.sale_price;
@@ -2093,21 +2094,21 @@ OR JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.orderStatus')) NOT IN (-99)) `);
                 }
                 a.type = 'variants';
                 a.product_id = content.id;
-                return {
-                    sql: `INSERT INTO \`${this.app}\`.t_variants
-                          SET ?`,
-                    data: [
+                if (a.show_understocking === 'false') {
+                    a.stock = 0;
+                    a.stockList = {};
+                }
+                return new Promise(async (resolve, reject) => {
+                    await database_js_1.default.query(`INSERT INTO \`${this.app}\`.t_variants
+                                    SET ?`, [
                         {
                             content: JSON.stringify(a),
                             product_id: content.id,
                         },
-                    ],
-                };
-            });
-            await workers_js_1.Workers.query({
-                queryList: formatJsonData,
-                divisor: 8,
-            });
+                    ]);
+                    resolve(true);
+                });
+            }));
             await database_js_1.default.query(`UPDATE \`${this.app}\`.\`t_manager_post\`
                  SET ?
                  WHERE id = ?
@@ -2234,12 +2235,10 @@ OR JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.orderStatus')) NOT IN (-99)) `);
         return `${year}-${month}-${day} ${hours}:${minutes}`;
     }
     async getActiveRecentYear() {
-        const endDate = new Date();
+        const endDate = moment_1.default.tz("Asia/Taipei").toDate();
         endDate.setMonth(endDate.getMonth() + 1, 1);
-        endDate.setUTCHours(16, 0, 0, 0);
-        const startDate = new Date(endDate);
+        const startDate = moment_1.default.tz("Asia/Taipei").toDate();
         startDate.setMonth(endDate.getMonth() - 12);
-        startDate.setUTCHours(16, 0, 0, 0);
         const sql = `
             SELECT mac_address, created_time
             FROM \`${config_js_1.saasConfig.SAAS_NAME}\`.t_monitor
@@ -2250,19 +2249,22 @@ OR JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.orderStatus')) NOT IN (-99)) `);
             GROUP BY id, mac_address
         `;
         const queryData = await database_js_1.default.query(sql, []);
-        const now = new Date();
-        const dataList = Array.from({ length: 12 }, (_, index) => {
-            const date = new Date(now.getFullYear(), now.getMonth() - index, 1);
-            const year = date.getFullYear();
-            const month = date.getMonth() + 1;
+        const now = moment_1.default.tz("Asia/Taipei").toDate();
+        const dataList = Array.from({ length: 14 }, (_, index) => {
+            const targetDate = now;
+            targetDate.setDate(now.getDate() - index);
+            const year = targetDate.getFullYear();
+            const month = targetDate.getMonth() + 1;
+            const day = targetDate.getDate();
             const filteredData = queryData.filter((item) => {
-                const date = new Date(item.created_time);
+                const date = moment_1.default.tz(item.created_time, "UTC").clone().tz("Asia/Taipei").toDate();
                 return date.getFullYear() === year && date.getMonth() + 1 === month;
             });
             const uniqueMacAddresses = new Set(filteredData.map((item) => item.mac_address));
             return {
                 year,
                 month,
+                day,
                 total_count: filteredData.length,
                 unique_count: uniqueMacAddresses.size,
             };
@@ -2273,29 +2275,26 @@ OR JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.orderStatus')) NOT IN (-99)) `);
         };
     }
     async getActiveRecent2Weak() {
-        const endDate = new Date();
-        endDate.setUTCHours(16, 0, 0, 0);
-        const startDate = new Date(endDate);
-        startDate.setDate(startDate.getDate() - 14);
         const sql = `
-            SELECT mac_address, created_time
+            SELECT mac_address, CONVERT_TZ(created_time, '+00:00', '+08:00') AS created_time
             FROM \`${config_js_1.saasConfig.SAAS_NAME}\`.t_monitor
             WHERE app_name = ${database_js_1.default.escape(this.app)}
               AND ip != 'ffff:127.0.0.1'
                 AND req_type = 'file'
-                AND created_time BETWEEN '${startDate.toISOString()}' AND '${endDate.toISOString()}'
+                AND CONVERT_TZ(created_time, '+00:00', '+08:00') BETWEEN (DATE_SUB(CONVERT_TZ(NOW(), '+00:00', '+08:00')
+                            , INTERVAL 14 DAY)) AND CONVERT_TZ(NOW(), '+00:00', '+08:00')
             GROUP BY id, mac_address
         `;
         const queryData = await database_js_1.default.query(sql, []);
-        const now = new Date();
+        const now = moment_1.default.tz("Asia/Taipei").toDate();
         const dataList = Array.from({ length: 14 }, (_, index) => {
-            const targetDate = new Date(now);
+            const targetDate = now;
             targetDate.setDate(now.getDate() - index);
             const year = targetDate.getFullYear();
             const month = targetDate.getMonth() + 1;
             const day = targetDate.getDate();
             const filteredData = queryData.filter((item) => {
-                const date = new Date(item.created_time);
+                const date = moment_1.default.tz(item.created_time, "UTC").clone().tz("Asia/Taipei").toDate();
                 return date.getFullYear() === year && date.getMonth() + 1 === month && date.getDate() === day;
             });
             const uniqueMacAddresses = new Set(filteredData.map((item) => item.mac_address));
@@ -2314,6 +2313,9 @@ OR JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.orderStatus')) NOT IN (-99)) `);
     }
     async getRegister2weak() {
         try {
+            function convertTimeZone(date) {
+                return `CONVERT_TZ(${date}, '+00:00', '+08:00')`;
+            }
             const formatJsonData = [];
             const countArray = {};
             let pass = 0;
@@ -2323,17 +2325,16 @@ OR JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.orderStatus')) NOT IN (-99)) `);
                         SELECT count(1)
                         FROM \`${this.app}\`.t_user
                         WHERE
-                            DAY (created_time) = DAY (DATE_SUB(NOW()
+                            DAY (${convertTimeZone('created_time')}) = DAY (DATE_SUB(${convertTimeZone('NOW()')}
                             , INTERVAL ${index} DAY))
-                          AND MONTH (created_time) = MONTH (DATE_SUB(NOW()
+                          AND MONTH (${convertTimeZone('created_time')}) = MONTH (DATE_SUB(${convertTimeZone('NOW()')}
                             , INTERVAL ${index} DAY))
-                          AND YEAR (created_time) = YEAR (DATE_SUB(NOW()
+                          AND YEAR (${convertTimeZone('created_time')}) = YEAR (DATE_SUB(${convertTimeZone('NOW()')}
                             , INTERVAL ${index} DAY))
                           AND status = 1;
                     `;
-                    console.log(`monthCheckoutSQL=>`, monthCheckoutSQL);
                     database_js_1.default.query(monthCheckoutSQL, []).then((data) => {
-                        countArray[`${index}`] = data[0]['count(1)'];
+                        countArray[index] = data[0]['count(1)'];
                         pass++;
                         if (pass === 14) {
                             resolve(true);
@@ -2343,7 +2344,10 @@ OR JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.orderStatus')) NOT IN (-99)) `);
             });
             return {
                 countArray: Object.keys(countArray)
-                    .sort()
+                    .map((dd) => {
+                    return parseInt(dd);
+                })
+                    .sort((a, b) => parseInt(a, 10) - parseInt(b, 10))
                     .map((dd) => {
                     return countArray[dd];
                 })
@@ -2356,6 +2360,9 @@ OR JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.orderStatus')) NOT IN (-99)) `);
     }
     async getRegisterRecent() {
         try {
+            function convertTimeZone(date) {
+                return `CONVERT_TZ(${date}, '+00:00', '+08:00')`;
+            }
             const formatJsonData = [];
             const countArray = {};
             const order = await database_js_1.default.query(`SELECT count(1)
@@ -2367,15 +2374,14 @@ OR JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.orderStatus')) NOT IN (-99)) `);
                     const monthRegisterSQL = `
                         SELECT count(1)
                         FROM \`${this.app}\`.t_user
-                        WHERE
-                            MONTH (created_time) = MONTH (DATE_SUB(NOW()
+                        WHERE MONTH (${convertTimeZone('created_time')}) = MONTH (DATE_SUB(${convertTimeZone('NOW()')}
                             , INTERVAL ${index} MONTH))
-                          AND YEAR (created_time) = YEAR (DATE_SUB(NOW()
-                            , INTERVAL ${index} MONTH));
+                          AND YEAR (${convertTimeZone('created_time')}) = YEAR (DATE_SUB(${convertTimeZone('NOW()')}
+                            , INTERVAL ${index} MONTH))
                     `;
                     database_js_1.default.query(monthRegisterSQL, []).then((data) => {
                         pass++;
-                        countArray[`${index}`] = data[0]['count(1)'];
+                        countArray[index] = data[0]['count(1)'];
                         if (pass === 12) {
                             resolve(true);
                         }
@@ -2385,7 +2391,7 @@ OR JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.orderStatus')) NOT IN (-99)) `);
             return {
                 today: order[0]['count(1)'],
                 count_register: Object.keys(countArray)
-                    .sort()
+                    .sort((a, b) => parseInt(a, 10) - parseInt(b, 10))
                     .map((dd) => {
                     return countArray[dd];
                 })
@@ -2561,27 +2567,44 @@ OR JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.orderStatus')) NOT IN (-99)) `);
     }
     async getOrdersPerMonth2Weak() {
         try {
-            const formatJsonData = [];
             const countArray = {};
+            const countArrayPos = {};
+            const countArrayWeb = {};
+            function convertTimeZone(date) {
+                return `CONVERT_TZ(${date}, '+00:00', '+08:00')`;
+            }
             let pass = 0;
             await new Promise((resolve, reject) => {
                 for (let index = 0; index < 14; index++) {
-                    const orderCountSQL = `
-                        SELECT count(1) as c
+                    const monthCheckoutSQL = `
+                        SELECT orderData
                         FROM \`${this.app}\`.t_checkout
-
                         WHERE
-                            DAY (created_time) = DAY (DATE_SUB(NOW()
+                            DAY (${convertTimeZone('created_time')}) = DAY (DATE_SUB(${convertTimeZone('NOW()')}
                             , INTERVAL ${index} DAY))
-                          AND MONTH (created_time) = MONTH (DATE_SUB(NOW()
+                          AND MONTH (${convertTimeZone('created_time')}) = MONTH (DATE_SUB(${convertTimeZone('NOW()')}
                             , INTERVAL ${index} DAY))
-                          AND YEAR (created_time) = YEAR (DATE_SUB(NOW()
+                          AND YEAR (${convertTimeZone('created_time')}) = YEAR (DATE_SUB(${convertTimeZone('NOW()')}
                             , INTERVAL ${index} DAY))
                           AND status = 1;
                     `;
-                    database_js_1.default.query(orderCountSQL, []).then((data) => {
-                        countArray[`${index}`] = data[0].c;
+                    database_js_1.default.query(monthCheckoutSQL, []).then((data) => {
                         pass++;
+                        let total = 0;
+                        let total_pos = 0;
+                        let total_web = 0;
+                        data.map((checkout) => {
+                            if (checkout.orderData.orderSource === 'POS') {
+                                total_pos += 1;
+                            }
+                            else {
+                                total_web += 1;
+                            }
+                            total += 1;
+                        });
+                        countArrayPos[index] = total_pos;
+                        countArrayWeb[index] = total_web;
+                        countArray[index] = total;
                         if (pass === 14) {
                             resolve(true);
                         }
@@ -2590,10 +2613,20 @@ OR JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.orderStatus')) NOT IN (-99)) `);
             });
             return {
                 countArray: Object.keys(countArray)
-                    .sort()
+                    .sort((a, b) => parseInt(a, 10) - parseInt(b, 10))
                     .map((dd) => {
                     return countArray[dd];
                 }),
+                countArrayPos: Object.keys(countArrayPos)
+                    .sort((a, b) => parseInt(a, 10) - parseInt(b, 10))
+                    .map((dd) => {
+                    return countArrayPos[dd];
+                }),
+                countArrayWeb: Object.keys(countArrayWeb)
+                    .sort((a, b) => parseInt(a, 10) - parseInt(b, 10))
+                    .map((dd) => {
+                    return countArrayWeb[dd];
+                })
             };
         }
         catch (e) {
@@ -2602,24 +2635,42 @@ OR JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.orderStatus')) NOT IN (-99)) `);
     }
     async getOrdersPerMonth1Year() {
         try {
-            const formatJsonData = [];
             const countArray = {};
+            const countArrayPos = {};
+            const countArrayWeb = {};
+            function convertTimeZone(date) {
+                return `CONVERT_TZ(${date}, '+00:00', '+08:00')`;
+            }
             let pass = 0;
             await new Promise((resolve, reject) => {
                 for (let index = 0; index < 12; index++) {
-                    const orderCountSQL = `
-                        SELECT count(1) as c
+                    const monthCheckoutSQL = `
+                        SELECT orderData
                         FROM \`${this.app}\`.t_checkout
                         WHERE
-                            MONTH (created_time) = MONTH (DATE_SUB(NOW()
+                            MONTH (${convertTimeZone("created_time")}) = MONTH (DATE_SUB(${convertTimeZone('NOW()')}
                             , INTERVAL ${index} MONTH))
-                          AND YEAR (created_time) = YEAR (DATE_SUB(NOW()
+                          AND YEAR (${convertTimeZone("created_time")}) = YEAR (DATE_SUB(${convertTimeZone('NOW()')}
                             , INTERVAL ${index} MONTH))
                           AND status = 1;
                     `;
-                    database_js_1.default.query(orderCountSQL, []).then((data) => {
+                    database_js_1.default.query(monthCheckoutSQL, []).then((data) => {
                         pass++;
-                        countArray[`${index}`] = data[0].c;
+                        let total = 0;
+                        let total_pos = 0;
+                        let total_web = 0;
+                        data.map((checkout) => {
+                            if (checkout.orderData.orderSource === 'POS') {
+                                total_pos += 1;
+                            }
+                            else {
+                                total_web += 1;
+                            }
+                            total += 1;
+                        });
+                        countArrayPos[index] = total_pos;
+                        countArrayWeb[index] = total_web;
+                        countArray[index] = total;
                         if (pass === 12) {
                             resolve(true);
                         }
@@ -2628,11 +2679,20 @@ OR JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.orderStatus')) NOT IN (-99)) `);
             });
             return {
                 countArray: Object.keys(countArray)
-                    .sort()
+                    .sort((a, b) => parseInt(a, 10) - parseInt(b, 10))
                     .map((dd) => {
                     return countArray[dd];
+                }),
+                countArrayPos: Object.keys(countArrayPos)
+                    .sort((a, b) => parseInt(a, 10) - parseInt(b, 10))
+                    .map((dd) => {
+                    return countArrayPos[dd];
+                }),
+                countArrayWeb: Object.keys(countArrayWeb)
+                    .sort((a, b) => parseInt(a, 10) - parseInt(b, 10))
+                    .map((dd) => {
+                    return countArrayWeb[dd];
                 })
-                    .reverse(),
             };
         }
         catch (e) {
@@ -2641,28 +2701,42 @@ OR JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.orderStatus')) NOT IN (-99)) `);
     }
     async getSalesPerMonth1Year() {
         try {
-            const formatJsonData = [];
             const countArray = {};
+            const countArrayPos = {};
+            const countArrayWeb = {};
+            function convertTimeZone(date) {
+                return `CONVERT_TZ(${date}, '+00:00', '+08:00')`;
+            }
+            let pass = 0;
             await new Promise((resolve, reject) => {
-                let pass = 0;
                 for (let index = 0; index < 12; index++) {
                     const monthCheckoutSQL = `
                         SELECT orderData
                         FROM \`${this.app}\`.t_checkout
                         WHERE
-                            MONTH (created_time) = MONTH (DATE_SUB(NOW()
+                            MONTH (${convertTimeZone('created_time')}) = MONTH (DATE_SUB(${convertTimeZone('NOW()')}
                             , INTERVAL ${index} MONTH))
-                          AND YEAR (created_time) = YEAR (DATE_SUB(NOW()
+                          AND YEAR (${convertTimeZone('created_time')}) = YEAR (DATE_SUB(${convertTimeZone('NOW()')}
                             , INTERVAL ${index} MONTH))
                           AND status = 1;
                     `;
                     database_js_1.default.query(monthCheckoutSQL, []).then((data) => {
                         pass++;
                         let total = 0;
+                        let total_pos = 0;
+                        let total_web = 0;
                         data.map((checkout) => {
+                            if (checkout.orderData.orderSource === 'POS') {
+                                total_pos += parseInt(checkout.orderData.total, 10);
+                            }
+                            else {
+                                total_web += parseInt(checkout.orderData.total, 10);
+                            }
                             total += parseInt(checkout.orderData.total, 10);
                         });
-                        countArray[`${index}`] = total;
+                        countArrayPos[index] = total_pos;
+                        countArrayWeb[index] = total_web;
+                        countArray[index] = total;
                         if (pass === 12) {
                             resolve(true);
                         }
@@ -2671,11 +2745,20 @@ OR JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.orderStatus')) NOT IN (-99)) `);
             });
             return {
                 countArray: Object.keys(countArray)
-                    .sort()
+                    .sort((a, b) => parseInt(a, 10) - parseInt(b, 10))
                     .map((dd) => {
                     return countArray[dd];
+                }),
+                countArrayPos: Object.keys(countArrayPos)
+                    .sort((a, b) => parseInt(a, 10) - parseInt(b, 10))
+                    .map((dd) => {
+                    return countArrayPos[dd];
+                }),
+                countArrayWeb: Object.keys(countArrayWeb)
+                    .sort((a, b) => parseInt(a, 10) - parseInt(b, 10))
+                    .map((dd) => {
+                    return countArrayWeb[dd];
                 })
-                    .reverse(),
             };
         }
         catch (e) {
@@ -2684,8 +2767,12 @@ OR JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.orderStatus')) NOT IN (-99)) `);
     }
     async getSalesPerMonth2Weak() {
         try {
-            const formatJsonData = [];
             const countArray = {};
+            const countArrayPos = {};
+            const countArrayWeb = {};
+            function convertTimeZone(date) {
+                return `CONVERT_TZ(${date}, '+00:00', '+08:00')`;
+            }
             let pass = 0;
             await new Promise((resolve, reject) => {
                 for (let index = 0; index < 14; index++) {
@@ -2693,21 +2780,31 @@ OR JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.orderStatus')) NOT IN (-99)) `);
                         SELECT orderData
                         FROM \`${this.app}\`.t_checkout
                         WHERE
-                            DAY (created_time) = DAY (DATE_SUB(NOW()
+                            DAY (${convertTimeZone('created_time')}) = DAY (DATE_SUB(${convertTimeZone('NOW()')}
                             , INTERVAL ${index} DAY))
-                          AND MONTH (created_time) = MONTH (DATE_SUB(NOW()
+                          AND MONTH (${convertTimeZone('created_time')}) = MONTH (DATE_SUB(${convertTimeZone('NOW()')}
                             , INTERVAL ${index} DAY))
-                          AND YEAR (created_time) = YEAR (DATE_SUB(NOW()
+                          AND YEAR (${convertTimeZone('created_time')}) = YEAR (DATE_SUB(${convertTimeZone('NOW()')}
                             , INTERVAL ${index} DAY))
                           AND status = 1;
                     `;
                     database_js_1.default.query(monthCheckoutSQL, []).then((data) => {
                         pass++;
                         let total = 0;
+                        let total_pos = 0;
+                        let total_web = 0;
                         data.map((checkout) => {
+                            if (checkout.orderData.orderSource === 'POS') {
+                                total_pos += parseInt(checkout.orderData.total, 10);
+                            }
+                            else {
+                                total_web += parseInt(checkout.orderData.total, 10);
+                            }
                             total += parseInt(checkout.orderData.total, 10);
                         });
-                        countArray[`${index}`] = total;
+                        countArrayPos[index] = total_pos;
+                        countArrayWeb[index] = total_web;
+                        countArray[index] = total;
                         if (pass === 14) {
                             resolve(true);
                         }
@@ -2716,10 +2813,20 @@ OR JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.orderStatus')) NOT IN (-99)) `);
             });
             return {
                 countArray: Object.keys(countArray)
-                    .sort()
+                    .sort((a, b) => parseInt(a, 10) - parseInt(b, 10))
                     .map((dd) => {
                     return countArray[dd];
                 }),
+                countArrayPos: Object.keys(countArrayPos)
+                    .sort((a, b) => parseInt(a, 10) - parseInt(b, 10))
+                    .map((dd) => {
+                    return countArrayPos[dd];
+                }),
+                countArrayWeb: Object.keys(countArrayWeb)
+                    .sort((a, b) => parseInt(a, 10) - parseInt(b, 10))
+                    .map((dd) => {
+                    return countArrayWeb[dd];
+                })
             };
         }
         catch (e) {
@@ -2728,27 +2835,46 @@ OR JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.orderStatus')) NOT IN (-99)) `);
     }
     async getOrderAvgSalePriceYear() {
         try {
-            const formatJsonData = [];
             const countArray = {};
+            const countArrayPos = {};
+            const countArrayWeb = {};
+            function convertTimeZone(date) {
+                return `CONVERT_TZ(${date}, '+00:00', '+08:00')`;
+            }
             let pass = 0;
             await new Promise((resolve, reject) => {
                 for (let index = 0; index < 12; index++) {
-                    const monthInterval = index;
-                    const orderCountSQL = `
+                    const monthCheckoutSQL = `
                         SELECT orderData
                         FROM \`${this.app}\`.t_checkout
                         WHERE
-                            MONTH (created_time) = MONTH (DATE_SUB(NOW()
-                            , INTERVAL ${monthInterval} MONTH))
-                          AND YEAR (created_time) = YEAR (DATE_SUB(NOW()
-                            , INTERVAL ${monthInterval} MONTH))
+                            MONTH (${convertTimeZone('created_time')}) = MONTH (DATE_SUB(${convertTimeZone('NOW()')}
+                            , INTERVAL ${index} MONTH))
+                          AND YEAR (${convertTimeZone('created_time')}) = YEAR (DATE_SUB(${convertTimeZone('NOW()')}
+                            , INTERVAL ${index} MONTH))
                           AND status = 1;
                     `;
-                    database_js_1.default.query(orderCountSQL, []).then((data) => {
+                    database_js_1.default.query(monthCheckoutSQL, []).then((data) => {
                         pass++;
-                        const total = data.reduce((sum, checkout) => sum + parseInt(checkout.orderData.total, 10), 0);
-                        const average = data.length ? (total / data.length).toFixed(2) : '0.00';
-                        countArray[`${index}`] = parseFloat(average);
+                        let total = 0;
+                        let total_pos = 0;
+                        let total_web = 0;
+                        let pos_count = 0;
+                        let web_count = 0;
+                        data.map((checkout) => {
+                            if (checkout.orderData.orderSource === 'POS') {
+                                pos_count++;
+                                total_pos += parseInt(checkout.orderData.total, 10);
+                            }
+                            else {
+                                web_count++;
+                                total_web += parseInt(checkout.orderData.total, 10);
+                            }
+                            total += parseInt(checkout.orderData.total, 10);
+                        });
+                        countArrayPos[index] = (Math.floor((total_pos / pos_count)));
+                        countArrayWeb[index] = (Math.floor((total_web / web_count)));
+                        countArray[index] = (Math.floor((total / data.length)));
                         if (pass === 12) {
                             resolve(true);
                         }
@@ -2757,10 +2883,20 @@ OR JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.orderStatus')) NOT IN (-99)) `);
             });
             return {
                 countArray: Object.keys(countArray)
-                    .sort()
+                    .sort((a, b) => parseInt(a, 10) - parseInt(b, 10))
                     .map((dd) => {
                     return countArray[dd];
                 }),
+                countArrayPos: Object.keys(countArrayPos)
+                    .sort((a, b) => parseInt(a, 10) - parseInt(b, 10))
+                    .map((dd) => {
+                    return countArrayPos[dd];
+                }),
+                countArrayWeb: Object.keys(countArrayWeb)
+                    .sort((a, b) => parseInt(a, 10) - parseInt(b, 10))
+                    .map((dd) => {
+                    return countArrayWeb[dd];
+                })
             };
         }
         catch (e) {
@@ -2769,8 +2905,12 @@ OR JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.orderStatus')) NOT IN (-99)) `);
     }
     async getOrderAvgSalePrice() {
         try {
-            const formatJsonData = [];
             const countArray = {};
+            const countArrayPos = {};
+            const countArrayWeb = {};
+            function convertTimeZone(date) {
+                return `CONVERT_TZ(${date}, '+00:00', '+08:00')`;
+            }
             let pass = 0;
             await new Promise((resolve, reject) => {
                 for (let index = 0; index < 14; index++) {
@@ -2778,26 +2918,35 @@ OR JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.orderStatus')) NOT IN (-99)) `);
                         SELECT orderData
                         FROM \`${this.app}\`.t_checkout
                         WHERE
-                            DAY (created_time) = DAY (DATE_SUB(NOW()
+                            DAY (${convertTimeZone('created_time')}) = DAY (DATE_SUB(${convertTimeZone('NOW()')}
                             , INTERVAL ${index} DAY))
-                          AND MONTH (created_time) = MONTH (DATE_SUB(NOW()
+                          AND MONTH (${convertTimeZone('created_time')}) = MONTH (DATE_SUB(${convertTimeZone('NOW()')}
                             , INTERVAL ${index} DAY))
-                          AND YEAR (created_time) = YEAR (DATE_SUB(NOW()
+                          AND YEAR (${convertTimeZone('created_time')}) = YEAR (DATE_SUB(${convertTimeZone('NOW()')}
                             , INTERVAL ${index} DAY))
                           AND status = 1;
                     `;
                     database_js_1.default.query(monthCheckoutSQL, []).then((data) => {
                         pass++;
                         let total = 0;
+                        let total_pos = 0;
+                        let total_web = 0;
+                        let pos_count = 0;
+                        let web_count = 0;
                         data.map((checkout) => {
+                            if (checkout.orderData.orderSource === 'POS') {
+                                pos_count++;
+                                total_pos += parseInt(checkout.orderData.total, 10);
+                            }
+                            else {
+                                web_count++;
+                                total_web += parseInt(checkout.orderData.total, 10);
+                            }
                             total += parseInt(checkout.orderData.total, 10);
                         });
-                        if (data.length == 0) {
-                            countArray[`${index}`] = 0;
-                        }
-                        else {
-                            countArray[`${index}`] = Math.floor((total / data.length) * 100) / 100;
-                        }
+                        countArrayPos[index] = (Math.floor((total_pos / pos_count)));
+                        countArrayWeb[index] = (Math.floor((total_web / web_count)));
+                        countArray[index] = (Math.floor((total / data.length)));
                         if (pass === 14) {
                             resolve(true);
                         }
@@ -2806,10 +2955,20 @@ OR JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.orderStatus')) NOT IN (-99)) `);
             });
             return {
                 countArray: Object.keys(countArray)
-                    .sort()
+                    .sort((a, b) => parseInt(a, 10) - parseInt(b, 10))
                     .map((dd) => {
                     return countArray[dd];
                 }),
+                countArrayPos: Object.keys(countArrayPos)
+                    .sort((a, b) => parseInt(a, 10) - parseInt(b, 10))
+                    .map((dd) => {
+                    return countArrayPos[dd];
+                }),
+                countArrayWeb: Object.keys(countArrayWeb)
+                    .sort((a, b) => parseInt(a, 10) - parseInt(b, 10))
+                    .map((dd) => {
+                    return countArrayWeb[dd];
+                })
             };
         }
         catch (e) {
@@ -3180,17 +3339,19 @@ OR JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.orderStatus')) NOT IN (-99)) `);
         await Promise.all(promises);
     }
     async putProduct(content) {
-        const language = await app_js_1.App.getSupportLanguage(this.app);
-        for (const b of language) {
-            const find_conflict = await database_js_1.default.query(`select count(1)
-                 from \`${this.app}\`.\`t_manager_post\`
-                 where content ->>'$.language_data."${b}".seo.domain'='${decodeURIComponent(content.language_data[b].seo.domain)}'
-                   and id != ${content.id}`, []);
-            if (find_conflict[0]['count(1)'] > 0) {
-                throw exception_js_1.default.BadRequestError('BAD_REQUEST', 'DOMAIN ALREADY EXISTS:', {
-                    message: '網域已被使用',
-                    code: '733',
-                });
+        if (content.language_data) {
+            const language = await app_js_1.App.getSupportLanguage(this.app);
+            for (const b of language) {
+                const find_conflict = await database_js_1.default.query(`select count(1)
+                     from \`${this.app}\`.\`t_manager_post\`
+                     where content ->>'$.language_data."${b}".seo.domain'='${decodeURIComponent(content.language_data[b].seo.domain)}'
+                       and id != ${content.id}`, []);
+                if (find_conflict[0]['count(1)'] > 0) {
+                    throw exception_js_1.default.BadRequestError('BAD_REQUEST', 'DOMAIN ALREADY EXISTS:', {
+                        message: '網域已被使用',
+                        code: '733',
+                    });
+                }
             }
         }
         try {
@@ -3552,7 +3713,9 @@ OR JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.orderStatus')) NOT IN (-99)) `);
         });
     }
     static async currencyCovert(base) {
-        const data = (await database_js_1.default.query(`SELECT * FROM ${config_js_1.saasConfig.SAAS_NAME}.currency_config  order by id desc limit 0,1;`, []))[0]['json']['rates'];
+        const data = (await database_js_1.default.query(`SELECT *
+                                           FROM ${config_js_1.saasConfig.SAAS_NAME}.currency_config
+                                           order by id desc limit 0,1;`, []))[0]['json']['rates'];
         const base_m = data[base];
         Object.keys(data).map((dd) => {
             data[dd] = data[dd] / base_m;

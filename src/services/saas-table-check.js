@@ -28,20 +28,21 @@ exports.SaasScheme = {
                 table: 't_monitor',
                 sql: `(
   \`id\` int NOT NULL AUTO_INCREMENT,
-  \`ip\` varchar(45) COLLATE utf8mb4_unicode_ci NOT NULL,
-  \`app_name\` varchar(100) COLLATE utf8mb4_unicode_ci NOT NULL,
-  \`user_id\` varchar(45) COLLATE utf8mb4_unicode_ci NOT NULL,
-  \`mac_address\` varchar(45) COLLATE utf8mb4_unicode_ci NOT NULL,
-  \`base_url\` varchar(200) COLLATE utf8mb4_unicode_ci NOT NULL,
-  \`req_type\` varchar(45) COLLATE utf8mb4_unicode_ci NOT NULL,
+  \`ip\` varchar(45) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
+  \`app_name\` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
+  \`user_id\` varchar(45) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
+  \`mac_address\` varchar(45) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
+  \`base_url\` varchar(200) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
+  \`req_type\` varchar(45) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
   \`created_time\` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (\`id\`),
   KEY \`index2\` (\`ip\`),
   KEY \`index3\` (\`app_name\`),
   KEY \`index4\` (\`mac_address\`),
   KEY \`index5\` (\`created_time\`),
-  KEY \`index6\` (\`req_type\`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci`
+  KEY \`index6\` (\`req_type\`),
+  KEY \`index7\` (\`app_name\`,\`ip\`,\`req_type\`)
+) ENGINE=InnoDB AUTO_INCREMENT=2568150 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci`
             },
             {
                 scheme: config_1.saasConfig.SAAS_NAME,
@@ -275,49 +276,6 @@ async function compare_sql_table(scheme, table, sql) {
         if (newest2.length === 0 || newest.length === 0) {
             return await compare_sql_table(scheme, table, sql);
         }
-        if (!(JSON.stringify(older) == JSON.stringify(newest)) || !(JSON.stringify(older2) == JSON.stringify(newest2))) {
-            console.log(`update-table`);
-            older = older.filter((dd) => {
-                return newest.find((d2) => {
-                    return dd.COLUMN_NAME === d2.COLUMN_NAME;
-                });
-            });
-            await trans.execute(`INSERT INTO \`${scheme}\`.\`${tempKey}\` (${older
-                .map((dd) => {
-                return `\`${dd.COLUMN_NAME}\``;
-            })
-                .join(',')})
-                                   SELECT ${older
-                .map((dd) => {
-                return `\`${dd.COLUMN_NAME}\``;
-            })
-                .join(',')}
-                                   FROM \`${scheme}\`.\`${table}\`
-        `, []);
-            await trans.execute(`
-        CREATE TABLE  \`${scheme}_recover\`.\`${table}_${new Date().getTime()}\` AS SELECT * FROM \`${scheme}\`.\`${table}\`;
-        `, []);
-            await trans.execute(`DROP TABLE \`${scheme}\`.\`${table}\`;`, []);
-            let fal = 0;
-            async function loopToAlter() {
-                try {
-                    await trans.execute(`ALTER TABLE \`${scheme}\`.${tempKey} RENAME TO \`${scheme}\`.\`${table}\`;`, []);
-                    await new Promise((resolve, reject) => {
-                        setTimeout(() => {
-                            resolve(true);
-                        }, 1000);
-                    });
-                }
-                catch (e) {
-                    fal++;
-                    if (fal < 5) {
-                        await loopToAlter();
-                    }
-                }
-            }
-            await loopToAlter();
-        }
-        await trans.execute(`DROP TABLE if exists \`${scheme}\`.\`${tempKey}\`;`, []);
         await trans.commit();
         await trans.release();
         return true;

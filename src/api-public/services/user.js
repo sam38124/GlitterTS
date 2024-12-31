@@ -50,6 +50,8 @@ const notify_js_1 = require("./notify.js");
 const config_1 = require("../../config");
 const sms_js_1 = require("./sms.js");
 const form_check_js_1 = require("./form-check.js");
+const ut_permission_js_1 = require("../utils/ut-permission.js");
+const share_permission_js_1 = require("./share-permission.js");
 class User {
     static generateUserID() {
         let userID = '';
@@ -489,6 +491,41 @@ class User {
                 userData: {},
             });
             return usData;
+        }
+        catch (e) {
+            throw exception_1.default.BadRequestError('BAD_REQUEST', e, null);
+        }
+    }
+    async loginWithPin(user_id, pin) {
+        var _a;
+        try {
+            if (await ut_permission_js_1.UtPermission.isManagerTokenCheck(this.app, `${this.token.userID}`)) {
+                const per_c = new share_permission_js_1.SharePermission(this.app, this.token);
+                const permission = (await per_c.getPermission({
+                    page: 0,
+                    limit: 1000
+                })).data;
+                if (permission.find((dd) => {
+                    return `${dd.user}` === `${user_id}` && `${dd.config.pin}` === pin;
+                })) {
+                    const user_ = new User((_a = (await per_c.getBaseData())) === null || _a === void 0 ? void 0 : _a.brand);
+                    const usData = await user_.getUserData(user_id, 'userID');
+                    usData.pwd = undefined;
+                    usData.token = await UserUtil_1.default.generateToken({
+                        user_id: usData['userID'],
+                        account: usData['account'],
+                        userData: {},
+                    });
+                    return usData;
+                }
+                else {
+                    throw exception_1.default.BadRequestError('BAD_REQUEST', 'Auth failed', null);
+                }
+            }
+            else {
+                throw exception_1.default.BadRequestError('BAD_REQUEST', 'Auth failed', null);
+            }
+            return {};
         }
         catch (e) {
             throw exception_1.default.BadRequestError('BAD_REQUEST', e, null);
@@ -1703,6 +1740,33 @@ class User {
                 `, []);
             if (!data[0] && config.user_id === 'manager') {
                 switch (config.key) {
+                    case 'store_version':
+                        await this.setConfig({
+                            key: config.key,
+                            user_id: config.user_id,
+                            value: {
+                                version: 'v1'
+                            }
+                        });
+                        return await this.getConfigV2(config);
+                    case 'store_manager':
+                        await this.setConfig({
+                            key: config.key,
+                            user_id: config.user_id,
+                            value: {
+                                list: [
+                                    {
+                                        "id": "store_default",
+                                        "name": "庫存點1(預設)",
+                                        "note": "",
+                                        "address": "",
+                                        "manager_name": "",
+                                        "manager_phone": ""
+                                    }
+                                ]
+                            }
+                        });
+                        return await this.getConfigV2(config);
                     case 'member_level_config':
                         await this.setConfig({
                             key: config.key,
@@ -1742,7 +1806,7 @@ class User {
         }
     }
     checkLeakData(key, value) {
-        var _a;
+        var _a, _b;
         if (key === 'store-information') {
             value.language_setting = (_a = value.language_setting) !== null && _a !== void 0 ? _a : {
                 def: 'zh-TW',
@@ -1755,6 +1819,18 @@ class User {
                 'en-US': [],
                 'zh-CN': [],
             };
+        }
+        else if (key === 'store_manager') {
+            value.list = (_b = value.list) !== null && _b !== void 0 ? _b : [
+                {
+                    "id": "store_default",
+                    "name": "庫存點1(預設)",
+                    "note": "",
+                    "address": "",
+                    "manager_name": "",
+                    "manager_phone": ""
+                }
+            ];
         }
     }
     async checkEmailExists(email) {
@@ -1800,12 +1876,15 @@ class User {
         }
     }
     async checkAdminPermission() {
-        var _a;
+        var _a, _b;
         try {
             const result = await database_1.default.query(`select count(1)
                  from ${process_1.default.env.GLITTER_DB}.app_config
-                 where appName = ?
-                   and user = ?`, [this.app, (_a = this.token) === null || _a === void 0 ? void 0 : _a.userID]);
+                 where (appName = ?
+                     and user = ?)   OR appName in (
+                     (SELECT appName FROM \`${config_1.saasConfig.SAAS_NAME}\`.app_auth_config
+                      WHERE user = ? AND status = 1 AND invited = 1 AND appName = ?)
+                 );`, [this.app, (_a = this.token) === null || _a === void 0 ? void 0 : _a.userID, (_b = this.token) === null || _b === void 0 ? void 0 : _b.userID, this.app]);
             return {
                 result: result[0]['count(1)'] === 1,
             };

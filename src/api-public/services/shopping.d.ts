@@ -133,6 +133,7 @@ type Cart = {
     deliveryData?: DeliveryData;
     give_away: CartItem[];
     language?: string;
+    pos_info?: any;
 };
 export declare class Shopping {
     app: string;
@@ -259,6 +260,8 @@ export declare class Shopping {
                 value: number;
             };
             is_gift?: boolean;
+            stock: number;
+            show_understocking: 'true' | 'false';
         }[];
         customer_info?: any;
         email?: string;
@@ -284,6 +287,7 @@ export declare class Shopping {
             voucher_id: string;
         }[];
         language?: 'en-US' | 'zh-CN' | 'zh-TW';
+        pos_info?: any;
     }, type?: 'add' | 'preview' | 'manual' | 'manual-preview' | 'POS', replace_order_id?: string): Promise<any>;
     getReturnOrder(query: {
         page: number;
@@ -416,21 +420,33 @@ export declare class Shopping {
     }>;
     getOrdersPerMonth2Weak(): Promise<{
         countArray: any[];
+        countArrayPos: any[];
+        countArrayWeb: any[];
     }>;
     getOrdersPerMonth1Year(): Promise<{
         countArray: any[];
+        countArrayPos: any[];
+        countArrayWeb: any[];
     }>;
     getSalesPerMonth1Year(): Promise<{
         countArray: any[];
+        countArrayPos: any[];
+        countArrayWeb: any[];
     }>;
     getSalesPerMonth2Weak(): Promise<{
         countArray: any[];
+        countArrayPos: any[];
+        countArrayWeb: any[];
     }>;
     getOrderAvgSalePriceYear(): Promise<{
         countArray: any[];
+        countArrayPos: any[];
+        countArrayWeb: any[];
     }>;
     getOrderAvgSalePrice(): Promise<{
         countArray: any[];
+        countArrayPos: any[];
+        countArrayWeb: any[];
     }>;
     getCollectionProducts(tag: string): Promise<any>;
     putCollection(replace: Collection, original: Collection): Promise<{

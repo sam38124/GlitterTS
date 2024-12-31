@@ -50,7 +50,12 @@ export interface paymentInterface {
         text: string;
     }[];
 }
-export declare const onlinePayArray: {
+export declare const onlinePayArray: ({
     key: string;
     name: string;
-}[];
+    type?: undefined;
+} | {
+    key: string;
+    name: string;
+    type: string;
+})[];

@@ -7,6 +7,7 @@ import jwt from 'jsonwebtoken';
 import config from '../../config.js';
 import { User } from './user';
 import { sendmail } from '../../services/ses.js';
+import {UtPermission} from "../utils/ut-permission.js";
 
 interface PermissionItem {
     id: number;
@@ -47,9 +48,13 @@ export class SharePermission {
         try {
             const appData = (
                 await db.query(
-                    `SELECT domain, brand FROM \`${saasConfig.SAAS_NAME}\`.app_config WHERE appName = ? AND user = ?;
+                    `SELECT domain, brand,user FROM \`${saasConfig.SAAS_NAME}\`.app_config WHERE  (user = ? and appName = ?)
+                                                                                         OR appName in (
+                                                                                          (SELECT appName FROM \`${saasConfig.SAAS_NAME}\`.app_auth_config
+                        WHERE user = ? AND status = 1 AND invited = 1 AND appName = ?)
+                        );
                 `,
-                    [this.appName, this.token.userID]
+                    [this.token.userID,this.appName,this.token.userID,this.appName ]
                 )
             )[0];
 
@@ -60,6 +65,7 @@ export class SharePermission {
                       brand: appData.brand, // shopnex
                       domain: appData.domain, // domain
                       app: this.appName, // app name
+                    user:appData.user
                   };
         } catch (e) {
             throw exception.BadRequestError('ERROR', 'getBaseData ERROR: ' + e, null);
@@ -84,7 +90,8 @@ export class SharePermission {
 
     async getPermission(json: { page: number; limit: number; email?: string; orderBy?: string; queryType?: string; query?: string; status?: string }) {
         try {
-            const base = await this.getBaseData();
+            let base = await this.getBaseData();
+
             if (!base) {
                 const authConfig = await this.getStoreAuth();
                 if (authConfig) {
@@ -141,7 +148,6 @@ export class SharePermission {
                 `,
                 []
             );
-
             let authDataList: PermissionItem[] = auths.map((item: any) => {
                 const data = users.find((u: any) => u.userID == item.user);
                 if (data) {
@@ -214,6 +220,27 @@ export class SharePermission {
                 default:
                     break;
             }
+            if(base){
+                const user_data=await new User(base.brand).getUserData(`${base.user}`,'userID');
+                user_data.userData.auth_config= user_data.userData.auth_config || {
+                    pin: user_data.userData.pin,
+                    auth: [],
+                    name: user_data.userData.name,
+                    phone: user_data.userData.phone,
+                    title: '管理員',
+                    member_id: ''
+                }
+                authDataList.unshift({
+                    id:-1,
+                    user:`${base.user}`,
+                    appName:this.appName,
+                    config:user_data.userData.auth_config,
+                    email:user_data.account,
+                    invited:1,
+                    status:1,
+                    online_time:new Date()
+                } as any)
+            }
 
             return {
                 data: authDataList.slice(start, end),
@@ -227,6 +254,7 @@ export class SharePermission {
 
     async setPermission(data: { email: string; config: any; status?: number }) {
         try {
+
             const base = await this.getBaseData();
             if (!base) {
                 return { result: false };
@@ -234,11 +262,12 @@ export class SharePermission {
 
             let userData = (
                 await db.query(
-                    `SELECT userID FROM \`${base.brand}\`.t_user WHERE account = ?;
+                    `SELECT userID,userData FROM \`${base.brand}\`.t_user WHERE account = ?;
                 `,
                     [data.email]
                 )
             )[0];
+
             if (userData === undefined) {
                 const findAuth = (
                     await db.query(
@@ -256,7 +285,9 @@ export class SharePermission {
                 data.config.verifyEmail = data.email;
             }
             if (userData.userID === this.token.userID) {
-                return { result: false };
+                userData.userData.auth_config=data.config
+                await db.query(`update \`${base.brand}\`.t_user set userData=? where account = ?`,[JSON.stringify(userData.userData),data.email]);
+                return { result: true };
             }
 
             const authData = (

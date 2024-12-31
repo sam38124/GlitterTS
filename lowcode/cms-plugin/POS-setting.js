@@ -22,6 +22,7 @@ import { PosHomePage } from "./pos-pages/pos-home-page.js";
 import { ApiShop } from "../glitter-base/route/shopping.js";
 import { Swal } from "../modules/sweetAlert.js";
 import { ConnectionMode } from "./pos-pages/connection-mode.js";
+import { PosFunction } from "./pos-pages/pos-function.js";
 function getConfig() {
     const saasConfig = window.parent.saasConfig;
     return saasConfig;
@@ -250,18 +251,28 @@ height: 51px;
             return {
                 bind: id,
                 view: () => __awaiter(this, void 0, void 0, function* () {
-                    const res = yield ApiUser.checkAdminAuth({
-                        app: gvc.glitter.getUrlParameter('app-id'),
-                        token: GlobalUser.saas_token,
-                    });
-                    const member_auth = (yield ApiUser.getPermission({
-                        page: 0,
-                        limit: 100
-                    })).response.data;
+                    let [initial, res, member_auth] = yield Promise.all([POSSetting.initial(gvc), ApiUser.checkAdminAuth({
+                            app: gvc.glitter.getUrlParameter('app-id'),
+                            token: GlobalUser.saas_token,
+                        }), ApiUser.getPermission({
+                            page: 0,
+                            limit: 100
+                        })]);
+                    member_auth = member_auth.response.data;
+                    glitter.share.member_auth_list = member_auth;
+                    glitter.share.editorViewModel.app_config_original;
+                    try {
+                        const login_user = GlobalUser.parseJWT(GlobalUser.saas_token).payload.userID;
+                        const find_ = member_auth.find((dd) => {
+                            return `${dd.user}` === `${login_user}`;
+                        });
+                        POSSetting.config.who = find_.user;
+                    }
+                    catch (e) {
+                    }
                     if (res.response.result && (member_auth.find((dd) => {
-                        return dd.config.member_id === POSSetting.config.who;
+                        return `${dd.user}` === `${POSSetting.config.who}`;
                     }) || POSSetting.config.who === 'manager')) {
-                        yield POSSetting.initial(gvc);
                         return POSSetting.posView(gvc);
                     }
                     else {
@@ -284,7 +295,10 @@ height: 51px;
         return __awaiter(this, void 0, void 0, function* () {
             const dialog = new ShareDialog(gvc.glitter);
             const swal = new Swal(gvc);
-            console.log(`text===>`, text);
+            if (PayConfig.onPayment) {
+                PayConfig.onPayment(text);
+                return;
+            }
             if (text.indexOf(`variants-`) === 0) {
                 dialog.dataLoading({ visible: true, text: '搜尋商品...' });
                 text = text.replace(`variants-`, '');
@@ -385,6 +399,7 @@ height: 51px;
                 localStorage.setItem('show_pos_page', `${value}`);
                 gvc.notifyDataChange(vm.id);
             },
+            loading: true,
             order: {},
             query: '',
             productSearch: [],
@@ -424,12 +439,20 @@ height: 51px;
                             display: none;  /* Chrome, Safari, Opera */
                         }
                     `);
+        const apConfig = (ApiUser.getPublicConfig('store-information', 'manager')).then((res) => {
+            PayConfig.pos_config = res.response.value;
+            vm.loading = false;
+            gvc.notifyDataChange(vm.id);
+        });
         return (gvc.bindView(() => {
             return {
                 bind: vm.id,
-                view: () => __awaiter(this, void 0, void 0, function* () {
-                    const ap_config = (yield ApiUser.getPublicConfig('store-information', 'manager')).response.value;
-                    PayConfig.pos_config = ap_config;
+                view: () => {
+                    if (vm.loading) {
+                        return `<div class="d-flex align-items-center justify-content-center p-3">
+<div class="spinner-border"></div>
+</div>`;
+                    }
                     return html `
                             <div
                                     class="d-flex nav-top"
@@ -553,10 +576,13 @@ cursor: pointer;
                                     const member_auth = (yield ApiUser.getPermission({
                                         page: 0,
                                         limit: 100
-                                    })).response.data;
+                                    })).response.data.filter((dd) => {
+                                        return dd.invited && dd.status;
+                                    });
                                     const select_member = (_a = member_auth.find((dd) => {
-                                        return dd.config.member_id === POSSetting.config.who;
+                                        return `${dd.user}` === `${POSSetting.config.who}`;
                                     })) !== null && _a !== void 0 ? _a : { config: { title: '管理員', name: 'manager' } };
+                                    glitter.share.select_member = select_member;
                                     glitter.share.staff_title = select_member.config.name === 'manager' ? `BOSS` : POSSetting.config.who;
                                     resolve(html `
                                                         <div class="h-100 group dropdown border-start ps-1 d-flex align-items-center"
@@ -583,118 +609,31 @@ cursor: pointer;
                                                                 ${[
                                         ...(() => {
                                             const view = member_auth.filter((dd) => {
-                                                return dd.config.member_id !== POSSetting.config.who;
+                                                return `${dd.user}` !== `${POSSetting.config.who}`;
                                             }).map((dd) => {
                                                 const memberDD = dd;
-                                                return `
-                                      <a class="dropdown-item cursor_pointer d-flex flex-column" onclick="${gvc.event(() => {
-                                                    gvc.glitter.innerDialog((gvc) => {
-                                                        const c_vm = {
-                                                            text: '',
-                                                            id: gvc.glitter.getUUID()
-                                                        };
-                                                        return gvc.bindView(() => {
-                                                            return {
-                                                                bind: c_vm.id,
-                                                                view: () => {
-                                                                    return `<div style="flex-direction: column; justify-content: flex-start; align-items: flex-start; gap: 42px; display: inline-flex">
-    <div style="align-self: stretch; height: 100px; flex-direction: column; justify-content: flex-start; align-items: flex-start; gap: 18px; display: flex">
-      <div style="align-self: stretch; justify-content: center; align-items: flex-start; gap: 16px; display: inline-flex">
-        <div style="text-align: center"><span style="color: #FFB400; font-size: 42px; font-family: Lilita One; font-weight: 400; word-wrap: break-word">SHOPNE</span><span style="color: #FFB400; font-size: 42px; font-family: Lilita One; font-weight: 400; letter-spacing: 2.52px; word-wrap: break-word">X</span></div>
-        <div style="text-align: center; color: #8D8D8D; font-size: 42px; font-family: Lilita One; font-weight: 400; word-wrap: break-word">POS</div>
-      </div>
-      <div style="align-self: stretch; text-align: center; color: #393939; font-size: 24px; font-family: Noto Sans; font-weight: 700; line-height: 33.60px; letter-spacing: 2.40px; word-wrap: break-word">請輸入員工編號</div>
-    </div>
-    <div style="align-self: stretch; justify-content: center; align-items: center; gap: 20px; display: inline-flex">
-    ${(() => {
-                                                                        let view = [];
-                                                                        for (let a = 0; a < 6; a++) {
-                                                                            if (c_vm.text.length > a) {
-                                                                                view.push(`<div style="width: 18px; height: 18px; position: relative; background: #FFB400; border-radius: 30px"></div>`);
-                                                                            }
-                                                                            else {
-                                                                                view.push(` <div style="width: 18px; height: 18px; position: relative; background: #B0B0B0; border-radius: 30px"></div>`);
-                                                                            }
-                                                                        }
-                                                                        return view.join('');
-                                                                    })()}
-    </div>
-    <div style="background: white; flex-direction: column; justify-content: flex-start; align-items: center; gap: 32px; display: flex">
-      <div style="align-self: stretch; border-radius: 10px; flex-direction: column; justify-content: flex-start; align-items: center; display: flex;border: 1px solid #DDD;">
-        ${[[1, 2, 3], [4, 5, 6], [7, 8, 9], ['取消', 0, '<i class="fa-regular fa-delete-left"></i>']].map((dd) => {
-                                                                        return ` <div style="justify-content: flex-start; align-items: center; display: inline-flex">
-         ${dd.map((dd) => {
-                                                                            return `<div style="height:56px;width:95px;flex-direction: column; justify-content: center; align-items: center; gap: 10px; display: inline-flex">
-            <div style="align-self: stretch; text-align: center; color: #393939; font-size: 20px;  font-weight: 700; line-height: 28px; word-wrap: break-word" onclick="${gvc.event(() => {
-                                                                                if (dd === '取消') {
-                                                                                    gvc.closeDialog();
-                                                                                    return;
-                                                                                }
-                                                                                else if (`${dd}`.includes(`fa-regular`)) {
-                                                                                    c_vm.text = c_vm.text.substring(0, c_vm.text.length - 1);
-                                                                                    gvc.notifyDataChange(c_vm.id);
-                                                                                    return;
-                                                                                }
-                                                                                c_vm.text += dd;
-                                                                                const dialog = new ShareDialog(gvc.glitter);
-                                                                                if (c_vm.text.length === 6) {
-                                                                                    if (memberDD.config.pin === c_vm.text) {
-                                                                                        POSSetting.config.who = memberDD.config.member_id;
-                                                                                        gvc.closeDialog();
-                                                                                        refreshUserBar();
-                                                                                    }
-                                                                                    else {
-                                                                                        dialog.errorMessage({ text: '輸入錯誤' });
-                                                                                        c_vm.text = '';
-                                                                                    }
-                                                                                }
-                                                                                gvc.notifyDataChange(c_vm.id);
-                                                                            })}">${dd}</div>
-          </div>`;
-                                                                        }).join('<div class="" style="border-right: 1px #DDDDDD solid;height:56px;"></div>')}
-        </div>`;
-                                                                    }).join('<div class="" style="border-top: 1px #DDDDDD solid;height:1px; width: 100%;"></div>')}
-      
-      </div>
-    </div>
-  </div>`;
-                                                                },
-                                                                divCreate: {
-                                                                    class: ``,
-                                                                    style: `width: 338px;  padding-left: 20px; padding-right: 20px; padding-top: 25px; padding-bottom: 25px; background: white; box-shadow: 2px 2px 10px rgba(0, 0, 0, 0.15); border-radius: 20px; overflow: hidden; justify-content: center; align-items: center; gap: 10px; display: inline-flex`
-                                                                }
-                                                            };
-                                                        });
-                                                    }, '');
+                                                return html `<a
+                                                                                    class="dropdown-item cursor_pointer d-flex flex-column"
+                                                                                    onclick="${gvc.event(() => {
+                                                    PosFunction.switchUser(gvc, dd.user);
                                                 })}">
-                                      ${dd.config.title} / ${dd.config.name} / ${dd.config.member_id}
-</a>
-                                    `;
+                                                                                ${dd.config.title} / ${dd.config.name} /
+                                                                                ${dd.config.member_id}
+                                                                            </a>
+                                                                            `;
                                             });
-                                            if (POSSetting.config.who !== 'manager') {
-                                                view.push(html `<a
-                                                                                class="dropdown-item cursor_pointer d-flex flex-column ${POSSetting.config.who === 'manager' ? `d-none` : ``}"
-                                                                                onclick="${gvc.event(() => {
-                                                    gvc.glitter.innerDialog((gvc) => {
-                                                        return POSSetting.loginManager(gvc, 'switch', () => {
-                                                            refreshUserBar();
-                                                            gvc.closeDialog();
-                                                        });
-                                                    }, '');
-                                                })}">
-                                                                            切換至管理員
-                                                                        </a>`);
-                                            }
                                             return view;
                                         })(),
                                         ...[
                                             ...((PayConfig.deviceType === 'pos') ? [
-                                                html ` 
-                                                                        <a class="dropdown-item cursor_pointer d-flex align-items-center"
-                                                                           style="gap:10px;"
-                                                                           onclick="${gvc.event(() => {
+                                                html `
+                                                                                <a class="dropdown-item cursor_pointer d-flex align-items-center"
+                                                                                   style="gap:10px;"
+                                                                                   onclick="${gvc.event(() => {
                                                     ConnectionMode.main(gvc);
-                                                })}"><i class="fa-solid fa-plug d-flex align-items-center justify-content-center" style="width:20px;" ></i>連線模式</a>`,
+                                                })}"><i
+                                                                                        class="fa-solid fa-plug d-flex align-items-center justify-content-center"
+                                                                                        style="width:20px;"></i>連線模式</a>`,
                                             ] : []),
                                             ...((ConnectionMode.on_connected_device) ? [
                                                 `<a class="dropdown-item cursor_pointer d-flex align-items-center"
@@ -716,25 +655,25 @@ cursor: pointer;
                                             ] : [])
                                         ].concat(PayConfig.deviceType === 'pos' ? [] : ConnectionMode.device_list.map((dd) => {
                                             return html `<a
-                                                                            class="dropdown-item cursor_pointer d-flex align-items-center"
-                                                                            style="gap:10px;"
-                                                                            onclick="${gvc.event(() => {
+                                                                                class="dropdown-item cursor_pointer d-flex align-items-center"
+                                                                                style="gap:10px;"
+                                                                                onclick="${gvc.event(() => {
                                                 ConnectionMode.connect(dd);
                                             })}"><i
-                                                                            class="fa-solid fa-plug d-flex align-items-center justify-content-center" style="width:20px;"></i>連線至『 ${dd} 』</a>`;
+                                                                                class="fa-solid fa-plug d-flex align-items-center justify-content-center"
+                                                                                style="width:20px;"></i>連線至『 ${dd} 』</a>`;
                                         }))
                                     ].join('<div class="dropdown-divider"></div>')}
-                                                                ${(POSSetting.config.who === 'manager') ? html `
-                                                                    <div class="dropdown-divider"></div>
-                                                                    <a class="dropdown-item cursor_pointer  d-flex align-items-center"
-                                                                       style="gap:10px;" onclick="${gvc.event(() => {
+                                                                <div class="dropdown-divider"></div>
+                                                                <a class="dropdown-item cursor_pointer  d-flex align-items-center"
+                                                                   style="gap:10px;" onclick="${gvc.event(() => {
                                         const dialog = new ShareDialog(gvc.glitter);
                                         dialog.dataLoading({ visible: true });
                                         localStorage.removeItem('on-pos');
                                         (window.parent).history.replaceState({}, document.title, `${glitter.root_path}cms?appName=${glitter.getUrlParameter('app-id')}&type=editor&function=backend-manger&tab=home_page`);
                                         glitter.share.reload('cms', 'shopnex');
-                                    })}"><i class="fa-solid fa-angle-left d-flex align-items-center justify-content-center" style="width:20px;"></i>返回全通路後臺</a>
-                                                                ` : ``}
+                                    })}"><i class="fa-solid fa-angle-left d-flex align-items-center justify-content-center"
+                                                                        style="width:20px;"></i>返回全通路後臺</a>
                                                             </div>
                                                         </div>`);
                                 }));
@@ -791,36 +730,6 @@ cursor: pointer;
                         bind: 'nav-slide',
                         view: () => {
                             let page = [
-                                {
-                                    selectIcon: html `
-                                                <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28"
-                                                     viewBox="0 0 28 28" fill="none">
-                                                    <g clip-path="url(#clip0_12231_77522)">
-                                                        <path d="M13.2444 2.51333C13.6819 2.14758 14.3187 2.14758 14.7562 2.51333L27.5895 13.2933C28.0805 13.7072 28.1437 14.4339 27.7256 14.92C27.3076 15.406 26.5735 15.4638 26.0826 15.0547L24.8867 14.0537V23.029C24.8867 25.1561 23.1465 26.879 20.9978 26.879H6.99784C4.84923 26.879 3.10895 25.1561 3.10895 23.029V14.0537L1.91798 15.0547C1.427 15.4686 0.688116 15.406 0.274921 14.92C-0.138273 14.4339 -0.0799399 13.7024 0.411032 13.2933L13.2444 2.51333ZM13.9978 4.90995L5.44228 12.095V23.029C5.44228 23.8808 6.13742 24.569 6.99784 24.569H9.33117V17.254C9.33117 16.1905 10.2013 15.329 11.2756 15.329H16.7201C17.7944 15.329 18.6645 16.1905 18.6645 17.254V24.569H20.9978C21.8583 24.569 22.5534 23.8808 22.5534 23.029V12.095L13.9978 4.90995ZM11.6645 24.569H16.3312V17.639H11.6645V24.569Z"
-                                                              fill="#393939"/>
-                                                    </g>
-                                                    <defs>
-                                                        <clipPath id="clip0_12231_77522">
-                                                            <rect width="28" height="28" fill="white"/>
-                                                        </clipPath>
-                                                    </defs>
-                                                </svg>`,
-                                    unselectIcon: html `
-                                                <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28"
-                                                     viewBox="0 0 28 28" fill="none">
-                                                    <g clip-path="url(#clip0_12231_77522)">
-                                                        <path d="M13.2444 2.51333C13.6819 2.14758 14.3187 2.14758 14.7562 2.51333L27.5895 13.2933C28.0805 13.7072 28.1437 14.4339 27.7256 14.92C27.3076 15.406 26.5735 15.4638 26.0826 15.0547L24.8867 14.0537V23.029C24.8867 25.1561 23.1465 26.879 20.9978 26.879H6.99784C4.84923 26.879 3.10895 25.1561 3.10895 23.029V14.0537L1.91798 15.0547C1.427 15.4686 0.688116 15.406 0.274921 14.92C-0.138273 14.4339 -0.0799399 13.7024 0.411032 13.2933L13.2444 2.51333ZM13.9978 4.90995L5.44228 12.095V23.029C5.44228 23.8808 6.13742 24.569 6.99784 24.569H9.33117V17.254C9.33117 16.1905 10.2013 15.329 11.2756 15.329H16.7201C17.7944 15.329 18.6645 16.1905 18.6645 17.254V24.569H20.9978C21.8583 24.569 22.5534 23.8808 22.5534 23.029V12.095L13.9978 4.90995ZM11.6645 24.569H16.3312V17.639H11.6645V24.569Z"
-                                                              fill="#949494"/>
-                                                    </g>
-                                                    <defs>
-                                                        <clipPath id="clip0_12231_77522">
-                                                            <rect width="28" height="28" fill="white"/>
-                                                        </clipPath>
-                                                    </defs>
-                                                </svg>`,
-                                    title: `首頁`,
-                                    type: `home`
-                                },
                                 {
                                     selectIcon: html `
                                                 <svg xmlns="http://www.w3.org/2000/svg" width="26" height="26"
@@ -912,45 +821,6 @@ cursor: pointer;
                                     title: `訂單`,
                                     type: `order`,
                                 },
-                                ...(() => {
-                                    if (POSSetting.config.who === 'manager') {
-                                        return [{
-                                                selectIcon: html `
-                                                        <svg xmlns="http://www.w3.org/2000/svg" width="29" height="29"
-                                                             viewBox="0 0 29 29" fill="none">
-                                                            <g clip-path="url(#clip0_13485_10484)">
-                                                                <path d="M14.0998 0.5C15.0295 0.5 15.9373 0.592969 16.8233 0.7625C17.2553 0.844531 18.0155 1.09609 18.4311 1.86172C18.5405 2.06406 18.628 2.27734 18.6826 2.50703L19.1912 4.6125C19.2678 4.92969 19.8037 5.24141 20.1155 5.14844L22.1936 4.53594C22.4123 4.47031 22.6365 4.4375 22.8608 4.43203C23.7412 4.40469 24.3373 4.94609 24.6272 5.27422C25.8358 6.64688 26.7655 8.26016 27.3561 9.99375C27.4983 10.4094 27.6623 11.1859 27.2084 11.9297C27.0881 12.1266 26.9405 12.3125 26.7709 12.4766L25.2014 13.9695C24.9717 14.1883 24.9717 14.8172 25.2014 15.0359L26.7709 16.5289C26.9405 16.693 27.0881 16.8789 27.2084 17.0758C27.6569 17.8195 27.4928 18.5961 27.3561 19.0117C26.7655 20.7453 25.8358 22.3531 24.6272 23.7312C24.3373 24.0594 23.7358 24.6008 22.8608 24.5734C22.6365 24.568 22.4123 24.5297 22.1936 24.4695L20.1155 23.8516C19.8037 23.7586 19.2678 24.0703 19.1912 24.3875L18.6826 26.493C18.628 26.7227 18.5405 26.9414 18.4311 27.1383C18.01 27.9039 17.2498 28.15 16.8233 28.2375C15.9373 28.407 15.0295 28.5 14.0998 28.5C13.1701 28.5 12.2623 28.407 11.3764 28.2375C10.9444 28.1555 10.1842 27.9039 9.76858 27.1383C9.65921 26.9359 9.57171 26.7227 9.51702 26.493L9.00842 24.3875C8.93186 24.0703 8.39592 23.7586 8.08421 23.8516L6.00608 24.4641C5.78733 24.5297 5.56311 24.5625 5.33889 24.568C4.45843 24.5953 3.86233 24.0539 3.57249 23.7258C2.36936 22.3531 1.43421 20.7398 0.843581 19.0063C0.701394 18.5906 0.537331 17.8141 0.991237 17.0703C1.11155 16.8734 1.25921 16.6875 1.42874 16.5234L2.99827 15.0305C3.22796 14.8117 3.22796 14.1828 2.99827 13.9641L1.42327 12.4711C1.25374 12.307 1.10608 12.1211 0.985769 11.9242C0.537331 11.1805 0.701394 10.4039 0.843581 9.99375C1.43421 8.26016 2.36389 6.65234 3.57249 5.27422C3.86233 4.94609 4.46389 4.40469 5.33889 4.43203C5.56311 4.4375 5.78733 4.47578 6.00608 4.53594L8.08421 5.14844C8.39592 5.24141 8.93186 4.92969 9.00842 4.6125L9.51702 2.50703C9.57171 2.27734 9.65921 2.05859 9.76858 1.86172C10.1897 1.09609 10.9498 0.85 11.3764 0.7625C12.2623 0.592969 13.1701 0.5 14.0998 0.5ZM12.0272 3.31094L11.5623 5.23047C11.1358 6.99687 9.08499 8.17813 7.34046 7.66953L5.45374 7.11172C4.55139 8.16719 3.84046 9.39219 3.37561 10.7047L4.80842 12.0664C6.12092 13.3133 6.12092 15.6867 4.80842 16.9336L3.37561 18.2953C3.84046 19.6078 4.55139 20.8328 5.45374 21.8883L7.34592 21.3305C9.08499 20.8164 11.1412 22.0031 11.5678 23.7695L12.0326 25.6891C13.378 25.9352 14.8381 25.9352 16.1834 25.6891L16.6483 23.7695C17.0748 22.0031 19.1256 20.8219 20.8701 21.3305L22.7623 21.8883C23.6647 20.8328 24.3756 19.6078 24.8405 18.2953L23.4076 16.9336C22.0951 15.6867 22.0951 13.3133 23.4076 12.0664L24.8405 10.7047C24.3756 9.39219 23.6647 8.16719 22.7623 7.11172L20.8701 7.66953C19.1311 8.18359 17.0748 6.99687 16.6483 5.23047L16.1834 3.31094C14.8381 3.06484 13.378 3.06484 12.0326 3.31094H12.0272ZM11.4748 14.5C11.4748 15.1962 11.7514 15.8639 12.2437 16.3562C12.736 16.8484 13.4036 17.125 14.0998 17.125C14.796 17.125 15.4637 16.8484 15.956 16.3562C16.4483 15.8639 16.7248 15.1962 16.7248 14.5C16.7248 13.8038 16.4483 13.1361 15.956 12.6438C15.4637 12.1516 14.796 11.875 14.0998 11.875C13.4036 11.875 12.736 12.1516 12.2437 12.6438C11.7514 13.1361 11.4748 13.8038 11.4748 14.5ZM14.0998 19.75C12.7074 19.75 11.3721 19.1969 10.3875 18.2123C9.40295 17.2277 8.84983 15.8924 8.84983 14.5C8.84983 13.1076 9.40295 11.7723 10.3875 10.7877C11.3721 9.80312 12.7074 9.25 14.0998 9.25C15.4922 9.25 16.8276 9.80312 17.8121 10.7877C18.7967 11.7723 19.3498 13.1076 19.3498 14.5C19.3498 15.8924 18.7967 17.2277 17.8121 18.2123C16.8276 19.1969 15.4922 19.75 14.0998 19.75Z"
-                                                                      fill="#393939"/>
-                                                            </g>
-                                                            <defs>
-                                                                <clipPath id="clip0_13485_10484">
-                                                                    <rect width="28" height="28" fill="white"
-                                                                          transform="translate(0.0998535 0.5)"/>
-                                                                </clipPath>
-                                                            </defs>
-                                                        </svg>`,
-                                                unselectIcon: html `
-                                                        <svg xmlns="http://www.w3.org/2000/svg" width="29" height="29"
-                                                             viewBox="0 0 29 29" fill="none">
-                                                            <g clip-path="url(#clip0_13485_10484)">
-                                                                <path d="M14.0998 0.5C15.0295 0.5 15.9373 0.592969 16.8233 0.7625C17.2553 0.844531 18.0155 1.09609 18.4311 1.86172C18.5405 2.06406 18.628 2.27734 18.6826 2.50703L19.1912 4.6125C19.2678 4.92969 19.8037 5.24141 20.1155 5.14844L22.1936 4.53594C22.4123 4.47031 22.6365 4.4375 22.8608 4.43203C23.7412 4.40469 24.3373 4.94609 24.6272 5.27422C25.8358 6.64688 26.7655 8.26016 27.3561 9.99375C27.4983 10.4094 27.6623 11.1859 27.2084 11.9297C27.0881 12.1266 26.9405 12.3125 26.7709 12.4766L25.2014 13.9695C24.9717 14.1883 24.9717 14.8172 25.2014 15.0359L26.7709 16.5289C26.9405 16.693 27.0881 16.8789 27.2084 17.0758C27.6569 17.8195 27.4928 18.5961 27.3561 19.0117C26.7655 20.7453 25.8358 22.3531 24.6272 23.7312C24.3373 24.0594 23.7358 24.6008 22.8608 24.5734C22.6365 24.568 22.4123 24.5297 22.1936 24.4695L20.1155 23.8516C19.8037 23.7586 19.2678 24.0703 19.1912 24.3875L18.6826 26.493C18.628 26.7227 18.5405 26.9414 18.4311 27.1383C18.01 27.9039 17.2498 28.15 16.8233 28.2375C15.9373 28.407 15.0295 28.5 14.0998 28.5C13.1701 28.5 12.2623 28.407 11.3764 28.2375C10.9444 28.1555 10.1842 27.9039 9.76858 27.1383C9.65921 26.9359 9.57171 26.7227 9.51702 26.493L9.00842 24.3875C8.93186 24.0703 8.39592 23.7586 8.08421 23.8516L6.00608 24.4641C5.78733 24.5297 5.56311 24.5625 5.33889 24.568C4.45843 24.5953 3.86233 24.0539 3.57249 23.7258C2.36936 22.3531 1.43421 20.7398 0.843581 19.0063C0.701394 18.5906 0.537331 17.8141 0.991237 17.0703C1.11155 16.8734 1.25921 16.6875 1.42874 16.5234L2.99827 15.0305C3.22796 14.8117 3.22796 14.1828 2.99827 13.9641L1.42327 12.4711C1.25374 12.307 1.10608 12.1211 0.985769 11.9242C0.537331 11.1805 0.701394 10.4039 0.843581 9.99375C1.43421 8.26016 2.36389 6.65234 3.57249 5.27422C3.86233 4.94609 4.46389 4.40469 5.33889 4.43203C5.56311 4.4375 5.78733 4.47578 6.00608 4.53594L8.08421 5.14844C8.39592 5.24141 8.93186 4.92969 9.00842 4.6125L9.51702 2.50703C9.57171 2.27734 9.65921 2.05859 9.76858 1.86172C10.1897 1.09609 10.9498 0.85 11.3764 0.7625C12.2623 0.592969 13.1701 0.5 14.0998 0.5ZM12.0272 3.31094L11.5623 5.23047C11.1358 6.99687 9.08499 8.17813 7.34046 7.66953L5.45374 7.11172C4.55139 8.16719 3.84046 9.39219 3.37561 10.7047L4.80842 12.0664C6.12092 13.3133 6.12092 15.6867 4.80842 16.9336L3.37561 18.2953C3.84046 19.6078 4.55139 20.8328 5.45374 21.8883L7.34592 21.3305C9.08499 20.8164 11.1412 22.0031 11.5678 23.7695L12.0326 25.6891C13.378 25.9352 14.8381 25.9352 16.1834 25.6891L16.6483 23.7695C17.0748 22.0031 19.1256 20.8219 20.8701 21.3305L22.7623 21.8883C23.6647 20.8328 24.3756 19.6078 24.8405 18.2953L23.4076 16.9336C22.0951 15.6867 22.0951 13.3133 23.4076 12.0664L24.8405 10.7047C24.3756 9.39219 23.6647 8.16719 22.7623 7.11172L20.8701 7.66953C19.1311 8.18359 17.0748 6.99687 16.6483 5.23047L16.1834 3.31094C14.8381 3.06484 13.378 3.06484 12.0326 3.31094H12.0272ZM11.4748 14.5C11.4748 15.1962 11.7514 15.8639 12.2437 16.3562C12.736 16.8484 13.4036 17.125 14.0998 17.125C14.796 17.125 15.4637 16.8484 15.956 16.3562C16.4483 15.8639 16.7248 15.1962 16.7248 14.5C16.7248 13.8038 16.4483 13.1361 15.956 12.6438C15.4637 12.1516 14.796 11.875 14.0998 11.875C13.4036 11.875 12.736 12.1516 12.2437 12.6438C11.7514 13.1361 11.4748 13.8038 11.4748 14.5ZM14.0998 19.75C12.7074 19.75 11.3721 19.1969 10.3875 18.2123C9.40295 17.2277 8.84983 15.8924 8.84983 14.5C8.84983 13.1076 9.40295 11.7723 10.3875 10.7877C11.3721 9.80312 12.7074 9.25 14.0998 9.25C15.4922 9.25 16.8276 9.80312 17.8121 10.7877C18.7967 11.7723 19.3498 13.1076 19.3498 14.5C19.3498 15.8924 18.7967 17.2277 17.8121 18.2123C16.8276 19.1969 15.4922 19.75 14.0998 19.75Z"
-                                                                      fill="#949494"/>
-                                                            </g>
-                                                            <defs>
-                                                                <clipPath id="clip0_13485_10484">
-                                                                    <rect width="28" height="28" fill="white"
-                                                                          transform="translate(0.0998535 0.5)"/>
-                                                                </clipPath>
-                                                            </defs>
-                                                        </svg>`,
-                                                title: `設定`,
-                                                type: `setting`,
-                                            }];
-                                    }
-                                    else {
-                                        return [];
-                                    }
-                                })()
                             ];
                             return page
                                 .map((data) => {
@@ -989,7 +859,7 @@ cursor: pointer;
                         },
                     })}
                         `;
-                }),
+                },
                 divCreate: () => {
                     if (document.body.offsetWidth > 800) {
                         return { style: `padding: 86px 0 0 103px;height:100vh;width:100vw;color:#393939;` };

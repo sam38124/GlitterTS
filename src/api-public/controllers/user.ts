@@ -161,7 +161,7 @@ router.post('/manager/register', async (req: express.Request, resp: express.Resp
 });
 router.post('/login', async (req: express.Request, resp: express.Response) => {
     try {
-        const user = new User(req.get('g-app') as string);
+        const user = new User(req.get('g-app') as string,req.body.token);
         if (req.body.login_type === 'fb') {
             return response.succ(resp, await user.loginWithFb(req.body.fb_token));
         } else if (req.body.login_type === 'line') {
@@ -170,7 +170,9 @@ router.post('/login', async (req: express.Request, resp: express.Response) => {
             return response.succ(resp, await user.loginWithGoogle(req.body.google_token, req.body.redirect));
         } else if (req.body.login_type === 'apple') {
             return response.succ(resp, await user.loginWithApple(req.body.token));
-        } else {
+        } else if (req.body.login_type === 'pin'){
+            return response.succ(resp, await user.loginWithPin(req.body.user_id,req.body.pin));
+        }else{
             return response.succ(resp, await user.login(req.body.account, req.body.pwd));
         }
     } catch (err) {

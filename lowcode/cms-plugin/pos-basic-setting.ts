@@ -46,17 +46,17 @@ const dialog=new ShareDialog(gvc.glitter)
                                 appData.ubn = text;
                             },
                         }),
-                        `<div class="d-flex flex-column">
-<div class="tx_normal fw-normal mb-2" style="">POS使用類型</div>
-${BgWidget.select({
-                            gvc: gvc,
-                            default: appData.pos_type,
-                            options: [{value: '零售業', key: "retails"}, {value: '餐飲業', key: "eat"}],
-                            callback: (text) => {
-                                appData.pos_type = text;
-                            },
-                        })}
-</div>`
+//                         `<div class="d-flex flex-column">
+// <div class="tx_normal fw-normal mb-2" style="">POS使用類型</div>
+// ${BgWidget.select({
+//                             gvc: gvc,
+//                             default: appData.pos_type,
+//                             options: [{value: '零售業', key: "retails"}, {value: '餐飲業', key: "eat"}],
+//                             callback: (text) => {
+//                                 appData.pos_type = text;
+//                             },
+//                         })}
+// </div>`
                     ].map((dd) => {
                         return `<div class="col-12 col-sm-6">${dd}</div>`
                     }).join('')}

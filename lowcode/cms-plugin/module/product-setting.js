@@ -4,6 +4,7 @@ import { ApiUser } from "../../glitter-base/route/user.js";
 import { ShareDialog } from "../../dialog/ShareDialog.js";
 export class ProductSetting {
     static showBatchEditDialog(obj) {
+        console.log(`obj.selected=>`, obj.selected);
         let stockList = [];
         function getPreviewImage(img) {
             return img || BgWidget.noImageURL;

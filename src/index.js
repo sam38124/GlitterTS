@@ -323,7 +323,7 @@ async function createAPP(dd) {
                             data.page_config = (_g = data.page_config) !== null && _g !== void 0 ? _g : {};
                             data.page_config.seo = (_h = data.page_config.seo) !== null && _h !== void 0 ? _h : {};
                             if (article.data[0]) {
-                                if (article.data[0].content.language_data[language]) {
+                                if (article.data[0].content.language_data && article.data[0].content.language_data[language]) {
                                     data.page_config.seo.title = article.data[0].content.language_data[language].seo.title;
                                     data.page_config.seo.content = article.data[0].content.language_data[language].seo.content;
                                     data.page_config.seo.keywords = article.data[0].content.language_data[language].seo.keywords;

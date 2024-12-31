@@ -990,49 +990,52 @@ export class ShoppingOrderManager {
                                 .join(BgWidget.mbContainer(18))}
                                                         </div>
                                                     `),
-                            BgWidget.mainCard(html `
-                                                <div style="display: flex;flex-direction: column;align-items: flex-start;gap: 12px;align-self: stretch;">
-                                                    <div class="tx_700">付款狀態</div>
-                                                    <div class="ms-auto w-100">
-                                                        ${EditorElem.select({
-                                title: ``,
-                                gvc: gvc,
-                                def: `${orderData.status}`,
-                                array: [
-                                    {
-                                        title: '變更付款狀態',
-                                        value: '',
+                            BgWidget.mainCard([
+                                html `
+                                                            <div style="display: flex;flex-direction: column;align-items: flex-start;gap: 12px;align-self: stretch;">
+                                                                <div class="tx_700">付款狀態</div>
+                                                                <div class="ms-auto w-100">
+                                                                    ${EditorElem.select({
+                                    title: ``,
+                                    gvc: gvc,
+                                    def: `${orderData.status}`,
+                                    array: [
+                                        {
+                                            title: '變更付款狀態',
+                                            value: '',
+                                        },
+                                        {
+                                            title: '已付款',
+                                            value: '1',
+                                        },
+                                        {
+                                            title: orderData.orderData.proof_purchase ? `待核款` : `未付款`,
+                                            value: '0',
+                                        },
+                                        {
+                                            title: '已退款',
+                                            value: '-2',
+                                        },
+                                    ],
+                                    callback: (text) => {
+                                        if (text && text !== `${orderData.status}`) {
+                                            orderData.status = parseInt(text, 10);
+                                        }
                                     },
-                                    {
-                                        title: '已付款',
-                                        value: '1',
-                                    },
-                                    {
-                                        title: orderData.orderData.proof_purchase ? `待核款` : `未付款`,
-                                        value: '0',
-                                    },
-                                    {
-                                        title: '已退款',
-                                        value: '-2',
-                                    },
-                                ],
-                                callback: (text) => {
-                                    if (text && text !== `${orderData.status}`) {
-                                        orderData.status = parseInt(text, 10);
-                                    }
-                                },
-                            })}
-                                                    </div>
-                                                </div>
-                                                ${BgWidget.mbContainer(18)}
-                                                <div style="display: flex;flex-direction: column;align-items: flex-start;gap: 12px;align-self: stretch;">
-                                                    <div class="tx_700">付款方式</div>
-                                                    <div class="tx_normal">
-                                                        ${ShoppingOrderManager.getPaymentMethodText(orderData.orderData.method, orderData.orderData)}
-                                                    </div>
-                                                    ${ShoppingOrderManager.getProofPurchaseString(orderData.orderData, gvc)}
-                                                </div>
-                                            `),
+                                })}
+                                                                </div>
+                                                            </div>`,
+                                html `
+                                                            <div style="display: flex;flex-direction: column;align-items: flex-start;gap: 12px;align-self: stretch;">
+                                                                <div class="tx_700">付款方式</div>
+                                                                <div class="tx_normal">
+                                                                    ${ShoppingOrderManager.getPaymentMethodText(orderData.orderData.method, orderData.orderData)}
+                                                                </div>
+                                                                ${ShoppingOrderManager.getProofPurchaseString(orderData.orderData, gvc)}
+                                                            </div>`
+                            ].filter((dd) => {
+                                return dd;
+                            }).join(BgWidget.mbContainer(18))),
                             BgWidget.mainCard((() => {
                                 let loading = true;
                                 let deliveryConfig = {};
@@ -1259,7 +1262,9 @@ export class ShoppingOrderManager {
                                                     })
                                                         .map((dd) => {
                                                         return html `
-                                                                                                            <div>${Language.getLanguageCustomText(dd.title)}:
+                                                                                                            <div>
+                                                                                                                ${Language.getLanguageCustomText(dd.title)}
+                                                                                                                    :
                                                                                                                 ${orderData.orderData.user_info[dd.key]}
                                                                                                             </div>`;
                                                     })
@@ -1288,10 +1293,12 @@ export class ShoppingOrderManager {
                                                     })
                                                         .map((dd) => {
                                                         return html `
-                                                                                                            <div>${Language.getLanguageCustomText(dd.title)}:
+                                                                                                            <div>
+                                                                                                                ${Language.getLanguageCustomText(dd.title)}
+                                                                                                                    :
                                                                                                                 ${orderData.orderData.custom_form_data[dd.key]}
                                                                                                             </div>
-                                                                                                           `;
+                                                                                                        `;
                                                     })
                                                         .join('')}
                                                                                         </div>`);
@@ -1368,7 +1375,7 @@ export class ShoppingOrderManager {
                                                                  style="color: #4D86DB;">${invoiceData.invoice_no}
                                                             </div>
                                                             <div class="col-3 text-center d-flex align-items-center justify-content-center">
-                                                                ${(_a = invoiceData.invoice_data.invoiceAmount) !== null && _a !== void 0 ? _a : 0}
+                                                                ${((_a = invoiceData.invoice_data.invoiceAmount) !== null && _a !== void 0 ? _a : orderData.orderData.total)}
                                                             </div>
                                                             <div class="col-2 text-center d-flex align-items-center justify-content-center">
                                                                 ${invoiceData.status == 1
@@ -1575,6 +1582,18 @@ export class ShoppingOrderManager {
                                                     }
                                             }
                                         })()}
+                                                                                        ${(orderData.orderData.orderSource === 'POS') ? `
+                                                                                        <div class="tx_700">
+                                                                                                結帳人員
+                                                                                            </div>
+                                                                                            <div class="tx_normal" style="line-height: 140%;">
+                                                                                                ${(orderData.orderData.pos_info.who.config.name === 'manager') ? `店長` : [
+                                            orderData.orderData.pos_info.who.config.title,
+                                            orderData.orderData.pos_info.who.config.name,
+                                            orderData.orderData.pos_info.who.config.member_id,
+                                        ].join(' / ')}
+                                                                                            </div>
+                                                                                        ` : ``}
                                                                                     `);
                                         return view.join(`<div class="my-2"></div>`);
                                     },
@@ -3334,7 +3353,16 @@ export class ShoppingOrderManager {
     }
     static getPaymentMethodText(key, orderData) {
         if (orderData.orderSource === 'POS') {
-            return `門市POS付款`;
+            return `門市『 ${(() => {
+                switch (orderData.pos_info.payment) {
+                    case 'creditCard':
+                        return '信用卡';
+                    case 'line':
+                        return 'Line Pay';
+                    case 'cash':
+                        return '現金';
+                }
+            })()} 』付款`;
         }
         switch (orderData.customer_info.payment_select) {
             case 'off_line':
