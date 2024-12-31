@@ -780,11 +780,7 @@ class Shopping {
                                 }
                             }
                             if (type !== 'preview' && type !== 'manual' && type !== 'manual-preview') {
-                                let stock_change = {};
-                                let count = parseInt(JSON.parse(JSON.stringify(b.count)), 10);
-                                console.log("variant -- ", variant.stockList);
                                 const returnData = new stock_1.Stock(this.app, this.token).allocateStock(variant.stockList, b.count);
-                                console.log("returnData -- ", returnData);
                                 const countless = variant.stock - b.count;
                                 variant.stock = countless > 0 ? countless : 0;
                                 b.deduction_log = returnData.deductionLog;

@@ -2042,6 +2042,28 @@ export class ShoppingOrderManager {
                                 )}
                                 ${BgWidget.save(
                                         gvc.event(() => {
+                                            // if (orderData.orderData.progress == "shipping" && (origData.orderData.progress == "wait" || !origData.orderData.progress)) {
+                                            //     glitter.innerDialog((gvc:GVC)=>{
+                                            //        
+                                            //         return html`
+                                            //         <div class="d-flex flex-column " style="background-color: white;width: 600px; min-height: 400px;padding:15px;">
+                                            //                 <div class="w-100 d-flex justify-content-end">
+                                            //                     <div class="fa-regular fa-circle-xmark fs-5 text-dark" onclick="${gvc.event(()=>{
+                                            //                         gvc.closeDialog();
+                                            //                         return
+                                            //                     })}">
+                                            //                        
+                                            //                     </div>
+                                            //                 </div>
+                                            //         </div>
+                                            //         `
+                                            //     },"select")
+                                            // }
+                                            // console.log("orderData.orderData.progress --" , orderData.orderData.progress)
+                                            // console.log("origData.orderData.progress -- " , origData.orderData.progress)
+                                            //
+                                            //
+                                            // return
                                             function writeEdit(origData: any, orderData: any) {
                                                 let editArray: any = [];
                                                 if (orderData.status != origData.status) {

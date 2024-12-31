@@ -529,12 +529,7 @@ export class Shopping {
                 }
                 await trans.commit();
             }
-            //
-            // productList.map((product: ProductItem) => {
-            //     const record = itemRecord.find((item) => item.id === product.id);
-            //     product.total_sales = record ? record.count : 0;
-            //     return product;
-            // });
+
 
             if (query.id_list) {
                 let tempData: any = [];
@@ -1148,13 +1143,8 @@ export class Shopping {
                                     [key: string]: { count: number };
                                 };
                                 //找到最大的倉儲量
-                                let stock_change:any = {};
-                                let count = parseInt(JSON.parse(JSON.stringify(b.count)) , 10) ;
                                 //扣除掉count，並且檢查是否超出最大值，如果是，則根據大小排序扣除
-                                console.log("variant -- " , variant.stockList);
                                 const returnData = new Stock(this.app,this.token).allocateStock(variant.stockList,b.count)
-                                console.log("returnData -- " , returnData)
-                                //
                                 const countless = variant.stock - b.count;
                                 variant.stock = countless > 0 ? countless : 0;
                                 b.deduction_log = returnData.deductionLog
