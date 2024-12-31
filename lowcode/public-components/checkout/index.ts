@@ -2401,7 +2401,9 @@ export class CheckoutIndex {
                                                     distribution_code: apiCart.cart.distribution_code,
                                                     give_away: apiCart.cart.give_away,
                                                 }).then((res) => {
+                                                    
                                                     dialog.dataLoading({ visible: false });
+                                   
                                                     if (res.response.off_line || res.response.is_free) {
                                                         apiCart.clearCart();
                                                         location.href = res.response.return_url;

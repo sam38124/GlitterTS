@@ -374,6 +374,7 @@ export declare class Shopping {
     releaseVoucherHistory(order_id: string, status: 1 | 0): Promise<void>;
     resetVoucherHistory(): Promise<void>;
     postVariantsAndPriceValue(content: any): Promise<void>;
+    updateVariantsWithSpec(data: any, product_id: string, spec: string[]): Promise<void>;
     getDataAnalyze(tags: string[]): Promise<any>;
     generateTimeRange(index: number): {
         startISO: string;

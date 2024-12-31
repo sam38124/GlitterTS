@@ -1803,6 +1803,36 @@ export class ShoppingOrderManager {
                         vm.type = 'list';
                     }))}
                                 ${BgWidget.save(gvc.event(() => {
+                        var _a, _b;
+                        if ((_a = orderData.orderData) === null || _a === void 0 ? void 0 : _a.editRecord) {
+                            const findCancelStatus = (_b = orderData.orderData) === null || _b === void 0 ? void 0 : _b.editRecord.find((data) => {
+                                return data.record == "訂單已取消";
+                            });
+                            if (!findCancelStatus) {
+                                orderData.orderData.lineItems.forEach((item) => {
+                                    if (item.deduction_log) {
+                                        ApiShop.recoverVariants({
+                                            data: item
+                                        }).then((r) => {
+                                            console.log("已經回填 -- ", item);
+                                        });
+                                    }
+                                });
+                            }
+                        }
+                        else {
+                            if (orderData.orderData.orderStatus == "-1") {
+                                orderData.orderData.lineItems.forEach((item) => {
+                                    if (item.deduction_log) {
+                                        ApiShop.recoverVariants({
+                                            data: item
+                                        }).then((r) => {
+                                            console.log("已經回填 -- ", item);
+                                        });
+                                    }
+                                });
+                            }
+                        }
                         function writeEdit(origData, orderData) {
                             var _a;
                             let editArray = [];

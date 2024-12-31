@@ -1127,7 +1127,9 @@ export class Shopping {
                                 const returnData = new Stock(this.app, this.token).allocateStock(variant.stockList, b.count)
                                 const countless = variant.stock - b.count;
                                 variant.stock = countless > 0 ? countless : 0;
-                                b.deduction_log = returnData.deductionLog
+                                variant.deduction_log = returnData.deductionLog;
+                                b.deduction_log = returnData.deductionLog;
+                                await this.updateVariantsWithSpec(variant , b.id , b.spec)
                                 //這裡更新資訊
                                 await db.query(
                                     `UPDATE \`${this.app}\`.\`t_manager_post\`
@@ -2794,6 +2796,28 @@ OR JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.orderStatus')) NOT IN (-99)) `);
         } catch (error) {
             throw exception.BadRequestError('BAD_REQUEST', 'postVariantsAndPriceValue Error:' + e, null);
         }
+    }
+
+    public async updateVariantsWithSpec(data: any , product_id: string , spec:string[]) {
+        const sql = (spec.length > 0) ?`AND JSON_CONTAINS(content->'$.spec', JSON_ARRAY(${spec.map((data:string)=>{return `\"${data}\"`}).join(',')}));`:''
+
+        try {
+            await db.query(
+                `UPDATE \`${this.app}\`.\`t_variants\`
+                 SET ?
+                 WHERE product_id = ? ${sql}
+                `,
+                [
+                    {
+                        content: JSON.stringify(data),
+                    },
+                    product_id,
+                ]
+            );
+        }catch (e:any){
+            console.log("error -- " , e)
+        }
+
     }
 
     async getDataAnalyze(tags: string[]) {

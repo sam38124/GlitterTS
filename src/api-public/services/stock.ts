@@ -2,12 +2,14 @@ import db from '../../modules/database';
 import exception from '../../modules/exception';
 import UserUtil from '../../utils/UserUtil';
 import config from '../../config.js';
-import { sendmail } from '../../services/ses.js';
+import {sendmail} from '../../services/ses.js';
 import App from '../../app.js';
 import redis from '../../modules/redis.js';
 import Tool from '../../modules/tool.js';
 import process from 'process';
-import { IToken } from '../models/Auth.js';
+import {IToken} from '../models/Auth.js';
+import {Shopping} from "./shopping";
+
 type StockList = {
     [key: string]: { count: number };
 };
@@ -28,19 +30,24 @@ export class Stock {
         try {
             const getStockTotal = await db.query(
                 `SELECT count(v.id) as c
-                    FROM \`${this.app}\`.t_variants as v, \`${this.app}\`.t_manager_post as p
-                    WHERE v.content->>'$.stockList.${json.search ?? 'store'}.count' > 0 
-                    AND v.product_id = p.id
+                 FROM \`${this.app}\`.t_variants as v,
+                      \`${this.app}\`.t_manager_post as p
+                 WHERE v.content ->>'$.stockList.${json.search ?? 'store'}.count'
+                     > 0
+                   AND v.product_id = p.id
                 `,
                 []
             );
 
             let data = await db.query(
-                `SELECT v.*, p.content as product_content 
-                    FROM \`${this.app}\`.t_variants as v, \`${this.app}\`.t_manager_post as p
-                    WHERE v.content->>'$.stockList.${json.search ?? 'store'}.count' > 0 
-                    AND v.product_id = p.id
-                    LIMIT ${page * limit}, ${limit};
+                `SELECT v.*, p.content as product_content
+                 FROM \`${this.app}\`.t_variants as v,
+                      \`${this.app}\`.t_manager_post as p
+                 WHERE v.content ->>'$.stockList.${json.search ?? 'store'}.count'
+                     > 0
+                   AND v.product_id = p.id
+                     LIMIT ${page * limit}
+                     , ${limit};
                 `,
                 []
             );
@@ -74,14 +81,15 @@ export class Stock {
         try {
             const productList: { [k: string]: any } = {};
             const variants = await db.query(
-                `SELECT * FROM \`${this.app}\`.t_variants
-                 WHERE content->>'$.stockList.${store_id}.count' is not null;
+                `SELECT *
+                 FROM \`${this.app}\`.t_variants
+                 WHERE content ->>'$.stockList.${store_id}.count' is not null;
                 `,
                 []
             );
 
             if (variants.length == 0) {
-                return { data: true, process: '' };
+                return {data: true, process: ''};
             }
 
             const promise = await new Promise<void>((resolve) => {
@@ -89,9 +97,11 @@ export class Stock {
                 for (const variant of variants) {
                     delete variant.content.stockList[store_id];
                     db.query(
-                        `UPDATE \`${this.app}\`.t_variants SET ? WHERE id = ?
+                        `UPDATE \`${this.app}\`.t_variants
+                         SET ?
+                         WHERE id = ?
                         `,
-                        [{ content: JSON.stringify(variant.content) }, variant.id]
+                        [{content: JSON.stringify(variant.content)}, variant.id]
                     ).then(() => {
                         const p = productList[`${variant.product_id}`];
                         if (p) {
@@ -112,7 +122,9 @@ export class Stock {
 
                 if (idString.length > 0) {
                     const products = await db.query(
-                        `SELECT * FROM \`${this.app}\`.t_manager_post WHERE id in (${idString});
+                        `SELECT *
+                         FROM \`${this.app}\`.t_manager_post
+                         WHERE id in (${idString});
                         `,
                         []
                     );
@@ -125,7 +137,7 @@ export class Stock {
                                 `UPDATE \`${this.app}\`.t_manager_post
                                  SET ?
                                  WHERE id = ?`,
-                                [{ content: JSON.stringify(product.content) }, product.id]
+                                [{content: JSON.stringify(product.content)}, product.id]
                             ).then(() => {
                                 n++;
                                 if (n === products.length) {
@@ -134,10 +146,10 @@ export class Stock {
                             });
                         }
                     }).then(() => {
-                        return { data: true, process: 't_variants, t_manager_post' };
+                        return {data: true, process: 't_variants, t_manager_post'};
                     });
                 }
-                return { data: true, process: 't_variants' };
+                return {data: true, process: 't_variants'};
             });
 
             return promise;
@@ -176,5 +188,43 @@ export class Stock {
             totalDeduction,
             remainingCount, // 如果需求無法完全滿足，這裡會大於 0
         };
+    }
+
+    public async recoverStock(variant: any) {
+        const sql = (variant.spec.length > 0) ?`AND JSON_CONTAINS(content->'$.spec', JSON_ARRAY(${variant.spec.map((data:string)=>{return `\"${data}\"`}).join(',')}));`:''
+
+        let variantData = await db.query(`
+            SELECT *
+            FROM \`${this.app}\`.t_variants
+            WHERE \`product_id\` = "${variant.id}" ${sql}
+        `, [])
+        const pdDqlData = (
+            await new Shopping(this.app , this.token).getProduct({
+                page: 0,
+                limit: 50,
+                id: variant.id,
+                status: 'inRange',
+            })
+        ).data;
+        const pd = pdDqlData.content;
+        const pbVariant = pd.variants.find((dd: any) => {
+            return dd.spec.join('-') === variant.spec.join('-');
+        });
+        variantData = variantData[0];
+        Object.entries(variant.deduction_log).forEach(([key, value]) => {
+            pbVariant.stockList[key].count += value;
+            pbVariant.stock += value;
+            variantData.content.stockList[key].count += value;
+            variantData.content.stock += value;
+
+        })
+        await new Shopping(this.app, this.token).updateVariantsWithSpec(variantData.content, variant.id, variant.spec);
+        await db.query(
+            `UPDATE \`${this.app}\`.\`t_manager_post\`
+                                     SET ?
+                                     WHERE 1 = 1
+                                       and id = ${pdDqlData.id}`,
+            [{content: JSON.stringify(pd)}]
+        );
     }
 }

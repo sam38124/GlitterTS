@@ -28,5 +28,6 @@ export declare class Stock {
         totalDeduction: number;
         remainingCount: number;
     };
+    recoverStock(variant: any): Promise<void>;
 }
 export {};

@@ -2081,6 +2081,39 @@ export class ShoppingOrderManager {
                                 )}
                                 ${BgWidget.save(
                                         gvc.event(() => {
+                                            //如果有編輯紀錄的話 檢查裡頭是不是有訂單已取消的事件在做倉儲的回填
+                                            if (orderData.orderData?.editRecord){
+                                                const findCancelStatus = orderData.orderData?.editRecord.find((data:any)=>{
+                                                    return data.record == "訂單已取消"
+                                                })
+                                                //如果訂單狀態不曾出現過取消訂單，執行庫存回填
+                                                if (!findCancelStatus){
+                                                    orderData.orderData.lineItems.forEach((item:any)=>{
+                                                        if (item.deduction_log){
+                                                            ApiShop.recoverVariants({
+                                                                data: item
+                                                            }).then((r) =>{
+                                                                console.log("已經回填 -- " , item)
+                                                            })
+                                                        }
+                                                    })
+                                                }
+                                            }else {
+                                                //因為沒有紀錄，庫存直接回填
+                                                if (orderData.orderData.orderStatus == "-1"){
+                                                    orderData.orderData.lineItems.forEach((item:any)=>{
+                                                        if (item.deduction_log){
+                                                            ApiShop.recoverVariants({
+                                                                data: item
+                                                            }).then((r) =>{
+                                                                console.log("已經回填 -- " , item)
+                                                            })
+                                                        }
+                                                    })
+                                                }
+                                            }
+                                            
+                                           
                                             // if (orderData.orderData.progress == "shipping" && (origData.orderData.progress == "wait" || !origData.orderData.progress)) {
                                             //     glitter.innerDialog((gvc:GVC)=>{
                                             //        
@@ -2102,7 +2135,7 @@ export class ShoppingOrderManager {
                                             // console.log("origData.orderData.progress -- " , origData.orderData.progress)
                                             //
                                             //
-                                            // return
+                                          
                                             function writeEdit(origData: any, orderData: any) {
                                                 let editArray: any = [];
                                                 if (orderData.status != origData.status) {

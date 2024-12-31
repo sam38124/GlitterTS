@@ -878,6 +878,18 @@ export class ApiShop {
             data: JSON.stringify(cf.data),
         });
     }
+    static recoverVariants(cf) {
+        return BaseApi.create({
+            url: getBaseUrl() + `/api-public/v1/ec/product/variants/recoverStock`,
+            type: 'PUT',
+            headers: {
+                'Content-Type': 'application/json',
+                'g-app': getConfig().config.appName,
+                Authorization: cf.token || getConfig().config.token,
+            },
+            data: JSON.stringify(cf.data),
+        });
+    }
     static postReturnOrder(passData) {
         return BaseApi.create({
             url: getBaseUrl() + `/api-public/v1/ec/returnOrder/`,

@@ -14,6 +14,7 @@ import { Shopping, VoucherData } from '../services/shopping';
 import { Rebate, IRebateSearch } from '../services/rebate';
 import axios from 'axios';
 import {saasConfig} from "../../config.js";
+import {Stock} from "../services/stock.js";
 
 const router: express.Router = express.Router();
 export = router;
@@ -1001,6 +1002,17 @@ router.put('/product/variants', async (req: express.Request, resp: express.Respo
     try {
         if (await UtPermission.isManager(req)) {
             return response.succ(resp, await new Shopping(req.get('g-app') as string, req.body.token).putVariants(req.body));
+        } else {
+            throw exception.BadRequestError('BAD_REQUEST', 'No permission.', null);
+        }
+    } catch (err) {
+        return response.fail(resp, err);
+    }
+});
+router.put('/product/variants/recoverStock', async (req: express.Request, resp: express.Response) => {
+    try {
+        if (await UtPermission.isManager(req)) {
+            return response.succ(resp, await new Stock(req.get('g-app') as string, req.body.token).recoverStock(req.body));
         } else {
             throw exception.BadRequestError('BAD_REQUEST', 'No permission.', null);
         }
