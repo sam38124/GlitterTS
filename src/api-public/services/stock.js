@@ -54,7 +54,6 @@ class Stock {
     }
     async deleteStoreProduct(store_id) {
         try {
-            const start = new Date();
             const productList = {};
             const variants = await database_1.default.query(`SELECT * FROM \`${this.app}\`.t_variants
                  WHERE content->>'$.stockList.${store_id}.count' is not null;
