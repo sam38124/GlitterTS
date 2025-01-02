@@ -348,6 +348,7 @@ StockVendors.emptyData = () => {
         manager_name: '',
         manager_phone: '',
         note: '',
+        is_shop: false
     };
 };
 window.glitter.setModule(import.meta.url, StockVendors);

@@ -568,7 +568,7 @@ export class ProductList {
                                                                     class="d-flex tx_700"
                                                                     style="color: ${fontColor};"
                                                                     onclick="${gvc.event(() => {
-                                                                        changePage('collections/' + col.code, 'page', {});
+                                                                        changePage(`collections/${col.cod || col.title}` , 'page', {});
                                                                         gvc.glitter.closeDrawer();
                                                                     })}"
                                                                 >
@@ -648,9 +648,16 @@ export class ProductList {
             if (!vm.collections || vm.collections.length === 0) {
                 vm.title = all_text;
             } else {
-                const collectionObj = vm.collections.find((item: { code: string }) => {
-                    return item.code === decodeURIComponent(extractCategoryTitleFromUrl(location.href));
+                let collectionObj = vm.collections.find((item: { code: string }) => {
+                    return item.code === decodeURIComponent(extractCategoryTitleFromUrl(location.href)) ;
                 });
+                try {
+                    if(!collectionObj){
+                        collectionObj = vm.collections.find((item: { code: string,title:string }) => {
+                            return item.title === decodeURIComponent(extractCategoryTitleFromUrl(location.href)) ;
+                        });
+                    }
+                }catch (e){}
                 vm.title = collectionObj ? collectionObj.title : all_text;
             }
             gvc.notifyDataChange(ids.pageTitle);

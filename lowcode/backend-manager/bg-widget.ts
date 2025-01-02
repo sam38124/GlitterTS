@@ -2212,7 +2212,7 @@ ${obj.default ?? ''}</textarea
         gvc: any;
         def: string | string[];
         array: string[] | { title: string; value: string; innerHtml?: string }[];
-        callback: (text: string) => void;
+        callback: (text: string | string[]) => void;
         type?: 'single' | 'multiple';
     }) {
         obj.type = obj.type ?? 'single';

@@ -1264,7 +1264,7 @@ export class ShoppingOrderManager {
                                                         return html `
                                                                                                             <div>
                                                                                                                 ${Language.getLanguageCustomText(dd.title)}
-                                                                                                                    :
+                                                                                                                :
                                                                                                                 ${orderData.orderData.user_info[dd.key]}
                                                                                                             </div>`;
                                                     })
@@ -1295,7 +1295,7 @@ export class ShoppingOrderManager {
                                                         return html `
                                                                                                             <div>
                                                                                                                 ${Language.getLanguageCustomText(dd.title)}
-                                                                                                                    :
+                                                                                                                :
                                                                                                                 ${orderData.orderData.custom_form_data[dd.key]}
                                                                                                             </div>
                                                                                                         `;
@@ -1593,6 +1593,33 @@ export class ShoppingOrderManager {
                                             orderData.orderData.pos_info.who.config.member_id,
                                         ].join(' / ')}
                                                                                             </div>
+                                                                                            ${gvc.bindView(() => {
+                                            return {
+                                                bind: gvc.glitter.getUUID(),
+                                                view: () => __awaiter(this, void 0, void 0, function* () {
+                                                    try {
+                                                        const store_select = (yield ApiUser.getPublicConfig('store_manager', 'manager')).response.value.list.find((dd) => {
+                                                            return dd.id === (orderData.orderData.pos_info).where_store;
+                                                        });
+                                                        if (store_select) {
+                                                            return html `<div class="tx_700">
+                                                                                                結帳門市
+                                                                                            </div>
+                                                                                                         <div class="my-2"></div>
+                                                                                            <div class="tx_normal" style="line-height: 140%;">
+                                                                                                ${store_select.name}
+                                                                                            </div>`;
+                                                        }
+                                                        else {
+                                                            return ``;
+                                                        }
+                                                    }
+                                                    catch (e) {
+                                                        return ``;
+                                                    }
+                                                }), divCreate: {}
+                                            };
+                                        })}
                                                                                         ` : ``}
                                                                                     `);
                                         return view.join(`<div class="my-2"></div>`);

@@ -791,6 +791,7 @@ export class ApiUser {
             member_id:any,
             pin:any,
             is_manager?:boolean
+            support_shop?:string[]
         };
         status: number;
     }) {

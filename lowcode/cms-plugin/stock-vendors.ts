@@ -77,6 +77,7 @@ export class StockVendors {
             manager_name: '',
             manager_phone: '',
             note: '',
+            is_shop:false
         };
     };
 

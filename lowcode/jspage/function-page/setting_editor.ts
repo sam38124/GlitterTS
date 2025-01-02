@@ -111,6 +111,14 @@ export class Setting_editor {
             },
             {
                 icon: '',
+                page: 'shop_list',
+                group: '商店設定',
+                title: '門市設定',
+                appName: 'cms_system',
+                groupIcon: 'https://d3jnmi1tfjgtti.cloudfront.net/file/234285319/1716652645450-boxes-stacked-regular (1).svg',
+            },
+            {
+                icon: '',
                 page: 'product-manager',
                 group: '商品管理',
                 title: '商品列表',

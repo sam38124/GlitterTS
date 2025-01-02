@@ -209,6 +209,7 @@ export class ProductsPage {
 
                                                                                              dialog.infoMessage({text: `此商品僅剩${selectVariant.stock}個庫存`})
                                                                                          }
+                                                                                     
                                                                                          return html`
                                                                                              <div class="d-flex align-items-center justify-content-between"
                                                                                                   style="gap: 10px;padding: 10px 18px;border-radius: 5px;border: 1px solid #DDD;">
@@ -250,8 +251,8 @@ export class ProductsPage {
                                                                                                      </svg>
                                                                                                  </div>
                                                                                              </div>
-                                                                                             <div class="d-flex mt-2 align-items-center justify-content-end ${selectVariant.show_understocking==='true' ? `d-none` : ``}">
-                                                                                                 <span>庫存數量:${selectVariant.stock}</span>
+                                                                                             <div class="d-flex mt-2 align-items-center justify-content-end ">
+                                                                                                 <span>${`${selectVariant.show_understocking}`==='false' ? `此商品未追蹤庫存數量` : `庫存數量:${selectVariant.stock}`}</span>
                                                                                              </div>
                                                                                          `
 

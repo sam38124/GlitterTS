@@ -562,7 +562,7 @@ export class ShoppingInformation {
                                                         },
                                                     ],
                                                     callback: (text) => {
-                                                        domain_from = text
+                                                        domain_from = text as any 
                                                         if (origin_select === domain_from) {
                                                             domain_text = (window.parent as any).glitter.share.editorViewModel.domain.replace('.shopnex.cc', '')
                                                         } else {

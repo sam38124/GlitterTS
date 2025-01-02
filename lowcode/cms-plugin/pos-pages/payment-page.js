@@ -1069,7 +1069,8 @@ text-transform: uppercase;" onclick="${gvc.event(() => {
                                             return;
                                         }
                                         orderDetail.pos_info = {
-                                            who: gvc.glitter.share.select_member
+                                            who: gvc.glitter.share.select_member,
+                                            where_store: POSSetting.config.where_store
                                         };
                                         orderDetail.pos_info.payment = vm.paySelect;
                                         orderDetail.user_info = obj.ogOrderData.user_info;

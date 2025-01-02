@@ -174,9 +174,9 @@ interface OrderData {
         ];
         orderSource?: string;
         deliveryData: Record<string, string>;
-        pos_info:{
-            payment:'cash'|'credit'|'line_pay',
-            who:{
+        pos_info: {
+            payment: 'cash' | 'credit' | 'line_pay',
+            who: {
                 "id": number,
                 "user": string,
                 "config": {
@@ -190,7 +190,8 @@ interface OrderData {
                     "verifyEmail": string
                 },
                 "status": 1
-            }
+            },
+            where_store:string
         }
     };
     created_time: string;
@@ -1271,7 +1272,7 @@ export class ShoppingOrderManager {
                                                                 </div>
                                                                 ${ShoppingOrderManager.getProofPurchaseString(orderData.orderData, gvc)}
                                                             </div>`
-                                                    ].filter((dd)=>{
+                                                    ].filter((dd) => {
                                                         return dd
                                                     }).join(BgWidget.mbContainer(18))
                                             ),
@@ -1508,7 +1509,7 @@ export class ShoppingOrderManager {
                                                                                                         return html`
                                                                                                             <div>
                                                                                                                 ${Language.getLanguageCustomText(dd.title)}
-                                                                                                                    :
+                                                                                                                :
                                                                                                                 ${(orderData.orderData.user_info as any)[dd.key]}
                                                                                                             </div>`;
                                                                                                     })
@@ -1542,7 +1543,7 @@ export class ShoppingOrderManager {
                                                                                                         return html`
                                                                                                             <div>
                                                                                                                 ${Language.getLanguageCustomText(dd.title)}
-                                                                                                                    :
+                                                                                                                :
                                                                                                                 ${(orderData.orderData.custom_form_data as any)[dd.key]}
                                                                                                             </div>
                                                                                                         `;
@@ -1843,13 +1844,38 @@ export class ShoppingOrderManager {
                                                                                                 結帳人員
                                                                                             </div>
                                                                                             <div class="tx_normal" style="line-height: 140%;">
-                                                                                                ${(orderData.orderData.pos_info.who.config.name==='manager') ? `店長`:[
+                                                                                                ${(orderData.orderData.pos_info.who.config.name === 'manager') ? `店長` : [
                                                                                             orderData.orderData.pos_info.who.config.title,
                                                                                             orderData.orderData.pos_info.who.config.name,
                                                                                             orderData.orderData.pos_info.who.config.member_id,
                                                                                         ].join(' / ')}
                                                                                             </div>
-                                                                                        `:``}
+                                                                                            ${gvc.bindView(() => {
+                                                                                            return {
+                                                                                                bind: gvc.glitter.getUUID(),
+                                                                                                view: async ()=>{
+                                                                                                 try {
+                                                                                                     const store_select=(await  ApiUser.getPublicConfig('store_manager', 'manager')).response.value.list.find((dd:any)=>{
+                                                                                                         return dd.id===(orderData.orderData.pos_info).where_store
+                                                                                                     });
+                                                                                                     if(store_select){
+                                                                                                         return html`<div class="tx_700">
+                                                                                                結帳門市
+                                                                                            </div>
+                                                                                                         <div class="my-2"></div>
+                                                                                            <div class="tx_normal" style="line-height: 140%;">
+                                                                                                ${store_select.name}
+                                                                                            </div>`
+                                                                                                     }else{
+                                                                                                         return  ``
+                                                                                                     }
+                                                                                                 }catch (e) {
+                                                                                                     return ``
+                                                                                                 }
+                                                                                                }, divCreate: {}
+                                                                                            }
+                                                                                        })}
+                                                                                        ` : ``}
                                                                                     `);
                                                                                     return view.join(`<div class="my-2"></div>`);
                                                                                 },
@@ -3822,8 +3848,8 @@ export class ShoppingOrderManager {
 
     public static getPaymentMethodText(key: string, orderData: any) {
         if (orderData.orderSource === 'POS') {
-            return `門市『 ${(()=>{
-                switch (orderData.pos_info.payment){
+            return `門市『 ${(() => {
+                switch (orderData.pos_info.payment) {
                     case 'creditCard':
                         return '信用卡'
                     case 'line':

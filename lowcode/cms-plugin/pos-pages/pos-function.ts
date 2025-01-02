@@ -121,7 +121,129 @@ function refresh(){
             })
         }, '')
     }
+//切換店員
+    public static selectUserSwitch(gvc: GVC) {
+        const this_gvc=gvc
+        gvc.glitter.innerDialog((gvc) => {
+            const c_vm = {
+                text: '',
+                id: gvc.glitter.getUUID()
+            }
+            const mem_=gvc.glitter.share.member_auth_list.filter((dd: any) => {
+                return `${dd.user}` !== `${POSSetting.config.who}`
+            })
+            return gvc.bindView(() => {
+                return {
+                    bind: c_vm.id,
+                    view: () => {
+                        return html`
+                            <div class="w-100 position-absolute vw-100 vh-100" style="left: 0px;top:0px;z-index: 0;" onclick="${gvc.event(()=>{gvc.closeDialog()})}"></div>
+                            <div class="w-100" style="flex-direction: column; justify-content: flex-start; align-items: flex-start;  display: inline-flex;z-index: 1;position: relative;" onclick="${gvc.event((e,event)=>{
+                                event.stopPropagation()
+                            })}">
+                              
+                               ${mem_.map((dd: any) => {
+                                   const memberDD = dd;
+                                   return html`
+                                       
+                                       <div
+                                                                                    class=" d-flex align-items-center p-0 w-100"
+                                                                                    style="cursor: pointer;gap:10px;"
+                                                                                    onclick="${gvc.event(() => {
+                                       PosFunction.switchUser(this_gvc, dd.user)
+                                   })}">
+                                           <img src="https://assets.imgix.net/~text?bg=7ED379&amp;txtclr=ffffff&amp;w=100&amp;h=100&amp;txtsize=40&amp;txt=${dd.config.name}&amp;txtfont=Helvetica&amp;txtalign=middle,center" class="rounded-circle" width="48" alt="undefined" style="width:40px;height:40px;">
+                                           <div class="d-flex flex-column">
+                                               <div>${dd.config.name}</div>
+                                               <div>${dd.config.title} / ${dd.config.member_id}</div>
+                                           </div>
+                                           <div class="flex-fill"></div>
+                                           <div class="ms-auto d-flex align-items-center justify-content-center border p-2 rounded-3 mt-2" style="text-align: center;
+                                font-size: 16px;
+                                font-style: normal;
+                                font-weight: 700;
+                                background: #393939;
+                                color: white;
+                                line-height: 140%;" onclick="${gvc.event(()=>{
+                                              PosFunction.switchUser(gvc, dd.user)
+                                           })}">
+                                               選擇
+                                           </div>     
+                                                                            </div>
+                                                                            `
+                               }).join('<div class="my-2 w-100 border-top"></div>')}
+                            </div>`
 
+                    },
+                    divCreate: {
+                        class: ``,
+                        style: `width: 338px;max-height:200px;overflow-y:auto;  padding-left: 20px; padding-right: 20px; padding-top: 25px; padding-bottom: 25px; background: white; box-shadow: 2px 2px 10px rgba(0, 0, 0, 0.15); border-radius: 20px; overflow: hidden; justify-content: center; align-items: center; gap: 10px; display: inline-flex`
+                    }
+                }
+            })
+        }, '')
+    }
+    //切換門市
+    public static selectStoreSwitch(gvc: GVC) {
+        const this_gvc=gvc
+        gvc.glitter.innerDialog((gvc) => {
+            const c_vm = {
+                text: '',
+                id: gvc.glitter.getUUID()
+            }
+
+            return gvc.bindView(() => {
+                return {
+                    bind: c_vm.id,
+                    view: () => {
+                        return html`
+                            <div class="w-100 position-absolute vw-100 vh-100" style="left: 0px;top:0px;z-index: 0;" onclick="${gvc.event(()=>{gvc.closeDialog()})}"></div>
+                            <div class="w-100" style="flex-direction: column; justify-content: flex-start; align-items: flex-start;  display: inline-flex;z-index: 1;position: relative;" onclick="${gvc.event((e,event)=>{
+                            event.stopPropagation()
+                        })}">
+                              
+                               ${gvc.glitter.share.store_list.filter((dd:any)=>{
+                                   return gvc.glitter.share.select_member.config.support_shop.includes(dd.id)
+                               }).map((dd: any) => {
+                            return html`
+                                       
+                                       <div
+                                                                                    class=" d-flex align-items-center p-0 w-100"
+                                                                                    style="cursor: pointer;gap:10px;"
+                                                                                    onclick="${gvc.event(() => {
+                                                                                        POSSetting.config.where_store=dd.id
+                                gvc.closeDialog()
+                            })}">
+                                           <img src="https://assets.imgix.net/~text?bg=7ED379&amp;txtclr=ffffff&amp;w=100&amp;h=100&amp;txtsize=40&amp;txt=${dd.name}&amp;txtfont=Helvetica&amp;txtalign=middle,center" class="rounded-circle" width="48" alt="undefined" style="width:40px;height:40px;">
+                                           <div class="d-flex flex-column">
+                                               <div>${dd.name}</div>
+                                           </div>
+                                           <div class="flex-fill"></div>
+                                           <div class="ms-auto d-flex align-items-center justify-content-center border p-2 rounded-3 mt-2" style="text-align: center;
+                                font-size: 16px;
+                                font-style: normal;
+                                font-weight: 700;
+                                background: #393939;
+                                color: white;
+                                line-height: 140%;" onclick="${gvc.event(()=>{
+                                               this_gvc.recreateView()
+                            })}">
+                                               選擇
+                                           </div>     
+                                                                            </div>
+                                                                            `
+                        }).join('<div class="my-2 w-100 border-top"></div>')}
+                            </div>`
+
+                    },
+                    divCreate: {
+                        class: ``,
+                        style: `width: 338px;max-height:200px;overflow-y:auto;  padding-left: 20px; padding-right: 20px; padding-top: 25px; padding-bottom: 25px; background: white; box-shadow: 2px 2px 10px rgba(0, 0, 0, 0.15); border-radius: 20px; overflow: hidden; justify-content: center; align-items: center; gap: 10px; display: inline-flex`
+                    }
+                }
+            })
+        }, '')
+    }
     //SetMoney
     public static setMoney(gvc: GVC, callback: (money: string) => void) {
         gvc.glitter.innerDialog((gvc) => {

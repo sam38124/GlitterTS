@@ -395,7 +395,7 @@ export class ProductList {
                                                                     class="d-flex tx_700"
                                                                     style="color: ${fontColor};"
                                                                     onclick="${gvc.event(() => {
-                                                changePage('collections/' + col.code, 'page', {});
+                                                changePage(`collections/${col.cod || col.title}`, 'page', {});
                                                 gvc.glitter.closeDrawer();
                                             })}"
                                                                 >
@@ -476,9 +476,17 @@ export class ProductList {
                 vm.title = all_text;
             }
             else {
-                const collectionObj = vm.collections.find((item) => {
+                let collectionObj = vm.collections.find((item) => {
                     return item.code === decodeURIComponent(extractCategoryTitleFromUrl(location.href));
                 });
+                try {
+                    if (!collectionObj) {
+                        collectionObj = vm.collections.find((item) => {
+                            return item.title === decodeURIComponent(extractCategoryTitleFromUrl(location.href));
+                        });
+                    }
+                }
+                catch (e) { }
                 vm.title = collectionObj ? collectionObj.title : all_text;
             }
             gvc.notifyDataChange(ids.pageTitle);
