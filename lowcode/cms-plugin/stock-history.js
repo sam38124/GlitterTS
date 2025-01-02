@@ -258,7 +258,9 @@ export class StockHistory {
         const dvm = {
             id: glitter.getUUID(),
             tableId: glitter.getUUID(),
-            dataList: [],
+            totalId: glitter.getUUID(),
+            variantIds: [],
+            tableLoading: true,
         };
         function getFormStructure() {
             var _a;
@@ -473,18 +475,122 @@ export class StockHistory {
                     return [];
             }
         }
-        function setVariantList(ids) {
-            console.log(ids);
+        function setVariantList(ids, callback) {
+            if (ids.length === 0) {
+                callback();
+                return;
+            }
             ApiShop.getVariants({
                 page: 0,
                 limit: 99999,
                 id_list: ids.join(','),
-            }).then((data) => {
-                console.log(data);
-                console.log(vm.data.content.product_list);
+                productType: 'all'
+            }).then((r) => {
+                const origins = vm.data.content.product_list.slice();
+                vm.data.content.product_list = [];
+                if (r.result && r.response.data) {
+                    r.response.data.forEach((item) => {
+                        const origin = origins.find((o) => {
+                            return o.variant_id === item.id;
+                        });
+                        const title = item.product_content.title;
+                        const spec = item.variant_content.spec;
+                        const sku = item.variant_content.sku;
+                        vm.data.content.product_list.push(Object.assign(Object.assign({ variant_id: item.id, cost: 0, note: '', transfer_count: 0, recent_count: 0, check_count: 0 }, (origin !== null && origin !== void 0 ? origin : {})), { title: title, spec: spec && spec.length > 0 ? spec.join('/') : '單一規格', sku: sku !== null && sku !== void 0 ? sku : '' }));
+                    });
+                }
+                callback();
             });
         }
-        function specDatalist() { }
+        function specDatalist(page, limit) {
+            const x = (page - 1) * limit;
+            return vm.data.content.product_list.slice(x, x + limit).map((dd, index) => {
+                var _a, _b, _c;
+                const realData = vm.data.content.product_list[x + index];
+                return [
+                    {
+                        key: '商品',
+                        value: `<span class="fs-7">${dd.title || '－'}</span>`,
+                    },
+                    {
+                        key: '規格',
+                        value: `<span class="fs-7">${dd.spec}</span>`,
+                    },
+                    {
+                        key: '存貨單位(SKU)',
+                        value: `<span class="fs-7">${dd.sku || '－'}</span>`,
+                    },
+                    {
+                        key: '進貨成本',
+                        value: html ` <div style="width: 100px" onclick="${gvc.event((e, event) => event.stopPropagation())}">
+                            <input
+                                class="form-control"
+                                type="number"
+                                min="0"
+                                style="border-radius: 10px; border: 1px solid #DDD; padding-left: 18px;"
+                                onchange="${gvc.event((e) => {
+                            let n = parseInt(e.value, 10);
+                            if (n < 0) {
+                                n = 0;
+                            }
+                            realData.cost = n;
+                            gvc.notifyDataChange(`subtotoal_${index}`);
+                        })}"
+                                value="${(_a = dd.cost) !== null && _a !== void 0 ? _a : 0}"
+                            />
+                        </div>`,
+                    },
+                    {
+                        key: '數量',
+                        value: html ` <div style="width: 100px" onclick="${gvc.event((e, event) => event.stopPropagation())}">
+                            <input
+                                class="form-control"
+                                type="number"
+                                min="0"
+                                style="border-radius: 10px; border: 1px solid #DDD; padding-left: 18px;"
+                                onchange="${gvc.event((e) => {
+                            let n = parseInt(e.value, 10);
+                            if (n < 0) {
+                                n = 0;
+                            }
+                            realData.transfer_count = n;
+                            gvc.notifyDataChange(`subtotoal_${index}`);
+                        })}"
+                                value="${(_b = dd.transfer_count) !== null && _b !== void 0 ? _b : 0}"
+                            />
+                        </div>`,
+                    },
+                    {
+                        key: '小計',
+                        value: gvc.bindView({
+                            bind: `subtotoal_${index}`,
+                            view: () => {
+                                const subtotal = dd.cost * dd.transfer_count;
+                                return html `<span class="fs-7">$ ${subtotal.toLocaleString()}</span>`;
+                            },
+                            onCreate: () => {
+                                gvc.notifyDataChange(dvm.totalId);
+                            },
+                        }),
+                    },
+                    {
+                        key: '備註',
+                        value: html ` <div style="width: 120px" onclick="${gvc.event((e, event) => event.stopPropagation())}">
+                            <input
+                                class="form-control"
+                                type="number"
+                                min="0"
+                                style="border-radius: 10px; border: 1px solid #DDD; padding-left: 18px;"
+                                onchange="${gvc.event((e) => {
+                            realData.note = e.value;
+                        })}"
+                                value="${(_c = dd.note) !== null && _c !== void 0 ? _c : ''}"
+                            />
+                        </div>`,
+                    },
+                ];
+            });
+        }
         return BgWidget.container([
             html ` <div class="title-container">
                         <div class="mt-1">
@@ -524,48 +630,70 @@ export class StockHistory {
                                                     ${gvc.bindView({
                                     bind: dvm.tableId,
                                     view: () => {
-                                        return BgWidget.tableV3({
-                                            gvc: gvc,
-                                            getData: (vd) => {
-                                                vmi = vd;
-                                                const limit = 10;
-                                                dvm.dataList = vm.data.content.product_list;
-                                                vmi.pageSize = Math.ceil(vm.data.content.product_list.length / limit);
-                                                vmi.originalData = dvm.dataList;
-                                                vmi.tableData = specDatalist();
-                                                vmi.loading = false;
-                                                vmi.callback();
-                                            },
-                                            rowClick: () => { },
-                                            filter: [],
-                                        });
+                                        if (dvm.tableLoading) {
+                                            dvm.variantIds = vm.data.content.product_list.map((product) => {
+                                                return `${product.variant_id}`;
+                                            });
+                                            dvm.tableLoading = false;
+                                        }
+                                        return [
+                                            BgWidget.tableV3({
+                                                gvc: gvc,
+                                                getData: (vd) => {
+                                                    vmi = vd;
+                                                    const limit = 99999;
+                                                    setVariantList(dvm.variantIds, () => {
+                                                        vmi.pageSize = Math.ceil(vm.data.content.product_list.length / limit);
+                                                        vmi.originalData = vm.data.content.product_list;
+                                                        vmi.tableData = specDatalist(vmi.page, limit);
+                                                        vmi.loading = false;
+                                                        vmi.callback();
+                                                    });
+                                                },
+                                                rowClick: () => { },
+                                                filter: [],
+                                                hiddenPageSplit: true,
+                                            }),
+                                            type === 'create'
+                                                ? html `<div
+                                                                          class="w-100 d-flex align-items-center justify-content-center cursor_pointer"
+                                                                          style="color: #36B; font-size: 16px; font-weight: 400;"
+                                                                          onclick="${gvc.event(() => {
+                                                    BgWidget.variantDialog({
+                                                        gvc,
+                                                        title: '新增商品規格',
+                                                        default: dvm.variantIds,
+                                                        callback: (resultData) => {
+                                                            dvm.variantIds = resultData;
+                                                            gvc.notifyDataChange(dvm.tableId);
+                                                        },
+                                                    });
+                                                })}"
+                                                                      >
+                                                                          <div>新增進貨商品</div>
+                                                                          <div>
+                                                                              <i class="fa-solid fa-plus ps-2" style="font-size: 16px; height: 14px; width: 14px;"></i>
+                                                                          </div>
+                                                                      </div>`
+                                                : '',
+                                            BgWidget.horizontalLine({ margin: 2 }),
+                                            gvc.bindView({
+                                                bind: dvm.totalId,
+                                                view: () => {
+                                                    const total = vm.data.content.product_list.reduce((sum, item) => {
+                                                        return sum + item.cost * item.transfer_count;
+                                                    }, 0);
+                                                    return html ` <div class="flex-fill"></div>
+                                                                            <div class="d-flex justify-content-between tx_700" style="width: 200px;">
+                                                                                <div>進貨總成本</div>
+                                                                                <div>$ ${total.toLocaleString()}</div>
+                                                                            </div>`;
+                                                },
+                                                divCreate: { class: 'd-flex w-100' },
+                                            }),
+                                        ].join('');
                                     },
                                 })}
-                                                    <div
-                                                        class="w-100 d-flex align-items-center justify-content-center cursor_pointer"
-                                                        style="color: #36B; font-size: 16px; font-weight: 400;"
-                                                        onclick="${gvc.event(() => {
-                                    BgWidget.variantDialog({
-                                        gvc,
-                                        title: '新增商品規格',
-                                        default: (() => {
-                                            const arr = [];
-                                            vm.data.content.product_list.forEach((item) => {
-                                                arr.push(`${item.variant_id}`);
-                                            });
-                                            return arr;
-                                        })(),
-                                        callback: (resultData) => {
-                                            setVariantList(resultData);
-                                        },
-                                    });
-                                })}"
-                                                    >
-                                                        <div>新增一個商品</div>
-                                                        <div>
-                                                            <i class="fa-solid fa-plus ps-2" style="font-size: 16px; height: 14px; width: 14px;"></i>
-                                                        </div>
-                                                    </div>
                                                 `,
                             ].join(BgWidget.mbContainer(18))),
                         ].join(BgWidget.mbContainer(18));

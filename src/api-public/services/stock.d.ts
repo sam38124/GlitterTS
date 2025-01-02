@@ -5,6 +5,17 @@ type StockList = {
     };
 };
 export type StockHistoryType = 'restocking' | 'transfer' | 'checking';
+type ContentProduct = {
+    variant_id: number;
+    cost: number;
+    note: string;
+    transfer_count: number;
+    recent_count: number;
+    check_count: number;
+    title?: string;
+    spec?: string;
+    sku?: '';
+};
 type StockHistoryData = {
     id: string;
     type: StockHistoryType;
@@ -14,18 +25,14 @@ type StockHistoryData = {
     content: {
         vendor: string;
         store_in: string;
+        store_in_name?: string;
         store_out: string;
+        store_out_name?: string;
         check_member: string;
         check_according: 'all' | 'collection' | 'product';
         note: string;
-        product_list: {
-            variant_id: number;
-            cost: number;
-            note: string;
-            transfer_count: number;
-            recent_count: number;
-            check_count: number;
-        }[];
+        total_price?: number;
+        product_list: ContentProduct[];
     };
 };
 export declare class Stock {

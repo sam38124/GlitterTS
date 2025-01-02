@@ -2,6 +2,18 @@ import { BaseApi } from '../../glitterBundle/api/base.js';
 
 export type StockHistoryType = 'restocking' | 'transfer' | 'checking';
 
+export type ContentProduct = {
+    variant_id: number;
+    cost: number;
+    note: string;
+    transfer_count: number; // 預計進貨數, 預計調入數
+    recent_count: number; // 實際進貨數, 實際調入數
+    check_count: number; // 盤點數
+    title?: string;
+    spec?: string;
+    sku?: '';
+};
+
 export type StockHistoryData = {
     id: string;
     type: StockHistoryType;
@@ -18,14 +30,7 @@ export type StockHistoryData = {
         check_according: 'all' | 'collection' | 'product'; // 商品盤點類型
         note: string;
         total_price?: number;
-        product_list: {
-            variant_id: number;
-            cost: number;
-            note: string;
-            transfer_count: number; // 預計進貨數, 預計調入數
-            recent_count: number; // 實際進貨數, 實際調入數
-            check_count: number; // 盤點數
-        }[];
+        product_list: ContentProduct[];
     };
 };
 

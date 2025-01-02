@@ -16,6 +16,18 @@ type StockList = {
 
 export type StockHistoryType = 'restocking' | 'transfer' | 'checking';
 
+type ContentProduct = {
+    variant_id: number;
+    cost: number;
+    note: string;
+    transfer_count: number; // 預計進貨數, 預計調入數
+    recent_count: number; // 實際進貨數, 實際調入數
+    check_count: number; // 盤點數
+    title?: string;
+    spec?: string;
+    sku?: '';
+};
+
 type StockHistoryData = {
     id: string;
     type: StockHistoryType;
@@ -25,18 +37,14 @@ type StockHistoryData = {
     content: {
         vendor: string;
         store_in: string; // 調入庫存點
+        store_in_name?: string; // 調入庫存點名稱
         store_out: string; // 調出庫存點
+        store_out_name?: string; // 調出庫存點名稱
         check_member: string; // 盤點人
         check_according: 'all' | 'collection' | 'product'; // 商品盤點類型
         note: string;
-        product_list: {
-            variant_id: number;
-            cost: number;
-            note: string;
-            transfer_count: number; // 預計進貨數, 預計調入數
-            recent_count: number; // 實際進貨數, 實際調入數
-            check_count: number; // 盤點數
-        }[];
+        total_price?: number;
+        product_list: ContentProduct[];
     };
 };
 
@@ -317,6 +325,13 @@ export class Stock {
         console.log('postHistory');
         console.log(json);
         try {
+            json.content.product_list.map((item) => {
+                delete item.title;
+                delete item.spec;
+                delete item.sku;
+                return item;
+            });
+
             const formatJson = JSON.parse(JSON.stringify(json));
             formatJson.order_id = `IC${new Date().getTime()}`;
             formatJson.content = JSON.stringify(json.content);

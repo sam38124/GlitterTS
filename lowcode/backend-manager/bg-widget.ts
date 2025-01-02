@@ -1679,6 +1679,7 @@ ${obj.default ?? ''}</textarea
                 text-align: left !important;
                 padding-right: 0.25rem !important;
                 padding-left: 0.25rem !important;
+                border-bottom-width: 0 !important;
             }
         `);
 
@@ -1704,7 +1705,7 @@ ${obj.default ?? ''}</textarea
                         if (vm.loading) {
                             return html` <div style="text-align: center; padding: 24px; font-size: 24px; font-weight: 700;">資料載入中 ....</div>`;
                         }
-                        if (vm.tableData.length === 0) {
+                        if (!vm.tableData || vm.tableData.length === 0) {
                             return html` <div style="text-align: center; padding: 24px; font-size: 24px; font-weight: 700;">暫無資料</div>`;
                         }
 
@@ -3224,13 +3225,14 @@ ${obj.default ?? ''}</textarea
             };
 
             function printOption(opt: OptionsItem) {
+                opt.key = `${opt.key}`;
+
                 function call() {
                     if (obj.default.includes(opt.key)) {
                         obj.default = obj.default.filter((item) => item !== opt.key);
                     } else {
                         obj.default.push(opt.key);
                     }
-                    // obj.gvc.notifyDataChange(vm.id);
                 }
 
                 return html`<input
@@ -3299,7 +3301,7 @@ ${obj.default ?? ''}</textarea
                                             obj.gvc.event(() => {
                                                 obj.callback(
                                                     obj.default.filter((item) => {
-                                                        return vm.options.find((opt: OptionsItem) => opt.key === item);
+                                                        return vm.options.find((opt: OptionsItem) => `${opt.key}` === item);
                                                     }),
                                                     1
                                                 );

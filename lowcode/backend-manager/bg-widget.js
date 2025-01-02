@@ -1408,6 +1408,7 @@ ${(_c = obj.default) !== null && _c !== void 0 ? _c : ''}</textarea
                 text-align: left !important;
                 padding-right: 0.25rem !important;
                 padding-left: 0.25rem !important;
+                border-bottom-width: 0 !important;
             }
         `);
         return gvc.bindView(() => {
@@ -1431,7 +1432,7 @@ ${(_c = obj.default) !== null && _c !== void 0 ? _c : ''}</textarea
                         if (vm.loading) {
                             return html ` <div style="text-align: center; padding: 24px; font-size: 24px; font-weight: 700;">資料載入中 ....</div>`;
                         }
-                        if (vm.tableData.length === 0) {
+                        if (!vm.tableData || vm.tableData.length === 0) {
                             return html ` <div style="text-align: center; padding: 24px; font-size: 24px; font-weight: 700;">暫無資料</div>`;
                         }
                         function checkAllBox(changeView) {
@@ -2764,6 +2765,7 @@ ${(_c = obj.default) !== null && _c !== void 0 ? _c : ''}</textarea
             };
             function printOption(opt) {
                 var _a;
+                opt.key = `${opt.key}`;
                 function call() {
                     if (obj.default.includes(opt.key)) {
                         obj.default = obj.default.filter((item) => item !== opt.key);
@@ -2829,7 +2831,7 @@ ${(_c = obj.default) !== null && _c !== void 0 ? _c : ''}</textarea
                     }))}
                                         ${BgWidget.save(obj.gvc.event(() => {
                         obj.callback(obj.default.filter((item) => {
-                            return vm.options.find((opt) => opt.key === item);
+                            return vm.options.find((opt) => `${opt.key}` === item);
                         }), 1);
                         gvc.closeDialog();
                     }), '確認')}

@@ -222,6 +222,12 @@ class Stock {
         console.log('postHistory');
         console.log(json);
         try {
+            json.content.product_list.map((item) => {
+                delete item.title;
+                delete item.spec;
+                delete item.sku;
+                return item;
+            });
             const formatJson = JSON.parse(JSON.stringify(json));
             formatJson.order_id = `IC${new Date().getTime()}`;
             formatJson.content = JSON.stringify(json.content);
