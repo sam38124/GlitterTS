@@ -10,59 +10,57 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 import { ApiShop } from '../../glitter-base/route/shopping.js';
 import { ApiUser } from '../../glitter-base/route/user.js';
 import { PdClass } from './pd-class.js';
-import { Language } from "../../glitter-base/global/language.js";
+import { Language } from '../../glitter-base/global/language.js';
 const html = String.raw;
 export class ProductDetail {
     static tab(data, gvc, select, callback, style) {
-        return html `
-            <div
-                    style="width: 100%; justify-content: center; align-items: flex-start; gap: 22px; display: inline-flex;cursor: pointer;margin-top: 24px;margin-bottom: 24px;font-size: 18px; ${style !== null && style !== void 0 ? style : ''};"
-            >
-                ${data
+        return html ` <div
+            style="width: 100%; justify-content: center; align-items: flex-start; gap: 22px; display: inline-flex;cursor: pointer;margin-top: 24px;margin-bottom: 24px;font-size: 18px; ${style !== null && style !== void 0 ? style : ''};"
+        >
+            ${data
             .map((dd) => {
             if (select === dd.key) {
-                return html `
-                                    <div style="flex-direction: column; justify-content: flex-start; align-items: center; gap: 8px; display: inline-flex">
-                                        <div
-                                                style="align-self: stretch; text-align: center; color: ${ProductDetail.titleFontColor}; font-family: Noto Sans; font-weight: 700; line-height: 18px; word-wrap: break-word;white-space: nowrap;margin: 0 20px;"
-                                                onclick="${gvc.event(() => {
+                return html ` <div style="flex-direction: column; justify-content: flex-start; align-items: center; gap: 8px; display: inline-flex">
+                            <div
+                                style="align-self: stretch; text-align: center; color: ${ProductDetail.titleFontColor}; font-family: Noto Sans; font-weight: 700; line-height: 18px; word-wrap: break-word;white-space: nowrap;margin: 0 20px;"
+                                onclick="${gvc.event(() => {
                     callback(dd.key);
                 })}"
-                                        >
-                                            ${dd.title}
-                                        </div>
-                                        <div style="align-self: stretch; height: 0px; border: 1px ${ProductDetail.titleFontColor} solid"></div>
-                                    </div>`;
+                            >
+                                ${dd.title}
+                            </div>
+                            <div style="align-self: stretch; height: 0px; border: 1px ${ProductDetail.titleFontColor} solid"></div>
+                        </div>`;
             }
             else {
-                return html `
-                                    <div
-                                            style="flex-direction: column; justify-content: flex-start; align-items: center; gap: 8px; display: inline-flex"
-                                            onclick="${gvc.event(() => {
+                return html ` <div
+                            style="flex-direction: column; justify-content: flex-start; align-items: center; gap: 8px; display: inline-flex"
+                            onclick="${gvc.event(() => {
                     callback(dd.key);
                 })}"
-                                    >
-                                        <div
-                                                style="align-self: stretch; text-align: center; color: #8D8D8D; font-family: Noto Sans; font-weight: 400; line-height: 18px; word-wrap: break-word;white-space: nowrap;margin: 0 20px;"
-                                        >
-                                            ${dd.title}
-                                        </div>
-                                        <div style="align-self: stretch; height: 0px"></div>
-                                    </div>`;
+                        >
+                            <div
+                                style="align-self: stretch; text-align: center; color: #8D8D8D; font-family: Noto Sans; font-weight: 400; line-height: 18px; word-wrap: break-word;white-space: nowrap;margin: 0 20px;"
+                            >
+                                ${dd.title}
+                            </div>
+                            <div style="align-self: stretch; height: 0px"></div>
+                        </div>`;
             }
         })
             .join('')}
-            </div>`;
+        </div>`;
     }
     static main(gvc, widget, subData) {
         var _a;
         ProductDetail.titleFontColor = (_a = gvc.glitter.share.globalValue['theme_color.0.title']) !== null && _a !== void 0 ? _a : '#333333';
         const css = String.raw;
-        gvc.addStyle(css `.pd_detail_content iframe {
-            max-width:100%;
-        }
+        gvc.addStyle(css `
+            .pd_detail_content iframe {
+                max-width: 100%;
+            }
             .pd_detail_content img {
-                max-width:100%;
+                max-width: 100%;
             }
         `);
         const product_id = gvc.glitter.getUrlParameter('product_id');
@@ -94,11 +92,10 @@ export class ProductDetail {
             page: true,
         };
         function spinner() {
-            return html `
-                <div class="d-flex align-items-center justify-content-center flex-column w-100 mx-auto mt-5">
-                    <div class="spinner-border" role="status"></div>
-                    <span class="mt-3">${Language.text('loading')}</span>
-                </div>`;
+            return html ` <div class="d-flex align-items-center justify-content-center flex-column w-100 mx-auto mt-5">
+                <div class="spinner-border" role="status"></div>
+                <span class="mt-3">${Language.text('loading')}</span>
+            </div>`;
         }
         return gvc.bindView({
             bind: ids.page,
@@ -108,17 +105,16 @@ export class ProductDetail {
                     return spinner();
                 }
                 if (Object.keys(vm.data).length === 0) {
-                    return html `
-                        <div class="d-flex align-items-center justify-content-center flex-column w-100 mx-auto">
-                            <lottie-player
-                                    style="max-width: 100%;width: 300px;"
-                                    src="https://assets10.lottiefiles.com/packages/lf20_rc6CDU.json"
-                                    speed="1"
-                                    loop="true"
-                                    background="transparent"
-                            ></lottie-player>
-                            <span class="mb-5 fs-5">這個商品目前尚未上架喔！</span>
-                        </div>`;
+                    return html ` <div class="d-flex align-items-center justify-content-center flex-column w-100 mx-auto">
+                        <lottie-player
+                            style="max-width: 100%;width: 300px;"
+                            src="https://assets10.lottiefiles.com/packages/lf20_rc6CDU.json"
+                            speed="1"
+                            loop="true"
+                            background="transparent"
+                        ></lottie-player>
+                        <span class="mb-5 fs-5">這個商品目前尚未上架喔！</span>
+                    </div>`;
                 }
                 const prod = vm.data.content;
                 PdClass.addSpecStyle(gvc);
@@ -128,17 +124,19 @@ export class ProductDetail {
                         : prod.specs.map((spec) => {
                             return spec.option[0].title;
                         });
-                prod.variants.forEach(variant => {
+                prod.variants.forEach((variant) => {
                     if (variant.preview_image && !prod.preview_image.includes(variant.preview_image)) {
                         prod.preview_image.push(variant.preview_image);
                     }
                 });
-                const book_mark = [{
+                const book_mark = [
+                    {
                         title: Language.text('all_products'),
                         event: () => {
                             gvc.glitter.href = '/all-product';
-                        }
-                    }];
+                        },
+                    },
+                ];
                 const d_ = ((_b = prod.collection) !== null && _b !== void 0 ? _b : []).sort((a, b) => {
                     const countSlashes = (str) => (str.match(/\//g) || []).length;
                     return countSlashes(b) - countSlashes(a);
@@ -165,7 +163,7 @@ export class ProductDetail {
                             if (domain) {
                                 gvc.glitter.href = `/collections/${domain}`;
                             }
-                        }
+                        },
                     };
                 }
                 if (d_[0]) {
@@ -173,38 +171,41 @@ export class ProductDetail {
                         book_mark.push(getCollectionLink(dd));
                     });
                 }
-                return html `
-                    <div class="container mx-auto " style="max-width:1100px;">
-                        <div class="breadcrumb mb-0   d-flex align-items-center py-3"
-                             style="cursor:pointer;gap:10px;">
-                            ${book_mark.map((dd) => {
-                    return html `
-                                    <li class="breadcrumb-item "
-                                        style="margin-top: 0px;color:${ProductDetail.titleFontColor};"
-                                        onclick="${gvc.event(() => {
+                return html ` <div class="container mx-auto " style="max-width:1100px;">
+                    <div class="breadcrumb mb-0   d-flex align-items-center py-3" style="cursor:pointer;gap:10px;">
+                        ${book_mark
+                    .map((dd) => {
+                    return html ` <li
+                                    class="breadcrumb-item "
+                                    style="margin-top: 0px;color:${ProductDetail.titleFontColor};"
+                                    onclick="${gvc.event(() => {
                         dd.event();
-                    })}">
-                                        ${dd.title}
-                                    </li>`;
-                }).join('<i class="fa-solid fa-angle-right"></i>')}
-                        </div>
-                        ${PdClass.selectSpec({
+                    })}"
+                                >
+                                    ${dd.title}
+                                </li>`;
+                })
+                    .join('<i class="fa-solid fa-angle-right"></i>')}
+                    </div>
+                    ${PdClass.selectSpec({
                     gvc,
                     titleFontColor: ProductDetail.titleFontColor,
                     prod,
                     vm,
-                    preview: true
+                    preview: true,
                 })}
-                        <div class="d-flex flex-column align-items-center mt-2" style="width:100%;">
-                            ${gvc.bindView((() => {
+                    <div class="d-flex flex-column align-items-center mt-2" style="width:100%;">
+                        ${gvc.bindView((() => {
                     const id = glitter.getUUID();
                     return {
                         bind: id,
                         view: () => {
-                            return this.tab([{
+                            return this.tab([
+                                {
                                     title: Language.text('product_description'),
-                                    key: 'default'
-                                }].concat(vm.content_manager
+                                    key: 'default',
+                                },
+                            ].concat(vm.content_manager
                                 .filter((cont) => {
                                 return prod.content_array.includes(cont.id);
                             })
@@ -220,11 +221,11 @@ export class ProductDetail {
                             });
                         },
                         divCreate: {
-                            class: `pt-3`
-                        }
+                            class: `pt-3`,
+                        },
                     };
                 })())}
-                            ${gvc.bindView({
+                        ${gvc.bindView({
                     bind: ids.content,
                     view: () => {
                         if (vm.content_tag === 'default') {
@@ -243,8 +244,9 @@ export class ProductDetail {
                                     const cssStyle = template.data.tags.find((item) => item.key === data.key);
                                     const regex = new RegExp(`@{{${data.key}}}`, 'g');
                                     htmlString = htmlString.replace(regex, html `<span
-                                                                style="font-size: ${(_a = cssStyle === null || cssStyle === void 0 ? void 0 : cssStyle.font_size) !== null && _a !== void 0 ? _a : 16}px; color: ${(_b = cssStyle === null || cssStyle === void 0 ? void 0 : cssStyle.font_color) !== null && _b !== void 0 ? _b : '${titleFontColor}'}; background: ${(_c = cssStyle === null || cssStyle === void 0 ? void 0 : cssStyle.font_bgr) !== null && _c !== void 0 ? _c : '#fff'};"
-                                                        >${data.value}</span>`);
+                                                    style="font-size: ${(_a = cssStyle === null || cssStyle === void 0 ? void 0 : cssStyle.font_size) !== null && _a !== void 0 ? _a : 16}px; color: ${(_b = cssStyle === null || cssStyle === void 0 ? void 0 : cssStyle.font_color) !== null && _b !== void 0 ? _b : '${titleFontColor}'}; background: ${(_c = cssStyle === null || cssStyle === void 0 ? void 0 : cssStyle.font_bgr) !== null && _c !== void 0 ? _c : '#fff'};"
+                                                    >${data.value}</span
+                                                >`);
                                 });
                             }
                             return htmlString.replace(/@{{[^}]+}}/g, '');
@@ -260,92 +262,90 @@ export class ProductDetail {
                             }
                             return 'margin: 0 10%;';
                         })() + `max-width:100%;`,
-                        class: `pd_detail_content`
-                    }
+                        class: `pd_detail_content`,
+                    },
                 })}
-                        </div>
-                        <div style="margin-top: 150px;"></div>
-                        ${prod.relative_product.length ? gvc.bindView(() => {
-                    const swipID = gvc.glitter.getUUID();
-                    return {
-                        bind: gvc.glitter.getUUID(),
-                        view: () => __awaiter(this, void 0, void 0, function* () {
-                            return new Promise((resolve, reject) => __awaiter(this, void 0, void 0, function* () {
-                                const product = (yield ApiShop.getProduct({
-                                    limit: 50,
-                                    page: 0,
-                                    id_list: prod.relative_product.join(','),
-                                })).response.data;
-                                setTimeout(() => {
-                                    const swiper = new window.Swiper('#' + swipID, {
-                                        slidesPerView: glitter.ut.frSize({
-                                            sm: product.length < 4 ? product.length : 4,
-                                            lg: product.length < 6 ? product.length : 6,
-                                        }, product.length < 2 ? product.length : 2),
-                                        spaceBetween: glitter.ut.frSize({
-                                            sm: 10,
-                                            lg: 30,
-                                        }, 10),
-                                    });
-                                }, 100);
-                                if (!product.length) {
-                                    return ``;
-                                }
-                                resolve(html `
-                                            <div class="w-100 d-flex align-items-center justify-content-center ">
-                                                <div class="mx-auto"
-                                                     style="flex-direction: column; justify-content: flex-start; align-items: center; gap: 8px; display: inline-flex">
-                                                    <div
-                                                            style="font-size:18px;align-self: stretch; text-align: center; color: ${ProductDetail.titleFontColor}; font-weight: 700; line-height: 18px; word-wrap: break-word;white-space: nowrap;margin: 0 20px;"
-                                                    >
-                                                        ${Language.text('related_products')}
-                                                    </div>
-                                                    <div style="align-self: stretch; height: 0px; border: 1px ${ProductDetail.titleFontColor} solid"></div>
-                                                </div>
-                                            </div>
-                                            <div class="w-100 d-flex align-items-center justify-content-center py-3 py-sm-4">
-                                                <div
-                                                        class=""
-                                                        style="${product.length <
-                                    glitter.ut.frSize({
-                                        sm: 4,
-                                        lg: 6,
-                                    }, 2)
-                                    ? `width:${200 * product.length}px;`
-                                    : `width:100%;`}"
-                                                >
-                                                    <div class="swiper w-100" id="${swipID}">
-                                                        <div class="swiper-wrapper">
-                                                            ${product
-                                    .map((dd, index) => {
-                                    return html `
-                                                                            <div class="swiper-slide"
-                                                                                 style="width:100%;height: 350px;">
-                                                                                ${glitter.htmlGenerate.renderComponent({
-                                        appName: window.appName,
-                                        tag: 'product_widget',
-                                        gvc: gvc,
-                                        subData: dd,
-                                    })}
-                                                                            </div>`;
-                                })
-                                    .join('')}
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        `);
-                            }));
-                        }),
-                        divCreate: {
-                            class: `w-100`,
-                        },
-                        onCreate: () => {
-                        },
-                    };
-                }) : ''}
-                        <div style="margin-top: 100px;"></div>
-                    </div>`;
+                    </div>
+                    <div style="margin-top: 150px;"></div>
+                    ${prod.relative_product.length
+                    ? gvc.bindView(() => {
+                        const swipID = gvc.glitter.getUUID();
+                        return {
+                            bind: gvc.glitter.getUUID(),
+                            view: () => __awaiter(this, void 0, void 0, function* () {
+                                return new Promise((resolve, reject) => __awaiter(this, void 0, void 0, function* () {
+                                    const product = (yield ApiShop.getProduct({
+                                        limit: 50,
+                                        page: 0,
+                                        id_list: prod.relative_product.join(','),
+                                    })).response.data;
+                                    setTimeout(() => {
+                                        const swiper = new window.Swiper('#' + swipID, {
+                                            slidesPerView: glitter.ut.frSize({
+                                                sm: product.length < 4 ? product.length : 4,
+                                                lg: product.length < 6 ? product.length : 6,
+                                            }, product.length < 2 ? product.length : 2),
+                                            spaceBetween: glitter.ut.frSize({
+                                                sm: 10,
+                                                lg: 30,
+                                            }, 10),
+                                        });
+                                    }, 100);
+                                    if (!product.length) {
+                                        return ``;
+                                    }
+                                    resolve(html `
+                                              <div class="w-100 d-flex align-items-center justify-content-center ">
+                                                  <div class="mx-auto" style="flex-direction: column; justify-content: flex-start; align-items: center; gap: 8px; display: inline-flex">
+                                                      <div
+                                                          style="font-size:18px;align-self: stretch; text-align: center; color: ${ProductDetail.titleFontColor}; font-weight: 700; line-height: 18px; word-wrap: break-word;white-space: nowrap;margin: 0 20px;"
+                                                      >
+                                                          ${Language.text('related_products')}
+                                                      </div>
+                                                      <div style="align-self: stretch; height: 0px; border: 1px ${ProductDetail.titleFontColor} solid"></div>
+                                                  </div>
+                                              </div>
+                                              <div class="w-100 d-flex align-items-center justify-content-center py-3 py-sm-4">
+                                                  <div
+                                                      class=""
+                                                      style="${product.length <
+                                        glitter.ut.frSize({
+                                            sm: 4,
+                                            lg: 6,
+                                        }, 2)
+                                        ? `width:${200 * product.length}px;`
+                                        : `width:100%;`}"
+                                                  >
+                                                      <div class="swiper w-100" id="${swipID}">
+                                                          <div class="swiper-wrapper">
+                                                              ${product
+                                        .map((dd, index) => {
+                                        return html ` <div class="swiper-slide" style="width:100%;height: 350px;">
+                                                                          ${glitter.htmlGenerate.renderComponent({
+                                            appName: window.appName,
+                                            tag: 'product_widget',
+                                            gvc: gvc,
+                                            subData: dd,
+                                        })}
+                                                                      </div>`;
+                                    })
+                                        .join('')}
+                                                          </div>
+                                                      </div>
+                                                  </div>
+                                              </div>
+                                          `);
+                                }));
+                            }),
+                            divCreate: {
+                                class: `w-100`,
+                            },
+                            onCreate: () => { },
+                        };
+                    })
+                    : ''}
+                    <div style="margin-top: 100px;"></div>
+                </div>`;
             }),
             divCreate: {
                 style: 'min-height: 1000px;',
@@ -357,12 +357,12 @@ export class ProductDetail {
                         const inputObj = Object.assign(Object.assign({ page: 0, limit: 1, collection: '', maxPrice: '', minPrice: '' }, (() => {
                             if (product_id) {
                                 return {
-                                    id: product_id
+                                    id: product_id,
                                 };
                             }
                             else {
                                 return {
-                                    domain: decodeURIComponent(title)
+                                    domain: decodeURIComponent(title),
                                 };
                             }
                         })()), { status: 'inRange', channel: 'normal', orderBy: '', with_hide_index: 'true', show_hidden: true });
@@ -389,6 +389,7 @@ export class ProductDetail {
                             }
                             if (dataArray[1].result && dataArray[1].response.data) {
                                 try {
+                                    console.log(dataArray[1]);
                                     if (Array.isArray(dataArray[1].response.data)) {
                                         vm.data = dataArray[1].response.data[0];
                                         glitter.setUrlParameter('page', 'products/' + encodeURIComponent(vm.data.content.seo.domain));
