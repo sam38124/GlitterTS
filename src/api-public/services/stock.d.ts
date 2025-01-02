@@ -52,9 +52,7 @@ export declare class Stock {
         totalDeduction: number;
         remainingCount: number;
     };
-<<<<<<< HEAD
     recoverStock(variant: any): Promise<void>;
-=======
     getHistory(json: {
         page: string;
         limit: string;
@@ -70,6 +68,5 @@ export declare class Stock {
     putHistory(json: StockHistoryData): Promise<{
         data: boolean;
     } | undefined>;
->>>>>>> 24598577 (fix: user info member deadline & update restocking page)
 }
 export {};

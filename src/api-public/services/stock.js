@@ -148,9 +148,14 @@ class Stock {
             remainingCount,
         };
     }
-<<<<<<< HEAD
     async recoverStock(variant) {
-        const sql = (variant.spec.length > 0) ? `AND JSON_CONTAINS(content->'$.spec', JSON_ARRAY(${variant.spec.map((data) => { return `\"${data}\"`; }).join(',')}));` : '';
+        const sql = variant.spec.length > 0
+            ? `AND JSON_CONTAINS(content->'$.spec', JSON_ARRAY(${variant.spec
+                .map((data) => {
+                return `\"${data}\"`;
+            })
+                .join(',')}));`
+            : '';
         let variantData = await database_1.default.query(`
             SELECT *
             FROM \`${this.app}\`.t_variants
@@ -178,7 +183,7 @@ class Stock {
                                      SET ?
                                      WHERE 1 = 1
                                        and id = ${pdDqlData.id}`, [{ content: JSON.stringify(pd) }]);
-=======
+    }
     async getHistory(json) {
         const page = json.page ? parseInt(`${json.page}`, 10) : 0;
         const limit = json.limit ? parseInt(`${json.limit}`, 10) : 20;
@@ -249,7 +254,6 @@ class Stock {
                 throw exception_1.default.BadRequestError('stock postHistory Error: ', error.message, null);
             }
         }
->>>>>>> 24598577 (fix: user info member deadline & update restocking page)
     }
 }
 exports.Stock = Stock;
