@@ -15,23 +15,13 @@ export class StockStores {
             id: glitter.getUUID(),
             tableId: glitter.getUUID(),
             type: 'list',
-            data: emptyData(),
+            data: StockStores.emptyData(),
             dataList: [],
             query: '',
             queryType: '',
             filter: {},
             orderString: '',
         };
-        function emptyData() {
-            return {
-                id: '',
-                name: '',
-                address: '',
-                manager_name: '',
-                manager_phone: '',
-                note: '',
-            };
-        }
         return gvc.bindView({
             bind: vm.id,
             dataList: [{ obj: vm, key: 'type' }],
@@ -43,12 +33,22 @@ export class StockStores {
                     return this.detailPage(gvc, vm, 'replace');
                 }
                 if (vm.type === 'create') {
-                    vm.data = emptyData();
+                    vm.data = StockStores.emptyData();
                     return this.detailPage(gvc, vm, 'create');
                 }
                 return '';
             },
         });
+    }
+    static emptyData() {
+        return {
+            id: '',
+            name: '',
+            address: '',
+            manager_name: '',
+            manager_phone: '',
+            note: '',
+        };
     }
     static list(gvc, vm) {
         const ListComp = new BgListComponent(gvc, vm, FilterOptions.storesFilterFrame);
@@ -383,43 +383,8 @@ export class StockStores {
                 vm.type = 'list';
             }))}
                     ${BgWidget.save(gvc.event(() => {
-                if (CheckInput.isEmpty(vm.data.name)) {
-                    dialog.infoMessage({ text: '庫存點名稱不得為空白' });
-                    return;
-                }
-                if (CheckInput.isEmpty(vm.data.address)) {
-                    dialog.infoMessage({ text: '地址不得為空白' });
-                    return;
-                }
-                if (!CheckInput.isTaiwanPhone(vm.data.manager_phone)) {
-                    dialog.infoMessage({ text: BgWidget.taiwanPhoneAlert() });
-                    return;
-                }
-                dialog.dataLoading({ visible: true });
-                this.getPublicData().then((stores) => {
-                    if (type === 'replace') {
-                        const store = stores.list.find((item) => item.id === vm.data.id);
-                        if (store) {
-                            Object.assign(store, vm.data);
-                        }
-                    }
-                    else {
-                        vm.data.id = this.getNewID(stores.list);
-                        stores.list.push(vm.data);
-                    }
-                    ApiUser.setPublicConfig({
-                        key: 'store_manager',
-                        value: {
-                            list: stores.list,
-                        },
-                        user_id: 'manager',
-                    }).then((dd) => {
-                        dialog.dataLoading({ visible: false });
-                        dialog.successMessage({ text: type === 'create' ? '新增成功' : '更新成功' });
-                        setTimeout(() => {
-                            vm.type = 'list';
-                        }, 500);
-                    });
+                this.verifyStoreForm(glitter, type, vm.data, () => {
+                    vm.type = 'list';
                 });
             }))}
                 </div>`,
@@ -443,6 +408,47 @@ export class StockStores {
             newId = `store_${Tool.randomString(6)}`;
         } while (list.some((item) => item.id === newId));
         return newId;
+    }
+    static verifyStoreForm(glitter, type, data, callback) {
+        const dialog = new ShareDialog(glitter);
+        if (CheckInput.isEmpty(data.name)) {
+            dialog.infoMessage({ text: '庫存點名稱不得為空白' });
+            return;
+        }
+        if (CheckInput.isEmpty(data.address)) {
+            dialog.infoMessage({ text: '地址不得為空白' });
+            return;
+        }
+        if (!CheckInput.isTaiwanPhone(data.manager_phone)) {
+            dialog.infoMessage({ text: BgWidget.taiwanPhoneAlert() });
+            return;
+        }
+        dialog.dataLoading({ visible: true });
+        this.getPublicData().then((stores) => {
+            if (type === 'replace') {
+                const store = stores.list.find((item) => item.id === data.id);
+                if (store) {
+                    Object.assign(store, data);
+                }
+            }
+            else {
+                data.id = this.getNewID(stores.list);
+                stores.list.push(data);
+            }
+            ApiUser.setPublicConfig({
+                key: 'store_manager',
+                value: {
+                    list: stores.list,
+                },
+                user_id: 'manager',
+            }).then(() => {
+                dialog.dataLoading({ visible: false });
+                dialog.successMessage({ text: type === 'create' ? '新增成功' : '更新成功' });
+                setTimeout(() => {
+                    callback(data);
+                }, 500);
+            });
+        });
     }
 }
 window.glitter.setModule(import.meta.url, StockStores);

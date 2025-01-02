@@ -2,16 +2,42 @@ import db from '../../modules/database';
 import exception from '../../modules/exception';
 import UserUtil from '../../utils/UserUtil';
 import config from '../../config.js';
-import {sendmail} from '../../services/ses.js';
+import { sendmail } from '../../services/ses.js';
 import App from '../../app.js';
 import redis from '../../modules/redis.js';
 import Tool from '../../modules/tool.js';
 import process from 'process';
-import {IToken} from '../models/Auth.js';
-import {Shopping} from "./shopping";
+import { IToken } from '../models/Auth.js';
+import { Shopping } from './shopping';
 
 type StockList = {
     [key: string]: { count: number };
+};
+
+export type StockHistoryType = 'restocking' | 'transfer' | 'checking';
+
+type StockHistoryData = {
+    id: string;
+    type: StockHistoryType;
+    status: number;
+    order_id: string;
+    created_time: string;
+    content: {
+        vendor: string;
+        store_in: string; // 調入庫存點
+        store_out: string; // 調出庫存點
+        check_member: string; // 盤點人
+        check_according: 'all' | 'collection' | 'product'; // 商品盤點類型
+        note: string;
+        product_list: {
+            variant_id: number;
+            cost: number;
+            note: string;
+            transfer_count: number; // 預計進貨數, 預計調入數
+            recent_count: number; // 實際進貨數, 實際調入數
+            check_count: number; // 盤點數
+        }[];
+    };
 };
 
 export class Stock {
@@ -89,7 +115,7 @@ export class Stock {
             );
 
             if (variants.length == 0) {
-                return {data: true, process: ''};
+                return { data: true, process: '' };
             }
 
             const promise = await new Promise<void>((resolve) => {
@@ -101,7 +127,7 @@ export class Stock {
                          SET ?
                          WHERE id = ?
                         `,
-                        [{content: JSON.stringify(variant.content)}, variant.id]
+                        [{ content: JSON.stringify(variant.content) }, variant.id]
                     ).then(() => {
                         const p = productList[`${variant.product_id}`];
                         if (p) {
@@ -137,7 +163,7 @@ export class Stock {
                                 `UPDATE \`${this.app}\`.t_manager_post
                                  SET ?
                                  WHERE id = ?`,
-                                [{content: JSON.stringify(product.content)}, product.id]
+                                [{ content: JSON.stringify(product.content) }, product.id]
                             ).then(() => {
                                 n++;
                                 if (n === products.length) {
@@ -146,10 +172,10 @@ export class Stock {
                             });
                         }
                     }).then(() => {
-                        return {data: true, process: 't_variants, t_manager_post'};
+                        return { data: true, process: 't_variants, t_manager_post' };
                     });
                 }
-                return {data: true, process: 't_variants'};
+                return { data: true, process: 't_variants' };
             });
 
             return promise;
@@ -191,15 +217,25 @@ export class Stock {
     }
 
     public async recoverStock(variant: any) {
-        const sql = (variant.spec.length > 0) ?`AND JSON_CONTAINS(content->'$.spec', JSON_ARRAY(${variant.spec.map((data:string)=>{return `\"${data}\"`}).join(',')}));`:''
+        const sql =
+            variant.spec.length > 0
+                ? `AND JSON_CONTAINS(content->'$.spec', JSON_ARRAY(${variant.spec
+                      .map((data: string) => {
+                          return `\"${data}\"`;
+                      })
+                      .join(',')}));`
+                : '';
 
-        let variantData = await db.query(`
+        let variantData = await db.query(
+            `
             SELECT *
             FROM \`${this.app}\`.t_variants
             WHERE \`product_id\` = "${variant.id}" ${sql}
-        `, [])
+        `,
+            []
+        );
         const pdDqlData = (
-            await new Shopping(this.app , this.token).getProduct({
+            await new Shopping(this.app, this.token).getProduct({
                 page: 0,
                 limit: 50,
                 id: variant.id,
@@ -216,15 +252,111 @@ export class Stock {
             pbVariant.stock += value;
             variantData.content.stockList[key].count += value;
             variantData.content.stock += value;
-
-        })
+        });
         await new Shopping(this.app, this.token).updateVariantsWithSpec(variantData.content, variant.id, variant.spec);
         await db.query(
             `UPDATE \`${this.app}\`.\`t_manager_post\`
                                      SET ?
                                      WHERE 1 = 1
                                        and id = ${pdDqlData.id}`,
-            [{content: JSON.stringify(pd)}]
+            [{ content: JSON.stringify(pd) }]
         );
+    }
+
+    async getHistory(json: { page: string; limit: string; search: string; type: StockHistoryType }) {
+        const page = json.page ? parseInt(`${json.page}`, 10) : 0;
+        const limit = json.limit ? parseInt(`${json.limit}`, 10) : 20;
+
+        function formatDate(sqlDatetime: string): string {
+            // 將 datetime 字串轉換為 JavaScript Date 物件
+            const date = new Date(sqlDatetime);
+
+            // 取得年、月、日
+            const year = date.getFullYear();
+            const month = String(date.getMonth() + 1).padStart(2, '0'); // 月份是從 0 開始的，需要加 1
+            const day = String(date.getDate()).padStart(2, '0');
+
+            // 組合成 'yyyy-mm-dd' 格式
+            const formattedDate = `${year}-${month}-${day}`;
+            return formattedDate;
+        }
+
+        try {
+            const getHistoryTotal = await db.query(
+                `SELECT count(id) as c FROM \`${this.app}\`.t_stock_history
+                WHERE 1=1
+                `,
+                []
+            );
+
+            const data = await db.query(
+                `SELECT * FROM \`${this.app}\`.t_stock_history
+                    WHERE 1=1
+                    LIMIT ${page * limit}, ${limit};
+                `,
+                []
+            );
+
+            data.map((rowData: StockHistoryData) => {
+                rowData.created_time = formatDate(rowData.created_time);
+            });
+
+            return {
+                total: getHistoryTotal[0].c,
+                data,
+            };
+        } catch (error) {
+            console.error(error);
+            if (error instanceof Error) {
+                throw exception.BadRequestError('stock getHistory Error: ', error.message, null);
+            }
+        }
+    }
+
+    async postHistory(json: StockHistoryData) {
+        console.log('postHistory');
+        console.log(json);
+        try {
+            const formatJson = JSON.parse(JSON.stringify(json));
+            formatJson.order_id = `IC${new Date().getTime()}`;
+            formatJson.content = JSON.stringify(json.content);
+            formatJson.created_time = `${json.created_time} 00:00:00`;
+            delete formatJson.id;
+
+            await db.query(
+                `INSERT INTO \`${this.app}\`.\`t_stock_history\` SET ?;
+                `,
+                [formatJson]
+            );
+
+            return { data: true };
+        } catch (error) {
+            console.error(error);
+            if (error instanceof Error) {
+                throw exception.BadRequestError('stock postHistory Error: ', error.message, null);
+            }
+        }
+    }
+
+    async putHistory(json: StockHistoryData) {
+        console.log('putHistory');
+        console.log(json);
+        try {
+            const formatJson = JSON.parse(JSON.stringify(json));
+            formatJson.content = JSON.stringify(json.content);
+
+            await db.query(
+                `UPDATE \`${this.app}\`.t_stock_history SET ? WHERE id = ?
+                `,
+                [formatJson, json.id]
+            );
+
+            return { data: false };
+        } catch (error) {
+            console.error(error);
+            if (error instanceof Error) {
+                throw exception.BadRequestError('stock postHistory Error: ', error.message, null);
+            }
+        }
     }
 }

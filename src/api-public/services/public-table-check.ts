@@ -1,12 +1,10 @@
 import db from '../../modules/database';
-import {saasConfig} from '../../config.js';
-import {compare_sql_table} from '../../services/saas-table-check.js';
+import { saasConfig } from '../../config.js';
+import { compare_sql_table } from '../../services/saas-table-check.js';
 import tool from '../../services/tool.js';
-import {Ai} from "../../services/ai.js";
-import {AiRobot} from "./ai-robot.js";
-import {User} from "./user.js";
-import {Shopping} from "./shopping.js";
-
+import { AiRobot } from './ai-robot.js';
+import { User } from './user.js';
+import { Shopping } from './shopping.js';
 
 export class ApiPublic {
     public static checkApp: { app_name: string; refer_app: string }[] = [];
@@ -21,9 +19,14 @@ export class ApiPublic {
         }
         ApiPublic.checkApp.push({
             app_name: appName,
-            refer_app: (await db.query(`select refer_app
+            refer_app: (
+                await db.query(
+                    `select refer_app
                                         from \`${saasConfig.SAAS_NAME}\`.app_config
-                                        where appName = ?`, [appName]))[0]['refer_app'],
+                                        where appName = ?`,
+                    [appName]
+                )
+            )[0]['refer_app'],
         });
         try {
             await db.execute(`CREATE SCHEMA if not exists \`${appName}\` DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;`, []);
@@ -60,7 +63,7 @@ export class ApiPublic {
   KEY \`index3\` (\`invoice_no\`),
   KEY \`index4\` (\`create_date\`),
   KEY \`index5\` (\`status\`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci`
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci`,
                 },
                 {
                     scheme: appName,
@@ -78,25 +81,25 @@ export class ApiPublic {
   KEY \`index3\` (\`invoice_no\`),
   KEY \`index4\` (\`create_date\`),
   KEY \`index5\` (\`status\`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci`
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci`,
                 },
-//                 {
-//                     scheme: appName,
-//                     table: `t_invoice_credit`,
-//                     sql: `(
-//   \`id\` int NOT NULL AUTO_INCREMENT,
-//   \`status\` int NOT NULL DEFAULT 1,
-//   \`order_id\` varchar(45) COLLATE utf8mb4_unicode_ci NOT NULL,
-//   \`invoice_no\` varchar(45) COLLATE utf8mb4_unicode_ci NOT NULL,
-//   \`invoice_data\` json DEFAULT NULL,
-//   \`create_date\` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
-//   PRIMARY KEY (\`id\`),
-//   KEY \`index2\` (\`order_id\`),
-//   KEY \`index3\` (\`invoice_no\`),
-//   KEY \`index4\` (\`create_date\`),
-//   KEY \`index5\` (\`status\`)
-// ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci`
-//                 },
+                //                 {
+                //                     scheme: appName,
+                //                     table: `t_invoice_credit`,
+                //                     sql: `(
+                //   \`id\` int NOT NULL AUTO_INCREMENT,
+                //   \`status\` int NOT NULL DEFAULT 1,
+                //   \`order_id\` varchar(45) COLLATE utf8mb4_unicode_ci NOT NULL,
+                //   \`invoice_no\` varchar(45) COLLATE utf8mb4_unicode_ci NOT NULL,
+                //   \`invoice_data\` json DEFAULT NULL,
+                //   \`create_date\` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                //   PRIMARY KEY (\`id\`),
+                //   KEY \`index2\` (\`order_id\`),
+                //   KEY \`index3\` (\`invoice_no\`),
+                //   KEY \`index4\` (\`create_date\`),
+                //   KEY \`index5\` (\`status\`)
+                // ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci`
+                //                 },
                 {
                     scheme: appName,
                     table: 't_variants',
@@ -499,6 +502,20 @@ export class ApiPublic {
   KEY \`index4\` (\`created_time\`)
 ) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci`,
                 },
+                {
+                    scheme: appName,
+                    table: `t_stock_history`,
+                    sql: `(
+  \`id\` int NOT NULL AUTO_INCREMENT,
+  \`type\` varchar(50) COLLATE utf8mb4_unicode_ci NOT NULL,
+  \`order_id\` varchar(50) COLLATE utf8mb4_unicode_ci NOT NULL,
+  \`status\` int NOT NULL DEFAULT 1,
+  \`content\` json DEFAULT NULL,
+  \`created_time\` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (\`id\`),
+  KEY \`index2\` (\`order_id\`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci`,
+                },
             ];
             for (const b of chunkArray(sqlArray, groupSize)) {
                 let check = b.length;
@@ -513,8 +530,8 @@ export class ApiPublic {
                     }
                 });
             }
-            await (AiRobot.syncAiRobot(appName))
-            await (ApiPublic.migrateVariants(appName))
+            await AiRobot.syncAiRobot(appName);
+            await ApiPublic.migrateVariants(appName);
         } catch (e) {
             console.error(e);
             ApiPublic.checkApp = ApiPublic.checkApp.filter((dd) => {
@@ -538,15 +555,17 @@ export class ApiPublic {
                 sql_info.sql_pwd = tool.randomString(12);
                 const trans = await db.Transaction.build();
                 await trans.execute(`CREATE USER '${sql_info.sql_admin}'@'%' IDENTIFIED BY '${sql_info.sql_pwd}';`, []);
-                await trans.execute(`update \`${saasConfig.SAAS_NAME}\`.app_config
+                await trans.execute(
+                    `update \`${saasConfig.SAAS_NAME}\`.app_config
                                      set sql_admin=?,
                                          sql_pwd=?
-                                     where appName = ${db.escape(appName)}`, [sql_info.sql_admin, sql_info.sql_pwd]);
+                                     where appName = ${db.escape(appName)}`,
+                    [sql_info.sql_admin, sql_info.sql_pwd]
+                );
                 await trans.execute(`GRANT ALL PRIVILEGES ON \`${appName}\`.* TO '${sql_info.sql_admin}'@'*';`, []);
                 await trans.commit();
                 await trans.release();
-            } catch (e) {
-            }
+            } catch (e) {}
         }
     }
 
@@ -554,38 +573,40 @@ export class ApiPublic {
         //判斷當前庫存的版本
         const store_version = await new User(app).getConfigV2({
             key: 'store_version',
-            user_id: 'manager'
+            user_id: 'manager',
         });
         //migrate成分倉版本
         if (store_version.version === 'v1') {
-            for (const b of await db.query(`select *
+            for (const b of await db.query(
+                `select *
                                             from \`${app}\`.t_manager_post
-                                            where (content ->>'$.type'='product')`, [])) {
+                                            where (content ->>'$.type'='product')`,
+                []
+            )) {
                 //庫存點列出
                 const stock_list = await new User(app).getConfigV2({
                     key: 'store_manager',
-                    user_id: 'manager'
+                    user_id: 'manager',
                 });
                 for (const c of b.content.variants) {
-
-                    c.stockList={}
-                    stock_list.list.map((dd:any)=>{
-                        c.stockList[dd.id]={
-                            count:0
-                        }
-                    })
-                    c.stockList[stock_list.list[0].id].count=c.stock;
+                    c.stockList = {};
+                    stock_list.list.map((dd: any) => {
+                        c.stockList[dd.id] = {
+                            count: 0,
+                        };
+                    });
+                    c.stockList[stock_list.list[0].id].count = c.stock;
                 }
-                await new Shopping(app).putProduct(b.content)
-                store_version.version='v2'
+                await new Shopping(app).putProduct(b.content);
+                store_version.version = 'v2';
                 await new User(app).setConfig({
-                    key:'store_version',
+                    key: 'store_version',
                     user_id: 'manager',
                     value: {
-                        version:'v2'
-                    }
-                })
-                console.log(`migrate-分艙:`,b)
+                        version: 'v2',
+                    },
+                });
+                console.log(`migrate-分艙:`, b);
             }
         }
     }

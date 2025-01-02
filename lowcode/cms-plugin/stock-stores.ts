@@ -11,7 +11,7 @@ import { Tool } from '../modules/tool.js';
 
 const html = String.raw;
 
-type StoreData = {
+export type StoreData = {
     id: string;
     name: string;
     address: string;
@@ -40,24 +40,13 @@ export class StockStores {
             id: glitter.getUUID(),
             tableId: glitter.getUUID(),
             type: 'list',
-            data: emptyData(),
+            data: StockStores.emptyData(),
             dataList: [],
             query: '',
             queryType: '',
             filter: {},
             orderString: '',
         };
-
-        function emptyData(): StoreData {
-            return {
-                id: '',
-                name: '',
-                address: '',
-                manager_name: '',
-                manager_phone: '',
-                note: '',
-            };
-        }
 
         return gvc.bindView({
             bind: vm.id,
@@ -72,13 +61,24 @@ export class StockStores {
                 }
 
                 if (vm.type === 'create') {
-                    vm.data = emptyData();
+                    vm.data = StockStores.emptyData();
                     return this.detailPage(gvc, vm, 'create');
                 }
 
                 return '';
             },
         });
+    }
+
+    static emptyData(): StoreData {
+        return {
+            id: '',
+            name: '',
+            address: '',
+            manager_name: '',
+            manager_phone: '',
+            note: '',
+        };
     }
 
     static list(gvc: GVC, vm: VM) {
@@ -463,49 +463,8 @@ export class StockStores {
                     )}
                     ${BgWidget.save(
                         gvc.event(() => {
-                            // 名稱未填寫驗證
-                            if (CheckInput.isEmpty(vm.data.name)) {
-                                dialog.infoMessage({ text: '庫存點名稱不得為空白' });
-                                return;
-                            }
-
-                            // 地址未填寫驗證
-                            if (CheckInput.isEmpty(vm.data.address)) {
-                                dialog.infoMessage({ text: '地址不得為空白' });
-                                return;
-                            }
-
-                            // 正則表達式來驗證台灣行動電話號碼格式
-                            if (!CheckInput.isTaiwanPhone(vm.data.manager_phone)) {
-                                dialog.infoMessage({ text: BgWidget.taiwanPhoneAlert() });
-                                return;
-                            }
-
-                            dialog.dataLoading({ visible: true });
-                            this.getPublicData().then((stores: any) => {
-                                if (type === 'replace') {
-                                    const store = stores.list.find((item: StoreData) => item.id === vm.data.id);
-                                    if (store) {
-                                        Object.assign(store, vm.data);
-                                    }
-                                } else {
-                                    vm.data.id = this.getNewID(stores.list);
-                                    stores.list.push(vm.data);
-                                }
-
-                                ApiUser.setPublicConfig({
-                                    key: 'store_manager',
-                                    value: {
-                                        list: stores.list,
-                                    },
-                                    user_id: 'manager',
-                                }).then((dd: any) => {
-                                    dialog.dataLoading({ visible: false });
-                                    dialog.successMessage({ text: type === 'create' ? '新增成功' : '更新成功' });
-                                    setTimeout(() => {
-                                        vm.type = 'list';
-                                    }, 500);
-                                });
+                            this.verifyStoreForm(glitter, type, vm.data, () => {
+                                vm.type = 'list';
                             });
                         })
                     )}
@@ -532,6 +491,54 @@ export class StockStores {
             newId = `store_${Tool.randomString(6)}`;
         } while (list.some((item: StoreData) => item.id === newId));
         return newId;
+    }
+
+    static verifyStoreForm(glitter: any, type: 'create' | 'replace', data: StoreData, callback: (data: any) => void): void {
+        const dialog = new ShareDialog(glitter);
+        // 名稱未填寫驗證
+        if (CheckInput.isEmpty(data.name)) {
+            dialog.infoMessage({ text: '庫存點名稱不得為空白' });
+            return;
+        }
+
+        // 地址未填寫驗證
+        if (CheckInput.isEmpty(data.address)) {
+            dialog.infoMessage({ text: '地址不得為空白' });
+            return;
+        }
+
+        // 正則表達式來驗證台灣行動電話號碼格式
+        if (!CheckInput.isTaiwanPhone(data.manager_phone)) {
+            dialog.infoMessage({ text: BgWidget.taiwanPhoneAlert() });
+            return;
+        }
+
+        dialog.dataLoading({ visible: true });
+        this.getPublicData().then((stores: any) => {
+            if (type === 'replace') {
+                const store = stores.list.find((item: StoreData) => item.id === data.id);
+                if (store) {
+                    Object.assign(store, data);
+                }
+            } else {
+                data.id = this.getNewID(stores.list);
+                stores.list.push(data);
+            }
+
+            ApiUser.setPublicConfig({
+                key: 'store_manager',
+                value: {
+                    list: stores.list,
+                },
+                user_id: 'manager',
+            }).then(() => {
+                dialog.dataLoading({ visible: false });
+                dialog.successMessage({ text: type === 'create' ? '新增成功' : '更新成功' });
+                setTimeout(() => {
+                    callback(data);
+                }, 500);
+            });
+        });
     }
 }
 

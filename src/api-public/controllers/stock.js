@@ -38,5 +38,49 @@ router.delete('/store', async (req, resp) => {
         return response_1.default.fail(resp, err);
     }
 });
+router.get('/history', async (req, resp) => {
+    try {
+        if (await ut_permission_1.UtPermission.isManager(req)) {
+            return response_1.default.succ(resp, await new stock_js_1.Stock(req.get('g-app'), req.body.token).getHistory({
+                page: req.query.page ? `${req.query.page}` : '0',
+                limit: req.query.limit ? `${req.query.limit}` : '20',
+                search: req.query.search,
+                type: req.query.type,
+            }));
+        }
+        else {
+            throw exception_1.default.BadRequestError('BAD_REQUEST', 'No permission.', null);
+        }
+    }
+    catch (err) {
+        return response_1.default.fail(resp, err);
+    }
+});
+router.post('/history', async (req, resp) => {
+    try {
+        if (await ut_permission_1.UtPermission.isManager(req)) {
+            return response_1.default.succ(resp, await new stock_js_1.Stock(req.get('g-app'), req.body.token).postHistory(req.body.data));
+        }
+        else {
+            throw exception_1.default.BadRequestError('BAD_REQUEST', 'No permission.', null);
+        }
+    }
+    catch (err) {
+        return response_1.default.fail(resp, err);
+    }
+});
+router.put('/history', async (req, resp) => {
+    try {
+        if (await ut_permission_1.UtPermission.isManager(req)) {
+            return response_1.default.succ(resp, await new stock_js_1.Stock(req.get('g-app'), req.body.token).putHistory(req.body.data));
+        }
+        else {
+            throw exception_1.default.BadRequestError('BAD_REQUEST', 'No permission.', null);
+        }
+    }
+    catch (err) {
+        return response_1.default.fail(resp, err);
+    }
+});
 module.exports = router;
 //# sourceMappingURL=stock.js.map

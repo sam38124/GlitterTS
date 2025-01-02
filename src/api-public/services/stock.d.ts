@@ -4,6 +4,30 @@ type StockList = {
         count: number;
     };
 };
+export type StockHistoryType = 'restocking' | 'transfer' | 'checking';
+type StockHistoryData = {
+    id: string;
+    type: StockHistoryType;
+    status: number;
+    order_id: string;
+    created_time: string;
+    content: {
+        vendor: string;
+        store_in: string;
+        store_out: string;
+        check_member: string;
+        check_according: 'all' | 'collection' | 'product';
+        note: string;
+        product_list: {
+            variant_id: number;
+            cost: number;
+            note: string;
+            transfer_count: number;
+            recent_count: number;
+            check_count: number;
+        }[];
+    };
+};
 export declare class Stock {
     app: string;
     token: IToken | undefined;
@@ -28,6 +52,24 @@ export declare class Stock {
         totalDeduction: number;
         remainingCount: number;
     };
+<<<<<<< HEAD
     recoverStock(variant: any): Promise<void>;
+=======
+    getHistory(json: {
+        page: string;
+        limit: string;
+        search: string;
+        type: StockHistoryType;
+    }): Promise<{
+        total: any;
+        data: any;
+    } | undefined>;
+    postHistory(json: StockHistoryData): Promise<{
+        data: boolean;
+    } | undefined>;
+    putHistory(json: StockHistoryData): Promise<{
+        data: boolean;
+    } | undefined>;
+>>>>>>> 24598577 (fix: user info member deadline & update restocking page)
 }
 export {};

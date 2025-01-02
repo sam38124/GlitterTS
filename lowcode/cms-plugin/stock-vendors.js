@@ -10,21 +10,11 @@ const html = String.raw;
 export class StockVendors {
     static main(gvc) {
         const glitter = gvc.glitter;
-        const emptyData = () => {
-            return {
-                id: '',
-                name: '',
-                address: '',
-                manager_name: '',
-                manager_phone: '',
-                note: '',
-            };
-        };
         const vm = {
             id: glitter.getUUID(),
             tableId: glitter.getUUID(),
             type: 'list',
-            data: emptyData(),
+            data: StockVendors.emptyData(),
             dataList: [],
             query: '',
             queryType: '',
@@ -42,7 +32,7 @@ export class StockVendors {
                     return this.detailPage(gvc, vm, 'replace');
                 }
                 if (vm.type === 'create') {
-                    vm.data = emptyData();
+                    vm.data = StockVendors.emptyData();
                     return this.detailPage(gvc, vm, 'create');
                 }
                 return '';
@@ -282,45 +272,8 @@ export class StockVendors {
                 vm.type = 'list';
             }))}
                     ${BgWidget.save(gvc.event(() => {
-                if (CheckInput.isEmpty(vm.data.name)) {
-                    dialog.infoMessage({ text: '供應商名稱不得為空白' });
-                    return;
-                }
-                if (CheckInput.isEmpty(vm.data.address)) {
-                    dialog.infoMessage({ text: '地址不得為空白' });
-                    return;
-                }
-                if (!CheckInput.isTaiwanPhone(vm.data.manager_phone)) {
-                    dialog.infoMessage({ text: BgWidget.taiwanPhoneAlert() });
-                    return;
-                }
-                dialog.dataLoading({ visible: true });
-                this.getPublicData().then((vendors) => {
-                    var _a;
-                    vendors.list = (_a = vendors.list) !== null && _a !== void 0 ? _a : [];
-                    if (type === 'replace') {
-                        const vendor = vendors.list.find((item) => item.id === vm.data.id);
-                        if (vendor) {
-                            Object.assign(vendor, vm.data);
-                        }
-                    }
-                    else {
-                        vm.data.id = this.getNewID(vendors.list);
-                        vendors.list.push(vm.data);
-                    }
-                    ApiUser.setPublicConfig({
-                        key: 'vendor_manager',
-                        value: {
-                            list: vendors.list,
-                        },
-                        user_id: 'manager',
-                    }).then((dd) => {
-                        dialog.dataLoading({ visible: false });
-                        dialog.successMessage({ text: type === 'create' ? '新增成功' : '更新成功' });
-                        setTimeout(() => {
-                            vm.type = 'list';
-                        }, 500);
-                    });
+                this.verifyStoreForm(glitter, type, vm.data, () => {
+                    vm.type = 'list';
                 });
             }))}
                 </div>`,
@@ -345,5 +298,56 @@ export class StockVendors {
         } while (list.some((item) => item.id === newId));
         return newId;
     }
+    static verifyStoreForm(glitter, type, data, callback) {
+        const dialog = new ShareDialog(glitter);
+        if (CheckInput.isEmpty(data.name)) {
+            dialog.infoMessage({ text: '供應商名稱不得為空白' });
+            return;
+        }
+        if (CheckInput.isEmpty(data.address)) {
+            dialog.infoMessage({ text: '地址不得為空白' });
+            return;
+        }
+        if (!CheckInput.isTaiwanPhone(data.manager_phone)) {
+            dialog.infoMessage({ text: BgWidget.taiwanPhoneAlert() });
+            return;
+        }
+        dialog.dataLoading({ visible: true });
+        this.getPublicData().then((vendors) => {
+            var _a;
+            vendors.list = (_a = vendors.list) !== null && _a !== void 0 ? _a : [];
+            if (type === 'replace') {
+                const vendor = vendors.list.find((item) => item.id === data.id);
+                if (vendor) {
+                    Object.assign(vendor, data);
+                }
+            }
+            else {
+                data.id = this.getNewID(vendors.list);
+                vendors.list.push(data);
+            }
+            ApiUser.setPublicConfig({
+                key: 'vendor_manager',
+                value: {
+                    list: vendors.list,
+                },
+                user_id: 'manager',
+            }).then(() => {
+                dialog.dataLoading({ visible: false });
+                dialog.successMessage({ text: type === 'create' ? '新增成功' : '更新成功' });
+                callback(data);
+            });
+        });
+    }
 }
+StockVendors.emptyData = () => {
+    return {
+        id: '',
+        name: '',
+        address: '',
+        manager_name: '',
+        manager_phone: '',
+        note: '',
+    };
+};
 window.glitter.setModule(import.meta.url, StockVendors);

@@ -585,4 +585,15 @@ export class FilterOptions {
     static vendorsFunnel = [];
 
     static vendorsOrderBy = [];
+
+    static stockHistoryFilterFrame = {};
+
+    static stockHistorySelect = [
+        { key: 'order_id', value: '進貨單編號' },
+        { key: 'note', value: '備註' },
+    ];
+
+    static stockHistoryFunnel = [];
+
+    static stockHistoryOrderBy = [];
 }
