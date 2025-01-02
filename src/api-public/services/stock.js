@@ -172,7 +172,6 @@ class Stock {
             variantData.content.stockList[key].count += value;
             variantData.content.stock += value;
         });
-        console.log("pdDqlData.id -- ", pdDqlData.id);
         await new shopping_1.Shopping(this.app, this.token).updateVariantsWithSpec(variantData.content, variant.id, variant.spec);
         await database_1.default.query(`UPDATE \`${this.app}\`.\`t_manager_post\`
                                      SET ?

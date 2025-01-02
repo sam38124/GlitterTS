@@ -652,8 +652,21 @@ export class ShoppingProductSetting {
                                                                                                     {
                                                                                                         key: '庫存',
                                                                                                         value: (() => {
-                                                                                                            const sum = dd.content.variants.reduce((acc: any, curr: any) => acc + curr.stock, 0);
-                                                                                                            return html`${dd.content.variants.length > 1 ? `${dd.content.variants.length}個子類` : ``}${sum > 1
+                                                                                                            let sum = 0;
+                                                                                                            let countStock = 0;
+                                                                                                            dd.content.variants.forEach((variant:any)=>{
+                                                                                                                if (variant.show_understocking == "true"){
+                                                                                                                    countStock++;
+                                                                                                                    sum += variant.stock;
+                                                                                                                }
+                                                                                                            })
+                                                                                                            // const sum = dd.content.variants.reduce((acc: any, curr: any) => acc + curr.stock, 0);
+                                                                                                            if (countStock ==0){
+                                                                                                                return html`
+                                                                                                                    無追蹤庫存
+                                                                                                                `
+                                                                                                            }
+                                                                                                            return html`${countStock}個子類 ${sum > 1
                                                                                                                     ? `有${sum}件庫存`
                                                                                                                     : html`
                                                                                                                         <span style="color:#8E0E2B">有${sum} 件庫存</span>`}`;
@@ -1327,7 +1340,7 @@ export class ShoppingProductSetting {
                                                                                 <div style="width: 16px;height: 16px;border-radius: 20px;border: 4px solid #393939;"></div>`
                                                                             : html`
                                                                                 <div style="width: 16px;height: 16px;border-radius: 20px;border: 1px solid #DDD;"></div>`}
-                                                                    追蹤商品庫存
+                                                                    追蹤庫存
                                                                 </div>
                                                                 ${variant.show_understocking != 'false'
                                                                         ? showStockView()
@@ -1346,7 +1359,7 @@ export class ShoppingProductSetting {
                                                                             <div style="width: 16px;height: 16px;border-radius: 20px;border: 4px solid #393939;"></div>`
                                                                         : html`
                                                                             <div style="width: 16px;height: 16px;border-radius: 20px;border: 1px solid #DDD;"></div>`}
-                                                                不追蹤
+                                                                不追蹤庫存
                                                             </div>
                                                             <div style="width:100%;height:1px;backgound:#DDDDDD;"></div>
                                                             ${
@@ -4405,7 +4418,10 @@ export class ShoppingProductSetting {
                                                                                                                                                                                                     gvc: gvc,
                                                                                                                                                                                                     postMD: postMD,
                                                                                                                                                                                                     selected: postMD.variants,
-                                                                                                                                                                                                });      
+                                                                                                                                                                                                    callback:()=>{
+                                                                                                                                                                                                        gvc.notifyDataChange(viewID)
+                                                                                                                                                                                                    }
+                                                                                                                                                                                                });
                                                                                                                                                                                             }
                                                                                                                                                                                           
                                                                                                                                                                                         })}"

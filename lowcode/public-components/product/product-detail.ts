@@ -392,7 +392,7 @@ export class ProductDetail {
             },
             onCreate: () => {
                 if (loadings.page) {
-                    const title = glitter.getUrlParameter('page').split('/')[1];
+                    const title = glitter.getUrlParameter('page').split('products/')[1];
                     if (title || product_id) {
                         const inputObj = {
                             page: 0,

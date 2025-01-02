@@ -35,7 +35,6 @@ export class ProductSetting {
                 view: () => {
                     const titleLength = 400;
                     const elementLength = 160;
-                    console.log("stockList - ", stockList);
                     if (loading) {
                         dialog.dataLoading({
                             visible: true,
@@ -112,6 +111,7 @@ export class ProductSetting {
                         function insertSubStocks(titleArray, subStocks) {
                             const targetIndex = titleArray.findIndex(item => item.title === "庫存");
                             if (targetIndex !== -1) {
+                                subStocks.unshift("庫存政策");
                                 const formattedSubStocks = subStocks.map(stockTitle => ({
                                     title: stockTitle,
                                     width: titleArray[targetIndex].width
@@ -220,8 +220,36 @@ export class ProductSetting {
                                                     .map((dd) => {
                                                     var _a;
                                                     if (dd === 'stock') {
-                                                        console.log("dd -- ", dd);
-                                                        return stockList.map((item) => {
+                                                        let returnHTML = html `
+                                                                                                                <div
+                                                                                                                        class="d-block flex-shrink-0"
+                                                                                                                        style="color:#393939;font-size: 16px;font-weight: 400;width:${elementLength}px;"
+                                                                                                                >
+                                                                                                                    <select
+                                                                                                                            class="form-select"
+                                                                                                                            style="height: 40px;width: 100%;padding: 0 18px;border-radius: 10px;"
+                                                                                                                            onchange="${gvc.event((e) => {
+                                                            data.show_understocking = e.value;
+                                                        })}"
+                                                                                                                    >
+                                                                                                                        <option
+                                                                                                                                value="true"
+                                                                                                                                ${data.show_understocking == 'true' ? `selected` : ``}
+                                                                                                                        >
+                                                                                                                            追蹤庫存
+                                                                                                                        </option>
+                                                                                                                        <option
+                                                                                                                                value="false"
+                                                                                                                                ${data.show_understocking == 'false'
+                                                            ? `selected`
+                                                            : ``}
+                                                                                                                        >
+                                                                                                                            不追蹤庫存
+                                                                                                                        </option>
+                                                                                                                    </select>
+                                                                                                                </div>
+                                                                                                            `;
+                                                        returnHTML += stockList.map((item) => {
                                                             var _a;
                                                             if (!data['stockList']) {
                                                                 data['stockList'] = {};
@@ -249,11 +277,18 @@ export class ProductSetting {
                                                             })}"
                                                                                                                                 onchange="${gvc.event((e) => {
                                                                 data['stockList'][item.id].count = e.value;
+                                                                let count = 0;
+                                                                Object.values(data['stockList'])
+                                                                    .map((stock) => {
+                                                                    count += parseInt(stock.count, 10);
+                                                                });
+                                                                data['stock'] = count;
                                                                 gvc.notifyDataChange(vm.id);
                                                             })}"
                                                                                                                         />
                                                                                                                     </div>`;
                                                         }).join('');
+                                                        return returnHTML;
                                                     }
                                                     return html `
                                                                                                             <div class="flex-shrink-0"
@@ -356,13 +391,16 @@ export class ProductSetting {
                     })}
                             </div>
                             <div class="w-100 justify-content-end d-flex update-bar-container"
-                                 style="">
+                                 style="margin-top:100px;">
                                 ${BgWidget.cancel(gvc.event(() => {
                         postMD = origData;
                         topGVC.glitter.closeDiaLog();
                     }))}
                                 ${BgWidget.save(gvc.event(() => {
                         topGVC.glitter.closeDiaLog();
+                        if (obj.callback) {
+                            obj.callback();
+                        }
                     }))}
                             </div>
                         </div>
