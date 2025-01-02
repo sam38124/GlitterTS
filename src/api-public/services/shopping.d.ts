@@ -375,7 +375,7 @@ export declare class Shopping {
     resetVoucherHistory(): Promise<void>;
     postVariantsAndPriceValue(content: any): Promise<void>;
     updateVariantsWithSpec(data: any, product_id: string, spec: string[]): Promise<void>;
-    getDataAnalyze(tags: string[]): Promise<any>;
+    getDataAnalyze(tags: string[], query?: any): Promise<any>;
     generateTimeRange(index: number): {
         startISO: string;
         endISO: string;
@@ -410,9 +410,16 @@ export declare class Shopping {
         previous_month_total: number;
         gap: number;
     }>;
-    getHotProducts(duration: 'month' | 'day'): Promise<{
+    getHotProducts(duration: 'month' | 'day' | 'all', date?: string): Promise<{
         series: number[];
         categories: string[];
+        product_list: {
+            title: string;
+            count: number;
+            preview_image: string;
+            sale_price: number;
+            pos_info: any;
+        }[];
     }>;
     getOrdersInRecentMonth(): Promise<{
         recent_month_total: any;

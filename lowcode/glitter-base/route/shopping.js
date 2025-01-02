@@ -815,9 +815,9 @@ export class ApiShop {
             }),
         });
     }
-    static ecDataAnalyze(tagArray) {
+    static ecDataAnalyze(tagArray, query = '') {
         return BaseApi.create({
-            url: getBaseUrl() + `/api-public/v1/ec/dataAnalyze?tags=${tagArray.join(',')}`,
+            url: getBaseUrl() + `/api-public/v1/ec/dataAnalyze?tags=${tagArray.join(',')}&query=${query}`,
             type: 'GET',
             headers: {
                 'Content-Type': 'application/json',
