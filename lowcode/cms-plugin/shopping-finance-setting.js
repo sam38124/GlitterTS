@@ -833,6 +833,7 @@ export class ShoppingFinanceSetting {
                             content: (_b = (_a = keyData.payment_info_atm) === null || _a === void 0 ? void 0 : _a.text) !== null && _b !== void 0 ? _b : '',
                             callback: (content) => {
                                 keyData.payment_info_atm.text = content;
+                                gvc.notifyDataChange(id);
                             },
                             title: '付款說明'
                         })

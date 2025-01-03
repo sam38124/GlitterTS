@@ -525,6 +525,9 @@ export class Shopping {
                     dd.content.preview_image = dd.content.language_data[`${query.language}`].preview_image || dd.content.preview_image;
                     (dd.content.variants || []).map((variant: any) => {
                         variant.preview_image = variant[`preview_image_${query.language}`] || variant.preview_image;
+                        if(variant.preview_image==='https://d3jnmi1tfjgtti.cloudfront.net/file/234285319/1722936949034-default_image.jpg'){
+                            variant.preview_image=dd.content.preview_image[0];
+                        }
                     });
                 }
             }
@@ -1140,25 +1143,6 @@ export class Shopping {
                                        and id = ${pdDqlData.id}`,
                                     [{content: JSON.stringify(pd)}]
                                 );
-                                // 獲取當前時間
-                                // let deadTime = new Date();
-                                // // 添加10分鐘
-                                //
-                                // deadTime.setMinutes(deadTime.getMinutes() + 15);
-                                // // 設定15分鐘後回寫訂單庫存
-                                // await db.query(
-                                //     `INSERT INTO \`${this.app}\`.\`t_stock_recover\`
-                                //      set ?`,
-                                //     [
-                                //         {
-                                //             product_id: pdDqlData.id,
-                                //             spec: variant.spec.join('-'),
-                                //             dead_line: deadTime,
-                                //             order_id: carData.orderID,
-                                //             count: b.count,
-                                //         },
-                                //     ]
-                                // );
                             }
                         }
                         if (!pd.productType.product && pd.productType.addProduct) {
@@ -2773,6 +2757,7 @@ OR JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.orderStatus')) NOT IN (-99)) `);
                     []
                 );
             }
+            const store_config=await new User(this.app).getConfigV2({key:'store_manager',user_id:'manager'});
             await Promise.all(content.variants.map((a: any) => {
                 content.min_price = content.min_price ?? a.sale_price;
                 content.max_price = content.max_price ?? a.sale_price;
@@ -2784,9 +2769,13 @@ OR JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.orderStatus')) NOT IN (-99)) `);
                 }
                 a.type = 'variants';
                 a.product_id = content.id;
+                a.stockList=a.stockList || {}
                 if (a.show_understocking === 'false') {
                     a.stock = 0
                     a.stockList = {}
+                }else if(Object.keys(a.stockList).length===0){
+                    //適應舊版庫存更新
+                    a.stockList[store_config.list[0].id]={count:a.stock}
                 }
                 return new Promise(async (resolve, reject) => {
                     await db.query(`INSERT INTO \`${this.app}\`.t_variants
@@ -4189,30 +4178,42 @@ OR JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.orderStatus')) NOT IN (-99)) `);
 
     async postMulProduct(content: any) {
         try {
+
             if (content.collection.length > 0) {
                 //有新類別要處理
                 await this.updateCollectionFromUpdateProduct(content.collection);
             }
-            let productArray = content.data;
-            let passArray = [];
-            productArray.forEach((product: any, index: number) => {
-                product.type = 'product';
-            });
+            let productArray:any = content.data;
+            await (Promise.all(productArray.map((product:any,index:number)=>{
+                return new Promise(async (resolve, reject)=>{
+                    product.type = 'product';
+                    //判斷是更新時
+                    if(product.id){
+                        const og_data=(await db.query(`select * from \`${this.app}\`.\`t_manager_post\` where id=?`,[product.id]))[0];
+                        if(og_data){
+                            delete product['preview_image'];
+                            product={
+                                ...og_data['content'],
+                                ...product
+                            }
+                            product.preview_image=og_data['content'].preview_image || [];
+                            productArray[index]=product;
+                        }
+                    }
+                    resolve(true)
+                })
+            })));
             const data = await db.query(
-                `INSERT INTO \`${this.app}\`.\`t_manager_post\` (userID, content)
-                 VALUES ?`,
+                `replace INTO \`${this.app}\`.\`t_manager_post\` (id,userID,content) values ?`,
                 [
                     productArray.map((product: any) => {
                         product.type = 'product';
-
                         this.checkVariantDataType(product.variants);
-                        return [this.token?.userID, JSON.stringify(product)];
+                        return  [product.id || null,this.token?.userID,JSON.stringify(product)]
                     }),
                 ]
             );
-
             let insertIDStart = data.insertId;
-
             await new Shopping(this.app, this.token).processProducts(productArray, insertIDStart);
             return insertIDStart;
         } catch (e) {

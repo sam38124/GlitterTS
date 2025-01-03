@@ -53,7 +53,6 @@ export interface RowInitData {
     weightUnit: string;
     stockPolicy: string;
     stock: string;
-    stockList:{};
     save_stock: string;
     barcode: string;
 }
@@ -248,8 +247,8 @@ export class ProductExcel {
                 const workbook = new this.ExcelJS.Workbook();
                 await workbook.xlsx.load(arrayBuffer);
                 const worksheet = workbook.getWorksheet(1);
-
                 const data: any = [];
+                let id_list:string[]=[]
                 worksheet.eachRow({ includeEmpty: true }, (row: any, rowNumber: any) => {
                     const rowData: any = [];
                     row.eachCell({ includeEmpty: true }, (cell: any, colNumber: any) => {
@@ -260,6 +259,13 @@ export class ProductExcel {
                         data.push(rowData);
                     }
                 });
+                if(data[0][0]==="商品ID"){
+                    data.map((dd:any,index:number)=>{
+                        //帶入商品ID
+                        id_list.push(dd[0])
+                        data[index]=dd.filter((d1:any,index:number)=>{return index>0})
+                    })
+                }
                 let error = false;
                 let addCollection: any = [];
                 let postMD: {
@@ -322,8 +328,8 @@ export class ProductExcel {
 
                 // 商品連結若為空，則預設值為商品名稱
                 const domainList = data
-                    .filter((item: string[]) => {
-                        return item[0];
+                    .filter((item: string[],index:number) => {
+                        return item[0] && (!(id_list)[index]);
                     })
                     .map((item: string[]) => {
                         if (CheckInput.isEmpty(item[5])) {
@@ -331,12 +337,10 @@ export class ProductExcel {
                         }
                         return `${item[5]}`;
                     });
-
                 // 判斷excel中是否有重複的domain
                 const filteredArr = domainList.filter((item: string) => {
                     return item && item.length > 0 && item.trim().length > 0;
                 });
-
                 // 過濾掉空白字串
                 const hasDuplicates = new Set(filteredArr).size !== filteredArr.length;
                 if (hasDuplicates) {
@@ -360,6 +364,7 @@ export class ProductExcel {
                                 postMD.push(productData);
                             }
                             addCollection = [];
+                            productData.id=id_list[index];
                             productData = {
                                 title: '',
                                 productType: {
@@ -383,7 +388,6 @@ export class ProductExcel {
                                 },
                                 template: '',
                             };
-
                             productData.title = this.checkString(row[0]);
                             productData.status = row[1] == '啟用' ? 'active' : 'draft';
                             productData.collection = row[2].split(',') ?? [];
@@ -392,10 +396,10 @@ export class ProductExcel {
                             productData.collection = productData.collection.map((item: string) => item.replace(/\s+/g, ''));
                             productData.collection.forEach((row: any) => {
                                 let collection = row.replace(/\s+/g, '');
-                                if (regex.test(collection)) {
-                                    errorCallback(`第${index + 1}行的類別名稱不可包含空白格與以下符號：「 / 」「 \\ 」，並以「 , 」區分不同類別`);
-                                    return;
-                                }
+                                // if (regex.test(collection)) {
+                                //     errorCallback(`第${index + 1}行的類別名稱不可包含空白格與以下符號：「 / 」「 \\ 」，並以「 , 」區分不同類別`);
+                                //     return;
+                                // }
 
                                 // 若帶有/，要自動加上父類
                                 function splitStringIncrementally(input: string): string[] {
@@ -465,7 +469,7 @@ export class ProductExcel {
                                 variantData.spec.push(row[rowindex]);
                             }
                         });
-
+                        variantData.preview_image = row[4]
                         variantData.sku = this.checkString(row[14]);
                         variantData.cost = this.checkString(row[15]);
                         variantData.sale_price = this.checkNumber(row[16]);
@@ -477,7 +481,6 @@ export class ProductExcel {
                             依材積計算: 'volume',
                         };
                         variantData.shipment_type = shipmentTypeMap[row[19]] || 'none';
-
                         variantData.v_length = this.checkNumber(row[20]);
                         variantData.v_width = this.checkNumber(row[21]);
                         variantData.v_height = this.checkNumber(row[22]);
@@ -548,7 +551,7 @@ export class ProductExcel {
             '使用狀態（啟用/草稿）',
             '商品類別',
             '上架類型（前台商品/加購品/贈品/隱形賣場）',
-            '圖片網址',
+            '規格圖網址',
             '商品連結',
             'SEO標題',
             'SEO描述',

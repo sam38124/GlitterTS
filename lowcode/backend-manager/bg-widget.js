@@ -3724,6 +3724,7 @@ ${(_c = obj.default) !== null && _c !== void 0 ? _c : ''}</textarea
                                         BgWidget.save(gvc2.event(() => {
                                             gvc2.closeDialog();
                                             gvc.notifyDataChange(id);
+                                            obj.callback(obj.content);
                                         })),
                                     ].join('');
                                 },

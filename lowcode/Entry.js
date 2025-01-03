@@ -79,7 +79,7 @@ export class Entry {
         }
         window.renderClock = (_a = window.renderClock) !== null && _a !== void 0 ? _a : clockF();
         console.log(`Entry-time:`, window.renderClock.stop());
-        glitter.share.editerVersion = 'V_16.1.2';
+        glitter.share.editerVersion = 'V_16.1.8';
         glitter.share.start = new Date();
         const vm = {
             appConfig: [],
@@ -265,10 +265,6 @@ export class Entry {
     }
     static toBackendEditor(glitter, callback) {
         const css = String.raw;
-        if (localStorage.getItem('on-pos') === 'true' && glitter.getUrlParameter('page') !== 'pos') {
-            localStorage.removeItem('on-pos');
-            location.href = glitter.root_path + 'pos?app-id=t_1725992531001';
-        }
         glitter.addStyle(css `
             @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@100..900&family=Noto+Sans:ital,wght@0,100..900;1,100..900&display=swap');
             @media (prefers-reduced-motion: no-preference) {
@@ -331,11 +327,17 @@ export class Entry {
                             min-height: ${window.innerHeight}px !important;
                         }
                     `);
-                    glitter.setHome('jspage/main.js', glitter.getUrlParameter('page'), {
-                        appName: config.appName,
-                    }, {
-                        backGroundColor: `transparent;`,
-                    });
+                    if (localStorage.getItem('on-pos') === 'true' && glitter.getUrlParameter('page') !== 'pos' && (glitter.getUrlParameter('type') === 'editor')) {
+                        localStorage.removeItem('on-pos');
+                        location.href = glitter.root_path + 'pos?app-id=' + window.appName;
+                    }
+                    else {
+                        glitter.setHome('jspage/main.js', glitter.getUrlParameter('page'), {
+                            appName: config.appName,
+                        }, {
+                            backGroundColor: `transparent;`,
+                        });
+                    }
                 }
             }));
         }

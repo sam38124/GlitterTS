@@ -172,6 +172,7 @@ export class ProductExcel {
                     yield workbook.xlsx.load(arrayBuffer);
                     const worksheet = workbook.getWorksheet(1);
                     const data = [];
+                    let id_list = [];
                     worksheet.eachRow({ includeEmpty: true }, (row, rowNumber) => {
                         const rowData = [];
                         row.eachCell({ includeEmpty: true }, (cell, colNumber) => {
@@ -182,6 +183,12 @@ export class ProductExcel {
                             data.push(rowData);
                         }
                     });
+                    if (data[0][0] === "商品ID") {
+                        data.map((dd, index) => {
+                            id_list.push(dd[0]);
+                            data[index] = dd.filter((d1, index) => { return index > 0; });
+                        });
+                    }
                     let error = false;
                     let addCollection = [];
                     let postMD = [];
@@ -218,8 +225,8 @@ export class ProductExcel {
                         }
                     }
                     const domainList = data
-                        .filter((item) => {
-                        return item[0];
+                        .filter((item, index) => {
+                        return item[0] && (!(id_list)[index]);
                     })
                         .map((item) => {
                         if (CheckInput.isEmpty(item[5])) {
@@ -250,6 +257,7 @@ export class ProductExcel {
                                     postMD.push(productData);
                                 }
                                 addCollection = [];
+                                productData.id = id_list[index];
                                 productData = {
                                     title: '',
                                     productType: {
@@ -280,10 +288,6 @@ export class ProductExcel {
                                 productData.collection = productData.collection.map((item) => item.replace(/\s+/g, ''));
                                 productData.collection.forEach((row) => {
                                     let collection = row.replace(/\s+/g, '');
-                                    if (regex.test(collection)) {
-                                        errorCallback(`第${index + 1}行的類別名稱不可包含空白格與以下符號：「 / 」「 \\ 」，並以「 , 」區分不同類別`);
-                                        return;
-                                    }
                                     function splitStringIncrementally(input) {
                                         const parts = input.split('/');
                                         const result = [];
@@ -343,6 +347,7 @@ export class ProductExcel {
                                     variantData.spec.push(row[rowindex]);
                                 }
                             });
+                            variantData.preview_image = row[4];
                             variantData.sku = this.checkString(row[14]);
                             variantData.cost = this.checkString(row[15]);
                             variantData.sale_price = this.checkNumber(row[16]);
@@ -423,7 +428,7 @@ export class ProductExcel {
             '使用狀態（啟用/草稿）',
             '商品類別',
             '上架類型（前台商品/加購品/贈品/隱形賣場）',
-            '圖片網址',
+            '規格圖網址',
             '商品連結',
             'SEO標題',
             'SEO描述',

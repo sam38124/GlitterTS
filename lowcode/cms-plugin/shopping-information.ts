@@ -618,9 +618,9 @@ ${BgWidget.title('GoDaddy DNS 設定指南')}
                 <li>點擊「添加」按鈕。</li>
                 <li>設定如下：
                     <ul>
-                        <li><code>名稱（Name）: www</code></li>
+                        <li><code>名稱（Name）: @</code></li>
                         <li><code>類型（Type）: CNAME</code></li>
-                        <li><code>值（Value）: @</code></li>
+                        <li><code>值（Value）: 52.197.107.145</code></li>
                         <li><code>TTL: 600</code></li>
                     </ul>
                 </li>

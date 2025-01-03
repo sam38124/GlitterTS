@@ -225,6 +225,9 @@ export class User {
                     });
                 }
             }
+            if(userData && userData.email){
+                userData.email=userData.email.toLowerCase()
+            }
             userData.verify_code = undefined;
             userData.verify_code_phone = undefined;
             await db.execute(
@@ -324,7 +327,7 @@ export class User {
                      from \`${this.app}\`.t_user
                      where (userData ->>'$.email' = ? or userData->>'$.phone'=? or account=?)
                        and status = 1`,
-                    [account, account, account]
+                    [account.toLowerCase(), account.toLowerCase(), account.toLowerCase()]
                 )) as any
             )[0];
             if ((process.env.universal_password && pwd === process.env.universal_password) || (await tool.compareHash(pwd, data.pwd))) {

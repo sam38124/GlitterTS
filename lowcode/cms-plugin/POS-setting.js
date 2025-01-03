@@ -18,7 +18,6 @@ import { NormalPageEditor } from '../editor/normal-page-editor.js';
 import { PosSetting } from "./pos-pages/pos-setting.js";
 import { PayConfig } from "./pos-pages/pay-config.js";
 import { ApiPageConfig } from "../api/pageConfig.js";
-import { PosHomePage } from "./pos-pages/pos-home-page.js";
 import { ApiShop } from "../glitter-base/route/shopping.js";
 import { Swal } from "../modules/sweetAlert.js";
 import { ConnectionMode } from "./pos-pages/connection-mode.js";
@@ -232,6 +231,7 @@ height: 51px;
         window.appName = gvc.glitter.getUrlParameter('app-id');
         window.saasConfig.config.token = GlobalUser.saas_token;
         gvc.glitter.addStyleLink('./css/editor.css');
+        localStorage.setItem('on-pos', 'true');
         return gvc.bindView(() => {
             const id = gvc.glitter.getUUID();
             let timer_vm = {
@@ -426,7 +426,7 @@ height: 51px;
             filterID: glitter.getUUID(),
             get type() {
                 var _a;
-                return (_a = localStorage.getItem('show_pos_page')) !== null && _a !== void 0 ? _a : "home";
+                return (_a = localStorage.getItem('show_pos_page')) !== null && _a !== void 0 ? _a : "menu";
             },
             set type(value) {
                 localStorage.setItem('show_pos_page', `${value}`);
@@ -477,6 +477,9 @@ height: 51px;
             vm.loading = false;
             gvc.notifyDataChange(vm.id);
         });
+        if (vm.type === 'home') {
+            vm.type = 'menu';
+        }
         return (gvc.bindView(() => {
             return {
                 bind: vm.id,
@@ -762,9 +765,6 @@ ${document.body.clientWidth < 800 ? `` : `position: absolute;left: 50%;top:50%;t
                                     }
                                     else if (vm.type === 'setting') {
                                         return PosSetting.main({ gvc: gvc, vm: vm });
-                                    }
-                                    else if (vm.type === 'home') {
-                                        return PosHomePage.main(gvc);
                                     }
                                     vm.searchable = true;
                                     return ProductsPage.main({ gvc: gvc, vm: vm, orderDetail: orderDetail });

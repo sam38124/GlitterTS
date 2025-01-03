@@ -169,6 +169,9 @@ class User {
                     });
                 }
             }
+            if (userData && userData.email) {
+                userData.email = userData.email.toLowerCase();
+            }
             userData.verify_code = undefined;
             userData.verify_code_phone = undefined;
             await database_1.default.execute(`INSERT INTO \`${this.app}\`.\`t_user\` (\`userID\`, \`account\`, \`pwd\`, \`userData\`, \`status\`)
@@ -247,7 +250,7 @@ class User {
             const data = (await database_1.default.execute(`select *
                      from \`${this.app}\`.t_user
                      where (userData ->>'$.email' = ? or userData->>'$.phone'=? or account=?)
-                       and status = 1`, [account, account, account]))[0];
+                       and status = 1`, [account.toLowerCase(), account.toLowerCase(), account.toLowerCase()]))[0];
             if ((process_1.default.env.universal_password && pwd === process_1.default.env.universal_password) || (await tool_1.default.compareHash(pwd, data.pwd))) {
                 data.pwd = undefined;
                 data.token = await UserUtil_1.default.generateToken({

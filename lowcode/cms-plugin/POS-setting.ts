@@ -10,12 +10,10 @@ import {NormalPageEditor} from '../editor/normal-page-editor.js';
 import {PosSetting} from "./pos-pages/pos-setting.js";
 import {PayConfig} from "./pos-pages/pay-config.js";
 import {ApiPageConfig} from "../api/pageConfig.js";
-import {PosHomePage} from "./pos-pages/pos-home-page.js";
 import {ApiShop} from "../glitter-base/route/shopping.js";
 import {Swal} from "../modules/sweetAlert.js";
 import {ConnectionMode} from "./pos-pages/connection-mode.js";
 import {PosFunction} from "./pos-pages/pos-function.js";
-import {ShoppingProductSetting} from "./shopping-product-setting.js";
 import {UserList} from "./user-list.js";
 
 function getConfig() {
@@ -284,6 +282,7 @@ height: 51px;
         (window as any).appName = gvc.glitter.getUrlParameter('app-id');
         (window as any).saasConfig.config.token = GlobalUser.saas_token;
         gvc.glitter.addStyleLink('./css/editor.css');
+        localStorage.setItem('on-pos','true')
         return gvc.bindView(() => {
             const id = gvc.glitter.getUUID();
             let timer_vm: {
@@ -485,7 +484,7 @@ height: 51px;
             id: glitter.getUUID(),
             filterID: glitter.getUUID(),
             get type() {
-                return localStorage.getItem('show_pos_page') ?? "home"
+                return localStorage.getItem('show_pos_page') ?? "menu"
             },
             set type(value) {
                 localStorage.setItem('show_pos_page', `${value}`)
@@ -506,6 +505,7 @@ height: 51px;
             ],
             paySelect: 'cash',
         };
+
         const html = String.raw;
 
         let orderDetail = JSON.parse(JSON.stringify(new OrderDetail(0, 0)));
@@ -539,7 +539,9 @@ height: 51px;
             vm.loading = false;
             gvc.notifyDataChange(vm.id)
         });
-
+         if(vm.type === 'home'){
+             vm.type='menu'
+         }
         return (
             gvc.bindView(() => {
                 return {
@@ -827,9 +829,7 @@ ${document.body.clientWidth<800 ? ``:`position: absolute;left: 50%;top:50%;trans
                                                 return `<div class="vw-100 px-lg-3" style="overflow-y: scroll;">${UserList.main(gvc)}</div>`;
                                             } else if (vm.type === 'setting') {
                                                 return PosSetting.main({gvc: gvc, vm: vm})
-                                            } else if (vm.type === 'home') {
-                                                return PosHomePage.main(gvc)
-                                            }
+                                            } 
                                             vm.searchable = true
                                             return ProductsPage.main({gvc: gvc, vm: vm, orderDetail: orderDetail});
                                         } catch (e) {

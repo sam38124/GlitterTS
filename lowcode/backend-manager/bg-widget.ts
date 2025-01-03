@@ -4289,6 +4289,7 @@ ${obj.default ?? ''}</textarea
                                                     gvc2.event(() => {
                                                         gvc2.closeDialog();
                                                         gvc.notifyDataChange(id);
+                                                        obj.callback(obj.content)
                                                     })
                                                 ),
                                             ].join('');

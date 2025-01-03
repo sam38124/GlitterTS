@@ -75,7 +75,6 @@ export class ShoppingProductSetting {
             weightUnit: '',
             stockPolicy: '',
             stock: '',
-            stockList: {},
             save_stock: '',
             barcode: '',
         };
@@ -380,7 +379,7 @@ export class ShoppingProductSetting {
                                                                             : '',
                                                                         category: index === 0 ? expo.checkString(productData.content.collection.join(' , ')) : '',
                                                                         productType: index === 0 ? expo.checkString(this.getProductTypeString(productData.content)) : '',
-                                                                        img: index === 0 ? expo.checkString(productData.content.preview_image[0]) : '',
+                                                                        img: expo.checkString((productData.content.variants[index] && productData.content.variants[index].preview_image) || productData.content.preview_image[0]),
                                                                         SEO_domain: index === 0 ? expo.checkString((_c = (_b = productData.content) === null || _b === void 0 ? void 0 : _b.seo) === null || _c === void 0 ? void 0 : _c.domain) : '',
                                                                         SEO_title: index === 0 ? expo.checkString((_e = (_d = productData.content) === null || _d === void 0 ? void 0 : _d.seo) === null || _e === void 0 ? void 0 : _e.title) : '',
                                                                         SEO_desc: index === 0 ? expo.checkString((_g = (_f = productData.content) === null || _f === void 0 ? void 0 : _f.seo) === null || _g === void 0 ? void 0 : _g.content) : '',
@@ -403,7 +402,6 @@ export class ShoppingProductSetting {
                                                                         weightUnit: expo.checkString(((_2 = productData.content.variants[index]) === null || _2 === void 0 ? void 0 : _2.weightUnit) || 'KG'),
                                                                         stockPolicy: ((_3 = productData.content.variants[index]) === null || _3 === void 0 ? void 0 : _3.show_understocking) === 'true' ? '追蹤' : '不追蹤',
                                                                         stock: expo.checkNumber((_4 = productData.content.variants[index]) === null || _4 === void 0 ? void 0 : _4.stock),
-                                                                        stockList: {},
                                                                         save_stock: expo.checkNumber((_5 = productData.content.variants[index]) === null || _5 === void 0 ? void 0 : _5.save_stock),
                                                                         barcode: expo.checkString((_6 = productData.content.variants[index]) === null || _6 === void 0 ? void 0 : _6.barcode),
                                                                     });

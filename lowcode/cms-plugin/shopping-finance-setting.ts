@@ -984,6 +984,7 @@ export class ShoppingFinanceSetting {
                             content: keyData.payment_info_atm?.text ?? '',
                             callback: (content) => {
                                 keyData.payment_info_atm!.text = content;
+                                gvc.notifyDataChange(id);
                             },
                             title: '付款說明'
                         })

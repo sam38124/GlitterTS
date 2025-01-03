@@ -321,6 +321,9 @@ class Shopping {
                     dd.content.preview_image = dd.content.language_data[`${query.language}`].preview_image || dd.content.preview_image;
                     (dd.content.variants || []).map((variant) => {
                         variant.preview_image = variant[`preview_image_${query.language}`] || variant.preview_image;
+                        if (variant.preview_image === 'https://d3jnmi1tfjgtti.cloudfront.net/file/234285319/1722936949034-default_image.jpg') {
+                            variant.preview_image = dd.content.preview_image[0];
+                        }
                     });
                 }
             }
@@ -1641,14 +1644,6 @@ class Shopping {
             if (update.orderData && JSON.parse(update.orderData)) {
                 let sns = new sms_js_1.SMS(this.app);
                 const updateProgress = JSON.parse(update.orderData).progress;
-                for (const lineItem of origin[0].orderData.lineItems) {
-                    let variant = data.orderData.lineItems.find((lineItem2) => {
-                        return lineItem2.id == lineItem.id && JSON.stringify(lineItem.spec) == JSON.stringify(lineItem2.spec);
-                    });
-                    console.log("here -- OK");
-                    await new stock_1.Stock(this.app, this.token).recoverStock(lineItem);
-                    await new stock_1.Stock(this.app, this.token).shippingStock(variant);
-                }
                 if (origin[0].orderData.progress !== 'shipping' && updateProgress === 'shipping') {
                     if (data.orderData.customer_info.phone) {
                         await sns.sendCustomerSns('auto-sns-shipment', data.orderData.orderID, data.orderData.customer_info.phone);
@@ -1658,6 +1653,13 @@ class Shopping {
                         let line = new line_message_1.LineMessage(this.app);
                         await line.sendCustomerLine('auto-line-shipment', data.orderData.orderID, data.orderData.customer_info.lineID);
                         console.log('付款成功line訊息寄送成功');
+                    }
+                    for (const lineItem of origin[0].orderData.lineItems) {
+                        let variant = data.orderData.lineItems.find((lineItem2) => {
+                            return lineItem2.id == lineItem.id && JSON.stringify(lineItem.spec) == JSON.stringify(lineItem2.spec);
+                        });
+                        await new stock_1.Stock(this.app, this.token).recoverStock(lineItem);
+                        await new stock_1.Stock(this.app, this.token).shippingStock(variant);
                     }
                     await auto_send_email_js_1.AutoSendEmail.customerOrder(this.app, 'auto-email-shipment', data.orderData.orderID, data.orderData.email, data.orderData.language);
                 }
@@ -2093,6 +2095,7 @@ OR JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.orderStatus')) NOT IN (-99)) `);
                        AND id > 0
                     `, []);
             }
+            const store_config = await new user_js_1.User(this.app).getConfigV2({ key: 'store_manager', user_id: 'manager' });
             await Promise.all(content.variants.map((a) => {
                 var _a, _b;
                 content.min_price = (_a = content.min_price) !== null && _a !== void 0 ? _a : a.sale_price;
@@ -2105,9 +2108,13 @@ OR JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.orderStatus')) NOT IN (-99)) `);
                 }
                 a.type = 'variants';
                 a.product_id = content.id;
+                a.stockList = a.stockList || {};
                 if (a.show_understocking === 'false') {
                     a.stock = 0;
                     a.stockList = {};
+                }
+                else if (Object.keys(a.stockList).length === 0) {
+                    a.stockList[store_config.list[0].id] = { count: a.stock };
                 }
                 return new Promise(async (resolve, reject) => {
                     await database_js_1.default.query(`INSERT INTO \`${this.app}\`.t_variants
@@ -3352,17 +3359,27 @@ OR JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.orderStatus')) NOT IN (-99)) `);
                 await this.updateCollectionFromUpdateProduct(content.collection);
             }
             let productArray = content.data;
-            let passArray = [];
-            productArray.forEach((product, index) => {
-                product.type = 'product';
-            });
-            const data = await database_js_1.default.query(`INSERT INTO \`${this.app}\`.\`t_manager_post\` (userID, content)
-                 VALUES ?`, [
+            await (Promise.all(productArray.map((product, index) => {
+                return new Promise(async (resolve, reject) => {
+                    product.type = 'product';
+                    if (product.id) {
+                        const og_data = (await database_js_1.default.query(`select * from \`${this.app}\`.\`t_manager_post\` where id=?`, [product.id]))[0];
+                        if (og_data) {
+                            delete product['preview_image'];
+                            product = Object.assign(Object.assign({}, og_data['content']), product);
+                            product.preview_image = og_data['content'].preview_image || [];
+                            productArray[index] = product;
+                        }
+                    }
+                    resolve(true);
+                });
+            })));
+            const data = await database_js_1.default.query(`replace INTO \`${this.app}\`.\`t_manager_post\` (id,userID,content) values ?`, [
                 productArray.map((product) => {
                     var _a;
                     product.type = 'product';
                     this.checkVariantDataType(product.variants);
-                    return [(_a = this.token) === null || _a === void 0 ? void 0 : _a.userID, JSON.stringify(product)];
+                    return [product.id || null, (_a = this.token) === null || _a === void 0 ? void 0 : _a.userID, JSON.stringify(product)];
                 }),
             ]);
             let insertIDStart = data.insertId;

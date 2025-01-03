@@ -102,7 +102,6 @@ export class ShoppingProductSetting {
             weightUnit: '',
             stockPolicy: '',
             stock: '',
-            stockList:{},
             save_stock: '',
             barcode: '',
         };
@@ -443,7 +442,7 @@ export class ShoppingProductSetting {
                                                                                                                 category: index === 0 ? expo.checkString(productData.content.collection.join(' , ')) : '',
                                                                                                                 productType:
                                                                                                                         index === 0 ? expo.checkString(this.getProductTypeString(productData.content)) : '',
-                                                                                                                img: index === 0 ? expo.checkString(productData.content.preview_image[0]) : '',
+                                                                                                                img: expo.checkString((productData.content.variants[index] && productData.content.variants[index].preview_image) || productData.content.preview_image[0]),
                                                                                                                 SEO_domain: index === 0 ? expo.checkString(productData.content?.seo?.domain) : '',
                                                                                                                 SEO_title: index === 0 ? expo.checkString(productData.content?.seo?.title) : '',
                                                                                                                 SEO_desc: index === 0 ? expo.checkString(productData.content?.seo?.content) : '',
@@ -467,7 +466,6 @@ export class ShoppingProductSetting {
                                                                                                                 stockPolicy:
                                                                                                                         productData.content.variants[index]?.show_understocking === 'true' ? '追蹤' : '不追蹤',
                                                                                                                 stock: expo.checkNumber(productData.content.variants[index]?.stock),
-                                                                                                                stockList:{},
                                                                                                                 save_stock: expo.checkNumber(productData.content.variants[index]?.save_stock),
                                                                                                                 barcode: expo.checkString(productData.content.variants[index]?.barcode),
                                                                                                             });
