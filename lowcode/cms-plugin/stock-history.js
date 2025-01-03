@@ -75,7 +75,7 @@ export class StockHistory {
             id: glitter.getUUID(),
             tableId: glitter.getUUID(),
             type: type,
-            view: 'list',
+            view: 'mainList',
             data: emptyData(),
             dataList: [],
             storeList: [],
@@ -89,21 +89,24 @@ export class StockHistory {
             bind: vm.id,
             dataList: [{ obj: vm, key: 'view' }],
             view: () => {
-                if (vm.view === 'list') {
-                    return this.list(gvc, vm);
+                if (vm.view === 'mainList') {
+                    return this.mainList(gvc, vm);
+                }
+                if (vm.view === 'checkList') {
+                    return this.checkList(gvc, vm);
                 }
                 if (vm.view === 'replace') {
-                    return this.detailPage(gvc, vm, 'replace');
+                    return this.replaceOrder(gvc, vm);
                 }
                 if (vm.view === 'create') {
                     vm.data = emptyData();
-                    return this.detailPage(gvc, vm, 'create');
+                    return this.createOrder(gvc, vm);
                 }
                 return '';
             },
         });
     }
-    static list(gvc, vm) {
+    static mainList(gvc, vm) {
         const ListComp = new BgListComponent(gvc, vm, FilterOptions.stockHistoryFilterFrame);
         const typeData = typeConfig[vm.type];
         vm.filter = ListComp.getFilterObject();
@@ -139,21 +142,7 @@ export class StockHistory {
                     },
                     {
                         key: '進貨狀態',
-                        value: `<span class="fs-7">${(() => {
-                            const statusData = statusConfig[dd.status];
-                            switch (statusData.badge) {
-                                case 'info':
-                                    return BgWidget.infoInsignia(statusData.title);
-                                case 'warning':
-                                    return BgWidget.warningInsignia(statusData.title);
-                                case 'normal':
-                                    return BgWidget.normalInsignia(statusData.title);
-                                case 'notify':
-                                    return BgWidget.notifyInsignia(statusData.title);
-                                default:
-                                    return statusData.title;
-                            }
-                        })()}</span>`,
+                        value: `<span class="fs-7">${StockHistory.getStatusBadge(dd.status)}</span>`,
                     },
                 ];
             });
@@ -251,7 +240,206 @@ export class StockHistory {
             }),
         ].join('')))}`);
     }
-    static detailPage(gvc, vm, type) {
+    static checkList(gvc, vm) {
+        const glitter = gvc.glitter;
+        const ListComp = new BgListComponent(gvc, vm, FilterOptions.stockHistoryFilterFrame);
+        const typeData = typeConfig[vm.type];
+        vm.filter = ListComp.getFilterObject();
+        let vmi = undefined;
+        const cvm = {
+            id: glitter.getUUID(),
+            buttonsId: glitter.getUUID(),
+            iconId: glitter.getUUID(),
+            type: 'all',
+        };
+        function specDatalist(page, limit) {
+            const x = (page - 1) * limit;
+            const specs = vm.data.content.product_list.slice(x, x + limit);
+            return specs.map((dd, index) => {
+                var _a, _b, _c;
+                const realData = vm.data.content.product_list[x + index];
+                return [
+                    {
+                        key: '商品',
+                        value: `<span class="fs-7">${dd.title || '－'}</span>`,
+                    },
+                    {
+                        key: '規格',
+                        value: `<span class="fs-7">${dd.spec}</span>`,
+                    },
+                    {
+                        key: '存貨單位(SKU)',
+                        value: `<span class="fs-7">${dd.sku || '－'}</span>`,
+                    },
+                    {
+                        key: '商品條碼',
+                        value: `<span class="fs-7">${dd.sku || '－'}</span>`,
+                    },
+                    {
+                        key: '原定進貨數量',
+                        value: `<span class="fs-7">${(_a = dd.transfer_count) !== null && _a !== void 0 ? _a : 0}</span>`,
+                    },
+                    {
+                        key: '實際到貨數量',
+                        value: html ` <div style="width: 100px" onclick="${gvc.event((e, event) => event.stopPropagation())}">
+                            <input
+                                class="form-control"
+                                type="number"
+                                min="0"
+                                style="border-radius: 10px; border: 1px solid #DDD; padding-left: 18px;"
+                                onchange="${gvc.event((e) => {
+                            let n = parseInt(e.value, 10);
+                            if (n < 0) {
+                                n = 0;
+                                e.value = n;
+                            }
+                            realData.recent_count = isNaN(n) ? undefined : n;
+                            gvc.notifyDataChange(cvm.buttonsId);
+                            gvc.notifyDataChange(`${cvm.iconId}${index}`);
+                        })}"
+                                value="${(_b = dd.recent_count) !== null && _b !== void 0 ? _b : ''}"
+                            />
+                        </div>`,
+                    },
+                    {
+                        key: '備註',
+                        value: html ` <div style="width: 120px" onclick="${gvc.event((e, event) => event.stopPropagation())}">
+                            <input
+                                class="form-control"
+                                type="text"
+                                style="border-radius: 10px; border: 1px solid #DDD; padding-left: 18px;"
+                                onchange="${gvc.event((e) => {
+                            realData.note = e.value;
+                        })}"
+                                value="${(_c = dd.note) !== null && _c !== void 0 ? _c : ''}"
+                            />
+                        </div>`,
+                    },
+                    {
+                        key: html `<p class="mx-3"></p>`,
+                        value: gvc.bindView({
+                            bind: `${cvm.iconId}${index}`,
+                            view: () => {
+                                if (realData.recent_count === undefined) {
+                                    return '';
+                                }
+                                if (realData.transfer_count === realData.recent_count) {
+                                    return html `<i class="fa-solid fa-circle-check"></i>`;
+                                }
+                                if (realData.transfer_count !== realData.recent_count) {
+                                    return html `<i class="fa-light fa-circle-exclamation"></i>`;
+                                }
+                                return '';
+                            },
+                        }),
+                    },
+                ];
+            });
+        }
+        return BgWidget.container(html `
+                <div class="title-container">
+                    ${BgWidget.goBack(gvc.event(() => {
+            vm.view = 'replace';
+        }))}${BgWidget.title('進貨核對')}
+                    <div class="flex-fill"></div>
+                </div>
+                <div class="title-container">
+                    ${BgWidget.tab([
+            {
+                title: '全部',
+                key: 'all',
+            },
+            {
+                title: '待補貨',
+                key: 'pending',
+            },
+            {
+                title: '未核對',
+                key: 'notChecked',
+            },
+            {
+                title: '已核對',
+                key: 'checked',
+            },
+        ], gvc, cvm.type, (text) => {
+            cvm.type = text;
+            gvc.notifyDataChange(vm.id);
+        }, 'margin: 24px 0 0 0;')}
+                </div>
+                ${BgWidget.container(BgWidget.mainCard([
+            (() => {
+                const id = gvc.glitter.getUUID();
+                return gvc.bindView({
+                    bind: id,
+                    view: () => {
+                        var _a;
+                        const filterList = [
+                            BgWidget.selectFilter({
+                                gvc,
+                                callback: (value) => {
+                                    vm.queryType = value;
+                                    gvc.notifyDataChange(vm.tableId);
+                                    gvc.notifyDataChange(id);
+                                },
+                                default: vm.queryType || 'name',
+                                options: FilterOptions.userSelect,
+                            }),
+                            BgWidget.searchFilter(gvc.event((e) => {
+                                vm.query = `${e.value}`.trim();
+                                gvc.notifyDataChange(vm.tableId);
+                                gvc.notifyDataChange(id);
+                            }), vm.query || '', '搜尋所有用戶'),
+                        ];
+                        const filterTags = ListComp.getFilterTags(FilterOptions.userFunnel);
+                        if (document.body.clientWidth < 768) {
+                            return html ` <div style="display: flex; align-items: center; gap: 10px; width: 100%; justify-content: space-between">
+                                                    <div>${filterList[0]}</div>
+                                                    <div style="display: flex;">${filterList[2] ? `<div class="me-2">${filterList[2]}</div>` : ''} ${(_a = filterList[3]) !== null && _a !== void 0 ? _a : ''}</div>
+                                                </div>
+                                                <div style="display: flex; margin-top: 8px;">${filterList[1]}</div>
+                                                <div>${filterTags}</div>`;
+                        }
+                        else {
+                            return html ` <div style="display: flex; align-items: center; gap: 10px;">${filterList.join('')}</div>
+                                                <div>${filterTags}</div>`;
+                        }
+                    },
+                });
+            })(),
+            BgWidget.tableV3({
+                gvc: gvc,
+                getData: (vd) => {
+                    vmi = vd;
+                    const limit = 99999;
+                    this.setVariantList(vm.data.content.product_list.map((item) => {
+                        return `${item.variant_id}`;
+                    }), vm.data, (response) => {
+                        vm.data.content.product_list = response;
+                        vmi.pageSize = Math.ceil(response.length / limit);
+                        vmi.originalData = response;
+                        vmi.tableData = specDatalist(vmi.page, limit);
+                        vmi.loading = false;
+                        vmi.callback();
+                    });
+                },
+                rowClick: () => { },
+                filter: [],
+                hiddenPageSplit: true,
+            }),
+        ].join('')))}
+                ${BgWidget.mbContainer(240)}
+                ${gvc.bindView({
+            bind: cvm.buttonsId,
+            view: () => {
+                return this.getButtonBar(gvc, vm);
+            },
+            divCreate: {
+                class: 'update-bar-container',
+            },
+        })}
+            `);
+    }
+    static createOrder(gvc, vm) {
         const glitter = gvc.glitter;
         const dialog = new ShareDialog(glitter);
         const typeData = typeConfig[vm.type];
@@ -310,7 +498,7 @@ export class StockHistory {
                                     var _a;
                                     if (loading) {
                                         return BgWidget.spinner({
-                                            container: { style: 'margin-top: 0' },
+                                            container: { style: 'margin-top: 0;' },
                                             circle: { visible: false },
                                         });
                                     }
@@ -344,7 +532,7 @@ export class StockHistory {
                                                     const newVendorData = StockVendors.emptyData();
                                                     BgWidget.settingDialog({
                                                         gvc: gvc2,
-                                                        title: '新增庫存點',
+                                                        title: '新增供應點',
                                                         innerHTML: (gvc2) => {
                                                             return StockHistory.vendorForm(gvc2, newVendorData);
                                                         },
@@ -359,7 +547,7 @@ export class StockHistory {
                                                                     loading = true;
                                                                     gvc.notifyDataChange(id);
                                                                 });
-                                                            }), '送出')}`;
+                                                            }), '完成')}`;
                                                         },
                                                     });
                                                 },
@@ -395,7 +583,7 @@ export class StockHistory {
                                     var _a;
                                     if (loading) {
                                         return BgWidget.spinner({
-                                            container: { style: 'margin-top: 0' },
+                                            container: { style: 'margin-top: 0;' },
                                             circle: { visible: false },
                                         });
                                     }
@@ -444,7 +632,7 @@ export class StockHistory {
                                                                     loading = true;
                                                                     gvc.notifyDataChange(id);
                                                                 });
-                                                            }), '送出')}`;
+                                                            }), '完成')}`;
                                                         },
                                                     });
                                                 },
@@ -475,36 +663,10 @@ export class StockHistory {
                     return [];
             }
         }
-        function setVariantList(ids, callback) {
-            if (ids.length === 0) {
-                callback();
-                return;
-            }
-            ApiShop.getVariants({
-                page: 0,
-                limit: 99999,
-                id_list: ids.join(','),
-                productType: 'all'
-            }).then((r) => {
-                const origins = vm.data.content.product_list.slice();
-                vm.data.content.product_list = [];
-                if (r.result && r.response.data) {
-                    r.response.data.forEach((item) => {
-                        const origin = origins.find((o) => {
-                            return o.variant_id === item.id;
-                        });
-                        const title = item.product_content.title;
-                        const spec = item.variant_content.spec;
-                        const sku = item.variant_content.sku;
-                        vm.data.content.product_list.push(Object.assign(Object.assign({ variant_id: item.id, cost: 0, note: '', transfer_count: 0, recent_count: 0, check_count: 0 }, (origin !== null && origin !== void 0 ? origin : {})), { title: title, spec: spec && spec.length > 0 ? spec.join('/') : '單一規格', sku: sku !== null && sku !== void 0 ? sku : '' }));
-                    });
-                }
-                callback();
-            });
-        }
         function specDatalist(page, limit) {
             const x = (page - 1) * limit;
-            return vm.data.content.product_list.slice(x, x + limit).map((dd, index) => {
+            const specs = vm.data.content.product_list.slice(x, x + limit);
+            return specs.map((dd, index) => {
                 var _a, _b, _c;
                 const realData = vm.data.content.product_list[x + index];
                 return [
@@ -532,6 +694,7 @@ export class StockHistory {
                             let n = parseInt(e.value, 10);
                             if (n < 0) {
                                 n = 0;
+                                e.value = n;
                             }
                             realData.cost = n;
                             gvc.notifyDataChange(`subtotoal_${index}`);
@@ -552,6 +715,7 @@ export class StockHistory {
                             let n = parseInt(e.value, 10);
                             if (n < 0) {
                                 n = 0;
+                                e.value = n;
                             }
                             realData.transfer_count = n;
                             gvc.notifyDataChange(`subtotoal_${index}`);
@@ -578,8 +742,7 @@ export class StockHistory {
                         value: html ` <div style="width: 120px" onclick="${gvc.event((e, event) => event.stopPropagation())}">
                             <input
                                 class="form-control"
-                                type="number"
-                                min="0"
+                                type="text"
                                 style="border-radius: 10px; border: 1px solid #DDD; padding-left: 18px;"
                                 onchange="${gvc.event((e) => {
                             realData.note = e.value;
@@ -593,12 +756,10 @@ export class StockHistory {
         }
         return BgWidget.container([
             html ` <div class="title-container">
-                        <div class="mt-1">
-                            ${BgWidget.goBack(gvc.event(() => {
-                vm.view = 'list';
+                        ${BgWidget.goBack(gvc.event(() => {
+                vm.view = 'mainList';
             }))}
-                        </div>
-                        <div>${BgWidget.title(`${type === 'create' ? '新增' : '編輯'}${typeData.name}單`)}</div>
+                        <div>${BgWidget.title(`新增${typeData.name}單`)}</div>
                     </div>
                     <div class="flex-fill"></div>`,
             html ` <div class="d-flex justify-content-center ${document.body.clientWidth < 768 ? 'flex-column' : ''}" style="gap: 24px">
@@ -642,9 +803,10 @@ export class StockHistory {
                                                 getData: (vd) => {
                                                     vmi = vd;
                                                     const limit = 99999;
-                                                    setVariantList(dvm.variantIds, () => {
-                                                        vmi.pageSize = Math.ceil(vm.data.content.product_list.length / limit);
-                                                        vmi.originalData = vm.data.content.product_list;
+                                                    this.setVariantList(dvm.variantIds, vm.data, (response) => {
+                                                        vm.data.content.product_list = response;
+                                                        vmi.pageSize = Math.ceil(response.length / limit);
+                                                        vmi.originalData = response;
                                                         vmi.tableData = specDatalist(vmi.page, limit);
                                                         vmi.loading = false;
                                                         vmi.callback();
@@ -654,29 +816,27 @@ export class StockHistory {
                                                 filter: [],
                                                 hiddenPageSplit: true,
                                             }),
-                                            type === 'create'
-                                                ? html `<div
-                                                                          class="w-100 d-flex align-items-center justify-content-center cursor_pointer"
-                                                                          style="color: #36B; font-size: 16px; font-weight: 400;"
-                                                                          onclick="${gvc.event(() => {
-                                                    BgWidget.variantDialog({
-                                                        gvc,
-                                                        title: '新增商品規格',
-                                                        default: dvm.variantIds,
-                                                        callback: (resultData) => {
-                                                            dvm.variantIds = resultData;
-                                                            gvc.notifyDataChange(dvm.tableId);
-                                                        },
-                                                    });
-                                                })}"
-                                                                      >
-                                                                          <div>新增進貨商品</div>
-                                                                          <div>
-                                                                              <i class="fa-solid fa-plus ps-2" style="font-size: 16px; height: 14px; width: 14px;"></i>
-                                                                          </div>
-                                                                      </div>`
-                                                : '',
-                                            BgWidget.horizontalLine({ margin: 2 }),
+                                            html `<div
+                                                                    class="w-100 d-flex align-items-center justify-content-center cursor_pointer"
+                                                                    style="color: #36B; font-size: 16px; font-weight: 400;"
+                                                                    onclick="${gvc.event(() => {
+                                                BgWidget.variantDialog({
+                                                    gvc,
+                                                    title: '新增商品規格',
+                                                    default: dvm.variantIds,
+                                                    callback: (resultData) => {
+                                                        dvm.variantIds = resultData;
+                                                        gvc.notifyDataChange(dvm.tableId);
+                                                    },
+                                                });
+                                            })}"
+                                                                >
+                                                                    <div>新增進貨商品</div>
+                                                                    <div>
+                                                                        <i class="fa-solid fa-plus ps-2" style="font-size: 16px; height: 14px; width: 14px;"></i>
+                                                                    </div>
+                                                                </div>`,
+                                            BgWidget.horizontalLine({ margin: 1.75 }),
                                             gvc.bindView({
                                                 bind: dvm.totalId,
                                                 view: () => {
@@ -704,20 +864,8 @@ export class StockHistory {
                 </div>`,
             BgWidget.mbContainer(240),
             html ` <div class="update-bar-container">
-                    ${type === 'replace'
-                ? BgWidget.danger(gvc.event(() => {
-                    dialog.checkYesOrNot({
-                        text: `確定要刪除此${typeData.name}單嗎？`,
-                        callback: (bool) => {
-                            if (bool) {
-                                dialog.dataLoading({ visible: true });
-                            }
-                        },
-                    });
-                }))
-                : ''}
                     ${BgWidget.cancel(gvc.event(() => {
-                vm.view = 'list';
+                vm.view = 'mainList';
             }))}
                     ${BgWidget.save(gvc.event(() => {
                 dialog.dataLoading({ visible: true });
@@ -726,7 +874,7 @@ export class StockHistory {
                         dialog.dataLoading({ visible: false });
                         if (r.result && r.response) {
                             dialog.successMessage({ text: '新增成功' });
-                            vm.view = 'list';
+                            vm.view = 'mainList';
                         }
                         else {
                             dialog.successMessage({ text: '新增失敗' });
@@ -738,7 +886,7 @@ export class StockHistory {
                         dialog.dataLoading({ visible: false });
                         if (r.result && r.response) {
                             dialog.successMessage({ text: '更新成功' });
-                            vm.view = 'list';
+                            vm.view = 'mainList';
                         }
                         else {
                             dialog.successMessage({ text: '更新失敗' });
@@ -747,6 +895,183 @@ export class StockHistory {
                 }
             }), '送出')}
                 </div>`,
+        ].join('<div class="my-2"></div>'));
+    }
+    static replaceOrder(gvc, vm) {
+        const glitter = gvc.glitter;
+        const dialog = new ShareDialog(glitter);
+        const typeData = typeConfig[vm.type];
+        let vmi = undefined;
+        function specDatalist(page, limit) {
+            const x = (page - 1) * limit;
+            const nonDetailed = [0, 1, 2].includes(vm.data.status);
+            return vm.data.content.product_list.slice(x, x + limit).map((dd, index) => {
+                if (nonDetailed) {
+                    return [
+                        {
+                            key: '商品',
+                            value: `<span class="fs-7">${dd.title || '－'}</span>`,
+                        },
+                        {
+                            key: '規格',
+                            value: `<span class="fs-7">${dd.spec}</span>`,
+                        },
+                        {
+                            key: '存貨單位(SKU)',
+                            value: `<span class="fs-7">${dd.sku || '－'}</span>`,
+                        },
+                        {
+                            key: '進貨成本',
+                            value: `<span class="fs-7">${dd.cost || '－'}</span>`,
+                        },
+                        {
+                            key: '數量',
+                            value: `<span class="fs-7">${dd.transfer_count || '－'}</span>`,
+                        },
+                        {
+                            key: '小計',
+                            value: (() => {
+                                const subtotal = dd.cost * dd.transfer_count;
+                                return html `<span class="fs-7">$ ${subtotal.toLocaleString()}</span>`;
+                            })(),
+                        },
+                        {
+                            key: '備註',
+                            value: `<span class="fs-7">${dd.note || '－'}</span>`,
+                        },
+                    ];
+                }
+                else {
+                    return [
+                        {
+                            key: '商品',
+                            value: `<span class="fs-7">${dd.title || '－'}</span>`,
+                        },
+                        {
+                            key: '規格',
+                            value: `<span class="fs-7">${dd.spec}</span>`,
+                        },
+                        {
+                            key: '存貨單位(SKU)',
+                            value: `<span class="fs-7">${dd.sku || '－'}</span>`,
+                        },
+                        {
+                            key: '進貨成本',
+                            value: `<span class="fs-7">${dd.cost || '－'}</span>`,
+                        },
+                        {
+                            key: '原訂數量',
+                            value: `<span class="fs-7">${dd.transfer_count || '－'}</span>`,
+                        },
+                        {
+                            key: '到貨數量',
+                            value: `<span class="fs-7">${dd.recent_count || '－'}</span>`,
+                        },
+                        {
+                            key: '差異數量',
+                            value: (() => {
+                                if (dd.recent_count === undefined) {
+                                    return html `<span class="fs-7">－</span>`;
+                                }
+                                const n = dd.recent_count - dd.transfer_count;
+                                if (n === 0) {
+                                    return html `<span class="fs-7">0</span>`;
+                                }
+                                else if (n < 0) {
+                                    return html `<span class="fs-7 tc_danger">${n}</span>`;
+                                }
+                                else if (dd.recent_count > dd.transfer_count) {
+                                    return html `<span class="fs-7 tc_success">+${n}</span>`;
+                                }
+                            })(),
+                        },
+                        {
+                            key: '原訂小計',
+                            value: (() => {
+                                const subtotal = dd.cost * dd.transfer_count;
+                                return html `<span class="fs-7">$ ${subtotal.toLocaleString()}</span>`;
+                            })(),
+                        },
+                        {
+                            key: '實際小計',
+                            value: (() => {
+                                if (dd.recent_count === undefined) {
+                                    return html `<span class="fs-7">－</span>`;
+                                }
+                                const subtotal = dd.cost * dd.recent_count;
+                                return html `<span class="fs-7">$ ${subtotal.toLocaleString()}</span>`;
+                            })(),
+                        },
+                        {
+                            key: '備註',
+                            value: `<span class="fs-7">${dd.note || '－'}</span>`,
+                        },
+                    ];
+                }
+            });
+        }
+        return BgWidget.container([
+            html ` <div class="title-container">
+                        ${BgWidget.goBack(gvc.event(() => {
+                vm.view = 'mainList';
+            }))}
+                        <div>${BgWidget.title(vm.data.order_id)}</div>
+                        <span class="d-none mt-1 ms-2 fs-7">${StockHistory.getStatusBadge(vm.data.status)}</span>
+                    </div>
+                    <div class="flex-fill"></div>`,
+            html ` <div class="d-flex justify-content-center ${document.body.clientWidth < 768 ? 'flex-column' : ''}" style="gap: 24px">
+                    ${BgWidget.container([
+                BgWidget.mainCard([
+                    html ` <div class="tx_700">${typeData.name}單資料</div>`,
+                    BgWidget.horizontalLine({ margin: 0 }),
+                    html ` <div class="d-flex flex-wrap" style="gap: 18px 0;">${this.getContentHTML(gvc, vm.data)}</div> `,
+                ].join(BgWidget.mbContainer(18))),
+                BgWidget.mainCard([
+                    html `
+                                        <div class="tx_700">進貨商品</div>
+                                        ${BgWidget.mbContainer(18)}
+                                        ${[
+                        BgWidget.tableV3({
+                            gvc: gvc,
+                            getData: (vd) => {
+                                vmi = vd;
+                                const limit = 99999;
+                                this.setVariantList(vm.data.content.product_list.map((item) => {
+                                    return `${item.variant_id}`;
+                                }), vm.data, (response) => {
+                                    vm.data.content.product_list = response;
+                                    vmi.pageSize = Math.ceil(response.length / limit);
+                                    vmi.originalData = response;
+                                    vmi.tableData = specDatalist(vmi.page, limit);
+                                    vmi.loading = false;
+                                    vmi.callback();
+                                });
+                            },
+                            rowClick: () => { },
+                            filter: [],
+                            hiddenPageSplit: true,
+                        }),
+                        BgWidget.horizontalLine({ margin: 1.75 }),
+                        (() => {
+                            const total = vm.data.content.product_list.reduce((sum, item) => {
+                                return sum + item.cost * item.transfer_count;
+                            }, 0);
+                            return html ` <div class="d-flex w-100">
+                                                    <div class="flex-fill"></div>
+                                                    <div class="d-flex justify-content-between tx_700" style="width: 200px;">
+                                                        <div>進貨總成本</div>
+                                                        <div>$ ${total.toLocaleString()}</div>
+                                                    </div>
+                                                </div>`;
+                        })(),
+                    ].join('')}
+                                    `,
+                ].join(BgWidget.mbContainer(18))),
+                BgWidget.mainCard([html ` <div class="tx_700">${typeData.name}紀錄</div>`].join(BgWidget.mbContainer(18))),
+            ].join(BgWidget.mbContainer(18)))}
+                </div>`,
+            BgWidget.mbContainer(240),
+            html ` <div class="update-bar-container">${this.getButtonBar(gvc, vm)}</div>`,
         ].join('<div class="my-2"></div>'));
     }
     static vendorForm(gvc, data) {
@@ -878,6 +1203,227 @@ export class StockHistory {
                 `,
         ].join('')}
         </div>`;
+    }
+    static getStatusBadge(status) {
+        const statusData = statusConfig[status];
+        switch (statusData.badge) {
+            case 'info':
+                return BgWidget.infoInsignia(statusData.title);
+            case 'warning':
+                return BgWidget.warningInsignia(statusData.title);
+            case 'normal':
+                return BgWidget.normalInsignia(statusData.title);
+            case 'notify':
+                return BgWidget.notifyInsignia(statusData.title);
+            default:
+                return statusData.title;
+        }
+    }
+    static getContentHTML(gvc, data) {
+        const glitter = gvc.glitter;
+        const vm = {
+            id: glitter.getUUID(),
+            loading: true,
+            data: data,
+            storeList: [],
+            vendorList: [],
+        };
+        return gvc.bindView({
+            bind: vm.id,
+            view: () => {
+                var _a;
+                if (vm.loading) {
+                    return BgWidget.spinner({
+                        container: { style: 'margin-top: 0;' },
+                        circle: { visible: false },
+                    });
+                }
+                else {
+                    const total = vm.data.content.product_list.reduce((sum, item) => {
+                        return sum + item.cost * item.transfer_count;
+                    }, 0);
+                    const vendor = vm.vendorList.find((v) => v.id === vm.data.content.vendor);
+                    const store = vm.storeList.find((s) => s.id === vm.data.content.store_in);
+                    return [
+                        { title: '進貨單編號', value: vm.data.order_id },
+                        { title: '進貨日期', value: vm.data.created_time },
+                        { title: '進貨單狀態', value: StockHistory.getStatusBadge(vm.data.status) },
+                        { title: '供應商', value: vendor ? vendor.name : '' },
+                        { title: '庫存點', value: store ? store.name : '' },
+                        { title: '原定總成本 / 實際總成本', value: `$${total.toLocaleString()} / －` },
+                        { title: '差異金額', value: (total - 0).toLocaleString() },
+                        { title: '備註', value: (_a = vm.data.content.note) !== null && _a !== void 0 ? _a : '', width: 40 },
+                    ]
+                        .map((item) => {
+                        var _a;
+                        return html `<div style="${document.body.clientWidth > 768 ? `width: ${(_a = item.width) !== null && _a !== void 0 ? _a : 20}%;` : ''}">
+                                <div class="tx_700" style="margin-bottom: 8px;">${item.title}</div>
+                                <div class="tx_normal">${item.value}</div>
+                            </div>`;
+                    })
+                        .join('');
+                }
+            },
+            divCreate: {
+                class: 'd-flex flex-wrap w-100',
+                style: 'gap: 18px 0;',
+            },
+            onCreate: () => {
+                if (vm.loading) {
+                    Promise.all([StockStores.getPublicData(), StockVendors.getPublicData()]).then((dataArray) => {
+                        if (dataArray[0].list && dataArray[0].list.length > 0) {
+                            vm.storeList = dataArray[0].list;
+                        }
+                        if (dataArray[1].list && dataArray[1].list.length > 0) {
+                            vm.vendorList = dataArray[1].list;
+                        }
+                        vm.loading = false;
+                        gvc.notifyDataChange(vm.id);
+                    });
+                }
+            },
+        });
+    }
+    static getButtonBar(gvc, vm) {
+        const glitter = gvc.glitter;
+        const dialog = new ShareDialog(glitter);
+        const buttonList = [
+            BgWidget.cancel(gvc.event(() => {
+                if (vm.view === 'replace') {
+                    vm.view = 'mainList';
+                }
+                if (vm.view === 'checkList') {
+                    vm.view = 'replace';
+                }
+            }), '返回'),
+        ];
+        function updateData(status) {
+            vm.data.status = status;
+            ApiStock.putStockHistory(vm.data).then((r) => {
+                dialog.dataLoading({ visible: false });
+                if (r.result && r.response) {
+                    dialog.successMessage({ text: '保存成功' });
+                    setTimeout(() => {
+                        vm.view = 'replace';
+                    }, 700);
+                }
+                else {
+                    dialog.successMessage({ text: '保存失敗' });
+                }
+            });
+        }
+        function deleteData() {
+            ApiStock.deleteStockHistory(vm.data).then((r) => {
+                dialog.dataLoading({ visible: false });
+                if (r.result && r.response) {
+                    dialog.successMessage({ text: '刪除成功' });
+                    setTimeout(() => {
+                        vm.view = 'mainList';
+                    }, 700);
+                }
+                else {
+                    dialog.successMessage({ text: '刪除失敗' });
+                }
+            });
+        }
+        if (vm.view === 'replace') {
+            if ([2].includes(vm.data.status)) {
+                buttonList.push(BgWidget.danger(gvc.event(() => {
+                    deleteData();
+                }), '刪除進貨單'));
+            }
+            if ([5].includes(vm.data.status)) {
+                buttonList.push(BgWidget.grayButton(gvc.event(() => {
+                    updateData(1);
+                }), '完成進貨'));
+            }
+            if ([0, 1, 4, 5].includes(vm.data.status)) {
+                buttonList.push(BgWidget.danger(gvc.event(() => {
+                    updateData(6);
+                }), '取消進貨單'));
+            }
+            if ([2, 4, 5].includes(vm.data.status)) {
+                buttonList.push(BgWidget.save(gvc.event(() => {
+                    vm.view = 'checkList';
+                }), '進貨核對'));
+            }
+        }
+        if (vm.view === 'checkList') {
+            const isFill = vm.data.content.product_list.every((item) => {
+                return typeof item.recent_count === 'number' && !isNaN(item.recent_count);
+            });
+            const isEqual = vm.data.content.product_list.every((item) => {
+                return typeof item.recent_count === 'number' && !isNaN(item.recent_count) && item.recent_count === item.transfer_count;
+            });
+            buttonList.push(BgWidget.cancel(gvc.event(() => {
+                if (isEqual) {
+                    if (vm.data.status === 2 || vm.data.status === 4) {
+                        updateData(0);
+                    }
+                    if (vm.data.status === 5) {
+                        updateData(1);
+                    }
+                }
+                else if (isFill) {
+                    updateData(5);
+                }
+                else {
+                    if (vm.data.status === 2 || vm.data.status === 4) {
+                        updateData(4);
+                    }
+                    if (vm.data.status === 5) {
+                        updateData(5);
+                    }
+                }
+            }), '保存並退出'));
+            if (isFill) {
+                buttonList.push(BgWidget.save(gvc.event(() => {
+                    if (isEqual) {
+                        if (vm.data.status === 2 || vm.data.status === 4) {
+                            updateData(0);
+                        }
+                        if (vm.data.status === 5) {
+                            updateData(1);
+                        }
+                    }
+                    else {
+                        updateData(5);
+                    }
+                }), '核對完成'));
+            }
+            else {
+                buttonList.push(BgWidget.disableButton('核對完成'));
+            }
+        }
+        return buttonList.join('');
+    }
+    static setVariantList(ids, data, callback) {
+        let product_list = data.content.product_list;
+        if (ids.length === 0) {
+            callback(product_list);
+            return;
+        }
+        ApiShop.getVariants({
+            page: 0,
+            limit: 99999,
+            id_list: ids.join(','),
+            productType: 'all',
+        }).then((r) => {
+            const origins = product_list.slice();
+            product_list = [];
+            if (r.result && r.response.data) {
+                r.response.data.forEach((item) => {
+                    const origin = origins.find((o) => {
+                        return o.variant_id === item.id;
+                    });
+                    const title = item.product_content.title;
+                    const spec = item.variant_content.spec;
+                    const sku = item.variant_content.sku;
+                    product_list.push(Object.assign(Object.assign({ variant_id: item.id, cost: 0, note: '', transfer_count: 0, check_count: 0 }, (origin !== null && origin !== void 0 ? origin : {})), { title: title, spec: spec && spec.length > 0 ? spec.join('/') : '單一規格', sku: sku !== null && sku !== void 0 ? sku : '' }));
+                });
+            }
+            callback(product_list);
+        });
     }
 }
 window.glitter.setModule(import.meta.url, StockHistory);

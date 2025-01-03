@@ -76,5 +76,8 @@ export declare class Stock {
     putHistory(json: StockHistoryData): Promise<{
         data: boolean;
     } | undefined>;
+    deleteHistory(json: StockHistoryData): Promise<{
+        data: boolean;
+    } | undefined>;
 }
 export {};

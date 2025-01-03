@@ -82,5 +82,18 @@ router.put('/history', async (req, resp) => {
         return response_1.default.fail(resp, err);
     }
 });
+router.delete('/history', async (req, resp) => {
+    try {
+        if (await ut_permission_1.UtPermission.isManager(req)) {
+            return response_1.default.succ(resp, await new stock_js_1.Stock(req.get('g-app'), req.body.token).deleteHistory(req.body.data));
+        }
+        else {
+            throw exception_1.default.BadRequestError('BAD_REQUEST', 'No permission.', null);
+        }
+    }
+    catch (err) {
+        return response_1.default.fail(resp, err);
+    }
+});
 module.exports = router;
 //# sourceMappingURL=stock.js.map
