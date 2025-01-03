@@ -85,3 +85,15 @@ router.put('/history', async (req: express.Request, resp: express.Response) => {
         return response.fail(resp, err);
     }
 });
+
+router.delete('/history', async (req: express.Request, resp: express.Response) => {
+    try {
+        if (await UtPermission.isManager(req)) {
+            return response.succ(resp, await new Stock(req.get('g-app') as string, req.body.token).deleteHistory(req.body.data));
+        } else {
+            throw exception.BadRequestError('BAD_REQUEST', 'No permission.', null);
+        }
+    } catch (err) {
+        return response.fail(resp, err);
+    }
+});

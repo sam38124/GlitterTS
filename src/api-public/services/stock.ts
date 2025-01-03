@@ -289,17 +289,23 @@ export class Stock {
             return formattedDate;
         }
 
+        const sqlArr: string[] = [];
+
+        sqlArr.push('(status <> -1)');
+
+        const sqlString = sqlArr.join(' AND ');
+
         try {
             const getHistoryTotal = await db.query(
                 `SELECT count(id) as c FROM \`${this.app}\`.t_stock_history
-                WHERE 1=1
+                WHERE 1=1 AND ${sqlString}
                 `,
                 []
             );
 
             const data = await db.query(
                 `SELECT * FROM \`${this.app}\`.t_stock_history
-                    WHERE 1=1
+                    WHERE 1=1 AND ${sqlString}
                     LIMIT ${page * limit}, ${limit};
                 `,
                 []
@@ -356,6 +362,7 @@ export class Stock {
     async putHistory(json: StockHistoryData) {
         console.log('putHistory');
         console.log(json);
+
         try {
             const formatJson = JSON.parse(JSON.stringify(json));
             formatJson.content = JSON.stringify(json.content);
@@ -364,6 +371,23 @@ export class Stock {
                 `UPDATE \`${this.app}\`.t_stock_history SET ? WHERE id = ?
                 `,
                 [formatJson, json.id]
+            );
+
+            return { data: false };
+        } catch (error) {
+            console.error(error);
+            if (error instanceof Error) {
+                throw exception.BadRequestError('stock postHistory Error: ', error.message, null);
+            }
+        }
+    }
+
+    async deleteHistory(json: StockHistoryData) {
+        try {
+            await db.query(
+                `UPDATE \`${this.app}\`.t_stock_history SET ? WHERE id = ?
+                `,
+                [{ status: -1 }, json.id]
             );
 
             return { data: false };

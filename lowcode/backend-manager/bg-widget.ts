@@ -175,6 +175,13 @@ export class BgWidget {
         `;
     }
 
+    static disableButton(text: string, obj?: { icon?: string; textStyle?: string }) {
+        return html` <button class="btn btn-gray-disable" style="" type="button">
+            <i class="${obj && obj.icon && obj.icon.length > 0 ? obj.icon : 'd-none'}" style="color: #393939"></i>
+            ${text.length > 0 ? html`<span class="tx_700" style="${obj?.textStyle ?? ''}">${text}</span>` : ''}
+        </button>`;
+    }
+
     static grayButton(text: string, event: string, obj?: { icon?: string; textStyle?: string }) {
         return html` <button class="btn btn-gray" style="" type="button" onclick="${event}">
             <i class="${obj && obj.icon && obj.icon.length > 0 ? obj.icon : 'd-none'}" style="color: #393939"></i>

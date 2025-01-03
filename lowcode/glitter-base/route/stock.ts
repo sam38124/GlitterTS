@@ -7,7 +7,7 @@ export type ContentProduct = {
     cost: number;
     note: string;
     transfer_count: number; // 預計進貨數, 預計調入數
-    recent_count: number; // 實際進貨數, 實際調入數
+    recent_count?: number; // 實際進貨數, 實際調入數, 可為空
     check_count: number; // 盤點數
     title?: string;
     spec?: string;
@@ -100,6 +100,19 @@ export class ApiStock {
         return BaseApi.create({
             url: getBaseUrl() + `/api-public/v1/stock/history`,
             type: 'PUT',
+            headers: {
+                'Content-Type': 'application/json',
+                'g-app': getConfig().config.appName,
+                Authorization: getConfig().config.token,
+            },
+            data: JSON.stringify({ data: json }),
+        });
+    }
+
+    static deleteStockHistory(json: StockHistoryData) {
+        return BaseApi.create({
+            url: getBaseUrl() + `/api-public/v1/stock/history`,
+            type: 'DELETE',
             headers: {
                 'Content-Type': 'application/json',
                 'g-app': getConfig().config.appName,
