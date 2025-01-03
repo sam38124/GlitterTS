@@ -295,7 +295,7 @@ export class Shopping {
             if (`${query.id || ''}`) {
                 if (`${query.id}`.includes(',')) {
                     querySql.push(`id in (${query.id})`);
-
+                    console.log("query.id -- " , query.id)
                 } else {
                     querySql.push(`id = ${query.id}`);
                 }
@@ -317,7 +317,7 @@ export class Shopping {
                 query.productType.split(',').map((dd) => {
                     if (dd === 'hidden') {
                         querySql.push(`(content->>'$.visible' = "false")`);
-                    } else {
+                    } else if (dd !== 'all'){
                         querySql.push(`(content->>'$.productType.${dd}' = "true")`);
                     }
                 });
@@ -443,6 +443,7 @@ export class Shopping {
             query.min_price && querySql.push(`(id in (select product_id from \`${this.app}\`.t_variants where content->>'$.sale_price'>=${query.min_price})) `);
             query.max_price && querySql.push(`(id in (select product_id from \`${this.app}\`.t_variants where content->>'$.sale_price'<=${query.max_price})) `);
             const products = await this.querySql(querySql, query);
+
             // 產品清單
             const productList = (Array.isArray(products.data) ? products.data : [products.data]).filter((product) => product);
 
@@ -2180,11 +2181,14 @@ export class Shopping {
                 [data.id]
             );
 
+
             if (update.orderData && JSON.parse(update.orderData)) {
                 // 商品出貨信件通知（消費者）
                 let sns = new SMS(this.app);
                 const updateProgress = JSON.parse(update.orderData).progress;
+
                 if (origin[0].orderData.progress !== 'shipping' && updateProgress === 'shipping') {
+
                     if (data.orderData.customer_info.phone) {
                         await sns.sendCustomerSns('auto-sns-shipment', data.orderData.orderID, data.orderData.customer_info.phone);
                         console.log('出貨簡訊寄送成功');
@@ -2194,6 +2198,20 @@ export class Shopping {
                         await line.sendCustomerLine('auto-line-shipment', data.orderData.orderID, data.orderData.customer_info.lineID);
                         console.log('付款成功line訊息寄送成功');
                     }
+                    //出貨庫存修改
+                    for (const lineItem of origin[0].orderData.lineItems) {
+                        let variant = data.orderData.lineItems.find((lineItem2:any)=>{
+                            return lineItem2.id == lineItem.id  && JSON.stringify(lineItem.spec) == JSON.stringify(lineItem2.spec);
+                        })
+                        //把原本庫存扣的補回去
+                        await new Stock(this.app, this.token).recoverStock(lineItem)
+                        //扣掉這次更改後訂單扣的
+                        await new Stock(this.app, this.token).shippingStock(variant);
+                    }
+
+
+                    // console.log("origin.orderData.progress -- " , data.orderData.lineItems);
+
                     await AutoSendEmail.customerOrder(this.app, 'auto-email-shipment', data.orderData.orderID, data.orderData.email, data.orderData.language);
                 }
 

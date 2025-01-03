@@ -23,6 +23,7 @@ import { ApiRecommend } from '../glitter-base/route/recommend.js';
 import { DeliveryHTML } from './module/delivery-html.js';
 import { ApiPageConfig } from '../api/pageConfig.js';
 import { Language } from "../glitter-base/global/language.js";
+import { OrderSetting } from "./module/order-setting.js";
 const html = String.raw;
 export class ShoppingOrderManager {
     static main(gvc, query) {
@@ -864,6 +865,11 @@ export class ShoppingOrderManager {
                                 return gvc.bindView({
                                     bind: glitter.getUUID(),
                                     view: () => {
+                                        function showTag(color, text) {
+                                            return html `
+                                                                                    <div style="background:${color};display: flex;height: 22px;padding: 4px 6px;justify-content: center;align-items: center;gap: 10px;border-radius: 7px;font-size: 14px;font-style: normal;font-weight: 400;">${text}</div>
+                                                                                    `;
+                                        }
                                         return html `
                                                                                     <div class="d-flex flex-column align-items-center justify-content-center"
                                                                                          style="gap:5px;margin-right:12px;">
@@ -874,20 +880,22 @@ export class ShoppingOrderManager {
                                             class: 'border rounded',
                                             style: '',
                                         })}
-                                                                                        ${dd.is_add_on_items ? `<div class="">${BgWidget.warningInsignia('加購品')}</div>` : ``}
-                                                                                        ${dd.is_gift ? `<div class="">${BgWidget.successInsignia('贈品')}</div>` : ``}
+                                                                                        
+                                                                                        
                                                                                     </div>
                                                                                     <div class="d-flex flex-column"
-                                                                                         style="gap:2px;">
+                                                                                         style="">
                                                                                         ${dd.is_hidden ? `<div style="width:auto;">${BgWidget.secondaryInsignia('隱形商品')}</div>` : ``}
-                                                                                        <div class="tx_700">
-                                                                                            ${dd.title}
+                                                                                        <div class="tx_700 d-flex align-items-center" style="gap:4px;">
+                                                                                            <div>${dd.title}</div>
+                                                                                            ${dd.is_gift ? `<div class="">${showTag("#FFE9B2", "贈品")}</div>` : ``}
+                                                                                            ${dd.is_add_on_items ? `<div class="">${showTag("#D8E7EC", "加購品")}</div>` : ``}
                                                                                         </div>
                                                                                         ${dd.spec.length > 0 ? BgWidget.grayNote(dd.spec.join(', ')) : ''}
                                                                                         ${BgWidget.grayNote(`存貨單位 (SKU)：${dd.sku && dd.sku.length > 0 ? dd.sku : '無'}`)}
                                                                                     </div>
                                                                                     <div class="flex-fill"></div>
-                                                                                    <div class="tx_normal_14">
+                                                                                    <div class="tx_normal_16">
                                                                                             $${dd.sale_price.toLocaleString()}
                                                                                         × ${dd.count}
                                                                                     </div>
@@ -899,7 +907,7 @@ export class ShoppingOrderManager {
                                     divCreate: { class: `d-flex align-items-center` },
                                 });
                             })
-                                .join(BgWidget.horizontalLine({ color: '#f6f6f6' }))}
+                                .join(html `<div style="margin-top: 12px;"></div>`)}
                                                             ${BgWidget.horizontalLine()}
                                                             ${[
                                 {
@@ -979,7 +987,7 @@ export class ShoppingOrderManager {
                                 var _a;
                                 return html `
                                                                             <div class="d-flex align-items-center justify-content-end">
-                                                                                <div class="tx_normal_14 "
+                                                                                <div class="tx_normal_16 "
                                                                                      style="text-align: end;">
                                                                                     ${dd.title} ${(_a = dd.description) !== null && _a !== void 0 ? _a : ''}
                                                                                 </div>
@@ -992,6 +1000,83 @@ export class ShoppingOrderManager {
                                 .join(BgWidget.mbContainer(18))}
                                                         </div>
                                                     `),
+                            BgWidget.mainCard(html `
+                                                <div style="display: flex;flex-direction: column;align-items: flex-start;gap: 12px;align-self: stretch;">
+                                                    <div class="w-100 d-flex tx_700 align-items-center justify-content-between">
+                                                        <div class="">分倉出貨</div>
+                                                        <div class=""
+                                                             style="display: flex;padding: 6px 18px;justify-content: center;align-items: center;gap: 8px;border-radius: 10px;border: 1px solid #DDD;background: #FFF;cursor: pointer;" onclick="${gvc.event(() => {
+                                OrderSetting.showEditShip({
+                                    gvc: gvc,
+                                    postMD: orderData.orderData.lineItems,
+                                    callback: () => {
+                                        gvc.notifyDataChange('storehouseList');
+                                    }
+                                });
+                            })}">
+                                                            編輯
+                                                        </div>
+                                                    </div>
+                                                    ${gvc.bindView({
+                                bind: "storehouseList",
+                                view: () => {
+                                    if (storeLoading) {
+                                        ApiUser.getPublicConfig('store_manager', 'manager').then((dd) => {
+                                            if (dd.result && dd.response.value) {
+                                                storeList = dd.response.value.list;
+                                                storeLoading = false;
+                                                gvc.notifyDataChange('storehouseList');
+                                            }
+                                            else {
+                                            }
+                                        });
+                                        return html `讀取中...`;
+                                    }
+                                    else {
+                                        if (storeList.length == 0) {
+                                            return html `倉儲資訊錯誤`;
+                                        }
+                                        return storeList.map((store) => {
+                                            let returnHtml = ``;
+                                            console.log("store -- ", store);
+                                            orderData.orderData.lineItems.map((item) => {
+                                                if (item.deduction_log[store.id]) {
+                                                    returnHtml += html `
+                                                                                <div class="d-flex justify-content-between"
+                                                                                     style="font-size: 16px;font-weight: 400;">
+                                                                                    <div>${item.title} - ${item.spec.join(',')}</div>
+                                                                                    <div>${item.deduction_log[store.id]}
+                                                                                    </div>
+                                                                                </div>
+                                                                            `;
+                                                }
+                                            });
+                                            if (returnHtml) {
+                                                return html `
+                                                                            <div class="d-flex flex-column w-100"
+                                                                                 style="gap:8px;padding: 18px;border-radius: 10px;border: 1px solid #DDD;">
+                                                                                <div class="d-flex w-100 align-items-center" style="gap:8px;">
+                                                                                    出貨地點
+                                                                                    <div style="font-size: 14px;color:#333;border-radius: 7px;background: rgba(221, 221, 221, 0.87);padding: 4px 6px;">
+                                                                                        ${store.name}
+                                                                                    </div>
+                                                                                </div>
+                                                                                <div class="w-100" style="background-color: #DDD;height: 1px;"></div>
+                                                                                <div class="d-flex flex-column">
+                                                                                    ${returnHtml}
+                                                                                </div>
+                                                                            </div>
+                                                                        `;
+                                            }
+                                            else {
+                                                return ``;
+                                            }
+                                        }).join('');
+                                    }
+                                }, divCreate: { class: `w-100 d-flex flex-column`, style: `gap:18px;` }
+                            })}
+                                                </div>
+                                            `),
                             BgWidget.mainCard([
                                 html `
                                                             <div style="display: flex;flex-direction: column;align-items: flex-start;gap: 12px;align-self: stretch;">
@@ -1810,7 +1895,7 @@ export class ShoppingOrderManager {
                             const findCancelStatus = (_b = orderData.orderData) === null || _b === void 0 ? void 0 : _b.editRecord.find((data) => {
                                 return data.record == "訂單已取消";
                             });
-                            if (!findCancelStatus) {
+                            if (!findCancelStatus && orderData.orderData.orderStatus == "-1") {
                                 orderData.orderData.lineItems.forEach((item) => {
                                     if (item.deduction_log) {
                                         ApiShop.recoverVariants({

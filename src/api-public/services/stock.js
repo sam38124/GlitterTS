@@ -173,10 +173,46 @@ class Stock {
         });
         variantData = variantData[0];
         Object.entries(variant.deduction_log).forEach(([key, value]) => {
-            pbVariant.stockList[key].count += value;
-            pbVariant.stock += value;
-            variantData.content.stockList[key].count += value;
-            variantData.content.stock += value;
+            pbVariant.stockList[key].count = parseInt(pbVariant.stockList[key].count) + parseInt(value);
+            pbVariant.stock = parseInt(pbVariant.stock) + parseInt(value);
+            variantData.content.stockList[key].count = parseInt(variantData.content.stockList[key].count) + parseInt(value);
+            variantData.content.stock = parseInt(variantData.content.stock) + parseInt(value);
+        });
+        await new shopping_1.Shopping(this.app, this.token).updateVariantsWithSpec(variantData.content, variant.id, variant.spec);
+        await database_1.default.query(`UPDATE \`${this.app}\`.\`t_manager_post\`
+                                     SET ?
+                                     WHERE 1 = 1
+                                       and id = ${pdDqlData.id}`, [{ content: JSON.stringify(pd) }]);
+    }
+    async shippingStock(variant) {
+        const sql = variant.spec.length > 0
+            ? `AND JSON_CONTAINS(content->'$.spec', JSON_ARRAY(${variant.spec
+                .map((data) => {
+                return `\"${data}\"`;
+            })
+                .join(',')}));`
+            : '';
+        let variantData = await database_1.default.query(`
+            SELECT *
+            FROM \`${this.app}\`.t_variants
+            WHERE \`product_id\` = "${variant.id}" ${sql}
+        `, []);
+        const pdDqlData = (await new shopping_1.Shopping(this.app, this.token).getProduct({
+            page: 0,
+            limit: 50,
+            id: variant.id,
+            status: 'inRange',
+        })).data;
+        const pd = pdDqlData.content;
+        const pbVariant = pd.variants.find((dd) => {
+            return dd.spec.join('-') === variant.spec.join('-');
+        });
+        variantData = variantData[0];
+        Object.entries(variant.deduction_log).forEach(([key, value]) => {
+            pbVariant.stockList[key].count = parseInt(pbVariant.stockList[key].count) - parseInt(value);
+            pbVariant.stock = parseInt(pbVariant.stock) - parseInt(value);
+            variantData.content.stockList[key].count = parseInt(variantData.content.stockList[key].count) - parseInt(value);
+            variantData.content.stock = parseInt(variantData.content.stock) - parseInt(value);
         });
         await new shopping_1.Shopping(this.app, this.token).updateVariantsWithSpec(variantData.content, variant.id, variant.spec);
         await database_1.default.query(`UPDATE \`${this.app}\`.\`t_manager_post\`

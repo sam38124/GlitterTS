@@ -256,10 +256,58 @@ export class Stock {
         });
         variantData = variantData[0];
         Object.entries(variant.deduction_log).forEach(([key, value]) => {
-            pbVariant.stockList[key].count += value;
-            pbVariant.stock += value;
-            variantData.content.stockList[key].count += value;
-            variantData.content.stock += value;
+            pbVariant.stockList[key].count = parseInt(pbVariant.stockList[key].count as string) + parseInt(value as string) ;
+            pbVariant.stock = parseInt(pbVariant.stock as string) + parseInt(value as string);
+            variantData.content.stockList[key].count = parseInt(variantData.content.stockList[key].count) + parseInt(value as string);
+            variantData.content.stock = parseInt(variantData.content.stock) + parseInt(value as string);
+        });
+        await new Shopping(this.app, this.token).updateVariantsWithSpec(variantData.content, variant.id, variant.spec);
+        await db.query(
+            `UPDATE \`${this.app}\`.\`t_manager_post\`
+                                     SET ?
+                                     WHERE 1 = 1
+                                       and id = ${pdDqlData.id}`,
+            [{ content: JSON.stringify(pd) }]
+        );
+    }
+
+    public async shippingStock(variant: any) {
+        const sql =
+            variant.spec.length > 0
+                ? `AND JSON_CONTAINS(content->'$.spec', JSON_ARRAY(${variant.spec
+                    .map((data: string) => {
+                        return `\"${data}\"`;
+                    })
+                    .join(',')}));`
+                : '';
+
+        let variantData = await db.query(
+            `
+            SELECT *
+            FROM \`${this.app}\`.t_variants
+            WHERE \`product_id\` = "${variant.id}" ${sql}
+        `,
+            []
+        );
+        const pdDqlData = (
+            await new Shopping(this.app, this.token).getProduct({
+                page: 0,
+                limit: 50,
+                id: variant.id,
+                status: 'inRange',
+            })
+        ).data;
+        const pd = pdDqlData.content;
+        const pbVariant = pd.variants.find((dd: any) => {
+            return dd.spec.join('-') === variant.spec.join('-');
+        });
+        variantData = variantData[0];
+        Object.entries(variant.deduction_log).forEach(([key, value]) => {
+            pbVariant.stockList[key].count = parseInt(pbVariant.stockList[key].count as string) - parseInt(value as string) ;
+            pbVariant.stock = parseInt(pbVariant.stock as string) - parseInt(value as string);
+            variantData.content.stockList[key].count = parseInt(variantData.content.stockList[key].count) - parseInt(value as string);
+            variantData.content.stock = parseInt(variantData.content.stock) - parseInt(value as string);
+
         });
         await new Shopping(this.app, this.token).updateVariantsWithSpec(variantData.content, variant.id, variant.spec);
         await db.query(

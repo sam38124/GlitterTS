@@ -60,6 +60,7 @@ export declare class Stock {
         remainingCount: number;
     };
     recoverStock(variant: any): Promise<void>;
+    shippingStock(variant: any): Promise<void>;
     getHistory(json: {
         page: string;
         limit: string;

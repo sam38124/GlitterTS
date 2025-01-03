@@ -141,6 +141,7 @@ class Shopping {
             if (`${query.id || ''}`) {
                 if (`${query.id}`.includes(',')) {
                     querySql.push(`id in (${query.id})`);
+                    console.log("query.id -- ", query.id);
                 }
                 else {
                     querySql.push(`id = ${query.id}`);
@@ -162,7 +163,7 @@ class Shopping {
                     if (dd === 'hidden') {
                         querySql.push(`(content->>'$.visible' = "false")`);
                     }
-                    else {
+                    else if (dd !== 'all') {
                         querySql.push(`(content->>'$.productType.${dd}' = "true")`);
                     }
                 });
@@ -1640,6 +1641,14 @@ class Shopping {
             if (update.orderData && JSON.parse(update.orderData)) {
                 let sns = new sms_js_1.SMS(this.app);
                 const updateProgress = JSON.parse(update.orderData).progress;
+                for (const lineItem of origin[0].orderData.lineItems) {
+                    let variant = data.orderData.lineItems.find((lineItem2) => {
+                        return lineItem2.id == lineItem.id && JSON.stringify(lineItem.spec) == JSON.stringify(lineItem2.spec);
+                    });
+                    console.log("here -- OK");
+                    await new stock_1.Stock(this.app, this.token).recoverStock(lineItem);
+                    await new stock_1.Stock(this.app, this.token).shippingStock(variant);
+                }
                 if (origin[0].orderData.progress !== 'shipping' && updateProgress === 'shipping') {
                     if (data.orderData.customer_info.phone) {
                         await sns.sendCustomerSns('auto-sns-shipment', data.orderData.orderID, data.orderData.customer_info.phone);
