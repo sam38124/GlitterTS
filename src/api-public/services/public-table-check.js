@@ -59,7 +59,7 @@ class ApiPublic {
   KEY \`index3\` (\`invoice_no\`),
   KEY \`index4\` (\`create_date\`),
   KEY \`index5\` (\`status\`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci`
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci`,
                 },
                 {
                     scheme: appName,
@@ -77,7 +77,7 @@ class ApiPublic {
   KEY \`index3\` (\`invoice_no\`),
   KEY \`index4\` (\`create_date\`),
   KEY \`index5\` (\`status\`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci`
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci`,
                 },
                 {
                     scheme: appName,
@@ -480,6 +480,20 @@ class ApiPublic {
   KEY \`index4\` (\`created_time\`)
 ) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci`,
                 },
+                {
+                    scheme: appName,
+                    table: `t_stock_history`,
+                    sql: `(
+  \`id\` int NOT NULL AUTO_INCREMENT,
+  \`type\` varchar(50) COLLATE utf8mb4_unicode_ci NOT NULL,
+  \`order_id\` varchar(50) COLLATE utf8mb4_unicode_ci NOT NULL,
+  \`status\` int NOT NULL DEFAULT 1,
+  \`content\` json DEFAULT NULL,
+  \`created_time\` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (\`id\`),
+  KEY \`index2\` (\`order_id\`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci`,
+                },
             ];
             for (const b of chunkArray(sqlArray, groupSize)) {
                 let check = b.length;
@@ -494,8 +508,8 @@ class ApiPublic {
                     }
                 });
             }
-            await (ai_robot_js_1.AiRobot.syncAiRobot(appName));
-            await (ApiPublic.migrateVariants(appName));
+            await ai_robot_js_1.AiRobot.syncAiRobot(appName);
+            await ApiPublic.migrateVariants(appName);
         }
         catch (e) {
             console.error(e);
@@ -522,14 +536,13 @@ class ApiPublic {
                 await trans.commit();
                 await trans.release();
             }
-            catch (e) {
-            }
+            catch (e) { }
         }
     }
     static async migrateVariants(app) {
         const store_version = await new user_js_1.User(app).getConfigV2({
             key: 'store_version',
-            user_id: 'manager'
+            user_id: 'manager',
         });
         if (store_version.version === 'v1') {
             for (const b of await database_1.default.query(`select *
@@ -537,13 +550,13 @@ class ApiPublic {
                                             where (content ->>'$.type'='product')`, [])) {
                 const stock_list = await new user_js_1.User(app).getConfigV2({
                     key: 'store_manager',
-                    user_id: 'manager'
+                    user_id: 'manager',
                 });
                 for (const c of b.content.variants) {
                     c.stockList = {};
                     stock_list.list.map((dd) => {
                         c.stockList[dd.id] = {
-                            count: 0
+                            count: 0,
                         };
                     });
                     c.stockList[stock_list.list[0].id].count = c.stock;
@@ -554,8 +567,8 @@ class ApiPublic {
                     key: 'store_version',
                     user_id: 'manager',
                     value: {
-                        version: 'v2'
-                    }
+                        version: 'v2',
+                    },
                 });
                 console.log(`migrate-分艙:`, b);
             }

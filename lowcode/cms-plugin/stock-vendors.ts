@@ -10,7 +10,7 @@ import { Tool } from '../modules/tool.js';
 
 const html = String.raw;
 
-type VendorData = {
+export type VendorData = {
     id: string;
     name: string;
     address: string;
@@ -35,22 +35,11 @@ export class StockVendors {
     static main(gvc: GVC) {
         const glitter = gvc.glitter;
 
-        const emptyData = () => {
-            return {
-                id: '',
-                name: '',
-                address: '',
-                manager_name: '',
-                manager_phone: '',
-                note: '',
-            };
-        };
-
         const vm: VM = {
             id: glitter.getUUID(),
             tableId: glitter.getUUID(),
             type: 'list',
-            data: emptyData(),
+            data: StockVendors.emptyData(),
             dataList: [],
             query: '',
             queryType: '',
@@ -71,7 +60,7 @@ export class StockVendors {
                 }
 
                 if (vm.type === 'create') {
-                    vm.data = emptyData();
+                    vm.data = StockVendors.emptyData();
                     return this.detailPage(gvc, vm, 'create');
                 }
 
@@ -79,6 +68,18 @@ export class StockVendors {
             },
         });
     }
+
+    static emptyData = () => {
+        return {
+            id: '',
+            name: '',
+            address: '',
+            manager_name: '',
+            manager_phone: '',
+            note: '',
+            is_shop:false
+        };
+    };
 
     static list(gvc: GVC, vm: VM) {
         const ListComp = new BgListComponent(gvc, vm, FilterOptions.vendorsFilterFrame);
@@ -356,51 +357,8 @@ export class StockVendors {
                     )}
                     ${BgWidget.save(
                         gvc.event(() => {
-                            // 名稱未填寫驗證
-                            if (CheckInput.isEmpty(vm.data.name)) {
-                                dialog.infoMessage({ text: '供應商名稱不得為空白' });
-                                return;
-                            }
-
-                            // 地址未填寫驗證
-                            if (CheckInput.isEmpty(vm.data.address)) {
-                                dialog.infoMessage({ text: '地址不得為空白' });
-                                return;
-                            }
-
-                            // 正則表達式來驗證台灣行動電話號碼格式
-                            if (!CheckInput.isTaiwanPhone(vm.data.manager_phone)) {
-                                dialog.infoMessage({ text: BgWidget.taiwanPhoneAlert() });
-                                return;
-                            }
-
-                            dialog.dataLoading({ visible: true });
-                            this.getPublicData().then((vendors: any) => {
-                                vendors.list = vendors.list ?? [];
-
-                                if (type === 'replace') {
-                                    const vendor = vendors.list.find((item: VendorData) => item.id === vm.data.id);
-                                    if (vendor) {
-                                        Object.assign(vendor, vm.data);
-                                    }
-                                } else {
-                                    vm.data.id = this.getNewID(vendors.list);
-                                    vendors.list.push(vm.data);
-                                }
-
-                                ApiUser.setPublicConfig({
-                                    key: 'vendor_manager',
-                                    value: {
-                                        list: vendors.list,
-                                    },
-                                    user_id: 'manager',
-                                }).then((dd: any) => {
-                                    dialog.dataLoading({ visible: false });
-                                    dialog.successMessage({ text: type === 'create' ? '新增成功' : '更新成功' });
-                                    setTimeout(() => {
-                                        vm.type = 'list';
-                                    }, 500);
-                                });
+                            this.verifyStoreForm(glitter, type, vm.data, () => {
+                                vm.type = 'list';
                             });
                         })
                     )}
@@ -427,6 +385,54 @@ export class StockVendors {
             newId = `vendor_${Tool.randomString(6)}`;
         } while (list.some((item: VendorData) => item.id === newId));
         return newId;
+    }
+
+    static verifyStoreForm(glitter: any, type: 'create' | 'replace', data: VendorData, callback: (data: any) => void): void {
+        const dialog = new ShareDialog(glitter);
+        // 名稱未填寫驗證
+        if (CheckInput.isEmpty(data.name)) {
+            dialog.infoMessage({ text: '供應商名稱不得為空白' });
+            return;
+        }
+
+        // 地址未填寫驗證
+        if (CheckInput.isEmpty(data.address)) {
+            dialog.infoMessage({ text: '地址不得為空白' });
+            return;
+        }
+
+        // 正則表達式來驗證台灣行動電話號碼格式
+        if (!CheckInput.isTaiwanPhone(data.manager_phone)) {
+            dialog.infoMessage({ text: BgWidget.taiwanPhoneAlert() });
+            return;
+        }
+
+        dialog.dataLoading({ visible: true });
+        this.getPublicData().then((vendors: any) => {
+            vendors.list = vendors.list ?? [];
+
+            if (type === 'replace') {
+                const vendor = vendors.list.find((item: VendorData) => item.id === data.id);
+                if (vendor) {
+                    Object.assign(vendor, data);
+                }
+            } else {
+                data.id = this.getNewID(vendors.list);
+                vendors.list.push(data);
+            }
+
+            ApiUser.setPublicConfig({
+                key: 'vendor_manager',
+                value: {
+                    list: vendors.list,
+                },
+                user_id: 'manager',
+            }).then(() => {
+                dialog.dataLoading({ visible: false });
+                dialog.successMessage({ text: type === 'create' ? '新增成功' : '更新成功' });
+                callback(data);
+            });
+        });
     }
 }
 

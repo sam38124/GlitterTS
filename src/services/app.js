@@ -170,7 +170,7 @@ class App {
                     dd.value = dd.value && JSON.stringify(dd.value);
                     if (dd.userID !== 'manager' && !['custom_form_checkout', 'custom_form_register', 'customer_form_user_setting', 'robot_auto_reply', 'image-manager', 'message_setting'].includes(dd.key)) {
                         await trans.execute(`
-                                insert into \`${cf.appName}\`.t_user_public_config
+                                insert ignore into \`${cf.appName}\`.t_user_public_config
                                 SET ?;
                             `, [dd]);
                     }

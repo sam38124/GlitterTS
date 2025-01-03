@@ -1032,9 +1032,9 @@ export class ApiShop {
     //     });
     // }
 
-    static ecDataAnalyze(tagArray: string[]) {
+    static ecDataAnalyze(tagArray: string[],query:string='') {
         return BaseApi.create({
-            url: getBaseUrl() + `/api-public/v1/ec/dataAnalyze?tags=${tagArray.join(',')}`,
+            url: getBaseUrl() + `/api-public/v1/ec/dataAnalyze?tags=${tagArray.join(',')}&query=${query}`,
             type: 'GET',
             headers: {
                 'Content-Type': 'application/json',

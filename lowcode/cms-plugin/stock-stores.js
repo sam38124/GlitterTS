@@ -9,48 +9,50 @@ import { CheckInput } from '../modules/checkInput.js';
 import { Tool } from '../modules/tool.js';
 const html = String.raw;
 export class StockStores {
-    static main(gvc) {
+    static main(gvc, isShop) {
         const glitter = gvc.glitter;
         const vm = {
             id: glitter.getUUID(),
             tableId: glitter.getUUID(),
             type: 'list',
-            data: emptyData(),
+            data: StockStores.emptyData(),
             dataList: [],
             query: '',
             queryType: '',
             filter: {},
             orderString: '',
+            isShop: isShop
         };
-        function emptyData() {
-            return {
-                id: '',
-                name: '',
-                address: '',
-                manager_name: '',
-                manager_phone: '',
-                note: '',
-            };
-        }
         return gvc.bindView({
             bind: vm.id,
             dataList: [{ obj: vm, key: 'type' }],
             view: () => {
                 if (vm.type === 'list') {
-                    return this.list(gvc, vm);
+                    return this.list(gvc, vm, isShop);
                 }
                 if (vm.type === 'replace') {
-                    return this.detailPage(gvc, vm, 'replace');
+                    return this.detailPage(gvc, vm, 'replace', isShop);
                 }
                 if (vm.type === 'create') {
-                    vm.data = emptyData();
-                    return this.detailPage(gvc, vm, 'create');
+                    vm.data = StockStores.emptyData(isShop);
+                    return this.detailPage(gvc, vm, 'create', isShop);
                 }
                 return '';
             },
         });
     }
-    static list(gvc, vm) {
+    static emptyData(is_shop = false) {
+        return {
+            id: '',
+            name: '',
+            address: '',
+            manager_name: '',
+            manager_phone: '',
+            note: '',
+            is_shop: is_shop
+        };
+    }
+    static list(gvc, vm, isShop) {
         const ListComp = new BgListComponent(gvc, vm, FilterOptions.storesFilterFrame);
         vm.filter = ListComp.getFilterObject();
         let vmi = undefined;
@@ -58,7 +60,7 @@ export class StockStores {
             return vm.dataList.map((dd) => {
                 return [
                     {
-                        key: '庫存點名稱',
+                        key: (isShop) ? `門市名稱` : '庫存點名稱',
                         value: `<span class="fs-7">${dd.name}</span>`,
                     },
                     {
@@ -76,10 +78,11 @@ export class StockStores {
                 ];
             });
         }
-        return BgWidget.container(html ` <div class="title-container">
-                    ${BgWidget.title('庫存點管理')}
+        return BgWidget.container(html `
+                <div class="title-container">
+                    ${BgWidget.title((isShop) ? '門市管理' : '庫存點管理')}
                     <div class="flex-fill"></div>
-                    ${BgWidget.grayButton('新增庫存點', gvc.event(() => {
+                    ${BgWidget.grayButton((isShop) ? `新增門市` : `新增庫存點`, gvc.event(() => {
             vm.type = 'create';
         }))}
                 </div>
@@ -99,26 +102,37 @@ export class StockStores {
                                     gvc.notifyDataChange(id);
                                 },
                                 default: vm.queryType || 'name',
-                                options: FilterOptions.storesSelect,
+                                options: (isShop) ? [{
+                                        key: 'name',
+                                        value: '門市名稱'
+                                    }] : FilterOptions.storesSelect,
                             }),
                             BgWidget.searchFilter(gvc.event((e) => {
                                 vm.query = `${e.value}`.trim();
                                 gvc.notifyDataChange(vm.tableId);
                                 gvc.notifyDataChange(id);
-                            }), vm.query || '', '搜尋庫存點名稱'),
+                            }), vm.query || '', (isShop) ? '搜尋門市名稱' : '搜尋庫存點名稱'),
                         ];
                         const filterTags = ListComp.getFilterTags(FilterOptions.storesFunnel);
                         if (document.body.clientWidth < 768) {
-                            return html ` <div style="display: flex; align-items: center; gap: 10px; width: 100%; justify-content: space-between">
-                                                    <div>${filterList[0]}</div>
-                                                    <div style="display: flex;">${filterList[2] ? `<div class="me-2">${filterList[2]}</div>` : ''} ${(_a = filterList[3]) !== null && _a !== void 0 ? _a : ''}</div>
-                                                </div>
-                                                <div style="display: flex; margin-top: 8px;">${filterList[1]}</div>
-                                                <div>${filterTags}</div>`;
+                            return html `
+                                                        <div style="display: flex; align-items: center; gap: 10px; width: 100%; justify-content: space-between">
+                                                            <div>${filterList[0]}</div>
+                                                            <div style="display: flex;">
+                                                                ${filterList[2] ? `<div class="me-2">${filterList[2]}</div>` : ''}
+                                                                ${(_a = filterList[3]) !== null && _a !== void 0 ? _a : ''}
+                                                            </div>
+                                                        </div>
+                                                        <div style="display: flex; margin-top: 8px;">${filterList[1]}
+                                                        </div>
+                                                        <div>${filterTags}</div>`;
                         }
                         else {
-                            return html ` <div style="display: flex; align-items: center; gap: 10px;">${filterList.join('')}</div>
-                                                <div>${filterTags}</div>`;
+                            return html `
+                                                        <div style="display: flex; align-items: center; gap: 10px;">
+                                                            ${filterList.join('')}
+                                                        </div>
+                                                        <div>${filterTags}</div>`;
                         }
                     },
                 });
@@ -142,7 +156,7 @@ export class StockStores {
                             this.getPublicData().then((data) => {
                                 if (data.list && data.list.length > 0) {
                                     data.list = data.list.filter((item) => {
-                                        return vm.query === '' || item.name.includes(vm.query);
+                                        return (vm.query === '' || item.name.includes(vm.query)) && ((isShop && item.is_shop) || (!isShop && !item.is_shop));
                                     });
                                     callback(data.list);
                                 }
@@ -155,6 +169,7 @@ export class StockStores {
                                             manager_name: '',
                                             manager_phone: '',
                                             note: '',
+                                            is_shop: false
                                         },
                                     ];
                                     ApiUser.setPublicConfig({
@@ -179,10 +194,11 @@ export class StockStores {
             }),
         ].join('')))}`);
     }
-    static detailPage(gvc, vm, type) {
+    static detailPage(gvc, vm, type, is_shop) {
         var _a, _b, _c, _d, _e;
         const glitter = gvc.glitter;
         const dialog = new ShareDialog(glitter);
+        const st_name = is_shop ? '門市' : '庫存點';
         function getDatalist() {
             return vm.dataList.map((dd) => {
                 return [
@@ -210,53 +226,59 @@ export class StockStores {
             });
         }
         return BgWidget.container([
-            html ` <div class="title-container">
+            html `
+                    <div class="title-container">
                         <div>
                             ${BgWidget.goBack(gvc.event(() => {
                 vm.type = 'list';
             }))}
                         </div>
-                        <div>${BgWidget.title(type === 'create' ? '新增庫存點' : vm.data.name)}</div>
+                        <div>${BgWidget.title(type === 'create' ? `新增${st_name}` : vm.data.name)}</div>
                     </div>
                     <div class="flex-fill"></div>`,
-            html ` <div class="d-flex justify-content-center ${document.body.clientWidth < 768 ? 'flex-column' : ''}" style="gap: 24px">
-                    ${BgWidget.container([
+            html `
+                    <div class="d-flex justify-content-center ${document.body.clientWidth < 768 ? 'flex-column' : ''}"
+                         style="gap: 24px">
+                        ${BgWidget.container([
                 BgWidget.mainCard([
-                    html ` <div class="tx_700">庫存點資訊</div>`,
-                    html ` <div class="row">
-                                        <div class="col-12 col-md-6">
-                                            <div class="tx_normal">庫存點名稱</div>
-                                            ${BgWidget.mbContainer(8)}
-                                            ${BgWidget.editeInput({
+                    html `
+                                                    <div class="tx_700">${st_name}資訊</div>`,
+                    html `
+                                                    <div class="row">
+                                                        <div class="col-12 col-md-6">
+                                                            <div class="tx_normal">${st_name}名稱</div>
+                                                            ${BgWidget.mbContainer(8)}
+                                                            ${BgWidget.editeInput({
                         gvc: gvc,
                         title: '',
                         default: (_a = vm.data.name) !== null && _a !== void 0 ? _a : '',
-                        placeHolder: '請輸入庫存點名稱',
+                        placeHolder: `請輸入${st_name}名稱`,
                         callback: (text) => {
                             vm.data.name = text;
                         },
                     })}
-                                        </div>
-                                        ${document.body.clientWidth > 768 ? '' : BgWidget.mbContainer(18)}
-                                        <div class="col-12 col-md-6">
-                                            <div class="tx_normal">庫存點地址</div>
-                                            ${BgWidget.mbContainer(8)}
-                                            ${BgWidget.editeInput({
+                                                        </div>
+                                                        ${document.body.clientWidth > 768 ? '' : BgWidget.mbContainer(18)}
+                                                        <div class="col-12 col-md-6">
+                                                            <div class="tx_normal">${st_name}地址</div>
+                                                            ${BgWidget.mbContainer(8)}
+                                                            ${BgWidget.editeInput({
                         gvc: gvc,
                         title: '',
                         default: (_b = vm.data.address) !== null && _b !== void 0 ? _b : '',
-                        placeHolder: '請輸入庫存點地址',
+                        placeHolder: `請輸入${st_name}地址`,
                         callback: (text) => {
                             vm.data.address = text;
                         },
                     })}
-                                        </div>
-                                    </div>`,
-                    html `<div class="row">
-                                        <div class="col-12 col-md-6">
-                                            <div class="tx_normal">聯絡人姓名</div>
-                                            ${BgWidget.mbContainer(8)}
-                                            ${BgWidget.editeInput({
+                                                        </div>
+                                                    </div>`,
+                    html `
+                                                    <div class="row">
+                                                        <div class="col-12 col-md-6">
+                                                            <div class="tx_normal">聯絡人姓名</div>
+                                                            ${BgWidget.mbContainer(8)}
+                                                            ${BgWidget.editeInput({
                         gvc: gvc,
                         title: '',
                         default: (_c = vm.data.manager_name) !== null && _c !== void 0 ? _c : '',
@@ -265,11 +287,11 @@ export class StockStores {
                             vm.data.manager_name = text;
                         },
                     })}
-                                        </div>
-                                        <div class="col-12 col-md-6">
-                                            <div class="tx_normal">電話</div>
-                                            ${BgWidget.mbContainer(8)}
-                                            ${BgWidget.editeInput({
+                                                        </div>
+                                                        <div class="col-12 col-md-6">
+                                                            <div class="tx_normal">電話</div>
+                                                            ${BgWidget.mbContainer(8)}
+                                                            ${BgWidget.editeInput({
                         gvc: gvc,
                         title: '',
                         default: (_d = vm.data.manager_phone) !== null && _d !== void 0 ? _d : '',
@@ -278,10 +300,11 @@ export class StockStores {
                             vm.data.manager_phone = text;
                         },
                     })}
-                                        </div>
-                                    </div> `,
-                    html ` <div class="tx_normal">備註</div>
-                                        ${EditorElem.editeText({
+                                                        </div>
+                                                    </div>`,
+                    html `
+                                                    <div class="tx_normal">備註</div>
+                                                    ${EditorElem.editeText({
                         gvc: gvc,
                         title: '',
                         default: (_e = vm.data.note) !== null && _e !== void 0 ? _e : '',
@@ -290,11 +313,14 @@ export class StockStores {
                             vm.data.note = text;
                         },
                     })}`,
-                ].join(BgWidget.mbContainer(18))),
+                ].filter((dd) => {
+                    return dd;
+                }).join(BgWidget.mbContainer(18))),
                 type === 'create'
                     ? ''
                     : BgWidget.mainCard([
-                        html ` <div class="tx_700">追蹤此庫存點的商品</div>`,
+                        html `
+                                                            <div class="tx_700">追蹤此庫存點的商品</div>`,
                         BgWidget.tableV3({
                             gvc: gvc,
                             getData: (vd) => {
@@ -321,12 +347,74 @@ export class StockStores {
                                     vmi.callback();
                                 });
                             },
-                            rowClick: () => { },
+                            rowClick: () => {
+                            },
                             filter: [],
                         }),
                     ].join(BgWidget.mbContainer(18))),
             ].join(BgWidget.mbContainer(24)))}
-                </div>`,
+                    </div>`,
+            BgWidget.mbContainer(240),
+            html `
+                    <div class="update-bar-container">
+                        ${type === 'replace'
+                ? BgWidget.danger(gvc.event(() => {
+                    const cleanDelete = () => {
+                        dialog.checkYesOrNot({
+                            text: html `此操作無法恢復此庫存點<br/>以及商品庫存數
+                                                    <br/>確定要刪除此庫存點？`,
+                            callback: (bool) => {
+                                if (bool) {
+                                    dialog.dataLoading({ visible: true });
+                                    this.getPublicData().then((stores) => {
+                                        const filterList = stores.list.filter((item) => item.id !== vm.data.id);
+                                        if (filterList.length === 0) {
+                                            dialog.dataLoading({ visible: false });
+                                            dialog.errorMessage({ text: '庫存點數量不可小於0' });
+                                            return;
+                                        }
+                                        ApiStock.deleteStore({ id: vm.data.id }).then((d) => {
+                                            ApiUser.setPublicConfig({
+                                                key: 'store_manager',
+                                                value: {
+                                                    list: filterList,
+                                                },
+                                                user_id: 'manager',
+                                            }).then(() => {
+                                                dialog.dataLoading({ visible: false });
+                                                dialog.successMessage({ text: '刪除成功' });
+                                                setTimeout(() => {
+                                                    vm.type = 'list';
+                                                }, 500);
+                                            });
+                                        });
+                                    });
+                                }
+                            },
+                        });
+                    };
+                    if (vm.dataList.length === 0) {
+                        cleanDelete();
+                    }
+                    else {
+                        dialog.warningMessage({
+                            text: html `此庫存點還有商品庫存<br/>建議刪除前透過「調撥單」清理所有庫存商品
+                                                    <br/>或按下「確定」即可強制刪除庫存點`,
+                            callback: (b) => {
+                                if (b) {
+                                    cleanDelete();
+                                }
+                            },
+                        });
+                    }
+                }))
+                : ''}
+                        ${BgWidget.cancel(gvc.event(() => {
+                vm.type = 'list';
+            }))}
+                        </div>
+                    </div>
+                    <div class="flex-fill"></div>`,
             BgWidget.mbContainer(240),
             html ` <div class="update-bar-container">
                     ${type === 'replace'
@@ -383,43 +471,8 @@ export class StockStores {
                 vm.type = 'list';
             }))}
                     ${BgWidget.save(gvc.event(() => {
-                if (CheckInput.isEmpty(vm.data.name)) {
-                    dialog.infoMessage({ text: '庫存點名稱不得為空白' });
-                    return;
-                }
-                if (CheckInput.isEmpty(vm.data.address)) {
-                    dialog.infoMessage({ text: '地址不得為空白' });
-                    return;
-                }
-                if (!CheckInput.isTaiwanPhone(vm.data.manager_phone)) {
-                    dialog.infoMessage({ text: BgWidget.taiwanPhoneAlert() });
-                    return;
-                }
-                dialog.dataLoading({ visible: true });
-                this.getPublicData().then((stores) => {
-                    if (type === 'replace') {
-                        const store = stores.list.find((item) => item.id === vm.data.id);
-                        if (store) {
-                            Object.assign(store, vm.data);
-                        }
-                    }
-                    else {
-                        vm.data.id = this.getNewID(stores.list);
-                        stores.list.push(vm.data);
-                    }
-                    ApiUser.setPublicConfig({
-                        key: 'store_manager',
-                        value: {
-                            list: stores.list,
-                        },
-                        user_id: 'manager',
-                    }).then((dd) => {
-                        dialog.dataLoading({ visible: false });
-                        dialog.successMessage({ text: type === 'create' ? '新增成功' : '更新成功' });
-                        setTimeout(() => {
-                            vm.type = 'list';
-                        }, 500);
-                    });
+                this.verifyStoreForm(glitter, type, vm.data, () => {
+                    vm.type = 'list';
                 });
             }))}
                 </div>`,
@@ -443,6 +496,47 @@ export class StockStores {
             newId = `store_${Tool.randomString(6)}`;
         } while (list.some((item) => item.id === newId));
         return newId;
+    }
+    static verifyStoreForm(glitter, type, data, callback) {
+        const dialog = new ShareDialog(glitter);
+        if (CheckInput.isEmpty(data.name)) {
+            dialog.infoMessage({ text: '庫存點名稱不得為空白' });
+            return;
+        }
+        if (CheckInput.isEmpty(data.address)) {
+            dialog.infoMessage({ text: '地址不得為空白' });
+            return;
+        }
+        if (!CheckInput.isTaiwanPhone(data.manager_phone)) {
+            dialog.infoMessage({ text: BgWidget.taiwanPhoneAlert() });
+            return;
+        }
+        dialog.dataLoading({ visible: true });
+        this.getPublicData().then((stores) => {
+            if (type === 'replace') {
+                const store = stores.list.find((item) => item.id === data.id);
+                if (store) {
+                    Object.assign(store, data);
+                }
+            }
+            else {
+                data.id = this.getNewID(stores.list);
+                stores.list.push(data);
+            }
+            ApiUser.setPublicConfig({
+                key: 'store_manager',
+                value: {
+                    list: stores.list,
+                },
+                user_id: 'manager',
+            }).then(() => {
+                dialog.dataLoading({ visible: false });
+                dialog.successMessage({ text: type === 'create' ? '新增成功' : '更新成功' });
+                setTimeout(() => {
+                    callback(data);
+                }, 500);
+            });
+        });
     }
 }
 window.glitter.setModule(import.meta.url, StockStores);

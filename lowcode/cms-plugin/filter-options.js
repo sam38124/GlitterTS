@@ -514,3 +514,10 @@ FilterOptions.vendorsFilterFrame = {};
 FilterOptions.vendorsSelect = [{ key: 'name', value: '庫存點名稱' }];
 FilterOptions.vendorsFunnel = [];
 FilterOptions.vendorsOrderBy = [];
+FilterOptions.stockHistoryFilterFrame = {};
+FilterOptions.stockHistorySelect = [
+    { key: 'order_id', value: '進貨單編號' },
+    { key: 'note', value: '備註' },
+];
+FilterOptions.stockHistoryFunnel = [];
+FilterOptions.stockHistoryOrderBy = [];

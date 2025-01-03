@@ -149,7 +149,13 @@ class Stock {
         };
     }
     async recoverStock(variant) {
-        const sql = (variant.spec.length > 0) ? `AND JSON_CONTAINS(content->'$.spec', JSON_ARRAY(${variant.spec.map((data) => { return `\"${data}\"`; }).join(',')}));` : '';
+        const sql = variant.spec.length > 0
+            ? `AND JSON_CONTAINS(content->'$.spec', JSON_ARRAY(${variant.spec
+                .map((data) => {
+                return `\"${data}\"`;
+            })
+                .join(',')}));`
+            : '';
         let variantData = await database_1.default.query(`
             SELECT *
             FROM \`${this.app}\`.t_variants
@@ -177,6 +183,83 @@ class Stock {
                                      SET ?
                                      WHERE 1 = 1
                                        and id = ${pdDqlData.id}`, [{ content: JSON.stringify(pd) }]);
+    }
+    async getHistory(json) {
+        const page = json.page ? parseInt(`${json.page}`, 10) : 0;
+        const limit = json.limit ? parseInt(`${json.limit}`, 10) : 20;
+        function formatDate(sqlDatetime) {
+            const date = new Date(sqlDatetime);
+            const year = date.getFullYear();
+            const month = String(date.getMonth() + 1).padStart(2, '0');
+            const day = String(date.getDate()).padStart(2, '0');
+            const formattedDate = `${year}-${month}-${day}`;
+            return formattedDate;
+        }
+        try {
+            const getHistoryTotal = await database_1.default.query(`SELECT count(id) as c FROM \`${this.app}\`.t_stock_history
+                WHERE 1=1
+                `, []);
+            const data = await database_1.default.query(`SELECT * FROM \`${this.app}\`.t_stock_history
+                    WHERE 1=1
+                    LIMIT ${page * limit}, ${limit};
+                `, []);
+            data.map((rowData) => {
+                rowData.created_time = formatDate(rowData.created_time);
+            });
+            return {
+                total: getHistoryTotal[0].c,
+                data,
+            };
+        }
+        catch (error) {
+            console.error(error);
+            if (error instanceof Error) {
+                throw exception_1.default.BadRequestError('stock getHistory Error: ', error.message, null);
+            }
+        }
+    }
+    async postHistory(json) {
+        console.log('postHistory');
+        console.log(json);
+        try {
+            json.content.product_list.map((item) => {
+                delete item.title;
+                delete item.spec;
+                delete item.sku;
+                return item;
+            });
+            const formatJson = JSON.parse(JSON.stringify(json));
+            formatJson.order_id = `IC${new Date().getTime()}`;
+            formatJson.content = JSON.stringify(json.content);
+            formatJson.created_time = `${json.created_time} 00:00:00`;
+            delete formatJson.id;
+            await database_1.default.query(`INSERT INTO \`${this.app}\`.\`t_stock_history\` SET ?;
+                `, [formatJson]);
+            return { data: true };
+        }
+        catch (error) {
+            console.error(error);
+            if (error instanceof Error) {
+                throw exception_1.default.BadRequestError('stock postHistory Error: ', error.message, null);
+            }
+        }
+    }
+    async putHistory(json) {
+        console.log('putHistory');
+        console.log(json);
+        try {
+            const formatJson = JSON.parse(JSON.stringify(json));
+            formatJson.content = JSON.stringify(json.content);
+            await database_1.default.query(`UPDATE \`${this.app}\`.t_stock_history SET ? WHERE id = ?
+                `, [formatJson, json.id]);
+            return { data: false };
+        }
+        catch (error) {
+            console.error(error);
+            if (error instanceof Error) {
+                throw exception_1.default.BadRequestError('stock postHistory Error: ', error.message, null);
+            }
+        }
     }
 }
 exports.Stock = Stock;

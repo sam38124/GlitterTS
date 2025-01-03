@@ -2142,7 +2142,7 @@ OR JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.orderStatus')) NOT IN (-99)) `);
             console.log("error -- ", e);
         }
     }
-    async getDataAnalyze(tags) {
+    async getDataAnalyze(tags, query) {
         try {
             console.log('AnalyzeTimer Start');
             const timer = {};
@@ -2166,6 +2166,9 @@ OR JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.orderStatus')) NOT IN (-99)) `);
                                         break;
                                     case 'hot_products':
                                         result[tag] = await this.getHotProducts('month');
+                                        break;
+                                    case 'hot_products_all':
+                                        result[tag] = await this.getHotProducts('all', query);
                                         break;
                                     case 'hot_products_today':
                                         result[tag] = await this.getHotProducts('day');
@@ -2514,27 +2517,39 @@ OR JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.orderStatus')) NOT IN (-99)) `);
             throw exception_js_1.default.BadRequestError('BAD_REQUEST', 'getRecentActiveUser Error:' + e, null);
         }
     }
-    async getHotProducts(duration) {
+    async getHotProducts(duration, date) {
         try {
+            console.log(`date`, date);
             const checkoutSQL = `
-                SELECT JSON_EXTRACT(orderData, '$.lineItems') as lineItems
+                SELECT *
                 FROM \`${this.app}\`.t_checkout
                 WHERE status = 1
-                  AND ${duration === 'day' ? `created_time BETWEEN  CURDATE() AND CURDATE() + INTERVAL 1 DAY - INTERVAL 1 SECOND` : `(created_time BETWEEN DATE_SUB(NOW(), INTERVAL 1 MONTH) AND NOW())`};
+                  AND ${(() => {
+                switch (duration) {
+                    case 'day':
+                        return `created_time BETWEEN  CURDATE() AND CURDATE() + INTERVAL 1 DAY - INTERVAL 1 SECOND`;
+                    case 'month':
+                        return `(created_time BETWEEN DATE_SUB(NOW(), INTERVAL 1 MONTH) AND NOW())`;
+                    case 'all':
+                        return `1=1`;
+                }
+            })()};
             `;
             const checkouts = await database_js_1.default.query(checkoutSQL, []);
             const series = [];
             const categories = [];
             const product_list = [];
             for (const checkout of checkouts) {
-                if (Array.isArray(checkout.lineItems)) {
-                    for (const item1 of checkout.lineItems) {
+                if (Array.isArray(checkout.orderData.lineItems)) {
+                    for (const item1 of checkout.orderData.lineItems) {
                         const index = product_list.findIndex((item2) => item1.title === item2.title);
                         if (index === -1) {
-                            product_list.push({ title: item1.title, count: item1.count });
+                            product_list.push({ title: item1.title, count: item1.count, preview_image: item1.preview_image,
+                                sale_price: item1.sale_price, pos_info: checkout.orderData.pos_info });
                         }
                         else {
                             product_list[index].count += item1.count;
+                            product_list[index].sale_price += item1.sale_price;
                         }
                     }
                 }
@@ -2547,7 +2562,7 @@ OR JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.orderStatus')) NOT IN (-99)) `);
                     categories.push(element.title);
                 }
             }
-            return { series, categories };
+            return { series, categories, product_list: final_product_list };
         }
         catch (e) {
             throw exception_js_1.default.BadRequestError('BAD_REQUEST', 'getRecentActiveUser Error:' + e, null);

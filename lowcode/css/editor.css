@@ -32,8 +32,9 @@
     --item-success: #159240;
     --item-danger: #da1313;
     --item-info: #d8ecda;
-    --item-notify: #ffd5d0;
     --item-warning: #ffe9b2;
+    --item-normal: #d8e8ec;
+    --item-notify: #ffd5d0;
 
     --item-danger-hover: #e35656;
 }
@@ -616,9 +617,8 @@ h6 {
     border-radius: 10px;
     background: orange;
     cursor: pointer;
-    color:#585858;
+    color: #585858;
 }
-
 
 .btn-red {
     display: flex;
@@ -882,7 +882,7 @@ h6 {
     top: 42px;
     background-color: var(--main-white);
     box-shadow: 2px 2px 10px 0px var(--main-dark-alpha-15);
-    z-index: 10;
+    z-index: 15;
 }
 
 .c_dropdown_body {

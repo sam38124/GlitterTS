@@ -811,7 +811,7 @@ router.get('/dataAnalyze', async (req: express.Request, resp: express.Response) 
     try {
         const tags = `${req.query.tags}`;
         if (await UtPermission.isManager(req)) {
-            return response.succ(resp, await new Shopping(req.get('g-app') as string, req.body.token).getDataAnalyze(tags.split(',')));
+            return response.succ(resp, await new Shopping(req.get('g-app') as string, req.body.token).getDataAnalyze(tags.split(','),req.query.query));
         } else {
             throw exception.BadRequestError('BAD_REQUEST', 'No permission.', null);
         }

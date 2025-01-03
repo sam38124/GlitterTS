@@ -16,7 +16,7 @@ import { AddComponent } from '../../editor/add-component.js';
 import { EditorConfig } from '../../editor-config.js';
 import { ApiUser } from '../../glitter-base/route/user.js';
 import { BgWidget } from '../../backend-manager/bg-widget.js';
-import { GlobalUser } from "../../glitter-base/global/global-user.js";
+import { GlobalUser } from '../../glitter-base/global/global-user.js';
 export class Setting_editor {
     static left(gvc, viewModel, createID, gBundle) {
         const html = String.raw;
@@ -66,9 +66,9 @@ export class Setting_editor {
                     }).then((data) => {
                         if (data.result) {
                             const find_dd = data.response.data.find((dd) => {
-                                return `${dd.user}` === `${GlobalUser.parseJWT(GlobalUser.saas_token).payload.userID}` && (dd.id !== -1);
+                                return `${dd.user}` === `${GlobalUser.parseJWT(GlobalUser.saas_token).payload.userID}` && dd.id !== -1;
                             });
-                            permissionTitle = (find_dd) ? `employee` : data.response.store_permission_title;
+                            permissionTitle = find_dd ? `employee` : data.response.store_permission_title;
                             permissionData = find_dd !== null && find_dd !== void 0 ? find_dd : { config: { auth: [] } };
                             resolve();
                         }
@@ -200,7 +200,7 @@ export class Setting_editor {
                                         });
                                     }
                                 }
-                                if ((glitter.getUrlParameter('tab') === dd.page) && !initial) {
+                                if (glitter.getUrlParameter('tab') === dd.page && !initial) {
                                     initial = true;
                                     if (['page_layout', 'dev_mode'].indexOf(items[index].page) !== -1) {
                                         Storage.select_item = `5`;
@@ -214,7 +214,7 @@ export class Setting_editor {
                                     title: dd.title,
                                     index: index,
                                     info: dd,
-                                    toggle: (glitter.getUrlParameter('tab') === dd.page)
+                                    toggle: glitter.getUrlParameter('tab') === dd.page,
                                 });
                             });
                             function refreshContainer() {
@@ -792,6 +792,14 @@ Setting_editor.menuItems = () => {
         },
         {
             icon: '',
+            page: 'shop_list',
+            group: '商店設定',
+            title: '門市設定',
+            appName: 'cms_system',
+            groupIcon: 'https://d3jnmi1tfjgtti.cloudfront.net/file/234285319/1716652645450-boxes-stacked-regular (1).svg',
+        },
+        {
+            icon: '',
             page: 'product-manager',
             group: '商品管理',
             title: '商品列表',
@@ -1000,8 +1008,26 @@ Setting_editor.menuItems = () => {
             group: '優惠促銷',
             title: '購物金紀錄',
             appName: 'cms_system',
-            groupIcon: 'https://d3jnmi1tfjgtti.cloudfront.net/file/252530754/1713370923228-Component 56 (3).svg',
+            groupIcon: 'https://d3jnmi1tfjgtti.cloudfront.net/file/122538856/Component 56 (7).svg',
             moduleName: '購物金紀錄',
+        },
+        {
+            icon: '',
+            page: 'operational_order',
+            group: '報表分析',
+            title: '營運分析',
+            appName: 'cms_system',
+            groupIcon: 'https://d3jnmi1tfjgtti.cloudfront.net/file/122538856/Component 56 (7).svg',
+            moduleName: 'dashboard_ec',
+        },
+        {
+            icon: '',
+            page: 'Product_analysis',
+            group: '報表分析',
+            title: '商品分析',
+            appName: 'cms_system',
+            groupIcon: 'https://d3jnmi1tfjgtti.cloudfront.net/file/122538856/Component 56 (7).svg',
+            moduleName: 'dashboard_ec',
         },
         {
             icon: '',
