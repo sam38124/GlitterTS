@@ -295,6 +295,7 @@ export class Shopping {
             if (`${query.id || ''}`) {
                 if (`${query.id}`.includes(',')) {
                     querySql.push(`id in (${query.id})`);
+
                 } else {
                     querySql.push(`id = ${query.id}`);
                 }

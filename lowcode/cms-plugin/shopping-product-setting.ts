@@ -3707,7 +3707,7 @@ export class ShoppingProductSetting {
                                                                                                                             </div>
                                                                                                                         </div>`;
                                                                                                                 }
-                                                                                                                case 'trace_stock_type': {
+                                                                                                                case 'show_understocking': {
                                                                                                                     inputTemp = 'volume';
                                                                                                                     let windowsid = gvc.glitter.getUUID();
                                                                                                                     return html`
@@ -3729,11 +3729,11 @@ export class ShoppingProductSetting {
                                                                                                                                                 class="d-flex align-items-center"
                                                                                                                                                 style="gap:6px;cursor: pointer;"
                                                                                                                                                 onclick="${gvc.event(() => {
-                                                                                                                                                    inputTemp = 'product';
+                                                                                                                                                    inputTemp = 'false';
                                                                                                                                                     gvc.notifyDataChange(windowsid);
                                                                                                                                                 })}"
                                                                                                                                         >
-                                                                                                                                            ${inputTemp == 'product'
+                                                                                                                                            ${inputTemp == 'false'
                                                                                                                                                     ? `<div style="width: 16px;height: 16px;border-radius: 20px;border: 4px solid #393939;"></div>`
                                                                                                                                                     : `<div style="width: 16px;height: 16px;border-radius: 20px;border: 1px solid #DDD;"></div>`}
                                                                                                                                             不追蹤庫存
@@ -3742,27 +3742,14 @@ export class ShoppingProductSetting {
                                                                                                                                                 class="d-flex align-items-center"
                                                                                                                                                 style="gap:6px;cursor: pointer;"
                                                                                                                                                 onclick="${gvc.event(() => {
-                                                                                                                                                    inputTemp = 'store';
+                                                                                                                                                    inputTemp = 'true';
                                                                                                                                                     gvc.notifyDataChange(windowsid);
                                                                                                                                                 })}"
                                                                                                                                         >
-                                                                                                                                            ${inputTemp == 'store'
+                                                                                                                                            ${inputTemp == 'true'
                                                                                                                                                     ? `<div style="width: 16px;height: 16px;border-radius: 20px;border: 4px solid #393939;"></div>`
                                                                                                                                                     : `<div style="width: 16px;height: 16px;border-radius: 20px;border: 1px solid #DDD;"></div>`}
-                                                                                                                                            追蹤商品庫存
-                                                                                                                                        </div>
-                                                                                                                                        <div
-                                                                                                                                                class="d-flex align-items-center"
-                                                                                                                                                style="gap:6px;cursor: pointer;"
-                                                                                                                                                onclick="${gvc.event(() => {
-                                                                                                                                                    inputTemp = 'none';
-                                                                                                                                                    gvc.notifyDataChange(windowsid);
-                                                                                                                                                })}"
-                                                                                                                                        >
-                                                                                                                                            ${inputTemp == 'none'
-                                                                                                                                                    ? `<div style="width: 16px;height: 16px;border-radius: 20px;border: 4px solid #393939;"></div>`
-                                                                                                                                                    : `<div style="width: 16px;height: 16px;border-radius: 20px;border: 1px solid #DDD;"></div>`}
-                                                                                                                                            追蹤門市庫存
+                                                                                                                                            追蹤庫存
                                                                                                                                         </div>
                                                                                                                                     `;
                                                                                                                                 },
@@ -3781,7 +3768,8 @@ export class ShoppingProductSetting {
                                                                                                                                 )}
                                                                                                                                 ${BgWidget.save(
                                                                                                                                         gvc.event(() => {
-                                                                                                                                            saveQueue('trace_stock_type', inputTemp);
+                                                                                                                                            saveQueue('show_understocking', inputTemp);
+                                                                                                                                            // saveQueue('trace_stock_type', inputTemp);
                                                                                                                                         })
                                                                                                                                 )}
                                                                                                                             </div>
@@ -3948,8 +3936,8 @@ export class ShoppingProductSetting {
                                                                                                                                             style="cursor: pointer;"
                                                                                                                                             onclick="${gvc.event(() => {
                                                                                                                                                 gvc.glitter.innerDialog((gvc: GVC) => {
-                                                                                                                                                    return editDialog('trace_stock_type');
-                                                                                                                                                }, 'trace_stock_type');
+                                                                                                                                                    return editDialog('show_understocking');
+                                                                                                                                                }, 'show_understocking');
                                                                                                                                             })}"
                                                                                                                                     >
                                                                                                                                         編輯庫存政策

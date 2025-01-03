@@ -773,6 +773,8 @@ export class ShoppingOrderManager {
         };
         let invoiceData = {};
         let invoiceLoading = true;
+        let storeList = [];
+        let storeLoading = true;
         ApiShop.getInvoice({
             page: 0,
             limit: 1000,
@@ -1264,7 +1266,7 @@ export class ShoppingOrderManager {
                                                         return html `
                                                                                                             <div>
                                                                                                                 ${Language.getLanguageCustomText(dd.title)}
-                                                                                                                    :
+                                                                                                                :
                                                                                                                 ${orderData.orderData.user_info[dd.key]}
                                                                                                             </div>`;
                                                     })
@@ -1295,7 +1297,7 @@ export class ShoppingOrderManager {
                                                         return html `
                                                                                                             <div>
                                                                                                                 ${Language.getLanguageCustomText(dd.title)}
-                                                                                                                    :
+                                                                                                                :
                                                                                                                 ${orderData.orderData.custom_form_data[dd.key]}
                                                                                                             </div>
                                                                                                         `;

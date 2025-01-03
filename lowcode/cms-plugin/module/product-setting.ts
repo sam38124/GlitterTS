@@ -60,7 +60,7 @@ export class ProductSetting {
                         visible: false,
                     })
                     return html`
-                        <div class="d-flex flex-column px -5"
+                        <div class="d-flex flex-column px-5"
                              style="width: 100vw;height:100vh;position: absolute;left: 0;top:0;background-color: white;z-index:1;">
                             <div class="d-flex align-items-center"
                                  style="height: 60px;width: 100vw;border-bottom: solid 1px #DDD;font-size: 16px;font-style: normal;font-weight: 700;color: #393939;">

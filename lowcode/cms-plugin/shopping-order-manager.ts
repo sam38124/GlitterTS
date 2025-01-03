@@ -15,6 +15,7 @@ import {ApiRecommend} from '../glitter-base/route/recommend.js';
 import {DeliveryHTML} from './module/delivery-html.js';
 import {ApiPageConfig} from '../api/pageConfig.js';
 import {Language} from "../glitter-base/global/language.js";
+import {OrderSetting} from "./module/order-setting.js";
 
 interface VoucherData {
     id: number;
@@ -174,9 +175,9 @@ interface OrderData {
         ];
         orderSource?: string;
         deliveryData: Record<string, string>;
-        pos_info:{
-            payment:'cash'|'credit'|'line_pay',
-            who:{
+        pos_info: {
+            payment: 'cash' | 'credit' | 'line_pay',
+            who: {
                 "id": number,
                 "user": string,
                 "config": {
@@ -1005,6 +1006,8 @@ export class ShoppingOrderManager {
         };
         let invoiceData: any = {};
         let invoiceLoading = true;
+        let storeList: any = []
+        let storeLoading = true;
         ApiShop.getInvoice({
             page: 0,
             limit: 1000,
@@ -1271,7 +1274,7 @@ export class ShoppingOrderManager {
                                                                 </div>
                                                                 ${ShoppingOrderManager.getProofPurchaseString(orderData.orderData, gvc)}
                                                             </div>`
-                                                    ].filter((dd)=>{
+                                                    ].filter((dd) => {
                                                         return dd
                                                     }).join(BgWidget.mbContainer(18))
                                             ),
@@ -1508,7 +1511,7 @@ export class ShoppingOrderManager {
                                                                                                         return html`
                                                                                                             <div>
                                                                                                                 ${Language.getLanguageCustomText(dd.title)}
-                                                                                                                    :
+                                                                                                                :
                                                                                                                 ${(orderData.orderData.user_info as any)[dd.key]}
                                                                                                             </div>`;
                                                                                                     })
@@ -1542,7 +1545,7 @@ export class ShoppingOrderManager {
                                                                                                         return html`
                                                                                                             <div>
                                                                                                                 ${Language.getLanguageCustomText(dd.title)}
-                                                                                                                    :
+                                                                                                                :
                                                                                                                 ${(orderData.orderData.custom_form_data as any)[dd.key]}
                                                                                                             </div>
                                                                                                         `;
@@ -1843,13 +1846,13 @@ export class ShoppingOrderManager {
                                                                                                 結帳人員
                                                                                             </div>
                                                                                             <div class="tx_normal" style="line-height: 140%;">
-                                                                                                ${(orderData.orderData.pos_info.who.config.name==='manager') ? `店長`:[
+                                                                                                ${(orderData.orderData.pos_info.who.config.name === 'manager') ? `店長` : [
                                                                                             orderData.orderData.pos_info.who.config.title,
                                                                                             orderData.orderData.pos_info.who.config.name,
                                                                                             orderData.orderData.pos_info.who.config.member_id,
                                                                                         ].join(' / ')}
                                                                                             </div>
-                                                                                        `:``}
+                                                                                        ` : ``}
                                                                                     `);
                                                                                     return view.join(`<div class="my-2"></div>`);
                                                                                 },
@@ -2082,38 +2085,38 @@ export class ShoppingOrderManager {
                                 ${BgWidget.save(
                                         gvc.event(() => {
                                             //如果有編輯紀錄的話 檢查裡頭是不是有訂單已取消的事件在做倉儲的回填
-                                            if (orderData.orderData?.editRecord){
-                                                const findCancelStatus = orderData.orderData?.editRecord.find((data:any)=>{
+                                            if (orderData.orderData?.editRecord) {
+                                                const findCancelStatus = orderData.orderData?.editRecord.find((data: any) => {
                                                     return data.record == "訂單已取消"
                                                 })
                                                 //如果訂單狀態不曾出現過取消訂單，執行庫存回填
-                                                if (!findCancelStatus){
-                                                    orderData.orderData.lineItems.forEach((item:any)=>{
-                                                        if (item.deduction_log){
+                                                if (!findCancelStatus) {
+                                                    orderData.orderData.lineItems.forEach((item: any) => {
+                                                        if (item.deduction_log) {
                                                             ApiShop.recoverVariants({
                                                                 data: item
-                                                            }).then((r) =>{
-                                                                console.log("已經回填 -- " , item)
+                                                            }).then((r) => {
+                                                                console.log("已經回填 -- ", item)
                                                             })
                                                         }
                                                     })
                                                 }
-                                            }else {
+                                            } else {
                                                 //因為沒有紀錄，庫存直接回填
-                                                if (orderData.orderData.orderStatus == "-1"){
-                                                    orderData.orderData.lineItems.forEach((item:any)=>{
-                                                        if (item.deduction_log){
+                                                if (orderData.orderData.orderStatus == "-1") {
+                                                    orderData.orderData.lineItems.forEach((item: any) => {
+                                                        if (item.deduction_log) {
                                                             ApiShop.recoverVariants({
                                                                 data: item
-                                                            }).then((r) =>{
-                                                                console.log("已經回填 -- " , item)
+                                                            }).then((r) => {
+                                                                console.log("已經回填 -- ", item)
                                                             })
                                                         }
                                                     })
                                                 }
                                             }
-                                            
-                                           
+
+
                                             // if (orderData.orderData.progress == "shipping" && (origData.orderData.progress == "wait" || !origData.orderData.progress)) {
                                             //     glitter.innerDialog((gvc:GVC)=>{
                                             //        
@@ -2131,11 +2134,8 @@ export class ShoppingOrderManager {
                                             //         `
                                             //     },"select")
                                             // }
-                                            // console.log("orderData.orderData.progress --" , orderData.orderData.progress)
-                                            // console.log("origData.orderData.progress -- " , origData.orderData.progress)
                                             //
-                                            //
-                                          
+
                                             function writeEdit(origData: any, orderData: any) {
                                                 let editArray: any = [];
                                                 if (orderData.status != origData.status) {
@@ -3822,8 +3822,8 @@ export class ShoppingOrderManager {
 
     public static getPaymentMethodText(key: string, orderData: any) {
         if (orderData.orderSource === 'POS') {
-            return `門市『 ${(()=>{
-                switch (orderData.pos_info.payment){
+            return `門市『 ${(() => {
+                switch (orderData.pos_info.payment) {
                     case 'creditCard':
                         return '信用卡'
                     case 'line':
