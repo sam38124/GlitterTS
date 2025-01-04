@@ -3835,6 +3835,9 @@ export class ShoppingProductSetting {
                                                                                                                                  gvc: gvc,
                                                                                                                                  postMD: postMD,
                                                                                                                                  selected: selected,
+                                                                                                                                 callback:()=>{
+                                                                                                                                     gvc.notifyDataChange(vm.id)
+                                                                                                                                 }
                                                                                                                              });
                                                                                                                          })}">
                                                                                                                         批量編輯
@@ -4211,6 +4214,9 @@ export class ShoppingProductSetting {
                                                                                                                                                                         gvc: gvc,
                                                                                                                                                                         postMD: postMD,
                                                                                                                                                                         selected: postMD.variants,
+                                                                                                                                                                        callback:()=>{
+                                                                                                                                                                            gvc.notifyDataChange(vm.id)
+                                                                                                                                                                        }
                                                                                                                                                                     });
                                                                                                                                                                 }
                                                                                                                                                             })}"
@@ -4405,7 +4411,7 @@ export class ShoppingProductSetting {
                                                                                                                                                                                                     postMD: postMD,
                                                                                                                                                                                                     selected: postMD.variants,
                                                                                                                                                                                                     callback:()=>{
-                                                                                                                                                                                                        gvc.notifyDataChange(viewID)
+                                                                                                                                                                                                        gvc.notifyDataChange(vm.id)
                                                                                                                                                                                                     }
                                                                                                                                                                                                 });
                                                                                                                                                                                             }

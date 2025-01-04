@@ -3,36 +3,36 @@ import express from 'express';
 import cors from 'cors';
 import redis from './modules/redis';
 import Logger from './modules/logger';
-import { v4 as uuidv4 } from 'uuid';
-import { asyncHooks as asyncHook } from './modules/hooks';
-import { config, ConfigSetting, saasConfig } from './config';
+import {v4 as uuidv4} from 'uuid';
+import {asyncHooks as asyncHook} from './modules/hooks';
+import {config, ConfigSetting, saasConfig} from './config';
 import contollers = require('./controllers');
 import public_contollers = require('./api-public/controllers');
 import database from './modules/database';
-import { SaasScheme } from './services/saas-table-check';
+import {SaasScheme} from './services/saas-table-check';
 import db from './modules/database';
-import { createBucket, listBuckets } from './modules/AWSLib';
-import { Live_source } from './live_source';
+import {createBucket, listBuckets} from './modules/AWSLib';
+import {Live_source} from './live_source';
 import * as process from 'process';
 import bodyParser from 'body-parser';
-import { ApiPublic } from './api-public/services/public-table-check.js';
-import { Release } from './services/release.js';
+import {ApiPublic} from './api-public/services/public-table-check.js';
+import {Release} from './services/release.js';
 import fs from 'fs';
-import { App } from './services/app.js';
-import { Firebase } from './modules/firebase.js';
-import { GlitterUtil } from './helper/glitter-util.js';
-import { Seo } from './services/seo.js';
-import { Shopping } from './api-public/services/shopping.js';
-import { WebSocket } from './services/web-socket.js';
-import { UtDatabase } from './api-public/utils/ut-database.js';
+import {App} from './services/app.js';
+import {Firebase} from './modules/firebase.js';
+import {GlitterUtil} from './helper/glitter-util.js';
+import {Seo} from './services/seo.js';
+import {Shopping} from './api-public/services/shopping.js';
+import {WebSocket} from './services/web-socket.js';
+import {UtDatabase} from './api-public/utils/ut-database.js';
 import compression from 'compression';
-import { User } from './api-public/services/user.js';
-import { Schedule } from './api-public/services/schedule.js';
-import { Private_config } from './services/private_config.js';
+import {User} from './api-public/services/user.js';
+import {Schedule} from './api-public/services/schedule.js';
+import {Private_config} from './services/private_config.js';
 import moment from 'moment/moment.js';
 import xmlFormatter from 'xml-formatter';
-import { SystemSchedule } from './services/system-schedule';
-import { Ai } from './services/ai.js';
+import {SystemSchedule} from './services/system-schedule';
+import {Ai} from './services/ai.js';
 import cookieParser from 'cookie-parser';
 import session from 'express-session';
 import {Monitor} from './api-public/services/monitor.js';
@@ -40,6 +40,7 @@ import {UpdateScript} from "./update-script.js";
 import {Manager} from "./api-public/services/manager.js";
 import {SitemapStream, streamToPromise} from "sitemap";
 import {Readable} from "stream";
+import AWS from "aws-sdk";
 
 export const app = express();
 const logger = new Logger();
@@ -57,19 +58,19 @@ app.use(
         secret: config.SECRET_KEY,
         resave: false,
         saveUninitialized: true,
-        cookie: { maxAge: 1000 * 60 * 60 * 24 * 365 }, // 設定 cookie 期限一年
+        cookie: {maxAge: 1000 * 60 * 60 * 24 * 365}, // 設定 cookie 期限一年
     })
 );
 
 app.use(cookieParser());
 app.use(cors());
 app.use(compression());
-app.use(express.raw({ limit: '100MB' }));
-app.use(express.json({ limit: '100MB' }));
-app.use(bodyParser.urlencoded({ extended: true }));
-app.use(bodyParser.json({ limit: '100MB' }));
+app.use(express.raw({limit: '100MB'}));
+app.use(express.json({limit: '100MB'}));
+app.use(bodyParser.urlencoded({extended: true}));
+app.use(bodyParser.json({limit: '100MB'}));
 app.use(createContext);
-app.use(bodyParser.raw({ type: '*/*' }));
+app.use(bodyParser.raw({type: '*/*'}));
 app.use(contollers);
 app.use(public_contollers);
 
@@ -85,10 +86,10 @@ export async function initial(serverPort: number) {
         await createBucket(config.AWS_S3_NAME as string);
         logger.info('[Init]', `Server start with env: ${process.env.NODE_ENV || 'local'}`);
         await app.listen(serverPort);
-        fs.mkdirSync(path.resolve(__filename, '../app-project/work-space'), { recursive: true });
+        fs.mkdirSync(path.resolve(__filename, '../app-project/work-space'), {recursive: true});
         Release.removeAllFilesInFolder(path.resolve(__filename, '../app-project/work-space'));
         if (process.env.firebase) {
-        await Firebase.initial();
+            await Firebase.initial();
         }
         // await UpdateScript.run()
         if (ConfigSetting.runSchedule) {
@@ -104,7 +105,7 @@ export async function initial(serverPort: number) {
 function createContext(req: express.Request, res: express.Response, next: express.NextFunction) {
     const uuid = uuidv4();
     const ip = req.ip;
-    const requestInfo = { uuid: `${uuid}`, method: `${req.method}`, url: `${req.url}`, ip: `${ip}` };
+    const requestInfo = {uuid: `${uuid}`, method: `${req.method}`, url: `${req.url}`, ip: `${ip}`};
     asyncHook.getInstance().createRequestContext(requestInfo);
     next();
 }
@@ -164,15 +165,21 @@ function extractProds(data: any) {
             }
         })();
         const updated_at = new Date(item.updated_time).toISOString().replace(/\.\d{3}Z$/, '+00:00');
-        items.push({ code, updated_at });
+        items.push({code, updated_at});
     });
     return items;
 }
+
 // 信任代理
 app.set('trust proxy', true);
 
 // 判斷現在時間是否在 start 和 end 之間的函數
-function isCurrentTimeWithinRange(data: { startDate: string; startTime: string; endDate?: string; endTime?: string }): boolean {
+function isCurrentTimeWithinRange(data: {
+    startDate: string;
+    startTime: string;
+    endDate?: string;
+    endTime?: string
+}): boolean {
     const now = new Date();
     now.setTime(now.getTime() + 8 * 3600 * 1000);
     // 組合 start 的完整日期時間
@@ -189,6 +196,7 @@ function isCurrentTimeWithinRange(data: { startDate: string; startTime: string; 
         return now >= startDateTime;
     }
 }
+
 export async function createAPP(dd: any) {
     const html = String.raw;
     Live_source.liveAPP.push(dd.appName);
@@ -215,7 +223,7 @@ export async function createAPP(dd: any) {
                         const start = new Date().getTime();
                         console.log(`getPageInfo==>`, (new Date().getTime() - start) / 1000);
 
-                        let [customCode,FBCode,store_info,language_label]= await Promise.all([new User(appName).getConfigV2({
+                        let [customCode, FBCode, store_info, language_label] = await Promise.all([new User(appName).getConfigV2({
                             key: 'ga4_config',
                             user_id: 'manager',
                         }), new User(appName).getConfigV2({
@@ -224,7 +232,7 @@ export async function createAPP(dd: any) {
                         }), new User(appName).getConfigV2({
                             key: 'store-information',
                             user_id: 'manager',
-                        }),new User(appName).getConfigV2({
+                        }), new User(appName).getConfigV2({
                             key: 'language-label',
                             user_id: 'manager',
                         })])
@@ -233,9 +241,11 @@ export async function createAPP(dd: any) {
                             function checkIncludes(lan: string) {
                                 return store_info.language_setting.support.includes(lan);
                             }
+
                             function checkEqual(lan: string) {
                                 return `${req.query.page}`.startsWith(`${lan}/`) || req.query.page === lan;
                             }
+
                             function replace(lan: string) {
                                 if (req.query.page === lan) {
                                     req.query.page = '';
@@ -243,6 +253,7 @@ export async function createAPP(dd: any) {
                                     req.query.page = `${req.query.page}`.replace(lan + '/', '');
                                 }
                             }
+
                             if (checkEqual('en') && checkIncludes('en-US')) {
                                 replace('en');
                                 return `en-US`;
@@ -292,22 +303,22 @@ export async function createAPP(dd: any) {
                                 const pd = await new Shopping(appName, undefined).getProduct(
                                     product_domain
                                         ? {
-                                              page: 0,
-                                              limit: 1,
-                                              domain: decodeURIComponent(product_domain),
-                                              language: language,
-                                          }
+                                            page: 0,
+                                            limit: 1,
+                                            domain: decodeURIComponent(product_domain),
+                                            language: language,
+                                        }
                                         : {
-                                              page: 0,
-                                              limit: 1,
-                                              id: req.query.product_id as string,
-                                              language: language,
-                                          }
+                                            page: 0,
+                                            limit: 1,
+                                            id: req.query.product_id as string,
+                                            language: language,
+                                        }
                                 );
 
                                 if (pd.data.content) {
                                     pd.data.content.language_data = pd.data.content.language_data ?? {};
-                                    const productSeo = (pd.data.content.language_data[language] &&  pd.data.content.language_data[language].seo) || (pd.data.content.seo ?? {});
+                                    const productSeo = (pd.data.content.language_data[language] && pd.data.content.language_data[language].seo) || (pd.data.content.seo ?? {});
                                     data = await Seo.getPageInfo(appName, data.config.homePage, language);
                                     data.page_config = data.page_config ?? {};
                                     data.page_config.seo = data.page_config.seo ?? {};
@@ -328,11 +339,11 @@ export async function createAPP(dd: any) {
                                 data.page_config = data.page_config ?? {};
                                 data.page_config.seo = data.page_config.seo ?? {};
                                 if (article.data[0]) {
-                                    if(article.data[0].content.language_data && article.data[0].content.language_data[language]){
+                                    if (article.data[0].content.language_data && article.data[0].content.language_data[language]) {
                                         data.page_config.seo.title = article.data[0].content.language_data[language].seo.title;
                                         data.page_config.seo.content = article.data[0].content.language_data[language].seo.content;
                                         data.page_config.seo.keywords = article.data[0].content.language_data[language].seo.keywords;
-                                    }else{
+                                    } else {
                                         data.page_config.seo.title = article.data[0].content.seo.title;
                                         data.page_config.seo.content = article.data[0].content.seo.content;
                                         data.page_config.seo.keywords = article.data[0].content.seo.keywords;
@@ -373,11 +384,13 @@ export async function createAPP(dd: any) {
                                 const redURL = new URL(`https://127.0.0.1${req.url}`);
 
                                 const rec = await db.query(
-                                    `SELECT * FROM \`${appName}\`.t_recommend_links WHERE content ->>'$.link' = ?;
+                                    `SELECT *
+                                     FROM \`${appName}\`.t_recommend_links
+                                     WHERE content ->>'$.link' = ?;
                                     `,
                                     [(req.query.page as string).split('/')[1]]
                                 );
-                                const page = rec[0] && rec[0].content ? rec[0].content : { status: false };
+                                const page = rec[0] && rec[0].content ? rec[0].content : {status: false};
 
                                 if (page.status && isCurrentTimeWithinRange(page)) {
                                     let query = [`(content->>'$.type'='article')`, `(content->>'$.tag'='${page.redirect.split('/')[2]}')`];
@@ -389,11 +402,11 @@ export async function createAPP(dd: any) {
                                     data.page_config = data.page_config ?? {};
                                     data.page_config.seo = data.page_config.seo ?? {};
                                     if (article.data[0]) {
-                                        if(article.data[0].content.language_data[language]){
+                                        if (article.data[0].content.language_data[language]) {
                                             data.page_config.seo.title = article.data[0].content.language_data[language].seo.title;
                                             data.page_config.seo.content = article.data[0].content.language_data[language].seo.content;
                                             data.page_config.seo.keywords = article.data[0].content.language_data[language].seo.keywords;
-                                        }else{
+                                        } else {
                                             data.page_config.seo.title = article.data[0].content.seo.title;
                                             data.page_config.seo.content = article.data[0].content.seo.content;
                                             data.page_config.seo.keywords = article.data[0].content.seo.keywords;
@@ -402,7 +415,7 @@ export async function createAPP(dd: any) {
                                     }
                                     distribution_code = `
                                         localStorage.setItem('distributionCode','${page.code}');
-                                        location.href = '${link_prefix ? `/`:``}${link_prefix}${page.redirect}${redURL.search}';
+                                        location.href = '${link_prefix ? `/` : ``}${link_prefix}${page.redirect}${redURL.search}';
                                     `;
                                 } else {
                                     distribution_code = `
@@ -436,33 +449,34 @@ export async function createAPP(dd: any) {
                                         ${(() => {
                                             if (req.query.type === 'editor') {
                                                 return html`<title>SHOPNEX後台系統</title>
-                                                    <link rel="canonical" href="/index" />
-                                                    <meta name="keywords" content="SHOPNEX,電商平台" />
-                                                    <link
+                                                <link rel="canonical" href="/index"/>
+                                                <meta name="keywords" content="SHOPNEX,電商平台"/>
+                                                <link
                                                         id="appImage"
                                                         rel="shortcut icon"
                                                         href="https://d3jnmi1tfjgtti.cloudfront.net/file/234285319/size1440_s*px$_sas0s9s0s1sesas0_1697354801736-Glitterlogo.png"
                                                         type="image/x-icon"
-                                                    />
-                                                    <link
+                                                />
+                                                <link
                                                         rel="icon"
                                                         href="https://d3jnmi1tfjgtti.cloudfront.net/file/234285319/size1440_s*px$_sas0s9s0s1sesas0_1697354801736-Glitterlogo.png"
                                                         type="image/png"
                                                         sizes="128x128"
-                                                    />
-                                                    <meta property="og:image" content="https://d3jnmi1tfjgtti.cloudfront.net/file/252530754/1718778766524-shopnex_banner.jpg" />
-                                                    <meta property="og:title" content="SHOPNEX後台系統" />
-                                                    <meta
+                                                />
+                                                <meta property="og:image"
+                                                      content="https://d3jnmi1tfjgtti.cloudfront.net/file/252530754/1718778766524-shopnex_banner.jpg"/>
+                                                <meta property="og:title" content="SHOPNEX後台系統"/>
+                                                <meta
                                                         name="description"
                                                         content="SHOPNEX電商開店平台，零抽成、免手續費。提供精美模板和豐富插件，操作簡單，3分鐘內快速打造專屬商店。購物車、金物流、SEO行銷、資料分析一站搞定。支援APP上架，並提供100%客製化設計，立即免費體驗30天。"
-                                                    />
-                                                    <meta
+                                                />
+                                                <meta
                                                         name="og:description"
                                                         content="SHOPNEX電商開店平台，零抽成、免手續費。提供精美模板和豐富插件，操作簡單，3分鐘內快速打造專屬商店。購物車、金物流、SEO行銷、資料分析一站搞定。支援APP上架，並提供100%客製化設計，立即免費體驗30天。"
-                                                    />`;
+                                                />`;
                                             } else {
                                                 return html`<title>${d.title ?? '尚未設定標題'}</title>
-                                                    <link
+                                                <link
                                                         rel="canonical"
                                                         href="${(() => {
                                                             if (data.tag === 'index') {
@@ -471,15 +485,21 @@ export async function createAPP(dd: any) {
                                                                 return `https://${brandAndMemberType.domain}/${data.tag}`;
                                                             }
                                                         })()}"
-                                                    />
-                                                ${data.tag !== req.query.page ? `<meta name="robots" content="noindex">`:``}
-                                                    <meta name="keywords" content="${(d.keywords ?? '尚未設定關鍵字').replace(/"/g,'&quot;')}" />
-                                                    <link id="appImage" rel="shortcut icon" href="${d.logo || home_seo.logo || ''}" type="image/x-icon" />
-                                                    <link rel="icon" href="${d.logo || home_seo.logo || ''}" type="image/png" sizes="128x128" />
-                                                    <meta property="og:image" content="${d.image || home_seo.image || ''}" />
-                                                    <meta property="og:title" content="${(d.title ?? '').replace(/\n/g, '').replace(/"/g,'&quot;')}" />
-                                                    <meta name="description" content="${(d.content ?? '').replace(/\n/g, '').replace(/"/g,'&quot;')}" />
-                                                    <meta name="og:description" content="${(d.content ?? '').replace(/\n/g, '').replace(/"/g,'&quot;')}" />`;
+                                                />
+                                                ${data.tag !== req.query.page ? `<meta name="robots" content="noindex">` : ``}
+                                                <meta name="keywords"
+                                                      content="${(d.keywords ?? '尚未設定關鍵字').replace(/"/g, '&quot;')}"/>
+                                                <link id="appImage" rel="shortcut icon"
+                                                      href="${d.logo || home_seo.logo || ''}" type="image/x-icon"/>
+                                                <link rel="icon" href="${d.logo || home_seo.logo || ''}"
+                                                      type="image/png" sizes="128x128"/>
+                                                <meta property="og:image" content="${d.image || home_seo.image || ''}"/>
+                                                <meta property="og:title"
+                                                      content="${(d.title ?? '').replace(/\n/g, '').replace(/"/g, '&quot;')}"/>
+                                                <meta name="description"
+                                                      content="${(d.content ?? '').replace(/\n/g, '').replace(/"/g, '&quot;')}"/>
+                                                <meta name="og:description"
+                                                      content="${(d.content ?? '').replace(/\n/g, '').replace(/"/g, '&quot;')}"/>`;
                                             }
                                         })()}
                                         ${d.code ?? ''}
@@ -488,22 +508,23 @@ export async function createAPP(dd: any) {
                                                 return ``;
                                             } else {
                                                 return `${(data.config.globalStyle ?? [])
-                                                    .map((dd: any) => {
-                                                        try {
-                                                            if (dd.data.elem === 'link') {
-                                                                return html` <link
-                                                                    type="text/css"
-                                                                    rel="stylesheet"
-                                                                    href="${dd.data.attr.find((dd: any) => {
-                                                                        return dd.attr === 'href';
-                                                                    }).value}"
-                                                                />`;
+                                                        .map((dd: any) => {
+                                                            try {
+                                                                if (dd.data.elem === 'link') {
+                                                                    return html`
+                                                                        <link
+                                                                                type="text/css"
+                                                                                rel="stylesheet"
+                                                                                href="${dd.data.attr.find((dd: any) => {
+                                                                                    return dd.attr === 'href';
+                                                                                }).value}"
+                                                                        />`;
+                                                                }
+                                                            } catch (e) {
+                                                                return ``;
                                                             }
-                                                        } catch (e) {
-                                                            return ``;
-                                                        }
-                                                    })
-                                                    .join('')}`;
+                                                        })
+                                                        .join('')}`;
                                             }
                                         })()}
                                     </head>
@@ -517,41 +538,45 @@ export async function createAPP(dd: any) {
                                 window.memberType = '${brandAndMemberType.memberType}';
                                 window.glitterBackend = '${config.domain}';
                                 window.preloadData = ${JSON.stringify(preload)
-                                    .replace(/<\/script>/g, 'sdjuescript_prepand')
-                                    .replace(/<script>/g, 'sdjuescript_prefix')};
+                                        .replace(/<\/script>/g, 'sdjuescript_prepand')
+                                        .replace(/<script>/g, 'sdjuescript_prefix')};
                                 window.preloadData = JSON.parse(JSON.stringify(window.preloadData).replace(/sdjuescript_prepand/g, '</s' + 'cript>').replace(/sdjuescript_prefix/g, '<s' + 'cript>'))
                                 window.glitter_page = '${req.query.page}';
                                 window.store_info = ${JSON.stringify(store_info)};
                                 window.server_execute_time = ${(new Date().getTime() - start) / 1000};
-                                window.language='${language}';
+                                window.language = '${language}';
                                 ${distribution_code};
-                                window.ip_country='${(await User.ipInfo((req.query.ip || req.headers['x-real-ip'] || req.ip) as string)).country || 'TW'}';
-                                window.currency_covert=${JSON.stringify(await Shopping.currencyCovert((req.query.base || 'TWD') as string))};
-                                window.language_list=${JSON.stringify(language_label.label)};
+                                window.ip_country = '${(await User.ipInfo((req.query.ip || req.headers['x-real-ip'] || req.ip) as string)).country || 'TW'}';
+                                window.currency_covert = ${JSON.stringify(await Shopping.currencyCovert((req.query.base || 'TWD') as string))};
+                                window.language_list = ${JSON.stringify(language_label.label)};
                             </script>
                             ${[
-                                { src: 'glitterBundle/GlitterInitial.js', type: 'module' },
-                                { src: 'glitterBundle/module/html-generate.js', type: 'module' },
-                                { src: 'glitterBundle/html-component/widget.js', type: 'module' },
-                                { src: 'glitterBundle/plugins/trigger-event.js', type: 'module' },
-                                { src: 'api/pageConfig.js', type: 'module' },
+                                {src: 'glitterBundle/GlitterInitial.js', type: 'module'},
+                                {src: 'glitterBundle/module/html-generate.js', type: 'module'},
+                                {src: 'glitterBundle/html-component/widget.js', type: 'module'},
+                                {src: 'glitterBundle/plugins/trigger-event.js', type: 'module'},
+                                {src: 'api/pageConfig.js', type: 'module'},
                             ]
-                                .map((dd) => {
-                                    return html` <script src="/${link_prefix && `${link_prefix}/`}${dd.src}" type="${dd.type}"></script>`;
-                                })
-                                .join('')}
+                                    .map((dd) => {
+                                        return html`
+                                            <script src="/${link_prefix && `${link_prefix}/`}${dd.src}"
+                                                    type="${dd.type}"></script>`;
+                                    })
+                                    .join('')}
                             ${(preload.event ?? [])
-                                .filter((dd: any) => {
-                                    return dd;
-                                })
-                                .map((dd: any) => {
-                                    const link = dd.fun.replace(`TriggerEvent.setEventRouter(import.meta.url, '.`, 'official_event');
-                                    return link.substring(0, link.length - 2);
-                                })
-                                .map((dd: any) => {
-                                    return html` <script src="/${link_prefix && `${link_prefix}/`}${dd}" type="module"></script>`;
-                                })
-                                .join('')}
+                                    .filter((dd: any) => {
+                                        return dd;
+                                    })
+                                    .map((dd: any) => {
+                                        const link = dd.fun.replace(`TriggerEvent.setEventRouter(import.meta.url, '.`, 'official_event');
+                                        return link.substring(0, link.length - 2);
+                                    })
+                                    .map((dd: any) => {
+                                        return html`
+                                            <script src="/${link_prefix && `${link_prefix}/`}${dd}"
+                                                    type="module"></script>`;
+                                    })
+                                    .join('')}
                             </head>
                             ${(() => {
                                 if (req.query.type === 'editor') {
@@ -559,9 +584,10 @@ export async function createAPP(dd: any) {
                                 } else {
                                     return html`
                                         ${(customCode.ga4 || [])
-                                            .map((dd: any) => {
-                                                return html`<!-- Google tag (gtag.js) -->
-                                                    <script async src="https://www.googletagmanager.com/gtag/js?id=${dd.code}"></script>
+                                                .map((dd: any) => {
+                                                    return html`<!-- Google tag (gtag.js) -->
+                                                    <script async
+                                                            src="https://www.googletagmanager.com/gtag/js?id=${dd.code}"></script>
                                                     <script>
                                                         window.dataLayer = window.dataLayer || [];
 
@@ -573,11 +599,11 @@ export async function createAPP(dd: any) {
 
                                                         gtag('config', '${dd.code}');
                                                     </script>`;
-                                            })
-                                            .join('')}
+                                                })
+                                                .join('')}
                                         ${(customCode.g_tag || [])
-                                            .map((dd: any) => {
-                                                return html`<!-- Google tag (gtag.js) -->
+                                                .map((dd: any) => {
+                                                    return html`<!-- Google tag (gtag.js) -->
                                                     <!-- Google Tag Manager -->
                                                     <script>
                                                         (function (w, d, s, l, i) {
@@ -587,41 +613,43 @@ export async function createAPP(dd: any) {
                                                                 event: 'gtm.js',
                                                             });
                                                             var f = d.getElementsByTagName(s)[0],
-                                                                j = d.createElement(s),
-                                                                dl = l != 'dataLayer' ? '&l=' + l : '';
+                                                                    j = d.createElement(s),
+                                                                    dl = l != 'dataLayer' ? '&l=' + l : '';
                                                             j.async = true;
                                                             j.src = 'https://www.googletagmanager.com/gtm.js?id=' + i + dl;
                                                             f.parentNode.insertBefore(j, f);
                                                         })(window, document, 'script', 'dataLayer', '${dd.code}');
                                                     </script>
                                                     <!-- End Google Tag Manager -->`;
-                                            })
-                                            .join('')}
+                                                })
+                                                .join('')}
                                         ${FBCode && FBCode.pixel
-                                            ? html`<!-- Meta Pixel Code -->
-                                                  <script>
-                                                      !(function (f, b, e, v, n, t, s) {
-                                                          if (f.fbq) return;
-                                                          n = f.fbq = function () {
-                                                              n.callMethod ? n.callMethod.apply(n, arguments) : n.queue.push(arguments);
-                                                          };
-                                                          if (!f._fbq) f._fbq = n;
-                                                          n.push = n;
-                                                          n.loaded = !0;
-                                                          n.version = '2.0';
-                                                          n.queue = [];
-                                                          t = b.createElement(e);
-                                                          t.async = !0;
-                                                          t.src = v;
-                                                          s = b.getElementsByTagName(e)[0];
-                                                          s.parentNode.insertBefore(t, s);
-                                                      })(window, document, 'script', 'https://connect.facebook.net/en_US/fbevents.js');
-                                                      fbq('init', '${FBCode.pixel}');
-                                                      fbq('track', 'PageView');
-                                                  </script>
-                                                  <noscript><img height="1" width="1" style="display:none" src="https://www.facebook.com/tr?id=617830100580621&ev=PageView&noscript=1" /> </noscript>
-                                                  <!-- End Meta Pixel Code -->`
-                                            : ''}
+                                                ? html`<!-- Meta Pixel Code -->
+                                                <script>
+                                                    !(function (f, b, e, v, n, t, s) {
+                                                        if (f.fbq) return;
+                                                        n = f.fbq = function () {
+                                                            n.callMethod ? n.callMethod.apply(n, arguments) : n.queue.push(arguments);
+                                                        };
+                                                        if (!f._fbq) f._fbq = n;
+                                                        n.push = n;
+                                                        n.loaded = !0;
+                                                        n.version = '2.0';
+                                                        n.queue = [];
+                                                        t = b.createElement(e);
+                                                        t.async = !0;
+                                                        t.src = v;
+                                                        s = b.getElementsByTagName(e)[0];
+                                                        s.parentNode.insertBefore(t, s);
+                                                    })(window, document, 'script', 'https://connect.facebook.net/en_US/fbevents.js');
+                                                    fbq('init', '${FBCode.pixel}');
+                                                    fbq('track', 'PageView');
+                                                </script>
+                                                <noscript><img height="1" width="1" style="display:none"
+                                                               src="https://www.facebook.com/tr?id=617830100580621&ev=PageView&noscript=1"/>
+                                                </noscript>
+                                                <!-- End Meta Pixel Code -->`
+                                                : ''}
                                     `;
                                 }
                             })()}
@@ -674,7 +702,7 @@ export async function createAPP(dd: any) {
                         []
                     );
                     // 創建 SitemapStream
-                    const stream = new SitemapStream({ hostname: `https://${domain}` });
+                    const stream = new SitemapStream({hostname: `https://${domain}`});
 
                     // 將 links 添加到 stream
                     const xml = await streamToPromise(Readable.from([
@@ -686,33 +714,37 @@ export async function createAPP(dd: any) {
                             `,
                             [appName]
                         )).map((d2: any) => {
-                            return { url: `https://${domain}/${d2.tag}`, changefreq: 'weekly'}
+                            return {url: `https://${domain}/${d2.tag}`, changefreq: 'weekly'}
                         }),
                         ...(article.data
-                            .filter((d2:any)=>{
+                            .filter((d2: any) => {
                                 return d2.content.template
                             }).map((d2: any) => {
-                                return { url: `https://${domain}/${d2.content.for_index === 'false' ? `pages` : `blogs`}/${d2.content.tag}`, changefreq: 'weekly',lastmod:formatDateToISO(new Date(d2.updated_time))}
+                                return {
+                                    url: `https://${domain}/${d2.content.for_index === 'false' ? `pages` : `blogs`}/${d2.content.tag}`,
+                                    changefreq: 'weekly',
+                                    lastmod: formatDateToISO(new Date(d2.updated_time))
+                                }
                             })),
                         ...(site_map || [])
                             .map((d2: any) => {
-                                return { url: `https://${domain}/${d2.url}`, changefreq: 'weekly'}
+                                return {url: `https://${domain}/${d2.url}`, changefreq: 'weekly'}
                             }),
                         ...extractCols(cols)
-                            .filter((item:any)=>{
+                            .filter((item: any) => {
                                 return item.code
                             })
                             .map((item: { code: string; updated_at: string }) => {
-                                return { url: `https://${domain}/collections/${item.code}`, changefreq: 'weekly'}
+                                return {url: `https://${domain}/collections/${item.code}`, changefreq: 'weekly'}
                             }),
                         ...extractProds(products)
-                            .filter((item:any)=>{
+                            .filter((item: any) => {
                                 return item.code
                             })
                             .map((item: { code: string; updated_at: string }) => {
-                                return { url: `https://${domain}/products/${item.code}`, changefreq: 'weekly'}
+                                return {url: `https://${domain}/products/${item.code}`, changefreq: 'weekly'}
                             })
-                    ]).pipe(stream)).then((data:any) =>
+                    ]).pipe(stream)).then((data: any) =>
                         data.toString()
                     );
 
@@ -758,9 +790,9 @@ export async function createAPP(dd: any) {
                             [appName]
                         )
                     )[0]['domain'];
-                    return  (robots.text.replace(/\s+/g, "").replace(/\n/g, "")) ? robots.text : html`User-agent: *
-Allow: /                    
-Sitemap: https://${domain}/sitemap.xml`;
+                    return (robots.text.replace(/\s+/g, "").replace(/\n/g, "")) ? robots.text : html`User-agent: *
+                    Allow: /
+                    Sitemap: https://${domain}/sitemap.xml`;
                 },
                 tw_shop: async (req, resp) => {
                     let appName = dd.appName;
@@ -855,15 +887,15 @@ async function getSeoDetail(appName: string, req: any) {
             const evalString = `
                 return {
                 execute:(${functionValue
-                    .map((d2) => {
-                        return d2.key;
-                    })
-                    .join(',')})=>{
+                .map((d2) => {
+                    return d2.key;
+                })
+                .join(',')})=>{
                 try {
                 ${sqlData[0].value.value.replace(
-                    /new\s*Promise\s*\(\s*async\s*\(\s*resolve\s*,\s*reject\s*\)\s*=>\s*\{([\s\S]*)\}\s*\)/i,
-                    'new Promise(async (resolve, reject) => { try { $1 } catch (error) { console.log(error);reject(error); } })'
-                )}
+                /new\s*Promise\s*\(\s*async\s*\(\s*resolve\s*,\s*reject\s*\)\s*=>\s*\{([\s\S]*)\}\s*\)/i,
+                'new Promise(async (resolve, reject) => { try { $1 } catch (error) { console.log(error);reject(error); } })'
+            )}
                 }catch (e) { console.log(e) } } }
             `;
             const myFunction = new Function(evalString);
@@ -904,15 +936,15 @@ async function getSeoSiteMap(appName: string, req: any) {
             const evalString = `
                 return {
                 execute:(${functionValue
-                    .map((d2) => {
-                        return d2.key;
-                    })
-                    .join(',')})=>{
+                .map((d2) => {
+                    return d2.key;
+                })
+                .join(',')})=>{
                 try {
                 ${sqlData[0].value.value.replace(
-                    /new\s*Promise\s*\(\s*async\s*\(\s*resolve\s*,\s*reject\s*\)\s*=>\s*\{([\s\S]*)\}\s*\)/i,
-                    'new Promise(async (resolve, reject) => { try { $1 } catch (error) { console.log(error);reject(error); } })'
-                )}
+                /new\s*Promise\s*\(\s*async\s*\(\s*resolve\s*,\s*reject\s*\)\s*=>\s*\{([\s\S]*)\}\s*\)/i,
+                'new Promise(async (resolve, reject) => { try { $1 } catch (error) { console.log(error);reject(error); } })'
+            )}
                 }catch (e) { console.log(e) } } }
             `;
             const myFunction = new Function(evalString);
@@ -921,6 +953,6 @@ async function getSeoSiteMap(appName: string, req: any) {
     );
 }
 
-function formatDateToISO(date:Date) {
-    return `${date.toISOString().substring(0,date.toISOString().length-5)}+00:00`;
+function formatDateToISO(date: Date) {
+    return `${date.toISOString().substring(0, date.toISOString().length - 5)}+00:00`;
 }

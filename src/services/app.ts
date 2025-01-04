@@ -787,7 +787,7 @@ export class App {
                 )
             )[0]['count(1)'] === 0
         ) {
-            const result = await this.addDNSRecord(domain_name);
+            // const result = await this.addDNSRecord(domain_name);
             await this.setSubDomain({
                 original_domain: (
                     await db.query(
@@ -818,7 +818,7 @@ export class App {
                             ResourceRecordSet: {
                                 Name: domain, // 您的域名
                                 Type: 'A',
-                                TTL: 1, // 時間以秒為單位，TTL 的數值
+                                TTL: 600, // 時間以秒為單位，TTL 的數值
                                 ResourceRecords: [
                                     {
                                         Value: config.sshIP, // 目標 IP 地址

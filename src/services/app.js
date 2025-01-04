@@ -616,7 +616,6 @@ class App {
         if ((await database_1.default.query(`SELECT count(1)
                      FROM \`${config_1.saasConfig.SAAS_NAME}\`.app_config
                      where domain =${database_1.default.escape(domain_name)}`, []))[0]['count(1)'] === 0) {
-            const result = await this.addDNSRecord(domain_name);
             await this.setSubDomain({
                 original_domain: (await database_1.default.query(`SELECT domain
                                                   FROM \`${config_1.saasConfig.SAAS_NAME}\`.app_config
@@ -642,7 +641,7 @@ class App {
                             ResourceRecordSet: {
                                 Name: domain,
                                 Type: 'A',
-                                TTL: 1,
+                                TTL: 600,
                                 ResourceRecords: [
                                     {
                                         Value: config_js_1.default.sshIP,
