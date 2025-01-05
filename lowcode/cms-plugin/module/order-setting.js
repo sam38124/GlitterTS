@@ -1,7 +1,6 @@
 import { BgWidget } from "../../backend-manager/bg-widget.js";
 import { ApiUser } from "../../glitter-base/route/user.js";
 import { ShareDialog } from "../../dialog/ShareDialog.js";
-import { ApiShop } from "../../glitter-base/route/shopping.js";
 export class OrderSetting {
     static showEditShip(obj) {
         let stockList = [];
@@ -10,9 +9,9 @@ export class OrderSetting {
         }
         const html = String.raw;
         let loading = true;
-        let productLoading = true;
+        let productLoading = false;
         let postMD = obj.postMD;
-        let productData = {};
+        let productData = obj.productData;
         let topGVC = window.parent.glitter.pageConfig[window.parent.glitter.pageConfig.length - 1].gvc;
         const dialog = new ShareDialog(obj.gvc.glitter);
         topGVC.glitter.innerDialog((gvc) => {
@@ -28,20 +27,6 @@ export class OrderSetting {
                         }
                     });
                 }
-                ApiShop.getProduct({
-                    limit: 99,
-                    page: 0,
-                    productType: "all",
-                    id_list: postMD.map((dd) => {
-                        return dd.id;
-                    })
-                }).then(r => {
-                    productLoading = false;
-                    productData = r.response.data;
-                    if (!loading && !productLoading) {
-                        gvc.notifyDataChange('editDialog');
-                    }
-                });
             }
             let dialog = new ShareDialog(topGVC.glitter);
             let origData = JSON.parse(JSON.stringify(postMD));
@@ -118,12 +103,12 @@ export class OrderSetting {
                         titleArray = insertSubStocks(titleArray, stockList.flatMap((item) => {
                             return [
                                 html `
-                                                    <div class="" style="text-align: center;">
-                                                        ${item.name}<br>庫存數量
+                                                    <div class="d-flex flex-column" style="text-align: center;gap:5px;">
+                                                        ${item.name}${BgWidget.warningInsignia('庫存數量')}
                                                     </div>`,
                                 html `
-                                                    <div class="" style="text-align: center;">
-                                                        ${item.name}<br>出貨數量
+                                                    <div class="d-flex flex-column" style="text-align: center;gap:5px;">
+                                                        ${item.name}<br>${BgWidget.infoInsignia('出貨數量')}
                                                     </div>`
                             ];
                         }));
@@ -143,6 +128,7 @@ export class OrderSetting {
                             bind: id,
                             view: () => {
                                 return postMD.map((item) => {
+                                    console.log(`item=>`, item);
                                     if (item.deduction_log && Object.keys(item.deduction_log).length === 0) {
                                         return;
                                     }
@@ -164,38 +150,42 @@ export class OrderSetting {
                                                     </div>
                                                 </div>
                                                 <div class="d-flex align-items-center justify-content-end flex-shrink-0"
-                                                " style="width: ${elementLength}px;gap: 12px">
+                                                 style="width: ${elementLength}px;gap: 12px">
                                                 ${item.count}
                                             </div>
                                             ${stockList.flatMap((stock) => {
-                                        var _a, _b, _c, _d, _e, _f;
+                                        var _a, _b, _c, _d, _e;
                                         const limit = (_c = (_b = (_a = item.stockList) === null || _a === void 0 ? void 0 : _a[stock.id]) === null || _b === void 0 ? void 0 : _b.count) !== null && _c !== void 0 ? _c : 0;
                                         return [html `
                                                     <div class="d-flex align-items-center justify-content-end flex-shrink-0" style="width: ${elementLength}px;gap: 12px;">
-                                                    ${parseInt(limit) + (parseInt((_d = item.deduction_log[stock.id]) !== null && _d !== void 0 ? _d : "0"))}
+                                                    ${parseInt(limit)}
                                                     </div>`,
                                             html `
                                                         <div class="d-flex align-items-center justify-content-end flex-shrink-0"" style="width: ${elementLength}px;gap: 12px">
                                                         <input class="w-100"
                                                                style="border-radius: 10px;border: 1px solid #DDD;background: #FFF;text-align: center;padding:0 18px;height:40px;"
-                                                               max="${limit + ((_e = item.deduction_log[stock.id]) !== null && _e !== void 0 ? _e : 0)}"
+                                                               max="${limit + ((_d = item.deduction_log[stock.id]) !== null && _d !== void 0 ? _d : 0)}"
                                                                min="0"
-                                                               value="${(_f = item.deduction_log[stock.id]) !== null && _f !== void 0 ? _f : 0}"
+                                                               value="${(_e = item.deduction_log[stock.id]) !== null && _e !== void 0 ? _e : 0}"
                                                                type="number"
                                                                onchange="${gvc.event((e) => {
-                                                const previewNum = item.deduction_log[stock.id];
+                                                var _a;
+                                                const original = (_a = item.deduction_log[stock.id]) !== null && _a !== void 0 ? _a : 0;
                                                 let still = 0;
                                                 item.deduction_log[stock.id] = 0;
                                                 Object.values(item.deduction_log).forEach((dd) => {
                                                     still += dd;
                                                 });
                                                 still = item.count - still;
-                                                item.deduction_log;
                                                 if (e.value > still) {
                                                     e.value = still;
                                                 }
-                                                item.deduction_log[stock.id] = parseInt(e.value);
-                                                gvc.notifyDataChange('id');
+                                                const new_d = parseInt(e.value);
+                                                item.deduction_log[stock.id] = new_d;
+                                                if (original !== new_d) {
+                                                    item.stockList[stock.id].count = (item.stockList[stock.id].count - (new_d - original));
+                                                }
+                                                gvc.notifyDataChange(id);
                                                 console.log("item -- ", item);
                                             })}">
                                                         </div>`];

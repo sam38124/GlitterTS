@@ -776,6 +776,8 @@ export class ShoppingOrderManager {
         let invoiceLoading = true;
         let storeList = [];
         let storeLoading = true;
+        let productData = [];
+        let productLoading = true;
         ApiShop.getInvoice({
             page: 0,
             limit: 1000,
@@ -786,13 +788,25 @@ export class ShoppingOrderManager {
             invoiceLoading = false;
             gvc.notifyDataChange('invoiceView');
         });
+        ApiShop.getProduct({
+            limit: 99,
+            page: 0,
+            productType: "all",
+            id_list: orderData.orderData.lineItems.map((dd) => {
+                return dd.id;
+            })
+        }).then(r => {
+            productLoading = false;
+            productData = r.response.data;
+            gvc.notifyDataChange(mainViewID);
+        });
         return gvc.bindView({
             bind: mainViewID,
             dataList: [{ obj: child_vm, key: 'type' }],
             view: () => {
                 var _a, _b, _c, _d, _e, _f, _g, _h, _j;
                 try {
-                    if (userDataLoading) {
+                    if (userDataLoading || productLoading) {
                         return BgWidget.spinner();
                     }
                     if (child_vm.type === 'user') {
@@ -1009,6 +1023,7 @@ export class ShoppingOrderManager {
                                 OrderSetting.showEditShip({
                                     gvc: gvc,
                                     postMD: orderData.orderData.lineItems,
+                                    productData: productData,
                                     callback: () => {
                                         gvc.notifyDataChange('storehouseList');
                                     }
@@ -1038,7 +1053,6 @@ export class ShoppingOrderManager {
                                         }
                                         return storeList.map((store) => {
                                             let returnHtml = ``;
-                                            console.log("store -- ", store);
                                             orderData.orderData.lineItems.map((item) => {
                                                 if (item.deduction_log[store.id]) {
                                                     returnHtml += html `
@@ -1890,36 +1904,6 @@ export class ShoppingOrderManager {
                         vm.type = 'list';
                     }))}
                                 ${BgWidget.save(gvc.event(() => {
-                        var _a, _b;
-                        if ((_a = orderData.orderData) === null || _a === void 0 ? void 0 : _a.editRecord) {
-                            const findCancelStatus = (_b = orderData.orderData) === null || _b === void 0 ? void 0 : _b.editRecord.find((data) => {
-                                return data.record == "訂單已取消";
-                            });
-                            if (!findCancelStatus && orderData.orderData.orderStatus == "-1") {
-                                orderData.orderData.lineItems.forEach((item) => {
-                                    if (item.deduction_log) {
-                                        ApiShop.recoverVariants({
-                                            data: item
-                                        }).then((r) => {
-                                            console.log("已經回填 -- ", item);
-                                        });
-                                    }
-                                });
-                            }
-                        }
-                        else {
-                            if (orderData.orderData.orderStatus == "-1") {
-                                orderData.orderData.lineItems.forEach((item) => {
-                                    if (item.deduction_log) {
-                                        ApiShop.recoverVariants({
-                                            data: item
-                                        }).then((r) => {
-                                            console.log("已經回填 -- ", item);
-                                        });
-                                    }
-                                });
-                            }
-                        }
                         function writeEdit(origData, orderData) {
                             var _a;
                             let editArray = [];

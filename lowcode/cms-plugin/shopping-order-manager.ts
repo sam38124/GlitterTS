@@ -1008,6 +1008,8 @@ export class ShoppingOrderManager {
         let invoiceLoading = true;
         let storeList: any = []
         let storeLoading = true;
+         let productData:any=[]
+        let productLoading=true
         ApiShop.getInvoice({
             page: 0,
             limit: 1000,
@@ -1018,12 +1020,24 @@ export class ShoppingOrderManager {
             invoiceLoading = false;
             gvc.notifyDataChange('invoiceView');
         });
+        ApiShop.getProduct({
+            limit: 99,
+            page: 0,
+            productType:"all",
+            id_list: orderData.orderData.lineItems.map((dd: any) => {
+                return dd.id;
+            }) as any
+        }).then(r => {
+            productLoading = false;
+            productData = r.response.data;
+            gvc.notifyDataChange(mainViewID)
+        })
         return gvc.bindView({
             bind: mainViewID,
             dataList: [{obj: child_vm, key: 'type'}],
             view: () => {
                 try {
-                    if (userDataLoading) {
+                    if (userDataLoading || productLoading) {
                         return BgWidget.spinner();
                     }
                     if (child_vm.type === 'user') {
@@ -1246,6 +1260,7 @@ export class ShoppingOrderManager {
                                                                  OrderSetting.showEditShip({
                                                                      gvc: gvc,
                                                                      postMD:orderData.orderData.lineItems,
+                                                                     productData:productData,
                                                                      callback:()=>{
                                                                          gvc.notifyDataChange('storehouseList')
                                                                      }
@@ -1274,7 +1289,6 @@ export class ShoppingOrderManager {
                                                                 // console.log(orderData.orderData.lineItems)
                                                                 return storeList.map((store: any) => {
                                                                     let returnHtml = ``;
-                                                                    console.log("store -- " , store)
                                                                     orderData.orderData.lineItems.map((item: any) => {
                                                                         if (item.deduction_log[store.id]) {
                                                                             returnHtml += html`
@@ -2170,36 +2184,7 @@ export class ShoppingOrderManager {
                                 ${BgWidget.save(
                                         gvc.event(() => {
                                             //如果有編輯紀錄的話 檢查裡頭是不是有訂單已取消的事件在做倉儲的回填
-                                            if (orderData.orderData?.editRecord) {
-                                                const findCancelStatus = orderData.orderData?.editRecord.find((data: any) => {
-                                                    return data.record == "訂單已取消"
-                                                })
-                                                //如果訂單狀態不曾出現過取消訂單，執行庫存回填
-                                                if (!findCancelStatus && orderData.orderData.orderStatus == "-1") {
-                                                    orderData.orderData.lineItems.forEach((item: any) => {
-                                                        if (item.deduction_log) {
-                                                            ApiShop.recoverVariants({
-                                                                data: item
-                                                            }).then((r) => {
-                                                                console.log("已經回填 -- ", item)
-                                                            })
-                                                        }
-                                                    })
-                                                }
-                                            } else {
-                                                //因為沒有紀錄，庫存直接回填
-                                                if (orderData.orderData.orderStatus == "-1") {
-                                                    orderData.orderData.lineItems.forEach((item: any) => {
-                                                        if (item.deduction_log) {
-                                                            ApiShop.recoverVariants({
-                                                                data: item
-                                                            }).then((r) => {
-                                                                console.log("已經回填 -- ", item)
-                                                            })
-                                                        }
-                                                    })
-                                                }
-                                            }
+                                           
 
 
                                             // if (orderData.orderData.progress == "shipping" && (origData.orderData.progress == "wait" || !origData.orderData.progress)) {

@@ -375,6 +375,7 @@ export declare class Shopping {
     resetVoucherHistory(): Promise<void>;
     postVariantsAndPriceValue(content: any): Promise<void>;
     updateVariantsWithSpec(data: any, product_id: string, spec: string[]): Promise<void>;
+    calcVariantsStock(calc: number, stock_id: string, product_id: string, spec: string[]): Promise<void>;
     getDataAnalyze(tags: string[], query?: any): Promise<any>;
     generateTimeRange(index: number): {
         startISO: string;

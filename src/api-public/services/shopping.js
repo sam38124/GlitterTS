@@ -389,8 +389,8 @@ class Shopping {
     async querySqlByVariants(querySql, query) {
         let sql = `SELECT v.id,
                           v.product_id,
-                          v.content                                            as variant_content,
-                          p.content                                            as product_content,
+                          v.content as                                            variant_content,
+                          p.content as                                            product_content,
                           CAST(JSON_EXTRACT(v.content, '$.stock') AS UNSIGNED) as stock
                    FROM \`${this.app}\`.t_variants AS v
                             JOIN
@@ -1637,6 +1637,7 @@ class Shopping {
             if (data.orderData) {
                 update.orderData = JSON.stringify(data.orderData);
             }
+            const store_config = await new user_js_1.User(this.app).getConfigV2({ key: 'store_manager', user_id: 'manager' });
             const origin = await database_js_1.default.query(`SELECT *
                  FROM \`${this.app}\`.t_checkout
                  WHERE id = ?;
@@ -1644,7 +1645,27 @@ class Shopping {
             if (update.orderData && JSON.parse(update.orderData)) {
                 let sns = new sms_js_1.SMS(this.app);
                 const updateProgress = JSON.parse(update.orderData).progress;
-                if (origin[0].orderData.progress !== 'shipping' && updateProgress === 'shipping') {
+                function migrateOrder(lineItems) {
+                    for (const lineItem of lineItems) {
+                        lineItem.stockList = undefined;
+                        lineItem.deduction_log = lineItem.deduction_log || {};
+                        if (Object.keys(lineItem.deduction_log).length === 0) {
+                            lineItem.deduction_log[store_config.list[0].id] = { count: lineItem.count };
+                        }
+                    }
+                }
+                console.log(`update.orderData=>`, update.orderData);
+                migrateOrder(data.orderData.lineItems);
+                migrateOrder(origin[0].orderData.lineItems);
+                if (origin[0].orderData.orderStatus !== '-1' && data.orderData.orderStatus === '-1') {
+                    for (const lineItem of origin[0].orderData.lineItems) {
+                        for (const b of Object.keys(lineItem.deduction_log)) {
+                            await new Shopping(this.app, this.token).calcVariantsStock(lineItem.deduction_log[b] || 0, b, lineItem.id, lineItem.spec);
+                        }
+                    }
+                    await auto_send_email_js_1.AutoSendEmail.customerOrder(this.app, 'auto-email-order-cancel-success', data.orderData.orderID, data.orderData.email, data.orderData.language);
+                }
+                else if (origin[0].orderData.progress !== 'shipping' && updateProgress === 'shipping') {
                     if (data.orderData.customer_info.phone) {
                         await sns.sendCustomerSns('auto-sns-shipment', data.orderData.orderID, data.orderData.customer_info.phone);
                         console.log('出貨簡訊寄送成功');
@@ -1654,16 +1675,9 @@ class Shopping {
                         await line.sendCustomerLine('auto-line-shipment', data.orderData.orderID, data.orderData.customer_info.lineID);
                         console.log('付款成功line訊息寄送成功');
                     }
-                    for (const lineItem of origin[0].orderData.lineItems) {
-                        let variant = data.orderData.lineItems.find((lineItem2) => {
-                            return lineItem2.id == lineItem.id && JSON.stringify(lineItem.spec) == JSON.stringify(lineItem2.spec);
-                        });
-                        await new stock_1.Stock(this.app, this.token).recoverStock(lineItem);
-                        await new stock_1.Stock(this.app, this.token).shippingStock(variant);
-                    }
                     await auto_send_email_js_1.AutoSendEmail.customerOrder(this.app, 'auto-email-shipment', data.orderData.orderID, data.orderData.email, data.orderData.language);
                 }
-                if (origin[0].orderData.progress !== 'arrived' && updateProgress === 'arrived') {
+                else if (origin[0].orderData.progress !== 'arrived' && updateProgress === 'arrived') {
                     if (data.orderData.customer_info.phone) {
                         await sns.sendCustomerSns('auto-sns-shipment-arrival', data.orderData.orderID, data.orderData.customer_info.phone);
                         console.log('到貨簡訊寄送成功');
@@ -1674,6 +1688,20 @@ class Shopping {
                         console.log('付款成功line訊息寄送成功');
                     }
                     await auto_send_email_js_1.AutoSendEmail.customerOrder(this.app, 'auto-email-shipment-arrival', data.orderData.orderID, data.orderData.email, data.orderData.language);
+                }
+                else {
+                    if (data.orderData.orderStatus !== '-1') {
+                        for (const new_line_item of data.orderData.lineItems) {
+                            const og_line_items = origin[0].orderData.lineItems.find((dd) => {
+                                return (dd.id === new_line_item.id) && (dd.spec.join('') === new_line_item.spec.join(''));
+                            });
+                            for (const key of Object.keys(new_line_item.deduction_log)) {
+                                const u_ = new_line_item.deduction_log[key];
+                                const o_ = og_line_items.deduction_log[key];
+                                await new Shopping(this.app, this.token).calcVariantsStock((u_ - o_) * -1, key, new_line_item.id, new_line_item.spec);
+                            }
+                        }
+                    }
                 }
                 if (origin[0].status !== 1 && update.status === 1) {
                     await this.releaseCheckout(1, data.orderData.orderID);
@@ -1689,6 +1717,7 @@ class Shopping {
             };
         }
         catch (e) {
+            console.error(e);
             throw exception_js_1.default.BadRequestError('BAD_REQUEST', 'putOrder Error:' + e, null);
         }
     }
@@ -2142,7 +2171,9 @@ OR JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.orderStatus')) NOT IN (-99)) `);
         }
     }
     async updateVariantsWithSpec(data, product_id, spec) {
-        const sql = (spec.length > 0) ? `AND JSON_CONTAINS(content->'$.spec', JSON_ARRAY(${spec.map((data) => { return `\"${data}\"`; }).join(',')}));` : '';
+        const sql = (spec.length > 0) ? `AND JSON_CONTAINS(content->'$.spec', JSON_ARRAY(${spec.map((data) => {
+            return `\"${data}\"`;
+        }).join(',')}));` : '';
         try {
             await database_js_1.default.query(`UPDATE \`${this.app}\`.\`t_variants\`
                  SET ?
@@ -2157,6 +2188,26 @@ OR JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.orderStatus')) NOT IN (-99)) `);
         catch (e) {
             console.log("error -- ", e);
         }
+    }
+    async calcVariantsStock(calc, stock_id, product_id, spec) {
+        const pd_data = (await database_js_1.default.query(`select *
+                                         from \`${this.app}\`.t_manager_post
+                                         where id = ?`, [product_id]))[0]['content'];
+        const store_config = await new user_js_1.User(this.app).getConfigV2({ key: 'store_manager', user_id: 'manager' });
+        const variant_s = pd_data.variants.find((dd) => {
+            return dd.spec.join('-') === spec.join('-');
+        });
+        if (Object.keys(variant_s.stockList).length === 0) {
+            variant_s.stockList[store_config.list[0].id] = { count: variant_s.stock };
+        }
+        if (variant_s.stockList[stock_id]) {
+            variant_s.stockList[stock_id].count = variant_s.stockList[stock_id].count || 0;
+            variant_s.stockList[stock_id].count = variant_s.stockList[stock_id].count + calc;
+            if (variant_s.stockList[stock_id].count < 0) {
+                variant_s.stockList[stock_id].count = 0;
+            }
+        }
+        await this.postVariantsAndPriceValue(pd_data);
     }
     async getDataAnalyze(tags, query) {
         try {
@@ -2560,8 +2611,10 @@ OR JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.orderStatus')) NOT IN (-99)) `);
                     for (const item1 of checkout.orderData.lineItems) {
                         const index = product_list.findIndex((item2) => item1.title === item2.title);
                         if (index === -1) {
-                            product_list.push({ title: item1.title, count: item1.count, preview_image: item1.preview_image,
-                                sale_price: item1.sale_price, pos_info: checkout.orderData.pos_info });
+                            product_list.push({
+                                title: item1.title, count: item1.count, preview_image: item1.preview_image,
+                                sale_price: item1.sale_price, pos_info: checkout.orderData.pos_info
+                            });
                         }
                         else {
                             product_list[index].count += item1.count;
@@ -3363,7 +3416,9 @@ OR JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.orderStatus')) NOT IN (-99)) `);
                 return new Promise(async (resolve, reject) => {
                     product.type = 'product';
                     if (product.id) {
-                        const og_data = (await database_js_1.default.query(`select * from \`${this.app}\`.\`t_manager_post\` where id=?`, [product.id]))[0];
+                        const og_data = (await database_js_1.default.query(`select *
+                                                         from \`${this.app}\`.\`t_manager_post\`
+                                                         where id = ?`, [product.id]))[0];
                         if (og_data) {
                             delete product['preview_image'];
                             product = Object.assign(Object.assign({}, og_data['content']), product);
@@ -3374,7 +3429,8 @@ OR JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.orderStatus')) NOT IN (-99)) `);
                     resolve(true);
                 });
             })));
-            const data = await database_js_1.default.query(`replace INTO \`${this.app}\`.\`t_manager_post\` (id,userID,content) values ?`, [
+            const data = await database_js_1.default.query(`replace
+                INTO \`${this.app}\`.\`t_manager_post\` (id,userID,content) values ?`, [
                 productArray.map((product) => {
                     var _a;
                     product.type = 'product';

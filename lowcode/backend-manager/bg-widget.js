@@ -2200,7 +2200,7 @@ ${(_c = obj.default) !== null && _c !== void 0 ? _c : ''}</textarea
         });
     }
     static richTextView(text) {
-        return html ` <div style="width: 100%; height: 150px; position: relative; background: white; border-radius: 10px; overflow: hidden; border: 1px #DDDDDD solid">
+        return html ` <div style="width: 100%; height: 200px; position: relative; background: white; border-radius: 10px; overflow: hidden; border: 1px #DDDDDD solid">
             <div
                 style="left: 18px; right: 18px; top: 59px; position: absolute; color: ${text.length > 0
             ? '#393939'

@@ -10,6 +10,7 @@ export class OrderSetting {
     public static showEditShip(obj: {
         gvc: GVC,
         postMD: any,
+        productData:any,
         callback?: () => void
     }) {
         let stockList: any = [];
@@ -21,9 +22,9 @@ export class OrderSetting {
         const html = String.raw;
 
         let loading = true;
-        let productLoading = true
+        let productLoading = false
         let postMD = obj.postMD;
-        let productData:any={}
+        let productData:any=obj.productData
         let topGVC = (window.parent as any).glitter.pageConfig[(window.parent as any).glitter.pageConfig.length - 1].gvc
         const dialog = new ShareDialog(obj.gvc.glitter);
 
@@ -44,21 +45,6 @@ export class OrderSetting {
                         }
                     })
                 }
-                ApiShop.getProduct({
-                    limit: 99,
-                    page: 0,
-                    productType:"all",
-                    id_list: postMD.map((dd: any) => {
-                        return dd.id;
-                    })
-                }).then(r => {
-                    productLoading = false;
-
-                    productData = r.response.data;
-                    if (!loading && !productLoading){
-                        gvc.notifyDataChange('editDialog');
-                    }
-                })
             }
 
 
@@ -150,12 +136,12 @@ export class OrderSetting {
                                         titleArray = insertSubStocks(titleArray, stockList.flatMap((item: any) => {
                                             return [
                                                 html`
-                                                    <div class="" style="text-align: center;">
-                                                        ${item.name}<br>庫存數量
+                                                    <div class="d-flex flex-column" style="text-align: center;gap:5px;">
+                                                        ${item.name}${BgWidget.warningInsignia('庫存數量')}
                                                     </div>`,
                                                 html`
-                                                    <div class="" style="text-align: center;">
-                                                        ${item.name}<br>出貨數量
+                                                    <div class="d-flex flex-column" style="text-align: center;gap:5px;">
+                                                        ${item.name}<br>${BgWidget.infoInsignia('出貨數量')}
                                                     </div>`
                                             ]
                                         }));
@@ -174,8 +160,9 @@ export class OrderSetting {
                                     return gvc.bindView({
                                         bind:id,
                                         view:()=>{
+                                          
                                             return postMD.map((item: any) => {
-
+                                                console.log(`item=>`,item)
                                                 if (item.deduction_log && Object.keys(item.deduction_log).length === 0) {
                                                     return
                                                 }
@@ -197,14 +184,14 @@ export class OrderSetting {
                                                     </div>
                                                 </div>
                                                 <div class="d-flex align-items-center justify-content-end flex-shrink-0"
-                                                " style="width: ${elementLength}px;gap: 12px">
+                                                 style="width: ${elementLength}px;gap: 12px">
                                                 ${item.count}
                                             </div>
                                             ${stockList.flatMap((stock: any) => {
                                                     const limit = item.stockList?.[stock.id]?.count??0;
                                                     return [html`
                                                     <div class="d-flex align-items-center justify-content-end flex-shrink-0" style="width: ${elementLength}px;gap: 12px;">
-                                                    ${parseInt(limit) + (parseInt(item.deduction_log[stock.id]??"0"))}
+                                                    ${parseInt(limit)}
                                                     </div>`,
                                                         html`
                                                         <div class="d-flex align-items-center justify-content-end flex-shrink-0"" style="width: ${elementLength}px;gap: 12px">
@@ -215,20 +202,23 @@ export class OrderSetting {
                                                                value="${item.deduction_log[stock.id]??0}"
                                                                type="number"
                                                                onchange="${gvc.event((e: any) => {
-                                                                   const previewNum = item.deduction_log[stock.id];
+                                                                   const original=item.deduction_log[stock.id]??0
+                                                                   
                                                                    let still = 0;
                                                                    item.deduction_log[stock.id] = 0;
                                                                    Object.values(item.deduction_log).forEach((dd: any) => {
                                                                        still += dd;
                                                                    })
                                                                    still = item.count - still
-                                                                   item.deduction_log
-                                                                   
                                                                    if (e.value > still){
                                                                        e.value = still
                                                                    }
-                                                                   item.deduction_log[stock.id] = parseInt(e.value);
-                                                                   gvc.notifyDataChange('id')
+                                                                   const new_d=parseInt(e.value);
+                                                                   item.deduction_log[stock.id] = new_d;
+                                                                   if(original!==new_d){
+                                                                       item.stockList[stock.id]!.count= (item.stockList[stock.id]!.count-(new_d-original))
+                                                                   }
+                                                                   gvc.notifyDataChange(id)
                                                                    console.log("item -- " , item);
                                                                 })}">
                                                         </div>`]

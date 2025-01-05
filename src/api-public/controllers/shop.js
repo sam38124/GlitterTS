@@ -17,7 +17,6 @@ const post_js_1 = require("../services/post.js");
 const shopping_1 = require("../services/shopping");
 const rebate_1 = require("../services/rebate");
 const axios_1 = __importDefault(require("axios"));
-const stock_js_1 = require("../services/stock.js");
 const router = express_1.default.Router();
 router.post('/worker', async (req, resp) => {
     try {
@@ -926,19 +925,6 @@ router.put('/product/variants', async (req, resp) => {
     try {
         if (await ut_permission_1.UtPermission.isManager(req)) {
             return response_1.default.succ(resp, await new shopping_1.Shopping(req.get('g-app'), req.body.token).putVariants(req.body));
-        }
-        else {
-            throw exception_1.default.BadRequestError('BAD_REQUEST', 'No permission.', null);
-        }
-    }
-    catch (err) {
-        return response_1.default.fail(resp, err);
-    }
-});
-router.put('/product/variants/recoverStock', async (req, resp) => {
-    try {
-        if (await ut_permission_1.UtPermission.isManager(req)) {
-            return response_1.default.succ(resp, await new stock_js_1.Stock(req.get('g-app'), req.body.token).recoverStock(req.body));
         }
         else {
             throw exception_1.default.BadRequestError('BAD_REQUEST', 'No permission.', null);

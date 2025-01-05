@@ -182,14 +182,14 @@ export class Setting_editor {
                 appName: 'cms_system',
                 groupIcon: 'https://d3jnmi1tfjgtti.cloudfront.net/file/234285319/1716652645450-boxes-stacked-regular (1).svg',
             },
-            // {
-            //     icon: '',
-            //     page: 'stock_restocking',
-            //     group: '庫存管理',
-            //     title: '進貨單列表',
-            //     appName: 'cms_system',
-            //     groupIcon: 'https://d3jnmi1tfjgtti.cloudfront.net/file/234285319/1716652645450-boxes-stacked-regular (1).svg',
-            // },
+            {
+                icon: '',
+                page: 'stock_restocking',
+                group: '庫存管理',
+                title: '進貨單列表',
+                appName: 'cms_system',
+                groupIcon: 'https://d3jnmi1tfjgtti.cloudfront.net/file/234285319/1716652645450-boxes-stacked-regular (1).svg',
+            },
             {
                 icon: '',
                 page: 'stock_stores',

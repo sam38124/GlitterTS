@@ -1009,17 +1009,17 @@ router.put('/product/variants', async (req: express.Request, resp: express.Respo
         return response.fail(resp, err);
     }
 });
-router.put('/product/variants/recoverStock', async (req: express.Request, resp: express.Response) => {
-    try {
-        if (await UtPermission.isManager(req)) {
-            return response.succ(resp, await new Stock(req.get('g-app') as string, req.body.token).recoverStock(req.body));
-        } else {
-            throw exception.BadRequestError('BAD_REQUEST', 'No permission.', null);
-        }
-    } catch (err) {
-        return response.fail(resp, err);
-    }
-});
+// router.put('/product/variants/recoverStock', async (req: express.Request, resp: express.Response) => {
+//     try {
+//         if (await UtPermission.isManager(req)) {
+//             return response.succ(resp, await new Stock(req.get('g-app') as string, req.body.token).recoverStock(req.body));
+//         } else {
+//             throw exception.BadRequestError('BAD_REQUEST', 'No permission.', null);
+//         }
+//     } catch (err) {
+//         return response.fail(resp, err);
+//     }
+// });
 router.delete('/product', async (req: express.Request, resp: express.Response) => {
     try {
         if (await UtPermission.isManager(req)) {
