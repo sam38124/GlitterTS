@@ -52,6 +52,7 @@ router.get('/history', async (req: express.Request, resp: express.Response) => {
                     limit: req.query.limit ? `${req.query.limit}` : '20',
                     search: req.query.search as string,
                     type: req.query.type as StockHistoryType,
+                    order_id: req.query.order_id as string,
                 })
             );
         } else {

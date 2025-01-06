@@ -33,6 +33,7 @@ export class ApiStock {
                 `/api-public/v1/stock/history?${(() => {
                     let par = [`page=${json.page}`, `limit=${json.limit}`, `search=${json.search}`, `type=${json.type}`];
                     json.queryType && par.push(`queryType=${json.queryType}`);
+                    json.order_id && par.push(`order_id=${json.order_id}`);
                     return par.join('&');
                 })()}`,
             type: 'GET',

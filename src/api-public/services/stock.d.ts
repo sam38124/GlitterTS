@@ -10,8 +10,9 @@ type ContentProduct = {
     cost: number;
     note: string;
     transfer_count: number;
-    recent_count: number;
+    recent_count?: number;
     check_count: number;
+    replenishment_count?: number;
     title?: string;
     spec?: string;
     sku?: '';
@@ -33,6 +34,13 @@ type StockHistoryData = {
         note: string;
         total_price?: number;
         product_list: ContentProduct[];
+        changeLogs: {
+            time: string;
+            text: string;
+            user: string;
+            status: number;
+            product_list?: ContentProduct[];
+        }[];
     };
 };
 export declare class Stock {
@@ -66,6 +74,7 @@ export declare class Stock {
         limit: string;
         search: string;
         type: StockHistoryType;
+        order_id: string;
     }): Promise<{
         total: any;
         data: any;
