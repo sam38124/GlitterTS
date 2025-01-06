@@ -851,8 +851,13 @@ export class Shopping {
             console.log(`checkout-time-1=>`, new Date().getTime() - check_time);
             const userClass = new User(this.app);
             const rebateClass = new Rebate(this.app);
+            //電話信箱擇一
             if (type !== 'preview' && !(this.token && this.token.userID) && !data.email && !(data.user_info && data.user_info.email)) {
-                throw exception.BadRequestError('BAD_REQUEST', 'ToCheckout 2 Error:No email address.', null);
+                if(data.user_info.phone){
+                    data.email=data.user_info.phone
+                }else{
+                    throw exception.BadRequestError('BAD_REQUEST', 'ToCheckout 2 Error:No email address.', null);
+                }
             }
             const userData = await (async () => {
                 if (type !== 'preview' || (this.token && this.token.userID)) {

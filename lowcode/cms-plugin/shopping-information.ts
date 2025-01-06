@@ -661,14 +661,17 @@ ${BgWidget.title('GoDaddy DNS 設定指南')}
                                         </div>
                                         <div class="d-flex justify-content-end">
                                             ${BgWidget.save(gvc.event(() => {
+                                                const glitter = (window.parent as any).glitter;
                                                 if (!domain_text) {
                                                     dialog.errorMessage({text: '請輸入網域名稱'})
+                                                    return
+                                                }else if(glitter.share.editorViewModel.domain===domain_text){
+                                                    dialog.errorMessage({text: '此網域已部署完成'})
                                                     return
                                                 }
                                                 dialog.dataLoading({visible: true})
                                                 const appName = (window.parent as any).appName;
                                                 const saasConfig = (window.parent as any).saasConfig;
-                                                const glitter = (window.parent as any).glitter;
                                                 if (domain_from === 'custom') {
                                                     saasConfig.api.setDomain({
                                                         domain: domain_text,

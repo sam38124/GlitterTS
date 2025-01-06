@@ -1228,10 +1228,10 @@ export class UMOrder {
                                                     title: Language.text('contact_number'),
                                                     value: orderData.customer_info.phone,
                                                 },
-                                                {
+                                                ...(orderData.customer_info.email) ? [{
                                                     title: Language.text('email'),
                                                     value: orderData.customer_info.email,
-                                                },
+                                                }] : []
                                             ].concat(
                                                     (orderData.custom_form_format ?? [])
                                                             .map((dd) => {
@@ -1345,14 +1345,15 @@ export class UMOrder {
                                                         title: Language.text('recipient_name'),
                                                         value: orderData.user_info.name,
                                                     },
-                                                    {
+                                                    ...(orderData.user_info.phone) ? [{
                                                         title: Language.text('recipient_phone'),
-                                                        value: orderData.user_info.email,
-                                                    },
-                                                    {
-                                                        title: Language.text('recipient_email'),
                                                         value: orderData.user_info.phone,
-                                                    },
+                                                    }] : []
+                                                    ,
+                                                    ...(orderData.user_info.email) ? [{
+                                                        title: Language.text('recipient_email'),
+                                                        value: orderData.user_info.email,
+                                                    }] : []
                                                 ],
                                             ];
                                             if (selector && selector.form) {

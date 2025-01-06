@@ -10,6 +10,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 import { ShareDialog } from '../glitterBundle/dialog/ShareDialog.js';
 import { BgWidget } from '../backend-manager/bg-widget.js';
 import { EditorElem } from '../glitterBundle/plugins/editor-elem.js';
+import { Language } from "../glitter-base/global/language.js";
 export class ShoppingShipmentSetting {
     static main(gvc) {
         const saasConfig = window.parent.saasConfig;
@@ -97,7 +98,7 @@ export class ShoppingShipmentSetting {
                                 ]
                                     .concat(((_a = logistics_setting.custom_delivery) !== null && _a !== void 0 ? _a : []).map((dd) => {
                                     return {
-                                        title: dd.name,
+                                        title: Language.getLanguageCustomText(dd.name),
                                         key: dd.id,
                                     };
                                 }))

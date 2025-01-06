@@ -2,6 +2,7 @@ import { GVC } from '../glitterBundle/GVController.js';
 import { ShareDialog } from '../glitterBundle/dialog/ShareDialog.js';
 import { BgWidget } from '../backend-manager/bg-widget.js';
 import { EditorElem } from '../glitterBundle/plugins/editor-elem.js';
+import {Language} from "../glitter-base/global/language.js";
 
 export class ShoppingShipmentSetting {
     public static main(gvc: GVC) {
@@ -105,7 +106,7 @@ export class ShoppingShipmentSetting {
                                                         .concat(
                                                             (logistics_setting.custom_delivery ?? []).map((dd: any) => {
                                                                 return {
-                                                                    title: dd.name,
+                                                                    title: Language.getLanguageCustomText(dd.name),
                                                                     key: dd.id,
                                                                 };
                                                             })

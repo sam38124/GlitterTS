@@ -521,7 +521,12 @@ class Shopping {
             const userClass = new user_js_1.User(this.app);
             const rebateClass = new rebate_js_1.Rebate(this.app);
             if (type !== 'preview' && !(this.token && this.token.userID) && !data.email && !(data.user_info && data.user_info.email)) {
-                throw exception_js_1.default.BadRequestError('BAD_REQUEST', 'ToCheckout 2 Error:No email address.', null);
+                if (data.user_info.phone) {
+                    data.email = data.user_info.phone;
+                }
+                else {
+                    throw exception_js_1.default.BadRequestError('BAD_REQUEST', 'ToCheckout 2 Error:No email address.', null);
+                }
             }
             const userData = await (async () => {
                 if (type !== 'preview' || (this.token && this.token.userID)) {
