@@ -29,7 +29,7 @@
     --main-green: #006621;
 
     --item-primary: #4d86db;
-    --item-success: #159240;
+    --item-success: #D8ECDA;
     --item-danger: #da1313;
     --item-info: #d8ecda;
     --item-warning: #ffe9b2;
@@ -1040,7 +1040,7 @@ h6 {
 
 .insignia-success {
     background: var(--item-success);
-    color: var(--main-white);
+    color: var(--main-black);
 }
 
 .insignia-danger {
