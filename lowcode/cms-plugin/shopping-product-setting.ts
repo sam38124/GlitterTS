@@ -3830,7 +3830,6 @@ export class ShoppingProductSetting {
                                                                                                                      style="margin-right: 18px;">
                                                                                                                     <div style="border-radius: 7px;border: 1px solid #DDD;background: #FFF;box-shadow: 0 0 10px 0 rgba(0, 0, 0, 0.10);padding: 3px 13px;cursor: pointer;"
                                                                                                                          onclick="${gvc.event(() => {
-                                                                                                                             
                                                                                                                              ProductSetting.showBatchEditDialog({
                                                                                                                                  gvc: gvc,
                                                                                                                                  postMD: postMD,

@@ -38,7 +38,7 @@ export declare const config: {
     readonly sshIP: string | undefined;
     readonly AWS_S3_PREFIX_DOMAIN_NAME: string;
     readonly SINGLE_TYPE: boolean;
-    getRoute: (r: string, type?: "public" | "normal") => string;
+    getRoute: (r: string, type?: 'public' | 'normal') => string;
     public_route: {
         user: string;
         invoice: string;
@@ -65,8 +65,10 @@ export declare const config: {
         ai_points: string;
         sms_points: string;
         stock: string;
+        shopee: string;
     };
     route: {
+        shopee: string;
         line_message: string;
         user: string;
         template: string;

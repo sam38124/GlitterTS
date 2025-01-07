@@ -274,8 +274,8 @@ export class Entry {
             }
 
             ::-webkit-scrollbar {
-                width: 0px !important; /* 滚动条宽度 */
-                height: 0px !important;
+                width: 0 ; /* 滚动条宽度 */
+                height: 0;
             }
         `);
         glitter.share.EditorMode = true;

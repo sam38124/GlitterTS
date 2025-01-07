@@ -29,6 +29,7 @@ import delivery = require('./delivery');
 import rebate = require('./rebate');
 import recommend = require('./recommend');
 import stock = require('./stock');
+import shopee = require('./shopee');
 import { Live_source } from '../../live_source.js';
 import { IToken } from '../models/Auth.js';
 import { ApiPublic } from '../services/public-table-check.js';
@@ -57,12 +58,16 @@ router.use(config.getRoute(config.public_route.delivery, 'public'), delivery);
 router.use(config.getRoute(config.public_route.rebate, 'public'), rebate);
 router.use(config.getRoute(config.public_route.recommend, 'public'), recommend);
 router.use(config.getRoute(config.public_route.stock, 'public'), stock);
+router.use(config.getRoute(config.public_route.shopee, 'public'), shopee);
 router.use(config.getRoute(config.public_route.graph_api, 'public'), require('./graph-api'));
 router.use(config.getRoute(config.public_route.ai_chat, 'public'), require('./ai-chat'));
 router.use(config.getRoute(config.public_route.ai_points, 'public'), require('./ai-points'));
 router.use(config.getRoute(config.public_route.sms_points, 'public'), require('./sms-points'));
 /******************************/
 const whiteList: {}[] = [
+    { url: config.getRoute(config.public_route.shopee, 'public'), method: 'POST' },
+    { url: config.getRoute(config.public_route.shopee + '/listenMessage', 'public'), method: 'POST' },
+    { url: config.getRoute(config.public_route.shopee + '/listenMessage', 'public'), method: 'GET' },
     { url: config.getRoute(config.public_route.line_message + '/listenMessage', 'public'), method: 'POST' },
     { url: config.getRoute(config.public_route.fb_message + '/listenMessage', 'public'), method: 'GET' },
     { url: config.getRoute(config.public_route.fb_message + '/listenMessage', 'public'), method: 'POST' },

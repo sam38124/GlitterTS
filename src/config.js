@@ -131,8 +131,10 @@ exports.config = {
         ai_points: '/ai/points',
         sms_points: '/sms/points',
         stock: '/stock',
+        shopee: '/shopee'
     },
     route: {
+        shopee: '/shopee',
         line_message: '/line_message',
         user: '/user',
         template: '/template',

@@ -61,6 +61,24 @@ export class OrderSetting {
                             }
                         });
                     }
+                    gvc.addStyle(html `
+                        .scrollbar-appear::-webkit-scrollbar {
+                        width: 10px;
+                        height: 10px;
+                        }
+
+                        .scrollbar-appear::-webkit-scrollbar-thumb {
+                        background: #666;
+                        border-radius: 20px;
+                        }
+
+                        .scrollbar-appear::-webkit-scrollbar-track {
+                        border-radius: 20px;
+                        background: #D8D8D8;
+                        }
+                        .scrollbar-appear{
+                        }
+                    `);
                     return html `
                         <div class="d-flex flex-column position-relative"
                              style="width: 80%;height:70%;background:white;border-radius: 10px;">
@@ -72,7 +90,7 @@ export class OrderSetting {
                                     分倉出貨
                                 </div>
                             </div>
-                            <div class="overflow-scroll" style="padding:20px;margin-right:30px;">
+                            <div class="overflow-scroll scrollbar-appear flex-fill"  style="padding:20px;">
                                 <div class="d-flex "
                                      style="margin-bottom:16px;gap:44px;position: relative;">
                                     <div class="d-flex flex-shrink-0 align-items-center "
@@ -198,7 +216,7 @@ export class OrderSetting {
                     })()}
                             </div>
                             <div class="w-100 justify-content-end d-flex bg-white"
-                                 style="margin-top:100px;position: absolute;left: 0;bottom: 0;gap:14px;padding-right:24px;padding-bottom:20px;padding-top: 10px;border-radius: 0px 0px 10px 10px;">
+                                 style="gap:14px;padding-right:24px;padding-bottom:20px;padding-top: 10px;border-radius: 0px 0px 10px 10px;">
                                 ${BgWidget.cancel(gvc.event(() => {
                         postMD = origData;
                         topGVC.glitter.closeDiaLog();

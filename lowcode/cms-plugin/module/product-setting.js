@@ -44,8 +44,26 @@ export class ProductSetting {
                     dialog.dataLoading({
                         visible: false,
                     });
+                    gvc.addStyle(html `
+                        .scrollbar-appear::-webkit-scrollbar {
+                            width: 10px;
+                            height: 10px;
+                        }
+
+                        .scrollbar-appear::-webkit-scrollbar-thumb {
+                        background: #666;
+                        border-radius: 20px;
+                        }
+
+                        .scrollbar-appear::-webkit-scrollbar-track {
+                        border-radius: 20px;
+                        background: #D8D8D8;
+                        }
+                        .scrollbar-appear{
+                        }
+                    `);
                     return html `
-                        <div class="d-flex flex-column px-5"
+                        <div class="d-flex flex-column "
                              style="width: 100vw;height:100vh;position: absolute;left: 0;top:0;background-color: white;z-index:1;">
                             <div class="d-flex align-items-center"
                                  style="height: 60px;width: 100vw;border-bottom: solid 1px #DDD;font-size: 16px;font-style: normal;font-weight: 700;color: #393939;">
@@ -72,7 +90,7 @@ export class ProductSetting {
                                     個規格
                                 </div>
                             </div>
-                            <div class="overflow-scroll" style="padding:24px 32px;">
+                            <div class="overflow-scroll scrollbar-appear flex-fill" style="padding:24px 32px;">
                                 <div class="d-flex " style="margin-bottom:24px;gap:24px;">
                                     ${(() => {
                         let titleArray = [
@@ -208,7 +226,7 @@ export class ProductSetting {
                                                                                                   ${Tool.truncateString(postMD.title, 6)}</span>
                                                                                             </div>
                                                                                             <div class="flex-shrink-0"
-                                                                                                 style="width:${elementLength}px;font-size: 16px;font-weight: 400;gap:14px;display: flex;align-items: center;"
+                                                                                                 style="width:${elementLength}px;font-size: 16px;font-weight: 400;gap:14px;display: flex;align-items: center;margin-right: 12px;"
                                                                                             >
                                                                                                 ${Tool.truncateString(data.spec.join(' / '), 12)}
                                                                                             </div>
@@ -390,8 +408,8 @@ export class ProductSetting {
                         };
                     })}
                             </div>
-                            <div class="w-100 justify-content-end d-flex update-bar-container"
-                                 style="margin-top:100px;">
+                            <div class="w-100 justify-content-end d-flex "
+                                 style="padding:14px 16px;gap:14px;">
                                 ${BgWidget.cancel(gvc.event(() => {
                         postMD = origData;
                         topGVC.glitter.closeDiaLog();
