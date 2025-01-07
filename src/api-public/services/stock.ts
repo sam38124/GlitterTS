@@ -21,8 +21,9 @@ type ContentProduct = {
     cost: number;
     note: string;
     transfer_count: number; // 預計進貨數, 預計調入數
-    recent_count: number; // 實際進貨數, 實際調入數
+    recent_count?: number; // 實際進貨數, 實際調入數
     check_count: number; // 盤點數
+    replenishment_count?: number; // 此次補貨數
     title?: string;
     spec?: string;
     sku?: '';
@@ -45,7 +46,101 @@ type StockHistoryData = {
         note: string;
         total_price?: number;
         product_list: ContentProduct[];
+        changeLogs: {
+            time: string;
+            text: string;
+            user: string;
+            status: number;
+            product_list?: ContentProduct[];
+        }[];
     };
+};
+
+const typeConfig: {
+    [key in StockHistoryType]: {
+        name: string;
+        prefixId: string;
+        status: {
+            [key in number]: {
+                title: string;
+                badge: string;
+            };
+        };
+    };
+} = {
+    restocking: {
+        name: '進貨',
+        prefixId: 'IC',
+        status: {
+            0: {
+                title: '已完成',
+                badge: 'info',
+            },
+            1: {
+                title: '已補貨',
+                badge: 'info',
+            },
+            2: {
+                title: '待進貨',
+                badge: 'warning',
+            },
+            3: {
+                title: '核對中',
+                badge: 'warning',
+            },
+            4: {
+                title: '已暫停',
+                badge: 'normal',
+            },
+            5: {
+                title: '待補貨',
+                badge: 'notify',
+            },
+            6: {
+                title: '已取消',
+                badge: 'notify',
+            },
+        },
+    },
+    transfer: {
+        name: '調撥',
+        prefixId: 'TB',
+        status: {
+            0: {
+                title: '已完成',
+                badge: 'info',
+            },
+            1: {
+                title: '已補貨',
+                badge: 'info',
+            },
+            2: {
+                title: '待調撥',
+                badge: 'warning',
+            },
+            3: {
+                title: '核對中',
+                badge: 'warning',
+            },
+            4: {
+                title: '已暫停',
+                badge: 'normal',
+            },
+            5: {
+                title: '待補貨',
+                badge: 'notify',
+            },
+            6: {
+                title: '已取消',
+                badge: 'notify',
+            },
+        },
+    },
+    checking: {
+        name: '盤點',
+        prefixId: 'PD',
+        status: {},
+    },
 };
 
 export class Stock {
@@ -256,7 +351,7 @@ export class Stock {
         });
         variantData = variantData[0];
         Object.entries(variant.deduction_log).forEach(([key, value]) => {
-            pbVariant.stockList[key].count = parseInt(pbVariant.stockList[key].count as string) + parseInt(value as string) ;
+            pbVariant.stockList[key].count = parseInt(pbVariant.stockList[key].count as string) + parseInt(value as string);
             pbVariant.stock = parseInt(pbVariant.stock as string) + parseInt(value as string);
             variantData.content.stockList[key].count = parseInt(variantData.content.stockList[key].count) + parseInt(value as string);
             variantData.content.stock = parseInt(variantData.content.stock) + parseInt(value as string);
@@ -275,10 +370,10 @@ export class Stock {
         const sql =
             variant.spec.length > 0
                 ? `AND JSON_CONTAINS(content->'$.spec', JSON_ARRAY(${variant.spec
-                    .map((data: string) => {
-                        return `\"${data}\"`;
-                    })
-                    .join(',')}));`
+                      .map((data: string) => {
+                          return `\"${data}\"`;
+                      })
+                      .join(',')}));`
                 : '';
 
         let variantData = await db.query(
@@ -303,11 +398,10 @@ export class Stock {
         });
         variantData = variantData[0];
         Object.entries(variant.deduction_log).forEach(([key, value]) => {
-            pbVariant.stockList[key].count = parseInt(pbVariant.stockList[key].count as string) - parseInt(value as string) ;
+            pbVariant.stockList[key].count = parseInt(pbVariant.stockList[key].count as string) - parseInt(value as string);
             pbVariant.stock = parseInt(pbVariant.stock as string) - parseInt(value as string);
             variantData.content.stockList[key].count = parseInt(variantData.content.stockList[key].count) - parseInt(value as string);
             variantData.content.stock = parseInt(variantData.content.stock) - parseInt(value as string);
-
         });
         await new Shopping(this.app, this.token).updateVariantsWithSpec(variantData.content, variant.id, variant.spec);
         await db.query(
@@ -319,7 +413,7 @@ export class Stock {
         );
     }
 
-    async getHistory(json: { page: string; limit: string; search: string; type: StockHistoryType }) {
+    async getHistory(json: { page: string; limit: string; search: string; type: StockHistoryType; order_id: string }) {
         const page = json.page ? parseInt(`${json.page}`, 10) : 0;
         const limit = json.limit ? parseInt(`${json.limit}`, 10) : 20;
 
@@ -337,10 +431,13 @@ export class Stock {
             return formattedDate;
         }
 
-        const sqlArr: string[] = [];
+        const sqlArr: string[] = ['(status <> -1)', `(type = '${json.type}')`];
 
-        sqlArr.push('(status <> -1)');
+        if (json.order_id) {
+            sqlArr.push(`(order_id = '${json.order_id}')`);
+        }
 
+        console.log(sqlArr);
         const sqlString = sqlArr.join(' AND ');
 
         try {
@@ -354,6 +451,7 @@ export class Stock {
             const data = await db.query(
                 `SELECT * FROM \`${this.app}\`.t_stock_history
                     WHERE 1=1 AND ${sqlString}
+                    ORDER BY created_time DESC
                     LIMIT ${page * limit}, ${limit};
                 `,
                 []
@@ -378,6 +476,8 @@ export class Stock {
     async postHistory(json: StockHistoryData) {
         console.log('postHistory');
         console.log(json);
+        const typeData = typeConfig[json.type];
+        console.log(typeData.name);
         try {
             json.content.product_list.map((item) => {
                 delete item.title;
@@ -385,9 +485,23 @@ export class Stock {
                 delete item.sku;
                 return item;
             });
+            json.content.changeLogs = [
+                {
+                    time: Tool.convertDateTimeFormat(),
+                    status: json.status,
+                    text: `${typeData.name}單建立`,
+                    user: '',
+                },
+                {
+                    time: Tool.convertDateTimeFormat(),
+                    status: json.status,
+                    text: `${typeData.name}單狀態改為「${typeData.status[json.status].title}」`,
+                    user: '',
+                },
+            ];
 
             const formatJson = JSON.parse(JSON.stringify(json));
-            formatJson.order_id = `IC${new Date().getTime()}`;
+            formatJson.order_id = `${typeData.prefixId}${new Date().getTime()}`;
             formatJson.content = JSON.stringify(json.content);
             formatJson.created_time = `${json.created_time} 00:00:00`;
             delete formatJson.id;
@@ -412,14 +526,57 @@ export class Stock {
         console.log(json);
 
         try {
-            const formatJson = JSON.parse(JSON.stringify(json));
-            formatJson.content = JSON.stringify(json.content);
+            const typeData = typeConfig[json.type];
+            json.content.product_list.map((item) => {
+                delete item.title;
+                delete item.spec;
+                delete item.sku;
+                return item;
+            });
 
-            await db.query(
-                `UPDATE \`${this.app}\`.t_stock_history SET ? WHERE id = ?
+            const getHistory = await db.query(
+                `SELECT * FROM \`${this.app}\`.t_stock_history WHERE id = ?;
                 `,
-                [formatJson, json.id]
+                [json.id]
             );
+
+            if (getHistory && getHistory[0]) {
+                const originData = getHistory[0] as StockHistoryData;
+
+                json.content.changeLogs.push({
+                    time: Tool.convertDateTimeFormat(),
+                    status: json.status,
+                    text: `進貨單狀態改為「${typeData.status[json.status].title}」`,
+                    user: '',
+                    product_list: (() => {
+                        if (json.status === 1 || json.status === 5) {
+                            const originList = originData.content.product_list;
+                            const updateList = JSON.parse(JSON.stringify(json.content.product_list)) as ContentProduct[];
+
+                            return updateList.map((item1) => {
+                                const originVariant = originList.find((item2) => item1.variant_id === item2.variant_id);
+                                if (originVariant) {
+                                    return {
+                                        replenishment_count: (item1.recent_count ?? 0) - (originVariant.recent_count ?? 0),
+                                        ...item1,
+                                    };
+                                }
+                                return item1;
+                            });
+                        }
+                        return undefined;
+                    })(),
+                });
+
+                const formatJson = JSON.parse(JSON.stringify(json));
+                formatJson.content = JSON.stringify(json.content);
+
+                await db.query(
+                    `UPDATE \`${this.app}\`.t_stock_history SET ? WHERE id = ?
+                    `,
+                    [formatJson, json.id]
+                );
+            }
 
             return { data: false };
         } catch (error) {

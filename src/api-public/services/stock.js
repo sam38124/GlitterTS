@@ -6,7 +6,83 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.Stock = void 0;
 const database_1 = __importDefault(require("../../modules/database"));
 const exception_1 = __importDefault(require("../../modules/exception"));
+const tool_js_1 = __importDefault(require("../../modules/tool.js"));
 const shopping_1 = require("./shopping");
+const typeConfig = {
+    restocking: {
+        name: '進貨',
+        prefixId: 'IC',
+        status: {
+            0: {
+                title: '已完成',
+                badge: 'info',
+            },
+            1: {
+                title: '已補貨',
+                badge: 'info',
+            },
+            2: {
+                title: '待進貨',
+                badge: 'warning',
+            },
+            3: {
+                title: '核對中',
+                badge: 'warning',
+            },
+            4: {
+                title: '已暫停',
+                badge: 'normal',
+            },
+            5: {
+                title: '待補貨',
+                badge: 'notify',
+            },
+            6: {
+                title: '已取消',
+                badge: 'notify',
+            },
+        },
+    },
+    transfer: {
+        name: '調撥',
+        prefixId: 'TB',
+        status: {
+            0: {
+                title: '已完成',
+                badge: 'info',
+            },
+            1: {
+                title: '已補貨',
+                badge: 'info',
+            },
+            2: {
+                title: '待調撥',
+                badge: 'warning',
+            },
+            3: {
+                title: '核對中',
+                badge: 'warning',
+            },
+            4: {
+                title: '已暫停',
+                badge: 'normal',
+            },
+            5: {
+                title: '待補貨',
+                badge: 'notify',
+            },
+            6: {
+                title: '已取消',
+                badge: 'notify',
+            },
+        },
+    },
+    checking: {
+        name: '盤點',
+        prefixId: 'PD',
+        status: {},
+    },
+};
 class Stock {
     constructor(app, token) {
         this.app = app;
@@ -231,8 +307,11 @@ class Stock {
             const formattedDate = `${year}-${month}-${day}`;
             return formattedDate;
         }
-        const sqlArr = [];
-        sqlArr.push('(status <> -1)');
+        const sqlArr = ['(status <> -1)', `(type = '${json.type}')`];
+        if (json.order_id) {
+            sqlArr.push(`(order_id = '${json.order_id}')`);
+        }
+        console.log(sqlArr);
         const sqlString = sqlArr.join(' AND ');
         try {
             const getHistoryTotal = await database_1.default.query(`SELECT count(id) as c FROM \`${this.app}\`.t_stock_history
@@ -240,6 +319,7 @@ class Stock {
                 `, []);
             const data = await database_1.default.query(`SELECT * FROM \`${this.app}\`.t_stock_history
                     WHERE 1=1 AND ${sqlString}
+                    ORDER BY created_time DESC
                     LIMIT ${page * limit}, ${limit};
                 `, []);
             data.map((rowData) => {
@@ -260,6 +340,8 @@ class Stock {
     async postHistory(json) {
         console.log('postHistory');
         console.log(json);
+        const typeData = typeConfig[json.type];
+        console.log(typeData.name);
         try {
             json.content.product_list.map((item) => {
                 delete item.title;
@@ -267,8 +349,22 @@ class Stock {
                 delete item.sku;
                 return item;
             });
+            json.content.changeLogs = [
+                {
+                    time: tool_js_1.default.convertDateTimeFormat(),
+                    status: json.status,
+                    text: `${typeData.name}單建立`,
+                    user: '',
+                },
+                {
+                    time: tool_js_1.default.convertDateTimeFormat(),
+                    status: json.status,
+                    text: `${typeData.name}單狀態改為「${typeData.status[json.status].title}」`,
+                    user: '',
+                },
+            ];
             const formatJson = JSON.parse(JSON.stringify(json));
-            formatJson.order_id = `IC${new Date().getTime()}`;
+            formatJson.order_id = `${typeData.prefixId}${new Date().getTime()}`;
             formatJson.content = JSON.stringify(json.content);
             formatJson.created_time = `${json.created_time} 00:00:00`;
             delete formatJson.id;
@@ -287,10 +383,43 @@ class Stock {
         console.log('putHistory');
         console.log(json);
         try {
-            const formatJson = JSON.parse(JSON.stringify(json));
-            formatJson.content = JSON.stringify(json.content);
-            await database_1.default.query(`UPDATE \`${this.app}\`.t_stock_history SET ? WHERE id = ?
-                `, [formatJson, json.id]);
+            const typeData = typeConfig[json.type];
+            json.content.product_list.map((item) => {
+                delete item.title;
+                delete item.spec;
+                delete item.sku;
+                return item;
+            });
+            const getHistory = await database_1.default.query(`SELECT * FROM \`${this.app}\`.t_stock_history WHERE id = ?;
+                `, [json.id]);
+            if (getHistory && getHistory[0]) {
+                const originData = getHistory[0];
+                json.content.changeLogs.push({
+                    time: tool_js_1.default.convertDateTimeFormat(),
+                    status: json.status,
+                    text: `進貨單狀態改為「${typeData.status[json.status].title}」`,
+                    user: '',
+                    product_list: (() => {
+                        if (json.status === 1 || json.status === 5) {
+                            const originList = originData.content.product_list;
+                            const updateList = JSON.parse(JSON.stringify(json.content.product_list));
+                            return updateList.map((item1) => {
+                                var _a, _b;
+                                const originVariant = originList.find((item2) => item1.variant_id === item2.variant_id);
+                                if (originVariant) {
+                                    return Object.assign({ replenishment_count: ((_a = item1.recent_count) !== null && _a !== void 0 ? _a : 0) - ((_b = originVariant.recent_count) !== null && _b !== void 0 ? _b : 0) }, item1);
+                                }
+                                return item1;
+                            });
+                        }
+                        return undefined;
+                    })(),
+                });
+                const formatJson = JSON.parse(JSON.stringify(json));
+                formatJson.content = JSON.stringify(json.content);
+                await database_1.default.query(`UPDATE \`${this.app}\`.t_stock_history SET ? WHERE id = ?
+                    `, [formatJson, json.id]);
+            }
             return { data: false };
         }
         catch (error) {

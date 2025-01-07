@@ -46,6 +46,7 @@ router.get('/history', async (req, resp) => {
                 limit: req.query.limit ? `${req.query.limit}` : '20',
                 search: req.query.search,
                 type: req.query.type,
+                order_id: req.query.order_id,
             }));
         }
         else {

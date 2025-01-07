@@ -17,5 +17,6 @@ declare const _default: {
     randomString: (max: number) => string;
     compareHash: (pwd: string, has: string) => Promise<boolean>;
     randomNumber: (max: number) => string;
+    convertDateTimeFormat: (dateTimeStr?: string | undefined) => string;
 };
 export default _default;

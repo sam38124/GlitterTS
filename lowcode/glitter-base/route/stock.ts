@@ -7,8 +7,9 @@ export type ContentProduct = {
     cost: number;
     note: string;
     transfer_count: number; // 預計進貨數, 預計調入數
-    recent_count?: number; // 實際進貨數, 實際調入數, 可為空
+    recent_count?: number; // 實際進貨數, 實際調入數
     check_count: number; // 盤點數
+    replenishment_count?: number; // 此次補貨數
     title?: string;
     spec?: string;
     sku?: '';
@@ -31,6 +32,13 @@ export type StockHistoryData = {
         note: string;
         total_price?: number;
         product_list: ContentProduct[];
+        changeLogs: {
+            time: string;
+            text: string;
+            user: string;
+            status: number;
+            product_list?: ContentProduct[];
+        }[];
     };
 };
 
@@ -65,13 +73,14 @@ export class ApiStock {
         });
     }
 
-    static getStockHistory(json: { page: number; limit: number; search: string; queryType?: string; type: string }) {
+    static getStockHistory(json: { page: number; limit: number; search: string; queryType?: string; type: string; order_id?: string }) {
         return BaseApi.create({
             url:
                 getBaseUrl() +
                 `/api-public/v1/stock/history?${(() => {
                     let par = [`page=${json.page}`, `limit=${json.limit}`, `search=${json.search}`, `type=${json.type}`];
                     json.queryType && par.push(`queryType=${json.queryType}`);
+                    json.order_id && par.push(`order_id=${json.order_id}`);
                     return par.join('&');
                 })()}`,
             type: 'GET',

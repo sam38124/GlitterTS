@@ -1,6 +1,4 @@
-// const bcrypt        = require('bcrypt');
 import bcrypt from 'bcrypt';
-// import express from 'express';
 import _ from 'underscore';
 import config from '../config';
 import Logger from './logger';
@@ -26,47 +24,6 @@ function replaceDatetime(datetime: any) {
     return datetime;
 }
 
-// function jsonNull(jsonObject: Object) {
-//     const TAG = '[JsonNull]'
-//     const logger = new Logger();
-//     for(let key in jsonObject) {
-//         if (typeof jsonObject[key] === 'undefined') {
-//             logger.error(TAG, key + ' ' + jsonObject[key]);
-//             return true;
-//         }
-//     }
-//     return false;
-// }
-
-// const getUnixTimestamp = (timestamp) => {
-//     return (timestamp.toString().length > 10) ? Math.floor(timestamp / 1000) : timestamp;
-// };
-
-// export function getIp(req:express.Request):string {
-//     // const logger = new Logger();
-//     let ip:string;
-//     if (!req) {
-//         return ip;
-//     }
-
-//     if (req.headers['Cdn-Src-Ip'] && typeof req.headers['Cdn-Src-Ip']== 'string') {
-//         ip = req.headers['Cdn-Src-Ip'];
-//     } else if (req.headers['x-forwarded-for']) {
-//         ip = req.headers['x-forwarded-for'].split(',')[0];
-//     } else if (req.connection && req.connection.remoteAddress) {
-//         ip = req.connection.remoteAddress;
-//     } else {
-//         ip = req.ip;
-//     }
-
-//     if (typeof ip !== 'string') {
-//         // logger.warning('[GetIp]', `Invalid IP Address ${ip}`);
-//         ip = '';
-//     }
-
-//     return ip.trim();
-// }
-
 export function toJSONSafeString(val: string): string {
     return val.replace(/[\t\n\r]/g, (match: string) => {
         switch (match) {
@@ -81,62 +38,6 @@ export function toJSONSafeString(val: string): string {
         }
     });
 }
-
-// function isValidAccount (account) {
-//     return new RegExp(config.ACCOUNT_FORMAT).test(account);
-// }
-
-// function isValidPwd (pwd) {
-//     return new RegExp(config.PWD_FORMAT).test(pwd);
-// }
-
-// function isValidMail (mail) {
-//     return new RegExp(config.MAIL_FORMAT).test(mail);
-// }
-
-// function isValidNickName (nickName) {
-//     return new RegExp(config.NICKNAME_FORMAT).test(nickName);
-// }
-
-// function isValidRealName (realName) {
-//     return new RegExp(config.REALNAME_FORMAT).test(realName);
-// }
-
-// function countTotalPage (totalCount, pageSize){
-//     if(isNull(totalCount, pageSize) || !_.isNumber(totalCount, pageSize)){
-//         throw Error;
-//     }
-//     return Math.ceil(totalCount/pageSize);
-// }
-
-// function isNumber() {
-//     for (let i = 0; i < arguments.length; i++) {
-//         if (typeof arguments[i] != 'number') {
-//             // logger.error(arguments[i] + ' is not number');
-//             return false;
-//         }
-//     }
-//     return true;
-// }
-
-// function isInteger() {
-//     for (let i = 0; i < arguments.length; i++) {
-//         if (!isNumber(arguments[i]) || arguments[i] % 1 != 0) {
-//             //logger.error(arguments[i] + ' is not integer');
-//             return false;
-//         }
-//     }
-//     return true;
-// }
-
-// function isPositiveInteger() {
-//     for (let i = 0; i < arguments.length; i++) {
-//         if (!isInteger(arguments[i]) || arguments[i] < 0) {
-//             return false;
-//         }
-//     }
-//     return true;
-// }
 
 interface requestBody {
     [key: string]: any;
@@ -153,19 +54,6 @@ function getMaskObj(obj: any): requestBody {
     });
     return maskObj;
 }
-
-// function isValidPaginationParams (page, pageSize) {
-//     const TAG = '[CheckPaginationParams]';
-//     const logger = new Logger();
-//     if (!isPositiveInteger(page)) {
-//         new logger().error(TAG, `Invalid page: ${page}.`);
-//         throw false;
-//     } else if (!isPositiveInteger(pageSize)) {
-//         new logger().error(TAG, `Invalid page_size: ${pageSize}.`);
-//         throw false;
-//     }
-//     return true;
-// }
 
 async function hashPwd(pwd: string): Promise<string> {
     const TAG = '[HashPwd]';
@@ -193,7 +81,6 @@ const randomString = (max: number) => {
     return text;
 };
 
-// 生成隨機數字字串
 const randomNumber = (max: number) => {
     const possible = '0123456789';
     let text = possible.charAt(Math.floor(Math.random() * (possible.length - 10)));
@@ -202,6 +89,17 @@ const randomNumber = (max: number) => {
 };
 
 const compareHash = async (pwd: string, has: string) => bcrypt.compare(pwd, has);
+
+const convertDateTimeFormat = (dateTimeStr?: string) => {
+    const dateTime = dateTimeStr ? new Date(dateTimeStr) : new Date();
+    const year = dateTime.getFullYear();
+    const month = ('0' + (dateTime.getMonth() + 1)).slice(-2);
+    const day = ('0' + dateTime.getDate()).slice(-2);
+    const hours = ('0' + dateTime.getHours()).slice(-2);
+    const minutes = ('0' + dateTime.getMinutes()).slice(-2);
+    const seconds = ('0' + dateTime.getSeconds()).slice(-2);
+    return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
+};
 
 export default {
     isNull,
@@ -212,5 +110,6 @@ export default {
     createOrderId,
     randomString,
     compareHash,
-    randomNumber
+    randomNumber,
+    convertDateTimeFormat,
 };
