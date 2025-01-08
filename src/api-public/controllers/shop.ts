@@ -582,7 +582,6 @@ router.delete('/voucher', async (req: express.Request, resp: express.Response) =
 // 重導向
 async function redirect_link(req: express.Request, resp: express.Response) {
     try {
-        console.log(`req.query=>`, req.query);
         // 判斷paypal進來 做capture
         let return_url = new URL((await redis.getValue(req.query.return as string)) as any);
         if (req.query.LinePay && req.query.LinePay === 'true') {

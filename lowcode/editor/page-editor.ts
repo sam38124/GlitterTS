@@ -2662,7 +2662,7 @@ console.log(`selectEditEvent-->`)
                                 },
                                 {
                                     title: '步驟二：更改DNS', content: `
-                             前往DNS設定，並將A標籤設置為52.197.107.145。
+                             前往DNS設定，並將A標籤設置為34.81.28.192。
                              `
                                 },
                                 {

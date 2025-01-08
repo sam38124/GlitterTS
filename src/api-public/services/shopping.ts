@@ -4241,6 +4241,11 @@ OR JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.orderStatus')) NOT IN (-99)) `);
     async postMulProduct(content: any) {
         try {
 
+            const store_info=await new User(this.app).getConfigV2({
+                key: 'store-information',
+                user_id: 'manager',
+            });
+
             if (content.collection.length > 0) {
                 //有新類別要處理
                 await this.updateCollectionFromUpdateProduct(content.collection);
@@ -4254,24 +4259,49 @@ OR JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.orderStatus')) NOT IN (-99)) `);
                         const og_data = (await db.query(`select *
                                                          from \`${this.app}\`.\`t_manager_post\`
                                                          where id = ?`, [product.id]))[0];
+
+
                         if (og_data) {
+
+                            // console.log(`product-in==>`,product)
+                            delete product['content']
                             delete product['preview_image'];
+                            const og_content=og_data['content']
+                            if(og_content.language_data && og_content.language_data[store_info.language_setting.def]){
+                                og_content.language_data[store_info.language_setting.def].seo=product.seo;
+                                og_content.language_data[store_info.language_setting.def].title=product.title;
+                            }
+
                             product = {
-                                ...og_data['content'],
+                                ...og_content,
                                 ...product
                             }
                             product.preview_image = og_data['content'].preview_image || [];
                             productArray[index] = product;
+
+
+                        }else{
+                            console.log(`product-not-in==>`,product)
                         }
+
+                    }else{
+                        console.log(`no-product-id==>`,product)
                     }
                     resolve(true)
                 })
             })));
+            // return
+            let max_id=(await db.query(`select max(id) from \`${this.app}\`.t_manager_post`,[]))[0]['max(id)'];
             const data = await db.query(
                 `replace
                 INTO \`${this.app}\`.\`t_manager_post\` (id,userID,content) values ?`,
                 [
                     productArray.map((product: any) => {
+
+                       if(!product.id){
+                           // console.log(`product-not-in==>`,product)
+                           product.id=max_id++;
+                       }
                         product.type = 'product';
                         this.checkVariantDataType(product.variants);
                         return [product.id || null, this.token?.userID, JSON.stringify(product)]
@@ -4289,7 +4319,7 @@ OR JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.orderStatus')) NOT IN (-99)) `);
 
     async processProducts(productArray: any, insertIDStart: any) {
         const promises = productArray.map((product: any) => {
-            product.id = insertIDStart++;
+            product.id = product.id || insertIDStart++;
             return new Shopping(this.app, this.token).postVariantsAndPriceValue(product);
         });
         await Promise.all(promises);

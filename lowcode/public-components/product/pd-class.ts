@@ -381,7 +381,6 @@ overflow: hidden;
     }
 
     static showSwiper(obj: { gvc: GVC; prod: Content; vm: any; class?: string }) {
-        console.log(`obj==>`, obj);
         const css = String.raw;
         const isPhone = document.body.clientWidth < 768;
         obj.gvc.glitter.addStyleLink(['https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css']);

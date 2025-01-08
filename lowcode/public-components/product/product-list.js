@@ -477,7 +477,9 @@ export class ProductList {
             }
             else {
                 let collectionObj = vm.collections.find((item) => {
-                    return item.code === decodeURIComponent(extractCategoryTitleFromUrl(location.href));
+                    const language_data = item.language_data && item.language_data[Language.getLanguage()];
+                    const code = ((language_data && language_data.seo && language_data.seo.domain) || item.code) || (language_data && language_data.title) || item.title;
+                    return (code) === decodeURIComponent(extractCategoryTitleFromUrl(location.href));
                 });
                 try {
                     if (!collectionObj) {
@@ -487,61 +489,73 @@ export class ProductList {
                     }
                 }
                 catch (e) { }
-                vm.title = collectionObj ? collectionObj.title : all_text;
+                if (collectionObj) {
+                    const language_data = collectionObj.language_data;
+                    vm.title = (language_data && (language_data[Language.getLanguage()] && language_data[Language.getLanguage()].title)) || collectionObj.title;
+                }
+                else {
+                    vm.title = all_text;
+                }
             }
             gvc.notifyDataChange(ids.pageTitle);
         }
         function setAdTag(data) {
-            const path = location.pathname;
-            const pathParts = path.split('/');
-            const collectionIndex = pathParts.indexOf('collections');
-            const index = collectionIndex + 1;
-            const collection = pathParts[index];
-            const collectionName = decodeURIComponent(collection);
-            function findObjectByValue(arr, value) {
-                for (const item of arr) {
-                    if (item.code === value) {
-                        return item;
-                    }
-                    if (item.array.length > 0) {
-                        const found = findObjectByValue(item.array, value);
-                        if (found) {
-                            return found;
+            try {
+                const path = location.pathname;
+                const pathParts = path.split('/');
+                const collectionIndex = pathParts.indexOf('collections');
+                const index = collectionIndex + 1;
+                const collection = pathParts[index];
+                const collectionName = decodeURIComponent(collection);
+                function findObjectByValue(arr, value) {
+                    for (const item of arr) {
+                        const language_data = item.language_data;
+                        const code = (language_data && language_data[Language.getLanguage()] && language_data[Language.getLanguage()].seo && language_data[Language.getLanguage()].seo.domain) || item.code;
+                        if (code === value) {
+                            return item;
+                        }
+                        if (item.array.length > 0) {
+                            const found = findObjectByValue(item.array, value);
+                            if (found) {
+                                return found;
+                            }
                         }
                     }
+                    return null;
                 }
-                return null;
+                if (window.gtag) {
+                    if (collectionName) {
+                        Ad.gtagEvent('view_item_list', {
+                            items: [
+                                {
+                                    item_id: collectionName,
+                                    item_name: collectionName,
+                                },
+                            ],
+                        });
+                        Ad.fbqEvent('ViewContent', {
+                            content_ids: [collectionName],
+                            content_type: 'product_group',
+                        });
+                    }
+                    else {
+                        Ad.gtagEvent('view_item_list', {
+                            items: [
+                                {
+                                    item_id: 'all-product',
+                                    item_name: '所有商品',
+                                },
+                            ],
+                        });
+                        Ad.fbqEvent('ViewContent', {
+                            content_ids: ['all-product'],
+                            content_type: 'product_group',
+                        });
+                    }
+                }
             }
-            if (window.gtag) {
-                if (collectionName) {
-                    const foundObject = findObjectByValue(data, collectionName);
-                    Ad.gtagEvent('view_item_list', {
-                        items: [
-                            {
-                                item_id: foundObject.code,
-                                item_name: foundObject.title,
-                            },
-                        ],
-                    });
-                    Ad.fbqEvent('ViewContent', {
-                        content_ids: [foundObject.code],
-                        content_type: 'product_group',
-                    });
-                }
-                else {
-                    Ad.gtagEvent('view_item_list', {
-                        items: [
-                            {
-                                item_id: 'all-product',
-                                item_name: '所有商品',
-                            },
-                        ],
-                    });
-                    Ad.fbqEvent('ViewContent', {
-                        content_ids: ['all-product'],
-                        content_type: 'product_group',
-                    });
-                }
+            catch (e) {
+                console.log(e);
             }
         }
         return html `

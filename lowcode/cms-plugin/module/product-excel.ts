@@ -266,8 +266,10 @@ export class ProductExcel {
                         data[index]=dd.filter((d1:any,index:number)=>{return index>0})
                     })
                 }
+                id_list=id_list.filter((item:string)=>{return !['商品ID',''].includes(item)})
                 let error = false;
                 let addCollection: any = [];
+                let appendCollection:any=[];
                 let postMD: {
                     title: string;
                     productType: {
@@ -326,35 +328,6 @@ export class ProductExcel {
                     }
                 }
 
-                // 商品連結若為空，則預設值為商品名稱
-                const domainList = data
-                    .filter((item: string[],index:number) => {
-                        return item[0] && (!(id_list)[index]);
-                    })
-                    .map((item: string[]) => {
-                        if (CheckInput.isEmpty(item[5])) {
-                            item[5] = item[0];
-                        }
-                        return `${item[5]}`;
-                    });
-                // 判斷excel中是否有重複的domain
-                const filteredArr = domainList.filter((item: string) => {
-                    return item && item.length > 0 && item.trim().length > 0;
-                });
-                // 過濾掉空白字串
-                const hasDuplicates = new Set(filteredArr).size !== filteredArr.length;
-                if (hasDuplicates) {
-                    errorCallback('「商品連結」的值不可重複<br/>如果「商品連結」為空，預設值為該商品的「商品名稱」<br/>則該「商品名稱」不可與其它「商品連結」重複', {
-                        warningMessageView: true,
-                    });
-                }
-
-                // 判斷已建立產品中是否有重複存在的domain
-                const productDomainSet = new Set(allProductDomain);
-                const duplicateDomain = domainList.find((domain: string) => domain.length > 0 && productDomainSet.has(domain));
-                if (duplicateDomain) {
-                    errorCallback(`商品連結「${duplicateDomain}」已有產品使用，請更換該欄位的值`);
-                }
 
                 data.forEach((row: any, index: number) => {
                     const variantData = getVariantData();
@@ -364,7 +337,6 @@ export class ProductExcel {
                                 postMD.push(productData);
                             }
                             addCollection = [];
-                            productData.id=id_list[index];
                             productData = {
                                 title: '',
                                 productType: {
@@ -388,6 +360,8 @@ export class ProductExcel {
                                 },
                                 template: '',
                             };
+                            console.log(`id_list=>`,id_list)
+                            productData.id=id_list[postMD.length-1];
                             productData.title = this.checkString(row[0]);
                             productData.status = row[1] == '啟用' ? 'active' : 'draft';
                             productData.collection = row[2].split(',') ?? [];
@@ -427,6 +401,9 @@ export class ProductExcel {
                                 addCollection.push(collection);
                             });
                             productData.collection = addCollection;
+                            appendCollection=appendCollection.concat(addCollection).filter((dd)=>{
+                                return dd
+                            })
                             switch (row[3]) {
                                 case '贈品':
                                     productData.productType.giveaway = true;
@@ -494,13 +471,46 @@ export class ProductExcel {
                     }
                 });
                 postMD.push(productData);
-                productData.reverse;
+                // console.log(`one-push`)
+                //商品連結若為空，則預設值為商品名稱
+
+                const domainList = postMD
+                    .filter((item: any,index:number) => {
+                        return  (!(id_list)[index]);
+                    })
+                    .map((item:any) => {
+
+                        return item.domain
+                    });
+                // 判斷excel中是否有重複的domain
+                const filteredArr = domainList.filter((item: string) => {
+                    return item && item.length > 0 && item.trim().length > 0;
+                });
+                // 過濾掉空白字串
+                const hasDuplicates = new Set(filteredArr).size !== filteredArr.length;
+                if (hasDuplicates) {
+                    errorCallback('「商品連結」的值不可重複<br/>如果「商品連結」為空，預設值為該商品的「商品名稱」<br/>則該「商品名稱」不可與其它「商品連結」重複', {
+                        warningMessageView: true,
+                    });
+                    return
+                }
+                console.log(`domainList=>`,domainList)
+                //判斷已建立產品中是否有重複存在的domain
+                const productDomainSet = new Set(allProductDomain);
+                const duplicateDomain = domainList.find((domain: string) => domain.length > 0 && productDomainSet.has(domain));
+                if (duplicateDomain) {
+                    errorCallback(`商品連結「${duplicateDomain}」已有產品使用，請更換該欄位的值`);
+                    return
+                }
+
                 let passData = {
                     data: postMD,
-                    collection: addCollection,
+                    collection: appendCollection,
                 };
                 dialog.dataLoading({ visible: false });
                 if (!error) {
+                    console.log(`postMD=>`,postMD)
+                    // return
                     dialog.dataLoading({ visible: true, text: '上傳資料中' });
                     await ApiShop.postMultiProduct({
                         data: passData,
@@ -512,6 +522,7 @@ export class ProductExcel {
                         this.gvc.notifyDataChange(notifyId);
                     });
                 }
+
             } catch (e) {
                 console.log(e);
                 dialog.dataLoading({ visible: false });
