@@ -3,8 +3,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.SaasScheme = void 0;
-exports.compare_sql_table = compare_sql_table;
+exports.compare_sql_table = exports.SaasScheme = void 0;
 const database_1 = __importDefault(require("../modules/database"));
 const config_1 = require("../config");
 exports.SaasScheme = {
@@ -286,4 +285,5 @@ async function compare_sql_table(scheme, table, sql) {
         return false;
     }
 }
+exports.compare_sql_table = compare_sql_table;
 //# sourceMappingURL=saas-table-check.js.map

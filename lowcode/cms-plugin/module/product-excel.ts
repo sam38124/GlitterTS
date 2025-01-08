@@ -401,7 +401,7 @@ export class ProductExcel {
                                 addCollection.push(collection);
                             });
                             productData.collection = addCollection;
-                            appendCollection=appendCollection.concat(addCollection).filter((dd)=>{
+                            appendCollection=appendCollection.concat(addCollection).filter((dd:any)=>{
                                 return dd
                             })
                             switch (row[3]) {

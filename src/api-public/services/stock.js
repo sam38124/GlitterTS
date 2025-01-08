@@ -127,7 +127,6 @@ class Stock {
                 sqlArr.push(`(v.id in (${json.variant_id_list}))`);
             }
             const sqlText = sqlArr.join(' AND ');
-            console.log(sqlArr);
             const getStockTotal = await database_1.default.query(`SELECT count(v.id) as c
                  FROM \`${this.app}\`.t_variants as v,
                       \`${this.app}\`.t_manager_post as p
@@ -346,7 +345,6 @@ class Stock {
         if (json.order_id) {
             sqlArr.push(`(order_id = '${json.order_id}')`);
         }
-        console.log(sqlArr);
         const sqlString = sqlArr.join(' AND ');
         try {
             if (!this.token) {
@@ -392,7 +390,6 @@ class Stock {
         console.log(json);
         try {
             const typeData = typeConfig[json.type];
-            console.log(typeData.name);
             json.content.product_list.map((item) => {
                 delete item.title;
                 delete item.spec;

@@ -1,7 +1,6 @@
 import * as core from "express-serve-static-core";
 import fs from "fs";
 import express from 'express';
-import prettier from "prettier";
 
 export class GlitterUtil {
     public static async set_frontend(express: core.Express, rout: { rout: string, path: string, seoManager: (req: express.Request, resp: express.Response) => Promise<string> }[]) {
