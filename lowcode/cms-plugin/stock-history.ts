@@ -11,6 +11,7 @@ import { StockStores, StoreData } from './stock-stores.js';
 import { StockVendors, VendorData } from './stock-vendors.js';
 import { CheckInput } from '../modules/checkInput.js';
 import { Tool } from '../modules/tool.js';
+import { BgProduct, OptionsItem } from '../backend-manager/bg-product.js';
 
 const html = String.raw;
 
@@ -108,9 +109,44 @@ const typeConfig: {
     },
     checking: {
         name: '盤點',
-        status: {},
+        status: {
+            0: {
+                title: '已完成',
+                badge: 'info',
+            },
+            1: {
+                title: '已修正',
+                badge: 'info',
+            },
+            2: {
+                title: '待盤點',
+                badge: 'warning',
+            },
+            3: {
+                title: '盤點中',
+                badge: 'warning',
+            },
+            4: {
+                title: '已暫停',
+                badge: 'normal',
+            },
+            5: {
+                title: '異常',
+                badge: 'notify',
+            },
+            6: {
+                title: '已取消',
+                badge: 'notify',
+            },
+        },
     },
 };
+
+const productSelect = [
+    { title: '全部商品', value: 'all' },
+    { title: '特定分類', value: 'collection' },
+    { title: '特定商品', value: 'product' },
+];
 
 export class StockHistory {
     static main(gvc: GVC, type: StockHistoryType) {
@@ -128,7 +164,7 @@ export class StockHistory {
                     store_in: '',
                     store_out: '',
                     check_member: '',
-                    check_according: 'all',
+                    check_according: '',
                     note: '',
                     product_list: [],
                     changeLogs: [],
@@ -275,7 +311,7 @@ export class StockHistory {
                             },
                             {
                                 key: '備註',
-                                value: `<span class="fs-7">${dd.content.note}</span>`,
+                                value: `<span class="fs-7">${Tool.truncateString(dd.content.note, 5)}</span>`,
                             },
                             {
                                 key: `${typeData.name}狀態`,
@@ -283,7 +319,55 @@ export class StockHistory {
                             },
                         ];
                     case 'checking':
-                        return [];
+                        return [
+                            {
+                                key: `${typeData.name}單編號`,
+                                value: `<span class="fs-7">${dd.order_id}</span>`,
+                            },
+                            {
+                                key: `${typeData.name}日期`,
+                                value: `<span class="fs-7">${dd.created_time}</span>`,
+                            },
+                            {
+                                key: '盤點範圍',
+                                value: html`<span class="fs-7"
+                                    >${(() => {
+                                        const range = productSelect.find((ps) => ps.value === dd.content.check_according);
+                                        return range ? range.title : '';
+                                    })()}</span
+                                >`,
+                            },
+                            {
+                                key: '庫存點',
+                                value: html`<span class="fs-7"
+                                    >${(() => {
+                                        const store = vm.storeList.find((s) => s.id === dd.content.store_out);
+                                        return store ? store.name : '';
+                                    })()}</span
+                                >`,
+                            },
+                            {
+                                key: '異常數量',
+                                value: (() => {
+                                    const count = dd.content.product_list.reduce((sum, item) => {
+                                        if (item.recent_count === undefined) {
+                                            return sum;
+                                        }
+                                        const n = item.recent_count - item.transfer_count;
+                                        return sum + n;
+                                    }, 0);
+                                    return StockHistory.integerColorComponent(count, count, 0);
+                                })(),
+                            },
+                            {
+                                key: '備註',
+                                value: `<span class="fs-7">${Tool.truncateString(dd.content.note, 5)}</span>`,
+                            },
+                            {
+                                key: `${typeData.name}狀態`,
+                                value: `<span class="fs-7">${StockHistory.getStatusBadge(dd.type, dd.status)}</span>`,
+                            },
+                        ];
                 }
             });
         }
@@ -316,7 +400,10 @@ export class StockHistory {
                                                     gvc.notifyDataChange(id);
                                                 },
                                                 default: vm.queryType || 'order_id',
-                                                options: FilterOptions.stockHistorySelect,
+                                                options: FilterOptions.stockHistorySelect.map((item) => {
+                                                    item.value = item.value.replace(/xxx/g, typeData.name);
+                                                    return item;
+                                                }),
                                             }),
                                             BgWidget.searchFilter(
                                                 gvc.event((e) => {
@@ -428,6 +515,7 @@ export class StockHistory {
         };
 
         function checkSpecTable(page: number, limit: number) {
+            console.log('checkSpecTable(has icon)');
             const x = (page - 1) * limit;
             const specs = vm.data.content.product_list.slice(x, x + limit);
             return specs.map((dd: ContentProduct, index: number) => {
@@ -450,7 +538,7 @@ export class StockHistory {
                         value: `<span class="fs-7">${dd.sku || '－'}</span>`,
                     },
                 ];
-                const endArr = [
+                const noteArr = [
                     {
                         key: '備註',
                         value: html` <div style="width: 120px" onclick="${gvc.event((e, event) => event.stopPropagation())}">
@@ -464,21 +552,6 @@ export class StockHistory {
                                 value="${dd.note ?? ''}"
                             />
                         </div>`,
-                    },
-                    {
-                        key: html`<p class="mx-3"></p>`,
-                        value: gvc.bindView({
-                            bind: `${cvm.iconId}${index}`,
-                            view: () => {
-                                if (realData.recent_count === undefined) {
-                                    return '';
-                                }
-                                if (realData.transfer_count > realData.recent_count) {
-                                    return html`<i class="fa-light fa-circle-exclamation"></i>`;
-                                }
-                                return html`<i class="fa-solid fa-circle-check"></i>`;
-                            },
-                        }),
                     },
                 ];
 
@@ -512,7 +585,22 @@ export class StockHistory {
                                     />
                                 </div>`,
                             },
-                            ...endArr,
+                            ...noteArr,
+                            {
+                                key: html`<p class="mx-3"></p>`,
+                                value: gvc.bindView({
+                                    bind: `${cvm.iconId}${index}`,
+                                    view: () => {
+                                        if (realData.recent_count === undefined) {
+                                            return '';
+                                        }
+                                        if (realData.transfer_count > realData.recent_count) {
+                                            return html`<i class="fa-light fa-circle-exclamation"></i>`;
+                                        }
+                                        return html`<i class="fa-solid fa-circle-check"></i>`;
+                                    },
+                                }),
+                            },
                         ];
                     case 'transfer':
                         return [
@@ -543,10 +631,69 @@ export class StockHistory {
                                     />
                                 </div>`,
                             },
-                            ...endArr,
+                            ...noteArr,
+                            {
+                                key: html`<p class="mx-3"></p>`,
+                                value: gvc.bindView({
+                                    bind: `${cvm.iconId}${index}`,
+                                    view: () => {
+                                        if (realData.recent_count === undefined) {
+                                            return '';
+                                        }
+                                        if (realData.transfer_count > realData.recent_count) {
+                                            return html`<i class="fa-light fa-circle-exclamation"></i>`;
+                                        }
+                                        return html`<i class="fa-solid fa-circle-check"></i>`;
+                                    },
+                                }),
+                            },
                         ];
                     case 'checking':
-                        return [...startArr, ...endArr];
+                        return [
+                            ...startArr,
+                            {
+                                key: '庫存數量',
+                                value: `<span class="fs-7">${dd.transfer_count ?? 0}</span>`,
+                            },
+                            {
+                                key: '盤點數量',
+                                value: html` <div style="width: 100px" onclick="${gvc.event((e, event) => event.stopPropagation())}">
+                                    <input
+                                        class="form-control"
+                                        type="number"
+                                        min="0"
+                                        style="border-radius: 10px; border: 1px solid #DDD; padding-left: 18px;"
+                                        onchange="${gvc.event((e) => {
+                                            let n = parseInt(e.value, 10);
+                                            if (n < 0) {
+                                                n = 0;
+                                                e.value = n;
+                                            }
+                                            realData.recent_count = isNaN(n) ? undefined : n;
+                                            gvc.notifyDataChange(cvm.buttonsId);
+                                            gvc.notifyDataChange(`${cvm.iconId}${index}`);
+                                        })}"
+                                        value="${dd.recent_count ?? ''}"
+                                    />
+                                </div>`,
+                            },
+                            ...noteArr,
+                            {
+                                key: html`<p class="mx-3"></p>`,
+                                value: gvc.bindView({
+                                    bind: `${cvm.iconId}${index}`,
+                                    view: () => {
+                                        if (realData.recent_count === undefined) {
+                                            return '';
+                                        }
+                                        if (realData.transfer_count !== realData.recent_count) {
+                                            return html`<i class="fa-light fa-circle-exclamation"></i>`;
+                                        }
+                                        return html`<i class="fa-solid fa-circle-check"></i>`;
+                                    },
+                                }),
+                            },
+                        ];
                 }
             });
         }
@@ -643,20 +790,39 @@ export class StockHistory {
                                 getData: (vd) => {
                                     vmi = vd;
                                     const limit = 99999;
-                                    this.setVariantList(
-                                        vm.data.content.product_list.map((item) => {
-                                            return `${item.variant_id}`;
-                                        }),
-                                        vm.data,
-                                        (response) => {
+                                    const ids = vm.data.content.product_list.map((item) => {
+                                        return `${item.variant_id}`;
+                                    });
+
+                                    new Promise<[]>((resolve) => {
+                                        ApiStock.getStoreProductList({
+                                            page: 0,
+                                            limit: 99999,
+                                            search: vm.data.content.store_out,
+                                            variant_id_list: ids,
+                                        }).then((r) => {
+                                            if (r.result && r.response.data) {
+                                                resolve(r.response.data);
+                                            } else {
+                                                resolve([]);
+                                            }
+                                        });
+                                    }).then((variants: any) => {
+                                        this.setVariantList(ids, vm.data, (response) => {
                                             vm.data.content.product_list = response;
+                                            vm.data.content.product_list.map((item1) => {
+                                                const variant = variants.find((item2: any) => item1.variant_id === item2.id);
+                                                item1.stock = variant ? variant.count : 0;
+                                                return item1;
+                                            });
+
                                             vmi.pageSize = Math.ceil(response.length / limit);
                                             vmi.originalData = response;
                                             vmi.tableData = checkSpecTable(vmi.page, limit);
                                             vmi.loading = false;
                                             vmi.callback();
-                                        }
-                                    );
+                                        });
+                                    });
                                 },
                                 rowClick: () => {},
                                 filter: [],
@@ -679,7 +845,7 @@ export class StockHistory {
         );
     }
 
-    static getFormStructure(gvc: GVC, vm: VM) {
+    static getFormStructure(gvc: GVC, vm: VM, dvm: any) {
         const glitter = gvc.glitter;
         switch (vm.type) {
             case 'restocking':
@@ -916,40 +1082,6 @@ export class StockHistory {
                                                         vm.data.content.store_out = data ? data.key : '';
                                                         gvc.notifyDataChange(id);
                                                     },
-                                                    clickElement: {
-                                                        html: html`<div>新增庫存點</div>
-                                                            <div>
-                                                                <i class="fa-solid fa-plus ps-2" style="font-size: 16px; height: 14px; width: 14px;"></i>
-                                                            </div>`,
-                                                        event: (gvc2) => {
-                                                            const newStoreData = StockStores.emptyData();
-                                                            BgWidget.settingDialog({
-                                                                gvc: gvc2,
-                                                                title: '新增庫存點',
-                                                                innerHTML: (gvc2) => {
-                                                                    return StockHistory.storeForm(gvc2, newStoreData);
-                                                                },
-                                                                footer_html: (gvc2) => {
-                                                                    return `${BgWidget.cancel(
-                                                                        gvc2.event(() => {
-                                                                            gvc2.closeDialog();
-                                                                        })
-                                                                    )}
-                                                            ${BgWidget.save(
-                                                                gvc2.event(() => {
-                                                                    StockStores.verifyStoreForm(glitter, 'create', newStoreData, (response) => {
-                                                                        gvc2.closeDialog();
-                                                                        vm.data.content.store_out = response.id;
-                                                                        loading = true;
-                                                                        gvc.notifyDataChange(id);
-                                                                    });
-                                                                }),
-                                                                '完成'
-                                                            )}`;
-                                                                },
-                                                            });
-                                                        },
-                                                    },
                                                 });
                                             }
                                         },
@@ -1009,40 +1141,6 @@ export class StockHistory {
                                                         vm.data.content.store_in = data ? data.key : '';
                                                         gvc.notifyDataChange(id);
                                                     },
-                                                    clickElement: {
-                                                        html: html`<div>新增庫存點</div>
-                                                            <div>
-                                                                <i class="fa-solid fa-plus ps-2" style="font-size: 16px; height: 14px; width: 14px;"></i>
-                                                            </div>`,
-                                                        event: (gvc2) => {
-                                                            const newStoreData = StockStores.emptyData();
-                                                            BgWidget.settingDialog({
-                                                                gvc: gvc2,
-                                                                title: '新增庫存點',
-                                                                innerHTML: (gvc2) => {
-                                                                    return StockHistory.storeForm(gvc2, newStoreData);
-                                                                },
-                                                                footer_html: (gvc2) => {
-                                                                    return `${BgWidget.cancel(
-                                                                        gvc2.event(() => {
-                                                                            gvc2.closeDialog();
-                                                                        })
-                                                                    )}
-                                                            ${BgWidget.save(
-                                                                gvc2.event(() => {
-                                                                    StockStores.verifyStoreForm(glitter, 'create', newStoreData, (response) => {
-                                                                        gvc2.closeDialog();
-                                                                        vm.data.content.store_in = response.id;
-                                                                        loading = true;
-                                                                        gvc.notifyDataChange(id);
-                                                                    });
-                                                                }),
-                                                                '完成'
-                                                            )}`;
-                                                                },
-                                                            });
-                                                        },
-                                                    },
                                                 });
                                             }
                                         },
@@ -1065,7 +1163,71 @@ export class StockHistory {
                     </div> `,
                 ];
             case 'checking':
-                return [];
+                return [
+                    html`<div class="row">
+                        <div class="col-12 col-md-6">
+                            <div class="tx_normal">盤點庫存點</div>
+                            ${BgWidget.mbContainer(8)}
+                            ${gvc.bindView(
+                                (() => {
+                                    const id = glitter.getUUID();
+                                    let dataList: any[] = [];
+                                    let loading = true;
+                                    return {
+                                        bind: id,
+                                        view: () => {
+                                            if (loading) {
+                                                return BgWidget.spinner({
+                                                    container: { style: 'margin-top: 0;' },
+                                                    circle: { visible: false },
+                                                });
+                                            } else {
+                                                return BgWidget.selectOptionAndClickEvent({
+                                                    gvc: gvc,
+                                                    default: vm.data.content.store_out ?? '',
+                                                    options: dataList.map((item) => {
+                                                        return {
+                                                            key: item.id,
+                                                            value: item.name,
+                                                            note: item.address,
+                                                        };
+                                                    }),
+                                                    showNote: BgWidget.grayNote(
+                                                        (() => {
+                                                            const d = dataList.find((item) => {
+                                                                return item.id === vm.data.content.store_out;
+                                                            });
+                                                            return d ? d.address : '';
+                                                        })(),
+                                                        'margin: 0 4px;'
+                                                    ),
+                                                    callback: (data) => {
+                                                        vm.data.content.store_out = data ? data.key : '';
+                                                        gvc.notifyDataChange(id);
+                                                        vm.data.content.check_according = '';
+                                                        gvc.notifyDataChange(dvm.tableId);
+                                                    },
+                                                });
+                                            }
+                                        },
+                                        divCreate: {},
+                                        onCreate: () => {
+                                            if (loading) {
+                                                ApiUser.getPublicConfig('store_manager', 'manager').then((dd: any) => {
+                                                    if (dd.result && dd.response.value) {
+                                                        dataList = dd.response.value.list;
+                                                    }
+                                                    loading = false;
+                                                    gvc.notifyDataChange(id);
+                                                });
+                                            }
+                                        },
+                                    };
+                                })()
+                            )}
+                        </div>
+                    </div> `,
+                ];
         }
     }
 
@@ -1077,6 +1239,7 @@ export class StockHistory {
             id: glitter.getUUID(),
             tableId: glitter.getUUID(),
             totalId: glitter.getUUID(),
+            radioCompId: glitter.getUUID(),
             variantIds: [] as string[],
             tableLoading: true,
         };
@@ -1182,7 +1345,7 @@ export class StockHistory {
                             ...startArr,
                             {
                                 key: '來源庫存數量',
-                                value: 'unknown',
+                                value: `<span class="fs-7">${dd.stock || 0}</span>`,
                             },
                             {
                                 key: '調入數量',
@@ -1198,6 +1361,10 @@ export class StockHistory {
                                                 n = 0;
                                                 e.value = n;
                                             }
+                                            if (dd.stock && n > dd.stock) {
+                                                n = dd.stock;
+                                                e.value = n;
+                                            }
                                             realData.transfer_count = n;
                                             gvc.notifyDataChange(`subtotoal_${index}`);
                                         })}"
@@ -1208,7 +1375,17 @@ export class StockHistory {
                             ...endArr,
                         ];
                     case 'checking':
-                        return [...startArr, ...endArr];
+                        return [
+                            ...startArr,
+                            {
+                                key: '商品條碼',
+                                value: `<span class="fs-7">${dd.sku || '－'}</span>`,
+                            },
+                            {
+                                key: '庫存數量',
+                                value: `<span class="fs-7">${dd.transfer_count || 0}</span>`,
+                            },
+                        ];
                 }
             });
         }
@@ -1264,7 +1441,7 @@ export class StockHistory {
                                                         })}
                                                     </div>
                                                 </div>`,
-                                                ...this.getFormStructure(gvc, vm),
+                                                ...this.getFormStructure(gvc, vm, dvm),
                                                 html` <div class="tx_normal">備註</div>
                                                     ${EditorElem.editeText({
                                                         gvc: gvc,
@@ -1357,13 +1534,34 @@ export class StockHistory {
                                                                             getData: (vd) => {
                                                                                 vmi = vd;
                                                                                 const limit = 99999;
-                                                                                this.setVariantList(dvm.variantIds, vm.data, (response) => {
-                                                                                    vm.data.content.product_list = response;
-                                                                                    vmi.pageSize = Math.ceil(response.length / limit);
-                                                                                    vmi.originalData = response;
-                                                                                    vmi.tableData = specDatalist(vmi.page, limit);
-                                                                                    vmi.loading = false;
-                                                                                    vmi.callback();
+                                                                                new Promise<[]>((resolve) => {
+                                                                                    ApiStock.getStoreProductList({
+                                                                                        page: 0,
+                                                                                        limit: 99999,
+                                                                                        search: vm.data.content.store_out,
+                                                                                        variant_id_list: dvm.variantIds,
+                                                                                    }).then((r) => {
+                                                                                        if (r.result && r.response.data) {
+                                                                                            resolve(r.response.data);
+                                                                                        } else {
+                                                                                            resolve([]);
+                                                                                        }
+                                                                                    });
+                                                                                }).then((responseArray: any) => {
+                                                                                    this.setVariantList(dvm.variantIds, vm.data, (response) => {
+                                                                                        response.map((item1) => {
+                                                                                            const stockData = responseArray.find((item2: any) => item1.variant_id === item2.id);
+                                                                                            item1.stock = stockData ? stockData.count : 0;
+                                                                                            return item1;
+                                                                                        });
+
+                                                                                        vm.data.content.product_list = response;
+                                                                                        vmi.pageSize = Math.ceil(response.length / limit);
+                                                                                        vmi.originalData = response;
+                                                                                        vmi.tableData = specDatalist(vmi.page, limit);
+                                                                                        vmi.loading = false;
+                                                                                        vmi.callback();
+                                                                                    });
                                                                                 });
                                                                             },
                                                                             rowClick: () => {},
@@ -1378,10 +1576,11 @@ export class StockHistory {
                                                                                     dialog.errorMessage({ text: '請先選擇「調出庫存點」' });
                                                                                     return;
                                                                                 }
-                                                                                BgWidget.variantDialog({
+                                                                                BgWidget.storeStockDialog({
                                                                                     gvc,
                                                                                     title: '搜尋商品',
                                                                                     default: dvm.variantIds,
+                                                                                    store_id: vm.data.content.store_out,
                                                                                     callback: (resultData) => {
                                                                                         dvm.variantIds = resultData;
                                                                                         gvc.notifyDataChange(dvm.tableId);
@@ -1396,7 +1595,260 @@ export class StockHistory {
                                                                         </div>`,
                                                                     ].join('');
                                                                 case 'checking':
-                                                                    return ['全部商品', '特定分類', '特定商品'].join('');
+                                                                    return [
+                                                                        EditorElem.radio({
+                                                                            gvc: gvc,
+                                                                            title: '',
+                                                                            def: vm.data.content.check_according,
+                                                                            array: productSelect,
+                                                                            callback: (text) => {
+                                                                                vm.data.content.check_according = text as 'all' | 'collection' | 'product';
+                                                                                gvc.notifyDataChange(dvm.radioCompId);
+                                                                            },
+                                                                        }),
+                                                                        gvc.bindView({
+                                                                            bind: dvm.radioCompId,
+                                                                            view: () => {
+                                                                                switch (vm.data.content.check_according) {
+                                                                                    case 'collection':
+                                                                                        return gvc.bindView(() => {
+                                                                                            const subVM = {
+                                                                                                id: gvc.glitter.getUUID(),
+                                                                                                loading: true,
+                                                                                                def: [],
+                                                                                                dataList: [] as OptionsItem[],
+                                                                                            };
+                                                                                            return {
+                                                                                                bind: subVM.id,
+                                                                                                view: () => {
+                                                                                                    if (subVM.loading) {
+                                                                                                        return BgWidget.spinner();
+                                                                                                    }
+                                                                                                    return html`
+                                                                                                        <div class="d-flex flex-column p-2" style="gap: 18px;">
+                                                                                                            <div
+                                                                                                                class="d-flex align-items-center justify-content-between gray-bottom-line-18"
+                                                                                                                style="gap: 24px;"
+                                                                                                            >
+                                                                                                                <div class="form-check-label c_updown_label">
+                                                                                                                    <div class="tx_normal">分類列表</div>
+                                                                                                                </div>
+                                                                                                                ${BgWidget.grayButton(
+                                                                                                                    '選擇分類',
+                                                                                                                    gvc.event(() => {
+                                                                                                                        if (CheckInput.isEmpty(vm.data.content.store_out)) {
+                                                                                                                            dialog.errorMessage({ text: '請先選擇「盤點庫存點」' });
+                                                                                                                            return;
+                                                                                                                        }
+                                                                                                                        BgProduct.collectionsDialog({
+                                                                                                                            gvc: gvc,
+                                                                                                                            default: subVM.def ?? [],
+                                                                                                                            callback: async (value) => {
+                                                                                                                                dialog.dataLoading({ visible: true });
+
+                                                                                                                                subVM.def = value;
+                                                                                                                                subVM.dataList = await BgProduct.getCollectiosOpts(value);
+                                                                                                                                subVM.loading = true;
+
+                                                                                                                                function call() {
+                                                                                                                                    dialog.dataLoading({ visible: false });
+                                                                                                                                    gvc.notifyDataChange(subVM.id);
+                                                                                                                                }
+
+                                                                                                                                ApiShop.getCollectionProductVariants({
+                                                                                                                                    tagString: subVM.def.length > 0 ? subVM.def.join(',') : '',
+                                                                                                                                }).then((r1) => {
+                                                                                                                                    if (r1.result && r1.response && r1.response.length > 0) {
+                                                                                                                                        dvm.variantIds = r1.response.map((item: any) => item.id);
+                                                                                                                                        const limit = 99999;
+                                                                                                                                        ApiStock.getStoreProductList({
+                                                                                                                                            page: 0,
+                                                                                                                                            limit: limit,
+                                                                                                                                            search: vm.data.content.store_out,
+                                                                                                                                            variant_id_list: dvm.variantIds,
+                                                                                                                                        }).then((r2) => {
+                                                                                                                                            if (r2.result && r2.response.data) {
+                                                                                                                                                const responseArray = r2.response.data;
+                                                                                                                                                this.setVariantList(
+                                                                                                                                                    dvm.variantIds,
+                                                                                                                                                    vm.data,
+                                                                                                                                                    (response) => {
+                                                                                                                                                        response.map((item1) => {
+                                                                                                                                                            const stockData = responseArray.find(
+                                                                                                                                                                (item2: any) =>
+                                                                                                                                                                    item1.variant_id === item2.id
+                                                                                                                                                            );
+                                                                                                                                                            item1.transfer_count = stockData
+                                                                                                                                                                ? stockData.count
+                                                                                                                                                                : 0;
+                                                                                                                                                            return item1;
+                                                                                                                                                        });
+
+                                                                                                                                                        vm.data.content.product_list = response;
+                                                                                                                                                        call();
+                                                                                                                                                    }
+                                                                                                                                                );
+                                                                                                                                            } else {
+                                                                                                                                                call();
+                                                                                                                                            }
+                                                                                                                                        });
+                                                                                                                                    } else {
+                                                                                                                                        call();
+                                                                                                                                    }
+                                                                                                                                });
+                                                                                                                            },
+                                                                                                                        });
+                                                                                                                    }),
+                                                                                                                    { textStyle: 'font-weight: 400;' }
+                                                                                                                )}
+                                                                                                            </div>
+                                                                                                            ${gvc.map(
+                                                                                                                subVM.dataList.map((opt: OptionsItem, index) => {
+                                                                                                                    return html` <div
+                                                                                                                        class="d-flex align-items-center form-check-label c_updown_label gap-3"
+                                                                                                                    >
+                                                                                                                        <span class="tx_normal">${index + 1} . ${opt.value}</span>
+                                                                                                                        ${opt.note ? html` <span class="tx_gray_12 ms-2">${opt.note}</span> ` : ''}
+                                                                                                                    </div>`;
+                                                                                                                })
+                                                                                                            )}
+                                                                                                        </div>
+                                                                                                    `;
+                                                                                                },
+                                                                                                onCreate: () => {
+                                                                                                    if (subVM.loading) {
+                                                                                                        if (subVM.def.length === 0) {
+                                                                                                            setTimeout(() => {
+                                                                                                                subVM.dataList = [];
+                                                                                                                subVM.loading = false;
+                                                                                                                gvc.notifyDataChange(subVM.id);
+                                                                                                            }, 200);
+                                                                                                        } else {
+                                                                                                            new Promise<OptionsItem[]>((resolve) => {
+                                                                                                                resolve(BgProduct.getCollectiosOpts(subVM.def));
+                                                                                                            }).then((data) => {
+                                                                                                                subVM.dataList = data;
+                                                                                                                subVM.loading = false;
+                                                                                                                gvc.notifyDataChange(subVM.id);
+                                                                                                            });
+                                                                                                        }
+                                                                                                    }
+                                                                                                },
+                                                                                            };
+                                                                                        });
+                                                                                    case 'product':
+                                                                                        return gvc.bindView(() => {
+                                                                                            const subVM = {
+                                                                                                id: gvc.glitter.getUUID(),
+                                                                                            };
+                                                                                            return {
+                                                                                                bind: subVM.id,
+                                                                                                view: () => {
+                                                                                                    return html`
+                                                                                                        <div class="d-flex flex-column p-2" style="gap: 18px;">
+                                                                                                            <div
+                                                                                                                class="d-flex align-items-center justify-content-between gray-bottom-line-18"
+                                                                                                                style="gap: 24px;"
+                                                                                                            >
+                                                                                                                <div class="form-check-label c_updown_label">
+                                                                                                                    <div class="tx_normal">商品列表</div>
+                                                                                                                </div>
+                                                                                                                ${BgWidget.grayButton(
+                                                                                                                    '選擇商品',
+                                                                                                                    gvc.event(() => {
+                                                                                                                        if (CheckInput.isEmpty(vm.data.content.store_out)) {
+                                                                                                                            dialog.errorMessage({ text: '請先選擇「盤點庫存點」' });
+                                                                                                                            return;
+                                                                                                                        }
+                                                                                                                        BgWidget.storeStockDialog({
+                                                                                                                            gvc,
+                                                                                                                            title: '搜尋商品',
+                                                                                                                            default: dvm.variantIds,
+                                                                                                                            store_id: vm.data.content.store_out,
+                                                                                                                            callback: (resultData) => {
+                                                                                                                                dvm.variantIds = resultData;
+                                                                                                                                gvc.notifyDataChange(subVM.id);
+                                                                                                                            },
+                                                                                                                        });
+                                                                                                                    }),
+                                                                                                                    { textStyle: 'font-weight: 400;' }
+                                                                                                                )}
+                                                                                                            </div>
+                                                                                                            ${BgWidget.tableV3({
+                                                                                                                gvc: gvc,
+                                                                                                                getData: (vd) => {
+                                                                                                                    vmi = vd;
+                                                                                                                    const limit = 99999;
+                                                                                                                    new Promise<[]>((resolve) => {
+                                                                                                                        ApiStock.getStoreProductList({
+                                                                                                                            page: 0,
+                                                                                                                            limit: 99999,
+                                                                                                                            search: vm.data.content.store_out,
+                                                                                                                            variant_id_list: dvm.variantIds,
+                                                                                                                        }).then((r) => {
+                                                                                                                            if (r.result && r.response.data) {
+                                                                                                                                resolve(r.response.data);
+                                                                                                                            } else {
+                                                                                                                                resolve([]);
+                                                                                                                            }
+                                                                                                                        });
+                                                                                                                    }).then((responseArray: any) => {
+                                                                                                                        this.setVariantList(dvm.variantIds, vm.data, (response) => {
+                                                                                                                            response.map((item1) => {
+                                                                                                                                const stockData = responseArray.find(
+                                                                                                                                    (item2: any) => item1.variant_id === item2.id
+                                                                                                                                );
+                                                                                                                                item1.transfer_count = stockData ? stockData.count : 0;
+                                                                                                                                return item1;
+                                                                                                                            });
+
+                                                                                                                            vm.data.content.product_list = response;
+                                                                                                                            vmi.pageSize = Math.ceil(response.length / limit);
+                                                                                                                            vmi.originalData = response;
+                                                                                                                            vmi.tableData = specDatalist(vmi.page, limit);
+                                                                                                                            vmi.loading = false;
+                                                                                                                            vmi.callback();
+                                                                                                                        });
+                                                                                                                    });
+                                                                                                                },
+                                                                                                                rowClick: () => {},
+                                                                                                                filter: [],
+                                                                                                                hiddenPageSplit: true,
+                                                                                                            })}
+                                                                                                        </div>
+                                                                                                    `;
+                                                                                                },
+                                                                                            };
+                                                                                        });
+                                                                                    case 'all':
+                                                                                        ApiStock.getStoreProductList({
+                                                                                            page: 0,
+                                                                                            limit: 99999,
+                                                                                            search: vm.data.content.store_out,
+                                                                                        }).then((r) => {
+                                                                                            if (r.result && r.response.data) {
+                                                                                                const responseArray = r.response.data;
+                                                                                                dvm.variantIds = responseArray.map((item: any) => `${item.id}`);
+                                                                                                this.setVariantList(dvm.variantIds, vm.data, (response) => {
+                                                                                                    response.map((item1) => {
+                                                                                                        const stockData = responseArray.find((item2: any) => item1.variant_id === item2.id);
+                                                                                                        item1.transfer_count = stockData ? stockData.count : 0;
+                                                                                                        return item1;
+                                                                                                    });
+                                                                                                    vm.data.content.product_list = response;
+                                                                                                });
+                                                                                            }
+                                                                                        });
+                                                                                        return '';
+                                                                                    default:
+                                                                                        return '';
+                                                                                }
+                                                                            },
+                                                                            divCreate: {
+                                                                                class: 'mt-2',
+                                                                            },
+                                                                        }),
+                                                                    ].join('');
                                                             }
                                                         },
                                                     })}
@@ -1419,11 +1871,13 @@ export class StockHistory {
                     )}
                     ${BgWidget.save(
                         gvc.event(() => {
+                            // 資料驗證(所有,前半)
                             if (CheckInput.isEmpty(vm.data.created_time)) {
                                 dialog.errorMessage({ text: `請輸入${typeData.name}時間` });
                                 return;
                             }
 
+                            // 資料驗證(進貨)
                             if (vm.data.type === 'restocking') {
                                 if (CheckInput.isEmpty(vm.data.content.vendor)) {
                                     dialog.errorMessage({ text: '請輸入供應商' });
@@ -1436,6 +1890,7 @@ export class StockHistory {
                                 }
                             }
 
+                            // 資料驗證(調撥)
                             if (vm.data.type === 'transfer') {
                                 if (CheckInput.isEmpty(vm.data.content.store_out)) {
                                     dialog.errorMessage({ text: '請輸入調出庫存點' });
@@ -1453,39 +1908,68 @@ export class StockHistory {
                                 }
                             }
 
+                            // 資料驗證(盤點)
+                            if (vm.data.type === 'checking') {
+                                if (CheckInput.isEmpty(vm.data.content.store_out)) {
+                                    dialog.errorMessage({ text: '請輸入盤點庫存點' });
+                                    return;
+                                }
+
+                                if (CheckInput.isEmpty(vm.data.content.check_according)) {
+                                    dialog.errorMessage({ text: '請選擇盤點範圍' });
+                                    return;
+                                }
+                            }
+
+                            // 資料驗證(所有,後半)
                             if (vm.data.content.product_list.length === 0) {
                                 dialog.errorMessage({ text: `請新增${typeData.name}商品` });
                                 return;
                             }
+                            if (vm.data.type !== 'checking' && vm.data.content.product_list.find((item) => item.transfer_count === 0)) {
+                                dialog.errorMessage({ text: `商品${typeData.name}的數量不可為0` });
+                                return;
+                            }
+                            if (vm.data.order_id !== '') {
+                                dialog.errorMessage({ text: `${typeData.name}單已存在` });
+                                return;
+                            }
 
+                            // 建立更新API
                             dialog.dataLoading({ visible: true });
-                            if (vm.data.id === '') {
-                                ApiStock.postStockHistory(vm.data).then((r) => {
-                                    dialog.dataLoading({ visible: false });
-                                    if (r.result && r.response) {
+                            ApiStock.postStockHistory(vm.data).then((r) => {
+                                dialog.dataLoading({ visible: false });
+                                if (r.result && r.response.data) {
+                                    if (vm.data.type === 'checking') {
+                                        vm.data.order_id = r.response.data.order_id;
+                                        vm.view = 'checkList';
+                                    } else {
                                         dialog.successMessage({ text: '新增成功' });
                                         vm.view = 'mainList';
-                                    } else {
-                                        dialog.successMessage({ text: '新增失敗' });
                                     }
-                                });
-                            } else {
-                                ApiStock.putStockHistory(vm.data).then((r) => {
-                                    dialog.dataLoading({ visible: false });
-                                    if (r.result && r.response) {
-                                        dialog.successMessage({ text: '更新成功' });
-                                        vm.view = 'mainList';
-                                    } else {
-                                        dialog.successMessage({ text: '更新失敗' });
-                                    }
-                                });
-                            }
+                                } else {
+                                    dialog.successMessage({ text: '新增失敗' });
+                                }
+                            });
                         }),
-                        '送出'
+                        vm.data.type === 'checking' ? '開始盤點' : '送出'
                     )}
                 </div>`,
             ].join('<div class="my-2"></div>')
         );
+    }
+
+    static integerColorComponent(n: number, leftNumber: number | undefined, rightNumber: number) {
+        if (n === 0) {
+            return html`<span class="fs-7">0</span>`;
+        }
+        if (n < 0) {
+            return html`<span class="fs-7 tc_danger">${n}</span>`;
+        }
+        if (leftNumber !== undefined && leftNumber > rightNumber) {
+            return html`<span class="fs-7 tc_success">+${n}</span>`;
+        }
+        return '數值有誤';
     }
 
     static restockingDetailTable(json: { type: 'details' | 'nonDetails' | 'logs'; list: ContentProduct[]; page: number; limit: number }) {
@@ -1555,13 +2039,7 @@ export class StockHistory {
                                 }
 
                                 const n = dd.recent_count - dd.transfer_count;
-                                if (n === 0) {
-                                    return html`<span class="fs-7">0</span>`;
-                                } else if (n < 0) {
-                                    return html`<span class="fs-7 tc_danger">${n}</span>`;
-                                } else if (dd.recent_count > dd.transfer_count) {
-                                    return html`<span class="fs-7 tc_success">+${n}</span>`;
-                                }
+                                return this.integerColorComponent(n, dd.recent_count, dd.transfer_count);
                             })(),
                         },
                         {
@@ -1602,13 +2080,7 @@ export class StockHistory {
                                 }
 
                                 const n = dd.recent_count - dd.transfer_count - (dd.replenishment_count ?? 0);
-                                if (n === 0) {
-                                    return html`<span class="fs-7">0</span>`;
-                                } else if (n < 0) {
-                                    return html`<span class="fs-7 tc_danger">${n}</span>`;
-                                } else if (dd.recent_count > dd.transfer_count) {
-                                    return html`<span class="fs-7 tc_success">+${n}</span>`;
-                                }
+                                return this.integerColorComponent(n, dd.recent_count, dd.transfer_count);
                             })(),
                         },
                         {
@@ -1650,7 +2122,7 @@ export class StockHistory {
                         ...startArr,
                         {
                             key: '來源庫存數量',
-                            value: `<span class="fs-7">unknown1</span>`,
+                            value: `<span class="fs-7">${dd.stock ?? 0}</span>`,
                         },
                         {
                             key: '預計調入數量',
@@ -1663,7 +2135,7 @@ export class StockHistory {
                         ...startArr,
                         {
                             key: '來源庫存數量',
-                            value: `<span class="fs-7">unknown1</span>`,
+                            value: `<span class="fs-7">${dd.stock ?? 0}</span>`,
                         },
                         {
                             key: '原訂調入數量',
@@ -1681,13 +2153,7 @@ export class StockHistory {
                                 }
 
                                 const n = dd.recent_count - dd.transfer_count;
-                                if (n === 0) {
-                                    return html`<span class="fs-7">0</span>`;
-                                } else if (n < 0) {
-                                    return html`<span class="fs-7 tc_danger">${n}</span>`;
-                                } else if (dd.recent_count > dd.transfer_count) {
-                                    return html`<span class="fs-7 tc_success">+${n}</span>`;
-                                }
+                                return this.integerColorComponent(n, dd.recent_count, dd.transfer_count);
                             })(),
                         },
                         ...endArr,
@@ -1711,13 +2177,7 @@ export class StockHistory {
                                 }
 
                                 const n = dd.recent_count - dd.transfer_count - (dd.replenishment_count ?? 0);
-                                if (n === 0) {
-                                    return html`<span class="fs-7">0</span>`;
-                                } else if (n < 0) {
-                                    return html`<span class="fs-7 tc_danger">${n}</span>`;
-                                } else if (dd.recent_count > dd.transfer_count) {
-                                    return html`<span class="fs-7 tc_success">+${n}</span>`;
-                                }
+                                return this.integerColorComponent(n, dd.recent_count, dd.transfer_count);
                             })(),
                         },
                         {
@@ -1727,6 +2187,79 @@ export class StockHistory {
                         ...endArr,
                     ];
             }
+        });
+    }
+
+    static checkingDetailTable(json: { status: number; type: 'details' | 'logs'; list: ContentProduct[]; page: number; limit: number }) {
+        console.log('checkingDetailTable(no icon)');
+        const x = (json.page - 1) * json.limit;
+        return json.list.slice(x, x + json.limit).map((dd: ContentProduct) => {
+            const startArr = [
+                {
+                    key: '商品',
+                    value: `<span class="fs-7">${dd.title || '－'}</span>`,
+                },
+                {
+                    key: '規格',
+                    value: `<span class="fs-7">${dd.spec}</span>`,
+                },
+                {
+                    key: '存貨單位(SKU)',
+                    value: `<span class="fs-7">${dd.sku || '－'}</span>`,
+                },
+                {
+                    key: '商品條碼',
+                    value: `<span class="fs-7">${dd.sku || '－'}</span>`,
+                },
+                {
+                    key: '庫存數量',
+                    value: `<span class="fs-7">${dd.transfer_count}</span>`,
+                },
+                {
+                    key: '盤點數量',
+                    value: `<span class="fs-7">${dd.recent_count || '－'}</span>`,
+                },
+            ];
+            if (json.type === 'logs' && [0, 1].includes(json.status)) {
+                return [
+                    ...startArr,
+                    {
+                        key: '修正數量',
+                        value: (() => {
+                            if (dd.recent_count === undefined) {
+                                return html`<span class="fs-7">－</span>`;
+                            }
+
+                            const n = dd.recent_count - dd.transfer_count;
+                            if (n === 0) {
+                                return html`<span class="fs-7">0</span>`;
+                            } else if (n < 0) {
+                                return html`<span class="fs-7 tc_danger">${n}</span>`;
+                            } else if (dd.recent_count > dd.transfer_count) {
+                                return html`<span class="fs-7 tc_success">+${n}</span>`;
+                            }
+                        })(),
+                    },
+                ];
+            }
+            return [
+                ...startArr,
+                {
+                    key: '差異數量',
+                    value: (() => {
+                        if (dd.recent_count === undefined) {
+                            return html`<span class="fs-7">－</span>`;
+                        }
+
+                        const n = dd.recent_count - dd.transfer_count;
+                        return this.integerColorComponent(n, dd.recent_count, dd.transfer_count);
+                    })(),
+                },
+                {
+                    key: '備註',
+                    value: `<span class="fs-7">${dd.note || '－'}</span>`,
+                },
+            ];
         });
     }
 
@@ -1792,47 +2325,83 @@ export class StockHistory {
                                                             vmi.pageSize = Math.ceil(response.length / limit);
                                                             vmi.originalData = response;
 
-                                                            switch (vm.data.type) {
-                                                                case 'restocking':
-                                                                    if ([0, 1, 2].includes(vm.data.status)) {
-                                                                        vmi.tableData = this.restockingDetailTable({
-                                                                            type: 'nonDetails',
-                                                                            list: vm.data.content.product_list,
-                                                                            page: vmi.page,
-                                                                            limit,
+                                                            new Promise<[]>((resolve) => {
+                                                                if (vm.data.type === 'transfer') {
+                                                                    ApiStock.getStoreProductList({
+                                                                        page: 0,
+                                                                        limit: 99999,
+                                                                        search: vm.data.content.store_out,
+                                                                        variant_id_list: vm.data.content.product_list.map((item) => item.variant_id),
+                                                                    }).then((r) => {
+                                                                        if (r.result && r.response.data) {
+                                                                            resolve(r.response.data);
+                                                                        } else {
+                                                                            resolve([]);
+                                                                        }
+                                                                    });
+                                                                } else {
+                                                                    resolve([]);
+                                                                }
+                                                            }).then((responseArray: any) => {
+                                                                switch (vm.data.type) {
+                                                                    case 'restocking':
+                                                                        if ([0, 1, 2].includes(vm.data.status)) {
+                                                                            vmi.tableData = this.restockingDetailTable({
+                                                                                type: 'nonDetails',
+                                                                                list: vm.data.content.product_list,
+                                                                                page: vmi.page,
+                                                                                limit,
+                                                                            });
+                                                                        } else {
+                                                                            vmi.tableData = this.restockingDetailTable({
+                                                                                type: 'details',
+                                                                                list: vm.data.content.product_list,
+                                                                                page: vmi.page,
+                                                                                limit,
+                                                                            });
+                                                                        }
+                                                                        break;
+                                                                    case 'transfer':
+                                                                        vm.data.content.product_list.map((item1) => {
+                                                                            const stockData = responseArray.find((item2: any) => item1.variant_id === item2.id);
+                                                                            item1.stock = stockData ? stockData.count : 0;
+                                                                            return item1;
                                                                         });
-                                                                    } else {
-                                                                        vmi.tableData = this.restockingDetailTable({
+                                                                        if ([0, 1, 2].includes(vm.data.status)) {
+                                                                            vmi.tableData = this.transferDetailTable({
+                                                                                type: 'nonDetails',
+                                                                                list: vm.data.content.product_list,
+                                                                                page: vmi.page,
+                                                                                limit,
+                                                                            });
+                                                                        } else {
+                                                                            vmi.tableData = this.transferDetailTable({
+                                                                                type: 'details',
+                                                                                list: vm.data.content.product_list,
+                                                                                page: vmi.page,
+                                                                                limit,
+                                                                            });
+                                                                        }
+                                                                        break;
+                                                                    case 'checking':
+                                                                        vm.data.content.product_list.map((item1) => {
+                                                                            const stockData = responseArray.find((item2: any) => item1.variant_id === item2.id);
+                                                                            item1.stock = stockData ? stockData.count : 0;
+                                                                            return item1;
+                                                                        });
+                                                                        vmi.tableData = this.checkingDetailTable({
                                                                             type: 'details',
+                                                                            status: vm.data.status,
                                                                             list: vm.data.content.product_list,
                                                                             page: vmi.page,
                                                                             limit,
                                                                         });
-                                                                    }
-                                                                    break;
-                                                                case 'transfer':
-                                                                    if ([0, 1, 2].includes(vm.data.status)) {
-                                                                        vmi.tableData = this.transferDetailTable({
-                                                                            type: 'nonDetails',
-                                                                            list: vm.data.content.product_list,
-                                                                            page: vmi.page,
-                                                                            limit,
-                                                                        });
-                                                                    } else {
-                                                                        vmi.tableData = this.transferDetailTable({
-                                                                            type: 'details',
-                                                                            list: vm.data.content.product_list,
-                                                                            page: vmi.page,
-                                                                            limit,
-                                                                        });
-                                                                    }
-                                                                    break;
-                                                                case 'checking':
-                                                                    break;
-                                                            }
+                                                                        break;
+                                                                }
 
-                                                            vmi.loading = false;
-                                                            vmi.callback();
+                                                                vmi.loading = false;
+                                                                vmi.callback();
+                                                            });
                                                         }
                                                     );
                                                 },
@@ -1909,12 +2478,33 @@ export class StockHistory {
                                                                                   this.getVariantInfo(log.product_list ?? [], (response) => {
                                                                                       vmi.pageSize = Math.ceil(response.length / limit);
                                                                                       vmi.originalData = response;
-                                                                                      vmi.tableData = this.restockingDetailTable({
-                                                                                          type: 'logs',
-                                                                                          list: response,
-                                                                                          page: vmi.page,
-                                                                                          limit,
-                                                                                      });
+                                                                                      switch (vm.data.type) {
+                                                                                          case 'restocking':
+                                                                                              vmi.tableData = this.restockingDetailTable({
+                                                                                                  type: 'logs',
+                                                                                                  list: response,
+                                                                                                  page: vmi.page,
+                                                                                                  limit,
+                                                                                              });
+                                                                                              break;
+                                                                                          case 'transfer':
+                                                                                              vmi.tableData = this.transferDetailTable({
+                                                                                                  type: 'logs',
+                                                                                                  list: response,
+                                                                                                  page: vmi.page,
+                                                                                                  limit,
+                                                                                              });
+                                                                                              break;
+                                                                                          case 'checking':
+                                                                                              vmi.tableData = this.checkingDetailTable({
+                                                                                                  type: 'logs',
+                                                                                                  status: vm.data.status,
+                                                                                                  list: response,
+                                                                                                  page: vmi.page,
+                                                                                                  limit,
+                                                                                              });
+                                                                                              break;
+                                                                                      }
                                                                                       vmi.loading = false;
                                                                                       vmi.callback();
                                                                                   });
@@ -1929,7 +2519,7 @@ export class StockHistory {
                                                           ></i>`
                                                         : ''}
                                                 </div>
-                                                <div>${log.user}</div>
+                                                <div>${log.user && log.user_name ? `${log.user_name}編輯` : '系統自動變更'}</div>
                                             </div>`;
                                         })
                                         .join(''),
@@ -2220,6 +2810,36 @@ export class StockHistory {
         });
     }
 
+    static async verifyCurrentStock(data: StockHistoryData): Promise<ContentProduct[]> {
+        const ids = data.content.product_list.map((item) => {
+            return `${item.variant_id}`;
+        });
+        return new Promise((resolve) => {
+            ApiStock.getStoreProductList({
+                page: 0,
+                limit: 99999,
+                search: data.content.store_out,
+                variant_id_list: ids,
+            }).then((r) => {
+                if (r.result && r.response.data) {
+                    resolve(r.response.data);
+                } else {
+                    resolve([]);
+                }
+            });
+        }).then((variants: any) => {
+            const diffVariants = data.content.product_list.filter((item1) => {
+                const variant = variants.find((item2: any) => item1.variant_id === item2.id);
+                if (variant && variant.count !== item1.transfer_count) {
+                    item1.stock = variant.count;
+                    return true;
+                }
+                return false;
+            });
+            return diffVariants;
+        });
+    }
+
     static getButtonBar(gvc: GVC, vm: VM) {
         const glitter = gvc.glitter;
         const dialog = new ShareDialog(glitter);
@@ -2322,10 +2942,10 @@ export class StockHistory {
                 );
             }
 
-            if ([5].includes(vm.data.status)) {
+            if (vm.data.type !== 'checking' && [5].includes(vm.data.status)) {
                 buttonList.push(
                     BgWidget.grayButton(
-                        `完成${typeData.name}}`,
+                        `完成${typeData.name}`,
                         gvc.event(() => {
                             updateData(
                                 0,
@@ -2351,8 +2971,6 @@ export class StockHistory {
                                                     <div class="tx_gray_14">後續無法再進行補貨操作。</div>
                                                 </div>
                                             `;
-                                        case 'checking':
-                                            return html`finished check`;
                                     }
                                 })()
                             );
@@ -2453,6 +3071,157 @@ export class StockHistory {
                 );
             }
 
+            if (vm.data.type === 'checking' && [5].includes(vm.data.status)) {
+                buttonList.push(
+                    BgWidget.save(
+                        gvc.event(async () => {
+                            const warningText = '確定要更新庫存嗎？';
+                            const diffVariants = await this.verifyCurrentStock(vm.data);
+
+                            if (diffVariants.length === 0) {
+                                updateData(1, warningText);
+                                return;
+                            }
+
+                            const diffVM = {
+                                dataList: [] as ContentProduct[],
+                            };
+
+                            function changeStockTable() {
+                                return diffVM.dataList.map((dd: ContentProduct) => {
+                                    const n = (dd.stock ?? 0) - dd.transfer_count;
+                                    return [
+                                        {
+                                            key: '商品',
+                                            value: `<span class="fs-7">${dd.title || '－'}</span>`,
+                                        },
+                                        {
+                                            key: '規格',
+                                            value: `<span class="fs-7">${dd.spec}</span>`,
+                                        },
+                                        {
+                                            key: '存貨單位(SKU)',
+                                            value: `<span class="fs-7">${dd.sku || '－'}</span>`,
+                                        },
+                                        {
+                                            key: '商品條碼',
+                                            value: `<span class="fs-7">${dd.sku || '－'}</span>`,
+                                        },
+                                        {
+                                            key: '庫存變動數量',
+                                            value: StockHistory.integerColorComponent(n, dd.stock, dd.transfer_count),
+                                        },
+                                        {
+                                            key: '原盤點數量',
+                                            value: `<span class="fs-7">${dd.recent_count || '－'}</span>`,
+                                        },
+                                        {
+                                            key: '最終盤點數量',
+                                            value: html`<span class="fs-7"
+                                                >${(() => {
+                                                    if (dd.recent_count === undefined) {
+                                                        return 0;
+                                                    }
+                                                    return dd.recent_count + n;
+                                                })()}</span
+                                            >`,
+                                        },
+                                    ];
+                                });
+                            }
+
+                            BgWidget.settingDialog({
+                                gvc,
+                                title: '庫存變動通知',
+                                width: 1000,
+                                innerHTML: (gvc) => {
+                                    let vmi: any = undefined;
+                                    return [
+                                        BgWidget.grayNote(
+                                            html`以下商品在盤點期間內有銷售等變動，導致實際庫存已發生變化。<br />
+                                                最終庫存數量將依此公式調整：原盤點數量 + 庫存變動數量`
+                                        ),
+                                        BgWidget.tableV3({
+                                            gvc: gvc,
+                                            getData: (vd) => {
+                                                vmi = vd;
+                                                const limit = 99999;
+                                                this.setVariantList(
+                                                    diffVariants.map((item) => {
+                                                        return `${item.variant_id}`;
+                                                    }),
+                                                    vm.data,
+                                                    (response) => {
+                                                        diffVM.dataList = response;
+                                                        vmi.pageSize = Math.ceil(response.length / limit);
+                                                        vmi.originalData = response;
+                                                        vmi.tableData = changeStockTable();
+                                                        vmi.loading = false;
+                                                        vmi.callback();
+                                                    }
+                                                );
+                                            },
+                                            rowClick: () => {},
+                                            filter: [],
+                                            hiddenPageSplit: true,
+                                        }),
+                                    ].join('');
+                                },
+                                footer_html: (gvc) => {
+                                    return [
+                                        BgWidget.cancel(
+                                            gvc.event(() => {
+                                                gvc.closeDialog();
+                                            }),
+                                            '關閉'
+                                        ),
+                                        BgWidget.save(
+                                            gvc.event(() => {
+                                                dialog.warningMessage({
+                                                    callback: (bool) => {
+                                                        if (bool) {
+                                                            vm.data.status = 1;
+                                                            vm.data.content.product_list.map((item) => {
+                                                                const variant = diffVariants.find((v) => v.variant_id === item.variant_id);
+                                                                if (!variant) {
+                                                                    return item;
+                                                                }
+                                                                const n = (variant.stock ?? 0) - item.transfer_count;
+                                                                item.transfer_count += n;
+                                                                if (item.recent_count) {
+                                                                    item.recent_count += n;
+                                                                }
+                                                                return item;
+                                                            });
+
+                                                            ApiStock.putStockHistory(vm.data).then((r) => {
+                                                                dialog.dataLoading({ visible: false });
+                                                                if (r.result && r.response) {
+                                                                    dialog.successMessage({ text: '更新成功' });
+                                                                    gvc.closeDialog();
+                                                                    setTimeout(() => {
+                                                                        vm.view = 'replace';
+                                                                    }, 700);
+                                                                } else {
+                                                                    dialog.successMessage({ text: '更新失敗' });
+                                                                }
+                                                            });
+                                                        }
+                                                    },
+                                                    text: warningText,
+                                                });
+                                            }),
+                                            '確認'
+                                        ),
+                                    ].join('');
+                                },
+                            });
+                        }),
+                        '修正庫存'
+                    )
+                );
+            }
+
             if ([2, 4, 5].includes(vm.data.status)) {
                 buttonList.push(
                     BgWidget.save(
@@ -2471,18 +3240,33 @@ export class StockHistory {
                 return typeof item.recent_count === 'number' && !isNaN(item.recent_count);
             });
             const isEqual = vm.data.content.product_list.every((item) => {
-                return typeof item.recent_count === 'number' && !isNaN(item.recent_count) && item.recent_count >= item.transfer_count;
+                if (typeof item.recent_count === 'number' && !isNaN(item.recent_count)) {
+                    if (vm.data.type === 'checking') {
+                        return item.recent_count === item.transfer_count;
+                    }
+                    return item.recent_count >= item.transfer_count;
+                }
+                return false;
             });
 
             buttonList.push(
                 BgWidget.cancel(
-                    gvc.event(() => {
+                    gvc.event(async () => {
                         if (isEqual) {
                             if (vm.data.status === 2 || vm.data.status === 4) {
                                 updateData(0);
                             }
                             if (vm.data.status === 5) {
-                                updateData(1);
+                                if (vm.data.type === 'checking') {
+                                    const diffs = await this.verifyCurrentStock(vm.data);
+                                    if (diffs.length > 0) {
+                                        updateData(5);
+                                    } else {
+                                        updateData(0);
+                                    }
+                                } else {
+                                    updateData(1);
+                                }
                             }
                         } else if (isFill) {
                             updateData(5);
@@ -2502,13 +3286,22 @@ export class StockHistory {
             if (isFill) {
                 buttonList.push(
                     BgWidget.save(
-                        gvc.event(() => {
+                        gvc.event(async () => {
                             if (isEqual) {
                                 if (vm.data.status === 2 || vm.data.status === 4) {
                                     updateData(0);
                                 }
                                 if (vm.data.status === 5) {
-                                    updateData(1);
+                                    if (vm.data.type === 'checking') {
+                                        const diffs = await this.verifyCurrentStock(vm.data);
+                                        if (diffs.length > 0) {
+                                            updateData(5);
+                                        } else {
+                                            updateData(0);
+                                        }
+                                    } else {
+                                        updateData(1);
+                                    }
                                 }
                             } else {
                                 updateData(5);

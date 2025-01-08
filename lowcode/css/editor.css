@@ -26,10 +26,10 @@
     --main-white-hover: #d5d5d5;
 
     --main-orange: #ffb400;
-    --main-green: #006621;
+    --main-green: #10931d;
 
     --item-primary: #4d86db;
-    --item-success: #D8ECDA;
+    --item-success: #d8ecda;
     --item-danger: #da1313;
     --item-info: #d8ecda;
     --item-warning: #ffe9b2;
@@ -1013,7 +1013,7 @@ h6 {
 }
 
 .tc_success {
-    color: var(--item-success);
+    color: var(--main-green);
 }
 
 .tc_danger {

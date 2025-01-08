@@ -8,6 +8,7 @@ const database_1 = __importDefault(require("../../modules/database"));
 const exception_1 = __importDefault(require("../../modules/exception"));
 const tool_js_1 = __importDefault(require("../../modules/tool.js"));
 const shopping_1 = require("./shopping");
+const share_permission_1 = require("./share-permission");
 const typeConfig = {
     restocking: {
         name: '進貨',
@@ -80,7 +81,36 @@ const typeConfig = {
     checking: {
         name: '盤點',
         prefixId: 'PD',
-        status: {},
+        status: {
+            0: {
+                title: '已完成',
+                badge: 'info',
+            },
+            1: {
+                title: '已修正',
+                badge: 'info',
+            },
+            2: {
+                title: '待盤點',
+                badge: 'warning',
+            },
+            3: {
+                title: '盤點中',
+                badge: 'warning',
+            },
+            4: {
+                title: '已暫停',
+                badge: 'normal',
+            },
+            5: {
+                title: '異常',
+                badge: 'notify',
+            },
+            6: {
+                title: '已取消',
+                badge: 'notify',
+            },
+        },
     },
 };
 class Stock {
@@ -89,23 +119,28 @@ class Stock {
         this.token = token;
     }
     async productList(json) {
-        var _a, _b;
         const page = json.page ? parseInt(`${json.page}`, 10) : 0;
         const limit = json.limit ? parseInt(`${json.limit}`, 10) : 20;
         try {
+            const sqlArr = ['1=1'];
+            if (json.variant_id_list) {
+                sqlArr.push(`(v.id in (${json.variant_id_list}))`);
+            }
+            const sqlText = sqlArr.join(' AND ');
+            console.log(sqlArr);
             const getStockTotal = await database_1.default.query(`SELECT count(v.id) as c
                  FROM \`${this.app}\`.t_variants as v,
                       \`${this.app}\`.t_manager_post as p
-                 WHERE v.content ->>'$.stockList.${(_a = json.search) !== null && _a !== void 0 ? _a : 'store'}.count'
-                     > 0
+                 WHERE v.content ->>'$.stockList.${json.search || 'store'}.count' > 0
                    AND v.product_id = p.id
+                   AND ${sqlText}
                 `, []);
             let data = await database_1.default.query(`SELECT v.*, p.content as product_content
                  FROM \`${this.app}\`.t_variants as v,
                       \`${this.app}\`.t_manager_post as p
-                 WHERE v.content ->>'$.stockList.${(_b = json.search) !== null && _b !== void 0 ? _b : 'store'}.count'
-                     > 0
+                 WHERE v.content ->>'$.stockList.${json.search || 'store'}.count' > 0
                    AND v.product_id = p.id
+                   AND ${sqlText}
                      LIMIT ${page * limit}
                      , ${limit};
                 `, []);
@@ -314,6 +349,12 @@ class Stock {
         console.log(sqlArr);
         const sqlString = sqlArr.join(' AND ');
         try {
+            if (!this.token) {
+                return {
+                    total: 0,
+                    data: [],
+                };
+            }
             const getHistoryTotal = await database_1.default.query(`SELECT count(id) as c FROM \`${this.app}\`.t_stock_history
                 WHERE 1=1 AND ${sqlString}
                 `, []);
@@ -322,8 +363,17 @@ class Stock {
                     ORDER BY created_time DESC
                     LIMIT ${page * limit}, ${limit};
                 `, []);
+            const getPermission = (await new share_permission_1.SharePermission(this.app, this.token).getPermission({
+                page: 0,
+                limit: 9999,
+            }));
             data.map((rowData) => {
                 rowData.created_time = formatDate(rowData.created_time);
+                rowData.content.changeLogs.map((log) => {
+                    const findManager = getPermission.data.find((m) => `${m.user}` === `${log.user}`);
+                    log.user_name = findManager ? findManager.config.name : '';
+                    return log;
+                });
             });
             return {
                 total: getHistoryTotal[0].c,
@@ -340,9 +390,9 @@ class Stock {
     async postHistory(json) {
         console.log('postHistory');
         console.log(json);
-        const typeData = typeConfig[json.type];
-        console.log(typeData.name);
         try {
+            const typeData = typeConfig[json.type];
+            console.log(typeData.name);
             json.content.product_list.map((item) => {
                 delete item.title;
                 delete item.spec;
@@ -351,16 +401,16 @@ class Stock {
             });
             json.content.changeLogs = [
                 {
-                    time: tool_js_1.default.convertDateTimeFormat(),
+                    time: tool_js_1.default.getCurrentDateTime(),
                     status: json.status,
                     text: `${typeData.name}單建立`,
-                    user: '',
+                    user: this.token ? this.token.userID : 0,
                 },
                 {
-                    time: tool_js_1.default.convertDateTimeFormat(),
+                    time: tool_js_1.default.getCurrentDateTime({ addSeconds: 1 }),
                     status: json.status,
                     text: `${typeData.name}單狀態改為「${typeData.status[json.status].title}」`,
-                    user: '',
+                    user: this.token ? this.token.userID : 0,
                 },
             ];
             const formatJson = JSON.parse(JSON.stringify(json));
@@ -370,7 +420,7 @@ class Stock {
             delete formatJson.id;
             await database_1.default.query(`INSERT INTO \`${this.app}\`.\`t_stock_history\` SET ?;
                 `, [formatJson]);
-            return { data: true };
+            return { data: formatJson };
         }
         catch (error) {
             console.error(error);
@@ -383,6 +433,9 @@ class Stock {
         console.log('putHistory');
         console.log(json);
         try {
+            if (!this.token) {
+                return { data: false };
+            }
             const typeData = typeConfig[json.type];
             json.content.product_list.map((item) => {
                 delete item.title;
@@ -390,15 +443,15 @@ class Stock {
                 delete item.sku;
                 return item;
             });
-            const getHistory = await database_1.default.query(`SELECT * FROM \`${this.app}\`.t_stock_history WHERE id = ?;
-                `, [json.id]);
-            if (getHistory && getHistory[0]) {
+            const getHistory = await database_1.default.query(`SELECT * FROM \`${this.app}\`.t_stock_history WHERE order_id = ?;
+                `, [json.order_id]);
+            if (getHistory && getHistory.length === 1) {
                 const originData = getHistory[0];
                 json.content.changeLogs.push({
-                    time: tool_js_1.default.convertDateTimeFormat(),
+                    time: tool_js_1.default.getCurrentDateTime(),
                     status: json.status,
                     text: `進貨單狀態改為「${typeData.status[json.status].title}」`,
-                    user: '',
+                    user: this.token.userID,
                     product_list: (() => {
                         if (json.status === 1 || json.status === 5) {
                             const originList = originData.content.product_list;
@@ -417,8 +470,10 @@ class Stock {
                 });
                 const formatJson = JSON.parse(JSON.stringify(json));
                 formatJson.content = JSON.stringify(json.content);
-                await database_1.default.query(`UPDATE \`${this.app}\`.t_stock_history SET ? WHERE id = ?
-                    `, [formatJson, json.id]);
+                delete formatJson.id;
+                await database_1.default.query(`UPDATE \`${this.app}\`.t_stock_history SET ? WHERE order_id = ?
+                    `, [formatJson, json.order_id]);
+                return { data: true };
             }
             return { data: false };
         }

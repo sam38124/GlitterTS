@@ -15,6 +15,7 @@ router.get('/store/productList', async (req, resp) => {
                 page: req.query.page ? `${req.query.page}` : '0',
                 limit: req.query.limit ? `${req.query.limit}` : '20',
                 search: req.query.search,
+                variant_id_list: req.query.variant_id_list,
             }));
         }
         else {

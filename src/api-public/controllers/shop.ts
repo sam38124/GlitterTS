@@ -13,8 +13,8 @@ import { Post } from '../services/post.js';
 import { Shopping, VoucherData } from '../services/shopping';
 import { Rebate, IRebateSearch } from '../services/rebate';
 import axios from 'axios';
-import {saasConfig} from "../../config.js";
-import {Stock} from "../services/stock.js";
+import { saasConfig } from '../../config.js';
+import { Stock } from '../services/stock.js';
 
 const router: express.Router = express.Router();
 export = router;
@@ -36,7 +36,7 @@ router.post('/worker', async (req: express.Request, resp: express.Response) => {
 //多國貨幣
 router.get('/currency-covert', async (req: express.Request, resp: express.Response) => {
     try {
-        return response.succ(resp, { data:await Shopping.currencyCovert((req.query.base || 'TWD') as string)});
+        return response.succ(resp, { data: await Shopping.currencyCovert((req.query.base || 'TWD') as string) });
     } catch (err) {
         return response.fail(resp, err);
     }
@@ -149,7 +149,7 @@ router.post('/checkout', async (req: express.Request, resp: express.Response) =>
                         return 0;
                     }
                 })(),
-                custom_receipt_form:req.body.custom_receipt_form,
+                custom_receipt_form: req.body.custom_receipt_form,
                 custom_form_format: req.body.custom_form_format,
                 custom_form_data: req.body.custom_form_data,
                 distribution_code: req.body.distribution_code,
@@ -185,7 +185,7 @@ router.post('/checkout/preview', async (req: express.Request, resp: express.Resp
             await new Shopping(req.get('g-app') as string, req.body.token).toCheckout(
                 {
                     line_items: req.body.line_items as any,
-                    email: (req.body.checkOutType === 'POS') ? undefined:((req.body.token && req.body.token.account) || req.body.email),
+                    email: req.body.checkOutType === 'POS' ? undefined : (req.body.token && req.body.token.account) || req.body.email,
                     return_url: req.body.return_url,
                     user_info: req.body.user_info,
                     code: req.body.code,
@@ -613,8 +613,7 @@ async function redirect_link(req: express.Request, resp: express.Response) {
                 await new Shopping(req.query.appName as string).releaseCheckout(1, req.query.orderID as string);
             }
         }
-        if (req.query.paynow === 'true'){
-
+        if (req.query.paynow === 'true') {
         }
         const html = String.raw;
         return resp.send(html`<!DOCTYPE html>
@@ -810,7 +809,7 @@ router.get('/dataAnalyze', async (req: express.Request, resp: express.Response) 
     try {
         const tags = `${req.query.tags}`;
         if (await UtPermission.isManager(req)) {
-            return response.succ(resp, await new Shopping(req.get('g-app') as string, req.body.token).getDataAnalyze(tags.split(','),req.query.query));
+            return response.succ(resp, await new Shopping(req.get('g-app') as string, req.body.token).getDataAnalyze(tags.split(','), req.query.query));
         } else {
             throw exception.BadRequestError('BAD_REQUEST', 'No permission.', null);
         }
@@ -824,6 +823,17 @@ router.get('/collection/products', async (req: express.Request, resp: express.Re
     try {
         if (await UtPermission.isManager(req)) {
             return response.succ(resp, await new Shopping(req.get('g-app') as string, req.body.token).getCollectionProducts(`${req.query.tag}`));
+        } else {
+            throw exception.BadRequestError('BAD_REQUEST', 'No permission.', null);
+        }
+    } catch (err) {
+        return response.fail(resp, err);
+    }
+});
+router.get('/collection/product/variants', async (req: express.Request, resp: express.Response) => {
+    try {
+        if (await UtPermission.isManager(req)) {
+            return response.succ(resp, await new Shopping(req.get('g-app') as string, req.body.token).getCollectionProductVariants(`${req.query.tag}`));
         } else {
             throw exception.BadRequestError('BAD_REQUEST', 'No permission.', null);
         }
@@ -915,7 +925,7 @@ router.get('/product', async (req: express.Request, resp: express.Response) => {
             productType: req.query.productType as any,
             filter_visible: req.query.filter_visible as any,
             language: req.headers['language'] as string,
-            currency_code:req.headers['currency_code'] as string
+            currency_code: req.headers['currency_code'] as string,
         });
         return response.succ(resp, shopping);
     } catch (err) {
@@ -1068,7 +1078,7 @@ router.post('/pos/checkout', async (req: express.Request, resp: express.Response
                     total: req.body.total,
                     pay_status: req.body.pay_status,
                     code_array: req.body.code_array,
-                    pos_info:req.body.pos_info
+                    pos_info: req.body.pos_info,
                 },
                 'POS'
             )

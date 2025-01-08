@@ -20,6 +20,7 @@ router.get('/store/productList', async (req: express.Request, resp: express.Resp
                     page: req.query.page ? `${req.query.page}` : '0',
                     limit: req.query.limit ? `${req.query.limit}` : '20',
                     search: req.query.search as string,
+                    variant_id_list: req.query.variant_id_list as string,
                 })
             );
         } else {

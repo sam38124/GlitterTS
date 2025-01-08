@@ -9,6 +9,9 @@ import Tool from '../../modules/tool.js';
 import process from 'process';
 import { IToken } from '../models/Auth.js';
 import { Shopping } from './shopping';
+import { saasConfig } from '../../config';
+import { ManagerNotify } from './notify';
+import { SharePermission } from './share-permission';
 
 type StockList = {
     [key: string]: { count: number };
@@ -38,19 +41,18 @@ type StockHistoryData = {
     content: {
         vendor: string;
         store_in: string; // 調入庫存點
-        store_in_name?: string; // 調入庫存點名稱
-        store_out: string; // 調出庫存點
-        store_out_name?: string; // 調出庫存點名稱
+        store_out: string; // 調出庫存點、盤點庫存點
         check_member: string; // 盤點人
-        check_according: 'all' | 'collection' | 'product'; // 商品盤點類型
+        check_according: '' | 'all' | 'collection' | 'product'; // 商品盤點類型
         note: string;
         total_price?: number;
         product_list: ContentProduct[];
         changeLogs: {
             time: string;
             text: string;
-            user: string;
+            user: number;
             status: number;
+            user_name?: string;
             product_list?: ContentProduct[];
         }[];
     };
@@ -139,7 +141,36 @@ const typeConfig: {
     checking: {
         name: '盤點',
         prefixId: 'PD',
-        status: {},
+        status: {
+            0: {
+                title: '已完成',
+                badge: 'info',
+            },
+            1: {
+                title: '已修正',
+                badge: 'info',
+            },
+            2: {
+                title: '待盤點',
+                badge: 'warning',
+            },
+            3: {
+                title: '盤點中',
+                badge: 'warning',
+            },
+            4: {
+                title: '已暫停',
+                badge: 'normal',
+            },
+            5: {
+                title: '異常',
+                badge: 'notify',
+            },
+            6: {
+                title: '已取消',
+                badge: 'notify',
+            },
+        },
     },
 };
 
@@ -152,18 +183,24 @@ export class Stock {
         this.token = token;
     }
 
-    async productList(json: { page: string; limit: string; search: string }) {
+    async productList(json: { page: string; limit: string; search: string; variant_id_list?: string }) {
         const page = json.page ? parseInt(`${json.page}`, 10) : 0;
         const limit = json.limit ? parseInt(`${json.limit}`, 10) : 20;
 
         try {
+            const sqlArr = ['1=1'];
+            if (json.variant_id_list) {
+                sqlArr.push(`(v.id in (${json.variant_id_list}))`);
+            }
+            const sqlText = sqlArr.join(' AND ');
+
             const getStockTotal = await db.query(
                 `SELECT count(v.id) as c
                  FROM \`${this.app}\`.t_variants as v,
                       \`${this.app}\`.t_manager_post as p
-                 WHERE v.content ->>'$.stockList.${json.search ?? 'store'}.count'
-                     > 0
+                 WHERE v.content ->>'$.stockList.${json.search || 'store'}.count' > 0
                    AND v.product_id = p.id
+                   AND ${sqlText}
                 `,
                 []
             );
@@ -172,9 +209,9 @@ export class Stock {
                 `SELECT v.*, p.content as product_content
                  FROM \`${this.app}\`.t_variants as v,
                       \`${this.app}\`.t_manager_post as p
-                 WHERE v.content ->>'$.stockList.${json.search ?? 'store'}.count'
-                     > 0
+                 WHERE v.content ->>'$.stockList.${json.search || 'store'}.count' > 0
                    AND v.product_id = p.id
+                   AND ${sqlText}
                      LIMIT ${page * limit}
                      , ${limit};
                 `,
@@ -437,10 +474,16 @@ export class Stock {
             sqlArr.push(`(order_id = '${json.order_id}')`);
         }
 
-        console.log(sqlArr);
         const sqlString = sqlArr.join(' AND ');
 
         try {
+            if (!this.token) {
+                return {
+                    total: 0,
+                    data: [],
+                };
+            }
+
             const getHistoryTotal = await db.query(
                 `SELECT count(id) as c FROM \`${this.app}\`.t_stock_history
                 WHERE 1=1 AND ${sqlString}
@@ -457,8 +500,18 @@ export class Stock {
                 []
             );
 
+            const getPermission = (await new SharePermission(this.app, this.token).getPermission({
+                page: 0,
+                limit: 9999,
+            })) as any;
+
             data.map((rowData: StockHistoryData) => {
                 rowData.created_time = formatDate(rowData.created_time);
+                rowData.content.changeLogs.map((log) => {
+                    const findManager = getPermission.data.find((m: any) => `${m.user}` === `${log.user}`);
+                    log.user_name = findManager ? findManager.config.name : '';
+                    return log;
+                });
             });
 
             return {
@@ -476,9 +529,9 @@ export class Stock {
     async postHistory(json: StockHistoryData) {
         console.log('postHistory');
         console.log(json);
-        const typeData = typeConfig[json.type];
-        console.log(typeData.name);
         try {
+            const typeData = typeConfig[json.type];
+
             json.content.product_list.map((item) => {
                 delete item.title;
                 delete item.spec;
@@ -487,16 +540,16 @@ export class Stock {
             });
             json.content.changeLogs = [
                 {
-                    time: Tool.convertDateTimeFormat(),
+                    time: Tool.getCurrentDateTime(),
                     status: json.status,
                     text: `${typeData.name}單建立`,
-                    user: '',
+                    user: this.token ? this.token.userID : 0,
                 },
                 {
-                    time: Tool.convertDateTimeFormat(),
+                    time: Tool.getCurrentDateTime({ addSeconds: 1 }),
                     status: json.status,
                     text: `${typeData.name}單狀態改為「${typeData.status[json.status].title}」`,
-                    user: '',
+                    user: this.token ? this.token.userID : 0,
                 },
             ];
 
@@ -512,7 +565,7 @@ export class Stock {
                 [formatJson]
             );
 
-            return { data: true };
+            return { data: formatJson };
         } catch (error) {
             console.error(error);
             if (error instanceof Error) {
@@ -526,6 +579,10 @@ export class Stock {
         console.log(json);
 
         try {
+            if (!this.token) {
+                return { data: false };
+            }
+
             const typeData = typeConfig[json.type];
             json.content.product_list.map((item) => {
                 delete item.title;
@@ -535,19 +592,19 @@ export class Stock {
             });
 
             const getHistory = await db.query(
-                `SELECT * FROM \`${this.app}\`.t_stock_history WHERE id = ?;
+                `SELECT * FROM \`${this.app}\`.t_stock_history WHERE order_id = ?;
                 `,
-                [json.id]
+                [json.order_id]
             );
 
-            if (getHistory && getHistory[0]) {
+            if (getHistory && getHistory.length === 1) {
                 const originData = getHistory[0] as StockHistoryData;
 
                 json.content.changeLogs.push({
-                    time: Tool.convertDateTimeFormat(),
+                    time: Tool.getCurrentDateTime(),
                     status: json.status,
                     text: `進貨單狀態改為「${typeData.status[json.status].title}」`,
-                    user: '',
+                    user: this.token.userID,
                     product_list: (() => {
                         if (json.status === 1 || json.status === 5) {
                             const originList = originData.content.product_list;
@@ -570,12 +627,14 @@ export class Stock {
 
                 const formatJson = JSON.parse(JSON.stringify(json));
                 formatJson.content = JSON.stringify(json.content);
+                delete formatJson.id;
 
                 await db.query(
-                    `UPDATE \`${this.app}\`.t_stock_history SET ? WHERE id = ?
+                    `UPDATE \`${this.app}\`.t_stock_history SET ? WHERE order_id = ?
                     `,
-                    [formatJson, json.id]
+                    [formatJson, json.order_id]
                 );
+                return { data: true };
             }
 
             return { data: false };

@@ -146,7 +146,7 @@ export declare class Shopping {
         type: string;
         divisor: number;
         executionTime: string;
-        queryStatus: "success" | "error";
+        queryStatus: "error" | "success";
         queryData: any;
     } | {
         type: string;
@@ -457,7 +457,8 @@ export declare class Shopping {
         countArrayPos: any[];
         countArrayWeb: any[];
     }>;
-    getCollectionProducts(tag: string): Promise<any>;
+    getCollectionProducts(tags: string): Promise<any>;
+    getCollectionProductVariants(tags: string): Promise<any>;
     putCollection(replace: Collection, original: Collection): Promise<{
         result: boolean;
         message: string;

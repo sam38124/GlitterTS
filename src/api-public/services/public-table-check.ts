@@ -513,7 +513,8 @@ export class ApiPublic {
   \`content\` json DEFAULT NULL,
   \`created_time\` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (\`id\`),
-  KEY \`index2\` (\`order_id\`)
+  KEY \`index2\` (\`order_id\`),
+  UNIQUE KEY \`order_id_UNIQUE\` (\`order_id\`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci`,
                 },
             ];

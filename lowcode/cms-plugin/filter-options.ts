@@ -589,7 +589,7 @@ export class FilterOptions {
     static stockHistoryFilterFrame = {};
 
     static stockHistorySelect = [
-        { key: 'order_id', value: '進貨單編號' },
+        { key: 'order_id', value: 'xxx單編號' },
         { key: 'note', value: '備註' },
     ];
 

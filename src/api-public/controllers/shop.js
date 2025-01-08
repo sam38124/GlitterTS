@@ -173,7 +173,7 @@ router.post('/checkout/preview', async (req, resp) => {
     try {
         return response_1.default.succ(resp, await new shopping_1.Shopping(req.get('g-app'), req.body.token).toCheckout({
             line_items: req.body.line_items,
-            email: (req.body.checkOutType === 'POS') ? undefined : ((req.body.token && req.body.token.account) || req.body.email),
+            email: req.body.checkOutType === 'POS' ? undefined : (req.body.token && req.body.token.account) || req.body.email,
             return_url: req.body.return_url,
             user_info: req.body.user_info,
             code: req.body.code,
@@ -739,6 +739,19 @@ router.get('/collection/products', async (req, resp) => {
         return response_1.default.fail(resp, err);
     }
 });
+router.get('/collection/product/variants', async (req, resp) => {
+    try {
+        if (await ut_permission_1.UtPermission.isManager(req)) {
+            return response_1.default.succ(resp, await new shopping_1.Shopping(req.get('g-app'), req.body.token).getCollectionProductVariants(`${req.query.tag}`));
+        }
+        else {
+            throw exception_1.default.BadRequestError('BAD_REQUEST', 'No permission.', null);
+        }
+    }
+    catch (err) {
+        return response_1.default.fail(resp, err);
+    }
+});
 router.put('/collection', async (req, resp) => {
     try {
         if (await ut_permission_1.UtPermission.isManager(req)) {
@@ -828,7 +841,7 @@ router.get('/product', async (req, resp) => {
             productType: req.query.productType,
             filter_visible: req.query.filter_visible,
             language: req.headers['language'],
-            currency_code: req.headers['currency_code']
+            currency_code: req.headers['currency_code'],
         });
         return response_1.default.succ(resp, shopping);
     }
@@ -977,7 +990,7 @@ router.post('/pos/checkout', async (req, resp) => {
             total: req.body.total,
             pay_status: req.body.pay_status,
             code_array: req.body.code_array,
-            pos_info: req.body.pos_info
+            pos_info: req.body.pos_info,
         }, 'POS'));
     }
     try {

@@ -141,7 +141,7 @@ class Shopping {
             if (`${query.id || ''}`) {
                 if (`${query.id}`.includes(',')) {
                     querySql.push(`id in (${query.id})`);
-                    console.log("query.id -- ", query.id);
+                    console.log('query.id -- ', query.id);
                 }
                 else {
                     querySql.push(`id = ${query.id}`);
@@ -446,14 +446,14 @@ class Shopping {
     }
     async linePay(data) {
         return new Promise(async (resolve, reject) => {
-            const keyData = ((await private_config_js_1.Private_config.getConfig({
+            const keyData = (await private_config_js_1.Private_config.getConfig({
                 appName: this.app,
                 key: 'glitter_finance',
-            }))[0].value).line_pay_scan;
+            }))[0].value.line_pay_scan;
             let config = {
                 method: 'post',
                 maxBodyLength: Infinity,
-                url: (keyData.BETA == 'true') ? 'https://sandbox-api-pay.line.me/v2/payments/oneTimeKeys/pay' : "https://api-pay.line.me/v2/payments/oneTimeKeys/pay",
+                url: keyData.BETA == 'true' ? 'https://sandbox-api-pay.line.me/v2/payments/oneTimeKeys/pay' : 'https://api-pay.line.me/v2/payments/oneTimeKeys/pay',
                 headers: {
                     'X-LINE-ChannelId': keyData.CLIENT_ID,
                     'X-LINE-ChannelSecret': keyData.SECRET,
@@ -679,7 +679,7 @@ class Shopping {
                 }),
                 use_wallet: 0,
                 method: data.user_info && data.user_info.method,
-                user_email: (userData && userData.account) || (data.email || ((data.user_info && data.user_info.email) || '')),
+                user_email: (userData && userData.account) || data.email || (data.user_info && data.user_info.email) || '',
                 useRebateInfo: { point: 0 },
                 custom_form_format: data.custom_form_format,
                 custom_form_data: data.custom_form_data,
@@ -689,7 +689,7 @@ class Shopping {
                 give_away: data.give_away,
                 user_rebate_sum: 0,
                 language: data.language,
-                pos_info: data.pos_info
+                pos_info: data.pos_info,
             };
             if (!data.user_info.name && userData && userData.userData) {
                 carData.user_info.name = userData.userData.name;
@@ -799,8 +799,7 @@ class Shopping {
                         }
                     }
                 }
-                catch (e) {
-                }
+                catch (e) { }
             }
             console.log(`checkout-time-7=>`, new Date().getTime() - check_time);
             carData.shipment_fee = (() => {
@@ -838,7 +837,7 @@ class Shopping {
                     limit: 99999,
                     code: data.distribution_code,
                     status: true,
-                    no_detail: true
+                    no_detail: true,
                 });
                 if (linkList.data.length > 0) {
                     const content = linkList.data[0].content;
@@ -869,8 +868,7 @@ class Shopping {
                             carData.lineItems.push(dd);
                         }
                     }
-                    catch (e) {
-                    }
+                    catch (e) { }
                 });
                 await this.checkVoucher(carData);
                 console.log(`checkout-time-check-voucher2=>`, new Date().getTime() - check_time);
@@ -951,9 +949,11 @@ class Shopping {
                     resolve();
                 }
             });
-            carData.payment_setting = glitter_finance_js_1.onlinePayArray.filter((dd) => {
+            carData.payment_setting = glitter_finance_js_1.onlinePayArray
+                .filter((dd) => {
                 return keyData[dd.key] && keyData[dd.key].toggle;
-            }).filter((dd) => {
+            })
+                .filter((dd) => {
                 if (carData.orderSource === 'POS') {
                     if (dd.key === 'ut_credit_card') {
                         dd.pwd = keyData[dd.key]['pwd'];
@@ -1698,7 +1698,7 @@ class Shopping {
                     if (data.orderData.orderStatus !== '-1') {
                         for (const new_line_item of data.orderData.lineItems) {
                             const og_line_items = origin[0].orderData.lineItems.find((dd) => {
-                                return (dd.id === new_line_item.id) && (dd.spec.join('') === new_line_item.spec.join(''));
+                                return dd.id === new_line_item.id && dd.spec.join('') === new_line_item.spec.join('');
                             });
                             for (const key of Object.keys(new_line_item.deduction_log)) {
                                 const u_ = new_line_item.deduction_log[key];
@@ -2176,9 +2176,13 @@ OR JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.orderStatus')) NOT IN (-99)) `);
         }
     }
     async updateVariantsWithSpec(data, product_id, spec) {
-        const sql = (spec.length > 0) ? `AND JSON_CONTAINS(content->'$.spec', JSON_ARRAY(${spec.map((data) => {
-            return `\"${data}\"`;
-        }).join(',')}));` : '';
+        const sql = spec.length > 0
+            ? `AND JSON_CONTAINS(content->'$.spec', JSON_ARRAY(${spec
+                .map((data) => {
+                return `\"${data}\"`;
+            })
+                .join(',')}));`
+            : '';
         try {
             await database_js_1.default.query(`UPDATE \`${this.app}\`.\`t_variants\`
                  SET ?
@@ -2191,7 +2195,7 @@ OR JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.orderStatus')) NOT IN (-99)) `);
             ]);
         }
         catch (e) {
-            console.log("error -- ", e);
+            console.log('error -- ', e);
         }
     }
     async calcVariantsStock(calc, stock_id, product_id, spec) {
@@ -2329,9 +2333,9 @@ OR JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.orderStatus')) NOT IN (-99)) `);
         return `${year}-${month}-${day} ${hours}:${minutes}`;
     }
     async getActiveRecentYear() {
-        const endDate = moment_1.default.tz("Asia/Taipei").toDate();
+        const endDate = moment_1.default.tz('Asia/Taipei').toDate();
         endDate.setMonth(endDate.getMonth() + 1, 1);
-        const startDate = moment_1.default.tz("Asia/Taipei").toDate();
+        const startDate = moment_1.default.tz('Asia/Taipei').toDate();
         startDate.setMonth(endDate.getMonth() - 12);
         const sql = `
             SELECT mac_address, created_time
@@ -2343,7 +2347,7 @@ OR JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.orderStatus')) NOT IN (-99)) `);
             GROUP BY id, mac_address
         `;
         const queryData = await database_js_1.default.query(sql, []);
-        const now = moment_1.default.tz("Asia/Taipei").toDate();
+        const now = moment_1.default.tz('Asia/Taipei').toDate();
         const dataList = Array.from({ length: 14 }, (_, index) => {
             const targetDate = now;
             targetDate.setDate(now.getDate() - index);
@@ -2351,7 +2355,7 @@ OR JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.orderStatus')) NOT IN (-99)) `);
             const month = targetDate.getMonth() + 1;
             const day = targetDate.getDate();
             const filteredData = queryData.filter((item) => {
-                const date = moment_1.default.tz(item.created_time, "UTC").clone().tz("Asia/Taipei").toDate();
+                const date = moment_1.default.tz(item.created_time, 'UTC').clone().tz('Asia/Taipei').toDate();
                 return date.getFullYear() === year && date.getMonth() + 1 === month;
             });
             const uniqueMacAddresses = new Set(filteredData.map((item) => item.mac_address));
@@ -2380,7 +2384,7 @@ OR JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.orderStatus')) NOT IN (-99)) `);
             GROUP BY id, mac_address
         `;
         const queryData = await database_js_1.default.query(sql, []);
-        const now = moment_1.default.tz("Asia/Taipei").toDate();
+        const now = moment_1.default.tz('Asia/Taipei').toDate();
         const dataList = Array.from({ length: 14 }, (_, index) => {
             const targetDate = now;
             targetDate.setDate(now.getDate() - index);
@@ -2388,7 +2392,7 @@ OR JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.orderStatus')) NOT IN (-99)) `);
             const month = targetDate.getMonth() + 1;
             const day = targetDate.getDate();
             const filteredData = queryData.filter((item) => {
-                const date = moment_1.default.tz(item.created_time, "UTC").clone().tz("Asia/Taipei").toDate();
+                const date = moment_1.default.tz(item.created_time, 'UTC').clone().tz('Asia/Taipei').toDate();
                 return date.getFullYear() === year && date.getMonth() + 1 === month && date.getDate() === day;
             });
             const uniqueMacAddresses = new Set(filteredData.map((item) => item.mac_address));
@@ -2617,8 +2621,11 @@ OR JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.orderStatus')) NOT IN (-99)) `);
                         const index = product_list.findIndex((item2) => item1.title === item2.title);
                         if (index === -1) {
                             product_list.push({
-                                title: item1.title, count: item1.count, preview_image: item1.preview_image,
-                                sale_price: item1.sale_price, pos_info: checkout.orderData.pos_info
+                                title: item1.title,
+                                count: item1.count,
+                                preview_image: item1.preview_image,
+                                sale_price: item1.sale_price,
+                                pos_info: checkout.orderData.pos_info,
                             });
                         }
                         else {
@@ -2734,7 +2741,7 @@ OR JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.orderStatus')) NOT IN (-99)) `);
                     .sort((a, b) => parseInt(a, 10) - parseInt(b, 10))
                     .map((dd) => {
                     return countArrayWeb[dd];
-                })
+                }),
             };
         }
         catch (e) {
@@ -2756,9 +2763,9 @@ OR JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.orderStatus')) NOT IN (-99)) `);
                         SELECT orderData
                         FROM \`${this.app}\`.t_checkout
                         WHERE
-                            MONTH (${convertTimeZone("created_time")}) = MONTH (DATE_SUB(${convertTimeZone('NOW()')}
+                            MONTH (${convertTimeZone('created_time')}) = MONTH (DATE_SUB(${convertTimeZone('NOW()')}
                             , INTERVAL ${index} MONTH))
-                          AND YEAR (${convertTimeZone("created_time")}) = YEAR (DATE_SUB(${convertTimeZone('NOW()')}
+                          AND YEAR (${convertTimeZone('created_time')}) = YEAR (DATE_SUB(${convertTimeZone('NOW()')}
                             , INTERVAL ${index} MONTH))
                           AND status = 1;
                     `;
@@ -2800,7 +2807,7 @@ OR JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.orderStatus')) NOT IN (-99)) `);
                     .sort((a, b) => parseInt(a, 10) - parseInt(b, 10))
                     .map((dd) => {
                     return countArrayWeb[dd];
-                })
+                }),
             };
         }
         catch (e) {
@@ -2866,7 +2873,7 @@ OR JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.orderStatus')) NOT IN (-99)) `);
                     .sort((a, b) => parseInt(a, 10) - parseInt(b, 10))
                     .map((dd) => {
                     return countArrayWeb[dd];
-                })
+                }),
             };
         }
         catch (e) {
@@ -2934,7 +2941,7 @@ OR JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.orderStatus')) NOT IN (-99)) `);
                     .sort((a, b) => parseInt(a, 10) - parseInt(b, 10))
                     .map((dd) => {
                     return countArrayWeb[dd];
-                })
+                }),
             };
         }
         catch (e) {
@@ -2980,9 +2987,9 @@ OR JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.orderStatus')) NOT IN (-99)) `);
                             }
                             total += parseInt(checkout.orderData.total, 10);
                         });
-                        countArrayPos[index] = (Math.floor((total_pos / pos_count)));
-                        countArrayWeb[index] = (Math.floor((total_web / web_count)));
-                        countArray[index] = (Math.floor((total / data.length)));
+                        countArrayPos[index] = Math.floor(total_pos / pos_count);
+                        countArrayWeb[index] = Math.floor(total_web / web_count);
+                        countArray[index] = Math.floor(total / data.length);
                         if (pass === 12) {
                             resolve(true);
                         }
@@ -3004,7 +3011,7 @@ OR JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.orderStatus')) NOT IN (-99)) `);
                     .sort((a, b) => parseInt(a, 10) - parseInt(b, 10))
                     .map((dd) => {
                     return countArrayWeb[dd];
-                })
+                }),
             };
         }
         catch (e) {
@@ -3052,9 +3059,9 @@ OR JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.orderStatus')) NOT IN (-99)) `);
                             }
                             total += parseInt(checkout.orderData.total, 10);
                         });
-                        countArrayPos[index] = (Math.floor((total_pos / pos_count)));
-                        countArrayWeb[index] = (Math.floor((total_web / web_count)));
-                        countArray[index] = (Math.floor((total / data.length)));
+                        countArrayPos[index] = Math.floor(total_pos / pos_count);
+                        countArrayWeb[index] = Math.floor(total_web / web_count);
+                        countArray[index] = Math.floor(total / data.length);
                         if (pass === 14) {
                             resolve(true);
                         }
@@ -3076,20 +3083,56 @@ OR JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.orderStatus')) NOT IN (-99)) `);
                     .sort((a, b) => parseInt(a, 10) - parseInt(b, 10))
                     .map((dd) => {
                     return countArrayWeb[dd];
-                })
+                }),
             };
         }
         catch (e) {
             throw exception_js_1.default.BadRequestError('BAD_REQUEST', 'getRecentActiveUser Error:' + e, null);
         }
     }
-    async getCollectionProducts(tag) {
+    async getCollectionProducts(tags) {
         try {
             const products_sql = `SELECT *
                                   FROM \`${this.app}\`.t_manager_post
                                   WHERE JSON_EXTRACT(content, '$.type') = 'product';`;
             const products = await database_js_1.default.query(products_sql, []);
-            return products.filter((product) => product.content.collection.includes(tag));
+            const tagArray = tags.split(',');
+            return products.filter((product) => {
+                return tagArray.some((tag) => product.content.collection.includes(tag));
+            });
+        }
+        catch (e) {
+            throw exception_js_1.default.BadRequestError('BAD_REQUEST', 'getCollectionProducts Error:' + e, null);
+        }
+    }
+    async getCollectionProductVariants(tags) {
+        try {
+            const products_sql = `SELECT *
+                                  FROM \`${this.app}\`.t_manager_post
+                                  WHERE JSON_EXTRACT(content, '$.type') = 'product';`;
+            const products = await database_js_1.default.query(products_sql, []);
+            const tagArray = tags.split(',');
+            const filterProducts = products.filter((product) => {
+                return tagArray.some((tag) => product.content.collection.includes(tag));
+            });
+            if (filterProducts.length === 0) {
+                return [];
+            }
+            const sql = `
+                SELECT v.id,
+                        v.product_id,
+                        v.content as variant_content,
+                        p.content as product_content,
+                        CAST(JSON_EXTRACT(v.content, '$.stock') AS UNSIGNED) as stock
+                FROM \`${this.app}\`.t_variants AS v
+                        JOIN
+                    \`${this.app}\`.t_manager_post AS p ON v.product_id = p.id
+                WHERE product_id in (${filterProducts.map((item) => item.id).join(',')})
+                ORDER BY id DESC
+            `;
+            console.log(sql);
+            const data = await database_js_1.default.query(sql, []);
+            return data;
         }
         catch (e) {
             throw exception_js_1.default.BadRequestError('BAD_REQUEST', 'getCollectionProducts Error:' + e, null);
@@ -3421,7 +3464,7 @@ OR JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.orderStatus')) NOT IN (-99)) `);
                 await this.updateCollectionFromUpdateProduct(content.collection);
             }
             let productArray = content.data;
-            await (Promise.all(productArray.map((product, index) => {
+            await Promise.all(productArray.map((product, index) => {
                 return new Promise(async (resolve, reject) => {
                     product.type = 'product';
                     if (product.id) {
@@ -3449,8 +3492,12 @@ OR JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.orderStatus')) NOT IN (-99)) `);
                     }
                     resolve(true);
                 });
+<<<<<<< HEAD
             })));
             let max_id = (await database_js_1.default.query(`select max(id) from \`${this.app}\`.t_manager_post`, []))[0]['max(id)'];
+=======
+            }));
+>>>>>>> e845017f (update: stocking history UI & event)
             const data = await database_js_1.default.query(`replace
                 INTO \`${this.app}\`.\`t_manager_post\` (id,userID,content) values ?`, [
                 productArray.map((product) => {
