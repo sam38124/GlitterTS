@@ -450,7 +450,6 @@ export class StockHistory {
             type: 'all',
         };
         function checkSpecTable(page, limit) {
-            console.log('checkSpecTable(has icon)');
             const x = (page - 1) * limit;
             const specs = vm.data.content.product_list.slice(x, x + limit);
             return specs.map((dd, index) => {
@@ -621,7 +620,7 @@ export class StockHistory {
                                         if (realData.recent_count === undefined) {
                                             return '';
                                         }
-                                        if (realData.transfer_count !== realData.recent_count) {
+                                        if (realData.transfer_count != realData.recent_count) {
                                             return html `<i class="fa-light fa-circle-exclamation"></i>`;
                                         }
                                         return html `<i class="fa-solid fa-circle-check"></i>`;
@@ -633,14 +632,14 @@ export class StockHistory {
             });
         }
         return BgWidget.container(html `
-                <div class="title-container">
-                    ${BgWidget.goBack(gvc.event(() => {
+            <div class="title-container">
+                ${BgWidget.goBack(gvc.event(() => {
             vm.view = 'replace';
         }))}${BgWidget.title(`${typeData.name}核對`)}
-                    <div class="flex-fill"></div>
-                </div>
-                <div class="title-container">
-                    ${BgWidget.tab([
+                <div class="flex-fill"></div>
+            </div>
+            <div class="title-container">
+                ${BgWidget.tab([
             {
                 title: '全部',
                 key: 'all',
@@ -661,8 +660,8 @@ export class StockHistory {
             cvm.type = text;
             gvc.notifyDataChange(vm.id);
         }, 'margin: 24px 0 0 0;')}
-                </div>
-                ${BgWidget.container(BgWidget.mainCard([
+            </div>
+            ${BgWidget.container(BgWidget.mainCard([
             (() => {
                 const id = gvc.glitter.getUUID();
                 return gvc.bindView({
@@ -689,15 +688,15 @@ export class StockHistory {
                         const filterTags = ListComp.getFilterTags(FilterOptions.userFunnel);
                         if (document.body.clientWidth < 768) {
                             return html ` <div style="display: flex; align-items: center; gap: 10px; width: 100%; justify-content: space-between">
-                                                    <div>${filterList[0]}</div>
-                                                    <div style="display: flex;">${filterList[2] ? `<div class="me-2">${filterList[2]}</div>` : ''} ${(_a = filterList[3]) !== null && _a !== void 0 ? _a : ''}</div>
-                                                </div>
-                                                <div style="display: flex; margin-top: 8px;">${filterList[1]}</div>
-                                                <div>${filterTags}</div>`;
+                                                <div>${filterList[0]}</div>
+                                                <div style="display: flex;">${filterList[2] ? `<div class="me-2">${filterList[2]}</div>` : ''} ${(_a = filterList[3]) !== null && _a !== void 0 ? _a : ''}</div>
+                                            </div>
+                                            <div style="display: flex; margin-top: 8px;">${filterList[1]}</div>
+                                            <div>${filterTags}</div>`;
                         }
                         else {
                             return html ` <div style="display: flex; align-items: center; gap: 10px;">${filterList.join('')}</div>
-                                                <div>${filterTags}</div>`;
+                                            <div>${filterTags}</div>`;
                         }
                     },
                 });
@@ -729,7 +728,7 @@ export class StockHistory {
                             vm.data.content.product_list = response;
                             vm.data.content.product_list.map((item1) => {
                                 const variant = variants.find((item2) => item1.variant_id === item2.id);
-                                item1.stock = variant ? variant.count : 0;
+                                item1.stock = variant ? parseInt(variant.count, 10) : 0;
                                 return item1;
                             });
                             vmi.pageSize = Math.ceil(response.length / limit);
@@ -745,8 +744,8 @@ export class StockHistory {
                 hiddenPageSplit: true,
             }),
         ].join('')))}
-                ${BgWidget.mbContainer(240)}
-                ${gvc.bindView({
+            ${BgWidget.mbContainer(240)}
+            ${gvc.bindView({
             bind: cvm.buttonsId,
             view: () => {
                 return this.getButtonBar(gvc, vm);
@@ -755,7 +754,7 @@ export class StockHistory {
                 class: 'update-bar-container',
             },
         })}
-            `);
+        `);
     }
     static getFormStructure(gvc, vm, dvm) {
         const glitter = gvc.glitter;
@@ -1429,7 +1428,7 @@ export class StockHistory {
                                                                 this.setVariantList(dvm.variantIds, vm.data, (response) => {
                                                                     response.map((item1) => {
                                                                         const stockData = responseArray.find((item2) => item1.variant_id === item2.id);
-                                                                        item1.stock = stockData ? stockData.count : 0;
+                                                                        item1.stock = stockData ? parseInt(stockData.count, 10) : 0;
                                                                         return item1;
                                                                     });
                                                                     vm.data.content.product_list = response;
@@ -2024,7 +2023,6 @@ export class StockHistory {
         });
     }
     static checkingDetailTable(json) {
-        console.log('checkingDetailTable(no icon)');
         const x = (json.page - 1) * json.limit;
         return json.list.slice(x, x + json.limit).map((dd) => {
             const startArr = [
@@ -2186,7 +2184,7 @@ export class StockHistory {
                                             case 'transfer':
                                                 vm.data.content.product_list.map((item1) => {
                                                     const stockData = responseArray.find((item2) => item1.variant_id === item2.id);
-                                                    item1.stock = stockData ? stockData.count : 0;
+                                                    item1.stock = stockData ? parseInt(stockData.count, 10) : 0;
                                                     return item1;
                                                 });
                                                 if ([0, 1, 2].includes(vm.data.status)) {
@@ -2209,7 +2207,7 @@ export class StockHistory {
                                             case 'checking':
                                                 vm.data.content.product_list.map((item1) => {
                                                     const stockData = responseArray.find((item2) => item1.variant_id === item2.id);
-                                                    item1.stock = stockData ? stockData.count : 0;
+                                                    item1.stock = stockData ? parseInt(stockData.count, 10) : 0;
                                                     return item1;
                                                 });
                                                 vmi.tableData = this.checkingDetailTable({
@@ -2634,7 +2632,7 @@ export class StockHistory {
                 const diffVariants = data.content.product_list.filter((item1) => {
                     const variant = variants.find((item2) => item1.variant_id === item2.id);
                     if (variant && variant.count !== item1.transfer_count) {
-                        item1.stock = variant.count;
+                        item1.stock = parseInt(variant.count, 10);
                         return true;
                     }
                     return false;
@@ -2910,7 +2908,8 @@ export class StockHistory {
                             let vmi = undefined;
                             return [
                                 BgWidget.grayNote(html `以下商品在盤點期間內有銷售等變動，導致實際庫存已發生變化。<br />
-                                                最終庫存數量將依此公式調整：原盤點數量 + 庫存變動數量`),
+                                                最終庫存數量將依此公式調整：<span style="font-weight: 700">原盤點數量 + 庫存變動數量</span><br />
+                                                若最終庫存數量小於0，該商品規格庫存調整成0，盤點單顯示負數`),
                                 BgWidget.tableV3({
                                     gvc: gvc,
                                     getData: (vd) => {

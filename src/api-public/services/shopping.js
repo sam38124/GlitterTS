@@ -391,7 +391,8 @@ class Shopping {
                           v.product_id,
                           v.content as                                            variant_content,
                           p.content as                                            product_content,
-                          CAST(JSON_EXTRACT(v.content, '$.stock') AS UNSIGNED) as stock
+                          CAST(JSON_EXTRACT(v.content, '$.stock') AS UNSIGNED) as stock,
+                          JSON_EXTRACT(v.content, '$.stockList') as stockList
                    FROM \`${this.app}\`.t_variants AS v
                             JOIN
                         \`${this.app}\`.t_manager_post AS p ON v.product_id = p.id
@@ -3130,7 +3131,6 @@ OR JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.orderStatus')) NOT IN (-99)) `);
                 WHERE product_id in (${filterProducts.map((item) => item.id).join(',')})
                 ORDER BY id DESC
             `;
-            console.log(sql);
             const data = await database_js_1.default.query(sql, []);
             return data;
         }

@@ -587,7 +587,7 @@ overflow: hidden;
             return {
                 bind: ids.stock_count,
                 view: () => {
-                    const variant = prod.variants.find((item) => PdClass.ObjCompare(item.spec, vm.specs));
+                    const variant = prod.variants.find((item) => PdClass.ObjCompare(item.spec.sort(), vm.specs.sort()));
                     if ((variant === null || variant === void 0 ? void 0 : variant.show_understocking) !== 'false') {
                         return html `<div class="${`${variant === null || variant === void 0 ? void 0 : variant.stock}` === '0' ? `text-danger` : ``} fw-500 mt-2" style="font-size:14px;color:${titleFontColor};">
                                         ${Language.text('stock_count')}：${variant === null || variant === void 0 ? void 0 : variant.stock}

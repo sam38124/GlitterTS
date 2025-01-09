@@ -386,8 +386,6 @@ class Stock {
         }
     }
     async postHistory(json) {
-        console.log('postHistory');
-        console.log(json);
         try {
             const typeData = typeConfig[json.type];
             json.content.product_list.map((item) => {
@@ -427,52 +425,89 @@ class Stock {
         }
     }
     async putHistory(json) {
-        console.log('putHistory');
-        console.log(json);
         try {
             if (!this.token) {
                 return { data: false };
             }
             const typeData = typeConfig[json.type];
+            const getHistory = await database_1.default.query(`SELECT * FROM \`${this.app}\`.t_stock_history WHERE order_id = ?;
+                `, [json.order_id]);
+            if (!getHistory || getHistory.length !== 1) {
+                return { data: false };
+            }
+            const originHistory = getHistory[0];
             json.content.product_list.map((item) => {
                 delete item.title;
                 delete item.spec;
                 delete item.sku;
                 return item;
             });
-            const getHistory = await database_1.default.query(`SELECT * FROM \`${this.app}\`.t_stock_history WHERE order_id = ?;
-                `, [json.order_id]);
-            if (getHistory && getHistory.length === 1) {
-                const originData = getHistory[0];
-                json.content.changeLogs.push({
-                    time: tool_js_1.default.getCurrentDateTime(),
-                    status: json.status,
-                    text: `進貨單狀態改為「${typeData.status[json.status].title}」`,
-                    user: this.token.userID,
-                    product_list: (() => {
-                        if (json.status === 1 || json.status === 5) {
-                            const originList = originData.content.product_list;
-                            const updateList = JSON.parse(JSON.stringify(json.content.product_list));
-                            return updateList.map((item1) => {
-                                var _a, _b;
-                                const originVariant = originList.find((item2) => item1.variant_id === item2.variant_id);
-                                if (originVariant) {
-                                    return Object.assign({ replenishment_count: ((_a = item1.recent_count) !== null && _a !== void 0 ? _a : 0) - ((_b = originVariant.recent_count) !== null && _b !== void 0 ? _b : 0) }, item1);
-                                }
-                                return item1;
-                            });
-                        }
-                        return undefined;
-                    })(),
+            json.content.changeLogs.push({
+                time: tool_js_1.default.getCurrentDateTime(),
+                status: json.status,
+                text: `進貨單狀態改為「${typeData.status[json.status].title}」`,
+                user: this.token.userID,
+                product_list: (() => {
+                    if (json.status === 1 || json.status === 5) {
+                        const originList = originHistory.content.product_list;
+                        const updateList = JSON.parse(JSON.stringify(json.content.product_list));
+                        return updateList.map((item1) => {
+                            var _a, _b;
+                            const originVariant = originList.find((item2) => item1.variant_id === item2.variant_id);
+                            if (originVariant) {
+                                return Object.assign({ replenishment_count: ((_a = item1.recent_count) !== null && _a !== void 0 ? _a : 0) - ((_b = originVariant.recent_count) !== null && _b !== void 0 ? _b : 0) }, item1);
+                            }
+                            return item1;
+                        });
+                    }
+                    return undefined;
+                })(),
+            });
+            const formatJson = JSON.parse(JSON.stringify(json));
+            formatJson.content = JSON.stringify(json.content);
+            delete formatJson.id;
+            if (json.status === 0 || json.status === 1) {
+                const _shop = new shopping_1.Shopping(this.app, this.token);
+                const variants = await _shop.getVariants({
+                    page: 0,
+                    limit: 9999,
+                    id_list: json.content.product_list.map((item) => item.variant_id).join(','),
                 });
-                const formatJson = JSON.parse(JSON.stringify(json));
-                formatJson.content = JSON.stringify(json.content);
-                delete formatJson.id;
-                await database_1.default.query(`UPDATE \`${this.app}\`.t_stock_history SET ? WHERE order_id = ?
-                    `, [formatJson, json.order_id]);
-                return { data: true };
+                const dataList = [];
+                const createStockEntry = (type, store, variant, item, vp, vc) => {
+                    var _a;
+                    return (Object.assign({ id: variant.id, product_id: variant.product_id }, Stock.formatStockContent({
+                        type,
+                        store,
+                        count: (_a = item.recent_count) !== null && _a !== void 0 ? _a : 0,
+                        product_content: vp,
+                        variant_content: vc,
+                    })));
+                };
+                for (const variant of variants.data) {
+                    const item = json.content.product_list.find((item) => item.variant_id === variant.id);
+                    const vp = variant.product_content;
+                    const vc = variant.variant_content;
+                    if (item) {
+                        const { type, content } = json;
+                        const { store_in, store_out } = content;
+                        if (type === 'restocking') {
+                            dataList.push(createStockEntry('plus', store_in, variant, item, vp, vc));
+                        }
+                        else if (type === 'transfer') {
+                            dataList.push(createStockEntry('plus', store_in, variant, item, vp, vc));
+                            dataList.push(createStockEntry('minus', store_out, variant, item, vp, vc));
+                        }
+                        else if (type === 'checking') {
+                            dataList.push(createStockEntry('equal', store_out, variant, item, vp, vc));
+                        }
+                    }
+                }
+                await _shop.putVariants(dataList);
             }
-            return { data: false };
+            await database_1.default.query(`UPDATE \`${this.app}\`.t_stock_history SET ? WHERE order_id = ?
+                `, [formatJson, json.order_id]);
+            return { data: true };
         }
         catch (error) {
             console.error(error);
@@ -480,6 +515,52 @@ class Stock {
                 throw exception_1.default.BadRequestError('stock postHistory Error: ', error.message, null);
             }
         }
+    }
+    static formatStockContent(data) {
+        const type = data.type;
+        const store = data.store;
+        const count = data.count;
+        const product_content = data.product_content;
+        const variant_content = data.variant_content;
+        const stockList = variant_content.stockList;
+        if (stockList[store]) {
+            if (type === 'plus') {
+                if (stockList[store].count) {
+                    stockList[store].count += count;
+                }
+                else {
+                    stockList[store].count = count;
+                }
+            }
+            else if (type === 'minus') {
+                if (stockList[store].count) {
+                    stockList[store].count -= count;
+                }
+                else {
+                    stockList[store].count = 0;
+                }
+            }
+            else {
+                stockList[store].count = count > 0 ? count : 0;
+            }
+        }
+        variant_content.stock = Object.keys(stockList).reduce((sum, key) => {
+            if (stockList[key] && stockList[key].count) {
+                return sum + stockList[key].count;
+            }
+            return sum;
+        }, 0);
+        const producrVariant = product_content.variants.find((item) => {
+            return item.spec.sort().join(',') === variant_content.spec.sort().join(',');
+        });
+        if (producrVariant) {
+            producrVariant.stockList = variant_content.stockList;
+            producrVariant.stock = variant_content.stock;
+        }
+        return {
+            product_content,
+            variant_content,
+        };
     }
     async deleteHistory(json) {
         try {

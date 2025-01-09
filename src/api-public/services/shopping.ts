@@ -638,7 +638,8 @@ export class Shopping {
                           v.product_id,
                           v.content as                                            variant_content,
                           p.content as                                            product_content,
-                          CAST(JSON_EXTRACT(v.content, '$.stock') AS UNSIGNED) as stock
+                          CAST(JSON_EXTRACT(v.content, '$.stock') AS UNSIGNED) as stock,
+                          JSON_EXTRACT(v.content, '$.stockList') as stockList
                    FROM \`${this.app}\`.t_variants AS v
                             JOIN
                         \`${this.app}\`.t_manager_post AS p ON v.product_id = p.id
@@ -3899,7 +3900,7 @@ OR JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.orderStatus')) NOT IN (-99)) `);
                 WHERE product_id in (${filterProducts.map((item: { id: number }) => item.id).join(',')})
                 ORDER BY id DESC
             `;
-            console.log(sql);
+
             const data = await db.query(sql, []);
             return data;
         } catch (e) {
@@ -4286,8 +4287,7 @@ OR JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.orderStatus')) NOT IN (-99)) `);
 
     async postMulProduct(content: any) {
         try {
-
-            const store_info=await new User(this.app).getConfigV2({
+            const store_info = await new User(this.app).getConfigV2({
                 key: 'store-information',
                 user_id: 'manager',
             });
@@ -4307,50 +4307,48 @@ OR JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.orderStatus')) NOT IN (-99)) `);
                                 await db.query(
                                     `select *
                                                          from \`${this.app}\`.\`t_manager_post\`
-                                                         where id = ?`, [product.id]))[0];
+                                                         where id = ?`,
+                                    [product.id]
+                                )
+                            )[0];
 
+                            if (og_data) {
+                                // console.log(`product-in==>`,product)
+                                delete product['content'];
+                                delete product['preview_image'];
+                                const og_content = og_data['content'];
+                                if (og_content.language_data && og_content.language_data[store_info.language_setting.def]) {
+                                    og_content.language_data[store_info.language_setting.def].seo = product.seo;
+                                    og_content.language_data[store_info.language_setting.def].title = product.title;
+                                }
 
-                        if (og_data) {
-
-                            // console.log(`product-in==>`,product)
-                            delete product['content']
-                            delete product['preview_image'];
-                            const og_content=og_data['content']
-                            if(og_content.language_data && og_content.language_data[store_info.language_setting.def]){
-                                og_content.language_data[store_info.language_setting.def].seo=product.seo;
-                                og_content.language_data[store_info.language_setting.def].title=product.title;
+                                product = {
+                                    ...og_content,
+                                    ...product,
+                                };
+                                product.preview_image = og_data['content'].preview_image || [];
+                                productArray[index] = product;
+                            } else {
+                                console.log(`product-not-in==>`, product);
                             }
-
-                            product = {
-                                ...og_content,
-                                ...product
-                            }
-                            product.preview_image = og_data['content'].preview_image || [];
-                            productArray[index] = product;
-
-
-                        }else{
-                            console.log(`product-not-in==>`,product)
+                        } else {
+                            console.log(`no-product-id==>`, product);
                         }
-
-                    }else{
-                        console.log(`no-product-id==>`,product)
-                    }
-                    resolve(true)
+                        resolve(true);
+                    });
                 })
-            }));
+            );
             // return
-            let max_id=(await db.query(`select max(id) from \`${this.app}\`.t_manager_post`,[]))[0]['max(id)'];
+            let max_id = (await db.query(`select max(id) from \`${this.app}\`.t_manager_post`, []))[0]['max(id)'];
             const data = await db.query(
                 `replace
                 INTO \`${this.app}\`.\`t_manager_post\` (id,userID,content) values ?`,
                 [
                     productArray.map((product: any) => {
-
-                       if(!product.id){
-                           // console.log(`product-not-in==>`,product)
-                           product.id=max_id++;
-                       }
+                        if (!product.id) {
+                            // console.log(`product-not-in==>`,product)
+                            product.id = max_id++;
+                        }
                         product.type = 'product';
                         this.checkVariantDataType(product.variants);
                         return [product.id || null, this.token?.userID, JSON.stringify(product)];

@@ -41,7 +41,12 @@ export class StockList {
             let totalStockCount = 0;
             for (const key in list) {
                 if (list.hasOwnProperty(key)) {
-                    totalStockCount += list[key].count;
+                    if (list[key] && list[key].count) {
+                        totalStockCount += list[key].count;
+                    }
+                    else {
+                        totalStockCount += 0;
+                    }
                 }
             }
             return totalStockCount;
@@ -164,14 +169,14 @@ export class StockList {
             view: () => {
                 if (vm.type === 'list') {
                     return BgWidget.container(html `
-                            <div class="title-container">
-                                ${BgWidget.title(option.title)}
-                                <div class="flex-fill"></div>
-                                <div style="display: none; gap: 14px;">
-                                    ${BgWidget.grayButton('匯入', gvc.event(() => { }))}${BgWidget.grayButton('匯出', gvc.event(() => { }))}
-                                </div>
+                        <div class="title-container">
+                            ${BgWidget.title(option.title)}
+                            <div class="flex-fill"></div>
+                            <div style="display: none; gap: 14px;">
+                                ${BgWidget.grayButton('匯入', gvc.event(() => { }))}${BgWidget.grayButton('匯出', gvc.event(() => { }))}
                             </div>
-                            ${BgWidget.container([
+                        </div>
+                        ${BgWidget.container([
                         BgWidget.mainCard([
                             (() => {
                                 const vmlist = {
@@ -233,15 +238,15 @@ export class StockList {
                                         const filterTags = ListComp.getFilterTags(FilterOptions.stockFunnel).replace(/多少/g, '');
                                         if (document.body.clientWidth < 768) {
                                             return html ` <div style="display: flex; align-items: center; gap: 10px; width: 100%; justify-content: space-between">
-                                                                    <div>${filterList[0]}</div>
-                                                                    <div style="display: flex;">${filterList[2] ? `<div class="me-2">${filterList[2]}</div>` : ''} ${(_a = filterList[3]) !== null && _a !== void 0 ? _a : ''}</div>
-                                                                </div>
-                                                                <div style="display: flex; margin-top: 8px;">${filterList[1]}</div>
-                                                                <div>${filterTags}</div>`;
+                                                                <div>${filterList[0]}</div>
+                                                                <div style="display: flex;">${filterList[2] ? `<div class="me-2">${filterList[2]}</div>` : ''} ${(_a = filterList[3]) !== null && _a !== void 0 ? _a : ''}</div>
+                                                            </div>
+                                                            <div style="display: flex; margin-top: 8px;">${filterList[1]}</div>
+                                                            <div>${filterTags}</div>`;
                                         }
                                         else {
                                             return html ` <div style="display: flex; align-items: center; gap: 10px;">${filterList.join('')}</div>
-                                                                <div>${filterTags}</div>`;
+                                                            <div>${filterTags}</div>`;
                                         }
                                     },
                                     onCreate: () => {
@@ -357,20 +362,20 @@ export class StockList {
                         gvc.bindView({
                             bind: vm.updateId,
                             view: () => {
-                                function areArraysEqual(arr1, arr2) {
+                                const areArraysEqual = (arr1, arr2) => {
                                     if (arr1.length !== arr2.length)
                                         return false;
-                                    return arr1.every((item, index) => {
-                                        const otherItem = arr2[index];
-                                        return JSON.stringify(item) === JSON.stringify(otherItem);
+                                    return arr1.every((item1, index) => {
+                                        const item2 = arr2[index];
+                                        return JSON.stringify(item1) === JSON.stringify(item2);
                                     });
-                                }
+                                };
                                 if (!areArraysEqual(vm.stockArray, vm.stockOriginArray)) {
                                     return html ` <div class="update-bar-container">
-                                                    ${BgWidget.cancel(gvc.event(() => {
+                                                ${BgWidget.cancel(gvc.event(() => {
                                         gvc.notifyDataChange(vm.tableId);
                                     }))}
-                                                    ${BgWidget.save(gvc.event(() => {
+                                                ${BgWidget.save(gvc.event(() => {
                                         const dialog = new ShareDialog(gvc.glitter);
                                         dialog.dataLoading({
                                             text: '更新庫存中',
@@ -390,13 +395,13 @@ export class StockList {
                                             }
                                         });
                                     }))}
-                                                </div>`;
+                                            </div>`;
                                 }
                                 return '';
                             },
                         }),
                     ].join(''))}
-                        `);
+                    `);
                 }
                 else if (vm.type === 'editSpec') {
                     try {

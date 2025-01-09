@@ -515,7 +515,6 @@ export class StockHistory {
         };
 
         function checkSpecTable(page: number, limit: number) {
-            console.log('checkSpecTable(has icon)');
             const x = (page - 1) * limit;
             const specs = vm.data.content.product_list.slice(x, x + limit);
             return specs.map((dd: ContentProduct, index: number) => {
@@ -686,7 +685,7 @@ export class StockHistory {
                                         if (realData.recent_count === undefined) {
                                             return '';
                                         }
-                                        if (realData.transfer_count !== realData.recent_count) {
+                                        if (realData.transfer_count != realData.recent_count) {
                                             return html`<i class="fa-light fa-circle-exclamation"></i>`;
                                         }
                                         return html`<i class="fa-solid fa-circle-check"></i>`;
@@ -698,151 +697,149 @@ export class StockHistory {
             });
         }
 
-        return BgWidget.container(
-            html`
-                <div class="title-container">
-                    ${BgWidget.goBack(
-                        gvc.event(() => {
-                            vm.view = 'replace';
-                        })
-                    )}${BgWidget.title(`${typeData.name}核對`)}
-                    <div class="flex-fill"></div>
-                </div>
-                <div class="title-container">
-                    ${BgWidget.tab(
-                        [
-                            {
-                                title: '全部',
-                                key: 'all',
-                            },
-                            {
-                                title: '待補貨',
-                                key: 'pending',
-                            },
-                            {
-                                title: '未核對',
-                                key: 'notChecked',
-                            },
-                            {
-                                title: '已核對',
-                                key: 'checked',
-                            },
-                        ],
-                        gvc,
-                        cvm.type,
-                        (text) => {
-                            cvm.type = text as any;
-                            gvc.notifyDataChange(vm.id);
+        return BgWidget.container(html`
+            <div class="title-container">
+                ${BgWidget.goBack(
+                    gvc.event(() => {
+                        vm.view = 'replace';
+                    })
+                )}${BgWidget.title(`${typeData.name}核對`)}
+                <div class="flex-fill"></div>
+            </div>
+            <div class="title-container">
+                ${BgWidget.tab(
+                    [
+                        {
+                            title: '全部',
+                            key: 'all',
                         },
-                        'margin: 24px 0 0 0;'
-                    )}
-                </div>
-                ${BgWidget.container(
-                    BgWidget.mainCard(
-                        [
-                            (() => {
-                                const id = gvc.glitter.getUUID();
-                                return gvc.bindView({
-                                    bind: id,
-                                    view: () => {
-                                        const filterList = [
-                                            BgWidget.selectFilter({
-                                                gvc,
-                                                callback: (value: any) => {
-                                                    vm.queryType = value;
-                                                    gvc.notifyDataChange(vm.tableId);
-                                                    gvc.notifyDataChange(id);
-                                                },
-                                                default: vm.queryType || 'name',
-                                                options: FilterOptions.userSelect,
-                                            }),
-                                            BgWidget.searchFilter(
-                                                gvc.event((e) => {
-                                                    vm.query = `${e.value}`.trim();
-                                                    gvc.notifyDataChange(vm.tableId);
-                                                    gvc.notifyDataChange(id);
-                                                }),
-                                                vm.query || '',
-                                                '搜尋所有用戶'
-                                            ),
-                                        ];
-
-                                        const filterTags = ListComp.getFilterTags(FilterOptions.userFunnel);
-
-                                        if (document.body.clientWidth < 768) {
-                                            // 手機版
-                                            return html` <div style="display: flex; align-items: center; gap: 10px; width: 100%; justify-content: space-between">
-                                                    <div>${filterList[0]}</div>
-                                                    <div style="display: flex;">${filterList[2] ? `<div class="me-2">${filterList[2]}</div>` : ''} ${filterList[3] ?? ''}</div>
-                                                </div>
-                                                <div style="display: flex; margin-top: 8px;">${filterList[1]}</div>
-                                                <div>${filterTags}</div>`;
-                                        } else {
-                                            // 電腦版
-                                            return html` <div style="display: flex; align-items: center; gap: 10px;">${filterList.join('')}</div>
-                                                <div>${filterTags}</div>`;
-                                        }
-                                    },
-                                });
-                            })(),
-                            BgWidget.tableV3({
-                                gvc: gvc,
-                                getData: (vd) => {
-                                    vmi = vd;
-                                    const limit = 99999;
-                                    const ids = vm.data.content.product_list.map((item) => {
-                                        return `${item.variant_id}`;
-                                    });
-
-                                    new Promise<[]>((resolve) => {
-                                        ApiStock.getStoreProductList({
-                                            page: 0,
-                                            limit: 99999,
-                                            search: vm.data.content.store_out,
-                                            variant_id_list: ids,
-                                        }).then((r) => {
-                                            if (r.result && r.response.data) {
-                                                resolve(r.response.data);
-                                            } else {
-                                                resolve([]);
-                                            }
-                                        });
-                                    }).then((variants: any) => {
-                                        this.setVariantList(ids, vm.data, (response) => {
-                                            vm.data.content.product_list = response;
-                                            vm.data.content.product_list.map((item1) => {
-                                                const variant = variants.find((item2: any) => item1.variant_id === item2.id);
-                                                item1.stock = variant ? variant.count : 0;
-                                                return item1;
-                                            });
-
-                                            vmi.pageSize = Math.ceil(response.length / limit);
-                                            vmi.originalData = response;
-                                            vmi.tableData = checkSpecTable(vmi.page, limit);
-                                            vmi.loading = false;
-                                            vmi.callback();
-                                        });
-                                    });
-                                },
-                                rowClick: () => {},
-                                filter: [],
-                                hiddenPageSplit: true,
-                            }),
-                        ].join('')
-                    )
+                        {
+                            title: '待補貨',
+                            key: 'pending',
+                        },
+                        {
+                            title: '未核對',
+                            key: 'notChecked',
+                        },
+                        {
+                            title: '已核對',
+                            key: 'checked',
+                        },
+                    ],
+                    gvc,
+                    cvm.type,
+                    (text) => {
+                        cvm.type = text as any;
+                        gvc.notifyDataChange(vm.id);
+                    },
+                    'margin: 24px 0 0 0;'
                 )}
-                ${BgWidget.mbContainer(240)}
-                ${gvc.bindView({
-                    bind: cvm.buttonsId,
-                    view: () => {
-                        return this.getButtonBar(gvc, vm);
-                    },
-                    divCreate: {
-                        class: 'update-bar-container',
-                    },
-                })}
-            `
-        );
+            </div>
+            ${BgWidget.container(
+                BgWidget.mainCard(
+                    [
+                        (() => {
+                            const id = gvc.glitter.getUUID();
+                            return gvc.bindView({
+                                bind: id,
+                                view: () => {
+                                    const filterList = [
+                                        BgWidget.selectFilter({
+                                            gvc,
+                                            callback: (value: any) => {
+                                                vm.queryType = value;
+                                                gvc.notifyDataChange(vm.tableId);
+                                                gvc.notifyDataChange(id);
+                                            },
+                                            default: vm.queryType || 'name',
+                                            options: FilterOptions.userSelect,
+                                        }),
+                                        BgWidget.searchFilter(
+                                            gvc.event((e) => {
+                                                vm.query = `${e.value}`.trim();
+                                                gvc.notifyDataChange(vm.tableId);
+                                                gvc.notifyDataChange(id);
+                                            }),
+                                            vm.query || '',
+                                            '搜尋所有用戶'
+                                        ),
+                                    ];
+
+                                    const filterTags = ListComp.getFilterTags(FilterOptions.userFunnel);
+
+                                    if (document.body.clientWidth < 768) {
+                                        // 手機版
+                                        return html` <div style="display: flex; align-items: center; gap: 10px; width: 100%; justify-content: space-between">
+                                                <div>${filterList[0]}</div>
+                                                <div style="display: flex;">${filterList[2] ? `<div class="me-2">${filterList[2]}</div>` : ''} ${filterList[3] ?? ''}</div>
+                                            </div>
+                                            <div style="display: flex; margin-top: 8px;">${filterList[1]}</div>
+                                            <div>${filterTags}</div>`;
+                                    } else {
+                                        // 電腦版
+                                        return html` <div style="display: flex; align-items: center; gap: 10px;">${filterList.join('')}</div>
+                                            <div>${filterTags}</div>`;
+                                    }
+                                },
+                            });
+                        })(),
+                        BgWidget.tableV3({
+                            gvc: gvc,
+                            getData: (vd) => {
+                                vmi = vd;
+                                const limit = 99999;
+                                const ids = vm.data.content.product_list.map((item) => {
+                                    return `${item.variant_id}`;
+                                });
+
+                                new Promise<[]>((resolve) => {
+                                    ApiStock.getStoreProductList({
+                                        page: 0,
+                                        limit: 99999,
+                                        search: vm.data.content.store_out,
+                                        variant_id_list: ids,
+                                    }).then((r) => {
+                                        if (r.result && r.response.data) {
+                                            resolve(r.response.data);
+                                        } else {
+                                            resolve([]);
+                                        }
+                                    });
+                                }).then((variants: any) => {
+                                    this.setVariantList(ids, vm.data, (response) => {
+                                        vm.data.content.product_list = response;
+                                        vm.data.content.product_list.map((item1) => {
+                                            const variant = variants.find((item2: any) => item1.variant_id === item2.id);
+                                            item1.stock = variant ? parseInt(variant.count, 10) : 0;
+                                            return item1;
+                                        });
+
+                                        vmi.pageSize = Math.ceil(response.length / limit);
+                                        vmi.originalData = response;
+                                        vmi.tableData = checkSpecTable(vmi.page, limit);
+                                        vmi.loading = false;
+                                        vmi.callback();
+                                    });
+                                });
+                            },
+                            rowClick: () => {},
+                            filter: [],
+                            hiddenPageSplit: true,
+                        }),
+                    ].join('')
+                )
+            )}
+            ${BgWidget.mbContainer(240)}
+            ${gvc.bindView({
+                bind: cvm.buttonsId,
+                view: () => {
+                    return this.getButtonBar(gvc, vm);
+                },
+                divCreate: {
+                    class: 'update-bar-container',
+                },
+            })}
+        `);
     }
 
     static getFormStructure(gvc: GVC, vm: VM, dvm: any) {
@@ -1551,7 +1548,7 @@ export class StockHistory {
                                                                                     this.setVariantList(dvm.variantIds, vm.data, (response) => {
                                                                                         response.map((item1) => {
                                                                                             const stockData = responseArray.find((item2: any) => item1.variant_id === item2.id);
-                                                                                            item1.stock = stockData ? stockData.count : 0;
+                                                                                            item1.stock = stockData ? parseInt(stockData.count, 10) : 0;
                                                                                             return item1;
                                                                                         });
 
@@ -2191,7 +2188,6 @@ export class StockHistory {
     }
 
     static checkingDetailTable(json: { status: number; type: 'details' | 'logs'; list: ContentProduct[]; page: number; limit: number }) {
-        console.log('checkingDetailTable(no icon)');
         const x = (json.page - 1) * json.limit;
         return json.list.slice(x, x + json.limit).map((dd: ContentProduct) => {
             const startArr = [
@@ -2364,7 +2360,7 @@ export class StockHistory {
                                                                     case 'transfer':
                                                                         vm.data.content.product_list.map((item1) => {
                                                                             const stockData = responseArray.find((item2: any) => item1.variant_id === item2.id);
-                                                                            item1.stock = stockData ? stockData.count : 0;
+                                                                            item1.stock = stockData ? parseInt(stockData.count, 10) : 0;
                                                                             return item1;
                                                                         });
                                                                         if ([0, 1, 2].includes(vm.data.status)) {
@@ -2386,7 +2382,7 @@ export class StockHistory {
                                                                     case 'checking':
                                                                         vm.data.content.product_list.map((item1) => {
                                                                             const stockData = responseArray.find((item2: any) => item1.variant_id === item2.id);
-                                                                            item1.stock = stockData ? stockData.count : 0;
+                                                                            item1.stock = stockData ? parseInt(stockData.count, 10) : 0;
                                                                             return item1;
                                                                         });
                                                                         vmi.tableData = this.checkingDetailTable({
@@ -2831,7 +2827,7 @@ export class StockHistory {
             const diffVariants = data.content.product_list.filter((item1) => {
                 const variant = variants.find((item2: any) => item1.variant_id === item2.id);
                 if (variant && variant.count !== item1.transfer_count) {
-                    item1.stock = variant.count;
+                    item1.stock = parseInt(variant.count, 10);
                     return true;
                 }
                 return false;
@@ -3139,7 +3135,8 @@ export class StockHistory {
                                     return [
                                         BgWidget.grayNote(
                                             html`以下商品在盤點期間內有銷售等變動，導致實際庫存已發生變化。<br />
-                                                最終庫存數量將依此公式調整：原盤點數量 + 庫存變動數量`
+                                                最終庫存數量將依此公式調整：<span style="font-weight: 700">原盤點數量 + 庫存變動數量</span><br />
+                                                若最終庫存數量小於0，該商品規格庫存調整成0，盤點單顯示負數`
                                         ),
                                         BgWidget.tableV3({
                                             gvc: gvc,

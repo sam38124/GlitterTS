@@ -85,6 +85,16 @@ export declare class Stock {
     putHistory(json: StockHistoryData): Promise<{
         data: boolean;
     } | undefined>;
+    static formatStockContent(data: {
+        type: 'plus' | 'minus' | 'equal';
+        store: string;
+        count: number;
+        product_content: any;
+        variant_content: any;
+    }): {
+        product_content: any;
+        variant_content: any;
+    };
     deleteHistory(json: StockHistoryData): Promise<{
         data: boolean;
     } | undefined>;
