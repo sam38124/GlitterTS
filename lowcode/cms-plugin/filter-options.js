@@ -521,3 +521,7 @@ FilterOptions.stockHistorySelect = [
 ];
 FilterOptions.stockHistoryFunnel = [];
 FilterOptions.stockHistoryOrderBy = [];
+FilterOptions.stockHistoryCheckFilterFrame = {};
+FilterOptions.stockHistoryCheckSelect = [{ key: 'title', value: '商品名稱' }];
+FilterOptions.stockHistoryCheckFunnel = [];
+FilterOptions.stockHistoryCheckOrderBy = [];

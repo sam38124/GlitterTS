@@ -538,9 +538,10 @@ class Stock {
                 }
             }
             else {
-                stockList[store].count = count > 0 ? count : 0;
+                stockList[store].count = count;
             }
         }
+        stockList[store].count = stockList[store].count > 0 ? stockList[store].count : 0;
         variant_content.stock = Object.keys(stockList).reduce((sum, key) => {
             if (stockList[key] && stockList[key].count) {
                 return sum + stockList[key].count;

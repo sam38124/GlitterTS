@@ -28,6 +28,7 @@ type VM = {
     query: string;
     queryType: string;
     orderString: string;
+    tabKey: string;
 };
 
 const typeConfig: {
@@ -185,6 +186,7 @@ export class StockHistory {
             queryType: '',
             filter: {},
             orderString: '',
+            tabKey: 'all',
         };
 
         return gvc.bindView({
@@ -220,6 +222,7 @@ export class StockHistory {
                     }).then((data) => {
                         dialog.dataLoading({ visible: false });
                         vm.data = data;
+                        vm.tabKey = 'all';
                         return this.replaceOrder(gvc, vm);
                     });
                 }
@@ -517,185 +520,212 @@ export class StockHistory {
         function checkSpecTable(page: number, limit: number) {
             const x = (page - 1) * limit;
             const specs = vm.data.content.product_list.slice(x, x + limit);
-            return specs.map((dd: ContentProduct, index: number) => {
-                const realData = vm.data.content.product_list[x + index];
-                const startArr = [
-                    {
-                        key: '商品',
-                        value: `<span class="fs-7">${dd.title || '－'}</span>`,
-                    },
-                    {
-                        key: '規格',
-                        value: `<span class="fs-7">${dd.spec}</span>`,
-                    },
-                    {
-                        key: '存貨單位(SKU)',
-                        value: `<span class="fs-7">${dd.sku || '－'}</span>`,
-                    },
-                    {
-                        key: '商品條碼',
-                        value: `<span class="fs-7">${dd.barcode || '－'}</span>`,
-                    },
-                ];
-                const noteArr = [
-                    {
-                        key: '備註',
-                        value: html` <div style="width: 120px" onclick="${gvc.event((e, event) => event.stopPropagation())}">
-                            <input
-                                class="form-control"
-                                type="text"
-                                style="border-radius: 10px; border: 1px solid #DDD; padding-left: 18px;"
-                                onchange="${gvc.event((e) => {
-                                    realData.note = e.value;
-                                })}"
-                                value="${dd.note ?? ''}"
-                            />
-                        </div>`,
-                    },
-                ];
+            return {
+                array: specs.map((dd: ContentProduct, index: number) => {
+                    const realData = vm.data.content.product_list[x + index];
+                    const startArr = [
+                        {
+                            key: '商品',
+                            value: `<span class="fs-7">${dd.title || '－'}</span>`,
+                        },
+                        {
+                            key: '規格',
+                            value: `<span class="fs-7">${dd.spec}</span>`,
+                        },
+                        {
+                            key: '存貨單位(SKU)',
+                            value: `<span class="fs-7">${dd.sku || '－'}</span>`,
+                        },
+                        {
+                            key: '商品條碼',
+                            value: `<span class="fs-7">${dd.barcode || '－'}</span>`,
+                        },
+                    ];
+                    const noteArr = [
+                        {
+                            key: '備註',
+                            value: html` <div style="width: 120px" onclick="${gvc.event((e, event) => event.stopPropagation())}">
+                                <input
+                                    class="form-control"
+                                    type="text"
+                                    style="border-radius: 10px; border: 1px solid #DDD; padding-left: 18px;"
+                                    onchange="${gvc.event((e) => {
+                                        realData.note = e.value;
+                                    })}"
+                                    value="${dd.note ?? ''}"
+                                />
+                            </div>`,
+                        },
+                    ];
 
-                switch (vm.data.type) {
-                    case 'restocking':
-                        return [
-                            ...startArr,
-                            {
-                                key: '原定進貨數量',
-                                value: `<span class="fs-7">${dd.transfer_count ?? 0}</span>`,
-                            },
-                            {
-                                key: '實際到貨數量',
-                                value: html` <div style="width: 100px" onclick="${gvc.event((e, event) => event.stopPropagation())}">
-                                    <input
-                                        class="form-control"
-                                        type="number"
-                                        min="0"
-                                        style="border-radius: 10px; border: 1px solid #DDD; padding-left: 18px;"
-                                        onchange="${gvc.event((e) => {
-                                            let n = parseInt(e.value, 10);
-                                            if (n < 0) {
-                                                n = 0;
-                                                e.value = n;
+                    switch (vm.data.type) {
+                        case 'restocking':
+                            return [
+                                ...startArr,
+                                {
+                                    key: '原定進貨數量',
+                                    value: `<span class="fs-7">${dd.transfer_count ?? 0}</span>`,
+                                },
+                                {
+                                    key: '實際到貨數量',
+                                    value: html` <div style="width: 100px" onclick="${gvc.event((e, event) => event.stopPropagation())}">
+                                        <input
+                                            class="form-control"
+                                            type="number"
+                                            min="0"
+                                            style="border-radius: 10px; border: 1px solid #DDD; padding-left: 18px;"
+                                            onchange="${gvc.event((e) => {
+                                                let n = parseInt(e.value, 10);
+                                                if (n < 0) {
+                                                    n = 0;
+                                                    e.value = n;
+                                                }
+                                                realData.recent_count = isNaN(n) ? undefined : n;
+                                                gvc.notifyDataChange(cvm.buttonsId);
+                                                gvc.notifyDataChange(`${cvm.iconId}${index}`);
+                                            })}"
+                                            value="${dd.recent_count ?? ''}"
+                                        />
+                                    </div>`,
+                                },
+                                ...noteArr,
+                                {
+                                    key: html`<p class="mx-3"></p>`,
+                                    value: gvc.bindView({
+                                        bind: `${cvm.iconId}${index}`,
+                                        view: () => {
+                                            if (realData.recent_count === undefined) {
+                                                return '';
                                             }
-                                            realData.recent_count = isNaN(n) ? undefined : n;
-                                            gvc.notifyDataChange(cvm.buttonsId);
-                                            gvc.notifyDataChange(`${cvm.iconId}${index}`);
-                                        })}"
-                                        value="${dd.recent_count ?? ''}"
-                                    />
-                                </div>`,
-                            },
-                            ...noteArr,
-                            {
-                                key: html`<p class="mx-3"></p>`,
-                                value: gvc.bindView({
-                                    bind: `${cvm.iconId}${index}`,
-                                    view: () => {
-                                        if (realData.recent_count === undefined) {
-                                            return '';
-                                        }
-                                        if (realData.transfer_count > realData.recent_count) {
-                                            return html`<i class="fa-light fa-circle-exclamation"></i>`;
-                                        }
-                                        return html`<i class="fa-solid fa-circle-check"></i>`;
-                                    },
-                                }),
-                            },
-                        ];
-                    case 'transfer':
-                        return [
-                            ...startArr,
-                            {
-                                key: '原定調入數量',
-                                value: `<span class="fs-7">${dd.transfer_count ?? 0}</span>`,
-                            },
-                            {
-                                key: '實際調入數量',
-                                value: html` <div style="width: 100px" onclick="${gvc.event((e, event) => event.stopPropagation())}">
-                                    <input
-                                        class="form-control"
-                                        type="number"
-                                        min="0"
-                                        style="border-radius: 10px; border: 1px solid #DDD; padding-left: 18px;"
-                                        onchange="${gvc.event((e) => {
-                                            let n = parseInt(e.value, 10);
-                                            if (n < 0) {
-                                                n = 0;
-                                                e.value = n;
+                                            if (realData.transfer_count > realData.recent_count) {
+                                                return html`<i class="fa-light fa-circle-exclamation"></i>`;
                                             }
-                                            realData.recent_count = isNaN(n) ? undefined : n;
-                                            gvc.notifyDataChange(cvm.buttonsId);
-                                            gvc.notifyDataChange(`${cvm.iconId}${index}`);
-                                        })}"
-                                        value="${dd.recent_count ?? ''}"
-                                    />
-                                </div>`,
-                            },
-                            ...noteArr,
-                            {
-                                key: html`<p class="mx-3"></p>`,
-                                value: gvc.bindView({
-                                    bind: `${cvm.iconId}${index}`,
-                                    view: () => {
-                                        if (realData.recent_count === undefined) {
-                                            return '';
-                                        }
-                                        if (realData.transfer_count > realData.recent_count) {
-                                            return html`<i class="fa-light fa-circle-exclamation"></i>`;
-                                        }
-                                        return html`<i class="fa-solid fa-circle-check"></i>`;
-                                    },
-                                }),
-                            },
-                        ];
-                    case 'checking':
-                        return [
-                            ...startArr,
-                            {
-                                key: '庫存數量',
-                                value: `<span class="fs-7">${dd.transfer_count ?? 0}</span>`,
-                            },
-                            {
-                                key: '盤點數量',
-                                value: html` <div style="width: 100px" onclick="${gvc.event((e, event) => event.stopPropagation())}">
-                                    <input
-                                        class="form-control"
-                                        type="number"
-                                        min="0"
-                                        style="border-radius: 10px; border: 1px solid #DDD; padding-left: 18px;"
-                                        onchange="${gvc.event((e) => {
-                                            let n = parseInt(e.value, 10);
-                                            if (n < 0) {
-                                                n = 0;
-                                                e.value = n;
+                                            return html`<i class="fa-solid fa-circle-check"></i>`;
+                                        },
+                                    }),
+                                },
+                            ];
+                        case 'transfer':
+                            return [
+                                ...startArr,
+                                {
+                                    key: '原定調入數量',
+                                    value: `<span class="fs-7">${dd.transfer_count ?? 0}</span>`,
+                                },
+                                {
+                                    key: '實際調入數量',
+                                    value: html` <div style="width: 100px" onclick="${gvc.event((e, event) => event.stopPropagation())}">
+                                        <input
+                                            class="form-control"
+                                            type="number"
+                                            min="0"
+                                            style="border-radius: 10px; border: 1px solid #DDD; padding-left: 18px;"
+                                            onchange="${gvc.event((e) => {
+                                                let n = parseInt(e.value, 10);
+                                                if (n < 0) {
+                                                    n = 0;
+                                                    e.value = n;
+                                                }
+                                                realData.recent_count = isNaN(n) ? undefined : n;
+                                                gvc.notifyDataChange(cvm.buttonsId);
+                                                gvc.notifyDataChange(`${cvm.iconId}${index}`);
+                                            })}"
+                                            value="${dd.recent_count ?? ''}"
+                                        />
+                                    </div>`,
+                                },
+                                ...noteArr,
+                                {
+                                    key: html`<p class="mx-3"></p>`,
+                                    value: gvc.bindView({
+                                        bind: `${cvm.iconId}${index}`,
+                                        view: () => {
+                                            if (realData.recent_count === undefined) {
+                                                return '';
                                             }
-                                            realData.recent_count = isNaN(n) ? undefined : n;
-                                            gvc.notifyDataChange(cvm.buttonsId);
-                                            gvc.notifyDataChange(`${cvm.iconId}${index}`);
-                                        })}"
-                                        value="${dd.recent_count ?? ''}"
-                                    />
-                                </div>`,
-                            },
-                            ...noteArr,
-                            {
-                                key: html`<p class="mx-3"></p>`,
-                                value: gvc.bindView({
-                                    bind: `${cvm.iconId}${index}`,
-                                    view: () => {
-                                        if (realData.recent_count === undefined) {
-                                            return '';
-                                        }
-                                        if (realData.transfer_count != realData.recent_count) {
-                                            return html`<i class="fa-light fa-circle-exclamation"></i>`;
-                                        }
-                                        return html`<i class="fa-solid fa-circle-check"></i>`;
-                                    },
-                                }),
-                            },
-                        ];
-                }
-            });
+                                            if (realData.transfer_count > realData.recent_count) {
+                                                return html`<i class="fa-light fa-circle-exclamation"></i>`;
+                                            }
+                                            return html`<i class="fa-solid fa-circle-check"></i>`;
+                                        },
+                                    }),
+                                },
+                            ];
+                        case 'checking':
+                            return [
+                                ...startArr,
+                                {
+                                    key: '庫存數量',
+                                    value: `<span class="fs-7">${dd.transfer_count ?? 0}</span>`,
+                                },
+                                {
+                                    key: '盤點數量',
+                                    value: html` <div style="width: 100px" onclick="${gvc.event((e, event) => event.stopPropagation())}">
+                                        <input
+                                            class="form-control"
+                                            type="number"
+                                            min="0"
+                                            style="border-radius: 10px; border: 1px solid #DDD; padding-left: 18px;"
+                                            onchange="${gvc.event((e) => {
+                                                let n = parseInt(e.value, 10);
+                                                if (n < 0) {
+                                                    n = 0;
+                                                    e.value = n;
+                                                }
+                                                realData.recent_count = isNaN(n) ? undefined : n;
+                                                gvc.notifyDataChange(cvm.buttonsId);
+                                                gvc.notifyDataChange(`${cvm.iconId}${index}`);
+                                            })}"
+                                            value="${dd.recent_count ?? ''}"
+                                        />
+                                    </div>`,
+                                },
+                                ...noteArr,
+                                {
+                                    key: html`<p class="mx-3"></p>`,
+                                    value: gvc.bindView({
+                                        bind: `${cvm.iconId}${index}`,
+                                        view: () => {
+                                            if (realData.recent_count === undefined) {
+                                                return '';
+                                            }
+                                            if (realData.transfer_count != realData.recent_count) {
+                                                return html`<i class="fa-light fa-circle-exclamation"></i>`;
+                                            }
+                                            return html`<i class="fa-solid fa-circle-check"></i>`;
+                                        },
+                                    }),
+                                },
+                            ];
+                    }
+                }),
+                data: specs,
+            };
         }
+
+        const tabs = [
+            {
+                title: '全部',
+                key: 'all',
+            },
+            {
+                title: vm.data.type === 'checking' ? '異常' : '待補貨',
+                key: 'pending',
+            },
+            {
+                title: vm.data.type === 'checking' ? '未盤點' : '未核對',
+                key: 'notChecked',
+            },
+            {
+                title: vm.data.type === 'checking' ? '已盤點' : '已核對',
+                key: 'checked',
+            },
+        ].filter((tab) => {
+            if (tab.key === 'pending' && vm.data.status !== 5) {
+                return false;
+            }
+            return true;
+        });
 
         return BgWidget.container(html`
             <div class="title-container">
@@ -706,30 +736,13 @@ export class StockHistory {
                 )}${BgWidget.title(`${typeData.name}核對`)}
                 <div class="flex-fill"></div>
             </div>
-            <div class="d-none title-container">
+            <div class="title-container">
                 ${BgWidget.tab(
-                    [
-                        {
-                            title: '全部',
-                            key: 'all',
-                        },
-                        {
-                            title: '待補貨',
-                            key: 'pending',
-                        },
-                        {
-                            title: '未核對',
-                            key: 'notChecked',
-                        },
-                        {
-                            title: '已核對',
-                            key: 'checked',
-                        },
-                    ],
+                    tabs,
                     gvc,
-                    cvm.type,
+                    vm.tabKey,
                     (text) => {
-                        cvm.type = text as any;
+                        vm.tabKey = text;
                         gvc.notifyDataChange(vm.id);
                     },
                     'margin: 24px 0 0 0;'
@@ -752,7 +765,7 @@ export class StockHistory {
                                                 gvc.notifyDataChange(id);
                                             },
                                             default: vm.queryType || 'name',
-                                            options: FilterOptions.userSelect,
+                                            options: FilterOptions.stockHistoryCheckSelect,
                                         }),
                                         BgWidget.searchFilter(
                                             gvc.event((e) => {
@@ -765,7 +778,7 @@ export class StockHistory {
                                         ),
                                     ];
 
-                                    const filterTags = ListComp.getFilterTags(FilterOptions.userFunnel);
+                                    const filterTags = ListComp.getFilterTags(FilterOptions.stockHistoryCheckFunnel);
 
                                     if (document.body.clientWidth < 768) {
                                         // 手機版
@@ -816,7 +829,21 @@ export class StockHistory {
 
                                         vmi.pageSize = Math.ceil(response.length / limit);
                                         vmi.originalData = response;
-                                        vmi.tableData = checkSpecTable(vmi.page, limit);
+
+                                        const checkSpec = checkSpecTable(vmi.page, limit);
+                                        if (vm.tabKey === 'all') {
+                                            vmi.tableData = checkSpec.array;
+                                        } else {
+                                            const filterCriteria: { [key: string]: (item: any) => boolean } = {
+                                                pending: (item) => item.recent_count !== undefined && item.transfer_count > item.recent_count,
+                                                notChecked: (item) => item.recent_count === undefined,
+                                                checked: (item) => item.recent_count !== undefined && item.transfer_count <= item.recent_count,
+                                            };
+
+                                            const criteria = filterCriteria[vm.tabKey];
+                                            vmi.tableData = criteria ? checkSpec.array.filter((item, index) => criteria(checkSpec.data[index])) : [];
+                                        }
+
                                         vmi.loading = false;
                                         vmi.callback();
                                     });
@@ -840,392 +867,6 @@ export class StockHistory {
                 },
             })}
         `);
-    }
-
-    static getFormStructure(gvc: GVC, vm: VM, dvm: any) {
-        const glitter = gvc.glitter;
-        switch (vm.type) {
-            case 'restocking':
-                return [
-                    html`<div class="row">
-                        <div class="col-12 col-md-6">
-                            <div class="tx_normal">供應商</div>
-                            ${BgWidget.mbContainer(8)}
-                            ${gvc.bindView(
-                                (() => {
-                                    const id = glitter.getUUID();
-                                    let dataList: any[] = [];
-                                    let loading = true;
-                                    return {
-                                        bind: id,
-                                        view: () => {
-                                            if (loading) {
-                                                return BgWidget.spinner({
-                                                    container: { style: 'margin-top: 0;' },
-                                                    circle: { visible: false },
-                                                });
-                                            } else {
-                                                return BgWidget.selectOptionAndClickEvent({
-                                                    gvc: gvc,
-                                                    default: vm.data.content.vendor ?? '',
-                                                    options: dataList.map((item) => {
-                                                        return {
-                                                            key: item.id,
-                                                            value: item.name,
-                                                            note: item.address,
-                                                        };
-                                                    }),
-                                                    showNote: BgWidget.grayNote(
-                                                        (() => {
-                                                            const d = dataList.find((item) => {
-                                                                return item.id === vm.data.content.vendor;
-                                                            });
-                                                            return d ? d.address : '';
-                                                        })(),
-                                                        'margin: 0 4px;'
-                                                    ),
-                                                    callback: (data) => {
-                                                        vm.data.content.vendor = data ? data.key : '';
-                                                        gvc.notifyDataChange(id);
-                                                    },
-                                                    clickElement: {
-                                                        html: html`<div>新增供應商</div>
-                                                            <div>
-                                                                <i class="fa-solid fa-plus ps-2" style="font-size: 16px; height: 14px; width: 14px;"></i>
-                                                            </div>`,
-                                                        event: (gvc2) => {
-                                                            const newVendorData = StockVendors.emptyData();
-                                                            BgWidget.settingDialog({
-                                                                gvc: gvc2,
-                                                                title: '新增供應點',
-                                                                innerHTML: (gvc2) => {
-                                                                    return StockHistory.vendorForm(gvc2, newVendorData);
-                                                                },
-                                                                footer_html: (gvc2) => {
-                                                                    return `${BgWidget.cancel(
-                                                                        gvc2.event(() => {
-                                                                            gvc2.closeDialog();
-                                                                        })
-                                                                    )}
-                                                            ${BgWidget.save(
-                                                                gvc2.event(() => {
-                                                                    StockVendors.verifyStoreForm(glitter, 'create', newVendorData, (response) => {
-                                                                        gvc2.closeDialog();
-                                                                        vm.data.content.vendor = response.id;
-                                                                        loading = true;
-                                                                        gvc.notifyDataChange(id);
-                                                                    });
-                                                                }),
-                                                                '完成'
-                                                            )}`;
-                                                                },
-                                                            });
-                                                        },
-                                                    },
-                                                });
-                                            }
-                                        },
-                                        divCreate: {},
-                                        onCreate: () => {
-                                            if (loading) {
-                                                ApiUser.getPublicConfig('vendor_manager', 'manager').then((dd: any) => {
-                                                    if (dd.result && dd.response.value) {
-                                                        dataList = dd.response.value.list;
-                                                    }
-                                                    loading = false;
-                                                    gvc.notifyDataChange(id);
-                                                });
-                                            }
-                                        },
-                                    };
-                                })()
-                            )}
-                        </div>
-                        <div class="col-12 col-md-6">
-                            <div class="tx_normal">庫存點</div>
-                            ${BgWidget.mbContainer(8)}
-                            ${gvc.bindView(
-                                (() => {
-                                    const id = glitter.getUUID();
-                                    let dataList: any[] = [];
-                                    let loading = true;
-                                    return {
-                                        bind: id,
-                                        view: () => {
-                                            if (loading) {
-                                                return BgWidget.spinner({
-                                                    container: { style: 'margin-top: 0;' },
-                                                    circle: { visible: false },
-                                                });
-                                            } else {
-                                                return BgWidget.selectOptionAndClickEvent({
-                                                    gvc: gvc,
-                                                    default: vm.data.content.store_in ?? '',
-                                                    options: dataList.map((item) => {
-                                                        return {
-                                                            key: item.id,
-                                                            value: item.name,
-                                                            note: item.address,
-                                                        };
-                                                    }),
-                                                    showNote: BgWidget.grayNote(
-                                                        (() => {
-                                                            const d = dataList.find((item) => {
-                                                                return item.id === vm.data.content.store_in;
-                                                            });
-                                                            return d ? d.address : '';
-                                                        })(),
-                                                        'margin: 0 4px;'
-                                                    ),
-                                                    callback: (data) => {
-                                                        vm.data.content.store_in = data ? data.key : '';
-                                                        gvc.notifyDataChange(id);
-                                                    },
-                                                    clickElement: {
-                                                        html: html`<div>新增庫存點</div>
-                                                            <div>
-                                                                <i class="fa-solid fa-plus ps-2" style="font-size: 16px; height: 14px; width: 14px;"></i>
-                                                            </div>`,
-                                                        event: (gvc2) => {
-                                                            const newStoreData = StockStores.emptyData();
-                                                            BgWidget.settingDialog({
-                                                                gvc: gvc2,
-                                                                title: '新增庫存點',
-                                                                innerHTML: (gvc2) => {
-                                                                    return StockHistory.storeForm(gvc2, newStoreData);
-                                                                },
-                                                                footer_html: (gvc2) => {
-                                                                    return `${BgWidget.cancel(
-                                                                        gvc2.event(() => {
-                                                                            gvc2.closeDialog();
-                                                                        })
-                                                                    )}
-                                                            ${BgWidget.save(
-                                                                gvc2.event(() => {
-                                                                    StockStores.verifyStoreForm(glitter, 'create', newStoreData, (response) => {
-                                                                        gvc2.closeDialog();
-                                                                        vm.data.content.store_in = response.id;
-                                                                        loading = true;
-                                                                        gvc.notifyDataChange(id);
-                                                                    });
-                                                                }),
-                                                                '完成'
-                                                            )}`;
-                                                                },
-                                                            });
-                                                        },
-                                                    },
-                                                });
-                                            }
-                                        },
-                                        divCreate: {},
-                                        onCreate: () => {
-                                            if (loading) {
-                                                ApiUser.getPublicConfig('store_manager', 'manager').then((dd: any) => {
-                                                    if (dd.result && dd.response.value) {
-                                                        dataList = dd.response.value.list;
-                                                    }
-                                                    loading = false;
-                                                    gvc.notifyDataChange(id);
-                                                });
-                                            }
-                                        },
-                                    };
-                                })()
-                            )}
-                        </div>
-                    </div> `,
-                ];
-            case 'transfer':
-                return [
-                    html`<div class="row">
-                        <div class="col-12 col-md-6">
-                            <div class="tx_normal">調出庫存點</div>
-                            ${BgWidget.mbContainer(8)}
-                            ${gvc.bindView(
-                                (() => {
-                                    const id = glitter.getUUID();
-                                    let dataList: any[] = [];
-                                    let loading = true;
-                                    return {
-                                        bind: id,
-                                        view: () => {
-                                            if (loading) {
-                                                return BgWidget.spinner({
-                                                    container: { style: 'margin-top: 0;' },
-                                                    circle: { visible: false },
-                                                });
-                                            } else {
-                                                return BgWidget.selectOptionAndClickEvent({
-                                                    gvc: gvc,
-                                                    default: vm.data.content.store_out ?? '',
-                                                    options: dataList.map((item) => {
-                                                        return {
-                                                            key: item.id,
-                                                            value: item.name,
-                                                            note: item.address,
-                                                        };
-                                                    }),
-                                                    showNote: BgWidget.grayNote(
-                                                        (() => {
-                                                            const d = dataList.find((item) => {
-                                                                return item.id === vm.data.content.store_out;
-                                                            });
-                                                            return d ? d.address : '';
-                                                        })(),
-                                                        'margin: 0 4px;'
-                                                    ),
-                                                    callback: (data) => {
-                                                        vm.data.content.store_out = data ? data.key : '';
-                                                        gvc.notifyDataChange(id);
-                                                    },
-                                                });
-                                            }
-                                        },
-                                        divCreate: {},
-                                        onCreate: () => {
-                                            if (loading) {
-                                                ApiUser.getPublicConfig('store_manager', 'manager').then((dd: any) => {
-                                                    if (dd.result && dd.response.value) {
-                                                        dataList = dd.response.value.list;
-                                                    }
-                                                    loading = false;
-                                                    gvc.notifyDataChange(id);
-                                                });
-                                            }
-                                        },
-                                    };
-                                })()
-                            )}
-                        </div>
-                        <div class="col-12 col-md-6">
-                            <div class="tx_normal">調入庫存點</div>
-                            ${BgWidget.mbContainer(8)}
-                            ${gvc.bindView(
-                                (() => {
-                                    const id = glitter.getUUID();
-                                    let dataList: any[] = [];
-                                    let loading = true;
-                                    return {
-                                        bind: id,
-                                        view: () => {
-                                            if (loading) {
-                                                return BgWidget.spinner({
-                                                    container: { style: 'margin-top: 0;' },
-                                                    circle: { visible: false },
-                                                });
-                                            } else {
-                                                return BgWidget.selectOptionAndClickEvent({
-                                                    gvc: gvc,
-                                                    default: vm.data.content.store_in ?? '',
-                                                    options: dataList.map((item) => {
-                                                        return {
-                                                            key: item.id,
-                                                            value: item.name,
-                                                            note: item.address,
-                                                        };
-                                                    }),
-                                                    showNote: BgWidget.grayNote(
-                                                        (() => {
-                                                            const d = dataList.find((item) => {
-                                                                return item.id === vm.data.content.store_in;
-                                                            });
-                                                            return d ? d.address : '';
-                                                        })(),
-                                                        'margin: 0 4px;'
-                                                    ),
-                                                    callback: (data) => {
-                                                        vm.data.content.store_in = data ? data.key : '';
-                                                        gvc.notifyDataChange(id);
-                                                    },
-                                                });
-                                            }
-                                        },
-                                        divCreate: {},
-                                        onCreate: () => {
-                                            if (loading) {
-                                                ApiUser.getPublicConfig('store_manager', 'manager').then((dd: any) => {
-                                                    if (dd.result && dd.response.value) {
-                                                        dataList = dd.response.value.list;
-                                                    }
-                                                    loading = false;
-                                                    gvc.notifyDataChange(id);
-                                                });
-                                            }
-                                        },
-                                    };
-                                })()
-                            )}
-                        </div>
-                    </div> `,
-                ];
-            case 'checking':
-                return [
-                    html`<div class="row">
-                        <div class="col-12 col-md-6">
-                            <div class="tx_normal">盤點庫存點</div>
-                            ${BgWidget.mbContainer(8)}
-                            ${gvc.bindView(
-                                (() => {
-                                    const id = glitter.getUUID();
-                                    let dataList: any[] = [];
-                                    let loading = true;
-                                    return {
-                                        bind: id,
-                                        view: () => {
-                                            if (loading) {
-                                                return BgWidget.spinner({
-                                                    container: { style: 'margin-top: 0;' },
-                                                    circle: { visible: false },
-                                                });
-                                            } else {
-                                                return BgWidget.selectOptionAndClickEvent({
-                                                    gvc: gvc,
-                                                    default: vm.data.content.store_out ?? '',
-                                                    options: dataList.map((item) => {
-                                                        return {
-                                                            key: item.id,
-                                                            value: item.name,
-                                                            note: item.address,
-                                                        };
-                                                    }),
-                                                    showNote: BgWidget.grayNote(
-                                                        (() => {
-                                                            const d = dataList.find((item) => {
-                                                                return item.id === vm.data.content.store_out;
-                                                            });
-                                                            return d ? d.address : '';
-                                                        })(),
-                                                        'margin: 0 4px;'
-                                                    ),
-                                                    callback: (data) => {
-                                                        vm.data.content.store_out = data ? data.key : '';
-                                                        gvc.notifyDataChange(id);
-                                                        vm.data.content.check_according = '';
-                                                        gvc.notifyDataChange(dvm.tableId);
-                                                    },
-                                                });
-                                            }
-                                        },
-                                        divCreate: {},
-                                        onCreate: () => {
-                                            if (loading) {
-                                                ApiUser.getPublicConfig('store_manager', 'manager').then((dd: any) => {
-                                                    if (dd.result && dd.response.value) {
-                                                        dataList = dd.response.value.list;
-                                                    }
-                                                    loading = false;
-                                                    gvc.notifyDataChange(id);
-                                                });
-                                            }
-                                        },
-                                    };
-                                })()
-                            )}
-                        </div>
-                    </div> `,
-                ];
-        }
     }
 
     static createOrder(gvc: GVC, vm: VM) {
@@ -1956,6 +1597,663 @@ export class StockHistory {
         );
     }
 
+    static replaceOrder(gvc: GVC, vm: VM) {
+        const typeData = typeConfig[vm.type];
+        let vmi: any = undefined;
+
+        const transfer_total = vm.data.content.product_list.reduce((sum, item) => {
+            return sum + item.cost * item.transfer_count;
+        }, 0);
+
+        const recent_total = vm.data.content.product_list.reduce((sum, item) => {
+            return sum + item.cost * (item.recent_count ?? 0);
+        }, 0);
+
+        return BgWidget.container(
+            [
+                html` <div class="title-container">
+                        ${BgWidget.goBack(
+                            gvc.event(() => {
+                                vm.view = 'mainList';
+                            })
+                        )}
+                        <div>${BgWidget.title(vm.data.order_id)}</div>
+                        <span class="mt-1 ms-2 fs-7">${StockHistory.getStatusBadge(vm.data.type, vm.data.status)}</span>
+                    </div>
+                    <div class="flex-fill"></div>`,
+                html` <div class="d-flex justify-content-center ${document.body.clientWidth < 768 ? 'flex-column' : ''}" style="gap: 24px">
+                    ${BgWidget.container(
+                        [
+                            BgWidget.mainCard(
+                                [
+                                    html` <div class="tx_700">${typeData.name}單資料</div>`,
+                                    BgWidget.horizontalLine({ margin: 0 }),
+                                    html`
+                                        <div class="d-flex flex-wrap" style="gap: 18px 0;">
+                                            ${this.getContentHTML(gvc, vm.data, {
+                                                transfer_total,
+                                                recent_total,
+                                            })}
+                                        </div>
+                                    `,
+                                ].join(BgWidget.mbContainer(18))
+                            ),
+                            BgWidget.mainCard(
+                                [
+                                    html`
+                                        <div class="tx_700">${typeData.name}商品</div>
+                                        ${BgWidget.mbContainer(18)}
+                                        ${[
+                                            BgWidget.tableV3({
+                                                gvc: gvc,
+                                                getData: (vd) => {
+                                                    vmi = vd;
+                                                    const limit = 99999;
+                                                    this.setVariantList(
+                                                        vm.data.content.product_list.map((item) => {
+                                                            return `${item.variant_id}`;
+                                                        }),
+                                                        vm.data,
+                                                        (response) => {
+                                                            vm.data.content.product_list = response;
+                                                            vmi.pageSize = Math.ceil(response.length / limit);
+                                                            vmi.originalData = response;
+
+                                                            new Promise<[]>((resolve) => {
+                                                                if (vm.data.type === 'transfer') {
+                                                                    ApiStock.getStoreProductList({
+                                                                        page: 0,
+                                                                        limit: 99999,
+                                                                        search: vm.data.content.store_out,
+                                                                        variant_id_list: vm.data.content.product_list.map((item) => item.variant_id),
+                                                                    }).then((r) => {
+                                                                        if (r.result && r.response.data) {
+                                                                            resolve(r.response.data);
+                                                                        } else {
+                                                                            resolve([]);
+                                                                        }
+                                                                    });
+                                                                } else {
+                                                                    resolve([]);
+                                                                }
+                                                            }).then((responseArray: any) => {
+                                                                switch (vm.data.type) {
+                                                                    case 'restocking':
+                                                                        if ([0, 1, 2].includes(vm.data.status)) {
+                                                                            vmi.tableData = this.restockingDetailTable({
+                                                                                type: 'nonDetails',
+                                                                                list: vm.data.content.product_list,
+                                                                                page: vmi.page,
+                                                                                limit,
+                                                                            });
+                                                                        } else {
+                                                                            vmi.tableData = this.restockingDetailTable({
+                                                                                type: 'details',
+                                                                                list: vm.data.content.product_list,
+                                                                                page: vmi.page,
+                                                                                limit,
+                                                                            });
+                                                                        }
+                                                                        break;
+                                                                    case 'transfer':
+                                                                        vm.data.content.product_list.map((item1) => {
+                                                                            const stockData = responseArray.find((item2: any) => item1.variant_id === item2.id);
+                                                                            item1.stock = stockData ? parseInt(stockData.count, 10) : 0;
+                                                                            return item1;
+                                                                        });
+                                                                        if ([0, 1, 2].includes(vm.data.status)) {
+                                                                            vmi.tableData = this.transferDetailTable({
+                                                                                type: 'nonDetails',
+                                                                                list: vm.data.content.product_list,
+                                                                                page: vmi.page,
+                                                                                limit,
+                                                                            });
+                                                                        } else {
+                                                                            vmi.tableData = this.transferDetailTable({
+                                                                                type: 'details',
+                                                                                list: vm.data.content.product_list,
+                                                                                page: vmi.page,
+                                                                                limit,
+                                                                            });
+                                                                        }
+                                                                        break;
+                                                                    case 'checking':
+                                                                        vm.data.content.product_list.map((item1) => {
+                                                                            const stockData = responseArray.find((item2: any) => item1.variant_id === item2.id);
+                                                                            item1.stock = stockData ? parseInt(stockData.count, 10) : 0;
+                                                                            return item1;
+                                                                        });
+                                                                        vmi.tableData = this.checkingDetailTable({
+                                                                            type: 'details',
+                                                                            status: vm.data.status,
+                                                                            list: vm.data.content.product_list,
+                                                                            page: vmi.page,
+                                                                            limit,
+                                                                        });
+                                                                        break;
+                                                                }
+
+                                                                vmi.loading = false;
+                                                                vmi.callback();
+                                                            });
+                                                        }
+                                                    );
+                                                },
+                                                rowClick: () => {},
+                                                filter: [],
+                                                hiddenPageSplit: true,
+                                            }),
+                                            (() => {
+                                                if (vm.data.type !== 'restocking') {
+                                                    return '';
+                                                }
+                                                const priceHTML = (obj: { name: string; price: number; className?: string; incompletion?: boolean }) => {
+                                                    return html`<div class="d-flex w-100 mb-2">
+                                                        <div class="flex-fill"></div>
+                                                        <div class="d-flex justify-content-between" style="width: 250px;">
+                                                            <div class="${obj.className ?? ''}">${obj.name}</div>
+                                                            ${obj.incompletion
+                                                                ? html`<div style="color: #8D8D8D">商品尚未核對完成</div>`
+                                                                : html`<div class="${obj.className ?? ''}">$ ${obj.price.toLocaleString()}</div>`}
+                                                        </div>
+                                                    </div>`;
+                                                };
+
+                                                return [
+                                                    BgWidget.horizontalLine({ margin: 1.75 }),
+                                                    priceHTML({
+                                                        name: '原訂總成本',
+                                                        price: transfer_total,
+                                                    }),
+                                                    priceHTML({
+                                                        name: '實際總成本',
+                                                        price: recent_total,
+                                                        className: 'tx_700',
+                                                        incompletion: vm.data.status === 4,
+                                                    }),
+                                                    priceHTML({
+                                                        name: '差異金額',
+                                                        price: transfer_total - recent_total,
+                                                        className: 'tx_700',
+                                                        incompletion: vm.data.status === 4,
+                                                    }),
+                                                ].join('');
+                                            })(),
+                                        ].join('')}
+                                    `,
+                                ].join(BgWidget.mbContainer(18))
+                            ),
+                            BgWidget.mainCard(
+                                [
+                                    html` <div class="tx_700">${typeData.name}紀錄</div>`,
+                                    vm.data.content.changeLogs
+                                        .sort((a, b) => {
+                                            return a.time > b.time ? -1 : 1;
+                                        })
+                                        .map((log) => {
+                                            return html`<div class="d-flex justify-content-between align-items-center mt-2">
+                                                <div class="d-flex align-items-center">
+                                                    <div class="me-3">${log.time}</div>
+                                                    <div class="me-1">${log.text}</div>
+                                                    ${log.status === 1 || log.status === 5
+                                                        ? html`<i
+                                                              class="fa-thin fa-square-list cursor_pointer"
+                                                              onclick="${gvc.event(() => {
+                                                                  BgWidget.dialog({
+                                                                      gvc,
+                                                                      title: `${typeData.name}紀錄`,
+                                                                      width: 1000,
+                                                                      innerHTML: (gvc) => {
+                                                                          return BgWidget.tableV3({
+                                                                              gvc: gvc,
+                                                                              getData: (vd) => {
+                                                                                  vmi = vd;
+                                                                                  const limit = 99999;
+                                                                                  this.getVariantInfo(log.product_list ?? [], (response) => {
+                                                                                      vmi.pageSize = Math.ceil(response.length / limit);
+                                                                                      vmi.originalData = response;
+                                                                                      switch (vm.data.type) {
+                                                                                          case 'restocking':
+                                                                                              vmi.tableData = this.restockingDetailTable({
+                                                                                                  type: 'logs',
+                                                                                                  list: response,
+                                                                                                  page: vmi.page,
+                                                                                                  limit,
+                                                                                              });
+                                                                                              break;
+                                                                                          case 'transfer':
+                                                                                              vmi.tableData = this.transferDetailTable({
+                                                                                                  type: 'logs',
+                                                                                                  list: response,
+                                                                                                  page: vmi.page,
+                                                                                                  limit,
+                                                                                              });
+                                                                                              break;
+                                                                                          case 'checking':
+                                                                                              vmi.tableData = this.checkingDetailTable({
+                                                                                                  type: 'logs',
+                                                                                                  status: vm.data.status,
+                                                                                                  list: response,
+                                                                                                  page: vmi.page,
+                                                                                                  limit,
+                                                                                              });
+                                                                                              break;
+                                                                                      }
+                                                                                      vmi.loading = false;
+                                                                                      vmi.callback();
+                                                                                  });
+                                                                              },
+                                                                              rowClick: () => {},
+                                                                              filter: [],
+                                                                              hiddenPageSplit: true,
+                                                                          });
+                                                                      },
+                                                                  });
+                                                              })}"
+                                                          ></i>`
+                                                        : ''}
+                                                </div>
+                                                <div>${log.user && log.user_name ? `${log.user_name}編輯` : '系統自動變更'}</div>
+                                            </div>`;
+                                        })
+                                        .join(''),
+                                ].join(BgWidget.mbContainer(18))
+                            ),
+                        ].join(BgWidget.mbContainer(18))
+                    )}
+                </div>`,
+                BgWidget.mbContainer(240),
+                html` <div class="update-bar-container">${this.getButtonBar(gvc, vm)}</div>`,
+            ].join('<div class="my-2"></div>')
+        );
+    }
+
+    static getFormStructure(gvc: GVC, vm: VM, dvm: any) {
+        const glitter = gvc.glitter;
+        switch (vm.type) {
+            case 'restocking':
+                return [
+                    html`<div class="row">
+                        <div class="col-12 col-md-6">
+                            <div class="tx_normal">供應商</div>
+                            ${BgWidget.mbContainer(8)}
+                            ${gvc.bindView(
+                                (() => {
+                                    const id = glitter.getUUID();
+                                    let dataList: any[] = [];
+                                    let loading = true;
+                                    return {
+                                        bind: id,
+                                        view: () => {
+                                            if (loading) {
+                                                return BgWidget.spinner({
+                                                    container: { style: 'margin-top: 0;' },
+                                                    circle: { visible: false },
+                                                });
+                                            } else {
+                                                return BgWidget.selectOptionAndClickEvent({
+                                                    gvc: gvc,
+                                                    default: vm.data.content.vendor ?? '',
+                                                    options: dataList.map((item) => {
+                                                        return {
+                                                            key: item.id,
+                                                            value: item.name,
+                                                            note: item.address,
+                                                        };
+                                                    }),
+                                                    showNote: BgWidget.grayNote(
+                                                        (() => {
+                                                            const d = dataList.find((item) => {
+                                                                return item.id === vm.data.content.vendor;
+                                                            });
+                                                            return d ? d.address : '';
+                                                        })(),
+                                                        'margin: 0 4px;'
+                                                    ),
+                                                    callback: (data) => {
+                                                        vm.data.content.vendor = data ? data.key : '';
+                                                        gvc.notifyDataChange(id);
+                                                    },
+                                                    clickElement: {
+                                                        html: html`<div>新增供應商</div>
+                                                            <div>
+                                                                <i class="fa-solid fa-plus ps-2" style="font-size: 16px; height: 14px; width: 14px;"></i>
+                                                            </div>`,
+                                                        event: (gvc2) => {
+                                                            const newVendorData = StockVendors.emptyData();
+                                                            BgWidget.settingDialog({
+                                                                gvc: gvc2,
+                                                                title: '新增供應點',
+                                                                innerHTML: (gvc2) => {
+                                                                    return StockHistory.vendorForm(gvc2, newVendorData);
+                                                                },
+                                                                footer_html: (gvc2) => {
+                                                                    return `${BgWidget.cancel(
+                                                                        gvc2.event(() => {
+                                                                            gvc2.closeDialog();
+                                                                        })
+                                                                    )}
+                                                            ${BgWidget.save(
+                                                                gvc2.event(() => {
+                                                                    StockVendors.verifyStoreForm(glitter, 'create', newVendorData, (response) => {
+                                                                        gvc2.closeDialog();
+                                                                        vm.data.content.vendor = response.id;
+                                                                        loading = true;
+                                                                        gvc.notifyDataChange(id);
+                                                                    });
+                                                                }),
+                                                                '完成'
+                                                            )}`;
+                                                                },
+                                                            });
+                                                        },
+                                                    },
+                                                });
+                                            }
+                                        },
+                                        divCreate: {},
+                                        onCreate: () => {
+                                            if (loading) {
+                                                ApiUser.getPublicConfig('vendor_manager', 'manager').then((dd: any) => {
+                                                    if (dd.result && dd.response.value) {
+                                                        dataList = dd.response.value.list;
+                                                    }
+                                                    loading = false;
+                                                    gvc.notifyDataChange(id);
+                                                });
+                                            }
+                                        },
+                                    };
+                                })()
+                            )}
+                        </div>
+                        <div class="col-12 col-md-6">
+                            <div class="tx_normal">庫存點</div>
+                            ${BgWidget.mbContainer(8)}
+                            ${gvc.bindView(
+                                (() => {
+                                    const id = glitter.getUUID();
+                                    let dataList: any[] = [];
+                                    let loading = true;
+                                    return {
+                                        bind: id,
+                                        view: () => {
+                                            if (loading) {
+                                                return BgWidget.spinner({
+                                                    container: { style: 'margin-top: 0;' },
+                                                    circle: { visible: false },
+                                                });
+                                            } else {
+                                                return BgWidget.selectOptionAndClickEvent({
+                                                    gvc: gvc,
+                                                    default: vm.data.content.store_in ?? '',
+                                                    options: dataList.map((item) => {
+                                                        return {
+                                                            key: item.id,
+                                                            value: item.name,
+                                                            note: item.address,
+                                                        };
+                                                    }),
+                                                    showNote: BgWidget.grayNote(
+                                                        (() => {
+                                                            const d = dataList.find((item) => {
+                                                                return item.id === vm.data.content.store_in;
+                                                            });
+                                                            return d ? d.address : '';
+                                                        })(),
+                                                        'margin: 0 4px;'
+                                                    ),
+                                                    callback: (data) => {
+                                                        vm.data.content.store_in = data ? data.key : '';
+                                                        gvc.notifyDataChange(id);
+                                                    },
+                                                    clickElement: {
+                                                        html: html`<div>新增庫存點</div>
+                                                            <div>
+                                                                <i class="fa-solid fa-plus ps-2" style="font-size: 16px; height: 14px; width: 14px;"></i>
+                                                            </div>`,
+                                                        event: (gvc2) => {
+                                                            const newStoreData = StockStores.emptyData();
+                                                            BgWidget.settingDialog({
+                                                                gvc: gvc2,
+                                                                title: '新增庫存點',
+                                                                innerHTML: (gvc2) => {
+                                                                    return StockHistory.storeForm(gvc2, newStoreData);
+                                                                },
+                                                                footer_html: (gvc2) => {
+                                                                    return `${BgWidget.cancel(
+                                                                        gvc2.event(() => {
+                                                                            gvc2.closeDialog();
+                                                                        })
+                                                                    )}
+                                                            ${BgWidget.save(
+                                                                gvc2.event(() => {
+                                                                    StockStores.verifyStoreForm(glitter, 'create', newStoreData, (response) => {
+                                                                        gvc2.closeDialog();
+                                                                        vm.data.content.store_in = response.id;
+                                                                        loading = true;
+                                                                        gvc.notifyDataChange(id);
+                                                                    });
+                                                                }),
+                                                                '完成'
+                                                            )}`;
+                                                                },
+                                                            });
+                                                        },
+                                                    },
+                                                });
+                                            }
+                                        },
+                                        divCreate: {},
+                                        onCreate: () => {
+                                            if (loading) {
+                                                ApiUser.getPublicConfig('store_manager', 'manager').then((dd: any) => {
+                                                    if (dd.result && dd.response.value) {
+                                                        dataList = dd.response.value.list;
+                                                    }
+                                                    loading = false;
+                                                    gvc.notifyDataChange(id);
+                                                });
+                                            }
+                                        },
+                                    };
+                                })()
+                            )}
+                        </div>
+                    </div> `,
+                ];
+            case 'transfer':
+                return [
+                    html`<div class="row">
+                        <div class="col-12 col-md-6">
+                            <div class="tx_normal">調出庫存點</div>
+                            ${BgWidget.mbContainer(8)}
+                            ${gvc.bindView(
+                                (() => {
+                                    const id = glitter.getUUID();
+                                    let dataList: any[] = [];
+                                    let loading = true;
+                                    return {
+                                        bind: id,
+                                        view: () => {
+                                            if (loading) {
+                                                return BgWidget.spinner({
+                                                    container: { style: 'margin-top: 0;' },
+                                                    circle: { visible: false },
+                                                });
+                                            } else {
+                                                return BgWidget.selectOptionAndClickEvent({
+                                                    gvc: gvc,
+                                                    default: vm.data.content.store_out ?? '',
+                                                    options: dataList.map((item) => {
+                                                        return {
+                                                            key: item.id,
+                                                            value: item.name,
+                                                            note: item.address,
+                                                        };
+                                                    }),
+                                                    showNote: BgWidget.grayNote(
+                                                        (() => {
+                                                            const d = dataList.find((item) => {
+                                                                return item.id === vm.data.content.store_out;
+                                                            });
+                                                            return d ? d.address : '';
+                                                        })(),
+                                                        'margin: 0 4px;'
+                                                    ),
+                                                    callback: (data) => {
+                                                        vm.data.content.store_out = data ? data.key : '';
+                                                        gvc.notifyDataChange(id);
+                                                    },
+                                                });
+                                            }
+                                        },
+                                        divCreate: {},
+                                        onCreate: () => {
+                                            if (loading) {
+                                                ApiUser.getPublicConfig('store_manager', 'manager').then((dd: any) => {
+                                                    if (dd.result && dd.response.value) {
+                                                        dataList = dd.response.value.list;
+                                                    }
+                                                    loading = false;
+                                                    gvc.notifyDataChange(id);
+                                                });
+                                            }
+                                        },
+                                    };
+                                })()
+                            )}
+                        </div>
+                        <div class="col-12 col-md-6">
+                            <div class="tx_normal">調入庫存點</div>
+                            ${BgWidget.mbContainer(8)}
+                            ${gvc.bindView(
+                                (() => {
+                                    const id = glitter.getUUID();
+                                    let dataList: any[] = [];
+                                    let loading = true;
+                                    return {
+                                        bind: id,
+                                        view: () => {
+                                            if (loading) {
+                                                return BgWidget.spinner({
+                                                    container: { style: 'margin-top: 0;' },
+                                                    circle: { visible: false },
+                                                });
+                                            } else {
+                                                return BgWidget.selectOptionAndClickEvent({
+                                                    gvc: gvc,
+                                                    default: vm.data.content.store_in ?? '',
+                                                    options: dataList.map((item) => {
+                                                        return {
+                                                            key: item.id,
+                                                            value: item.name,
+                                                            note: item.address,
+                                                        };
+                                                    }),
+                                                    showNote: BgWidget.grayNote(
+                                                        (() => {
+                                                            const d = dataList.find((item) => {
+                                                                return item.id === vm.data.content.store_in;
+                                                            });
+                                                            return d ? d.address : '';
+                                                        })(),
+                                                        'margin: 0 4px;'
+                                                    ),
+                                                    callback: (data) => {
+                                                        vm.data.content.store_in = data ? data.key : '';
+                                                        gvc.notifyDataChange(id);
+                                                    },
+                                                });
+                                            }
+                                        },
+                                        divCreate: {},
+                                        onCreate: () => {
+                                            if (loading) {
+                                                ApiUser.getPublicConfig('store_manager', 'manager').then((dd: any) => {
+                                                    if (dd.result && dd.response.value) {
+                                                        dataList = dd.response.value.list;
+                                                    }
+                                                    loading = false;
+                                                    gvc.notifyDataChange(id);
+                                                });
+                                            }
+                                        },
+                                    };
+                                })()
+                            )}
+                        </div>
+                    </div> `,
+                ];
+            case 'checking':
+                return [
+                    html`<div class="row">
+                        <div class="col-12 col-md-6">
+                            <div class="tx_normal">盤點庫存點</div>
+                            ${BgWidget.mbContainer(8)}
+                            ${gvc.bindView(
+                                (() => {
+                                    const id = glitter.getUUID();
+                                    let dataList: any[] = [];
+                                    let loading = true;
+                                    return {
+                                        bind: id,
+                                        view: () => {
+                                            if (loading) {
+                                                return BgWidget.spinner({
+                                                    container: { style: 'margin-top: 0;' },
+                                                    circle: { visible: false },
+                                                });
+                                            } else {
+                                                return BgWidget.selectOptionAndClickEvent({
+                                                    gvc: gvc,
+                                                    default: vm.data.content.store_out ?? '',
+                                                    options: dataList.map((item) => {
+                                                        return {
+                                                            key: item.id,
+                                                            value: item.name,
+                                                            note: item.address,
+                                                        };
+                                                    }),
+                                                    showNote: BgWidget.grayNote(
+                                                        (() => {
+                                                            const d = dataList.find((item) => {
+                                                                return item.id === vm.data.content.store_out;
+                                                            });
+                                                            return d ? d.address : '';
+                                                        })(),
+                                                        'margin: 0 4px;'
+                                                    ),
+                                                    callback: (data) => {
+                                                        vm.data.content.store_out = data ? data.key : '';
+                                                        gvc.notifyDataChange(id);
+                                                        vm.data.content.check_according = '';
+                                                        gvc.notifyDataChange(dvm.tableId);
+                                                    },
+                                                });
+                                            }
+                                        },
+                                        divCreate: {},
+                                        onCreate: () => {
+                                            if (loading) {
+                                                ApiUser.getPublicConfig('store_manager', 'manager').then((dd: any) => {
+                                                    if (dd.result && dd.response.value) {
+                                                        dataList = dd.response.value.list;
+                                                    }
+                                                    loading = false;
+                                                    gvc.notifyDataChange(id);
+                                                });
+                                            }
+                                        },
+                                    };
+                                })()
+                            )}
+                        </div>
+                    </div> `,
+                ];
+        }
+    }
+
     static integerColorComponent(n: number, leftNumber: number | undefined, rightNumber: number) {
         if (n === 0) {
             return html`<span class="fs-7">0</span>`;
@@ -2257,277 +2555,6 @@ export class StockHistory {
                 },
             ];
         });
-    }
-
-    static replaceOrder(gvc: GVC, vm: VM) {
-        const typeData = typeConfig[vm.type];
-        let vmi: any = undefined;
-
-        const transfer_total = vm.data.content.product_list.reduce((sum, item) => {
-            return sum + item.cost * item.transfer_count;
-        }, 0);
-
-        const recent_total = vm.data.content.product_list.reduce((sum, item) => {
-            return sum + item.cost * (item.recent_count ?? 0);
-        }, 0);
-
-        return BgWidget.container(
-            [
-                html` <div class="title-container">
-                        ${BgWidget.goBack(
-                            gvc.event(() => {
-                                vm.view = 'mainList';
-                            })
-                        )}
-                        <div>${BgWidget.title(vm.data.order_id)}</div>
-                        <span class="mt-1 ms-2 fs-7">${StockHistory.getStatusBadge(vm.data.type, vm.data.status)}</span>
-                    </div>
-                    <div class="flex-fill"></div>`,
-                html` <div class="d-flex justify-content-center ${document.body.clientWidth < 768 ? 'flex-column' : ''}" style="gap: 24px">
-                    ${BgWidget.container(
-                        [
-                            BgWidget.mainCard(
-                                [
-                                    html` <div class="tx_700">${typeData.name}單資料</div>`,
-                                    BgWidget.horizontalLine({ margin: 0 }),
-                                    html`
-                                        <div class="d-flex flex-wrap" style="gap: 18px 0;">
-                                            ${this.getContentHTML(gvc, vm.data, {
-                                                transfer_total,
-                                                recent_total,
-                                            })}
-                                        </div>
-                                    `,
-                                ].join(BgWidget.mbContainer(18))
-                            ),
-                            BgWidget.mainCard(
-                                [
-                                    html`
-                                        <div class="tx_700">${typeData.name}商品</div>
-                                        ${BgWidget.mbContainer(18)}
-                                        ${[
-                                            BgWidget.tableV3({
-                                                gvc: gvc,
-                                                getData: (vd) => {
-                                                    vmi = vd;
-                                                    const limit = 99999;
-                                                    this.setVariantList(
-                                                        vm.data.content.product_list.map((item) => {
-                                                            return `${item.variant_id}`;
-                                                        }),
-                                                        vm.data,
-                                                        (response) => {
-                                                            vm.data.content.product_list = response;
-                                                            vmi.pageSize = Math.ceil(response.length / limit);
-                                                            vmi.originalData = response;
-
-                                                            new Promise<[]>((resolve) => {
-                                                                if (vm.data.type === 'transfer') {
-                                                                    ApiStock.getStoreProductList({
-                                                                        page: 0,
-                                                                        limit: 99999,
-                                                                        search: vm.data.content.store_out,
-                                                                        variant_id_list: vm.data.content.product_list.map((item) => item.variant_id),
-                                                                    }).then((r) => {
-                                                                        if (r.result && r.response.data) {
-                                                                            resolve(r.response.data);
-                                                                        } else {
-                                                                            resolve([]);
-                                                                        }
-                                                                    });
-                                                                } else {
-                                                                    resolve([]);
-                                                                }
-                                                            }).then((responseArray: any) => {
-                                                                switch (vm.data.type) {
-                                                                    case 'restocking':
-                                                                        if ([0, 1, 2].includes(vm.data.status)) {
-                                                                            vmi.tableData = this.restockingDetailTable({
-                                                                                type: 'nonDetails',
-                                                                                list: vm.data.content.product_list,
-                                                                                page: vmi.page,
-                                                                                limit,
-                                                                            });
-                                                                        } else {
-                                                                            vmi.tableData = this.restockingDetailTable({
-                                                                                type: 'details',
-                                                                                list: vm.data.content.product_list,
-                                                                                page: vmi.page,
-                                                                                limit,
-                                                                            });
-                                                                        }
-                                                                        break;
-                                                                    case 'transfer':
-                                                                        vm.data.content.product_list.map((item1) => {
-                                                                            const stockData = responseArray.find((item2: any) => item1.variant_id === item2.id);
-                                                                            item1.stock = stockData ? parseInt(stockData.count, 10) : 0;
-                                                                            return item1;
-                                                                        });
-                                                                        if ([0, 1, 2].includes(vm.data.status)) {
-                                                                            vmi.tableData = this.transferDetailTable({
-                                                                                type: 'nonDetails',
-                                                                                list: vm.data.content.product_list,
-                                                                                page: vmi.page,
-                                                                                limit,
-                                                                            });
-                                                                        } else {
-                                                                            vmi.tableData = this.transferDetailTable({
-                                                                                type: 'details',
-                                                                                list: vm.data.content.product_list,
-                                                                                page: vmi.page,
-                                                                                limit,
-                                                                            });
-                                                                        }
-                                                                        break;
-                                                                    case 'checking':
-                                                                        vm.data.content.product_list.map((item1) => {
-                                                                            const stockData = responseArray.find((item2: any) => item1.variant_id === item2.id);
-                                                                            item1.stock = stockData ? parseInt(stockData.count, 10) : 0;
-                                                                            return item1;
-                                                                        });
-                                                                        vmi.tableData = this.checkingDetailTable({
-                                                                            type: 'details',
-                                                                            status: vm.data.status,
-                                                                            list: vm.data.content.product_list,
-                                                                            page: vmi.page,
-                                                                            limit,
-                                                                        });
-                                                                        break;
-                                                                }
-
-                                                                vmi.loading = false;
-                                                                vmi.callback();
-                                                            });
-                                                        }
-                                                    );
-                                                },
-                                                rowClick: () => {},
-                                                filter: [],
-                                                hiddenPageSplit: true,
-                                            }),
-                                            (() => {
-                                                if (vm.data.type !== 'restocking') {
-                                                    return '';
-                                                }
-                                                const priceHTML = (obj: { name: string; price: number; className?: string; incompletion?: boolean }) => {
-                                                    return html`<div class="d-flex w-100 mb-2">
-                                                        <div class="flex-fill"></div>
-                                                        <div class="d-flex justify-content-between" style="width: 250px;">
-                                                            <div class="${obj.className ?? ''}">${obj.name}</div>
-                                                            ${obj.incompletion
-                                                                ? html`<div style="color: #8D8D8D">商品尚未核對完成</div>`
-                                                                : html`<div class="${obj.className ?? ''}">$ ${obj.price.toLocaleString()}</div>`}
-                                                        </div>
-                                                    </div>`;
-                                                };
-
-                                                return [
-                                                    BgWidget.horizontalLine({ margin: 1.75 }),
-                                                    priceHTML({
-                                                        name: '原訂總成本',
-                                                        price: transfer_total,
-                                                    }),
-                                                    priceHTML({
-                                                        name: '實際總成本',
-                                                        price: recent_total,
-                                                        className: 'tx_700',
-                                                        incompletion: vm.data.status === 4,
-                                                    }),
-                                                    priceHTML({
-                                                        name: '差異金額',
-                                                        price: transfer_total - recent_total,
-                                                        className: 'tx_700',
-                                                        incompletion: vm.data.status === 4,
-                                                    }),
-                                                ].join('');
-                                            })(),
-                                        ].join('')}
-                                    `,
-                                ].join(BgWidget.mbContainer(18))
-                            ),
-                            BgWidget.mainCard(
-                                [
-                                    html` <div class="tx_700">${typeData.name}紀錄</div>`,
-                                    vm.data.content.changeLogs
-                                        .sort((a, b) => {
-                                            return a.time > b.time ? -1 : 1;
-                                        })
-                                        .map((log) => {
-                                            return html`<div class="d-flex justify-content-between align-items-center mt-2">
-                                                <div class="d-flex align-items-center">
-                                                    <div class="me-3">${log.time}</div>
-                                                    <div class="me-1">${log.text}</div>
-                                                    ${log.status === 1 || log.status === 5
-                                                        ? html`<i
-                                                              class="fa-thin fa-square-list cursor_pointer"
-                                                              onclick="${gvc.event(() => {
-                                                                  BgWidget.dialog({
-                                                                      gvc,
-                                                                      title: `${typeData.name}紀錄`,
-                                                                      width: 1000,
-                                                                      innerHTML: (gvc) => {
-                                                                          return BgWidget.tableV3({
-                                                                              gvc: gvc,
-                                                                              getData: (vd) => {
-                                                                                  vmi = vd;
-                                                                                  const limit = 99999;
-                                                                                  this.getVariantInfo(log.product_list ?? [], (response) => {
-                                                                                      vmi.pageSize = Math.ceil(response.length / limit);
-                                                                                      vmi.originalData = response;
-                                                                                      switch (vm.data.type) {
-                                                                                          case 'restocking':
-                                                                                              vmi.tableData = this.restockingDetailTable({
-                                                                                                  type: 'logs',
-                                                                                                  list: response,
-                                                                                                  page: vmi.page,
-                                                                                                  limit,
-                                                                                              });
-                                                                                              break;
-                                                                                          case 'transfer':
-                                                                                              vmi.tableData = this.transferDetailTable({
-                                                                                                  type: 'logs',
-                                                                                                  list: response,
-                                                                                                  page: vmi.page,
-                                                                                                  limit,
-                                                                                              });
-                                                                                              break;
-                                                                                          case 'checking':
-                                                                                              vmi.tableData = this.checkingDetailTable({
-                                                                                                  type: 'logs',
-                                                                                                  status: vm.data.status,
-                                                                                                  list: response,
-                                                                                                  page: vmi.page,
-                                                                                                  limit,
-                                                                                              });
-                                                                                              break;
-                                                                                      }
-                                                                                      vmi.loading = false;
-                                                                                      vmi.callback();
-                                                                                  });
-                                                                              },
-                                                                              rowClick: () => {},
-                                                                              filter: [],
-                                                                              hiddenPageSplit: true,
-                                                                          });
-                                                                      },
-                                                                  });
-                                                              })}"
-                                                          ></i>`
-                                                        : ''}
-                                                </div>
-                                                <div>${log.user && log.user_name ? `${log.user_name}編輯` : '系統自動變更'}</div>
-                                            </div>`;
-                                        })
-                                        .join(''),
-                                ].join(BgWidget.mbContainer(18))
-                            ),
-                        ].join(BgWidget.mbContainer(18))
-                    )}
-                </div>`,
-                BgWidget.mbContainer(240),
-                html` <div class="update-bar-container">${this.getButtonBar(gvc, vm)}</div>`,
-            ].join('<div class="my-2"></div>')
-        );
     }
 
     static vendorForm(gvc: GVC, data: VendorData) {
@@ -3318,7 +3345,8 @@ export class StockHistory {
     static setVariantList(ids: string[], data: StockHistoryData, callback: (list: ContentProduct[]) => void) {
         let product_list = data.content.product_list;
         if (ids.length === 0) {
-            callback(product_list);
+            callback([]);
+            // callback(product_list);
             return;
         }
 

@@ -596,4 +596,12 @@ export class FilterOptions {
     static stockHistoryFunnel = [];
 
     static stockHistoryOrderBy = [];
+
+    static stockHistoryCheckFilterFrame = {};
+
+    static stockHistoryCheckSelect = [{ key: 'title', value: '商品名稱' }];
+
+    static stockHistoryCheckFunnel = [];
+
+    static stockHistoryCheckOrderBy = [];
 }

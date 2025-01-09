@@ -2771,30 +2771,47 @@ ${(_c = obj.default) !== null && _c !== void 0 ? _c : ''}</textarea
                 query: '',
                 orderString: '',
             };
-            function printOption(opt) {
+            function printOptionVa(opt) {
                 var _a;
+                const id = Tool.randomString(7);
                 opt.key = `${opt.key}`;
                 function call() {
+                    console.log(1);
                     if (obj.default.includes(opt.key)) {
                         obj.default = obj.default.filter((item) => item !== opt.key);
                     }
                     else {
                         obj.default.push(opt.key);
                     }
+                    obj.gvc.notifyDataChange(id);
                 }
-                return html `<input
-                        class="form-check-input mt-0 ${vm.checkClass}"
-                        type="checkbox"
-                        id="${opt.key}"
-                        name="radio_${vm.id}"
-                        onclick="${obj.gvc.event(() => call())}"
-                        ${obj.default.includes(opt.key) ? 'checked' : ''}
-                    />
+                return html ` ${obj.gvc.bindView({
+                    bind: id,
+                    view: () => {
+                        return html `<input
+                                class="form-check-input mt-0 ${vm.checkClass}"
+                                type="checkbox"
+                                id="${opt.key}"
+                                name="radio_${vm.id}"
+                                onclick="${obj.gvc.event(() => call())}"
+                                ${obj.default.includes(opt.key) ? 'checked' : ''}
+                            />`;
+                    },
+                    divCreate: {
+                        class: 'd-flex align-items-center justify-content-center',
+                    },
+                })}
                     ${BgWidget.validImageBox({
                     gvc,
                     image: (_a = opt.image) !== null && _a !== void 0 ? _a : '',
                     width: 40,
                     height: 40,
+                    events: [
+                        {
+                            key: 'onclick',
+                            value: obj.gvc.event(() => call()),
+                        },
+                    ],
                 })}
                     <div class="form-check-label c_updown_label cursor_pointer" onclick="${obj.gvc.event(() => call())}">
                         <div class="tx_normal ${opt.note ? 'mb-1' : ''}">${opt.value}</div>
@@ -2825,7 +2842,7 @@ ${(_c = obj.default) !== null && _c !== void 0 ? _c : ''}</textarea
                                 <div class="c_dialog_body">
                                     <div class="c_dialog_main" style="gap: 24px; max-height: 500px;">
                                         ${gvc.map(vm.options.slice(0, 9).map((opt) => {
-                        return html ` <div class="d-flex align-items-center" style="gap: 24px">${printOption(opt)}</div>`;
+                        return html ` <div class="d-flex align-items-center" style="gap: 24px">${printOptionVa(opt)}</div>`;
                     }))}
                                     </div>
                                     <div class="c_dialog_bar">
@@ -2893,7 +2910,7 @@ ${(_c = obj.default) !== null && _c !== void 0 ? _c : ''}</textarea
                                                 const optionElement = document.createElement('div');
                                                 optionElement.classList.add('d-flex', 'align-items-center');
                                                 optionElement.style.gap = '24px';
-                                                optionElement.innerHTML = printOption(option);
+                                                optionElement.innerHTML = printOptionVa(option);
                                                 dialogContainer.appendChild(optionElement);
                                             });
                                         }
@@ -2919,34 +2936,44 @@ ${(_c = obj.default) !== null && _c !== void 0 ? _c : ''}</textarea
                 query: '',
                 orderString: '',
             };
-            function printOption(opt) {
+            function printOptionSt(opt) {
                 var _a;
+                const id = Tool.randomString(7);
                 opt.key = `${opt.key}`;
                 function call() {
+                    console.log(2);
                     if (obj.default.includes(opt.key)) {
                         obj.default = obj.default.filter((item) => item !== opt.key);
                     }
                     else {
                         obj.default.push(opt.key);
                     }
+                    obj.gvc.notifyDataChange(id);
                 }
                 return html `
-                    <div class="d-flex align-items-center" style="gap: 24px">
-                        <input
-                            class="form-check-input mt-0 ${vm.checkClass}"
-                            type="checkbox"
-                            id="${opt.key}"
-                            name="radio_${vm.id}"
-                            onclick="${obj.gvc.event(() => call())}"
-                            ${obj.default.includes(opt.key) ? 'checked' : ''}
-                        />
+                    <div class="d-flex align-items-center" style="gap: 24px" onclick="${obj.gvc.event(() => call())}">
+                        ${obj.gvc.bindView({
+                    bind: id,
+                    view: () => {
+                        return html `<input
+                                    class="form-check-input mt-0 ${vm.checkClass}"
+                                    type="checkbox"
+                                    id="${opt.key}"
+                                    name="radio_${vm.id}"
+                                    ${obj.default.includes(opt.key) ? 'checked' : ''}
+                                />`;
+                    },
+                    divCreate: {
+                        class: 'd-flex align-items-center justify-content-between',
+                    },
+                })}
                         ${BgWidget.validImageBox({
                     gvc,
                     image: (_a = opt.image) !== null && _a !== void 0 ? _a : '',
                     width: 40,
                     height: 40,
                 })}
-                        <div class="form-check-label c_updown_label cursor_pointer" onclick="${obj.gvc.event(() => call())}">
+                        <div class="form-check-label c_updown_label cursor_pointer">
                             <div class="tx_normal ${opt.note ? 'mb-1' : ''}">${opt.value}</div>
                             ${opt.note ? html ` <div class="tx_gray_12">${opt.note}</div> ` : ''}
                         </div>
@@ -2981,7 +3008,7 @@ ${(_c = obj.default) !== null && _c !== void 0 ? _c : ''}</textarea
                                 <div class="c_dialog_body">
                                     <div class="c_dialog_main" style="gap: 24px; max-height: 500px;">
                                         ${gvc.map(vm.options.slice(0, 9).map((opt) => {
-                        return html ` <div class="d-flex justify-content-between">${printOption(opt)}</div>`;
+                        return html ` <div class="d-flex justify-content-between">${printOptionSt(opt)}</div>`;
                     }))}
                                     </div>
                                     <div class="c_dialog_bar">
@@ -3046,7 +3073,7 @@ ${(_c = obj.default) !== null && _c !== void 0 ? _c : ''}</textarea
                                                 const optionElement = document.createElement('div');
                                                 optionElement.classList.add('d-flex', 'align-items-center');
                                                 optionElement.style.gap = '24px';
-                                                optionElement.innerHTML = printOption(option);
+                                                optionElement.innerHTML = printOptionSt(option);
                                                 dialogContainer.appendChild(optionElement);
                                             });
                                         }
@@ -3392,7 +3419,7 @@ ${(_c = obj.default) !== null && _c !== void 0 ? _c : ''}</textarea
                     }
                     return html ` <div class="bg-white shadow rounded-3" style="width: 100%; max-height: 100%; overflow-y: auto; position: relative;">
                             <div class="w-100 d-flex align-items-center p-3 border-bottom" style="position: sticky; top: 0; z-index: 2; background: #fff;">
-                                <div class="tx_700">${typeof obj.title === 'function' ? obj.title(gvc) : (_b = obj.title) !== null && _b !== void 0 ? _b : '產品列表'}</div>
+                                <div class="tx_700">${typeof obj.title === 'function' ? obj.title(gvc) : ((_b = obj.title) !== null && _b !== void 0 ? _b : '產品列表')}</div>
                                 <div class="flex-fill"></div>
                                 <i
                                     class="fa-regular fa-circle-xmark fs-5 text-dark cursor_pointer"
@@ -3535,6 +3562,15 @@ ${(_c = obj.default) !== null && _c !== void 0 ? _c : ''}</textarea
                     });
                 }
                 else {
+                    const option = [
+                        {
+                            key: 'src',
+                            value: imageVM.url,
+                        },
+                    ];
+                    if (obj.events) {
+                        option.push(...obj.events);
+                    }
                     return obj.gvc.bindView(() => {
                         var _a, _b;
                         return {
@@ -3546,12 +3582,7 @@ ${(_c = obj.default) !== null && _c !== void 0 ? _c : ''}</textarea
                                 elem: 'img',
                                 style: `${wh}${(_a = obj.style) !== null && _a !== void 0 ? _a : ''}`,
                                 class: (_b = obj.class) !== null && _b !== void 0 ? _b : '',
-                                option: [
-                                    {
-                                        key: 'src',
-                                        value: imageVM.url,
-                                    },
-                                ],
+                                option,
                             },
                         };
                     });
