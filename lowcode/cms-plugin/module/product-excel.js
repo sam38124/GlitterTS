@@ -258,8 +258,7 @@ export class ProductExcel {
                                     },
                                     template: '',
                                 };
-                                console.log(`id_list=>`, id_list);
-                                productData.id = id_list[postMD.length - 1];
+                                productData.id = id_list[postMD.length];
                                 productData.title = this.checkString(row[0]);
                                 productData.status = row[1] == '啟用' ? 'active' : 'draft';
                                 productData.collection = (_a = row[2].split(',')) !== null && _a !== void 0 ? _a : [];
@@ -352,12 +351,15 @@ export class ProductExcel {
                         }
                     });
                     postMD.push(productData);
+                    postMD.map((dd) => {
+                        dd.seo.domain = dd.seo.domain || dd.title;
+                    });
                     const domainList = postMD
                         .filter((item, index) => {
                         return (!(id_list)[index]);
                     })
                         .map((item) => {
-                        return item.domain;
+                        return item.seo.domain;
                     });
                     const filteredArr = domainList.filter((item) => {
                         return item && item.length > 0 && item.trim().length > 0;
@@ -369,7 +371,6 @@ export class ProductExcel {
                         });
                         return;
                     }
-                    console.log(`domainList=>`, domainList);
                     const productDomainSet = new Set(allProductDomain);
                     const duplicateDomain = domainList.find((domain) => domain.length > 0 && productDomainSet.has(domain));
                     if (duplicateDomain) {
@@ -382,7 +383,6 @@ export class ProductExcel {
                     };
                     dialog.dataLoading({ visible: false });
                     if (!error) {
-                        console.log(`postMD=>`, postMD);
                         dialog.dataLoading({ visible: true, text: '上傳資料中' });
                         yield ApiShop.postMultiProduct({
                             data: passData,

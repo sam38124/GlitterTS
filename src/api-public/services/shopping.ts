@@ -4339,7 +4339,7 @@ OR JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.orderStatus')) NOT IN (-99)) `);
                 })
             );
             // return
-            let max_id = (await db.query(`select max(id) from \`${this.app}\`.t_manager_post`, []))[0]['max(id)'];
+            let max_id=(await db.query(`select max(id) from \`${this.app}\`.t_manager_post`,[]))[0]['max(id)'] || 0;
             const data = await db.query(
                 `replace
                 INTO \`${this.app}\`.\`t_manager_post\` (id,userID,content) values ?`,

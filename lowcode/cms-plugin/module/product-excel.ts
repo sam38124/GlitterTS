@@ -2,6 +2,7 @@ import { GVC } from '../../glitterBundle/GVController.js';
 import { ShareDialog } from '../../glitterBundle/dialog/ShareDialog.js';
 import { ApiShop } from '../../glitter-base/route/shopping.js';
 import { CheckInput } from '../../modules/checkInput.js';
+import * as domain from "node:domain";
 
 export interface Variant {
     save_stock?: string;
@@ -360,8 +361,7 @@ export class ProductExcel {
                                 },
                                 template: '',
                             };
-                            console.log(`id_list=>`,id_list)
-                            productData.id=id_list[postMD.length-1];
+                            productData.id=id_list[postMD.length];
                             productData.title = this.checkString(row[0]);
                             productData.status = row[1] == '啟用' ? 'active' : 'draft';
                             productData.collection = row[2].split(',') ?? [];
@@ -473,14 +473,16 @@ export class ProductExcel {
                 postMD.push(productData);
                 // console.log(`one-push`)
                 //商品連結若為空，則預設值為商品名稱
-
+                postMD.map((dd:any)=>{
+                    dd.seo.domain=dd.seo.domain || dd.title
+                })
                 const domainList = postMD
                     .filter((item: any,index:number) => {
                         return  (!(id_list)[index]);
                     })
                     .map((item:any) => {
 
-                        return item.domain
+                        return item.seo.domain
                     });
                 // 判斷excel中是否有重複的domain
                 const filteredArr = domainList.filter((item: string) => {
@@ -494,7 +496,7 @@ export class ProductExcel {
                     });
                     return
                 }
-                console.log(`domainList=>`,domainList)
+
                 //判斷已建立產品中是否有重複存在的domain
                 const productDomainSet = new Set(allProductDomain);
                 const duplicateDomain = domainList.find((domain: string) => domain.length > 0 && productDomainSet.has(domain));
@@ -509,7 +511,6 @@ export class ProductExcel {
                 };
                 dialog.dataLoading({ visible: false });
                 if (!error) {
-                    console.log(`postMD=>`,postMD)
                     // return
                     dialog.dataLoading({ visible: true, text: '上傳資料中' });
                     await ApiShop.postMultiProduct({

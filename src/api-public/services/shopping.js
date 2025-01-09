@@ -3492,8 +3492,13 @@ OR JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.orderStatus')) NOT IN (-99)) `);
                     }
                     resolve(true);
                 });
+<<<<<<< HEAD
             }));
             let max_id = (await database_js_1.default.query(`select max(id) from \`${this.app}\`.t_manager_post`, []))[0]['max(id)'];
+=======
+            })));
+            let max_id = (await database_js_1.default.query(`select max(id) from \`${this.app}\`.t_manager_post`, []))[0]['max(id)'] || 0;
+>>>>>>> aaa8766d ([update] : glitter version.)
             const data = await database_js_1.default.query(`replace
                 INTO \`${this.app}\`.\`t_manager_post\` (id,userID,content) values ?`, [
                 productArray.map((product) => {

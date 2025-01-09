@@ -8,6 +8,15 @@ export class UtPermission {
         return new Promise(async (resolve, reject) => {
             try {
                 const appName = (req.get('g-app') as string) || req.query.appName || req.body.appName;
+                console.log(`SELECT count(1) 
+                    FROM ${saasConfig.SAAS_NAME}.app_config
+                    WHERE 
+                        (user = ${req.body.token.userID} and appName = ${db.escape(appName)})
+                        OR appName in (
+                            (SELECT appName FROM \`${saasConfig.SAAS_NAME}\`.app_auth_config
+                            WHERE user = ${req.body.token.userID} AND status = 1 AND invited = 1 AND appName = ${db.escape(appName)})
+                        );
+                   `)
                 const result = await db.query(
                     `SELECT count(1) 
                     FROM ${saasConfig.SAAS_NAME}.app_config
@@ -20,7 +29,7 @@ export class UtPermission {
                     `,
                     [req.body.token.userID, appName, req.body.token.userID, appName]
                 );
-                resolve(result[0]['count(1)'] == 1);
+                resolve(result[0]['count(1)'] > 0);
             } catch (e) {
                 resolve(false);
             }

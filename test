@@ -12,3 +12,6 @@ GRANT ALL PRIVILEGES ON *.* TO 'liondesign'@'%';
 52.197.107.145
 
 34.81.28.192
+
+
+https://asia-east1-shopnex-447104.cloudfunctions.net/recover
