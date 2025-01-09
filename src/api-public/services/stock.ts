@@ -487,7 +487,7 @@ export class Stock {
             const data = await db.query(
                 `SELECT * FROM \`${this.app}\`.t_stock_history
                     WHERE 1=1 AND ${sqlString}
-                    ORDER BY created_time DESC
+                    ORDER BY order_id DESC
                     LIMIT ${page * limit}, ${limit};
                 `,
                 []
