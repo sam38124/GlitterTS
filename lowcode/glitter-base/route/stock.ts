@@ -14,6 +14,7 @@ export type ContentProduct = {
     spec?: string;
     sku?: '';
     stock?: number;
+    barcode?: string;
 };
 
 export type StockHistoryData = {

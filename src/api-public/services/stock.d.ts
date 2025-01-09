@@ -16,6 +16,7 @@ type ContentProduct = {
     title?: string;
     spec?: string;
     sku?: '';
+    barcode?: '';
 };
 type StockHistoryData = {
     id: string;

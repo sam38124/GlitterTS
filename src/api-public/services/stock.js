@@ -425,6 +425,7 @@ class Stock {
         }
     }
     async putHistory(json) {
+        var _a, _b, _c;
         try {
             if (!this.token) {
                 return { data: false };
@@ -436,10 +437,12 @@ class Stock {
                 return { data: false };
             }
             const originHistory = getHistory[0];
+            const originList = originHistory.content.product_list;
             json.content.product_list.map((item) => {
                 delete item.title;
                 delete item.spec;
                 delete item.sku;
+                delete item.barcode;
                 return item;
             });
             json.content.changeLogs.push({
@@ -449,7 +452,6 @@ class Stock {
                 user: this.token.userID,
                 product_list: (() => {
                     if (json.status === 1 || json.status === 5) {
-                        const originList = originHistory.content.product_list;
                         const updateList = JSON.parse(JSON.stringify(json.content.product_list));
                         return updateList.map((item1) => {
                             var _a, _b;
@@ -466,45 +468,40 @@ class Stock {
             const formatJson = JSON.parse(JSON.stringify(json));
             formatJson.content = JSON.stringify(json.content);
             delete formatJson.id;
-            if (json.status === 0 || json.status === 1) {
-                const _shop = new shopping_1.Shopping(this.app, this.token);
-                const variants = await _shop.getVariants({
-                    page: 0,
-                    limit: 9999,
-                    id_list: json.content.product_list.map((item) => item.variant_id).join(','),
-                });
-                const dataList = [];
-                const createStockEntry = (type, store, variant, item, vp, vc) => {
-                    var _a;
-                    return (Object.assign({ id: variant.id, product_id: variant.product_id }, Stock.formatStockContent({
-                        type,
-                        store,
-                        count: (_a = item.recent_count) !== null && _a !== void 0 ? _a : 0,
-                        product_content: vp,
-                        variant_content: vc,
-                    })));
-                };
-                for (const variant of variants.data) {
-                    const item = json.content.product_list.find((item) => item.variant_id === variant.id);
-                    const vp = variant.product_content;
-                    const vc = variant.variant_content;
-                    if (item) {
-                        const { type, content } = json;
-                        const { store_in, store_out } = content;
-                        if (type === 'restocking') {
-                            dataList.push(createStockEntry('plus', store_in, variant, item, vp, vc));
-                        }
-                        else if (type === 'transfer') {
-                            dataList.push(createStockEntry('plus', store_in, variant, item, vp, vc));
-                            dataList.push(createStockEntry('minus', store_out, variant, item, vp, vc));
-                        }
-                        else if (type === 'checking') {
-                            dataList.push(createStockEntry('equal', store_out, variant, item, vp, vc));
-                        }
+            const _shop = new shopping_1.Shopping(this.app, this.token);
+            const variants = await _shop.getVariants({
+                page: 0,
+                limit: 9999,
+                id_list: json.content.product_list.map((item) => item.variant_id).join(','),
+            });
+            const dataList = [];
+            const createStockEntry = (type, store, count, variant) => (Object.assign({ id: variant.id, product_id: variant.product_id }, Stock.formatStockContent({
+                type,
+                store,
+                count,
+                product_content: variant.product_content,
+                variant_content: variant.variant_content,
+            })));
+            for (const variant of variants.data) {
+                const item = json.content.product_list.find((item) => item.variant_id === variant.id);
+                if (item) {
+                    const originVariant = originList.find((origin) => item.variant_id === origin.variant_id);
+                    const count = originVariant ? ((_a = item.recent_count) !== null && _a !== void 0 ? _a : 0) - ((_b = originVariant.recent_count) !== null && _b !== void 0 ? _b : 0) : ((_c = item.recent_count) !== null && _c !== void 0 ? _c : 0);
+                    const { type, content } = json;
+                    const { store_in, store_out } = content;
+                    if (type === 'restocking') {
+                        dataList.push(createStockEntry('plus', store_in, count, variant));
+                    }
+                    else if (type === 'transfer') {
+                        dataList.push(createStockEntry('plus', store_in, count, variant));
+                        dataList.push(createStockEntry('minus', store_out, count, variant));
+                    }
+                    else if (type === 'checking' && (json.status === 0 || json.status === 1)) {
+                        dataList.push(createStockEntry('equal', store_out, count, variant));
                     }
                 }
-                await _shop.putVariants(dataList);
             }
+            await _shop.putVariants(dataList);
             await database_1.default.query(`UPDATE \`${this.app}\`.t_stock_history SET ? WHERE order_id = ?
                 `, [formatJson, json.order_id]);
             return { data: true };

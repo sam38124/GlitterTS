@@ -470,7 +470,7 @@ export class StockHistory {
                     },
                     {
                         key: '商品條碼',
-                        value: `<span class="fs-7">${dd.sku || '－'}</span>`,
+                        value: `<span class="fs-7">${dd.barcode || '－'}</span>`,
                     },
                 ];
                 const noteArr = [
@@ -638,7 +638,7 @@ export class StockHistory {
         }))}${BgWidget.title(`${typeData.name}核對`)}
                 <div class="flex-fill"></div>
             </div>
-            <div class="title-container">
+            <div class="d-none title-container">
                 ${BgWidget.tab([
             {
                 title: '全部',
@@ -1264,7 +1264,7 @@ export class StockHistory {
                             ...startArr,
                             {
                                 key: '商品條碼',
-                                value: `<span class="fs-7">${dd.sku || '－'}</span>`,
+                                value: `<span class="fs-7">${dd.barcode || '－'}</span>`,
                             },
                             {
                                 key: '庫存數量',
@@ -2040,7 +2040,7 @@ export class StockHistory {
                 },
                 {
                     key: '商品條碼',
-                    value: `<span class="fs-7">${dd.sku || '－'}</span>`,
+                    value: `<span class="fs-7">${dd.barcode || '－'}</span>`,
                 },
                 {
                     key: '庫存數量',
@@ -2876,7 +2876,7 @@ export class StockHistory {
                                 },
                                 {
                                     key: '商品條碼',
-                                    value: `<span class="fs-7">${dd.sku || '－'}</span>`,
+                                    value: `<span class="fs-7">${dd.barcode || '－'}</span>`,
                                 },
                                 {
                                     key: '庫存變動數量',
@@ -3083,7 +3083,8 @@ export class StockHistory {
                     const title = item.product_content.title;
                     const spec = item.variant_content.spec;
                     const sku = item.variant_content.sku;
-                    product_list.push(Object.assign(Object.assign({ variant_id: item.id, cost: 0, note: '', transfer_count: 0, check_count: 0 }, (origin !== null && origin !== void 0 ? origin : {})), { title: title, spec: spec && spec.length > 0 ? spec.join('/') : '單一規格', sku: sku !== null && sku !== void 0 ? sku : '' }));
+                    const barcode = item.variant_content.barcode;
+                    product_list.push(Object.assign(Object.assign({ variant_id: item.id, cost: 0, note: '', transfer_count: 0, check_count: 0 }, (origin !== null && origin !== void 0 ? origin : {})), { title: title, spec: spec && spec.length > 0 ? spec.join('/') : '單一規格', sku: sku !== null && sku !== void 0 ? sku : '', barcode: barcode !== null && barcode !== void 0 ? barcode : '' }));
                 });
             }
             callback(product_list);
