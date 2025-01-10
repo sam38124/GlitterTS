@@ -493,8 +493,21 @@ export class UmClass {
                 background: #ffffff;
                 appearance: none;
                 width: 100%;
+                min-height: 44px;
             }
 
+            .bgw-input[type=date]{
+                color: rgba(0,0,0,0);
+            }
+
+            .bgw-input[type=date]::before {
+                content: attr(data-placeholder);
+                position: absolute;
+                color: #8d8d8d;
+                pointer-events: none;
+                font-size: 15px;
+            }
+    
             .bgw-input:focus {
                 outline: 0;
             }

@@ -140,13 +140,24 @@ export class UMLogin {
                                         if (item.hidden) return '';
 
                                         const title = ['name', 'email', 'phone', 'birth'].includes(item.key) ? Language.text(`form_${item.key}`) : item.title;
-                                        const cell = html`<div>
+                                        const placeholder = Language.text(`please_enter_${item.key}`) || item.form_config.place_holder || '';
+                                        const cell = html`<div class="position-relative">
                                             <label class="${gClass('label')}">${title}</label>
                                             <input
                                                 class="bgw-input"
                                                 type="${item.form_config.type}"
                                                 id="reg-${item.key}"
-                                                placeholder="${Language.text(`please_enter_${item.key}`) || item.form_config.place_holder || ''}"
+                                                placeholder="${placeholder}"
+                                                data-placeholder="${placeholder}"
+                                                onchange="${gvc.event((e) => {
+                                                    if (CheckInput.isEmpty(e.value)) {
+                                                        e.style.color = 'rgba(0,0,0,0)';
+                                                        e.dataset.placeholder = placeholder;
+                                                    } else {
+                                                        e.style.color = '#393939';
+                                                        e.dataset.placeholder = '';
+                                                    }
+                                                })}"
                                             />
                                         </div>`;
 
@@ -290,8 +301,10 @@ export class UMLogin {
                     ]).then((dataArray) => {
                         vm.loginConfig = dataArray[0];
                         vm.registerConfig = dataArray[1];
-                        loadings.view = false;
-                        gvc.notifyDataChange(ids.view);
+                        setTimeout(() => {
+                            loadings.view = false;
+                            gvc.notifyDataChange(ids.view);
+                        }, 300);
                     });
                 }
             },
