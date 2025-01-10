@@ -843,6 +843,7 @@ export class Shopping {
                     throw exception.BadRequestError('BAD_REQUEST', 'ToCheckout 1 Error:Cant find this orderID.', null);
                 }
             }
+
             //判斷是checkOutType 是POS則清空token，因為結帳對象不是結帳人
             if (data.checkOutType === 'POS') {
                 this.token = undefined;
@@ -911,8 +912,20 @@ export class Shopping {
                     }
                 ).value;
 
+
                 //參照運費設定
-                const refer = (
+                const refer = (data.user_info.shipment==='global_express') ? ((
+                    await Private_config.getConfig({
+                        appName: this.app,
+                        key: 'glitter_shipment_global_' + data.user_info.country,
+                    })
+                )[0] ?? {
+                    value: {
+                        volume: [],
+                        weight: [],
+                        selectCalc: 'volume',
+                    },
+                }).value:(
                     (
                         await Private_config.getConfig({
                             appName: this.app,
@@ -1009,6 +1022,10 @@ export class Shopping {
                     {
                         name: '實體門市取貨',
                         value: 'shop',
+                    },
+                    {
+                        name: '國際快遞',
+                        value: 'global_express',
                     },
                 ]
                     .concat(

@@ -130,6 +130,8 @@ export class Language {
             { key: 'atm', tw: 'ATM 轉帳', cn: 'ATM 转帐', en: `ATM Transfer` },
             { key: 'line', tw: 'Line 轉帳', cn: 'Line 转帐', en: `Line Bank` },
             { key: 'cash_on_delivery', tw: '貨到付款', cn: '货到付款', en: `Cash on delivery` },
+            { key: 'country', tw: '國家', cn: '国家', en: `Country` },
+            { key: 'select_country', tw: '選擇國家', cn: '选择国家', en: `Select country` },
             { key: 'stock_count', tw: '商品庫存', cn: '商品库存', en: `Stock quantity` },
             { key: 'birth', tw: '生日', cn: '生日', en: `Birth` },
             { key: 'buy_it_now', tw: '立即購買', cn: '立即购买', en: `Buy it now` },
@@ -146,6 +148,7 @@ export class Language {
                 cn: '此商品最少购买数量为_c_件',
                 en: `Minimum purchase quantity is _c_ pieces.`
             },
+            { key: 'ship_global_express', tw: '國際快遞', cn: '国际快递', en: `International express` },
             { key: 'ship_HILIFEC2C', tw: '萊爾富店到店', cn: '莱尔富店到店', en: `Hi-Life Store-to-Store Delivery` },
             { key: 'ship_OKMARTC2C', tw: 'OK超商店到店', cn: 'OK超商店到店', en: `OK Mart Store-to-Store Delivery` },
             {
@@ -256,6 +259,24 @@ export class Language {
             { key: 'select_pickup_store', tw: '選擇配送門市', cn: '选择配送门市', en: 'Select pickup store' },
             { key: 'click_to_reselct_store', tw: '點擊重選門市', cn: '点击重选门市', en: 'Click to reselect store' },
             { key: 'please_enter', tw: '請輸入', cn: '请输入', en: 'Please enter' },
+            {
+                key: 'city',
+                tw: '城市',
+                cn: '城市',
+                en: 'City'
+            },
+            {
+                key: 'state',
+                tw: '州/省',
+                cn: '州/省',
+                en: 'State/Province'
+            },
+            {
+                key: 'postal_code',
+                tw: '郵遞區號',
+                cn: '邮政编码',
+                en: 'Postal code'
+            },
             {
                 key: 'please_enter_delivery_address',
                 tw: '請輸入配送地址',

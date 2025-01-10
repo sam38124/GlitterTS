@@ -752,6 +752,7 @@ function detail(gvc: GVC, cf: any, vm: any, cVm: any, page_tab: 'page' | 'hidden
         },400)
         function checkSwitchToUiEditor(){
             function next(){
+                localStorage.setItem('preview_data', JSON.stringify(vm.data.content));
                 (window.parent as any).glitter.setUrlParameter('page-id', vm.data.id);
                 (window.parent as any).glitter.setUrlParameter('language', language);
                 (window.parent as any).glitter.share.switch_to_web_builder(`${domainPrefix}/${vm.data.content.tag}`);

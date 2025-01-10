@@ -719,12 +719,6 @@ ${Storage.page_setting_item === `${da.index}` ? `background:${EditorConfig.edito
                                 let bgGuide = new BgGuide(gvc, 0);
                                 function showTut() {
                                     if (document.body.clientWidth > 1000) {
-                                        ApiShop.getGuideable().then(r => {
-                                            if (!r.response.value || !r.response.value.view) {
-                                                ApiShop.setFEGuideable({});
-                                                bgGuide.drawGuide();
-                                            }
-                                        });
                                     }
                                     else {
                                     }
@@ -1212,6 +1206,7 @@ function initialEditor(gvc, viewModel) {
         }
     }
     glitter.share.addComponent = (data) => {
+        let parentCount = glitter.share.editorViewModel.data.config.length;
         glitter.share.loading_dialog.dataLoading({ text: '模組添加中...', visible: true });
         if (gvc.glitter.getUrlParameter('toggle-message') === 'true') {
             gvc.glitter.setUrlParameter('toggle-message', undefined);
@@ -1235,8 +1230,14 @@ function initialEditor(gvc, viewModel) {
         data.data._style_refer_global = {
             index: `0`
         };
+        console.log('viewModel.selectContainer==>', viewModel.selectContainer);
+        console.log('viewModel.selectContainer.container_config==>', viewModel.selectContainer.container_config);
         if (viewModel.selectContainer.length === 1) {
-            viewModel.selectContainer.container_config.getElement().recreateView();
+            try {
+                viewModel.selectContainer.container_config.getElement().recreateView();
+            }
+            catch (e) {
+            }
         }
         else {
             $(viewModel.selectContainer.container_config.getElement()).append(glitter.htmlGenerate.renderWidgetSingle({
@@ -1250,22 +1251,28 @@ function initialEditor(gvc, viewModel) {
                 root: viewModel.selectContainer.container_config.root,
             }));
         }
-        setTimeout(() => {
+        if (parentCount === 0) {
             Storage.lastSelect = data.id;
-            glitter.htmlGenerate.selectWidget({
-                widget: data,
-                widgetComponentID: data.id,
-                gvc: viewModel.selectContainer.container_config.gvc,
-                scroll_to_hover: true,
-                glitter: glitter,
-            });
+            gvc.recreateView();
+        }
+        else {
             setTimeout(() => {
-                glitter.share.left_block_hover = false;
-                glitter.share.loading_dialog.dataLoading({ visible: false });
-            }, 1000);
-        }, 100);
+                Storage.lastSelect = data.id;
+                glitter.htmlGenerate.selectWidget({
+                    widget: data,
+                    widgetComponentID: data.id,
+                    gvc: viewModel.selectContainer.container_config.gvc,
+                    scroll_to_hover: true,
+                    glitter: glitter,
+                });
+                setTimeout(() => {
+                    glitter.share.left_block_hover = false;
+                    glitter.share.loading_dialog.dataLoading({ visible: false });
+                }, 1000);
+            }, 100);
+            viewModel.selectContainer && viewModel.selectContainer.rerenderReplaceElem && viewModel.selectContainer.rerenderReplaceElem();
+        }
         AddComponent.toggle(false);
-        viewModel.selectContainer && viewModel.selectContainer.rerenderReplaceElem && viewModel.selectContainer.rerenderReplaceElem();
     };
     glitter.share.addWithIndex = (cf) => {
         glitter.share.loading_dialog.dataLoading({ text: '模組添加中...', visible: true });

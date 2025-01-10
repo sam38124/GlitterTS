@@ -17,12 +17,14 @@ import { Tool } from '../modules/tool.js';
 import { ProductAi } from './ai-generator/product-ai.js';
 import { imageLibrary } from '../modules/image-library.js';
 import { Language } from "../glitter-base/global/language.js";
+import { ShoppingShipmentSetting } from "./shopping-shipment-setting.js";
 const html = String.raw;
 export class ShoppingFinanceSetting {
     static main(gvc) {
         const dialog = new ShareDialog(gvc.glitter);
         const saasConfig = window.parent.saasConfig;
-        let keyData = { payment_info_custom: [],
+        let keyData = {
+            payment_info_custom: [],
         };
         const vm = {
             id: gvc.glitter.getUUID(),
@@ -1115,9 +1117,6 @@ export class ShoppingFinanceSetting {
                         });
                     }))}
                             </div>
-                            <div class="title-container mt-1">
-                                ${BgWidget.grayNote('如需設定跨境配送，可添加自訂物流表單。')}
-                            </div>
                             ${gvc.bindView(() => {
                         const id = gvc.glitter.getUUID();
                         function refresh() {
@@ -1261,11 +1260,17 @@ export class ShoppingFinanceSetting {
                                         src: 'https://d3jnmi1tfjgtti.cloudfront.net/file/234285319/1716734510490-beb1c70f9e168b7bab198ea2bf226148.png',
                                     },
                                     {
+                                        title: '國際快遞',
+                                        value: 'global_express',
+                                        type: 'font_awesome',
+                                        src: `<i class="fa-sharp fa-regular fa-earth-americas" style="font-size: 35px;color:#1d59c0;"></i>`,
+                                    },
+                                    {
                                         title: '實體門市取貨',
                                         value: 'shop',
                                         type: 'font_awesome',
                                         src: `<i class="fa-duotone fa-solid fa-shop" style="font-size: 35px;color:#319e49;"></i>`,
-                                    },
+                                    }
                                 ]
                                     .concat(((_a = vm.data.custom_delivery) !== null && _a !== void 0 ? _a : []).map((dd) => {
                                     return {
@@ -1285,21 +1290,111 @@ export class ShoppingFinanceSetting {
                                                             >
                                                                 ${(() => {
                                         if (dd.custom) {
-                                            return html `<i
-                                                                                class="fa-solid fa-pencil position-absolute"
-                                                                                style="cursor:pointer;right:15px;top:15px;"
-                                                                                onclick="${gvc.event(() => {
-                                                updateCustomShipment({
-                                                    function: 'replace',
-                                                    data: vm.data.custom_delivery.find((d1) => {
-                                                        return dd.value === d1.id;
-                                                    }),
-                                                });
-                                            })}"
-                                                                        ></i>`;
+                                            return html `
+                                                                            <div class="position-absolute d-flex" style="cursor:pointer;right:15px;top:15px;gap:5px;">
+                                                                                ${BgWidget.customButton({
+                                                button: {
+                                                    color: 'gray',
+                                                    size: 'sm'
+                                                },
+                                                text: {
+                                                    name: `物流設定`
+                                                },
+                                                event: gvc.event(() => {
+                                                    updateCustomShipment({
+                                                        function: 'replace',
+                                                        data: vm.data.custom_delivery.find((d1) => {
+                                                            return dd.value === d1.id;
+                                                        }),
+                                                    });
+                                                })
+                                            })}
+                                                                                ${BgWidget.customButton({
+                                                button: {
+                                                    color: 'gray',
+                                                    size: 'sm'
+                                                },
+                                                text: {
+                                                    name: `運費設定`
+                                                },
+                                                event: gvc.event(() => {
+                                                    const vm = {
+                                                        gvc: gvc,
+                                                        key: dd.value,
+                                                        save_event: () => {
+                                                            return new Promise((resolve, reject) => {
+                                                                resolve(true);
+                                                            });
+                                                        }
+                                                    };
+                                                    BgWidget.settingDialog({
+                                                        gvc: gvc,
+                                                        width: 1200,
+                                                        height: document.body.clientHeight - 100,
+                                                        title: `『 ${dd.title} 』運費設定`,
+                                                        d_main_style: document.body.clientWidth < 768 ? 'padding:0px !important;' : ``,
+                                                        innerHTML: (gvc) => {
+                                                            vm.gvc = gvc;
+                                                            return ShoppingShipmentSetting.main(vm);
+                                                        },
+                                                        footer_html: (gvc) => {
+                                                            return [BgWidget.cancel(gvc.event(() => {
+                                                                    gvc.closeDialog();
+                                                                })), BgWidget.save(gvc.event(() => {
+                                                                    vm.save_event().then(() => {
+                                                                    });
+                                                                }))].join('');
+                                                        }
+                                                    });
+                                                })
+                                            })}
+                                                                            </div>
+                                                                           `;
                                         }
                                         else {
-                                            return ``;
+                                            return html `
+                                                                            <div class="position-absolute fw-500"
+                                                                                 style="cursor:pointer;right:15px;top:15px;">
+                                                                                ${BgWidget.customButton({
+                                                button: {
+                                                    color: 'gray',
+                                                    size: 'sm'
+                                                },
+                                                text: {
+                                                    name: `運費設定`
+                                                },
+                                                event: gvc.event(() => {
+                                                    const vm = {
+                                                        gvc: gvc,
+                                                        key: dd.value,
+                                                        save_event: () => {
+                                                            return new Promise((resolve, reject) => {
+                                                                resolve(true);
+                                                            });
+                                                        }
+                                                    };
+                                                    BgWidget.settingDialog({
+                                                        gvc: gvc,
+                                                        width: 1200,
+                                                        height: document.body.clientHeight - 100,
+                                                        title: `『 ${dd.title} 』運費設定`,
+                                                        d_main_style: document.body.clientWidth < 768 ? 'padding:0px !important;' : ``,
+                                                        innerHTML: (gvc) => {
+                                                            vm.gvc = gvc;
+                                                            return ShoppingShipmentSetting.main(vm);
+                                                        },
+                                                        footer_html: (gvc) => {
+                                                            return [BgWidget.cancel(gvc.event(() => {
+                                                                    gvc.closeDialog();
+                                                                })), BgWidget.save(gvc.event(() => {
+                                                                    vm.save_event().then(() => {
+                                                                    });
+                                                                }))].join('');
+                                                        }
+                                                    });
+                                                })
+                                            })}
+                                                                            </div>`;
                                         }
                                     })()}
                                                                 <div style="align-self: stretch; justify-content: flex-start; align-items: center; gap: 28px; display: inline-flex">

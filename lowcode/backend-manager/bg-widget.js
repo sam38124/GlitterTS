@@ -3103,7 +3103,7 @@ ${(_c = obj.default) !== null && _c !== void 0 ? _c : ''}</textarea
             };
             return html ` <div
                 class="bg-white shadow rounded-3"
-                style="overflow-y: auto; ${document.body.clientWidth > 768 ? `min-width: 400px; width: ${(_a = obj.width) !== null && _a !== void 0 ? _a : 600}px;` : 'min-width: 90vw; max-width: 92.5vw;'}"
+                style="overflow-y: auto; ${document.body.clientWidth > 768 ? `min-width: 400px; width: ${(_a = obj.width) !== null && _a !== void 0 ? _a : 600}px;max-width:calc(100vw - 20px);` : 'min-width: calc(100vw - 10px);; max-width: calc(100vw - 10px);'}"
             >
                 ${gvc.bindView({
                 bind: vm.id,
@@ -3129,7 +3129,7 @@ ${(_c = obj.default) !== null && _c !== void 0 ? _c : ''}</textarea
                             </div>
                             <div class="c_dialog">
                                 <div class="c_dialog_body">
-                                    <div class="c_dialog_main" style="gap: 24px; height: ${obj.height ? `${obj.height}px` : 'auto'}; max-height: 500px;">${(_c = obj.innerHTML(gvc)) !== null && _c !== void 0 ? _c : ''}</div>
+                                    <div class="c_dialog_main" style="${obj.d_main_style || ''};gap: 24px; ${obj.height ? `height:${obj.height}px;max-height: 100vh;` : `height:auto;max-height: 500px;`} ">${(_c = obj.innerHTML(gvc)) !== null && _c !== void 0 ? _c : ''}</div>
                                     ${footer ? `<div class="c_dialog_bar">${footer}</div>` : ``}
                                 </div>
                             </div>

@@ -74,16 +74,6 @@ export class Setting_editor {
             },
             {
                 icon: '',
-                page: 'logistics_setting',
-                group: '商店設定',
-                title: '運費設定',
-                appName: 'cms_system',
-                groupIcon: 'https://d3jnmi1tfjgtti.cloudfront.net/file/252530754/1716566571091-Property 1=gear-regular.svg',
-                moduleName: '運費設定',
-                guideClass: 'guide4-2',
-            },
-            {
-                icon: '',
                 page: 'rebate_setting',
                 group: '商店設定',
                 title: '購物金設定',

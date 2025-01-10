@@ -565,7 +565,7 @@ class Shopping {
             }
             console.log(`checkout-time-3=>`, new Date().getTime() - check_time);
             const shipment = await (async () => {
-                var _a, _b;
+                var _a, _b, _c;
                 data.user_info = data.user_info || {};
                 let def = ((_a = (await private_config_js_1.Private_config.getConfig({
                     appName: this.app,
@@ -577,10 +577,19 @@ class Shopping {
                         selectCalc: 'volume',
                     },
                 }).value;
-                const refer = ((_b = (await private_config_js_1.Private_config.getConfig({
+                const refer = (data.user_info.shipment === 'global_express') ? ((_b = (await private_config_js_1.Private_config.getConfig({
+                    appName: this.app,
+                    key: 'glitter_shipment_global_' + data.user_info.country,
+                }))[0]) !== null && _b !== void 0 ? _b : {
+                    value: {
+                        volume: [],
+                        weight: [],
+                        selectCalc: 'volume',
+                    },
+                }).value : ((_c = (await private_config_js_1.Private_config.getConfig({
                     appName: this.app,
                     key: 'glitter_shipment_' + data.user_info.shipment,
-                }))[0]) !== null && _b !== void 0 ? _b : {
+                }))[0]) !== null && _c !== void 0 ? _c : {
                     value: {
                         volume: [],
                         weight: [],
@@ -664,6 +673,10 @@ class Shopping {
                     {
                         name: '實體門市取貨',
                         value: 'shop',
+                    },
+                    {
+                        name: '國際快遞',
+                        value: 'global_express',
                     },
                 ]
                     .concat(((_f = shipment_setting.custom_delivery) !== null && _f !== void 0 ? _f : []).map((dd) => {
@@ -3492,13 +3505,8 @@ OR JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.orderStatus')) NOT IN (-99)) `);
                     }
                     resolve(true);
                 });
-<<<<<<< HEAD
             }));
-            let max_id = (await database_js_1.default.query(`select max(id) from \`${this.app}\`.t_manager_post`, []))[0]['max(id)'];
-=======
-            })));
             let max_id = (await database_js_1.default.query(`select max(id) from \`${this.app}\`.t_manager_post`, []))[0]['max(id)'] || 0;
->>>>>>> aaa8766d ([update] : glitter version.)
             const data = await database_js_1.default.query(`replace
                 INTO \`${this.app}\`.\`t_manager_post\` (id,userID,content) values ?`, [
                 productArray.map((product) => {

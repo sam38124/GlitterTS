@@ -1743,6 +1743,15 @@ class User {
                 `, []);
             if (!data[0] && config.user_id === 'manager') {
                 switch (config.key) {
+                    case 'global_express_country':
+                        await this.setConfig({
+                            key: config.key,
+                            user_id: config.user_id,
+                            value: {
+                                country: []
+                            }
+                        });
+                        return await this.getConfigV2(config);
                     case 'store_version':
                         await this.setConfig({
                             key: config.key,
