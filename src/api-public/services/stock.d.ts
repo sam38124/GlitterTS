@@ -76,6 +76,7 @@ export declare class Stock {
         search: string;
         type: StockHistoryType;
         order_id: string;
+        queryType: string;
     }): Promise<{
         total: any;
         data: any;

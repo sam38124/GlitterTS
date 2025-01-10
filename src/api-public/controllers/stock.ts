@@ -47,9 +47,10 @@ router.get('/history', async (req: express.Request, resp: express.Response) => {
                 await new Stock(req.get('g-app') as string, req.body.token).getHistory({
                     page: req.query.page ? `${req.query.page}` : '0',
                     limit: req.query.limit ? `${req.query.limit}` : '20',
-                    search: req.query.search as string,
                     type: req.query.type as StockHistoryType,
                     order_id: req.query.order_id as string,
+                    search: req.query.search as string,
+                    queryType: req.query.queryType as string,
                 })
             );
         } else {

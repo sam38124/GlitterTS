@@ -345,6 +345,16 @@ class Stock {
         if (json.order_id) {
             sqlArr.push(`(order_id = '${json.order_id}')`);
         }
+        if (json.queryType && json.search) {
+            switch (json.queryType) {
+                case 'order_id':
+                    sqlArr.push(`(order_id like '%${json.search}%')`);
+                    break;
+                case 'note':
+                    sqlArr.push(`(JSON_EXTRACT(content, '$.note') like '%${json.search}%')`);
+                    break;
+            }
+        }
         const sqlString = sqlArr.join(' AND ');
         try {
             if (!this.token) {

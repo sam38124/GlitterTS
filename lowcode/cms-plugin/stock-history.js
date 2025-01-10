@@ -159,7 +159,7 @@ export class StockHistory {
             storeList: [],
             vendorList: [],
             query: '',
-            queryType: '',
+            queryType: 'order_id',
             filter: {},
             orderString: '',
             tabKey: 'all',
@@ -183,7 +183,6 @@ export class StockHistory {
                             page: 0,
                             limit: 1,
                             order_id: vm.data.order_id,
-                            search: '',
                             type: vm.data.type,
                         }).then((r) => {
                             if (r.result && r.response.data[0]) {
@@ -197,6 +196,8 @@ export class StockHistory {
                         dialog.dataLoading({ visible: false });
                         vm.data = data;
                         vm.tabKey = 'all';
+                        vm.query = '';
+                        vm.queryType = '';
                         return this.replaceOrder(gvc, vm);
                     });
                 }
@@ -659,6 +660,8 @@ export class StockHistory {
             }
             return true;
         });
+        const id = gvc.glitter.getUUID();
+        let loading = false;
         return BgWidget.container(html `
             <div class="title-container">
                 ${BgWidget.goBack(gvc.event(() => {
@@ -674,97 +677,110 @@ export class StockHistory {
             </div>
             ${BgWidget.container(BgWidget.mainCard([
             (() => {
-                const id = gvc.glitter.getUUID();
-                return gvc.bindView({
-                    bind: id,
-                    view: () => {
-                        var _a;
-                        const filterList = [
-                            BgWidget.selectFilter({
-                                gvc,
-                                callback: (value) => {
-                                    vm.queryType = value;
-                                    gvc.notifyDataChange(vm.tableId);
-                                    gvc.notifyDataChange(id);
-                                },
-                                default: vm.queryType || 'name',
-                                options: FilterOptions.stockHistoryCheckSelect,
-                            }),
-                            BgWidget.searchFilter(gvc.event((e) => {
-                                vm.query = `${e.value}`.trim();
-                                gvc.notifyDataChange(vm.tableId);
-                                gvc.notifyDataChange(id);
-                            }), vm.query || '', '搜尋所有用戶'),
-                        ];
-                        const filterTags = ListComp.getFilterTags(FilterOptions.stockHistoryCheckFunnel);
-                        if (document.body.clientWidth < 768) {
-                            return html ` <div style="display: flex; align-items: center; gap: 10px; width: 100%; justify-content: space-between">
-                                                <div>${filterList[0]}</div>
-                                                <div style="display: flex;">${filterList[2] ? `<div class="me-2">${filterList[2]}</div>` : ''} ${(_a = filterList[3]) !== null && _a !== void 0 ? _a : ''}</div>
-                                            </div>
-                                            <div style="display: flex; margin-top: 8px;">${filterList[1]}</div>
-                                            <div>${filterTags}</div>`;
-                        }
-                        else {
-                            return html ` <div style="display: flex; align-items: center; gap: 10px;">${filterList.join('')}</div>
-                                            <div>${filterTags}</div>`;
-                        }
-                    },
-                });
+                var _a;
+                const filterList = [
+                    BgWidget.selectFilter({
+                        gvc,
+                        callback: (value) => {
+                            vm.queryType = value;
+                            gvc.notifyDataChange(vm.tableId);
+                            gvc.notifyDataChange(id);
+                        },
+                        default: vm.queryType || 'title',
+                        options: FilterOptions.stockHistoryCheckSelect,
+                    }),
+                    BgWidget.searchFilter(gvc.event((e) => {
+                        vm.query = `${e.value}`.trim();
+                        gvc.notifyDataChange(vm.tableId);
+                        gvc.notifyDataChange(id);
+                    }), vm.query || '', '搜尋所有用戶'),
+                ];
+                const filterTags = ListComp.getFilterTags(FilterOptions.stockHistoryCheckFunnel);
+                if (document.body.clientWidth < 768) {
+                    return html ` <div style="display: flex; align-items: center; gap: 10px; width: 100%; justify-content: space-between">
+                                        <div>${filterList[0]}</div>
+                                        <div style="display: flex;">${filterList[2] ? `<div class="me-2">${filterList[2]}</div>` : ''} ${(_a = filterList[3]) !== null && _a !== void 0 ? _a : ''}</div>
+                                    </div>
+                                    <div style="display: flex; margin-top: 8px;">${filterList[1]}</div>
+                                    <div>${filterTags}</div>`;
+                }
+                else {
+                    return html ` <div style="display: flex; align-items: center; gap: 10px;">${filterList.join('')}</div>
+                                    <div>${filterTags}</div>`;
+                }
             })(),
-            BgWidget.tableV3({
-                gvc: gvc,
-                getData: (vd) => {
-                    vmi = vd;
-                    const limit = 99999;
-                    const ids = vm.data.content.product_list.map((item) => {
-                        return `${item.variant_id}`;
-                    });
-                    new Promise((resolve) => {
-                        ApiStock.getStoreProductList({
-                            page: 0,
-                            limit: 99999,
-                            search: vm.data.content.store_out,
-                            variant_id_list: ids,
-                        }).then((r) => {
-                            if (r.result && r.response.data) {
-                                resolve(r.response.data);
-                            }
-                            else {
-                                resolve([]);
-                            }
-                        });
-                    }).then((variants) => {
-                        this.setVariantList(ids, vm.data, (response) => {
-                            vm.data.content.product_list = response;
-                            vm.data.content.product_list.map((item1) => {
-                                const variant = variants.find((item2) => item1.variant_id === item2.id);
-                                item1.stock = variant ? parseInt(variant.count, 10) : 0;
-                                return item1;
+            gvc.bindView({
+                bind: id,
+                view: () => {
+                    return BgWidget.tableV3({
+                        gvc: gvc,
+                        getData: (vd) => {
+                            vmi = vd;
+                            const limit = 99999;
+                            const ids = vm.data.content.product_list.map((item) => {
+                                return `${item.variant_id}`;
                             });
-                            vmi.pageSize = Math.ceil(response.length / limit);
-                            vmi.originalData = response;
-                            const checkSpec = checkSpecTable(vmi.page, limit);
-                            if (vm.tabKey === 'all') {
-                                vmi.tableData = checkSpec.array;
-                            }
-                            else {
-                                const filterCriteria = {
-                                    pending: (item) => item.recent_count !== undefined && item.transfer_count > item.recent_count,
-                                    notChecked: (item) => item.recent_count === undefined,
-                                    checked: (item) => item.recent_count !== undefined && item.transfer_count <= item.recent_count,
-                                };
-                                const criteria = filterCriteria[vm.tabKey];
-                                vmi.tableData = criteria ? checkSpec.array.filter((item, index) => criteria(checkSpec.data[index])) : [];
-                            }
-                            vmi.loading = false;
-                            vmi.callback();
-                        });
+                            new Promise((resolve) => {
+                                ApiStock.getStoreProductList({
+                                    page: 0,
+                                    limit: 99999,
+                                    search: vm.data.content.store_out,
+                                    variant_id_list: ids,
+                                }).then((r) => {
+                                    if (r.result && r.response.data) {
+                                        resolve(r.response.data);
+                                    }
+                                    else {
+                                        resolve([]);
+                                    }
+                                });
+                            }).then((variants) => {
+                                this.setVariantList(ids, vm.data, (response) => {
+                                    vm.data.content.product_list = response;
+                                    vm.data.content.product_list.map((item1) => {
+                                        const variant = variants.find((item2) => item1.variant_id === item2.id);
+                                        item1.stock = variant ? parseInt(variant.count, 10) : 0;
+                                        return item1;
+                                    });
+                                    vmi.pageSize = Math.ceil(response.length / limit);
+                                    vmi.originalData = response;
+                                    const searchIncludes = (title) => {
+                                        return CheckInput.isEmpty(vm.query) || title.includes(vm.query);
+                                    };
+                                    const filterCriteria = {
+                                        all: (item) => {
+                                            return searchIncludes(item.title);
+                                        },
+                                        pending: (item) => {
+                                            return searchIncludes(item.title) && item.recent_count !== undefined && item.transfer_count > item.recent_count;
+                                        },
+                                        notChecked: (item) => {
+                                            return searchIncludes(item.title) && item.recent_count === undefined;
+                                        },
+                                        checked: (item) => {
+                                            return searchIncludes(item.title) && item.recent_count !== undefined && item.transfer_count <= item.recent_count;
+                                        },
+                                    };
+                                    const criteria = filterCriteria[vm.tabKey];
+                                    const checkSpec = checkSpecTable(vmi.page, limit);
+                                    vmi.tableData = criteria ? checkSpec.array.filter((item, index) => criteria(checkSpec.data[index])) : [];
+                                    vmi.loading = false;
+                                    vmi.callback();
+                                });
+                            });
+                        },
+                        rowClick: () => { },
+                        filter: [],
+                        hiddenPageSplit: true,
                     });
                 },
-                rowClick: () => { },
-                filter: [],
-                hiddenPageSplit: true,
+                divCreate: {},
+                onCreate: () => {
+                    if (loading) {
+                        loading = false;
+                        gvc.notifyDataChange(id);
+                    }
+                },
             }),
         ].join('')))}
             ${BgWidget.mbContainer(240)}

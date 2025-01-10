@@ -77,13 +77,14 @@ export class ApiStock {
         });
     }
 
-    static getStockHistory(json: { page: number; limit: number; search: string; queryType?: string; type: string; order_id?: string }) {
+    static getStockHistory(json: { page: number; limit: number; search?: string; queryType?: string; type: string; order_id?: string }) {
         return BaseApi.create({
             url:
                 getBaseUrl() +
                 `/api-public/v1/stock/history?${(() => {
-                    let par = [`page=${json.page}`, `limit=${json.limit}`, `search=${json.search}`, `type=${json.type}`];
+                    let par = [`page=${json.page}`, `limit=${json.limit}`, `type=${json.type}`];
                     json.queryType && par.push(`queryType=${json.queryType}`);
+                    json.search && par.push(`search=${json.search}`);
                     json.order_id && par.push(`order_id=${json.order_id}`);
                     return par.join('&');
                 })()}`,

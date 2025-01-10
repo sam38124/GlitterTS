@@ -443,7 +443,7 @@ export class Stock {
         );
     }
 
-    async getHistory(json: { page: string; limit: string; search: string; type: StockHistoryType; order_id: string }) {
+    async getHistory(json: { page: string; limit: string; search: string; type: StockHistoryType; order_id: string; queryType: string }) {
         const page = json.page ? parseInt(`${json.page}`, 10) : 0;
         const limit = json.limit ? parseInt(`${json.limit}`, 10) : 20;
 
@@ -465,6 +465,17 @@ export class Stock {
 
         if (json.order_id) {
             sqlArr.push(`(order_id = '${json.order_id}')`);
+        }
+
+        if (json.queryType && json.search) {
+            switch (json.queryType) {
+                case 'order_id':
+                    sqlArr.push(`(order_id like '%${json.search}%')`);
+                    break;
+                case 'note':
+                    sqlArr.push(`(JSON_EXTRACT(content, '$.note') like '%${json.search}%')`);
+                    break;
+            }
         }
 
         const sqlString = sqlArr.join(' AND ');
