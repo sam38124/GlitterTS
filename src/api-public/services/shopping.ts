@@ -2083,7 +2083,7 @@ export class Shopping {
                             if (index === dd.bind.length - 1) {
                                 discount = remain;
                             } else {
-                                discount = Math.floor(remain * ((d2.sale_price * d2.count) / dd.bind_subtotal));
+                                discount = Math.round(remain * ((d2.sale_price * d2.count) / dd.bind_subtotal));
                             }
                             if (discount > 0 && discount <= d2.sale_price * d2.count) {
                                 // 計算單位為訂單，優惠發放
@@ -4356,7 +4356,7 @@ OR JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.orderStatus')) NOT IN (-99)) `);
                 })
             );
             // return
-            let max_id=(await db.query(`select max(id) from \`${this.app}\`.t_manager_post`,[]))[0]['max(id)'] || 0;
+            let max_id = (await db.query(`select max(id) from \`${this.app}\`.t_manager_post`, []))[0]['max(id)'] || 0;
             const data = await db.query(
                 `replace
                 INTO \`${this.app}\`.\`t_manager_post\` (id,userID,content) values ?`,

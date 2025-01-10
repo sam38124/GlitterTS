@@ -201,11 +201,15 @@ export class PdClass {
         }, obj.timeout ?? 2000);
     }
 
-    static ObjCompare(obj1: { [k: string]: any }, obj2: { [k: string]: any }) {
-        const Obj1_keys = Object.keys(obj1);
-        const Obj2_keys = Object.keys(obj2);
+    static ObjCompare(obj1: { [k: string]: any }, obj2: { [k: string]: any }, sort?: boolean) {
+        let Obj1_keys = Object.keys(obj1);
+        let Obj2_keys = Object.keys(obj2);
         if (Obj1_keys.length !== Obj2_keys.length) {
             return false;
+        }
+        if (sort) {
+            Obj1_keys = Obj1_keys.sort();
+            Obj2_keys = Obj2_keys.sort();
         }
         for (let k of Obj1_keys) {
             if (obj1[k] !== obj2[k]) {
@@ -344,13 +348,7 @@ export class PdClass {
             return html` <div class="bg-white shadow rounded-3" style="overflow-y: auto; ${document.body.clientWidth > 768 ? `min-width: 400px; width: 1000px;` : 'width:calc(100vw - 20px);'}">
                 <div class="bg-white shadow rounded-3" style="width: 100%; overflow-y: auto; position: relative;">
                     <div class="w-100 d-flex align-items-center p-3 border-bottom" style="position: sticky; top: 0; background: #fff;z-index:12;">
-                        <div
-                            class="fw-bold fs-5"
-                            style="color:${obj.titleFontColor};
-                            white-space: nowrap;text-overflow: ellipsis;max-width: calc(100% - 40px);
-overflow: hidden;
-"
-                        >
+                        <div class="fw-bold fs-5" style="color:${obj.titleFontColor}; white-space: nowrap;text-overflow: ellipsis;max-width: calc(100% - 40px); overflow: hidden;">
                             ${obj.prod.title}
                         </div>
                         <div class="flex-fill"></div>
@@ -397,8 +395,6 @@ overflow: hidden;
         });
         PdClass.addSpecStyle(obj.gvc);
         obj.gvc.glitter.addStyle(css`
-            /***請輸入設計代碼***/
-
             .swiper {
                 width: 100%;
                 height: 100%;
@@ -474,35 +470,32 @@ overflow: hidden;
             return {
                 bind: id,
                 view: () => {
-                    return `<div class="swiper${id}" id="dynamic-swiper${id}" style="position:relative;overflow: hidden;">
-                    <div class="swiper-wrapper">
-                        ${obj.prod.preview_image
-                            .map((image, index) => {
-                                return html` <div class="swiper-slide swiper-slide-def">
-                                    <img src="${image}" alt="${obj.prod.title}-${index}" />
-                                </div>`;
-                            })
-                            .join('')}
-                    </div>
-                    <div class="swiper-button-prev"></div>
-                    <div class="swiper-button-next"></div>
-                </div>
-                ${
-                    obj.prod.preview_image.length > 1
-                        ? `<div class="swiper-sm${id} mt-2" style="height: ${isPhone ? 75 : 100}px; overflow: hidden;">
-                    <div class="swiper-wrapper">
-                        ${obj.prod.preview_image
-                            .map((image, index) => {
-                                return html` <div class="swiper-slide swiper-slide-sm" data-image-index="${index}">
-                                    <img src="${image}" alt="${obj.prod.title}-${index}-sm" />
-                                </div>`;
-                            })
-                            .join('')}
-                    </div>
-                </div>`
-                        : ``
-                }
-                `;
+                    return html`<div class="swiper${id}" id="dynamic-swiper${id}" style="position:relative;overflow: hidden;">
+                            <div class="swiper-wrapper">
+                                ${obj.prod.preview_image
+                                    .map((image, index) => {
+                                        return html` <div class="swiper-slide swiper-slide-def">
+                                            <img src="${image}" alt="${obj.prod.title}-${index}" />
+                                        </div>`;
+                                    })
+                                    .join('')}
+                            </div>
+                            <div class="swiper-button-prev"></div>
+                            <div class="swiper-button-next"></div>
+                        </div>
+                        ${obj.prod.preview_image.length > 1
+                            ? html`<div class="swiper-sm${id} mt-2" style="height: ${isPhone ? 75 : 100}px; overflow: hidden;">
+                                  <div class="swiper-wrapper">
+                                      ${obj.prod.preview_image
+                                          .map((image, index) => {
+                                              return html` <div class="swiper-slide swiper-slide-sm" data-image-index="${index}">
+                                                  <img src="${image}" alt="${obj.prod.title}-${index}-sm" />
+                                              </div>`;
+                                          })
+                                          .join('')}
+                                  </div>
+                              </div>`
+                            : ``} `;
                 },
                 divCreate: {
                     class: `${obj.class || 'col-12 col-md-6 px-0 px-md-3'}`,
@@ -545,7 +538,8 @@ overflow: hidden;
                                     variant.spec,
                                     prod.specs.map((spec) => {
                                         return spec.option[0].title;
-                                    })
+                                    }),
+                                    true
                                 );
                             });
                             if (v?.preview_image) {
@@ -666,7 +660,7 @@ overflow: hidden;
                             bind: ids.price,
                             view: () => {
                                 const v = prod.variants.find((variant) => {
-                                    return PdClass.ObjCompare(variant.spec, vm.specs);
+                                    return PdClass.ObjCompare(variant.spec, vm.specs, true);
                                 });
 
                                 return v ? Currency.convertCurrencyText(v.sale_price) : '錯誤';
@@ -693,7 +687,7 @@ overflow: hidden;
                                                         e.classList.toggle('selected-option');
                                                         vm.specs[index1] = opt.title;
                                                         const v = prod.variants.find((variant) => {
-                                                            return PdClass.ObjCompare(variant.spec, vm.specs);
+                                                            return PdClass.ObjCompare(variant.spec, vm.specs, true);
                                                         });
                                                         if (v?.preview_image) {
                                                             let index = prod.preview_image.findIndex((src) => {
@@ -719,8 +713,8 @@ overflow: hidden;
                         })
                     )}
                     ${(() => {
-                        const variant = prod.variants.find((item) => PdClass.ObjCompare(item.spec, vm.specs));
-                        const cartItem = new ApiCart().cart.line_items.find((item) => PdClass.ObjCompare(item.spec, vm.specs));
+                        const variant = prod.variants.find((item) => PdClass.ObjCompare(item.spec, vm.specs, true));
+                        const cartItem = new ApiCart().cart.line_items.find((item) => PdClass.ObjCompare(item.spec, vm.specs, true));
 
                         if (
                             variant &&
@@ -744,7 +738,7 @@ overflow: hidden;
                                     [
                                         ...new Array(
                                             (() => {
-                                                const variant = prod.variants.find((item) => PdClass.ObjCompare(item.spec, vm.specs));
+                                                const variant = prod.variants.find((item) => PdClass.ObjCompare(item.spec, vm.specs, true));
                                                 if (!variant || variant.show_understocking === 'false') {
                                                     return 50;
                                                 }
@@ -762,7 +756,7 @@ overflow: hidden;
                         return {
                             bind: ids.stock_count,
                             view: () => {
-                                const variant = prod.variants.find((item) => PdClass.ObjCompare(item.spec.sort(), vm.specs.sort()));
+                                const variant = prod.variants.find((item) => PdClass.ObjCompare(item.spec, vm.specs, true));
                                 if (variant?.show_understocking !== 'false') {
                                     return html`<div class="${`${variant?.stock}` === '0' ? `text-danger` : ``} fw-500 mt-2" style="font-size:14px;color:${titleFontColor};">
                                         ${Language.text('stock_count')}：${variant?.stock}
@@ -777,8 +771,12 @@ overflow: hidden;
                     ${gvc.bindView({
                         bind: ids.addCartButton,
                         view: () => {
-                            const variant = prod.variants.find((item) => PdClass.ObjCompare(item.spec, vm.specs));
-                            const cartItem = new ApiCart().cart.line_items.find((item) => PdClass.ObjCompare(item.spec, vm.specs));
+                            const variant = prod.variants.find((item) => {
+                                return PdClass.ObjCompare(item.spec, vm.specs, true);
+                            });
+                            const cartItem = new ApiCart().cart.line_items.find((item) => {
+                                return PdClass.ObjCompare(item.spec, vm.specs, true);
+                            });
                             if (!variant) {
                                 return html` <button class="no-stock w-100" disabled>發生錯誤</button>`;
                             }
@@ -883,7 +881,7 @@ overflow: hidden;
                                                 gvc.notifyDataChange(ids.wishStatus);
                                             });
                                         } else {
-                                            const variant = prod.variants.find((item) => PdClass.ObjCompare(item.spec, vm.specs)) ?? prod.variants[0];
+                                            const variant = prod.variants.find((item) => PdClass.ObjCompare(item.spec, vm.specs, true)) ?? prod.variants[0];
                                             Ad.gtagEvent('add_to_wishlist', {
                                                 currency: 'TWD',
                                                 value: variant.sale_price,

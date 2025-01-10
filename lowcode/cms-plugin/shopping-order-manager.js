@@ -975,6 +975,7 @@ export class ShoppingOrderManager {
                                     }
                                 })(),
                                 ...orderData.orderData.voucherList.map((dd) => {
+                                    console.log(dd);
                                     if (dd.reBackType === 'add_on_items') {
                                         return {
                                             title: '加購優惠',
@@ -992,7 +993,7 @@ export class ShoppingOrderManager {
                                     return {
                                         title: '折扣',
                                         description: `<div style="color: #8D8D8D;font-size: 14px;white-space:nowrap;text-overflow:ellipsis;">${dd.title}</div>`,
-                                        total: `- $${orderData.orderData.discount.toLocaleString()}`,
+                                        total: `- $${dd.discount_total.toLocaleString()}`,
                                     };
                                 }),
                                 {

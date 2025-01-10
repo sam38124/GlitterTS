@@ -1,10 +1,6 @@
 import express from 'express';
 import response from '../../modules/response';
-import multer from 'multer';
 import exception from '../../modules/exception';
-import db from '../../modules/database.js';
-import redis from '../../modules/redis.js';
-import { UtDatabase } from '../utils/ut-database.js';
 import { UtPermission } from '../utils/ut-permission';
 import { Stock, StockHistoryType } from '../services/stock.js';
 
