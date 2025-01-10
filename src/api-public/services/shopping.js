@@ -1564,19 +1564,14 @@ class Shopping {
                 }
                 if (dd.bind_subtotal >= dd.discount_total) {
                     let remain = parseInt(`${dd.discount_total}`, 10);
-                    console.log('===== vvvv =====');
-                    console.log(remain);
                     dd.bind.map((d2, index) => {
-                        console.log(d2.id, d2.sale_price, d2.count);
                         let discount = 0;
-                        console.log([index, dd.bind.length - 1]);
                         if (index === dd.bind.length - 1) {
                             discount = remain;
                         }
                         else {
                             discount = Math.round(remain * ((d2.sale_price * d2.count) / dd.bind_subtotal));
                         }
-                        console.log(dd.title, discount, discount > 0, discount <= d2.sale_price * d2.count);
                         if (discount > 0 && discount <= d2.sale_price * d2.count) {
                             if (dd.reBackType === 'rebate') {
                                 d2.rebate += discount / d2.count;
