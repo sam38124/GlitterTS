@@ -880,24 +880,6 @@ export class Setting_editor {
                                             url.searchParams.set('cms', 'true');
                                             url.searchParams.set('page', page);
                                             gvc.notifyDataChange('top-notice');
-                                            // ((window as any).glitterInitialHelper).getPageData({
-                                            //     tag: page,
-                                            //     appName: items[parseInt(index)].appName
-                                            // }, (d2: any) => {
-                                            //     $('#editerCenter').html(html`
-                                            //     <div
-                                            //             style="border: none;">${
-                                            //             new glitter.htmlGenerate(d2.response.result[0].config, [], {}, true).render(gvc, {
-                                            //                 class: ``,
-                                            //                 style: ``,
-                                            //                 app_config: gBundle.app_config,
-                                            //                 page_config: gBundle.page_config,
-                                            //                 is_page:true
-                                            //             })
-                                            //     }</div>`);
-                                            //     // resolve(d2.response.result[0])
-                                            // })
-
                                             $('#editerCenter').html(html` <iframe src="${url.href}" style="border: none;height: calc(100%);"></iframe>`);
                                         }
                                         return true;
@@ -954,6 +936,7 @@ export class Setting_editor {
                                                     click_item(index);
                                                 }
                                             }
+
                                             container.push({
                                                 title: dd.title,
                                                 index: index,
@@ -1000,17 +983,19 @@ export class Setting_editor {
                                                             }
 
                                                             return html`
-                                                                ${dd.title === '品牌官網' ? `<div class="my-4 border-top"></div>` : ``}
+                                                                ${dd.title === '品牌官網' ? html`<div class="my-4 border-top"></div>` : ``}
                                                                 <li>
                                                                     <div
-                                                                        class="w-100 fw-500 d-flex align-items-center fs-6 hoverBtn h_item rounded px-2 tx_700 
-                                                                                ${dd?.info?.guideClass ?? ''} ${dd.type === 'container' ? ` mainRow${index}` : ''}"
-                                                                        style="gap:7px;color:#393939;${dd.toggle ? `border-radius: 5px;background: #F2F2F2;` : ``}"
+                                                                        class="w-100 fw-500 d-flex align-items-center fs-6 hoverBtn h_item rounded px-2 tx_700 ${dd?.info?.guideClass ??
+                                                                        ''} ${dd.type === 'container' ? `mainRow${index}` : ''}"
+                                                                        style="gap:7px; color:#393939; ${dd.toggle ? `border-radius: 5px; background: #F2F2F2;` : ``}"
                                                                         onclick="${gvc.event(async () => {
                                                                             gvc.glitter.setUrlParameter('page-id');
                                                                             if (dd.type === 'container') {
-                                                                                list.map((d1: any) => {
-                                                                                    d1.toggle = false;
+                                                                                list.forEach((item: any, index2: number) => {
+                                                                                    if (index !== index2) {
+                                                                                        item.toggle = false;
+                                                                                    }
                                                                                 });
                                                                                 dd.toggle = !dd.toggle;
                                                                                 gvc.notifyDataChange(id);
@@ -1021,7 +1006,6 @@ export class Setting_editor {
                                                                                     glitter.share.switch_to_web_builder('index-mobile', 'mobile');
                                                                                     return;
                                                                                 }
-                                                                                // app-design
                                                                                 if ((await click_item(dd.index)) && ['page_layout', 'dev_mode'].indexOf(items[parseInt(dd.index)].page) === -1) {
                                                                                     dd.toggle = true;
                                                                                     refreshContainer();
@@ -1037,7 +1021,7 @@ export class Setting_editor {
                                                                             ? !dd.toggle
                                                                                 ? html` <i class="fa-regular fa-angle-right hoverBtn me-1" aria-hidden="true"></i> `
                                                                                 : html` <i class="fa-regular fa-angle-down hoverBtn me-1" aria-hidden="true"></i>`
-                                                                            : html` ${dd.info && dd.info.icon ? `<img src="${dd.info.icon}" style="width:18px;height:18px;">` : ``} `}
+                                                                            : html` ${dd.info && dd.info.icon ? html`<img src="${dd.info.icon}" style="width:18px;height:18px;" />` : ``} `}
                                                                     </div>
                                                                     ${dd.type === 'container' ? html` <div class="ps-4 pt-2 pb-2 ${dd.toggle ? `` : `d-none`}">${renderItem(dd.child)}</div>` : ``}
                                                                 </li>
@@ -1089,10 +1073,7 @@ export class Setting_editor {
         });
     }
 
-    public static center(gvc: GVC, viewModel: any, createID: string) {}
-
     public static addPlugin(gvc: GVC, callback: () => void) {
-        const saasConfig: { config: any; api: any } = (window as any).saasConfig;
         const html = String.raw;
         const dialog = new ShareDialog(gvc.glitter);
         let items: any = [];
