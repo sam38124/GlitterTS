@@ -5,6 +5,7 @@ import { Tool } from '../modules/tool.js';
 import { ApiShop } from '../glitter-base/route/shopping.js';
 import { Article } from '../glitter-base/route/article.js';
 import { ApiUser } from '../glitter-base/route/user.js';
+import { ApiStock } from '../glitter-base/route/stock.js';
 import { FormModule } from '../cms-plugin/module/form-module.js';
 import { ShareDialog } from '../glitterBundle/dialog/ShareDialog.js';
 import { FormCheck } from '../cms-plugin/module/form-check.js';
@@ -40,6 +41,10 @@ type TableV3 = {
     originalData: any;
     callback: () => void;
 };
+
+interface StockOptionsItem extends OptionsItem {
+    stock: number;
+}
 
 export interface OptionsItem {
     key: string;
@@ -3231,30 +3236,47 @@ ${obj.default ?? ''}</textarea
                 orderString: '',
             };
 
-            function printOption(opt: OptionsItem) {
+            function printOptionVa(opt: OptionsItem) {
+                const id = Tool.randomString(7);
                 opt.key = `${opt.key}`;
 
                 function call() {
+                    console.log(1);
                     if (obj.default.includes(opt.key)) {
                         obj.default = obj.default.filter((item) => item !== opt.key);
                     } else {
                         obj.default.push(opt.key);
                     }
+                    obj.gvc.notifyDataChange(id);
                 }
 
-                return html`<input
-                        class="form-check-input mt-0 ${vm.checkClass}"
-                        type="checkbox"
-                        id="${opt.key}"
-                        name="radio_${vm.id}"
-                        onclick="${obj.gvc.event(() => call())}"
-                        ${obj.default.includes(opt.key) ? 'checked' : ''}
-                    />
+                return html` ${obj.gvc.bindView({
+                        bind: id,
+                        view: () => {
+                            return html`<input
+                                class="form-check-input mt-0 ${vm.checkClass}"
+                                type="checkbox"
+                                id="${opt.key}"
+                                name="radio_${vm.id}"
+                                onclick="${obj.gvc.event(() => call())}"
+                                ${obj.default.includes(opt.key) ? 'checked' : ''}
+                            />`;
+                        },
+                        divCreate: {
+                            class: 'd-flex align-items-center justify-content-center',
+                        },
+                    })}
                     ${BgWidget.validImageBox({
                         gvc,
                         image: opt.image ?? '',
                         width: 40,
                         height: 40,
+                        events: [
+                            {
+                                key: 'onclick',
+                                value: obj.gvc.event(() => call()),
+                            },
+                        ],
                     })}
                     <div class="form-check-label c_updown_label cursor_pointer" onclick="${obj.gvc.event(() => call())}">
                         <div class="tx_normal ${opt.note ? 'mb-1' : ''}">${opt.value}</div>
@@ -3286,7 +3308,7 @@ ${obj.default ?? ''}</textarea
                                     <div class="c_dialog_main" style="gap: 24px; max-height: 500px;">
                                         ${gvc.map(
                                             vm.options.slice(0, 9).map((opt) => {
-                                                return html` <div class="d-flex align-items-center" style="gap: 24px">${printOption(opt)}</div>`;
+                                                return html` <div class="d-flex align-items-center" style="gap: 24px">${printOptionVa(opt)}</div>`;
                                             })
                                         )}
                                     </div>
@@ -3375,7 +3397,7 @@ ${obj.default ?? ''}</textarea
                                                     const optionElement = document.createElement('div');
                                                     optionElement.classList.add('d-flex', 'align-items-center');
                                                     optionElement.style.gap = '24px';
-                                                    optionElement.innerHTML = printOption(option);
+                                                    optionElement.innerHTML = printOptionVa(option);
                                                     dialogContainer.appendChild(optionElement);
                                                 });
                                             }
@@ -3390,7 +3412,194 @@ ${obj.default ?? ''}</textarea
         }, 'productsDialog');
     }
 
-    static settingDialog(obj: { gvc: GVC; title: string; width?: number; height?: number; innerHTML: (gvc: GVC) => string; footer_html: (gvc: GVC) => string; closeCallback?: () => void }) {
+    static storeStockDialog(obj: { gvc: GVC; store_id: string; default: string[]; title: string; callback: (value: any, status?: number) => void }) {
+        const origin = JSON.parse(JSON.stringify(obj.default));
+        return obj.gvc.glitter.innerDialog((gvc: GVC) => {
+            const vm = {
+                id: obj.gvc.glitter.getUUID(),
+                optionsId: obj.gvc.glitter.getUUID(),
+                loading: true,
+                checkClass: BgWidget.getCheckedClass(gvc),
+                options: [] as StockOptionsItem[],
+                query: '',
+                orderString: '',
+            };
+
+            function printOptionSt(opt: StockOptionsItem) {
+                const id = Tool.randomString(7);
+                opt.key = `${opt.key}`;
+
+                function call() {
+                    console.log(2);
+                    if (obj.default.includes(opt.key)) {
+                        obj.default = obj.default.filter((item) => item !== opt.key);
+                    } else {
+                        obj.default.push(opt.key);
+                    }
+                    obj.gvc.notifyDataChange(id);
+                }
+
+                return html`
+                    <div class="d-flex align-items-center" style="gap: 24px" onclick="${obj.gvc.event(() => call())}">
+                        ${obj.gvc.bindView({
+                            bind: id,
+                            view: () => {
+                                return html`<input
+                                    class="form-check-input mt-0 ${vm.checkClass}"
+                                    type="checkbox"
+                                    id="${opt.key}"
+                                    name="radio_${vm.id}"
+                                    ${obj.default.includes(opt.key) ? 'checked' : ''}
+                                />`;
+                            },
+                            divCreate: {
+                                class: 'd-flex align-items-center justify-content-between',
+                            },
+                        })}
+                        ${BgWidget.validImageBox({
+                            gvc,
+                            image: opt.image ?? '',
+                            width: 40,
+                            height: 40,
+                        })}
+                        <div class="form-check-label c_updown_label cursor_pointer">
+                            <div class="tx_normal ${opt.note ? 'mb-1' : ''}">${opt.value}</div>
+                            ${opt.note ? html` <div class="tx_gray_12">${opt.note}</div> ` : ''}
+                        </div>
+                    </div>
+                    <div class="d-flex align-items-center" style="gap: 6px">
+                        <div>庫存量</div>
+                        <div style="color: #393939; font-size: 24px; font-weight: 600;">${opt.stock}</div>
+                    </div>
+                `;
+            }
+
+            return html` <div class="bg-white shadow rounded-3" style="overflow-y: auto;${document.body.clientWidth > 768 ? 'min-width: 400px; width: 600px;' : 'min-width: 90vw; max-width: 92.5vw;'}">
+                ${obj.gvc.bindView({
+                    bind: vm.id,
+                    view: () => {
+                        if (vm.loading) {
+                            return html` <div class="my-4">${this.spinner()}</div>`;
+                        }
+                        return html` <div class="bg-white shadow rounded-3" style="width: 100%; overflow-y: auto;">
+                            <div class="w-100 d-flex align-items-center p-3 border-bottom">
+                                <div class="tx_700">${obj.title ?? '產品列表'}</div>
+                                <div class="flex-fill"></div>
+                                <i
+                                    class="fa-regular fa-circle-xmark fs-5 text-dark cursor_pointer"
+                                    onclick="${gvc.event(() => {
+                                        obj.callback(origin, 0);
+                                        gvc.closeDialog();
+                                    })}"
+                                ></i>
+                            </div>
+                            <div class="c_dialog">
+                                <div class="c_dialog_body">
+                                    <div class="c_dialog_main" style="gap: 24px; max-height: 500px;">
+                                        ${gvc.map(
+                                            vm.options.slice(0, 9).map((opt) => {
+                                                return html` <div class="d-flex justify-content-between">${printOptionSt(opt)}</div>`;
+                                            })
+                                        )}
+                                    </div>
+                                    <div class="c_dialog_bar">
+                                        ${BgWidget.cancel(
+                                            obj.gvc.event(() => {
+                                                obj.callback([], -1);
+                                                gvc.closeDialog();
+                                            }),
+                                            '清除全部'
+                                        )}
+                                        ${BgWidget.cancel(
+                                            obj.gvc.event(() => {
+                                                obj.callback(origin, 0);
+                                                gvc.closeDialog();
+                                            })
+                                        )}
+                                        ${BgWidget.save(
+                                            obj.gvc.event(() => {
+                                                obj.callback(
+                                                    obj.default.filter((item) => {
+                                                        return vm.options.find((opt: OptionsItem) => `${opt.key}` === item);
+                                                    }),
+                                                    1
+                                                );
+                                                gvc.closeDialog();
+                                            }),
+                                            '確認'
+                                        )}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>`;
+                    },
+                    onCreate: () => {
+                        if (vm.loading) {
+                            ApiStock.getStoreProductList({
+                                page: 0,
+                                limit: 99999,
+                                search: obj.store_id,
+                            }).then((r) => {
+                                vm.options = r.response.data.map((v: { id: number; product_content: any; content: any }) => {
+                                    return {
+                                        key: v.id,
+                                        value: v.product_content.title,
+                                        image: v.content.preview_image ?? BgWidget.noImageURL,
+                                        note: v.content.spec ? v.content.spec.join('/') : '單一規格',
+                                        stock: v.content.stockList[obj.store_id].count,
+                                    };
+                                });
+                                vm.loading = false;
+                                obj.gvc.notifyDataChange(vm.id);
+                            });
+                        } else {
+                            let lastScrollTop = 0;
+                            let loadBatch = 1;
+                            const itemsPerBatch = 4;
+                            const itemHeight = 140;
+
+                            // 獲取具有 class="c_dialog_main" 的元素
+                            const dialogContainer = document.querySelector('.c_dialog_main');
+
+                            if (dialogContainer) {
+                                // 監聽滾動事件
+                                dialogContainer.addEventListener('scroll', () => {
+                                    const currentScrollTop = dialogContainer.scrollTop;
+
+                                    // 僅處理向下滾動的情況
+                                    if (currentScrollTop > lastScrollTop) {
+                                        lastScrollTop = currentScrollTop;
+
+                                        // 檢查是否需要加載更多內容
+                                        if (currentScrollTop > loadBatch * itemHeight) {
+                                            loadBatch++;
+
+                                            const startIdx = loadBatch * itemsPerBatch;
+                                            const endIdx = Math.min((loadBatch + 1) * itemsPerBatch, vm.options.length);
+
+                                            if (startIdx < vm.options.length) {
+                                                const newOptions = vm.options.slice(startIdx, endIdx);
+
+                                                newOptions.forEach((option) => {
+                                                    const optionElement = document.createElement('div');
+                                                    optionElement.classList.add('d-flex', 'align-items-center');
+                                                    optionElement.style.gap = '24px';
+                                                    optionElement.innerHTML = printOptionSt(option);
+                                                    dialogContainer.appendChild(optionElement);
+                                                });
+                                            }
+                                        }
+                                    }
+                                });
+                            }
+                        }
+                    },
+                })}
+            </div>`;
+        }, 'productsDialog');
+    }
+
+    static settingDialog(obj: { gvc: GVC; title: string;d_main_style?:string, width?: number; height?: number; innerHTML: (gvc: GVC) => string; footer_html: (gvc: GVC) => string; closeCallback?: () => void }) {
         const glitter = (() => {
             let glitter = obj.gvc.glitter;
             if (glitter.getUrlParameter('cms') === 'true' || glitter.getUrlParameter('type') === 'htmlEditor') {
@@ -3406,7 +3615,7 @@ ${obj.default ?? ''}</textarea
 
             return html` <div
                 class="bg-white shadow rounded-3"
-                style="overflow-y: auto; ${document.body.clientWidth > 768 ? `min-width: 400px; width: ${obj.width ?? 600}px;` : 'min-width: 90vw; max-width: 92.5vw;'}"
+                style="overflow-y: auto; ${document.body.clientWidth > 768 ? `min-width: 400px; width: ${obj.width ?? 600}px;max-width:calc(100vw - 20px);` : 'min-width: calc(100vw - 10px);; max-width: calc(100vw - 10px);'}"
             >
                 ${gvc.bindView({
                     bind: vm.id,
@@ -3431,7 +3640,7 @@ ${obj.default ?? ''}</textarea
                             </div>
                             <div class="c_dialog">
                                 <div class="c_dialog_body">
-                                    <div class="c_dialog_main" style="gap: 24px; height: ${obj.height ? `${obj.height}px` : 'auto'}; max-height: 500px;">${obj.innerHTML(gvc) ?? ''}</div>
+                                    <div class="c_dialog_main" style="${obj.d_main_style || ''};gap: 24px; ${obj.height ? `height:${obj.height}px;max-height: 100vh;`:`height:auto;max-height: 500px;`} ">${obj.innerHTML(gvc) ?? ''}</div>
                                     ${footer ? `<div class="c_dialog_bar">${footer}</div>` : ``}
                                 </div>
                             </div>
@@ -3781,7 +3990,7 @@ ${obj.default ?? ''}</textarea
                         }
                         return html` <div class="bg-white shadow rounded-3" style="width: 100%; max-height: 100%; overflow-y: auto; position: relative;">
                             <div class="w-100 d-flex align-items-center p-3 border-bottom" style="position: sticky; top: 0; z-index: 2; background: #fff;">
-                                <div class="tx_700">${typeof obj.title === 'function' ? obj.title(gvc) : obj.title ?? '產品列表'}</div>
+                                <div class="tx_700">${typeof obj.title === 'function' ? obj.title(gvc) : (obj.title ?? '產品列表')}</div>
                                 <div class="flex-fill"></div>
                                 <i
                                     class="fa-regular fa-circle-xmark fs-5 text-dark cursor_pointer"
@@ -3895,7 +4104,18 @@ ${obj.default ?? ''}</textarea
         });
     }
 
-    static validImageBox(obj: { gvc: GVC; image: string; width: number; height?: number; class?: string; style?: string }) {
+    static validImageBox(obj: {
+        gvc: GVC;
+        image: string;
+        width: number;
+        height?: number;
+        class?: string;
+        style?: string;
+        events?: {
+            key: string;
+            value: string;
+        }[];
+    }) {
         const imageVM = {
             id: obj.gvc.glitter.getUUID(),
             loading: true,
@@ -3933,6 +4153,17 @@ ${obj.default ?? ''}</textarea
                         };
                     });
                 } else {
+                    const option = [
+                        {
+                            key: 'src',
+                            value: imageVM.url,
+                        },
+                    ];
+
+                    if (obj.events) {
+                        option.push(...obj.events);
+                    }
+
                     return obj.gvc.bindView(() => {
                         return {
                             bind: obj.gvc.glitter.getUUID(),
@@ -3943,12 +4174,7 @@ ${obj.default ?? ''}</textarea
                                 elem: 'img',
                                 style: `${wh}${obj.style ?? ''}`,
                                 class: obj.class ?? '',
-                                option: [
-                                    {
-                                        key: 'src',
-                                        value: imageVM.url,
-                                    },
-                                ],
+                                option,
                             },
                         };
                     });
@@ -4289,7 +4515,7 @@ ${obj.default ?? ''}</textarea
                                                     gvc2.event(() => {
                                                         gvc2.closeDialog();
                                                         gvc.notifyDataChange(id);
-                                                        obj.callback(obj.content)
+                                                        obj.callback(obj.content);
                                                     })
                                                 ),
                                             ].join('');

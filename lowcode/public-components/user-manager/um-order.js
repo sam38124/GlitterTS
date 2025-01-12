@@ -764,9 +764,6 @@ export class UMOrder {
                             {
                                 title: Language.text('shipping_method'),
                                 value: (() => {
-                                    if (selector) {
-                                        return Language.getLanguageCustomText(selector.name);
-                                    }
                                     switch (orderData.user_info.shipment) {
                                         case 'FAMIC2C':
                                             return Language.text('ship_FAMIC2C');
@@ -778,8 +775,15 @@ export class UMOrder {
                                             return Language.text('ship_UNIMARTC2C');
                                         case 'shop':
                                             return Language.text('ship_shop');
+                                        case 'global_express':
+                                            return Language.text('ship_global_express');
                                         default:
-                                            return Language.text('ship_normal');
+                                            if (selector) {
+                                                return Language.getLanguageCustomText(selector.name);
+                                            }
+                                            else {
+                                                return Language.text('ship_normal');
+                                            }
                                     }
                                 })(),
                             },

@@ -90,15 +90,18 @@ const randomNumber = (max: number) => {
 
 const compareHash = async (pwd: string, has: string) => bcrypt.compare(pwd, has);
 
-const convertDateTimeFormat = (dateTimeStr?: string) => {
-    const dateTime = dateTimeStr ? new Date(dateTimeStr) : new Date();
-    const year = dateTime.getFullYear();
-    const month = ('0' + (dateTime.getMonth() + 1)).slice(-2);
-    const day = ('0' + dateTime.getDate()).slice(-2);
-    const hours = ('0' + dateTime.getHours()).slice(-2);
-    const minutes = ('0' + dateTime.getMinutes()).slice(-2);
-    const seconds = ('0' + dateTime.getSeconds()).slice(-2);
-    return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
+const getCurrentDateTime = (json?: { inputDate?: string; addSeconds?: number }) => {
+    const currentDate = json && json.inputDate ? new Date(json.inputDate) : new Date();
+    currentDate.setSeconds(currentDate.getSeconds() + (json && json.addSeconds ? json.addSeconds : 0));
+
+    const year = currentDate.getFullYear();
+    const month = ('0' + (currentDate.getMonth() + 1)).slice(-2);
+    const day = ('0' + currentDate.getDate()).slice(-2);
+    const hours = ('0' + currentDate.getHours()).slice(-2);
+    const minutes = ('0' + currentDate.getMinutes()).slice(-2);
+    const seconds = ('0' + currentDate.getSeconds()).slice(-2);
+
+    return year + '-' + month + '-' + day + ' ' + hours + ':' + minutes + ':' + seconds;
 };
 
 export default {
@@ -111,5 +114,5 @@ export default {
     randomString,
     compareHash,
     randomNumber,
-    convertDateTimeFormat,
+    getCurrentDateTime,
 };

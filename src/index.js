@@ -26,7 +26,9 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.createAPP = exports.initial = exports.app = void 0;
+exports.app = void 0;
+exports.initial = initial;
+exports.createAPP = createAPP;
 const path_1 = __importDefault(require("path"));
 const express_1 = __importDefault(require("express"));
 const cors_1 = __importDefault(require("cors"));
@@ -64,9 +66,9 @@ const ai_js_1 = require("./services/ai.js");
 const cookie_parser_1 = __importDefault(require("cookie-parser"));
 const express_session_1 = __importDefault(require("express-session"));
 const monitor_js_1 = require("./api-public/services/monitor.js");
-const manager_js_1 = require("./api-public/services/manager.js");
 const sitemap_1 = require("sitemap");
 const stream_1 = require("stream");
+const seo_config_js_1 = require("./seo-config.js");
 exports.app = (0, express_1.default)();
 const logger = new logger_1.default();
 exports.app.options('/*', (req, res) => {
@@ -118,7 +120,6 @@ async function initial(serverPort) {
         console.log('Starting up the server now.');
     })();
 }
-exports.initial = initial;
 function createContext(req, res, next) {
     const uuid = (0, uuid_1.v4)();
     const ip = req.ip;
@@ -134,61 +135,7 @@ async function createAppRoute() {
         await createAPP(dd);
     }
 }
-function extractCols(data) {
-    const items = [];
-    const updated_at = new Date(data.updated_at).toISOString().replace(/\.\d{3}Z$/, '+00:00');
-    data.value.map((item) => {
-        items.push({
-            code: item.code,
-            updated_at,
-            seo_title: item.seo_title,
-            seo_image: item.seo_image,
-            seo_content: item.seo_content,
-        });
-        if (item.array && item.array.length > 0) {
-            item.array.map((child) => {
-                items.push({
-                    code: child.code,
-                    updated_at,
-                    seo_title: child.seo_title,
-                    seo_image: child.seo_image,
-                    seo_content: child.seo_content,
-                });
-            });
-        }
-    });
-    return items;
-}
-function extractProds(data) {
-    const items = [];
-    data.map((item) => {
-        const code = (() => {
-            try {
-                return item.content.seo.domain;
-            }
-            catch (error) {
-                return '';
-            }
-        })();
-        const updated_at = new Date(item.updated_time).toISOString().replace(/\.\d{3}Z$/, '+00:00');
-        items.push({ code, updated_at });
-    });
-    return items;
-}
 exports.app.set('trust proxy', true);
-function isCurrentTimeWithinRange(data) {
-    const now = new Date();
-    now.setTime(now.getTime() + 8 * 3600 * 1000);
-    const startDateTime = new Date(`${data.startDate}T${data.startTime}`);
-    const hasEnd = data.endDate && data.endTime;
-    const endDateTime = hasEnd ? new Date(`${data.endDate}T${data.endTime}`) : null;
-    if (hasEnd) {
-        return now >= startDateTime && now <= endDateTime;
-    }
-    else {
-        return now >= startDateTime;
-    }
-}
 async function createAPP(dd) {
     const html = String.raw;
     live_source_1.Live_source.liveAPP.push(dd.appName);
@@ -201,7 +148,9 @@ async function createAPP(dd) {
             app_name: dd.appName,
             root_path: '/' + encodeURI(dd.appName) + '/',
             seoManager: async (req) => {
-                var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m, _o, _p, _q;
+                var _a, _b, _c, _d, _e, _f;
+                console.log(`X-Original-URL=>`, req.headers['x-original-url']);
+                const og_url = req.headers['x-original-url'];
                 try {
                     if (req.query.state === 'google_login') {
                         req.query.page = 'login';
@@ -210,10 +159,23 @@ async function createAPP(dd) {
                     if (req.query.appName) {
                         appName = req.query.appName;
                     }
+                    else if (og_url) {
+                        const new_app = (await database_2.default.query(`SELECT * FROM \`${config_1.saasConfig.SAAS_NAME}\`.app_config where LOWER(domain) = ?`, [og_url]))[0];
+                        if ((new_app && new_app.appName)) {
+                            appName = (new_app && new_app.appName);
+                        }
+                        else {
+                            return {
+                                head: '',
+                                body: `<script>window.location.href='https://shopnex.cc'</script>`
+                            };
+                        }
+                    }
                     req.headers['g-app'] = appName;
                     const start = new Date().getTime();
                     console.log(`getPageInfo==>`, (new Date().getTime() - start) / 1000);
-                    let [customCode, FBCode, store_info, language_label] = await Promise.all([new user_js_1.User(appName).getConfigV2({
+                    let seo_content = [];
+                    let [customCode, FBCode, store_info, language_label, check_schema, brandAndMemberType, login_config, ip_country] = await Promise.all([new user_js_1.User(appName).getConfigV2({
                             key: 'ga4_config',
                             user_id: 'manager',
                         }), new user_js_1.User(appName).getConfigV2({
@@ -225,52 +187,17 @@ async function createAPP(dd) {
                         }), new user_js_1.User(appName).getConfigV2({
                             key: 'language-label',
                             user_id: 'manager',
-                        })]);
-                    const language = (() => {
-                        function checkIncludes(lan) {
-                            return store_info.language_setting.support.includes(lan);
-                        }
-                        function checkEqual(lan) {
-                            return `${req.query.page}`.startsWith(`${lan}/`) || req.query.page === lan;
-                        }
-                        function replace(lan) {
-                            if (req.query.page === lan) {
-                                req.query.page = '';
-                            }
-                            else {
-                                req.query.page = `${req.query.page}`.replace(lan + '/', '');
-                            }
-                        }
-                        if (checkEqual('en') && checkIncludes('en-US')) {
-                            replace('en');
-                            return `en-US`;
-                        }
-                        else if (checkEqual('cn') && checkIncludes('zh-CN')) {
-                            replace('cn');
-                            return `zh-CN`;
-                        }
-                        else if (checkEqual('tw') && checkIncludes('zh-TW')) {
-                            replace('tw');
-                            return `zh-TW`;
-                        }
-                        else {
-                            return store_info.language_setting.def;
-                        }
-                    })();
-                    console.log(`req.query.page===>`, req.query.page);
+                        }), public_table_check_js_1.ApiPublic.createScheme(appName),
+                        app_js_1.App.checkBrandAndMemberType(appName), new user_js_1.User(req.get('g-app'), req.body.token).getConfigV2({
+                            key: 'login_config',
+                            user_id: 'manager',
+                        }), user_js_1.User.ipInfo((req.query.ip || req.headers['x-real-ip'] || req.ip))]);
+                    const language = await seo_config_js_1.SeoConfig.language(store_info, req);
                     monitor_js_1.Monitor.insertHistory({
                         req_type: 'file',
                         req: req,
                     });
-                    console.log(`insertHistory==>`, (new Date().getTime() - start) / 1000);
-                    await public_table_check_js_1.ApiPublic.createScheme(appName);
-                    console.log(`createScheme==>`, (new Date().getTime() - start) / 1000);
-                    const brandAndMemberType = await app_js_1.App.checkBrandAndMemberType(appName);
-                    console.log(`brandAndMemberType==>`, (new Date().getTime() - start) / 1000);
-                    const login_config = await new user_js_1.User(req.get('g-app'), req.body.token).getConfigV2({
-                        key: 'login_config',
-                        user_id: 'manager',
-                    });
+                    console.log(`req.query.page==>`, req.query.page);
                     let data = await seo_js_1.Seo.getPageInfo(appName, req.query.page, language);
                     let home_page_data = await (async () => {
                         if (data && data.config) {
@@ -280,67 +207,40 @@ async function createAPP(dd) {
                             return await seo_js_1.Seo.getPageInfo(appName, 'index', language);
                         }
                     })();
+                    console.log(`req.query.page==>`, req.query.page);
                     if (data && data.page_config) {
                         data.page_config = (_a = data.page_config) !== null && _a !== void 0 ? _a : {};
                         const d = (_b = data.page_config.seo) !== null && _b !== void 0 ? _b : {};
-                        if (data.page_type === 'article' && data.page_config.template_type === 'product') {
-                            const product_domain = req.query.page.split('/')[1];
-                            const pd = await new shopping_js_1.Shopping(appName, undefined).getProduct(product_domain
-                                ? {
-                                    page: 0,
-                                    limit: 1,
-                                    domain: decodeURIComponent(product_domain),
-                                    language: language,
-                                }
-                                : {
-                                    page: 0,
-                                    limit: 1,
-                                    id: req.query.product_id,
-                                    language: language,
-                                });
-                            if (pd.data.content) {
-                                pd.data.content.language_data = (_c = pd.data.content.language_data) !== null && _c !== void 0 ? _c : {};
-                                const productSeo = (pd.data.content.language_data[language] && pd.data.content.language_data[language].seo) || ((_d = pd.data.content.seo) !== null && _d !== void 0 ? _d : {});
-                                data = await seo_js_1.Seo.getPageInfo(appName, data.config.homePage, language);
-                                data.page_config = (_e = data.page_config) !== null && _e !== void 0 ? _e : {};
-                                data.page_config.seo = (_f = data.page_config.seo) !== null && _f !== void 0 ? _f : {};
-                                data.page_config.seo.title = productSeo.title;
-                                data.page_config.seo.image = pd.data.content.preview_image[0];
-                                data.page_config.seo.content = productSeo.content;
-                            }
-                            else {
-                                data = await seo_js_1.Seo.getPageInfo(appName, data.config.homePage, language);
-                            }
-                        }
-                        else if (data.page_type === 'article' && data.page_config.template_type === 'blog') {
-                            req.query.article = req.query.article || req.query.page.split('/')[1];
-                            let query = [`(content->>'$.type'='article')`, `(content->>'$.tag'='${req.query.article}')`];
-                            const article = await new ut_database_js_1.UtDatabase(appName, `t_manager_post`).querySql(query, {
-                                page: 0,
-                                limit: 1,
+                        console.log(`req.query.page`);
+                        if (`${req.query.page}`.startsWith('products/')) {
+                            await seo_config_js_1.SeoConfig.productSEO({
+                                data,
+                                language,
+                                appName,
+                                product_id: req.query.product_id,
+                                page: (req.query.page)
                             });
-                            data = await seo_js_1.Seo.getPageInfo(appName, data.config.homePage, language);
-                            data.page_config = (_g = data.page_config) !== null && _g !== void 0 ? _g : {};
-                            data.page_config.seo = (_h = data.page_config.seo) !== null && _h !== void 0 ? _h : {};
-                            if (article.data[0]) {
-                                if (article.data[0].content.language_data && article.data[0].content.language_data[language]) {
-                                    data.page_config.seo.title = article.data[0].content.language_data[language].seo.title;
-                                    data.page_config.seo.content = article.data[0].content.language_data[language].seo.content;
-                                    data.page_config.seo.keywords = article.data[0].content.language_data[language].seo.keywords;
-                                }
-                                else {
-                                    data.page_config.seo.title = article.data[0].content.seo.title;
-                                    data.page_config.seo.content = article.data[0].content.seo.content;
-                                    data.page_config.seo.keywords = article.data[0].content.seo.keywords;
-                                }
-                            }
+                        }
+                        else if (`${req.query.page}`.startsWith('blogs/')) {
+                            await seo_config_js_1.SeoConfig.articleSeo({
+                                article: req.query.article,
+                                page: req.query.page,
+                                language, appName, data
+                            });
+                        }
+                        else if (`${req.query.page}`.startsWith('pages/')) {
+                            await seo_config_js_1.SeoConfig.articleSeo({
+                                article: req.query.article,
+                                page: req.query.page,
+                                language, appName, data
+                            });
                         }
                         else if (d.type !== 'custom') {
                             data = home_page_data;
                         }
                         const preload = req.query.isIframe === 'true' ? {} : await app_js_1.App.preloadPageData(appName, req.query.page, language);
-                        data.page_config = (_j = data.page_config) !== null && _j !== void 0 ? _j : {};
-                        data.page_config.seo = (_k = data.page_config.seo) !== null && _k !== void 0 ? _k : {};
+                        data.page_config = (_c = data.page_config) !== null && _c !== void 0 ? _c : {};
+                        data.page_config.seo = (_d = data.page_config.seo) !== null && _d !== void 0 ? _d : {};
                         const seo_detail = await getSeoDetail(appName, req);
                         if (seo_detail) {
                             Object.keys(seo_detail).map((dd) => {
@@ -367,289 +267,170 @@ async function createAPP(dd) {
                                 `;
                         }
                         if (req.query.page.split('/')[0] === 'distribution' && req.query.page.split('/')[1]) {
-                            const redURL = new URL(`https://127.0.0.1${req.url}`);
-                            const rec = await database_2.default.query(`SELECT *
-                                     FROM \`${appName}\`.t_recommend_links
-                                     WHERE content ->>'$.link' = ?;
-                                    `, [req.query.page.split('/')[1]]);
-                            const page = rec[0] && rec[0].content ? rec[0].content : { status: false };
-                            if (page.status && isCurrentTimeWithinRange(page)) {
-                                let query = [`(content->>'$.type'='article')`, `(content->>'$.tag'='${page.redirect.split('/')[2]}')`];
-                                const article = await new ut_database_js_1.UtDatabase(appName, `t_manager_post`).querySql(query, {
-                                    page: 0,
-                                    limit: 1,
-                                });
-                                data = await seo_js_1.Seo.getPageInfo(appName, data.config.homePage, language);
-                                data.page_config = (_l = data.page_config) !== null && _l !== void 0 ? _l : {};
-                                data.page_config.seo = (_m = data.page_config.seo) !== null && _m !== void 0 ? _m : {};
-                                if (article.data[0]) {
-                                    if (article.data[0].content.language_data[language]) {
-                                        data.page_config.seo.title = article.data[0].content.language_data[language].seo.title;
-                                        data.page_config.seo.content = article.data[0].content.language_data[language].seo.content;
-                                        data.page_config.seo.keywords = article.data[0].content.language_data[language].seo.keywords;
-                                    }
-                                    else {
-                                        data.page_config.seo.title = article.data[0].content.seo.title;
-                                        data.page_config.seo.content = article.data[0].content.seo.content;
-                                        data.page_config.seo.keywords = article.data[0].content.seo.keywords;
-                                    }
-                                }
-                                distribution_code = `
-                                        localStorage.setItem('distributionCode','${page.code}');
-                                        location.href = '${link_prefix ? `/` : ``}${link_prefix}${page.redirect}${redURL.search}';
-                                    `;
-                            }
-                            else {
-                                distribution_code = `
-                                        location.href = '/';
-                                    `;
-                            }
+                            distribution_code = await seo_config_js_1.SeoConfig.distributionSEO({
+                                appName: appName,
+                                url: req.url,
+                                page: req.query.page,
+                                link_prefix: link_prefix,
+                                data,
+                                language
+                            });
                         }
                         if (req.query.page.split('/')[0] === 'collections' && req.query.page.split('/')[1]) {
-                            const cols = (_o = (await manager_js_1.Manager.getConfig({
-                                appName: appName,
-                                key: 'collection',
-                                language: language,
-                            }))[0]) !== null && _o !== void 0 ? _o : {};
-                            const colJson = extractCols(cols);
-                            const urlCode = decodeURI(req.query.page.split('/')[1]);
-                            const colData = colJson.find((item) => item.code === urlCode);
-                            if (colData) {
-                                data.page_config.seo.title = colData.seo_title;
-                                data.page_config.seo.content = colData.seo_content;
-                                data.page_config.seo.keywords = colData.seo_keywords;
-                            }
+                            await seo_config_js_1.SeoConfig.collectionSeo({ appName, language, data, page: req.query.page });
                         }
-                        return html `${(() => {
-                            var _a;
-                            const d = data.page_config.seo;
-                            const home_seo = home_page_data.page_config.seo;
-                            return html `
-                                    <head>
-                                        ${(() => {
-                                var _a, _b, _c, _d, _e;
-                                if (req.query.type === 'editor') {
-                                    return html `<title>SHOPNEX後台系統</title>
-                                                <link rel="canonical" href="/index"/>
-                                                <meta name="keywords" content="SHOPNEX,電商平台"/>
-                                                <link
-                                                        id="appImage"
-                                                        rel="shortcut icon"
-                                                        href="https://d3jnmi1tfjgtti.cloudfront.net/file/234285319/size1440_s*px$_sas0s9s0s1sesas0_1697354801736-Glitterlogo.png"
-                                                        type="image/x-icon"
-                                                />
-                                                <link
-                                                        rel="icon"
-                                                        href="https://d3jnmi1tfjgtti.cloudfront.net/file/234285319/size1440_s*px$_sas0s9s0s1sesas0_1697354801736-Glitterlogo.png"
-                                                        type="image/png"
-                                                        sizes="128x128"
-                                                />
-                                                <meta property="og:image"
-                                                      content="https://d3jnmi1tfjgtti.cloudfront.net/file/252530754/1718778766524-shopnex_banner.jpg"/>
-                                                <meta property="og:title" content="SHOPNEX後台系統"/>
-                                                <meta
-                                                        name="description"
-                                                        content="SHOPNEX電商開店平台，零抽成、免手續費。提供精美模板和豐富插件，操作簡單，3分鐘內快速打造專屬商店。購物車、金物流、SEO行銷、資料分析一站搞定。支援APP上架，並提供100%客製化設計，立即免費體驗30天。"
-                                                />
-                                                <meta
-                                                        name="og:description"
-                                                        content="SHOPNEX電商開店平台，零抽成、免手續費。提供精美模板和豐富插件，操作簡單，3分鐘內快速打造專屬商店。購物車、金物流、SEO行銷、資料分析一站搞定。支援APP上架，並提供100%客製化設計，立即免費體驗30天。"
-                                                />`;
-                                }
-                                else {
-                                    return html `<title>${(_a = d.title) !== null && _a !== void 0 ? _a : '尚未設定標題'}</title>
-                                                <link
-                                                        rel="canonical"
-                                                        href="${(() => {
-                                        if (data.tag === 'index') {
-                                            return `https://${brandAndMemberType.domain}`;
-                                        }
-                                        else {
-                                            return `https://${brandAndMemberType.domain}/${data.tag}`;
-                                        }
-                                    })()}"
-                                                />
-                                                ${data.tag !== req.query.page ? `<meta name="robots" content="noindex">` : ``}
-                                                <meta name="keywords"
-                                                      content="${((_b = d.keywords) !== null && _b !== void 0 ? _b : '尚未設定關鍵字').replace(/"/g, '&quot;')}"/>
-                                                <link id="appImage" rel="shortcut icon"
-                                                      href="${d.logo || home_seo.logo || ''}" type="image/x-icon"/>
-                                                <link rel="icon" href="${d.logo || home_seo.logo || ''}"
-                                                      type="image/png" sizes="128x128"/>
-                                                <meta property="og:image" content="${d.image || home_seo.image || ''}"/>
-                                                <meta property="og:title"
-                                                      content="${((_c = d.title) !== null && _c !== void 0 ? _c : '').replace(/\n/g, '').replace(/"/g, '&quot;')}"/>
-                                                <meta name="description"
-                                                      content="${((_d = d.content) !== null && _d !== void 0 ? _d : '').replace(/\n/g, '').replace(/"/g, '&quot;')}"/>
-                                                <meta name="og:description"
-                                                      content="${((_e = d.content) !== null && _e !== void 0 ? _e : '').replace(/\n/g, '').replace(/"/g, '&quot;')}"/>`;
-                                }
-                            })()}
-                                        ${(_a = d.code) !== null && _a !== void 0 ? _a : ''}
-                                        ${(() => {
+                        if (FBCode) {
+                            seo_content.push(seo_config_js_1.SeoConfig.fbCode(FBCode));
+                        }
+                        return {
+                            head: (() => {
                                 var _a;
+                                const d = data.page_config.seo;
+                                const home_seo = home_page_data.page_config.seo;
+                                return html `
+                                    ${(() => {
+                                    var _a, _b, _c;
+                                    if (req.query.type === 'editor') {
+                                        return seo_config_js_1.SeoConfig.editorSeo;
+                                    }
+                                    else {
+                                        return html `<title>${d.title || '尚未設定標題'}</title>
+                                            <link
+                                                    rel="canonical"
+                                                    href="${(() => {
+                                            if (data.tag === 'index') {
+                                                return `https://${brandAndMemberType.domain}`;
+                                            }
+                                            else {
+                                                return `https://${brandAndMemberType.domain}/${data.tag}`;
+                                            }
+                                        })()}"
+                                            />
+                                            ${data.tag !== req.query.page ? `<meta name="robots" content="noindex">` : `<meta name="robots" content="index, follow"/>`}
+                                            <meta name="keywords"
+                                                  content="${(d.keywords || '尚未設定關鍵字').replace(/"/g, '&quot;')}"/>
+                                            <link id="appImage" rel="shortcut icon"
+                                                  href="${d.logo || home_seo.logo || ''}" type="image/x-icon"/>
+                                            <link rel="icon" href="${d.logo || home_seo.logo || ''}"
+                                                  type="image/png" sizes="128x128"/>
+                                            <meta property="og:image" content="${d.image || home_seo.image || ''}"/>
+                                            <meta property="og:title"
+                                                  content="${((_a = d.title) !== null && _a !== void 0 ? _a : '').replace(/\n/g, '').replace(/"/g, '&quot;')}"/>
+                                            <meta name="description"
+                                                  content="${((_b = d.content) !== null && _b !== void 0 ? _b : '').replace(/\n/g, '').replace(/"/g, '&quot;')}"/>
+                                            <meta name="og:description"
+                                                  content="${((_c = d.content) !== null && _c !== void 0 ? _c : '').replace(/\n/g, '').replace(/"/g, '&quot;')}"/>`;
+                                    }
+                                })()}
+                                    ${(_a = d.code) !== null && _a !== void 0 ? _a : ''}
+                                    ${(() => {
+                                    var _a;
+                                    if (req.query.type === 'editor') {
+                                        return ``;
+                                    }
+                                    else {
+                                        return `${((_a = data.config.globalStyle) !== null && _a !== void 0 ? _a : [])
+                                            .map((dd) => {
+                                            try {
+                                                if (dd.data.elem === 'link') {
+                                                    return html `
+                                                                    <link
+                                                                            type="text/css"
+                                                                            rel="stylesheet"
+                                                                            href="${dd.data.attr.find((dd) => {
+                                                        return dd.attr === 'href';
+                                                    }).value}"
+                                                                    />`;
+                                                }
+                                            }
+                                            catch (e) {
+                                                return ``;
+                                            }
+                                        })
+                                            .join('')}`;
+                                    }
+                                })()}
+                                `;
+                            })() + `<script>
+                                ${[
+                                (_e = d.custom_script) !== null && _e !== void 0 ? _e : '',
+                                `window.login_config = ${JSON.stringify(login_config)};`,
+                                `window.appName = '${appName}';`,
+                                `window.glitterBase = '${brandAndMemberType.brand}';`,
+                                `window.memberType = '${brandAndMemberType.memberType}';`,
+                                `window.glitterBackend = '${config_1.config.domain}';`,
+                                `window.preloadData = ${JSON.stringify(preload)
+                                    .replace(/<\/script>/g, 'sdjuescript_prepand')
+                                    .replace(/<script>/g, 'sdjuescript_prefix')};`,
+                                `window.glitter_page = '${req.query.page}';`,
+                                `window.store_info = ${JSON.stringify(store_info)};`,
+                                `window.server_execute_time = ${(new Date().getTime() - start) / 1000};`,
+                                `window.language = '${language}';`,
+                                `${distribution_code}`,
+                                `window.ip_country = '${(ip_country).country || 'TW'}';`,
+                                `window.currency_covert = ${JSON.stringify(await shopping_js_1.Shopping.currencyCovert((req.query.base || 'TWD')))};`,
+                                `window.language_list = ${JSON.stringify(language_label.label)};`
+                            ].map((dd) => {
+                                return dd.trim();
+                            }).filter((dd) => {
+                                return dd;
+                            }).join(';\n')}
+                            </script>
+                            ${[
+                                { src: 'glitterBundle/GlitterInitial.js', type: 'module' },
+                                { src: 'glitterBundle/module/html-generate.js', type: 'module' },
+                                { src: 'glitterBundle/html-component/widget.js', type: 'module' },
+                                { src: 'glitterBundle/plugins/trigger-event.js', type: 'module' },
+                                { src: 'api/pageConfig.js', type: 'module' },
+                            ]
+                                .map((dd) => {
+                                return html `
+                                            <script src="/${link_prefix && `${link_prefix}/`}${dd.src}"
+                                                    type="${dd.type}"></script>`;
+                            })
+                                .join('')}
+                            ${((_f = preload.event) !== null && _f !== void 0 ? _f : [])
+                                .filter((dd) => {
+                                return dd;
+                            })
+                                .map((dd) => {
+                                const link = dd.fun.replace(`TriggerEvent.setEventRouter(import.meta.url, '.`, 'official_event');
+                                return link.substring(0, link.length - 2);
+                            })
+                                .map((dd) => html `
+                                                <script src="/${link_prefix && `${link_prefix}/`}${dd}"
+                                                        type="module"></script>`)
+                                .join('')}
+                            ${(() => {
                                 if (req.query.type === 'editor') {
                                     return ``;
                                 }
                                 else {
-                                    return `${((_a = data.config.globalStyle) !== null && _a !== void 0 ? _a : [])
-                                        .map((dd) => {
-                                        try {
-                                            if (dd.data.elem === 'link') {
-                                                return html `
-                                                                        <link
-                                                                                type="text/css"
-                                                                                rel="stylesheet"
-                                                                                href="${dd.data.attr.find((dd) => {
-                                                    return dd.attr === 'href';
-                                                }).value}"
-                                                                        />`;
-                                            }
-                                        }
-                                        catch (e) {
-                                            return ``;
-                                        }
-                                    })
-                                        .join('')}`;
-                                }
-                            })()}
-                                    </head>
-                                `;
-                        })()}
-                            <script>
-                                ${(_p = d.custom_script) !== null && _p !== void 0 ? _p : ''};
-                                window.login_config = ${JSON.stringify(login_config)};
-                                window.appName = '${appName}';
-                                window.glitterBase = '${brandAndMemberType.brand}';
-                                window.memberType = '${brandAndMemberType.memberType}';
-                                window.glitterBackend = '${config_1.config.domain}';
-                                window.preloadData = ${JSON.stringify(preload)
-                            .replace(/<\/script>/g, 'sdjuescript_prepand')
-                            .replace(/<script>/g, 'sdjuescript_prefix')};
-                                window.preloadData = JSON.parse(JSON.stringify(window.preloadData).replace(/sdjuescript_prepand/g, '</s' + 'cript>').replace(/sdjuescript_prefix/g, '<s' + 'cript>'))
-                                window.glitter_page = '${req.query.page}';
-                                window.store_info = ${JSON.stringify(store_info)};
-                                window.server_execute_time = ${(new Date().getTime() - start) / 1000};
-                                window.language = '${language}';
-                                ${distribution_code};
-                                window.ip_country = '${(await user_js_1.User.ipInfo((req.query.ip || req.headers['x-real-ip'] || req.ip))).country || 'TW'}';
-                                window.currency_covert = ${JSON.stringify(await shopping_js_1.Shopping.currencyCovert((req.query.base || 'TWD')))};
-                                window.language_list = ${JSON.stringify(language_label.label)};
-                            </script>
-                            ${[
-                            { src: 'glitterBundle/GlitterInitial.js', type: 'module' },
-                            { src: 'glitterBundle/module/html-generate.js', type: 'module' },
-                            { src: 'glitterBundle/html-component/widget.js', type: 'module' },
-                            { src: 'glitterBundle/plugins/trigger-event.js', type: 'module' },
-                            { src: 'api/pageConfig.js', type: 'module' },
-                        ]
-                            .map((dd) => {
-                            return html `
-                                            <script src="/${link_prefix && `${link_prefix}/`}${dd.src}"
-                                                    type="${dd.type}"></script>`;
-                        })
-                            .join('')}
-                            ${((_q = preload.event) !== null && _q !== void 0 ? _q : [])
-                            .filter((dd) => {
-                            return dd;
-                        })
-                            .map((dd) => {
-                            const link = dd.fun.replace(`TriggerEvent.setEventRouter(import.meta.url, '.`, 'official_event');
-                            return link.substring(0, link.length - 2);
-                        })
-                            .map((dd) => {
-                            return html `
-                                            <script src="/${link_prefix && `${link_prefix}/`}${dd}"
-                                                    type="module"></script>`;
-                        })
-                            .join('')}
-                            </head>
-                            ${(() => {
-                            if (req.query.type === 'editor') {
-                                return ``;
-                            }
-                            else {
-                                return html `
-                                        ${(customCode.ga4 || [])
-                                    .map((dd) => {
-                                    return html `<!-- Google tag (gtag.js) -->
-                                                    <script async
-                                                            src="https://www.googletagmanager.com/gtag/js?id=${dd.code}"></script>
-                                                    <script>
-                                                        window.dataLayer = window.dataLayer || [];
-
-                                                        function gtag() {
-                                                            dataLayer.push(arguments);
-                                                        }
-
-                                                        gtag('js', new Date());
-
-                                                        gtag('config', '${dd.code}');
-                                                    </script>`;
-                                })
-                                    .join('')}
-                                        ${(customCode.g_tag || [])
-                                    .map((dd) => {
-                                    return html `<!-- Google tag (gtag.js) -->
-                                                    <!-- Google Tag Manager -->
-                                                    <script>
-                                                        (function (w, d, s, l, i) {
-                                                            w[l] = w[l] || [];
-                                                            w[l].push({
-                                                                'gtm.start': new Date().getTime(),
-                                                                event: 'gtm.js',
-                                                            });
-                                                            var f = d.getElementsByTagName(s)[0],
-                                                                    j = d.createElement(s),
-                                                                    dl = l != 'dataLayer' ? '&l=' + l : '';
-                                                            j.async = true;
-                                                            j.src = 'https://www.googletagmanager.com/gtm.js?id=' + i + dl;
-                                                            f.parentNode.insertBefore(j, f);
-                                                        })(window, document, 'script', 'dataLayer', '${dd.code}');
-                                                    </script>
-                                                    <!-- End Google Tag Manager -->`;
-                                })
-                                    .join('')}
-                                        ${FBCode && FBCode.pixel
-                                    ? html `<!-- Meta Pixel Code -->
-                                                <script>
-                                                    !(function (f, b, e, v, n, t, s) {
-                                                        if (f.fbq) return;
-                                                        n = f.fbq = function () {
-                                                            n.callMethod ? n.callMethod.apply(n, arguments) : n.queue.push(arguments);
-                                                        };
-                                                        if (!f._fbq) f._fbq = n;
-                                                        n.push = n;
-                                                        n.loaded = !0;
-                                                        n.version = '2.0';
-                                                        n.queue = [];
-                                                        t = b.createElement(e);
-                                                        t.async = !0;
-                                                        t.src = v;
-                                                        s = b.getElementsByTagName(e)[0];
-                                                        s.parentNode.insertBefore(t, s);
-                                                    })(window, document, 'script', 'https://connect.facebook.net/en_US/fbevents.js');
-                                                    fbq('init', '${FBCode.pixel}');
-                                                    fbq('track', 'PageView');
-                                                </script>
-                                                <noscript><img height="1" width="1" style="display:none"
-                                                               src="https://www.facebook.com/tr?id=617830100580621&ev=PageView&noscript=1"/>
-                                                </noscript>
-                                                <!-- End Meta Pixel Code -->`
-                                    : ''}
+                                    return html `
+                                        ${seo_config_js_1.SeoConfig.gA4(customCode.ga4)}
+                                        ${seo_config_js_1.SeoConfig.gTag(customCode.g_tag)}
+                                        ${seo_content.map((dd) => {
+                                        return dd.trim();
+                                    }).join('\n')}
                                     `;
-                            }
-                        })()}
-                            `;
+                                }
+                            })()}`,
+                            body: ``
+                        };
                     }
                     else {
-                        console.log(`brandAndMemberType==>redirect`);
-                        return await seo_js_1.Seo.redirectToHomePage(appName, req);
+                        return {
+                            head: await seo_js_1.Seo.redirectToHomePage(appName, req),
+                            body: ``
+                        };
                     }
                 }
                 catch (e) {
                     console.error(e);
-                    return `${e}`;
+                    return {
+                        head: ``,
+                        body: `${e}`
+                    };
                 }
             },
             sitemap: async (req, resp) => {
@@ -670,10 +451,29 @@ async function createAPP(dd) {
                 const cols = (_a = (await database_2.default.query(`SELECT *
                                  FROM \`${appName}\`.public_config
                                  WHERE \`key\` = 'collection';`, []))[0]) !== null && _a !== void 0 ? _a : {};
-                const products = await database_2.default.query(`SELECT *
-                         FROM \`${appName}\`.t_manager_post
-                         WHERE JSON_EXTRACT(content, '$.type') = 'product';
-                        `, []);
+                const language_setting = (await new user_js_1.User(appName).getConfigV2({
+                    key: 'store-information',
+                    user_id: 'manager',
+                })).language_setting;
+                const product = (await new shopping_js_1.Shopping(appName).getProduct({
+                    page: 0,
+                    limit: 100000,
+                    collection: '',
+                    accurate_search_text: false,
+                    accurate_search_collection: true,
+                    min_price: undefined,
+                    max_price: undefined,
+                    status: undefined,
+                    channel: undefined,
+                    id_list: undefined,
+                    order_by: 'order by id desc',
+                    with_hide_index: undefined,
+                    is_manger: true,
+                    productType: 'product',
+                    filter_visible: 'true',
+                    language: 'zh-TW',
+                    currency_code: 'TWD'
+                })).data;
                 const stream = new sitemap_1.SitemapStream({ hostname: `https://${domain}` });
                 const xml = await (0, sitemap_1.streamToPromise)(stream_1.Readable.from([
                     ...(await database_2.default.query(`select page_config, tag, updated_time
@@ -697,20 +497,57 @@ async function createAPP(dd) {
                         .map((d2) => {
                         return { url: `https://${domain}/${d2.url}`, changefreq: 'weekly' };
                     }),
-                    ...extractCols(cols)
-                        .filter((item) => {
-                        return item.code;
-                    })
-                        .map((item) => {
-                        return { url: `https://${domain}/collections/${item.code}`, changefreq: 'weekly' };
-                    }),
-                    ...extractProds(products)
-                        .filter((item) => {
-                        return item.code;
-                    })
-                        .map((item) => {
-                        return { url: `https://${domain}/products/${item.code}`, changefreq: 'weekly' };
-                    })
+                    ...(() => {
+                        let array = [];
+                        (0, seo_config_js_1.extractCols)(cols)
+                            .map((item) => {
+                            array = array.concat((language_setting.support).map((d1) => {
+                                const seo = (item.language_data && item.language_data[d1] && item.language_data[d1].seo && item.language_data[d1].seo.domain) || item.code || item.title;
+                                if (d1 === language_setting.def) {
+                                    return { url: `https://${domain}/collections/${seo}`, changefreq: 'weekly' };
+                                }
+                                else if (d1 === 'zh-TW') {
+                                    return { url: `https://${domain}/tw/collections/${seo}`, changefreq: 'weekly' };
+                                }
+                                else if (d1 === 'zh-CN') {
+                                    return { url: `https://${domain}/cn/collections/${seo}`, changefreq: 'weekly' };
+                                }
+                                else if (d1 === 'en-US') {
+                                    return { url: `https://${domain}/en/collections/${seo}`, changefreq: 'weekly' };
+                                }
+                                else {
+                                    return { url: `https://${domain}/${d1}/collections/${seo}`, changefreq: 'weekly' };
+                                }
+                            }));
+                        });
+                        console.log(array);
+                        return array;
+                    })(),
+                    ...(() => {
+                        let array = [];
+                        product.map((dd) => {
+                            dd = dd.content;
+                            array = array.concat((language_setting.support).map((d1) => {
+                                const seo = (dd.language_data && dd.language_data[d1] && dd.language_data[d1].seo && dd.language_data[d1].seo.domain) || dd.seo.domain;
+                                if (d1 === language_setting.def) {
+                                    return { url: `https://${domain}/products/${seo}`, changefreq: 'weekly' };
+                                }
+                                else if (d1 === 'zh-TW') {
+                                    return { url: `https://${domain}/tw/products/${seo}`, changefreq: 'weekly' };
+                                }
+                                else if (d1 === 'zh-CN') {
+                                    return { url: `https://${domain}/cn/products/${seo}`, changefreq: 'weekly' };
+                                }
+                                else if (d1 === 'en-US') {
+                                    return { url: `https://${domain}/en/products/${seo}`, changefreq: 'weekly' };
+                                }
+                                else {
+                                    return { url: `https://${domain}/${d1}/products/${seo}`, changefreq: 'weekly' };
+                                }
+                            }));
+                        });
+                        return array;
+                    })()
                 ]).pipe(stream)).then((data) => data.toString());
                 return xml;
             },
@@ -799,7 +636,6 @@ async function createAPP(dd) {
         };
     }));
 }
-exports.createAPP = createAPP;
 async function getSeoDetail(appName, req) {
     const sqlData = await private_config_js_1.Private_config.getConfig({
         appName: appName,

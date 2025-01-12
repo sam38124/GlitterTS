@@ -16,6 +16,7 @@ import {DeliveryHTML} from './module/delivery-html.js';
 import {ApiPageConfig} from '../api/pageConfig.js';
 import {Language} from "../glitter-base/global/language.js";
 import {OrderSetting} from "./module/order-setting.js";
+import {CountryTw} from "../modules/country-language/country-tw.js";
 
 interface VoucherData {
     id: number;
@@ -127,7 +128,7 @@ interface OrderData {
             phone: string;
             address: string;
             custom_form_delivery?: any;
-            shipment: 'normal' | 'FAMIC2C' | 'UNIMARTC2C' | 'HILIFEC2C' | 'OKMARTC2C' | 'now' | 'shop';
+            shipment: 'normal' | 'FAMIC2C' | 'UNIMARTC2C' | 'HILIFEC2C' | 'OKMARTC2C' | 'now' | 'shop' | 'global_express';
             CVSStoreName: string;
             CVSStoreID: string;
             CVSTelephone: string;
@@ -1008,8 +1009,8 @@ export class ShoppingOrderManager {
         let invoiceLoading = true;
         let storeList: any = []
         let storeLoading = true;
-         let productData:any=[]
-        let productLoading=true
+        let productData: any = []
+        let productLoading = true
         ApiShop.getInvoice({
             page: 0,
             limit: 1000,
@@ -1023,7 +1024,7 @@ export class ShoppingOrderManager {
         ApiShop.getProduct({
             limit: 99,
             page: 0,
-            productType:"all",
+            productType: "all",
             id_list: orderData.orderData.lineItems.map((dd: any) => {
                 return dd.id;
             }) as any
@@ -1116,11 +1117,14 @@ export class ShoppingOrderManager {
                                                                         return gvc.bindView({
                                                                             bind: glitter.getUUID(),
                                                                             view: () => {
-                                                                                function showTag(color:string,text:string){
+                                                                                function showTag(color: string, text: string) {
                                                                                     return html`
-                                                                                    <div style="background:${color};display: flex;height: 22px;padding: 4px 6px;justify-content: center;align-items: center;gap: 10px;border-radius: 7px;font-size: 14px;font-style: normal;font-weight: 400;">${text}</div>
+                                                                                        <div style="background:${color};display: flex;height: 22px;padding: 4px 6px;justify-content: center;align-items: center;gap: 10px;border-radius: 7px;font-size: 14px;font-style: normal;font-weight: 400;">
+                                                                                            ${text}
+                                                                                        </div>
                                                                                     `
                                                                                 }
+
                                                                                 return html`
                                                                                     <div class="d-flex flex-column align-items-center justify-content-center"
                                                                                          style="gap:5px;margin-right:12px;">
@@ -1131,16 +1135,17 @@ export class ShoppingOrderManager {
                                                                                             class: 'border rounded',
                                                                                             style: '',
                                                                                         })}
-                                                                                        
-                                                                                        
+
+
                                                                                     </div>
                                                                                     <div class="d-flex flex-column"
                                                                                          style="">
                                                                                         ${dd.is_hidden ? `<div style="width:auto;">${BgWidget.secondaryInsignia('隱形商品')}</div>` : ``}
-                                                                                        <div class="tx_700 d-flex align-items-center" style="gap:4px;">
+                                                                                        <div class="tx_700 d-flex align-items-center"
+                                                                                             style="gap:4px;">
                                                                                             <div>${dd.title}</div>
-                                                                                            ${dd.is_gift ? `<div class="">${showTag("#FFE9B2","贈品")}</div>` : ``}
-                                                                                            ${dd.is_add_on_items ? `<div class="">${showTag("#D8E7EC","加購品")}</div>` : ``}
+                                                                                            ${dd.is_gift ? `<div class="">${showTag("#FFE9B2", "贈品")}</div>` : ``}
+                                                                                            ${dd.is_add_on_items ? `<div class="">${showTag("#D8E7EC", "加購品")}</div>` : ``}
                                                                                         </div>
                                                                                         ${dd.spec.length > 0 ? BgWidget.grayNote(dd.spec.join(', ')) : ''}
                                                                                         ${BgWidget.grayNote(`存貨單位 (SKU)：${dd.sku && dd.sku.length > 0 ? dd.sku : '無'}`)}
@@ -1158,7 +1163,8 @@ export class ShoppingOrderManager {
                                                                             divCreate: {class: `d-flex align-items-center`},
                                                                         });
                                                                     })
-                                                                    .join(html`<div style="margin-top: 12px;"></div>`)}
+                                                                    .join(html`
+                                                                        <div style="margin-top: 12px;"></div>`)}
                                                             ${BgWidget.horizontalLine()}
                                                             ${[
                                                                 {
@@ -1207,6 +1213,7 @@ export class ShoppingOrderManager {
                                                                     }
                                                                 })(),
                                                                 ...orderData.orderData.voucherList.map((dd: any) => {
+                                                                    console.log(dd);
                                                                     if (dd.reBackType === 'add_on_items') {
                                                                         return {
                                                                             title: '加購優惠',
@@ -1224,7 +1231,7 @@ export class ShoppingOrderManager {
                                                                     return {
                                                                         title: '折扣',
                                                                         description: `<div style="color: #8D8D8D;font-size: 14px;white-space:nowrap;text-overflow:ellipsis;">${dd.title}</div>`,
-                                                                        total: `- $${orderData.orderData.discount.toLocaleString()}`,
+                                                                        total: `- $${dd.discount_total.toLocaleString()}`,
                                                                     };
                                                                 }),
                                                                 {
@@ -1256,16 +1263,17 @@ export class ShoppingOrderManager {
                                                     <div class="w-100 d-flex tx_700 align-items-center justify-content-between">
                                                         <div class="">分倉出貨</div>
                                                         <div class=""
-                                                             style="display: flex;padding: 6px 18px;justify-content: center;align-items: center;gap: 8px;border-radius: 10px;border: 1px solid #DDD;background: #FFF;cursor: pointer;" onclick="${gvc.event(()=>{
+                                                             style="display: flex;padding: 6px 18px;justify-content: center;align-items: center;gap: 8px;border-radius: 10px;border: 1px solid #DDD;background: #FFF;cursor: pointer;"
+                                                             onclick="${gvc.event(() => {
                                                                  OrderSetting.showEditShip({
                                                                      gvc: gvc,
-                                                                     postMD:orderData.orderData.lineItems,
-                                                                     productData:productData,
-                                                                     callback:()=>{
+                                                                     postMD: orderData.orderData.lineItems,
+                                                                     productData: productData,
+                                                                     callback: () => {
                                                                          gvc.notifyDataChange('storehouseList')
                                                                      }
                                                                  })
-                                                        })}">
+                                                             })}">
                                                             編輯
                                                         </div>
                                                     </div>
@@ -1294,7 +1302,9 @@ export class ShoppingOrderManager {
                                                                             returnHtml += html`
                                                                                 <div class="d-flex justify-content-between"
                                                                                      style="font-size: 16px;font-weight: 400;">
-                                                                                    <div>${item.title} - ${item.spec.join(',')}</div>
+                                                                                    <div>${item.title} -
+                                                                                        ${item.spec.join(',')}
+                                                                                    </div>
                                                                                     <div>${item.deduction_log[store.id]}
                                                                                     </div>
                                                                                 </div>
@@ -1305,13 +1315,15 @@ export class ShoppingOrderManager {
                                                                         return html`
                                                                             <div class="d-flex flex-column w-100"
                                                                                  style="gap:8px;padding: 18px;border-radius: 10px;border: 1px solid #DDD;">
-                                                                                <div class="d-flex w-100 align-items-center" style="gap:8px;">
+                                                                                <div class="d-flex w-100 align-items-center"
+                                                                                     style="gap:8px;">
                                                                                     出貨地點
                                                                                     <div style="font-size: 14px;color:#333;border-radius: 7px;background: rgba(221, 221, 221, 0.87);padding: 4px 6px;">
                                                                                         ${store.name}
                                                                                     </div>
                                                                                 </div>
-                                                                                <div class="w-100" style="background-color: #DDD;height: 1px;"></div>
+                                                                                <div class="w-100"
+                                                                                     style="background-color: #DDD;height: 1px;"></div>
                                                                                 <div class="d-flex flex-column">
                                                                                     ${returnHtml}
                                                                                 </div>
@@ -1325,7 +1337,11 @@ export class ShoppingOrderManager {
                                                             }
 
 
-                                                        }, divCreate: {class:`w-100 d-flex flex-column` , style:`gap:18px;`}
+                                                        },
+                                                        divCreate: {
+                                                            class: `w-100 d-flex flex-column`,
+                                                            style: `gap:18px;`
+                                                        }
                                                     })}
                                                 </div>
                                             `),
@@ -1477,8 +1493,14 @@ export class ShoppingOrderManager {
                                                                     <div class="d-flex flex-column tx_normal"
                                                                          style="gap: 4px;">
                                                                         ${(() => {
-                                                                            if (orderData.orderData.user_info.shipment == 'normal') {
-                                                                                return orderData.orderData.user_info.address;
+                                                                            if (['normal', 'black_cat', 'global_express'].includes(orderData.orderData.user_info.shipment)) {
+                                                                                let map: any = []
+                                                                                map.push(`國家 : ${CountryTw.find((dd)=>{return dd.countryCode===(orderData.orderData.user_info as any).country})?.countryName}`)
+                                                                                map.push(`城市 : ${(orderData.orderData.user_info as any).city}`)
+                                                                                map.push(`州/省 : ${(orderData.orderData.user_info as any).state}`)
+                                                                                map.push(`郵遞區號 : ${(orderData.orderData.user_info as any).postal_code}`)
+                                                                                map.push(`地址 : ${orderData.orderData.user_info.address}`)
+                                                                                return map.join('<div class="w-100 border-top my-1"></div>');
                                                                             }
                                                                             const formData: any = (orderData.orderData.shipment_selector || ShoppingOrderManager.supportShipmentMethod()).find((dd) => {
                                                                                 return dd.value === orderData.orderData.user_info.shipment;
@@ -1910,6 +1932,7 @@ export class ShoppingOrderManager {
                                                                                                                 ${orderData.orderData.user_info.CVSAddress}
                                                                                                             </div>`,
                                                                                                     ].join('');
+                                                                                                case 'global_express':
                                                                                                 case 'normal':
                                                                                                     return [
                                                                                                         html`
@@ -2184,7 +2207,6 @@ export class ShoppingOrderManager {
                                 ${BgWidget.save(
                                         gvc.event(() => {
                                             //如果有編輯紀錄的話 檢查裡頭是不是有訂單已取消的事件在做倉儲的回填
-                                           
 
 
                                             // if (orderData.orderData.progress == "shipping" && (origData.orderData.progress == "wait" || !origData.orderData.progress)) {

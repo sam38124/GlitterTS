@@ -589,11 +589,19 @@ export class FilterOptions {
     static stockHistoryFilterFrame = {};
 
     static stockHistorySelect = [
-        { key: 'order_id', value: '進貨單編號' },
+        { key: 'order_id', value: 'xxx單編號' },
         { key: 'note', value: '備註' },
     ];
 
     static stockHistoryFunnel = [];
 
     static stockHistoryOrderBy = [];
+
+    static stockHistoryCheckFilterFrame = {};
+
+    static stockHistoryCheckSelect = [{ key: 'title', value: '商品名稱' }];
+
+    static stockHistoryCheckFunnel = [];
+
+    static stockHistoryCheckOrderBy = [];
 }

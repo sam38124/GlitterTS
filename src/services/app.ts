@@ -787,7 +787,7 @@ export class App {
                 )
             )[0]['count(1)'] === 0
         ) {
-            // const result = await this.addDNSRecord(domain_name);
+            const result = await this.addDNSRecord(domain_name);
             await this.setSubDomain({
                 original_domain: (
                     await db.query(
@@ -857,48 +857,48 @@ export class App {
             throw exception.BadRequestError('BAD_REQUEST', 'this domain already on use.', null);
         }
         try {
-            const data = await Ssh.readFile(`/etc/nginx/sites-enabled/default.conf`);
-            let result: string = await new Promise((resolve, reject) => {
-                NginxConfFile.createFromSource(data as string, (err, conf) => {
-                    const server: any = [];
-                    for (const b of conf!.nginx.server as any) {
-                        if (!b.server_name.toString().includes(`server_name ${config.domain};`) && !b.server_name.toString().includes(`server_name ${config.original_domain};`)) {
-                            server.push(b);
-                        }
-                    }
-                    conf!.nginx.server = server;
-                    resolve(conf!.toString());
-                });
-            });
-            result += `\n\nserver {
-    server_name ${config.domain};
-    location / {
-       proxy_pass http://127.0.0.1:3080/${config.appName}/;
-       proxy_set_header X-Real-IP $remote_addr;
-       proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-       proxy_set_header X-Forwarded-Proto $http_x_forwarded_proto;
-    }
-    listen 443 ssl;
-    ssl_certificate ${process.env.ssl_certificate};
-    ssl_certificate_key ${process.env.ssl_certificate_key};
-}
-server {
-    if ($host = ${config.domain}) {
-        return 301 https://$host$request_uri;
-    }
-    server_name ${config.domain};
-    listen 80;
-    return 404;
-}
-`;
-            fs.writeFileSync('/nginx.config', result);
-            const response = await new Promise((resolve, reject) => {
-                Ssh.exec([`sudo docker cp $(sudo docker ps --filter "expose=3080" --format "{{.ID}}"):/nginx.config /etc/nginx/sites-enabled/default.conf`, `sudo nginx -s reload`]).then(
-                    (res: any) => {
-                        resolve(res && res.join('').indexOf('Successfully') !== -1);
-                    }
-                );
-            });
+//             const data = await Ssh.readFile(`/etc/nginx/sites-enabled/default.conf`);
+//             let result: string = await new Promise((resolve, reject) => {
+//                 NginxConfFile.createFromSource(data as string, (err, conf) => {
+//                     const server: any = [];
+//                     for (const b of conf!.nginx.server as any) {
+//                         if (!b.server_name.toString().includes(`server_name ${config.domain};`) && !b.server_name.toString().includes(`server_name ${config.original_domain};`)) {
+//                             server.push(b);
+//                         }
+//                     }
+//                     conf!.nginx.server = server;
+//                     resolve(conf!.toString());
+//                 });
+//             });
+//             result += `\n\nserver {
+//     server_name ${config.domain};
+//     location / {
+//        proxy_pass http://127.0.0.1:3080/${config.appName}/;
+//        proxy_set_header X-Real-IP $remote_addr;
+//        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+//        proxy_set_header X-Forwarded-Proto $http_x_forwarded_proto;
+//     }
+//     listen 443 ssl;
+//     ssl_certificate ${process.env.ssl_certificate};
+//     ssl_certificate_key ${process.env.ssl_certificate_key};
+// }
+// server {
+//     if ($host = ${config.domain}) {
+//         return 301 https://$host$request_uri;
+//     }
+//     server_name ${config.domain};
+//     listen 80;
+//     return 404;
+// }
+// `;
+//             fs.writeFileSync('/nginx.config', result);
+//             const response = await new Promise((resolve, reject) => {
+//                 Ssh.exec([`sudo docker cp $(sudo docker ps --filter "expose=3080" --format "{{.ID}}"):/nginx.config /etc/nginx/sites-enabled/default.conf`, `sudo nginx -s reload`]).then(
+//                     (res: any) => {
+//                         resolve(res && res.join('').indexOf('Successfully') !== -1);
+//                     }
+//                 );
+//             });
             await db.execute(
                 `
                     update \`${saasConfig.SAAS_NAME}\`.app_config
@@ -965,7 +965,8 @@ server {
                     `sudo certbot --nginx -d ${config.domain} --non-interactive --agree-tos -m sam38124@gmail.com`,
                     `sudo nginx -s reload`,
                 ]).then((res: any) => {
-                    resolve(res && res.join('').indexOf('Successfully') !== -1);
+                    console.log(`response-ssh->`,res && res.join(''))
+                    resolve(res && res.join('').toLowerCase().includes('successfully'));
                 });
             });
             if (!response) {

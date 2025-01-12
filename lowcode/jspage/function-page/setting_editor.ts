@@ -74,16 +74,6 @@ export class Setting_editor {
             },
             {
                 icon: '',
-                page: 'logistics_setting',
-                group: '商店設定',
-                title: '運費設定',
-                appName: 'cms_system',
-                groupIcon: 'https://d3jnmi1tfjgtti.cloudfront.net/file/252530754/1716566571091-Property 1=gear-regular.svg',
-                moduleName: '運費設定',
-                guideClass: 'guide4-2',
-            },
-            {
-                icon: '',
                 page: 'rebate_setting',
                 group: '商店設定',
                 title: '購物金設定',
@@ -190,14 +180,22 @@ export class Setting_editor {
                 appName: 'cms_system',
                 groupIcon: 'https://d3jnmi1tfjgtti.cloudfront.net/file/234285319/1716652645450-boxes-stacked-regular (1).svg',
             },
-            // {
-            //     icon: '',
-            //     page: 'stock_transfer',
-            //     group: '庫存管理',
-            //     title: '調撥單列表',
-            //     appName: 'cms_system',
-            //     groupIcon: 'https://d3jnmi1tfjgtti.cloudfront.net/file/234285319/1716652645450-boxes-stacked-regular (1).svg',
-            // },
+            {
+                icon: '',
+                page: 'stock_transfer',
+                group: '庫存管理',
+                title: '調撥單列表',
+                appName: 'cms_system',
+                groupIcon: 'https://d3jnmi1tfjgtti.cloudfront.net/file/234285319/1716652645450-boxes-stacked-regular (1).svg',
+            },
+            {
+                icon: '',
+                page: 'stock_checking',
+                group: '庫存管理',
+                title: '盤點單列表',
+                appName: 'cms_system',
+                groupIcon: 'https://d3jnmi1tfjgtti.cloudfront.net/file/234285319/1716652645450-boxes-stacked-regular (1).svg',
+            },
             {
                 icon: '',
                 page: 'stock_stores',
@@ -779,7 +777,7 @@ export class Setting_editor {
             });
 
             ApiPageConfig.getPrivateConfigV2('backend_list').then((res) => {
-                if (res.response.result[0]) {
+                if (res.response.result && res.response.result[0]) {
                     items = res.response.result[0].value;
                 }
                 items = items.filter((dd: any) => dd);
@@ -891,24 +889,6 @@ export class Setting_editor {
                                             url.searchParams.set('cms', 'true');
                                             url.searchParams.set('page', page);
                                             gvc.notifyDataChange('top-notice');
-                                            // ((window as any).glitterInitialHelper).getPageData({
-                                            //     tag: page,
-                                            //     appName: items[parseInt(index)].appName
-                                            // }, (d2: any) => {
-                                            //     $('#editerCenter').html(html`
-                                            //     <div
-                                            //             style="border: none;">${
-                                            //             new glitter.htmlGenerate(d2.response.result[0].config, [], {}, true).render(gvc, {
-                                            //                 class: ``,
-                                            //                 style: ``,
-                                            //                 app_config: gBundle.app_config,
-                                            //                 page_config: gBundle.page_config,
-                                            //                 is_page:true
-                                            //             })
-                                            //     }</div>`);
-                                            //     // resolve(d2.response.result[0])
-                                            // })
-
                                             $('#editerCenter').html(html` <iframe src="${url.href}" style="border: none;height: calc(100%);"></iframe>`);
                                         }
                                         return true;
@@ -965,6 +945,7 @@ export class Setting_editor {
                                                     click_item(index);
                                                 }
                                             }
+
                                             container.push({
                                                 title: dd.title,
                                                 index: index,
@@ -1011,17 +992,19 @@ export class Setting_editor {
                                                             }
 
                                                             return html`
-                                                                ${dd.title === '品牌官網' ? `<div class="my-4 border-top"></div>` : ``}
+                                                                ${dd.title === '品牌官網' ? html`<div class="my-4 border-top"></div>` : ``}
                                                                 <li>
                                                                     <div
-                                                                        class="w-100 fw-500 d-flex align-items-center fs-6 hoverBtn h_item rounded px-2 tx_700 
-                                                                                ${dd?.info?.guideClass ?? ''} ${dd.type === 'container' ? ` mainRow${index}` : ''}"
-                                                                        style="gap:7px;color:#393939;${dd.toggle ? `border-radius: 5px;background: #F2F2F2;` : ``}"
+                                                                        class="w-100 fw-500 d-flex align-items-center fs-6 hoverBtn h_item rounded px-2 tx_700 ${dd?.info?.guideClass ??
+                                                                        ''} ${dd.type === 'container' ? `mainRow${index}` : ''}"
+                                                                        style="gap:7px; color:#393939; ${dd.toggle ? `border-radius: 5px; background: #F2F2F2;` : ``}"
                                                                         onclick="${gvc.event(async () => {
                                                                             gvc.glitter.setUrlParameter('page-id');
                                                                             if (dd.type === 'container') {
-                                                                                list.map((d1: any) => {
-                                                                                    d1.toggle = false;
+                                                                                list.forEach((item: any, index2: number) => {
+                                                                                    if (index !== index2) {
+                                                                                        item.toggle = false;
+                                                                                    }
                                                                                 });
                                                                                 dd.toggle = !dd.toggle;
                                                                                 gvc.notifyDataChange(id);
@@ -1032,7 +1015,6 @@ export class Setting_editor {
                                                                                     glitter.share.switch_to_web_builder('index-mobile', 'mobile');
                                                                                     return;
                                                                                 }
-                                                                                // app-design
                                                                                 if ((await click_item(dd.index)) && ['page_layout', 'dev_mode'].indexOf(items[parseInt(dd.index)].page) === -1) {
                                                                                     dd.toggle = true;
                                                                                     refreshContainer();
@@ -1048,7 +1030,7 @@ export class Setting_editor {
                                                                             ? !dd.toggle
                                                                                 ? html` <i class="fa-regular fa-angle-right hoverBtn me-1" aria-hidden="true"></i> `
                                                                                 : html` <i class="fa-regular fa-angle-down hoverBtn me-1" aria-hidden="true"></i>`
-                                                                            : html` ${dd.info && dd.info.icon ? `<img src="${dd.info.icon}" style="width:18px;height:18px;">` : ``} `}
+                                                                            : html` ${dd.info && dd.info.icon ? html`<img src="${dd.info.icon}" style="width:18px;height:18px;" />` : ``} `}
                                                                     </div>
                                                                     ${dd.type === 'container' ? html` <div class="ps-4 pt-2 pb-2 ${dd.toggle ? `` : `d-none`}">${renderItem(dd.child)}</div>` : ``}
                                                                 </li>
@@ -1100,10 +1082,7 @@ export class Setting_editor {
         });
     }
 
-    public static center(gvc: GVC, viewModel: any, createID: string) {}
-
     public static addPlugin(gvc: GVC, callback: () => void) {
-        const saasConfig: { config: any; api: any } = (window as any).saasConfig;
         const html = String.raw;
         const dialog = new ShareDialog(gvc.glitter);
         let items: any = [];

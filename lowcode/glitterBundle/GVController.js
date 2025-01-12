@@ -468,6 +468,7 @@ export function init(metaURL, fun) {
 background: ${cf.pageConfig.backGroundColor};z-index: 9999;overflow: hidden;display:none;" class="page-box">
 ${lifeCycle.onCreateView()}
 </div>`);
+            document.querySelector('html').scrollTop = 1;
         }
         else {
             $('#glitterPage').append(`<div id="page${cf.pageConfig.id}" style="min-width: 100vw;min-height: 100vh;left: 0;top: 0;

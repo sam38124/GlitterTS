@@ -16,6 +16,7 @@ type ContentProduct = {
     title?: string;
     spec?: string;
     sku?: '';
+    barcode?: '';
 };
 type StockHistoryData = {
     id: string;
@@ -26,19 +27,18 @@ type StockHistoryData = {
     content: {
         vendor: string;
         store_in: string;
-        store_in_name?: string;
         store_out: string;
-        store_out_name?: string;
         check_member: string;
-        check_according: 'all' | 'collection' | 'product';
+        check_according: '' | 'all' | 'collection' | 'product';
         note: string;
         total_price?: number;
         product_list: ContentProduct[];
         changeLogs: {
             time: string;
             text: string;
-            user: string;
+            user: number;
             status: number;
+            user_name?: string;
             product_list?: ContentProduct[];
         }[];
     };
@@ -51,6 +51,7 @@ export declare class Stock {
         page: string;
         limit: string;
         search: string;
+        variant_id_list?: string;
     }): Promise<{
         total: any;
         data: any;
@@ -75,16 +76,27 @@ export declare class Stock {
         search: string;
         type: StockHistoryType;
         order_id: string;
+        queryType: string;
     }): Promise<{
         total: any;
         data: any;
     } | undefined>;
     postHistory(json: StockHistoryData): Promise<{
-        data: boolean;
+        data: any;
     } | undefined>;
     putHistory(json: StockHistoryData): Promise<{
         data: boolean;
     } | undefined>;
+    static formatStockContent(data: {
+        type: 'plus' | 'minus' | 'equal';
+        store: string;
+        count: number;
+        product_content: any;
+        variant_content: any;
+    }): {
+        product_content: any;
+        variant_content: any;
+    };
     deleteHistory(json: StockHistoryData): Promise<{
         data: boolean;
     } | undefined>;

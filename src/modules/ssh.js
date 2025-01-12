@@ -36,7 +36,7 @@ class Ssh {
         const sshConfig = {
             host: ip || process.env.sshIP,
             port: 22,
-            username: 'ubuntu',
+            username: process.env.ssh_user,
             privateKey: fs_1.default.readFileSync(process.env.ssh),
         };
         return new Promise(async (resolve, reject) => {
@@ -81,7 +81,7 @@ class Ssh {
         const sshConfig = {
             host: ip || process.env.sshIP,
             port: 22,
-            username: 'ubuntu',
+            username: process.env.ssh_user,
             privateKey: fs_1.default.readFileSync(process.env.ssh),
         };
         console.log(`privateKey--`, sshConfig);

@@ -197,6 +197,44 @@ export class ApiShop {
             data: JSON.stringify(cf.data),
         });
     }
+    static getCollectionProducts(cf) {
+        const q = (() => {
+            if (cf.tagString) {
+                return `tag=${cf.tagString}`;
+            }
+            else {
+                return '';
+            }
+        })();
+        return BaseApi.create({
+            url: getBaseUrl() + `/api-public/v1/ec/collection/products?${q}`,
+            type: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+                'g-app': getConfig().config.appName,
+                Authorization: cf.token || getConfig().config.token,
+            },
+        });
+    }
+    static getCollectionProductVariants(cf) {
+        const q = (() => {
+            if (cf.tagString) {
+                return `tag=${cf.tagString}`;
+            }
+            else {
+                return '';
+            }
+        })();
+        return BaseApi.create({
+            url: getBaseUrl() + `/api-public/v1/ec/collection/product/variants?${q}`,
+            type: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+                'g-app': getConfig().config.appName,
+                Authorization: cf.token || getConfig().config.token,
+            },
+        });
+    }
     static deleteCollections(cf) {
         return BaseApi.create({
             url: getBaseUrl() + `/api-public/v1/ec/collection`,

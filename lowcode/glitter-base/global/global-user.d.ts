@@ -11,4 +11,9 @@ export declare class GlobalUser {
     static set language(value: any);
     static userInfo: any;
     static updateUserData: any;
+    static parseJWT(token: any): {
+        header: any;
+        payload: any;
+        signature: any;
+    };
 }

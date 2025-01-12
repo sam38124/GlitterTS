@@ -393,6 +393,7 @@ export class CheckoutIndex {
                         if (res.line_items) {
                             res.user_info = {
                                 shipment: localStorage.getItem('shipment-select'),
+                                country: localStorage.getItem('country-select'),
                             };
                             const cart = res;
                             ApiShop.getCheckout(cart).then((res) => {
@@ -430,6 +431,7 @@ export class CheckoutIndex {
                                 distribution_code: distributionCode,
                                 user_info: {
                                     shipment: localStorage.getItem('shipment-select'),
+                                    country: localStorage.getItem('country-select'),
                                 },
                             }).then((res) => {
                                 if (res.result) {
@@ -793,7 +795,7 @@ export class CheckoutIndex {
                                                         <div class="${gClass('price-container')}">
                                                             <div class="${gClass(['price-row', 'text-2'])}">
                                                                 <div>${Language.text('total_products')}</div>
-                                                                <div>${Currency.convertCurrencyText(vm.cartData.total - vm.cartData.shipment_fee)}</div>
+                                                                <div>${Currency.convertCurrencyText(vm.cartData.total - vm.cartData.shipment_fee + vm.cartData.discount)}</div>
                                                             </div>
                                                             <div class="${gClass(['price-row', 'text-2'])}">
                                                                 <div>${Language.text('shipping_fee')}</div>
@@ -1572,6 +1574,110 @@ export class CheckoutIndex {
                                                   </button>
                                               </div>`
                             : ''}
+                                        ${['global_express'].includes(vm.cartData.user_info.shipment)
+                            ? [
+                                `<label class="${gClass('label')}">${Language.text('country')}</label>
+     ${gvc.bindView(() => {
+                                    const id = gvc.glitter.getUUID();
+                                    return {
+                                        bind: id,
+                                        view: () => __awaiter(this, void 0, void 0, function* () {
+                                            let country_select = [];
+                                            const support_country = (yield ApiUser.getPublicConfig('global_express_country', 'manager')).response.value.country;
+                                            yield new Promise((resolve, reject) => {
+                                                glitter.getModule((() => {
+                                                    switch (Language.getLanguage()) {
+                                                        case 'en-US':
+                                                            return `${gvc.glitter.root_path}/modules/country-language/country-en.js`;
+                                                        case 'zh-CN':
+                                                            return `${gvc.glitter.root_path}/modules/country-language/country-zh.js`;
+                                                        default:
+                                                            return `${gvc.glitter.root_path}/modules/country-language/country-tw.js`;
+                                                    }
+                                                })(), (response) => {
+                                                    country_select = response.filter((dd) => {
+                                                        return support_country.includes(dd.countryCode);
+                                                    });
+                                                    resolve(true);
+                                                });
+                                            });
+                                            return `<select
+                                                    class="w-100 ${gClass('select')}"
+                                                    onchange="${gvc.event((e, event) => {
+                                                vm.cartData.user_info.country = e.value;
+                                                this.storeLocalData(vm.cartData);
+                                                refreshCartData();
+                                            })}"
+                                                >
+                                                    ${(() => {
+                                                let map = country_select.map((dd) => {
+                                                    return html `
+                                                                <option value="${dd.countryCode}" ${vm.cartData.user_info.country === dd.countryCode ? `selected` : ``}>${dd.countryName}</option>
+                                                            `;
+                                                });
+                                                if (!country_select.find((dd) => {
+                                                    return dd.countryCode === vm.cartData.user_info.country;
+                                                })) {
+                                                    delete vm.cartData.user_info.country;
+                                                    map.push(`<option class="d-none" selected>${Language.text('select_country')}</option>`);
+                                                }
+                                                return map.join('');
+                                            })()}
+                                                </select>`;
+                                        }),
+                                        divCreate: {},
+                                    };
+                                })}`,
+                                ` <label class="${gClass('label')}">${Language.text('shipping_address')}</label>
+                                                            <input
+                                                                    class="${gClass('input')}"
+                                                                    type="address"
+                                                                    placeholder="${Language.text('please_enter_delivery_address')}"
+                                                                    value="${vm.cartData.user_info.address || ''}"
+                                                                    onchange="${gvc.event((e) => {
+                                    vm.cartData.user_info.address = e.value;
+                                    this.storeLocalData(vm.cartData);
+                                })}"
+                                                            />`,
+                                ` <label class="${gClass('label')}">${Language.text('city')}</label>
+                                                            <input
+                                                                    class="${gClass('input')}"
+                                                                    type="city"
+                                                                    placeholder="${Language.text('city')}"
+                                                                    value="${vm.cartData.user_info.city || ''}"
+                                                                    onchange="${gvc.event((e) => {
+                                    vm.cartData.user_info.city = e.value;
+                                    this.storeLocalData(vm.cartData);
+                                })}"
+                                                            />`,
+                                ` <label class="${gClass('label')}">${Language.text('state')}</label>
+                                                            <input
+                                                                    class="${gClass('input')}"
+                                                                    type="state"
+                                                                    placeholder="${Language.text('state')}"
+                                                                    value="${vm.cartData.user_info.state || ''}"
+                                                                    onchange="${gvc.event((e) => {
+                                    vm.cartData.user_info.state = e.value;
+                                    this.storeLocalData(vm.cartData);
+                                })}"
+                                                            />`,
+                                ` <label class="${gClass('label')}">${Language.text('postal_code')}</label>
+                                                            <input
+                                                                    class="${gClass('input')}"
+                                                                    type=""
+                                                                    placeholder="${Language.text('postal_code')}"
+                                                                    value="${vm.cartData.user_info.postal_code || ''}"
+                                                                    onchange="${gvc.event((e) => {
+                                    vm.cartData.user_info.postal_code = e.value;
+                                    this.storeLocalData(vm.cartData);
+                                })}"
+                                                            />`,
+                            ]
+                                .map((dd) => {
+                                return html ` <div class="col-12 col-md-6 mb-2">${dd}</div>`;
+                            })
+                                .join('')
+                            : ''}
                                         ${(() => {
                             var _a;
                             try {
@@ -2163,7 +2269,7 @@ export class CheckoutIndex {
                                             return dd;
                                         });
                                         return [
-                                            html `<div
+                                            html ` <div
                                                             class="d-flex ms-2 my-3"
                                                             style="gap:10px;cursor:pointer;"
                                                             onclick="${gvc.event(() => {
@@ -2608,6 +2714,7 @@ export class CheckoutIndex {
     static storeLocalData(cartData) {
         localStorage.setItem('cart_customer_info', JSON.stringify(cartData.customer_info));
         localStorage.setItem('shipment-select', cartData.user_info.shipment);
+        localStorage.setItem('country-select', cartData.user_info.country);
         localStorage.setItem('checkout-payment', cartData.customer_info.payment_select);
         localStorage.setItem('custom_form_data', JSON.stringify(cartData.custom_form_data));
         localStorage.setItem('custom_user_info', JSON.stringify(cartData.user_info));

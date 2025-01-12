@@ -201,6 +201,44 @@ export class ApiShop {
         });
     }
 
+    static getCollectionProducts(cf: { tagString?: string; token?: string }) {
+        const q = (() => {
+            if (cf.tagString) {
+                return `tag=${cf.tagString}`;
+            } else {
+                return '';
+            }
+        })();
+        return BaseApi.create({
+            url: getBaseUrl() + `/api-public/v1/ec/collection/products?${q}`,
+            type: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+                'g-app': getConfig().config.appName,
+                Authorization: cf.token || getConfig().config.token,
+            },
+        });
+    }
+
+    static getCollectionProductVariants(cf: { tagString?: string; token?: string }) {
+        const q = (() => {
+            if (cf.tagString) {
+                return `tag=${cf.tagString}`;
+            } else {
+                return '';
+            }
+        })();
+        return BaseApi.create({
+            url: getBaseUrl() + `/api-public/v1/ec/collection/product/variants?${q}`,
+            type: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+                'g-app': getConfig().config.appName,
+                Authorization: cf.token || getConfig().config.token,
+            },
+        });
+    }
+
     static deleteCollections(cf: { data: any; token?: string }) {
         return BaseApi.create({
             url: getBaseUrl() + `/api-public/v1/ec/collection`,
@@ -802,8 +840,8 @@ export class ApiShop {
         code?: string;
         use_rebate?: number;
         custom_form_format?: any;
-        custom_receipt_form?:any;
-        custom_receipt_data?:any
+        custom_receipt_form?: any;
+        custom_receipt_data?: any;
         custom_form_data?: any;
         distribution_code?: string;
         give_away?: any;
@@ -1032,7 +1070,7 @@ export class ApiShop {
     //     });
     // }
 
-    static ecDataAnalyze(tagArray: string[],query:string='') {
+    static ecDataAnalyze(tagArray: string[], query: string = '') {
         return BaseApi.create({
             url: getBaseUrl() + `/api-public/v1/ec/dataAnalyze?tags=${tagArray.join(',')}&query=${query}`,
             type: 'GET',

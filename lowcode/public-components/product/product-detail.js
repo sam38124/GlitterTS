@@ -366,7 +366,6 @@ export class ProductDetail {
                                 };
                             }
                         })()), { status: 'inRange', channel: 'normal', orderBy: '', with_hide_index: 'true', show_hidden: true });
-                        console.log(`inputObj===>`, inputObj);
                         Promise.all([
                             new Promise((resolve, reject) => {
                                 ApiUser.getPublicConfig('text-manager', 'manager', window.appName).then((data) => {
@@ -389,7 +388,6 @@ export class ProductDetail {
                             }
                             if (dataArray[1].result && dataArray[1].response.data) {
                                 try {
-                                    console.log(dataArray[1]);
                                     if (Array.isArray(dataArray[1].response.data)) {
                                         vm.data = dataArray[1].response.data[0];
                                         glitter.setUrlParameter('page', 'products/' + encodeURIComponent(vm.data.content.seo.domain));

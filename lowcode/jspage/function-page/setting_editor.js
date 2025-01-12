@@ -44,7 +44,7 @@ export class Setting_editor {
                 }
             });
             ApiPageConfig.getPrivateConfigV2('backend_list').then((res) => {
-                if (res.response.result[0]) {
+                if (res.response.result && res.response.result[0]) {
                     items = res.response.result[0].value;
                 }
                 items = items.filter((dd) => dd);
@@ -252,17 +252,18 @@ export class Setting_editor {
                                                     }
                                                 }
                                                 return html `
-                                                                ${dd.title === '品牌官網' ? `<div class="my-4 border-top"></div>` : ``}
+                                                                ${dd.title === '品牌官網' ? html `<div class="my-4 border-top"></div>` : ``}
                                                                 <li>
                                                                     <div
-                                                                        class="w-100 fw-500 d-flex align-items-center fs-6 hoverBtn h_item rounded px-2 tx_700 
-                                                                                ${(_b = (_a = dd === null || dd === void 0 ? void 0 : dd.info) === null || _a === void 0 ? void 0 : _a.guideClass) !== null && _b !== void 0 ? _b : ''} ${dd.type === 'container' ? ` mainRow${index}` : ''}"
-                                                                        style="gap:7px;color:#393939;${dd.toggle ? `border-radius: 5px;background: #F2F2F2;` : ``}"
+                                                                        class="w-100 fw-500 d-flex align-items-center fs-6 hoverBtn h_item rounded px-2 tx_700 ${(_b = (_a = dd === null || dd === void 0 ? void 0 : dd.info) === null || _a === void 0 ? void 0 : _a.guideClass) !== null && _b !== void 0 ? _b : ''} ${dd.type === 'container' ? `mainRow${index}` : ''}"
+                                                                        style="gap:7px; color:#393939; ${dd.toggle ? `border-radius: 5px; background: #F2F2F2;` : ``}"
                                                                         onclick="${gvc.event(() => __awaiter(this, void 0, void 0, function* () {
                                                     gvc.glitter.setUrlParameter('page-id');
                                                     if (dd.type === 'container') {
-                                                        list.map((d1) => {
-                                                            d1.toggle = false;
+                                                        list.forEach((item, index2) => {
+                                                            if (index !== index2) {
+                                                                item.toggle = false;
+                                                            }
                                                         });
                                                         dd.toggle = !dd.toggle;
                                                         gvc.notifyDataChange(id);
@@ -289,7 +290,7 @@ export class Setting_editor {
                                                     ? !dd.toggle
                                                         ? html ` <i class="fa-regular fa-angle-right hoverBtn me-1" aria-hidden="true"></i> `
                                                         : html ` <i class="fa-regular fa-angle-down hoverBtn me-1" aria-hidden="true"></i>`
-                                                    : html ` ${dd.info && dd.info.icon ? `<img src="${dd.info.icon}" style="width:18px;height:18px;">` : ``} `}
+                                                    : html ` ${dd.info && dd.info.icon ? html `<img src="${dd.info.icon}" style="width:18px;height:18px;" />` : ``} `}
                                                                     </div>
                                                                     ${dd.type === 'container' ? html ` <div class="ps-4 pt-2 pb-2 ${dd.toggle ? `` : `d-none`}">${renderItem(dd.child)}</div>` : ``}
                                                                 </li>
@@ -338,9 +339,7 @@ export class Setting_editor {
             };
         });
     }
-    static center(gvc, viewModel, createID) { }
     static addPlugin(gvc, callback) {
-        const saasConfig = window.saasConfig;
         const html = String.raw;
         const dialog = new ShareDialog(gvc.glitter);
         let items = [];
@@ -755,16 +754,6 @@ Setting_editor.menuItems = () => {
         },
         {
             icon: '',
-            page: 'logistics_setting',
-            group: '商店設定',
-            title: '運費設定',
-            appName: 'cms_system',
-            groupIcon: 'https://d3jnmi1tfjgtti.cloudfront.net/file/252530754/1716566571091-Property 1=gear-regular.svg',
-            moduleName: '運費設定',
-            guideClass: 'guide4-2',
-        },
-        {
-            icon: '',
             page: 'rebate_setting',
             group: '商店設定',
             title: '購物金設定',
@@ -868,6 +857,22 @@ Setting_editor.menuItems = () => {
             page: 'stock_restocking',
             group: '庫存管理',
             title: '進貨單列表',
+            appName: 'cms_system',
+            groupIcon: 'https://d3jnmi1tfjgtti.cloudfront.net/file/234285319/1716652645450-boxes-stacked-regular (1).svg',
+        },
+        {
+            icon: '',
+            page: 'stock_transfer',
+            group: '庫存管理',
+            title: '調撥單列表',
+            appName: 'cms_system',
+            groupIcon: 'https://d3jnmi1tfjgtti.cloudfront.net/file/234285319/1716652645450-boxes-stacked-regular (1).svg',
+        },
+        {
+            icon: '',
+            page: 'stock_checking',
+            group: '庫存管理',
+            title: '盤點單列表',
             appName: 'cms_system',
             groupIcon: 'https://d3jnmi1tfjgtti.cloudfront.net/file/234285319/1716652645450-boxes-stacked-regular (1).svg',
         },

@@ -306,7 +306,9 @@ export class BgProduct {
                     bind: vm.id,
                     view: () => {
                         if (vm.loading) {
-                            return BgWidget.spinner();
+                            return BgWidget.spinner({
+                                container: { style: 'margin: 3rem 0;' },
+                            });
                         }
                         return html` <div class="bg-white shadow rounded-3" style="width: 100%; overflow-y: auto;">
                             <div class="w-100 d-flex align-items-center p-3 border-bottom">

@@ -56,7 +56,7 @@ interface OrderData {
         phone: string;
         address: string;
         custom_form_delivery?: any;
-        shipment: 'normal' | 'FAMIC2C' | 'UNIMARTC2C' | 'HILIFEC2C' | 'OKMARTC2C' | 'now' | 'shop';
+        shipment: 'normal' | 'FAMIC2C' | 'UNIMARTC2C' | 'HILIFEC2C' | 'OKMARTC2C' | 'now' | 'shop' | 'global_express';
         CVSStoreName: string;
         CVSStoreID: string;
         CVSTelephone: string;

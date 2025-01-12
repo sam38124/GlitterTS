@@ -189,8 +189,10 @@ export class ProductExcel {
                             data[index] = dd.filter((d1, index) => { return index > 0; });
                         });
                     }
+                    id_list = id_list.filter((item) => { return !['商品ID', ''].includes(item); });
                     let error = false;
                     let addCollection = [];
+                    let appendCollection = [];
                     let postMD = [];
                     let productData = {};
                     const getVariantData = () => {
@@ -224,30 +226,6 @@ export class ProductExcel {
                             dialog.infoMessage({ text });
                         }
                     }
-                    const domainList = data
-                        .filter((item, index) => {
-                        return item[0] && (!(id_list)[index]);
-                    })
-                        .map((item) => {
-                        if (CheckInput.isEmpty(item[5])) {
-                            item[5] = item[0];
-                        }
-                        return `${item[5]}`;
-                    });
-                    const filteredArr = domainList.filter((item) => {
-                        return item && item.length > 0 && item.trim().length > 0;
-                    });
-                    const hasDuplicates = new Set(filteredArr).size !== filteredArr.length;
-                    if (hasDuplicates) {
-                        errorCallback('「商品連結」的值不可重複<br/>如果「商品連結」為空，預設值為該商品的「商品名稱」<br/>則該「商品名稱」不可與其它「商品連結」重複', {
-                            warningMessageView: true,
-                        });
-                    }
-                    const productDomainSet = new Set(allProductDomain);
-                    const duplicateDomain = domainList.find((domain) => domain.length > 0 && productDomainSet.has(domain));
-                    if (duplicateDomain) {
-                        errorCallback(`商品連結「${duplicateDomain}」已有產品使用，請更換該欄位的值`);
-                    }
                     data.forEach((row, index) => {
                         var _a;
                         const variantData = getVariantData();
@@ -257,7 +235,6 @@ export class ProductExcel {
                                     postMD.push(productData);
                                 }
                                 addCollection = [];
-                                productData.id = id_list[index];
                                 productData = {
                                     title: '',
                                     productType: {
@@ -281,6 +258,7 @@ export class ProductExcel {
                                     },
                                     template: '',
                                 };
+                                productData.id = id_list[postMD.length];
                                 productData.title = this.checkString(row[0]);
                                 productData.status = row[1] == '啟用' ? 'active' : 'draft';
                                 productData.collection = (_a = row[2].split(',')) !== null && _a !== void 0 ? _a : [];
@@ -306,6 +284,9 @@ export class ProductExcel {
                                     addCollection.push(collection);
                                 });
                                 productData.collection = addCollection;
+                                appendCollection = appendCollection.concat(addCollection).filter((dd) => {
+                                    return dd;
+                                });
                                 switch (row[3]) {
                                     case '贈品':
                                         productData.productType.giveaway = true;
@@ -370,10 +351,35 @@ export class ProductExcel {
                         }
                     });
                     postMD.push(productData);
-                    productData.reverse;
+                    postMD.map((dd) => {
+                        dd.seo.domain = dd.seo.domain || dd.title;
+                    });
+                    const domainList = postMD
+                        .filter((item, index) => {
+                        return (!(id_list)[index]);
+                    })
+                        .map((item) => {
+                        return item.seo.domain;
+                    });
+                    const filteredArr = domainList.filter((item) => {
+                        return item && item.length > 0 && item.trim().length > 0;
+                    });
+                    const hasDuplicates = new Set(filteredArr).size !== filteredArr.length;
+                    if (hasDuplicates) {
+                        errorCallback('「商品連結」的值不可重複<br/>如果「商品連結」為空，預設值為該商品的「商品名稱」<br/>則該「商品名稱」不可與其它「商品連結」重複', {
+                            warningMessageView: true,
+                        });
+                        return;
+                    }
+                    const productDomainSet = new Set(allProductDomain);
+                    const duplicateDomain = domainList.find((domain) => domain.length > 0 && productDomainSet.has(domain));
+                    if (duplicateDomain) {
+                        errorCallback(`商品連結「${duplicateDomain}」已有產品使用，請更換該欄位的值`);
+                        return;
+                    }
                     let passData = {
                         data: postMD,
-                        collection: addCollection,
+                        collection: appendCollection,
                     };
                     dialog.dataLoading({ visible: false });
                     if (!error) {

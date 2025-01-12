@@ -1,7 +1,7 @@
 import express from 'express';
 import db from '../../modules/database.js';
 import { saasConfig } from '../../config.js';
-import {IToken} from "../models/Auth.js";
+import { IToken } from '../models/Auth.js';
 
 export class UtPermission {
     public static isManager(req: express.Request) {
@@ -20,13 +20,13 @@ export class UtPermission {
                     `,
                     [req.body.token.userID, appName, req.body.token.userID, appName]
                 );
-                resolve(result[0]['count(1)'] == 1);
+                resolve(result[0]['count(1)'] > 0);
             } catch (e) {
                 resolve(false);
             }
         });
     }
-    public static isManagerTokenCheck(app_name:string,user_id:string) {
+    public static isManagerTokenCheck(app_name: string, user_id: string) {
         return new Promise(async (resolve, reject) => {
             try {
                 const result = await db.query(

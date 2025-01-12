@@ -9,7 +9,7 @@ export class Ssh {
         const sshConfig = {
             host: ip || process.env.sshIP,
             port: 22, // 默认 SSH 端口号
-            username: 'ubuntu',
+            username: process.env.ssh_user,
             privateKey: fs.readFileSync(process.env.ssh as string), // 用您的私钥路径替换
         };
         return new Promise(async (resolve, reject) => {
@@ -55,7 +55,7 @@ export class Ssh {
         const sshConfig = {
             host: ip||process.env.sshIP,
             port: 22, // 默认 SSH 端口号
-            username: 'ubuntu',
+            username: process.env.ssh_user,
             privateKey: fs.readFileSync(process.env.ssh as string), // 用您的私钥路径替换
         };
         console.log(`privateKey--`, sshConfig)

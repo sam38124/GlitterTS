@@ -1,14 +1,9 @@
 import db from '../../modules/database';
 import exception from '../../modules/exception';
-import UserUtil from '../../utils/UserUtil';
-import config from '../../config.js';
-import { sendmail } from '../../services/ses.js';
-import App from '../../app.js';
-import redis from '../../modules/redis.js';
 import Tool from '../../modules/tool.js';
-import process from 'process';
 import { IToken } from '../models/Auth.js';
 import { Shopping } from './shopping';
+import { SharePermission } from './share-permission';
 
 type StockList = {
     [key: string]: { count: number };
@@ -27,6 +22,7 @@ type ContentProduct = {
     title?: string;
     spec?: string;
     sku?: '';
+    barcode?: '';
 };
 
 type StockHistoryData = {
@@ -38,19 +34,18 @@ type StockHistoryData = {
     content: {
         vendor: string;
         store_in: string; // 調入庫存點
-        store_in_name?: string; // 調入庫存點名稱
-        store_out: string; // 調出庫存點
-        store_out_name?: string; // 調出庫存點名稱
+        store_out: string; // 調出庫存點、盤點庫存點
         check_member: string; // 盤點人
-        check_according: 'all' | 'collection' | 'product'; // 商品盤點類型
+        check_according: '' | 'all' | 'collection' | 'product'; // 商品盤點類型
         note: string;
         total_price?: number;
         product_list: ContentProduct[];
         changeLogs: {
             time: string;
             text: string;
-            user: string;
+            user: number;
             status: number;
+            user_name?: string;
             product_list?: ContentProduct[];
         }[];
     };
@@ -139,7 +134,36 @@ const typeConfig: {
     checking: {
         name: '盤點',
         prefixId: 'PD',
-        status: {},
+        status: {
+            0: {
+                title: '已完成',
+                badge: 'info',
+            },
+            1: {
+                title: '已修正',
+                badge: 'info',
+            },
+            2: {
+                title: '待盤點',
+                badge: 'warning',
+            },
+            3: {
+                title: '盤點中',
+                badge: 'warning',
+            },
+            4: {
+                title: '已暫停',
+                badge: 'normal',
+            },
+            5: {
+                title: '異常',
+                badge: 'notify',
+            },
+            6: {
+                title: '已取消',
+                badge: 'notify',
+            },
+        },
     },
 };
 
@@ -152,18 +176,24 @@ export class Stock {
         this.token = token;
     }
 
-    async productList(json: { page: string; limit: string; search: string }) {
+    async productList(json: { page: string; limit: string; search: string; variant_id_list?: string }) {
         const page = json.page ? parseInt(`${json.page}`, 10) : 0;
         const limit = json.limit ? parseInt(`${json.limit}`, 10) : 20;
 
         try {
+            const sqlArr = ['1=1'];
+            if (json.variant_id_list) {
+                sqlArr.push(`(v.id in (${json.variant_id_list}))`);
+            }
+            const sqlText = sqlArr.join(' AND ');
+
             const getStockTotal = await db.query(
                 `SELECT count(v.id) as c
                  FROM \`${this.app}\`.t_variants as v,
                       \`${this.app}\`.t_manager_post as p
-                 WHERE v.content ->>'$.stockList.${json.search ?? 'store'}.count'
-                     > 0
+                 WHERE v.content ->>'$.stockList.${json.search || 'store'}.count' > 0
                    AND v.product_id = p.id
+                   AND ${sqlText}
                 `,
                 []
             );
@@ -172,9 +202,9 @@ export class Stock {
                 `SELECT v.*, p.content as product_content
                  FROM \`${this.app}\`.t_variants as v,
                       \`${this.app}\`.t_manager_post as p
-                 WHERE v.content ->>'$.stockList.${json.search ?? 'store'}.count'
-                     > 0
+                 WHERE v.content ->>'$.stockList.${json.search || 'store'}.count' > 0
                    AND v.product_id = p.id
+                   AND ${sqlText}
                      LIMIT ${page * limit}
                      , ${limit};
                 `,
@@ -413,7 +443,7 @@ export class Stock {
         );
     }
 
-    async getHistory(json: { page: string; limit: string; search: string; type: StockHistoryType; order_id: string }) {
+    async getHistory(json: { page: string; limit: string; search: string; type: StockHistoryType; order_id: string; queryType: string }) {
         const page = json.page ? parseInt(`${json.page}`, 10) : 0;
         const limit = json.limit ? parseInt(`${json.limit}`, 10) : 20;
 
@@ -437,10 +467,27 @@ export class Stock {
             sqlArr.push(`(order_id = '${json.order_id}')`);
         }
 
-        console.log(sqlArr);
+        if (json.queryType && json.search) {
+            switch (json.queryType) {
+                case 'order_id':
+                    sqlArr.push(`(order_id like '%${json.search}%')`);
+                    break;
+                case 'note':
+                    sqlArr.push(`(JSON_EXTRACT(content, '$.note') like '%${json.search}%')`);
+                    break;
+            }
+        }
+
         const sqlString = sqlArr.join(' AND ');
 
         try {
+            if (!this.token) {
+                return {
+                    total: 0,
+                    data: [],
+                };
+            }
+
             const getHistoryTotal = await db.query(
                 `SELECT count(id) as c FROM \`${this.app}\`.t_stock_history
                 WHERE 1=1 AND ${sqlString}
@@ -451,14 +498,24 @@ export class Stock {
             const data = await db.query(
                 `SELECT * FROM \`${this.app}\`.t_stock_history
                     WHERE 1=1 AND ${sqlString}
-                    ORDER BY created_time DESC
+                    ORDER BY order_id DESC
                     LIMIT ${page * limit}, ${limit};
                 `,
                 []
             );
 
+            const getPermission = (await new SharePermission(this.app, this.token).getPermission({
+                page: 0,
+                limit: 9999,
+            })) as any;
+
             data.map((rowData: StockHistoryData) => {
                 rowData.created_time = formatDate(rowData.created_time);
+                rowData.content.changeLogs.map((log) => {
+                    const findManager = getPermission.data.find((m: any) => `${m.user}` === `${log.user}`);
+                    log.user_name = findManager ? findManager.config.name : '';
+                    return log;
+                });
             });
 
             return {
@@ -474,11 +531,9 @@ export class Stock {
     }
 
     async postHistory(json: StockHistoryData) {
-        console.log('postHistory');
-        console.log(json);
-        const typeData = typeConfig[json.type];
-        console.log(typeData.name);
         try {
+            const typeData = typeConfig[json.type];
+
             json.content.product_list.map((item) => {
                 delete item.title;
                 delete item.spec;
@@ -487,16 +542,16 @@ export class Stock {
             });
             json.content.changeLogs = [
                 {
-                    time: Tool.convertDateTimeFormat(),
+                    time: Tool.getCurrentDateTime(),
                     status: json.status,
                     text: `${typeData.name}單建立`,
-                    user: '',
+                    user: this.token ? this.token.userID : 0,
                 },
                 {
-                    time: Tool.convertDateTimeFormat(),
+                    time: Tool.getCurrentDateTime({ addSeconds: 1 }),
                     status: json.status,
                     text: `${typeData.name}單狀態改為「${typeData.status[json.status].title}」`,
-                    user: '',
+                    user: this.token ? this.token.userID : 0,
                 },
             ];
 
@@ -512,7 +567,7 @@ export class Stock {
                 [formatJson]
             );
 
-            return { data: true };
+            return { data: formatJson };
         } catch (error) {
             console.error(error);
             if (error instanceof Error) {
@@ -522,69 +577,176 @@ export class Stock {
     }
 
     async putHistory(json: StockHistoryData) {
-        console.log('putHistory');
-        console.log(json);
-
         try {
+            if (!this.token) {
+                return { data: false };
+            }
             const typeData = typeConfig[json.type];
+
+            // 取得原始資料
+            const getHistory = await db.query(
+                `SELECT * FROM \`${this.app}\`.t_stock_history WHERE order_id = ?;
+                `,
+                [json.order_id]
+            );
+            if (!getHistory || getHistory.length !== 1) {
+                return { data: false };
+            }
+            const originHistory = getHistory[0] as StockHistoryData;
+            const originList = originHistory.content.product_list;
+
+            // 格式化更新資料
             json.content.product_list.map((item) => {
                 delete item.title;
                 delete item.spec;
                 delete item.sku;
+                delete item.barcode;
                 return item;
             });
 
-            const getHistory = await db.query(
-                `SELECT * FROM \`${this.app}\`.t_stock_history WHERE id = ?;
-                `,
-                [json.id]
-            );
+            json.content.changeLogs.push({
+                time: Tool.getCurrentDateTime(),
+                status: json.status,
+                text: `進貨單狀態改為「${typeData.status[json.status].title}」`,
+                user: this.token.userID,
+                product_list: (() => {
+                    if (json.status === 1 || json.status === 5) {
+                        const updateList = JSON.parse(JSON.stringify(json.content.product_list)) as ContentProduct[];
 
-            if (getHistory && getHistory[0]) {
-                const originData = getHistory[0] as StockHistoryData;
+                        return updateList.map((item1) => {
+                            const originVariant = originList.find((item2) => item1.variant_id === item2.variant_id);
+                            if (originVariant) {
+                                return {
+                                    replenishment_count: (item1.recent_count ?? 0) - (originVariant.recent_count ?? 0),
+                                    ...item1,
+                                };
+                            }
+                            return item1;
+                        });
+                    }
+                    return undefined;
+                })(),
+            });
 
-                json.content.changeLogs.push({
-                    time: Tool.convertDateTimeFormat(),
-                    status: json.status,
-                    text: `進貨單狀態改為「${typeData.status[json.status].title}」`,
-                    user: '',
-                    product_list: (() => {
-                        if (json.status === 1 || json.status === 5) {
-                            const originList = originData.content.product_list;
-                            const updateList = JSON.parse(JSON.stringify(json.content.product_list)) as ContentProduct[];
+            const formatJson = JSON.parse(JSON.stringify(json));
+            formatJson.content = JSON.stringify(json.content);
+            delete formatJson.id;
 
-                            return updateList.map((item1) => {
-                                const originVariant = originList.find((item2) => item1.variant_id === item2.variant_id);
-                                if (originVariant) {
-                                    return {
-                                        replenishment_count: (item1.recent_count ?? 0) - (originVariant.recent_count ?? 0),
-                                        ...item1,
-                                    };
-                                }
-                                return item1;
-                            });
-                        }
-                        return undefined;
-                    })(),
-                });
+            // 改變商品與規格庫存
+            const _shop = new Shopping(this.app, this.token);
+            const variants = await _shop.getVariants({
+                page: 0,
+                limit: 9999,
+                id_list: json.content.product_list.map((item) => item.variant_id).join(','),
+            });
+            const dataList: {
+                id: number;
+                product_id: number;
+                product_content: any;
+                variant_content: any;
+            }[] = [];
 
-                const formatJson = JSON.parse(JSON.stringify(json));
-                formatJson.content = JSON.stringify(json.content);
+            const createStockEntry = (type: 'plus' | 'minus' | 'equal', store: string, count: number, variant: any) => ({
+                id: variant.id,
+                product_id: variant.product_id,
+                ...Stock.formatStockContent({
+                    type,
+                    store,
+                    count,
+                    product_content: variant.product_content,
+                    variant_content: variant.variant_content,
+                }),
+            });
 
-                await db.query(
-                    `UPDATE \`${this.app}\`.t_stock_history SET ? WHERE id = ?
-                    `,
-                    [formatJson, json.id]
-                );
+            for (const variant of variants.data) {
+                const item = json.content.product_list.find((item) => item.variant_id === variant.id);
+
+                if (item) {
+                    const originVariant = originList.find((origin) => item.variant_id === origin.variant_id);
+                    const count = originVariant ? (item.recent_count ?? 0) - (originVariant.recent_count ?? 0) : (item.recent_count ?? 0);
+                    const { type, content } = json;
+                    const { store_in, store_out } = content;
+
+                    if (type === 'restocking') {
+                        dataList.push(createStockEntry('plus', store_in, count, variant));
+                    } else if (type === 'transfer') {
+                        dataList.push(createStockEntry('plus', store_in, count, variant));
+                        dataList.push(createStockEntry('minus', store_out, count, variant));
+                    } else if (type === 'checking' && (json.status === 0 || json.status === 1)) {
+                        dataList.push(createStockEntry('equal', store_out, count, variant));
+                    }
+                }
             }
 
-            return { data: false };
+            // 更新產品與規格庫存
+            await _shop.putVariants(dataList);
+
+            // 更新庫存單
+            await db.query(
+                `UPDATE \`${this.app}\`.t_stock_history SET ? WHERE order_id = ?
+                `,
+                [formatJson, json.order_id]
+            );
+
+            return { data: true };
         } catch (error) {
             console.error(error);
             if (error instanceof Error) {
                 throw exception.BadRequestError('stock postHistory Error: ', error.message, null);
             }
         }
+    }
+
+    static formatStockContent(data: { type: 'plus' | 'minus' | 'equal'; store: string; count: number; product_content: any; variant_content: any }) {
+        const type = data.type;
+        const store = data.store;
+        const count = data.count;
+        const product_content = data.product_content;
+        const variant_content = data.variant_content;
+        const stockList = variant_content.stockList;
+
+        // 修改 variant stockList
+        if (stockList[store]) {
+            if (type === 'plus') {
+                if (stockList[store].count) {
+                    stockList[store].count += count;
+                } else {
+                    stockList[store].count = count;
+                }
+            } else if (type === 'minus') {
+                if (stockList[store].count) {
+                    stockList[store].count -= count;
+                } else {
+                    stockList[store].count = 0;
+                }
+            } else {
+                stockList[store].count = count;
+            }
+        }
+
+        stockList[store].count = stockList[store].count > 0 ? stockList[store].count : 0;
+
+        // 修改 variant stock
+        variant_content.stock = Object.keys(stockList).reduce((sum: number, key: string) => {
+            if (stockList[key] && stockList[key].count) {
+                return sum + stockList[key].count;
+            }
+            return sum;
+        }, 0);
+
+        // 修改 producr variant 的 stock, stockList
+        const producrVariant = product_content.variants.find((item: any) => {
+            return item.spec.sort().join(',') === variant_content.spec.sort().join(',');
+        });
+        if (producrVariant) {
+            producrVariant.stockList = variant_content.stockList;
+            producrVariant.stock = variant_content.stock;
+        }
+
+        return {
+            product_content,
+            variant_content,
+        };
     }
 
     async deleteHistory(json: StockHistoryData) {

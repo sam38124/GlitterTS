@@ -602,7 +602,7 @@ ${BgWidget.title('GoDaddy DNS 設定指南')}
                     <ul>
                         <li><code>名稱（Name）: @</code></li>
                         <li><code>類型（Type）: A</code></li>
-                        <li><code>值（Value）: 52.197.107.145</code></li>
+                        <li><code>值（Value）: 34.81.28.192</code></li>
                         <li><code>TTL: 600</code></li>
                     </ul>
                 </li>
@@ -620,7 +620,7 @@ ${BgWidget.title('GoDaddy DNS 設定指南')}
                     <ul>
                         <li><code>名稱（Name）: @</code></li>
                         <li><code>類型（Type）: CNAME</code></li>
-                        <li><code>值（Value）: 52.197.107.145</code></li>
+                        <li><code>值（Value）: 34.81.28.192</code></li>
                         <li><code>TTL: 600</code></li>
                     </ul>
                 </li>

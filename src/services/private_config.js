@@ -24,7 +24,7 @@ class Private_config {
             `, [config.appName, config.key, config.value, (0, moment_js_1.default)(new Date()).format('YYYY-MM-DD HH:mm:ss')]);
         }
         catch (e) {
-            console.log(e);
+            console.error(e);
             throw exception_js_1.default.BadRequestError('ERROR', 'ERROR.' + e, null);
         }
     }
@@ -33,31 +33,31 @@ class Private_config {
             throw exception_js_1.default.BadRequestError('Forbidden', 'No Permission.', null);
         }
         try {
-            const data = (await database_js_1.default.execute(`select * from \`${config_js_1.saasConfig.SAAS_NAME}\`.private_config where app_name=${database_js_1.default.escape(config.appName)} and 
+            const data = await database_js_1.default.execute(`select * from \`${config_js_1.saasConfig.SAAS_NAME}\`.private_config where app_name=${database_js_1.default.escape(config.appName)} and 
                                              \`key\`=${database_js_1.default.escape(config.key)}
-            `, []));
+            `, []);
             if (data[0] && data[0].value) {
                 Private_config.checkConfigUpdate(data[0].value, config.key);
             }
             return data;
         }
         catch (e) {
-            console.log(e);
+            console.error(e);
             throw exception_js_1.default.BadRequestError('ERROR', 'ERROR.' + e, null);
         }
     }
     static async getConfig(config) {
         try {
-            const data = (await database_js_1.default.execute(`select * from \`${config_js_1.saasConfig.SAAS_NAME}\`.private_config where app_name=${database_js_1.default.escape(config.appName)} and 
+            const data = await database_js_1.default.execute(`select * from \`${config_js_1.saasConfig.SAAS_NAME}\`.private_config where app_name=${database_js_1.default.escape(config.appName)} and 
                                              \`key\`=${database_js_1.default.escape(config.key)}
-            `, []));
+            `, []);
             if (data[0] && data[0].value) {
                 this.checkConfigUpdate(data[0].value, config.key);
             }
             return data;
         }
         catch (e) {
-            console.log(e);
+            console.error(e);
             throw exception_js_1.default.BadRequestError('ERROR', 'ERROR.' + e, null);
         }
     }
@@ -79,7 +79,7 @@ class Private_config {
     static checkConfigUpdate(keyData, key) {
         switch (key) {
             case 'glitter_finance':
-                if (!(keyData).ecPay) {
+                if (!keyData.ecPay) {
                     const og = keyData;
                     for (const b of ['newWebPay', 'ecPay']) {
                         if (keyData.TYPE === b) {
@@ -93,7 +93,7 @@ class Private_config {
                                 c_code: og.c_code,
                                 credit: og.credit,
                                 web_atm: og.web_atm,
-                                toggle: true
+                                toggle: true,
                             };
                         }
                         else {
@@ -107,7 +107,7 @@ class Private_config {
                                 c_code: true,
                                 credit: true,
                                 web_atm: true,
-                                toggle: false
+                                toggle: false,
                             };
                         }
                     }
@@ -117,7 +117,7 @@ class Private_config {
                         PAYPAL_CLIENT_ID: '',
                         PAYPAL_SECRET: '',
                         BETA: false,
-                        toggle: false
+                        toggle: false,
                     };
                 }
                 if (!keyData.line_pay) {
@@ -125,7 +125,7 @@ class Private_config {
                         CLIENT_ID: '',
                         SECRET: '',
                         BETA: false,
-                        toggle: false
+                        toggle: false,
                     };
                 }
                 if (!keyData.line_pay_scan) {
@@ -133,13 +133,13 @@ class Private_config {
                         CLIENT_ID: '',
                         SECRET: '',
                         BETA: false,
-                        toggle: false
+                        toggle: false,
                     };
                 }
                 if (!keyData.ut_credit_card) {
                     keyData.ut_credit_card = {
                         pwd: '',
-                        toggle: false
+                        toggle: false,
                     };
                 }
                 ['paypal', 'newWebPay', 'ecPay'].map((dd) => {

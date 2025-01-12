@@ -23,7 +23,7 @@ export class GlitterUtil {
         }
     }
 
-    public static async set_frontend_v2(express: core.Express, rout: { app_name: string, rout: string, path: string, root_path: string, seoManager: (req: express.Request, resp: express.Response) => Promise<string>, sitemap: (req: express.Request, resp: express.Response) => Promise<string> ,
+    public static async set_frontend_v2(express: core.Express, rout: { app_name: string, rout: string, path: string, root_path: string, seoManager: (req: express.Request, resp: express.Response) => Promise<{head:string,body:string}>, sitemap: (req: express.Request, resp: express.Response) => Promise<string> ,
         sitemap_list: (req: express.Request, resp: express.Response) => Promise<string>
         robots:(req: express.Request, resp: express.Response) => Promise<string>,
         tw_shop:(req: express.Request, resp: express.Response) => Promise<string>
@@ -59,17 +59,26 @@ export class GlitterUtil {
                     let fullPath = dd.path + "/index.html"
                     const data = fs.readFileSync(fullPath, 'utf8');
                     resp.header('Content-Type', 'text/html; charset=UTF-8')
-                    return resp.send(data.replace(data.substring(data.indexOf(`<head>`), data.indexOf(`</head>`) + 7), `
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-touch-fullscreen" content="yes">
-<meta http-equiv="content-type" content="text/html;charset=UTF-8">
-${(req.query._preview_width && req.query._preview_scale) ? `
-<meta name="viewport" content="width=${req.query._preview_width}, initial-scale=${req.query._preview_scale}, maximum-scale=${req.query._preview_scale}, user-scalable=no">
-`:`
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, shrink-to-fit=no">
-`}
-${(req.body) ? `<script>window.post_body=${(typeof req.body==='string') ? req.body:`${JSON.stringify(req.body)}`};</script>`:``}
-                    `+seo))
+                     // 格式化 HTML
+                     let meta_info:string[]=[
+                         `<head>`,
+                         `<meta name="apple-mobile-web-app-capable" content="yes">`,
+                         `<meta name="apple-touch-fullscreen" content="yes">`,
+                         `<meta http-equiv="content-type" content="text/html;charset=UTF-8">`,
+                         (req.query._preview_width && req.query._preview_scale) ? `<meta name="viewport" content="width=${req.query._preview_width}, initial-scale=${req.query._preview_scale}, maximum-scale=${req.query._preview_scale}, user-scalable=no">`:`<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, shrink-to-fit=no">`,
+                         seo.head,
+                         (req.body) ? `<script>window.post_body=${(typeof req.body==='string') ? req.body:`${JSON.stringify(req.body)}`};</script>`:``,
+                         `</head>`,
+                         seo.body,
+                     ].map((dd)=>{
+                         return dd.trim()
+                     });
+                    try {
+                        return resp.send(data.replace(data.substring(data.indexOf(`<head>`), data.indexOf(`</head>`) + 7), meta_info.join('\n')))
+                    }catch (e) {
+                        console.log(e)
+                        return e
+                    }
                 } else {
                     return resp.sendFile(decodeURI(fileURL))
                 }

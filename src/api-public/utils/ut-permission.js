@@ -20,7 +20,7 @@ class UtPermission {
                             WHERE user = ? AND status = 1 AND invited = 1 AND appName = ?)
                         );
                     `, [req.body.token.userID, appName, req.body.token.userID, appName]);
-                resolve(result[0]['count(1)'] == 1);
+                resolve(result[0]['count(1)'] > 0);
             }
             catch (e) {
                 resolve(false);

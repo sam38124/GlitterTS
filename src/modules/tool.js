@@ -3,7 +3,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.toJSONSafeString = void 0;
+exports.toJSONSafeString = toJSONSafeString;
 const bcrypt_1 = __importDefault(require("bcrypt"));
 const underscore_1 = __importDefault(require("underscore"));
 const config_1 = __importDefault(require("../config"));
@@ -40,7 +40,6 @@ function toJSONSafeString(val) {
         }
     });
 }
-exports.toJSONSafeString = toJSONSafeString;
 function getMaskObj(obj) {
     const maskObj = {};
     underscore_1.default.map(obj, (value, key) => {
@@ -86,15 +85,16 @@ const randomNumber = (max) => {
     return text;
 };
 const compareHash = async (pwd, has) => bcrypt_1.default.compare(pwd, has);
-const convertDateTimeFormat = (dateTimeStr) => {
-    const dateTime = dateTimeStr ? new Date(dateTimeStr) : new Date();
-    const year = dateTime.getFullYear();
-    const month = ('0' + (dateTime.getMonth() + 1)).slice(-2);
-    const day = ('0' + dateTime.getDate()).slice(-2);
-    const hours = ('0' + dateTime.getHours()).slice(-2);
-    const minutes = ('0' + dateTime.getMinutes()).slice(-2);
-    const seconds = ('0' + dateTime.getSeconds()).slice(-2);
-    return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
+const getCurrentDateTime = (json) => {
+    const currentDate = json && json.inputDate ? new Date(json.inputDate) : new Date();
+    currentDate.setSeconds(currentDate.getSeconds() + (json && json.addSeconds ? json.addSeconds : 0));
+    const year = currentDate.getFullYear();
+    const month = ('0' + (currentDate.getMonth() + 1)).slice(-2);
+    const day = ('0' + currentDate.getDate()).slice(-2);
+    const hours = ('0' + currentDate.getHours()).slice(-2);
+    const minutes = ('0' + currentDate.getMinutes()).slice(-2);
+    const seconds = ('0' + currentDate.getSeconds()).slice(-2);
+    return year + '-' + month + '-' + day + ' ' + hours + ':' + minutes + ':' + seconds;
 };
 exports.default = {
     isNull,
@@ -106,6 +106,6 @@ exports.default = {
     randomString,
     compareHash,
     randomNumber,
-    convertDateTimeFormat,
+    getCurrentDateTime,
 };
 //# sourceMappingURL=tool.js.map

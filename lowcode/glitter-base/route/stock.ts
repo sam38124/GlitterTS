@@ -13,6 +13,8 @@ export type ContentProduct = {
     title?: string;
     spec?: string;
     sku?: '';
+    stock?: number;
+    barcode?: string;
 };
 
 export type StockHistoryData = {
@@ -24,31 +26,33 @@ export type StockHistoryData = {
     content: {
         vendor: string;
         store_in: string; // 調入庫存點
-        store_in_name?: string; // 調入庫存點名稱
-        store_out: string; // 調出庫存點
-        store_out_name?: string; // 調出庫存點名稱
+        store_out: string; // 調出庫存點、盤點庫存點
         check_member: string; // 盤點人
-        check_according: 'all' | 'collection' | 'product'; // 商品盤點類型
+        check_according: '' | 'all' | 'collection' | 'product'; // 商品盤點類型
         note: string;
         total_price?: number;
         product_list: ContentProduct[];
         changeLogs: {
             time: string;
             text: string;
-            user: string;
+            user: number;
             status: number;
+            user_name?: string;
             product_list?: ContentProduct[];
         }[];
     };
 };
 
 export class ApiStock {
-    static getStoreProductList(json: { page: number; limit: number; search: string }) {
+    static getStoreProductList(json: { page: number; limit: number; search: string; variant_id_list?: number[] | string[] }) {
         return BaseApi.create({
             url:
                 getBaseUrl() +
                 `/api-public/v1/stock/store/productList?${(() => {
                     let par = [`page=${json.page}`, `limit=${json.limit}`, `search=${json.search}`];
+                    if (json.variant_id_list && json.variant_id_list.length > 0) {
+                        par.push(`variant_id_list=${json.variant_id_list.join(',')}`);
+                    }
                     return par.join('&');
                 })()}`,
             type: 'GET',
@@ -73,13 +77,14 @@ export class ApiStock {
         });
     }
 
-    static getStockHistory(json: { page: number; limit: number; search: string; queryType?: string; type: string; order_id?: string }) {
+    static getStockHistory(json: { page: number; limit: number; search?: string; queryType?: string; type: string; order_id?: string }) {
         return BaseApi.create({
             url:
                 getBaseUrl() +
                 `/api-public/v1/stock/history?${(() => {
-                    let par = [`page=${json.page}`, `limit=${json.limit}`, `search=${json.search}`, `type=${json.type}`];
+                    let par = [`page=${json.page}`, `limit=${json.limit}`, `type=${json.type}`];
                     json.queryType && par.push(`queryType=${json.queryType}`);
+                    json.search && par.push(`search=${json.search}`);
                     json.order_id && par.push(`order_id=${json.order_id}`);
                     return par.join('&');
                 })()}`,

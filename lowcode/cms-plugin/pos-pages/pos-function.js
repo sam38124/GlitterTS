@@ -39,7 +39,7 @@ export class PosFunction {
                                         </div>
                                     </div>
                                     <div style="align-self: stretch; text-align: center; color: #393939; font-size: 24px; font-family: Noto Sans; font-weight: 700; line-height: 33.60px; letter-spacing: 2.40px; word-wrap: break-word">
-                                        請輸入員工編號
+                                        請輸入員工密碼
                                     </div>
                                 </div>
                                 <div style="align-self: stretch; justify-content: center; align-items: center; gap: 20px; display: inline-flex">

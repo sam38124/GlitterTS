@@ -122,11 +122,23 @@ export declare class ApiShop {
         maxPrice?: string;
         minPrice?: string;
         status?: string;
+        channel?: string;
+        schedule?: boolean;
         orderBy?: string;
         id_list?: string;
         with_hide_index?: string;
         productType?: string;
         filter_visible?: string;
+        app_name?: string;
+        show_hidden?: boolean;
+    }): Promise<{
+        result: boolean;
+        response: any;
+    }>;
+    static getProductDomain(json: {
+        id?: string;
+        search?: string;
+        domain?: string;
         app_name?: string;
     }): Promise<{
         result: boolean;
@@ -151,6 +163,7 @@ export declare class ApiShop {
         filter?: any;
         is_pos?: boolean;
         archived?: string;
+        distribution_code?: string;
         returnSearch?: 'true';
     }): Promise<{
         result: boolean;
@@ -193,6 +206,10 @@ export declare class ApiShop {
         order_data: any;
         status?: any;
     }): Promise<{
+        result: boolean;
+        response: any;
+    }>;
+    static cancelOrder(id: string): Promise<{
         result: boolean;
         response: any;
     }>;
@@ -281,6 +298,8 @@ export declare class ApiShop {
         code?: string;
         use_rebate?: number;
         custom_form_format?: any;
+        custom_receipt_form?: any;
+        custom_receipt_data?: any;
         custom_form_data?: any;
         distribution_code?: string;
         give_away?: any;
@@ -335,7 +354,7 @@ export declare class ApiShop {
         result: boolean;
         response: any;
     }>;
-    static proofPurchase(order_id: string, text: string): Promise<{
+    static proofPurchase(order_id: string, text: any): Promise<{
         result: boolean;
         response: any;
     }>;
@@ -350,7 +369,7 @@ export declare class ApiShop {
     static rebateID: string;
     static voucherID: string;
     static cartID: string;
-    static ecDataAnalyze(tagArray: string[]): Promise<{
+    static ecDataAnalyze(tagArray: string[], query?: string): Promise<{
         result: boolean;
         response: any;
     }>;
@@ -383,6 +402,13 @@ export declare class ApiShop {
         response: any;
     }>;
     static putVariants(cf: {
+        data: any;
+        token?: string;
+    }): Promise<{
+        result: boolean;
+        response: any;
+    }>;
+    static recoverVariants(cf: {
         data: any;
         token?: string;
     }): Promise<{

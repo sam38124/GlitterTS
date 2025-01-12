@@ -687,6 +687,7 @@ function detail(gvc, cf, vm, cVm, page_tab) {
         }, 400);
         function checkSwitchToUiEditor() {
             function next() {
+                localStorage.setItem('preview_data', JSON.stringify(vm.data.content));
                 window.parent.glitter.setUrlParameter('page-id', vm.data.id);
                 window.parent.glitter.setUrlParameter('language', language);
                 window.parent.glitter.share.switch_to_web_builder(`${domainPrefix}/${vm.data.content.tag}`);

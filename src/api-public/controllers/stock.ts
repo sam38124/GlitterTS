@@ -1,10 +1,6 @@
 import express from 'express';
 import response from '../../modules/response';
-import multer from 'multer';
 import exception from '../../modules/exception';
-import db from '../../modules/database.js';
-import redis from '../../modules/redis.js';
-import { UtDatabase } from '../utils/ut-database.js';
 import { UtPermission } from '../utils/ut-permission';
 import { Stock, StockHistoryType } from '../services/stock.js';
 
@@ -20,6 +16,7 @@ router.get('/store/productList', async (req: express.Request, resp: express.Resp
                     page: req.query.page ? `${req.query.page}` : '0',
                     limit: req.query.limit ? `${req.query.limit}` : '20',
                     search: req.query.search as string,
+                    variant_id_list: req.query.variant_id_list as string,
                 })
             );
         } else {
@@ -50,9 +47,10 @@ router.get('/history', async (req: express.Request, resp: express.Response) => {
                 await new Stock(req.get('g-app') as string, req.body.token).getHistory({
                     page: req.query.page ? `${req.query.page}` : '0',
                     limit: req.query.limit ? `${req.query.limit}` : '20',
-                    search: req.query.search as string,
                     type: req.query.type as StockHistoryType,
                     order_id: req.query.order_id as string,
+                    search: req.query.search as string,
+                    queryType: req.query.queryType as string,
                 })
             );
         } else {

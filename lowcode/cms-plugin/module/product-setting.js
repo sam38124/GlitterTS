@@ -49,12 +49,10 @@ export class ProductSetting {
                             width: 10px;
                             height: 10px;
                         }
-
                         .scrollbar-appear::-webkit-scrollbar-thumb {
                         background: #666;
                         border-radius: 20px;
                         }
-
                         .scrollbar-appear::-webkit-scrollbar-track {
                         border-radius: 20px;
                         background: #D8D8D8;
@@ -63,7 +61,7 @@ export class ProductSetting {
                         }
                     `);
                     return html `
-                        <div class="d-flex flex-column "
+                        <div class="d-flex flex-column"
                              style="width: 100vw;height:100vh;position: absolute;left: 0;top:0;background-color: white;z-index:1;">
                             <div class="d-flex align-items-center"
                                  style="height: 60px;width: 100vw;border-bottom: solid 1px #DDD;font-size: 16px;font-style: normal;font-weight: 700;color: #393939;">

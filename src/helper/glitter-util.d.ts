@@ -1,4 +1,3 @@
-/// <reference types="cookie-parser" />
 import * as core from "express-serve-static-core";
 import express from 'express';
 export declare class GlitterUtil {
@@ -12,7 +11,10 @@ export declare class GlitterUtil {
         rout: string;
         path: string;
         root_path: string;
-        seoManager: (req: express.Request, resp: express.Response) => Promise<string>;
+        seoManager: (req: express.Request, resp: express.Response) => Promise<{
+            head: string;
+            body: string;
+        }>;
         sitemap: (req: express.Request, resp: express.Response) => Promise<string>;
         sitemap_list: (req: express.Request, resp: express.Response) => Promise<string>;
         robots: (req: express.Request, resp: express.Response) => Promise<string>;

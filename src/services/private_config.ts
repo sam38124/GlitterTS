@@ -24,7 +24,7 @@ export class Private_config {
                 [config.appName, config.key, config.value, moment(new Date()).format('YYYY-MM-DD HH:mm:ss')]
             );
         } catch (e) {
-            console.log(e);
+            console.error(e);
             throw exception.BadRequestError('ERROR', 'ERROR.' + e, null);
         }
     }
@@ -33,35 +33,35 @@ export class Private_config {
             throw exception.BadRequestError('Forbidden', 'No Permission.', null);
         }
         try {
-            const data=(await db.execute(
+            const data = await db.execute(
                 `select * from \`${saasConfig.SAAS_NAME}\`.private_config where app_name=${db.escape(config.appName)} and 
                                              \`key\`=${db.escape(config.key)}
             `,
                 []
-            ));
-            if(data[0] && data[0].value){
-                Private_config.checkConfigUpdate(data[0].value,config.key)
+            );
+            if (data[0] && data[0].value) {
+                Private_config.checkConfigUpdate(data[0].value, config.key);
             }
-            return data
+            return data;
         } catch (e) {
-            console.log(e);
+            console.error(e);
             throw exception.BadRequestError('ERROR', 'ERROR.' + e, null);
         }
     }
     public static async getConfig(config: { appName: string; key: string }) {
         try {
-            const data=(await db.execute(
+            const data = await db.execute(
                 `select * from \`${saasConfig.SAAS_NAME}\`.private_config where app_name=${db.escape(config.appName)} and 
                                              \`key\`=${db.escape(config.key)}
             `,
                 []
-            ));
-            if(data[0] && data[0].value){
-                this.checkConfigUpdate(data[0].value,config.key)
+            );
+            if (data[0] && data[0].value) {
+                this.checkConfigUpdate(data[0].value, config.key);
             }
             return data;
         } catch (e) {
-            console.log(e);
+            console.error(e);
             throw exception.BadRequestError('ERROR', 'ERROR.' + e, null);
         }
     }
@@ -87,12 +87,12 @@ export class Private_config {
     }
 
     //判斷是否要更新配置檔案資料結構
-    public static checkConfigUpdate(keyData:any,key:string){
-        switch (key){
+    public static checkConfigUpdate(keyData: any, key: string) {
+        switch (key) {
             case 'glitter_finance':
                 //轉換成V2版本
-                if (!(keyData).ecPay) {
-                    const og = keyData as any
+                if (!keyData.ecPay) {
+                    const og = keyData as any;
                     for (const b of ['newWebPay', 'ecPay']) {
                         if ((keyData as any).TYPE === b) {
                             (keyData as any)[b] = {
@@ -105,8 +105,8 @@ export class Private_config {
                                 c_code: og.c_code,
                                 credit: og.credit,
                                 web_atm: og.web_atm,
-                                toggle: true
-                            }
+                                toggle: true,
+                            };
                         } else {
                             (keyData as any)[b] = {
                                 MERCHANT_ID: '',
@@ -118,8 +118,8 @@ export class Private_config {
                                 c_code: true,
                                 credit: true,
                                 web_atm: true,
-                                toggle: false
-                            }
+                                toggle: false,
+                            };
                         }
                     }
                 }
@@ -129,8 +129,8 @@ export class Private_config {
                         PAYPAL_CLIENT_ID: '',
                         PAYPAL_SECRET: '',
                         BETA: false,
-                        toggle: false
-                    }
+                        toggle: false,
+                    };
                 }
                 //LinePay
                 if (!(keyData as any).line_pay) {
@@ -138,8 +138,8 @@ export class Private_config {
                         CLIENT_ID: '',
                         SECRET: '',
                         BETA: false,
-                        toggle: false
-                    }
+                        toggle: false,
+                    };
                 }
                 //LinePay POS
                 if (!(keyData as any).line_pay_scan) {
@@ -147,26 +147,26 @@ export class Private_config {
                         CLIENT_ID: '',
                         SECRET: '',
                         BETA: false,
-                        toggle: false
-                    }
+                        toggle: false,
+                    };
                 }
                 //POS 實體信用卡
                 if (!(keyData as any).ut_credit_card) {
                     keyData.ut_credit_card = {
-                        pwd:'',
-                        toggle: false
-                    }
+                        pwd: '',
+                        toggle: false,
+                    };
                 }
-                ['paypal','newWebPay', 'ecPay'].map((dd)=>{
-                    if(keyData[dd].toggle){
-                        keyData.TYPE=dd;
+                ['paypal', 'newWebPay', 'ecPay'].map((dd) => {
+                    if (keyData[dd].toggle) {
+                        keyData.TYPE = dd;
                     }
                 });
                 ['MERCHANT_ID', 'HASH_IV', 'HASH_KEY', 'ActionURL', 'atm', 'c_bar_code', 'c_code', 'credit', 'web_atm'].map((dd) => {
-                    (keyData as any)[dd] = undefined
+                    (keyData as any)[dd] = undefined;
                 });
-                keyData.payment_info_custom=keyData.payment_info_custom || [];
-                break
+                keyData.payment_info_custom = keyData.payment_info_custom || [];
+                break;
         }
     }
 }
