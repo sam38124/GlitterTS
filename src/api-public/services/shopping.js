@@ -3308,6 +3308,7 @@ OR JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.orderStatus')) NOT IN (-99)) `);
         }
     }
     checkVariantDataType(variants) {
+        console.log("variants == ", variants);
         variants.map((dd) => {
             dd.stock && (dd.stock = parseInt(dd.stock, 10));
             dd.product_id && (dd.product_id = parseInt(dd.product_id, 10));
@@ -3413,12 +3414,13 @@ OR JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.orderStatus')) NOT IN (-99)) `);
     }
     async postMulProduct(content) {
         try {
-            if (content.collection.length > 0) {
+            if (content.collection && content.collection.length > 0) {
                 await this.updateCollectionFromUpdateProduct(content.collection);
             }
             let productArray = content.data;
             await (Promise.all(productArray.map((product, index) => {
                 return new Promise(async (resolve, reject) => {
+                    console.log("product -- ", product);
                     product.type = 'product';
                     if (product.id) {
                         const og_data = (await database_js_1.default.query(`select *
@@ -3445,6 +3447,7 @@ OR JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.orderStatus')) NOT IN (-99)) `);
             ]);
             let insertIDStart = data.insertId;
             await new Shopping(this.app, this.token).processProducts(productArray, insertIDStart);
+            console.log("匯入OK");
             return insertIDStart;
         }
         catch (e) {

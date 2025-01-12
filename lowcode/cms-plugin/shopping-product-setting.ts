@@ -705,7 +705,7 @@ export class ShoppingProductSetting {
                                                                                                 });
                                                                                             });
                                                                                         }
-
+                                        
                                                                                         vm.dataList = data.response.data;
                                                                                         vmi.pageSize = Math.ceil(data.response.total / limit);
                                                                                         vmi.originalData = vm.dataList;
@@ -887,11 +887,11 @@ export class ShoppingProductSetting {
         let index: number = 0;
         let stockList:any = []
 
-
         postMD.variants.map((data: any, ind: number) => {
             if (data.editable) {
                 index = ind;
                 variant = obj.single ? data : JSON.parse(JSON.stringify(data));
+
                 orignData = data;
             }
         });
@@ -1622,6 +1622,7 @@ export class ShoppingProductSetting {
         initial_data?: any;
         product_type?: 'product' | 'addProduct' | 'giveaway' | 'hidden'
     }) {
+
         let postMD: {
             label: any;
             shipment_type?: string;

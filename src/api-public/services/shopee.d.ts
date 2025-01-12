@@ -1,7 +1,150 @@
+/// <reference types="node" />
 import { IToken } from '../models/Auth.js';
-export declare class LineMessage {
+export interface LanguageData {
+    title: string;
+    seo: {
+        domain: string;
+        title: string;
+        content: string;
+        keywords: string;
+    };
+}
+export declare class Shopee {
     app: string;
     token: IToken | undefined;
     constructor(app: string, token?: IToken);
-    generateAuth(): void;
+    generateUrl(partner_id: string, api_path: string, timestamp: number): string;
+    generateShopUrl(partner_id: string, api_path: string, timestamp: number, access_token: string, shop_id: number): string;
+    private cryptoSign;
+    generateAuth(redirectUrl: string): string;
+    getToken(code: string, shop_id: string): Promise<void>;
+    getItemList(start: string, end: string): Promise<"匯入OK" | undefined>;
+    getProductDetail(id: number): Promise<{
+        template: string;
+        visible: string;
+        preview_image: any[];
+        relative_product: any[];
+        active_schedule: {
+            endDate: undefined;
+            startTime: string;
+            endTime: undefined;
+            startDate: string;
+        };
+        content_array: any[];
+        channel: string[];
+        collection: any[];
+        variants: any[];
+        title: string;
+        ai_description: string;
+        content: string;
+        specs: any[];
+        language_data: {
+            "en-US": {
+                content_array: any[];
+                title: string;
+                seo: {
+                    keywords: string;
+                    domain: string;
+                    title: string;
+                    content: string;
+                };
+                content: string;
+            };
+            "zh-TW": {
+                title: any;
+                seo: any;
+            };
+            "zh-CN": {
+                content_array: any[];
+                title: string;
+                seo: {
+                    keywords: string;
+                    domain: string;
+                    title: string;
+                    content: string;
+                };
+                content: string;
+            };
+        };
+        hideIndex: string;
+        seo: {
+            keywords: string;
+            domain: string;
+            title: string;
+            content: string;
+        };
+        productType: {
+            product: boolean;
+            addProduct: boolean;
+            giveaway: boolean;
+        };
+        content_json: any[];
+        status: string;
+    } | undefined>;
+    getInitial(obj: any): {
+        type: string;
+        title: string;
+        ai_description: string;
+        language_data: {
+            'en-US': {
+                title: string;
+                seo: {
+                    domain: string;
+                    title: string;
+                    content: string;
+                    keywords: string;
+                };
+                content: string;
+                content_array: never[];
+            };
+            'zh-CN': {
+                title: string;
+                seo: {
+                    domain: string;
+                    title: string;
+                    content: string;
+                    keywords: string;
+                };
+                content: string;
+                content_array: never[];
+            };
+            'zh-TW': {
+                title: any;
+                seo: any;
+            };
+        };
+        productType: {
+            product: boolean;
+            addProduct: boolean;
+            giveaway: boolean;
+        };
+        content: string;
+        visible: string;
+        status: string;
+        collection: never[];
+        hideIndex: string;
+        preview_image: never[];
+        specs: never[];
+        variants: never[];
+        seo: {
+            title: string;
+            content: string;
+            keywords: string;
+            domain: string;
+        };
+        relative_product: never[];
+        template: string;
+        content_array: never[];
+        content_json: never[];
+        active_schedule: {
+            startDate: string;
+            startTime: string;
+            endDate: undefined;
+            endTime: undefined;
+        };
+        channel: string[];
+    };
+    private getDateTime;
+    uploadFile(file_name: string, fileData: Buffer): Promise<string>;
+    downloadImage(imageUrl: string): Promise<Buffer>;
 }

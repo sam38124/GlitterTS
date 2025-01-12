@@ -10,6 +10,16 @@ import {Language} from './glitter-base/global/language.js';
 
 export class Entry {
     public static onCreate(glitter: Glitter) {
+        const shopp=localStorage.getItem('shopee')
+        if(shopp){
+            localStorage.removeItem('shopee')
+            localStorage.setItem('shopeeCode' , JSON.stringify({
+                code : glitter.getUrlParameter('code'),
+                shop_id : glitter.getUrlParameter('shop_id'),
+            }))
+            location.href=shopp
+            return;
+        }
         if ((window as any).language !== Language.getLanguage()) {
             const url = new URL(`${glitter.root_path}${Language.getLanguageLinkPrefix()}${(window as any).glitter_page}${new URL(location.href).search}`);
             if (glitter.getUrlParameter('appName')) {

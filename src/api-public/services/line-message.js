@@ -698,7 +698,6 @@ class LineMessage {
             }
         });
         productData.push(JSON.parse(messageData.postback.data));
-        console.log("productData -- ", productData);
         await redis_js_1.default.setValue(dataKey, JSON.stringify(productData));
         let token = `${tokenData[0].value.message_token}`;
     }
@@ -748,7 +747,6 @@ class LineMessage {
                 },
                 responseType: 'arraybuffer',
             });
-            console.log('response.data -- ', response.data);
             return await this.uploadFile(`line/${messageId}/${new Date().getTime()}.png`, response.data);
         }
         catch (error) {

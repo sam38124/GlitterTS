@@ -1237,6 +1237,15 @@ Setting_editor.menuItems = () => {
         },
         {
             icon: '',
+            page: 'market-shopee',
+            group: '第三方整合',
+            title: '蝦皮串接同步設定',
+            appName: 'cms_system',
+            groupIcon: 'https://d3jnmi1tfjgtti.cloudfront.net/file/234285319/list-tree-regular.svg',
+            moduleName: '蝦皮',
+        },
+        {
+            icon: '',
             page: 'web_theme',
             group: '品牌官網',
             title: '佈景主題',

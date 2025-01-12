@@ -18,6 +18,16 @@ import { Language } from './glitter-base/global/language.js';
 export class Entry {
     static onCreate(glitter) {
         var _a;
+        const shopp = localStorage.getItem('shopee');
+        if (shopp) {
+            localStorage.removeItem('shopee');
+            localStorage.setItem('shopeeCode', JSON.stringify({
+                code: glitter.getUrlParameter('code'),
+                shop_id: glitter.getUrlParameter('shop_id'),
+            }));
+            location.href = shopp;
+            return;
+        }
         if (window.language !== Language.getLanguage()) {
             const url = new URL(`${glitter.root_path}${Language.getLanguageLinkPrefix()}${window.glitter_page}${new URL(location.href).search}`);
             if (glitter.getUrlParameter('appName')) {

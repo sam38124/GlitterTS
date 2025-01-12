@@ -4109,6 +4109,7 @@ OR JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.orderStatus')) NOT IN (-99)) `);
     }
 
     checkVariantDataType(variants: any[]) {
+        console.log("variants == " , variants)
         variants.map((dd) => {
             dd.stock && (dd.stock = parseInt(dd.stock, 10));
             dd.product_id && (dd.product_id = parseInt(dd.product_id, 10));
@@ -4240,12 +4241,14 @@ OR JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.orderStatus')) NOT IN (-99)) `);
 
     async postMulProduct(content: any) {
         try {
-
-            if (content.collection.length > 0) {
+            if (content.collection && content.collection.length > 0) {
                 //有新類別要處理
                 await this.updateCollectionFromUpdateProduct(content.collection);
             }
+
             let productArray: any = content.data;
+
+
             await (Promise.all(productArray.map((product: any, index: number) => {
                 return new Promise(async (resolve, reject) => {
                     product.type = 'product';
@@ -4267,6 +4270,8 @@ OR JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.orderStatus')) NOT IN (-99)) `);
                     resolve(true)
                 })
             })));
+
+
             const data = await db.query(
                 `replace
                 INTO \`${this.app}\`.\`t_manager_post\` (id,userID,content) values ?`,
@@ -4280,6 +4285,7 @@ OR JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.orderStatus')) NOT IN (-99)) `);
             );
             let insertIDStart = data.insertId;
             await new Shopping(this.app, this.token).processProducts(productArray, insertIDStart);
+            console.log("匯入OK")
             return insertIDStart;
         } catch (e) {
             console.error(e);

@@ -4,6 +4,8 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 const express_1 = __importDefault(require("express"));
 const response_1 = __importDefault(require("../../modules/response"));
+const ut_permission_js_1 = require("../utils/ut-permission.js");
+const shopee_1 = require("../services/shopee");
 const router = express_1.default.Router();
 router.get('/', async (req, resp) => {
     try {
@@ -13,12 +15,36 @@ router.get('/', async (req, resp) => {
         return response_1.default.fail(resp, err);
     }
 });
-router.post('/listenMessage', async (req, resp) => {
+router.post('/getAuth', async (req, resp) => {
     try {
-        console.log("req.body in post -- ", req.body);
         return response_1.default.succ(resp, {
-            "result": "OK"
+            "result": new shopee_1.Shopee(req.get('g-app'), req.body.token).generateAuth(req.body.redirect)
         });
+    }
+    catch (err) {
+        return response_1.default.fail(resp, err);
+    }
+});
+router.post('/getToken', async (req, resp) => {
+    try {
+        console.log(req.body);
+        if (await ut_permission_js_1.UtPermission.isManager(req)) {
+            return response_1.default.succ(resp, {
+                "result": new shopee_1.Shopee(req.get('g-app'), req.body.token).getToken(req.body.code, req.body.shop_id)
+            });
+        }
+    }
+    catch (err) {
+        return response_1.default.fail(resp, err);
+    }
+});
+router.post('/getItemList', async (req, resp) => {
+    try {
+        if (await ut_permission_js_1.UtPermission.isManager(req)) {
+            return response_1.default.succ(resp, {
+                "result": new shopee_1.Shopee(req.get('g-app'), req.body.token).getItemList(req.body.start, req.body.end)
+            });
+        }
     }
     catch (err) {
         return response_1.default.fail(resp, err);

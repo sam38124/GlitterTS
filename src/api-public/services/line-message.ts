@@ -827,7 +827,7 @@ export class LineMessage {
             }
         })
         productData.push(JSON.parse(messageData.postback.data));
-        console.log("productData -- " , productData);
+
         await redis.setValue(dataKey , JSON.stringify(productData));
         let token = `${tokenData[0].value.message_token}`;
         // await this.sendMessage(token , userId , message);
@@ -893,7 +893,6 @@ export class LineMessage {
                 },
                 responseType: 'arraybuffer', // 指定回應的資料格式為二進位 (Buffer)
             });
-            console.log('response.data -- ', response.data);
             return await this.uploadFile(`line/${messageId}/${new Date().getTime()}.png`, response.data); // 回傳圖片的 Buffer
         } catch (error) {
             console.error('Failed to get image content:', error);
