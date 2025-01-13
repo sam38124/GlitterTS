@@ -41,12 +41,12 @@ router.post('/getToken', async (req, resp) => {
 router.post('/getItemList', async (req, resp) => {
     try {
         if (await ut_permission_js_1.UtPermission.isManager(req)) {
-            return response_1.default.succ(resp, {
-                "result": new shopee_1.Shopee(req.get('g-app'), req.body.token).getItemList(req.body.start, req.body.end)
-            });
+            const itemList = await new shopee_1.Shopee(req.get('g-app'), req.body.token).getItemList(req.body.start, req.body.end);
+            return response_1.default.succ(resp, itemList);
         }
     }
     catch (err) {
+        console.log("here -- ok");
         return response_1.default.fail(resp, err);
     }
 });

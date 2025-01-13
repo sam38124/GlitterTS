@@ -151,6 +151,12 @@ class Shopee {
         };
         try {
             const response = await (0, axios_1.default)(config);
+            if (response.data.error.length > 0) {
+                return {
+                    type: "error",
+                    message: response.data.error
+                };
+            }
             const itemList = response.data.response.item;
             const productData = await Promise.all(itemList.map(async (item, index) => {
                 try {
@@ -164,12 +170,31 @@ class Shopee {
             }));
             const temp = {};
             temp.data = productData.reverse();
-            await new shopping_js_1.Shopping(this.app, this.token).postMulProduct(temp);
-            return "匯入OK";
+            temp.collection = [];
+            try {
+                await new shopping_js_1.Shopping(this.app, this.token).postMulProduct(temp);
+                return {
+                    data: temp.data,
+                    message: '匯入OK'
+                };
+            }
+            catch (error) {
+                return {
+                    type: "error",
+                    data: temp.data,
+                    message: '產品匯入資料庫失敗'
+                };
+            }
         }
         catch (error) {
             if (axios_1.default.isAxiosError(error) && error.response) {
+                console.log("Try get_item_list error");
                 console.error('Error Response:', error.response.data);
+                return {
+                    type: "error",
+                    error: error.response.data.error,
+                    message: error.response.data.message.message,
+                };
             }
             else {
                 console.error('Unexpected Error:', error.message);

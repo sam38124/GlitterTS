@@ -207,12 +207,23 @@ export class MarketShopee {
                                         text: "資料匯入中",
                                         visible: true
                                     });
-                                    ApiShopee.getItemList(startTime, endTime, () => {
+                                    ApiShopee.getItemList(startTime, endTime, (response) => {
                                         dialog.dataLoading({
                                             text: "資料匯入中",
                                             visible: false
                                         });
-                                        alert("匯入完成");
+                                        console.log("response -- ", response);
+                                        if (response.type == "error") {
+                                            dialog.infoMessage({
+                                                text: `error:${response.message}`
+                                            });
+                                        }
+                                        else {
+                                            dialog.infoMessage({
+                                                text: `匯入完成`
+                                            });
+                                            gvc.closeDialog();
+                                        }
                                     });
                                 })}">確定
                                                     </button>

@@ -87,7 +87,6 @@ export class MarketShopee {
                                     <button class="shopee-btn mt-3" onclick="${gvc.event(() => {
                                         localStorage.setItem("shopee", window.parent.location.href)
                                         ApiShopee.generateAuth(window.parent.location.href);
-                                        // 
                                     })}">授權蝦皮
                                     </button>
                                     <button class="shopee-btn mt-3" onclick="${gvc.event(() => {
@@ -209,6 +208,7 @@ export class MarketShopee {
 
                                                     <button id="confirm-btn" class="sync-button"
                                                             onclick="${gvc.event(() => {
+                                                                
                                                                 const startTime = Math.floor(new Date(startDate).getTime() / 1000);
                                                                 const endTime = Math.floor(new Date(endDate).getTime() / 1000);
                                                                 const dialog = new ShareDialog(gvc.glitter);
@@ -216,12 +216,23 @@ export class MarketShopee {
                                                                     text:"資料匯入中",
                                                                     visible:true
                                                                 })
-                                                                ApiShopee.getItemList(startTime , endTime ,()=>{
+                                                                ApiShopee.getItemList(startTime , endTime ,(response:any)=>{
                                                                     dialog.dataLoading({
                                                                         text:"資料匯入中",
                                                                         visible:false
                                                                     })
-                                                                    alert("匯入完成")
+                                                                    console.log("response -- " , response)
+                                                                    if (response.type == "error"){
+                                                                        dialog.infoMessage({
+                                                                            text:`error:${response.message}`
+                                                                        })
+                                                                    }else {
+                                                                        dialog.infoMessage({
+                                                                            text:`匯入完成`
+                                                                        })
+                                                                        gvc.closeDialog()
+                                                                    }
+                                                                    
                                                                 })
                                                                 
                                                             })}">確定

@@ -85,7 +85,6 @@ export class Shopee {
     }
     public generateAuth (redirectUrl:string){
         const partner_id = process.env.shopee_partner_id;//測試版是test partner_id;
-
         // const path = "https://partner.shopeemobile.com/ "//正式版環境
         const path = "https://partner.test-stable.shopeemobile.com";
         const api_path = "/api/v2/shop/auth_partner"
@@ -175,8 +174,15 @@ export class Shopee {
             },
             paramsSerializer: (params:any) => qs.stringify(params, { arrayFormat: 'repeat' }),
         };
+        // access_token:data[0].value.access_token,
         try {
             const response = await axios(config);
+            if (response.data.error.length > 0) {
+                return {
+                    type : "error",
+                    message : response.data.error
+                }
+            }
             const itemList:{
                 item_id:number,
                 item_status:string,
@@ -197,12 +203,33 @@ export class Shopee {
             );
             const temp:any = {}
             temp.data = productData.reverse();
-            await new Shopping(this.app , this.token).postMulProduct(temp);
-            return "匯入OK"
+            temp.collection = [];
+            try {
+                await new Shopping(this.app , this.token).postMulProduct(temp);
+                return {
+                    data : temp.data,
+                    message:'匯入OK'
+                }
+            }catch (error:any){
+                return {
+                    type : "error",
+                    data : temp.data,
+                    message:'產品匯入資料庫失敗'
+                }
+            }
+
+
 
         } catch (error: any) {
             if (axios.isAxiosError(error) && error.response) {
+                console.log("Try get_item_list error")
                 console.error('Error Response:', error.response.data);
+
+                return {
+                    type : "error",
+                    error: error.response.data.error,
+                    message: error.response.data.message.message,
+                }
             } else {
                 console.error('Unexpected Error:', error.message);
             }

@@ -52,15 +52,15 @@ router.post('/getToken', async (req: express.Request, resp: express.Response) =>
 router.post('/getItemList', async (req: express.Request, resp: express.Response) => {
     try {
         if(await UtPermission.isManager(req)){
+            const itemList = await new Shopee(req.get('g-app') as string, req.body.token).getItemList(req.body.start, req.body.end);
             return response.succ(
                 resp,
-                {
-                    "result":new Shopee(req.get('g-app') as string, req.body.token).getItemList(req.body.start, req.body.end)
-                }
+                itemList
             )
         }
 
     } catch (err) {
+        console.log("here -- ok")
         return response.fail(resp, err);
     }
 });

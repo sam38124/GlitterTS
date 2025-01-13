@@ -18,7 +18,27 @@ export declare class Shopee {
     private cryptoSign;
     generateAuth(redirectUrl: string): string;
     getToken(code: string, shop_id: string): Promise<void>;
-    getItemList(start: string, end: string): Promise<"匯入OK" | undefined>;
+    getItemList(start: string, end: string): Promise<{
+        type: string;
+        message: any;
+        data?: undefined;
+        error?: undefined;
+    } | {
+        data: any;
+        message: string;
+        type?: undefined;
+        error?: undefined;
+    } | {
+        type: string;
+        data: any;
+        message: string;
+        error?: undefined;
+    } | {
+        type: string;
+        error: any;
+        message: any;
+        data?: undefined;
+    } | undefined>;
     getProductDetail(id: number): Promise<{
         template: string;
         visible: string;

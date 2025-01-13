@@ -14,9 +14,9 @@ export class ApiShopee {
                 "redirect" : redirect
             })
         }).then(r => {
+            console.log("r.response.result -- " , r.response.result)
             localStorage.setItem("shopee" , window.parent.location.href);
             window.parent.location.href = r.response.result;
-
         });
     }
     public static getToken(code:string , shop_id:number){
@@ -37,7 +37,7 @@ export class ApiShopee {
 
         });
     }
-    public static getItemList(start:number , end:number ,callback:()=>void){
+    public static getItemList(start:number , end:number ,callback:(response:any)=>void){
 
         BaseApi.create({
             url: getBaseUrl() + `/api-public/v1/shopee/getItemList`,
@@ -52,8 +52,7 @@ export class ApiShopee {
                 "end" : end
             })
         }).then(r => {
-            console.log("r -- " , r);
-            callback();
+            callback(r.response);
         });
     }
 }
