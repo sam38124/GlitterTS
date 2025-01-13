@@ -3,6 +3,7 @@ export class OrderDetail {
     shipment: number;
     discount: number;
     rebate: number;
+    orderID?:string;
     cart_token: string;
     code_array?:string[]
     voucher?: VoucherData;
@@ -15,6 +16,7 @@ export class OrderDetail {
         sale_price: number;
         sku: string
     }[];
+    reserve_date?: string;
     customer_info: {
         payment_select: string;
         name: string;
@@ -120,7 +122,10 @@ export  type ViewModel = {
     searchable: boolean;
     categorySearch: boolean;
     categories: any[];
-    paySelect: string;
+    paySelect: {
+        method:'cash'|'creditCard'|'line',
+        total:number
+    }[];
     loading:boolean
 };
 

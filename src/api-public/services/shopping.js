@@ -320,10 +320,20 @@ class Shopping {
                     dd.content.content_json = dd.content.language_data[`${query.language}`].content_json || dd.content.content_json;
                     dd.content.preview_image = dd.content.language_data[`${query.language}`].preview_image || dd.content.preview_image;
                     (dd.content.variants || []).map((variant) => {
+                        variant.stock = 0;
                         variant.preview_image = variant[`preview_image_${query.language}`] || variant.preview_image;
                         if (variant.preview_image === 'https://d3jnmi1tfjgtti.cloudfront.net/file/234285319/1722936949034-default_image.jpg') {
                             variant.preview_image = dd.content.preview_image[0];
                         }
+                        Object.keys(variant.stockList).map((dd) => {
+                            if (!variant.stockList[dd] || !variant.stockList[dd].count) {
+                                delete variant.stockList[dd];
+                            }
+                            else {
+                                variant.stockList[dd].count = parseInt(variant.stockList[dd].count, 10);
+                                variant.stock += variant.stockList[dd].count;
+                            }
+                        });
                     });
                 }
             }
@@ -389,10 +399,10 @@ class Shopping {
     async querySqlByVariants(querySql, query) {
         let sql = `SELECT v.id,
                           v.product_id,
-                          v.content as                                            variant_content,
-                          p.content as                                            product_content,
+                          v.content                                            as variant_content,
+                          p.content                                            as product_content,
                           CAST(JSON_EXTRACT(v.content, '$.stock') AS UNSIGNED) as stock,
-                          JSON_EXTRACT(v.content, '$.stockList') as stockList
+                          JSON_EXTRACT(v.content, '$.stockList')               as stockList
                    FROM \`${this.app}\`.t_variants AS v
                             JOIN
                         \`${this.app}\`.t_manager_post AS p ON v.product_id = p.id
@@ -642,7 +652,7 @@ class Shopping {
                 shipment_fee: 0,
                 rebate: 0,
                 use_rebate: data.use_rebate || 0,
-                orderID: data.orderID || this.generateOrderID(),
+                orderID: (data).order_id || this.generateOrderID(),
                 shipment_support: shipment_setting.support,
                 shipment_info: shipment_setting.info,
                 shipment_selector: [
@@ -731,6 +741,7 @@ class Shopping {
             }
             const add_on_items = [];
             let gift_product = [];
+            let saveStockArray = [];
             for (const b of data.line_items) {
                 try {
                     const pdDqlData = (await this.getProduct({
@@ -745,7 +756,12 @@ class Shopping {
                         const variant = pd.variants.find((dd) => {
                             return dd.spec.join('-') === b.spec.join('-');
                         });
+                        console.log(`variant1===>`, variant);
                         if ((Number.isInteger(variant.stock) || variant.show_understocking === 'false') && Number.isInteger(b.count)) {
+                            console.log(`variant2===>`, variant);
+                            if (data.checkOutType === 'POS' && variant.show_understocking !== 'false') {
+                                variant.stock = variant.stockList && variant.stockList[data.pos_store].count;
+                            }
                             if (variant.stock < b.count && variant.show_understocking !== 'false' && type !== 'manual' && type !== 'manual-preview') {
                                 b.count = variant.stock;
                             }
@@ -783,17 +799,32 @@ class Shopping {
                                     b.sale_price = 0;
                                 }
                             }
-                            if (type !== 'preview' && type !== 'manual' && type !== 'manual-preview') {
-                                const returnData = new stock_1.Stock(this.app, this.token).allocateStock(variant.stockList, b.count);
+                            console.log(`type=>`, type);
+                            if (type !== 'preview' && type !== 'manual' && type !== 'manual-preview' && variant.show_understocking !== 'false') {
+                                console.log(`variant資訊=>`, type);
                                 const countless = variant.stock - b.count;
                                 variant.stock = countless > 0 ? countless : 0;
-                                variant.deduction_log = returnData.deductionLog;
-                                b.deduction_log = returnData.deductionLog;
-                                await this.updateVariantsWithSpec(variant, b.id, b.spec);
-                                await database_js_1.default.query(`UPDATE \`${this.app}\`.\`t_manager_post\`
-                                     SET ?
-                                     WHERE 1 = 1
-                                       and id = ${pdDqlData.id}`, [{ content: JSON.stringify(pd) }]);
+                                if (type === 'POS') {
+                                    variant.deduction_log = {};
+                                    variant.deduction_log[data.pos_store] = b.count;
+                                    variant.stockList[data.pos_store].count -= b.count;
+                                    b.deduction_log = variant.deduction_log;
+                                }
+                                else {
+                                    const returnData = new stock_1.Stock(this.app, this.token).allocateStock(variant.stockList, b.count);
+                                    variant.deduction_log = returnData.deductionLog;
+                                    b.deduction_log = returnData.deductionLog;
+                                }
+                                saveStockArray.push(() => {
+                                    return new Promise(async (resolve, reject) => {
+                                        await this.updateVariantsWithSpec(variant, b.id, b.spec);
+                                        await database_js_1.default.query(`UPDATE \`${this.app}\`.\`t_manager_post\`
+                                             SET ?
+                                             WHERE 1 = 1
+                                               and id = ${pdDqlData.id}`, [{ content: JSON.stringify(pd) }]);
+                                        resolve(true);
+                                    });
+                                });
                             }
                         }
                         if (!pd.productType.product && pd.productType.addProduct) {
@@ -813,7 +844,9 @@ class Shopping {
                         }
                     }
                 }
-                catch (e) { }
+                catch (e) {
+                    console.log(e);
+                }
             }
             console.log(`checkout-time-7=>`, new Date().getTime() - check_time);
             carData.shipment_fee = (() => {
@@ -882,7 +915,8 @@ class Shopping {
                             carData.lineItems.push(dd);
                         }
                     }
-                    catch (e) { }
+                    catch (e) {
+                    }
                 });
                 await this.checkVoucher(carData);
                 console.log(`checkout-time-check-voucher2=>`, new Date().getTime() - check_time);
@@ -1072,12 +1106,18 @@ class Shopping {
                 }
                 await trans.execute(`INSERT INTO \`${this.app}\`.t_checkout (cart_token, status, email, orderData)
                      values (?, ?, ?, ?)`, [carData.orderID, data.pay_status, carData.email, JSON.stringify(carData)]);
-                carData.invoice = await new invoice_js_1.Invoice(this.app).postCheckoutInvoice(carData, carData.user_info.send_type !== 'carrier');
-                if (!carData.invoice) {
-                    throw exception_js_1.default.BadRequestError('BAD_REQUEST', '發票開立失敗:', null);
+                if (data.invoice_select !== 'nouse') {
+                    carData.invoice = await new invoice_js_1.Invoice(this.app).postCheckoutInvoice(carData, carData.user_info.send_type !== 'carrier');
+                    if (!carData.invoice) {
+                        throw exception_js_1.default.BadRequestError('BAD_REQUEST', '發票開立失敗:', null);
+                    }
                 }
+                ;
                 await trans.commit();
                 await trans.release();
+                await Promise.all(saveStockArray.map((dd) => {
+                    return dd();
+                }));
                 return { result: 'SUCCESS', message: 'POS訂單新增成功', data: carData };
             }
             else {
@@ -1119,6 +1159,9 @@ class Shopping {
                 if (carData.use_wallet > 0) {
                     new invoice_js_1.Invoice(this.app).postCheckoutInvoice(carData.orderID, false);
                 }
+                await Promise.all(saveStockArray.map((dd) => {
+                    return dd();
+                }));
                 return {
                     is_free: true,
                     return_url: `${process.env.DOMAIN}/api-public/v1/ec/redirect?g-app=${this.app}&return=${id}`,
@@ -1142,16 +1185,25 @@ class Shopping {
                             MERCHANT_ID: kd.MERCHANT_ID,
                             TYPE: carData.customer_info.payment_select,
                         }).createOrderPage(carData);
+                        await Promise.all(saveStockArray.map((dd) => {
+                            return dd();
+                        }));
                         return {
                             form: subMitData,
                         };
                     case 'paypal':
                         kd.ReturnURL = `${process.env.DOMAIN}/api-public/v1/ec/redirect?g-app=${this.app}&return=${id}`;
                         kd.NotifyURL = `${process.env.DOMAIN}/api-public/v1/ec/notify?g-app=${this.app}`;
+                        await Promise.all(saveStockArray.map((dd) => {
+                            return dd();
+                        }));
                         return await new financial_service_js_1.PayPal(this.app, kd).checkout(carData);
                     case 'line_pay':
                         kd.ReturnURL = `${process.env.DOMAIN}/api-public/v1/ec/redirect?g-app=${this.app}&return=${id}`;
                         kd.NotifyURL = `${process.env.DOMAIN}/api-public/v1/ec/notify?g-app=${this.app}`;
+                        await Promise.all(saveStockArray.map((dd) => {
+                            return dd();
+                        }));
                         return await new financial_service_js_1.LinePay(this.app, kd).createOrder(carData);
                     case 'paynow':
                     default:
@@ -1173,12 +1225,16 @@ class Shopping {
                         await auto_send_email_js_1.AutoSendEmail.customerOrder(this.app, 'auto-email-order-create', carData.orderID, carData.email, carData.language);
                         await database_js_1.default.execute(`INSERT INTO \`${this.app}\`.t_checkout (cart_token, status, email, orderData)
                              values (?, ?, ?, ?)`, [carData.orderID, 0, carData.email, carData]);
+                        await Promise.all(saveStockArray.map((dd) => {
+                            return dd();
+                        }));
                         return {
                             off_line: true,
                             return_url: `${process.env.DOMAIN}/api-public/v1/ec/redirect?g-app=${this.app}&return=${id}`,
                         };
                 }
             }
+            ;
         }
         catch (e) {
             console.error(e);
@@ -1766,8 +1822,8 @@ class Shopping {
                 }
             }
             await database_js_1.default.query(`UPDATE \`${this.app}\`.t_checkout
-                            SET orderData = ?
-                            WHERE cart_token = ?;`, [JSON.stringify(orderData), order_id]);
+                 SET orderData = ?
+                 WHERE cart_token = ?;`, [JSON.stringify(orderData), order_id]);
             return { data: true };
         }
         catch (e) {
@@ -2166,7 +2222,7 @@ OR JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.orderStatus')) NOT IN (-99)) `);
                 }
                 return new Promise(async (resolve, reject) => {
                     await database_js_1.default.query(`INSERT INTO \`${this.app}\`.t_variants
-                                    SET ?`, [
+                             SET ?`, [
                         {
                             content: JSON.stringify(a),
                             product_id: content.id,
@@ -2214,8 +2270,8 @@ OR JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.orderStatus')) NOT IN (-99)) `);
     }
     async calcVariantsStock(calc, stock_id, product_id, spec) {
         const pd_data = (await database_js_1.default.query(`select *
-                                         from \`${this.app}\`.t_manager_post
-                                         where id = ?`, [product_id]))[0]['content'];
+                 from \`${this.app}\`.t_manager_post
+                 where id = ?`, [product_id]))[0]['content'];
         const store_config = await new user_js_1.User(this.app).getConfigV2({ key: 'store_manager', user_id: 'manager' });
         const variant_s = pd_data.variants.find((dd) => {
             return dd.spec.join('-') === spec.join('-');
@@ -3134,13 +3190,13 @@ OR JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.orderStatus')) NOT IN (-99)) `);
             }
             const sql = `
                 SELECT v.id,
-                        v.product_id,
-                        v.content as variant_content,
-                        p.content as product_content,
-                        CAST(JSON_EXTRACT(v.content, '$.stock') AS UNSIGNED) as stock
+                       v.product_id,
+                       v.content                                            as variant_content,
+                       p.content                                            as product_content,
+                       CAST(JSON_EXTRACT(v.content, '$.stock') AS UNSIGNED) as stock
                 FROM \`${this.app}\`.t_variants AS v
-                        JOIN
-                    \`${this.app}\`.t_manager_post AS p ON v.product_id = p.id
+                         JOIN
+                     \`${this.app}\`.t_manager_post AS p ON v.product_id = p.id
                 WHERE product_id in (${filterProducts.map((item) => item.id).join(',')})
                 ORDER BY id DESC
             `;
@@ -3483,8 +3539,8 @@ OR JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.orderStatus')) NOT IN (-99)) `);
                     product.type = 'product';
                     if (product.id) {
                         const og_data = (await database_js_1.default.query(`select *
-                                                         from \`${this.app}\`.\`t_manager_post\`
-                                                         where id = ?`, [product.id]))[0];
+                                     from \`${this.app}\`.\`t_manager_post\`
+                                     where id = ?`, [product.id]))[0];
                         if (og_data) {
                             delete product['content'];
                             delete product['preview_image'];
@@ -3913,8 +3969,8 @@ OR JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.orderStatus')) NOT IN (-99)) `);
     }
     static async currencyCovert(base) {
         const data = (await database_js_1.default.query(`SELECT *
-                                           FROM ${config_js_1.saasConfig.SAAS_NAME}.currency_config
-                                           order by id desc limit 0,1;`, []))[0]['json']['rates'];
+                 FROM ${config_js_1.saasConfig.SAAS_NAME}.currency_config
+                 order by id desc limit 0,1;`, []))[0]['json']['rates'];
         const base_m = data[base];
         Object.keys(data).map((dd) => {
             data[dd] = data[dd] / base_m;

@@ -751,19 +751,21 @@ export class BgRecommend {
                                                 gvc.bindView({
                                                     bind: 'listProduct',
                                                     view: () => {
-                                                        let returnHTML = '';
-                                                        if (newOrder.productCheck.length) {
-                                                            newOrder.productCheck.map((product, index) => {
-                                                                var _a;
-                                                                let selectVariant = product.content.variants[parseInt((_a = product.selectIndex) !== null && _a !== void 0 ? _a : 0)];
-                                                                let productIMG = typeof selectVariant.preview_image == 'string' ? selectVariant.preview_image : selectVariant.preview_image[0];
-                                                                productIMG = productIMG
-                                                                    ? productIMG
-                                                                    : product.content.preview_image[0]
-                                                                        ? product.content.preview_image[0]
-                                                                        : BgWidget.noImageURL;
-                                                                selectVariant.qty = selectVariant.qty || 1;
-                                                                returnHTML += html `
+                                                        try {
+                                                            let returnHTML = '';
+                                                            if (newOrder.productCheck.length) {
+                                                                newOrder.productCheck.map((product, index) => {
+                                                                    var _a, _b;
+                                                                    let selectVariant = product.content.variants[parseInt((_a = product.selectIndex) !== null && _a !== void 0 ? _a : 0)];
+                                                                    selectVariant.preview_image = (_b = selectVariant.preview_image) !== null && _b !== void 0 ? _b : '';
+                                                                    let productIMG = typeof selectVariant.preview_image == 'string' ? selectVariant.preview_image : selectVariant.preview_image[0];
+                                                                    productIMG = productIMG
+                                                                        ? productIMG
+                                                                        : product.content.preview_image[0]
+                                                                            ? product.content.preview_image[0]
+                                                                            : BgWidget.noImageURL;
+                                                                    selectVariant.qty = selectVariant.qty || 1;
+                                                                    returnHTML += html `
                                                                                 <div style="width: 100%;display: flex;align-items: center;position: relative;padding-right: 20px;">
                                                                                     <div class="flex-fill d-flex align-items-center col-5" style="font-size: 16px;font-weight: 700;gap: 12px;">
                                                                                         <div style="width: 54px;height: 54px; background: url('${productIMG}') lightgray 50% / cover no-repeat;"></div>
@@ -773,33 +775,6 @@ export class BgRecommend {
                                                                                             <div style="text-overflow: ellipsis;white-space: nowrap;overflow: hidden;width: 100%;">
                                                                                                 ${product.content.title}
                                                                                             </div>
-                                                                                            <div class="d-flex" style="gap:8px;font-weight: 400;">
-                                                                                                ${(() => {
-                                                                    if (selectVariant.spec.length > 0) {
-                                                                        let tempHTML = ``;
-                                                                        selectVariant.spec.map((spec) => {
-                                                                            tempHTML += html ` <div
-                                                                                                                style="display: flex;height: 22px;padding: 4px 6px;justify-content: center;align-items: center;gap: 10px;border-radius: 7px;background: #EAEAEA;"
-                                                                                                            >
-                                                                                                                ${spec}
-                                                                                                            </div>`;
-                                                                        });
-                                                                        return tempHTML;
-                                                                    }
-                                                                    else {
-                                                                        return html `
-                                                                                                            <div
-                                                                                                                style="display: flex;height: 22px;padding: 4px 6px;justify-content: center;align-items: center;gap: 10px;border-radius: 7px;background: #EAEAEA;"
-                                                                                                            >
-                                                                                                                單一規格
-                                                                                                            </div>
-                                                                                                        `;
-                                                                    }
-                                                                })()}
-                                                                                            </div>
-                                                                                            <div style="color: #8D8D8D;font-size: 14px;font-weight: 400;">
-                                                                                                存貨單位 (SKU): ${selectVariant.sku.length ? selectVariant.sku : 'sku未指定'}
-                                                                                            </div>
                                                                                         </div>
                                                                                     </div>
                                                                                     <div
@@ -807,9 +782,9 @@ export class BgRecommend {
                                                                                         style="display: flex;padding-right: 40px;align-items: flex-start;font-size: 16px;font-weight: 400;"
                                                                                     >
                                                                                         $${(() => {
-                                                                    const price = parseInt(`${selectVariant.sale_price}`, 10);
-                                                                    return isNaN(price) ? 0 : price.toLocaleString();
-                                                                })()}
+                                                                        const price = parseInt(`${selectVariant.sale_price}`, 10);
+                                                                        return isNaN(price) ? 0 : price.toLocaleString();
+                                                                    })()}
                                                                                     </div>
                                                                                     <div style="min-width: 6%;font-size: 16px;font-weight: 400;width: 100px;text-align: right;">
                                                                                         <span>$${(selectVariant.sale_price * selectVariant.qty).toLocaleString()}</span>
@@ -817,9 +792,9 @@ export class BgRecommend {
                                                                                             class="d-flex align-items-center cursor_pointer"
                                                                                             style="position: absolute;right:0;top:50%;transform: translateY(-50%)"
                                                                                             onclick="${gvc.event(() => {
-                                                                    newOrder.productCheck.splice(index, 1);
-                                                                    gvc.notifyDataChange('listProduct');
-                                                                })}"
+                                                                        newOrder.productCheck.splice(index, 1);
+                                                                        gvc.notifyDataChange('listProduct');
+                                                                    })}"
                                                                                         >
                                                                                             <svg xmlns="http://www.w3.org/2000/svg" width="11" height="10" viewBox="0 0 11 10" fill="none">
                                                                                                 <path
@@ -839,9 +814,14 @@ export class BgRecommend {
                                                                                     </div>
                                                                                 </div>
                                                                             `;
-                                                            });
+                                                                });
+                                                            }
+                                                            return returnHTML;
                                                         }
-                                                        return returnHTML;
+                                                        catch (e) {
+                                                            console.log(e);
+                                                            return `error`;
+                                                        }
                                                     },
                                                     divCreate: {
                                                         style: `display: flex;flex-direction: column;align-items: flex-start;gap: 18px;align-self: stretch;`,
@@ -854,271 +834,32 @@ export class BgRecommend {
                                                         return html `
                                                                         <div
                                                                             class="w-100 d-flex justify-content-center align-items-center"
-                                                                            style="color: #36B;"
+                                                                            style="color: #36B;gap:5px;"
                                                                             onclick="${gvc.event(() => {
                                                             let confirm = true;
-                                                            window.parent.glitter.innerDialog((gvc) => {
-                                                                newOrder.query = '';
-                                                                newOrder.search = '';
-                                                                newOrder.productArray = [];
-                                                                return gvc.bindView({
-                                                                    bind: 'addDialog',
-                                                                    view: () => {
-                                                                        var _a;
-                                                                        let width = window.innerWidth > 1000 ? 690 : 350;
-                                                                        let searchLoading = false;
-                                                                        return html ` <div
-                                                                                                    style="display: flex;width: ${width}px;flex-direction: column;align-items: flex-start;gap: 18px;border-radius: 10px;background: #FFF;"
-                                                                                                >
-                                                                                                    <div
-                                                                                                        class="w-100"
-                                                                                                        style="display: flex;height: 46px;padding: 20px 20px 12px;align-items: center;align-self: stretch;color: #393939;font-size: 16px;font-weight: 700;"
-                                                                                                    >
-                                                                                                        搜尋商品
-                                                                                                    </div>
-                                                                                                    <div class="w-100" style="display: flex;flex-direction: column;align-items: flex-start;gap: 12px;">
-                                                                                                        <div
-                                                                                                            class="w-100"
-                                                                                                            style="display: flex;padding: 0px 24px;flex-direction: column;align-items: center;gap: 18px;"
-                                                                                                        >
-                                                                                                            <div
-                                                                                                                style="display: flex;justify-content: center;align-items: flex-start;gap: 12px;align-self: stretch;"
-                                                                                                            >
-                                                                                                                <div class="w-100 position-relative">
-                                                                                                                    <i
-                                                                                                                        class="fa-regular fa-magnifying-glass"
-                                                                                                                        style="font-size: 18px; color: #A0A0A0; position: absolute; left: 18px; top: 50%; transform: translateY(-50%);"
-                                                                                                                        aria-hidden="true"
-                                                                                                                    ></i>
-                                                                                                                    <input
-                                                                                                                        class="form-control h-100"
-                                                                                                                        style="border-radius: 10px; border: 1px solid #DDD; padding-left: 50px;"
-                                                                                                                        placeholder="輸入商品名稱或商品貨號"
-                                                                                                                        oninput="${gvc.event((e) => {
-                                                                            searchLoading = false;
-                                                                            newOrder.query = e.value;
-                                                                            newOrder.productArray = [];
-                                                                            gvc.notifyDataChange('productArray');
-                                                                        })}"
-                                                                                                                        value="${(_a = newOrder.query) !== null && _a !== void 0 ? _a : ''}"
-                                                                                                                    />
-                                                                                                                </div>
-
-                                                                                                                ${BgWidget.updownFilter({
-                                                                            gvc,
-                                                                            callback: (value) => {
-                                                                                searchLoading = false;
-                                                                                newOrder.orderString = value;
-                                                                                newOrder.productArray = [];
-                                                                                gvc.notifyDataChange('productArray');
-                                                                            },
-                                                                            default: newOrder.orderString || 'default',
-                                                                            options: FilterOptions.productOrderBy,
-                                                                        })}
-                                                                                                            </div>
-                                                                                                            <div
-                                                                                                                style="height:350px;display: flex;justify-content: center;align-items: flex-start;padding-right: 24px;align-self: stretch;overflow-y: scroll;"
-                                                                                                            >
-                                                                                                                ${gvc.bindView({
-                                                                            bind: 'productArray',
-                                                                            view: () => {
-                                                                                if (!searchLoading) {
-                                                                                    ApiShop.getProduct({
-                                                                                        page: 0,
-                                                                                        limit: 20,
-                                                                                        search: newOrder.query,
-                                                                                        orderBy: newOrder.orderString,
-                                                                                    }).then((data) => {
-                                                                                        searchLoading = true;
-                                                                                        newOrder.productArray = data.response.data;
-                                                                                        gvc.notifyDataChange('productArray');
-                                                                                    });
-                                                                                    return BgWidget.spinner();
-                                                                                }
-                                                                                if (newOrder.productArray.length == 0) {
-                                                                                    return html ` <div
-                                                                                                                                class="w-100 h-100 d-flex align-items-center justify-content-center"
-                                                                                                                                style="color:#8D8D8D;"
-                                                                                                                            >
-                                                                                                                                查無此商品
-                                                                                                                            </div>`;
-                                                                                }
-                                                                                return newOrder.productArray
-                                                                                    .map((product, productIndex) => {
-                                                                                    return gvc.bindView({
-                                                                                        bind: `product${productIndex}`,
-                                                                                        view: () => {
-                                                                                            return html `
-                                                                                                                                            ${(() => {
-                                                                                                if (product.select) {
-                                                                                                    return html ` <svg
-                                                                                                                                                        xmlns="http://www.w3.org/2000/svg"
-                                                                                                                                                        width="16"
-                                                                                                                                                        height="16"
-                                                                                                                                                        viewBox="0 0 16 16"
-                                                                                                                                                        fill="none"
-                                                                                                                                                        onclick="${gvc.event(() => {
-                                                                                                        product.select = false;
-                                                                                                        gvc.notifyDataChange(`product${productIndex}`);
-                                                                                                    })}"
-                                                                                                                                                    >
-                                                                                                                                                        <rect
-                                                                                                                                                            width="16"
-                                                                                                                                                            height="16"
-                                                                                                                                                            rx="3"
-                                                                                                                                                            fill="#393939"
-                                                                                                                                                        />
-                                                                                                                                                        <path
-                                                                                                                                                            d="M4.5 8.5L7 11L11.5 5"
-                                                                                                                                                            stroke="white"
-                                                                                                                                                            stroke-width="2"
-                                                                                                                                                            stroke-linecap="round"
-                                                                                                                                                            stroke-linejoin="round"
-                                                                                                                                                        />
-                                                                                                                                                    </svg>`;
-                                                                                                }
-                                                                                                else {
-                                                                                                    return html `
-                                                                                                                                                        <div
-                                                                                                                                                            style="display: flex;align-items: center;justify-content: center;height: 60px;width: 16px;cursor: pointer;"
-                                                                                                                                                            onclick="${gvc.event(() => {
-                                                                                                        product.select = true;
-                                                                                                        if (product.content.variants.length > 1) {
-                                                                                                            product.selectIndex = window.parent.document.querySelector('.varitantSelect').value;
-                                                                                                        }
-                                                                                                        gvc.notifyDataChange(`product${productIndex}`);
-                                                                                                    })}"
-                                                                                                                                                        >
-                                                                                                                                                            <div
-                                                                                                                                                                style="width: 16px;height: 16px;border-radius: 3px;border: 1px solid #DDD;cursor: pointer;"
-                                                                                                                                                            ></div>
-                                                                                                                                                        </div>
-                                                                                                                                                    `;
-                                                                                                }
-                                                                                            })()}
-                                                                                                                                            <div
-                                                                                                                                                style="width: 50px;height: 50px;border-radius: 5px;background: url('${product
-                                                                                                .content
-                                                                                                .preview_image[0]}') lightgray 50% / cover no-repeat;"
-                                                                                                                                            ></div>
-                                                                                                                                            <div class="flex-fill d-flex flex-column">
-                                                                                                                                                <div
-                                                                                                                                                    style="color:#393939;font-size: 14px;font-weight: 400;margin-bottom: 4px;"
-                                                                                                                                                >
-                                                                                                                                                    ${product.content.title}
-                                                                                                                                                </div>
-                                                                                                                                                ${(() => {
-                                                                                                if (product.content.variants.length > 1) {
-                                                                                                    return html `
-                                                                                                                                                            <select
-                                                                                                                                                                class="w-100 d-flex align-items-center form-select varitantSelect"
-                                                                                                                                                                style="border-radius: 10px;border: 1px solid #DDD;padding: 6px 18px;"
-                                                                                                                                                                onchange="${gvc.event((e) => {
-                                                                                                        product.selectIndex = e.value;
-                                                                                                    })}"
-                                                                                                                                                            >
-                                                                                                                                                                ${(() => {
-                                                                                                        let optionHTML = ``;
-                                                                                                        product.content.variants.map((variant, index) => {
-                                                                                                            optionHTML += html `
-                                                                                                                                                                                <option
-                                                                                                                                                                                    value="${index}"
-                                                                                                                                                                                    ${(() => {
-                                                                                                                if (product.selectIndex ==
-                                                                                                                    index)
-                                                                                                                    return `selected`;
-                                                                                                                else
-                                                                                                                    return ``;
-                                                                                                            })()}
-                                                                                                                                                                                >
-                                                                                                                                                                                    ${variant.spec.join(', ')}
-                                                                                                                                                                                </option>
-                                                                                                                                                                            `;
-                                                                                                        });
-                                                                                                        return optionHTML;
-                                                                                                    })()}
-                                                                                                                                                            </select>
-                                                                                                                                                        `;
-                                                                                                }
-                                                                                                else {
-                                                                                                    return `<div class="d-flex align-items-center" style="height: 34px;color: #8D8D8D;font-size: 14px;font-weight: 400;">單一規格</div>`;
-                                                                                                }
-                                                                                            })()}
-                                                                                                                                            </div>
-                                                                                                                                        `;
-                                                                                        },
-                                                                                        divCreate: {
-                                                                                            style: `display: flex;padding: 0px 12px;align-items: center;gap: 18px;align-self: stretch;`,
-                                                                                        },
-                                                                                    });
-                                                                                })
-                                                                                    .join('');
-                                                                            },
-                                                                            divCreate: {
-                                                                                class: `d-flex flex-column h-100`,
-                                                                                style: `gap: 18px;width:100%;`,
-                                                                            },
-                                                                        })}
-                                                                                                            </div>
-                                                                                                        </div>
-                                                                                                        <div
-                                                                                                            class="w-100"
-                                                                                                            style="display: flex;padding: 12px 20px;align-items: center;justify-content: end;gap: 10px;"
-                                                                                                        >
-                                                                                                            ${BgWidget.cancel(gvc.event(() => {
-                                                                            confirm = false;
-                                                                            gvc.closeDialog();
-                                                                        }))}
-                                                                                                            ${BgWidget.save(gvc.event(() => {
-                                                                            confirm = true;
-                                                                            newOrder.productTemp = [];
-                                                                            newOrder.productArray.map((product) => {
-                                                                                if (product.select) {
-                                                                                    newOrder.productTemp.push(product);
-                                                                                }
-                                                                            });
-                                                                            gvc.closeDialog();
-                                                                        }))}
-                                                                                                        </div>
-                                                                                                    </div>
-                                                                                                </div>`;
-                                                                    },
-                                                                    divCreate: {},
-                                                                });
-                                                            }, 'addProduct', {
-                                                                dismiss: () => {
-                                                                    if (confirm) {
-                                                                        if (newOrder.productCheck.length > 0) {
-                                                                            const updateProductCheck = (tempData) => {
-                                                                                var _a;
-                                                                                const productData = newOrder.productCheck.find((p) => {
-                                                                                    return p.id === tempData.id && p.selectIndex === tempData.selectIndex;
-                                                                                });
-                                                                                if (productData) {
-                                                                                    const index = parseInt((_a = productData.selectIndex) !== null && _a !== void 0 ? _a : '0', 10);
-                                                                                    productData.content.variants[index].qty++;
-                                                                                    tempData.add = true;
-                                                                                }
-                                                                                else {
-                                                                                    newOrder.productCheck.push(tempData);
-                                                                                }
-                                                                            };
-                                                                            newOrder.productTemp.forEach(updateProductCheck);
-                                                                        }
-                                                                        else {
-                                                                            newOrder.productCheck = newOrder.productTemp;
-                                                                        }
-                                                                        gvc.notifyDataChange(['listProduct', 'addProduct']);
-                                                                    }
+                                                            BgProduct.productsDialog({
+                                                                gvc: gvc,
+                                                                default: newOrder.productCheck.map((dd) => {
+                                                                    return dd.id;
+                                                                }),
+                                                                callback: (value) => __awaiter(this, void 0, void 0, function* () {
+                                                                    const dialog = new ShareDialog(glitter);
+                                                                    dialog.dataLoading({ visible: true });
+                                                                    const pd = yield ApiShop.getProduct({ limit: 1000, page: 0, id_list: value.join(',') });
+                                                                    newOrder.productCheck = pd.response.data;
+                                                                    dialog.dataLoading({ visible: false });
+                                                                    gvc.notifyDataChange(id);
+                                                                }),
+                                                                filter: (d1) => {
+                                                                    return !newOrder.productCheck.find((dd) => {
+                                                                        return dd.id === d1;
+                                                                    });
                                                                 },
                                                             });
                                                         })}"
                                                                         >
-                                                                            新增一個商品
-                                                                            <svg style="margin-left: 5px;" xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 14 14" fill="none">
-                                                                                <path d="M1.5 7.23926H12.5" stroke="#3366BB" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
-                                                                                <path d="M6.76172 1.5L6.76172 12.5" stroke="#3366BB" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
-                                                                            </svg>
+                                                                            設定分潤商品
+                                                                            <i class="fa-duotone fa-solid fa-gear"></i>
                                                                         </div>
                                                                     `;
                                                     },

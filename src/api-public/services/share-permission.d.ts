@@ -49,6 +49,20 @@ export declare class SharePermission {
         data: any[];
         total?: undefined;
     } | {
+        data: {
+            id: number;
+            user: string;
+            appName: string;
+            config: any;
+            email: any;
+            invited: number;
+            status: number;
+            online_time: Date;
+        }[];
+        total: number;
+        store_permission_title: string;
+        result?: undefined;
+    } | {
         data: PermissionItem[];
         total: number;
         store_permission_title: string;

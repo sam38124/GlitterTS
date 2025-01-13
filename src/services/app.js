@@ -703,7 +703,7 @@ class App {
                 nginx_conf_1.NginxConfFile.createFromSource(data, (err, conf) => {
                     const server = [];
                     for (const b of conf.nginx.server) {
-                        if (!b.server_name.toString().includes(`server_name ${config.domain};`) && !b.server_name.toString().includes(`server_name ${config.original_domain};`)) {
+                        if ((!b.server_name) || (!b.server_name.toString().includes(`server_name ${config.domain};`) && !b.server_name.toString().includes(`server_name ${config.original_domain};`))) {
                             server.push(b);
                         }
                     }
@@ -746,6 +746,7 @@ class App {
                 `, [config.domain, config.appName]);
         }
         catch (e) {
+            console.log(`error`, e);
             throw exception_1.default.BadRequestError((_a = e.code) !== null && _a !== void 0 ? _a : 'BAD_REQUEST', e, null);
         }
     }

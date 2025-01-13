@@ -54,7 +54,7 @@ class Recommend {
                     return await database_1.default.query(`SELECT id, mac_address, base_url 
                         FROM \`${config_js_1.saasConfig.SAAS_NAME}\`.t_monitor
                         WHERE app_name = "${this.app}"
-                        AND base_url in (${links.map((data) => `"/${this.app}/distribution/${data.content.link}"`).join(',')})
+                        AND base_url in (${links.map((data) => `"/shopnex/distribution/${data.content.link}"`).join(',')})
                      `, []);
                 })();
                 for (const data of links) {
@@ -66,7 +66,7 @@ class Recommend {
                             return false;
                         }
                     });
-                    const monitor = monitors.filter((d) => d.base_url === `/${this.app}/distribution/${data.content.link}`);
+                    const monitor = monitors.filter((d) => d.base_url === `/shopnex/distribution/${data.content.link}`);
                     const monitorLength = monitor.length;
                     const macAddrSize = new Set(monitor.map((item) => item.mac_address)).size;
                     const totalOrders = orders.filter((order) => {
@@ -90,7 +90,7 @@ class Recommend {
                         });
                         orders.map((order) => {
                             order.orderData.lineItems.forEach((item) => {
-                                if (idArray.includes(item.id)) {
+                                if (idArray.includes(item.id) && order.status === 1) {
                                     console.log(`item.sale_price=>`, item.sale_price);
                                     console.log(`item.count=>`, item.count);
                                     console.log(`data.content.share_value=>`, data.content.share_value);

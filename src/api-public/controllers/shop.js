@@ -189,6 +189,7 @@ router.post('/checkout/preview', async (req, resp) => {
             distribution_code: req.body.distribution_code,
             code_array: req.body.code_array,
             give_away: req.body.give_away,
+            pos_store: req.body.pos_store,
             language: req.headers['language'],
         }, 'preview'));
     }
@@ -979,6 +980,7 @@ router.get('/check-login-for-order', async (req, resp) => {
 router.post('/pos/checkout', async (req, resp) => {
     async function checkoutPos() {
         return response_1.default.succ(resp, await new shopping_1.Shopping(req.get('g-app'), req.body.token).toCheckout({
+            order_id: req.body.orderID,
             line_items: req.body.lineItems,
             email: req.body.customer_info.email,
             return_url: req.body.return_url,
@@ -991,6 +993,8 @@ router.post('/pos/checkout', async (req, resp) => {
             pay_status: req.body.pay_status,
             code_array: req.body.code_array,
             pos_info: req.body.pos_info,
+            pos_store: req.body.pos_store,
+            invoice_select: req.body.invoice_select
         }, 'POS'));
     }
     try {

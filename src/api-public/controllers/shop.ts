@@ -200,6 +200,7 @@ router.post('/checkout/preview', async (req: express.Request, resp: express.Resp
                     distribution_code: req.body.distribution_code,
                     code_array: req.body.code_array,
                     give_away: req.body.give_away,
+                    pos_store:req.body.pos_store,
                     language: req.headers['language'] as any,
                 },
                 'preview'
@@ -1067,6 +1068,7 @@ router.post('/pos/checkout', async (req: express.Request, resp: express.Response
             resp,
             await new Shopping(req.get('g-app') as string, req.body.token).toCheckout(
                 {
+                    order_id:req.body.orderID,
                     line_items: req.body.lineItems as any,
                     email: req.body.customer_info.email,
                     return_url: req.body.return_url,
@@ -1079,6 +1081,8 @@ router.post('/pos/checkout', async (req: express.Request, resp: express.Response
                     pay_status: req.body.pay_status,
                     code_array: req.body.code_array,
                     pos_info: req.body.pos_info,
+                    pos_store:req.body.pos_store,
+                    invoice_select:req.body.invoice_select
                 },
                 'POS'
             )

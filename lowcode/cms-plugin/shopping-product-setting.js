@@ -801,6 +801,9 @@ export class ShoppingProductSetting {
                 orignData = data;
             }
         });
+        setTimeout(() => {
+            orignData = JSON.parse(JSON.stringify(variant));
+        }, 200);
         function checkStore(next, cancel) {
             const dialog = new ShareDialog(gvc.glitter);
             if (JSON.stringify(orignData) !== JSON.stringify(variant)) {
@@ -809,6 +812,7 @@ export class ShoppingProductSetting {
                     callback: (response) => {
                         if (obj && obj.goBackEvent) {
                             if (response) {
+                                orignData = JSON.parse(JSON.stringify(variant));
                                 obj.goBackEvent.save(postMD);
                             }
                             else {
@@ -846,6 +850,13 @@ export class ShoppingProductSetting {
         }
         getStockStore();
         document.querySelector('.pd-w-c').scrollTop = 0;
+        function getDefImg() {
+            const dd = postMD;
+            return (dd.language_data
+                &&
+                    dd.language_data[(window.parent.store_info.language_setting.def)].preview_image[0])
+                || dd.preview_image[0];
+        }
         return html `
             <div class="d-flex"
                  style="font-size: 16px;color:#393939;font-weight: 400;position: relative;padding:0;padding-bottom: ${obj.single ? `0px` : `80px`};">
@@ -870,7 +881,11 @@ export class ShoppingProductSetting {
                 return {
                     bind: id,
                     view: () => {
-                        variant[`preview_image_${ShoppingProductSetting.select_language}`] = variant[`preview_image_${ShoppingProductSetting.select_language}`] || variant.preview_image;
+                        variant[`preview_image_${ShoppingProductSetting.select_language}`] = variant[`preview_image_${ShoppingProductSetting.select_language}`] || variant.preview_image || getDefImg();
+                        let pre_ciew = variant[`preview_image_${ShoppingProductSetting.select_language}`];
+                        if ((pre_ciew === BgWidget.noImageURL) || !pre_ciew) {
+                            pre_ciew = getDefImg();
+                        }
                         return html `
                                                                     <div style="font-weight: 700;">規格</div>
                                                                     <div>
@@ -882,7 +897,7 @@ export class ShoppingProductSetting {
                                                                     </div>
                                                                     <div
                                                                             class="d-flex align-items-center justify-content-center rounded-3 shadow"
-                                                                            style="min-width:135px;135px;height:135px;cursor:pointer;background: 50%/cover url('${variant[`preview_image_${ShoppingProductSetting.select_language}`] || BgWidget.noImageURL}');"
+                                                                            style="min-width:135px;135px;height:135px;cursor:pointer;background: 50%/cover url('${pre_ciew}');"
                                                                     >
                                                                         <div
                                                                                 class="w-100 h-100 d-flex align-items-center justify-content-center rounded-3 p-hover-image"
@@ -1129,7 +1144,10 @@ export class ShoppingProductSetting {
                                                                     >
                                                                         <div class="flex-fill d-flex flex-column"
                                                                              style="gap: 8px;border-left:solid 1px #E5E5E5;padding-left:14px;">
-                                                                            <div class="w-100" style="font-size: 14px;font-weight: 400;color: #8D8D8D;">線上販售的商品將優先從庫存量較多的庫存點中扣除</div>
+                                                                            <div class="w-100"
+                                                                                 style="font-size: 14px;font-weight: 400;color: #8D8D8D;">
+                                                                                線上販售的商品將優先從庫存量較多的庫存點中扣除
+                                                                            </div>
                                                                             ${(() => {
                                 return stockList.map((stockSpot) => {
                                     var _b, _c, _d;
@@ -1160,27 +1178,27 @@ export class ShoppingProductSetting {
                         }
                         else {
                             return html `
-                                                                            <div
-                                                                                    class="w-100 align-items-center"
-                                                                                    style="display: flex;padding-left: 8px;align-items: flex-start;gap: 14px;align-self: stretch;margin-top: 8px;"
-                                                                            >
-                                                                                <div style="background-color: #E5E5E5;height: 80px;width: 1px;"></div>
-                                                                                <div class="flex-fill d-flex flex-column"
-                                                                                     style="gap: 8px">
-                                                                                    <div>庫存數量</div>
-                                                                                    <input
-                                                                                            class="w-100"
-                                                                                            type="number"
-                                                                                            value="${(_b = variant.stock) !== null && _b !== void 0 ? _b : '0'}"
-                                                                                            style="padding: 9px 18px;border-radius: 10px;border: 1px solid #DDD;"
-                                                                                            placeholder="請輸入庫存數量"
-                                                                                            onchange="${gvc.event((e) => {
+                                                                    <div
+                                                                            class="w-100 align-items-center"
+                                                                            style="display: flex;padding-left: 8px;align-items: flex-start;gap: 14px;align-self: stretch;margin-top: 8px;"
+                                                                    >
+                                                                        <div style="background-color: #E5E5E5;height: 80px;width: 1px;"></div>
+                                                                        <div class="flex-fill d-flex flex-column"
+                                                                             style="gap: 8px">
+                                                                            <div>庫存數量</div>
+                                                                            <input
+                                                                                    class="w-100"
+                                                                                    type="number"
+                                                                                    value="${(_b = variant.stock) !== null && _b !== void 0 ? _b : '0'}"
+                                                                                    style="padding: 9px 18px;border-radius: 10px;border: 1px solid #DDD;"
+                                                                                    placeholder="請輸入庫存數量"
+                                                                                    onchange="${gvc.event((e) => {
                                 variant.stock = e.value;
                             })}"
-                                                                                    />
-                                                                                </div>
-                                                                                
-                                                                            </div>`;
+                                                                            />
+                                                                        </div>
+
+                                                                    </div>`;
                         }
                     }
                     return html `
@@ -1220,19 +1238,20 @@ export class ShoppingProductSetting {
                                                                 不追蹤庫存
                                                             </div>
                                                             <div style="width:100%;height:1px;backgound:#DDDDDD;"></div>
-                                                            ${variant.show_understocking == 'false' ? '' : html `<div class="flex-fill d-flex flex-column"
-                                                                style="gap: 8px;font-size: 16px;font-weight: 700;">
-                                                               <div>安全庫存</div>
-                                                               <input
-                                                                       class="w-100"
-                                                                       value="${(_b = variant.save_stock) !== null && _b !== void 0 ? _b : '0'}"
-                                                                       style="padding: 9px 18px;border-radius: 10px;border: 1px solid #DDD;"
-                                                                       placeholder="請輸入安全庫存"
-                                                                       onchange="${gvc.event((e) => {
+                                                            ${variant.show_understocking == 'false' ? '' : html `
+                                                                        <div class="flex-fill d-flex flex-column"
+                                                                             style="gap: 8px;font-size: 16px;font-weight: 700;">
+                                                                            <div>安全庫存</div>
+                                                                            <input
+                                                                                    class="w-100"
+                                                                                    value="${(_b = variant.save_stock) !== null && _b !== void 0 ? _b : '0'}"
+                                                                                    style="padding: 9px 18px;border-radius: 10px;border: 1px solid #DDD;"
+                                                                                    placeholder="請輸入安全庫存"
+                                                                                    onchange="${gvc.event((e) => {
                         variant.save_stock = e.value;
                     })}"
-                                                               />
-                                                           </div>`}
+                                                                            />
+                                                                        </div>`}
                                                         `;
                 },
                 divCreate: { style: `display: flex;flex-direction: column;align-items: flex-start;gap: 12px;align-self: stretch;` },
@@ -1312,6 +1331,11 @@ export class ShoppingProductSetting {
             view: () => {
                 let rightHTML = postMD.variants
                     .map((data) => {
+                    data[`preview_image_${ShoppingProductSetting.select_language}`] = data[`preview_image_${ShoppingProductSetting.select_language}`] || data.preview_image || getDefImg();
+                    let pre_ciew = data[`preview_image_${ShoppingProductSetting.select_language}`];
+                    if ((pre_ciew === BgWidget.noImageURL) || !pre_ciew) {
+                        pre_ciew = getDefImg();
+                    }
                     if (!data.editable) {
                         return html `
                                                                         <div
@@ -1336,7 +1360,7 @@ export class ShoppingProductSetting {
                                                                         >
                                                                             ${BgWidget.validImageBox({
                             gvc,
-                            image: data.preview_image || BgWidget.noImageURL,
+                            image: pre_ciew,
                             width: 40,
                             style: 'border-radius: 10px',
                         })}
@@ -1450,7 +1474,8 @@ export class ShoppingProductSetting {
             else {
                 obj.vm.replaceData = postMD;
             }
-            const origin_data = JSON.stringify(postMD);
+            let origin_data = JSON.stringify(postMD);
+            setTimeout(() => { origin_data = JSON.stringify(postMD); }, 1000);
             window.parent.glitter.share.checkData = () => origin_data === JSON.stringify(postMD);
             const html = String.raw;
             const gvc = obj.gvc;
@@ -1950,9 +1975,9 @@ export class ShoppingProductSetting {
                                                                     const data = jsonData.find((j) => j.key === item.key);
                                                                     const textImage = data && data.value
                                                                         ? html `<span
-                                                                                                            style="font-size: ${(_b = item.font_size) !== null && _b !== void 0 ? _b : '14'}px; color: ${(_c = item.font_color) !== null && _c !== void 0 ? _c : '#393939'}; background: ${(_d = item.font_bgr) !== null && _d !== void 0 ? _d : '#fff'}"
-                                                                                                    >${data.value}</span
-                                                                                                    >`
+                                                                                                                style="font-size: ${(_b = item.font_size) !== null && _b !== void 0 ? _b : '14'}px; color: ${(_c = item.font_color) !== null && _c !== void 0 ? _c : '#393939'}; background: ${(_d = item.font_bgr) !== null && _d !== void 0 ? _d : '#fff'}"
+                                                                                                        >${data.value}</span
+                                                                                                        >`
                                                                         : html `#${item.title}#`;
                                                                     const regex = new RegExp(`@{{${item.key}}}`, 'g');
                                                                     gText = gText.replace(regex, textImage);
@@ -1961,17 +1986,17 @@ export class ShoppingProductSetting {
                                                             return gText;
                                                         }
                                                         return html `
-                                                                            <div class="d-flex align-items-center justify-content-end mb-3">
-                                                                                <div class="d-flex align-items-center gap-2">
-                                                                                    <div style="color: #393939; font-weight: 700;">
-                                                                                        商品詳細描述
-                                                                                        ${BgWidget.languageInsignia(sel_lan(), 'margin-left:5px;')}
+                                                                                <div class="d-flex align-items-center justify-content-end mb-3">
+                                                                                    <div class="d-flex align-items-center gap-2">
+                                                                                        <div style="color: #393939; font-weight: 700;">
+                                                                                            商品詳細描述
+                                                                                            ${BgWidget.languageInsignia(sel_lan(), 'margin-left:5px;')}
+                                                                                        </div>
                                                                                     </div>
-                                                                                </div>
-                                                                                <div class="flex-fill"></div>
-                                                                                <div
-                                                                                        class="cursor_pointer"
-                                                                                        onclick="${gvc.event(() => {
+                                                                                    <div class="flex-fill"></div>
+                                                                                    <div
+                                                                                            class="cursor_pointer"
+                                                                                            onclick="${gvc.event(() => {
                                                             BgWidget.dialog({
                                                                 gvc: gvc,
                                                                 title: '設定',
@@ -1990,25 +2015,25 @@ export class ShoppingProductSetting {
                                                                                 return vm.documents
                                                                                     .map((dd) => {
                                                                                     return html `
-                                                                                                                                <li class="w-100 px-2">
-                                                                                                                                    <div class="w-100 d-flex justify-content-between">
-                                                                                                                                        <div class="d-flex justify-content-start align-items-center gap-3">
-                                                                                                                                            <i class="fa-solid fa-grip-dots-vertical dragItem cursor_pointer"></i>
-                                                                                                                                            <div class="tx_normal">
-                                                                                                                                                ${dd.title}
+                                                                                                                                    <li class="w-100 px-2">
+                                                                                                                                        <div class="w-100 d-flex justify-content-between">
+                                                                                                                                            <div class="d-flex justify-content-start align-items-center gap-3">
+                                                                                                                                                <i class="fa-solid fa-grip-dots-vertical dragItem cursor_pointer"></i>
+                                                                                                                                                <div class="tx_normal">
+                                                                                                                                                    ${dd.title}
+                                                                                                                                                </div>
                                                                                                                                             </div>
-                                                                                                                                        </div>
-                                                                                                                                        ${gvc.bindView((() => {
+                                                                                                                                            ${gvc.bindView((() => {
                                                                                         const iconId = gvc.glitter.getUUID();
                                                                                         return {
                                                                                             bind: iconId,
                                                                                             view: () => {
                                                                                                 return html `
-                                                                                                                                                                <i
-                                                                                                                                                                        class="${language_data.content_array.includes(dd.id)
+                                                                                                                                                                    <i
+                                                                                                                                                                            class="${language_data.content_array.includes(dd.id)
                                                                                                     ? 'fa-solid fa-eye'
                                                                                                     : 'fa-sharp fa-solid fa-eye-slash'} d-flex align-items-center justify-content-center cursor_pointer"
-                                                                                                                                                                        onclick="${gvc.event(() => {
+                                                                                                                                                                            onclick="${gvc.event(() => {
                                                                                                     if (language_data.content_array.includes(dd.id)) {
                                                                                                         language_data.content_array =
                                                                                                             language_data.content_array.filter((d) => d !== dd.id);
@@ -2018,15 +2043,15 @@ export class ShoppingProductSetting {
                                                                                                     }
                                                                                                     gvc.notifyDataChange(iconId);
                                                                                                 })}"
-                                                                                                                                                                ></i>`;
+                                                                                                                                                                    ></i>`;
                                                                                             },
                                                                                             divCreate: {
                                                                                                 class: 'd-flex',
                                                                                             },
                                                                                         };
                                                                                     })())}
-                                                                                                                                    </div>
-                                                                                                                                </li>`;
+                                                                                                                                        </div>
+                                                                                                                                    </li>`;
                                                                                 })
                                                                                     .join('');
                                                                             },
@@ -2091,22 +2116,22 @@ export class ShoppingProductSetting {
                                                                 },
                                                             });
                                                         })}"
-                                                                                >
-                                                                                    設定<i
-                                                                                        class="fa-regular fa-gear ms-1"></i>
+                                                                                    >
+                                                                                        設定<i
+                                                                                            class="fa-regular fa-gear ms-1"></i>
+                                                                                    </div>
                                                                                 </div>
-                                                                            </div>
-                                                                            <div class="my-3">
-                                                                                ${gvc.bindView((() => {
+                                                                                <div class="my-3">
+                                                                                    ${gvc.bindView((() => {
                                                             const id = gvc.glitter.getUUID();
                                                             return {
                                                                 bind: id,
                                                                 view: () => {
                                                                     return html `
-                                                                                                <div
-                                                                                                        class="d-flex justify-content-between align-items-center gap-3 mb-1"
-                                                                                                        style="cursor: pointer;"
-                                                                                                        onclick="${gvc.event(() => {
+                                                                                                    <div
+                                                                                                            class="d-flex justify-content-between align-items-center gap-3 mb-1"
+                                                                                                            style="cursor: pointer;"
+                                                                                                            onclick="${gvc.event(() => {
                                                                         const originContent = `${language_data.content}`;
                                                                         BgWidget.fullDialog({
                                                                             gvc: gvc,
@@ -2126,8 +2151,8 @@ export class ShoppingProductSetting {
                                                                             },
                                                                             innerHTML: (gvc2) => {
                                                                                 return html `
-                                                                                                                        <div>
-                                                                                                                            ${EditorElem.richText({
+                                                                                                                            <div>
+                                                                                                                                ${EditorElem.richText({
                                                                                     gvc: gvc2,
                                                                                     def: language_data.content,
                                                                                     setHeight: '100vh',
@@ -2142,15 +2167,15 @@ export class ShoppingProductSetting {
                                                                                                 const imgHTML = urlArray
                                                                                                     .map((url) => {
                                                                                                     return html `
-                                                                                                                                                                    <img src="${url.data}"/>`;
+                                                                                                                                                                        <img src="${url.data}"/>`;
                                                                                                 })
                                                                                                     .join('');
                                                                                                 editor.html.set(editor.html
                                                                                                     .get(0)
                                                                                                     .replace(mark, html `
-                                                                                                                                                                                <div class="d-flex flex-column">
-                                                                                                                                                                                    ${imgHTML}
-                                                                                                                                                                                </div>`));
+                                                                                                                                                                                    <div class="d-flex flex-column">
+                                                                                                                                                                                        ${imgHTML}
+                                                                                                                                                                                    </div>`));
                                                                                                 editor.undo.saveStep();
                                                                                             }
                                                                                             else {
@@ -2158,12 +2183,12 @@ export class ShoppingProductSetting {
                                                                                                 dialog.errorMessage({ text: '請選擇至少一張圖片' });
                                                                                             }
                                                                                         }, html `
-                                                                                                                                                <div
-                                                                                                                                                        class="d-flex flex-column"
-                                                                                                                                                        style="border-radius: 10px 10px 0px 0px;background: #F2F2F2;"
-                                                                                                                                                >
-                                                                                                                                                    圖片庫
-                                                                                                                                                </div>`, {
+                                                                                                                                                    <div
+                                                                                                                                                            class="d-flex flex-column"
+                                                                                                                                                            style="border-radius: 10px 10px 0px 0px;background: #F2F2F2;"
+                                                                                                                                                    >
+                                                                                                                                                        圖片庫
+                                                                                                                                                    </div>`, {
                                                                                             mul: true,
                                                                                             cancelEvent: () => {
                                                                                                 editor.html.set(editor.html.get(0).replace(mark, ''));
@@ -2176,7 +2201,7 @@ export class ShoppingProductSetting {
                                                                                     },
                                                                                     rich_height: `calc(${window.parent.innerHeight}px - 70px - 58px - 49px - 64px - 40px + ${document.body.clientWidth < 800 ? `70` : `0`}px)`,
                                                                                 })}
-                                                                                                                        </div>`;
+                                                                                                                            </div>`;
                                                                             },
                                                                             footer_html: (gvc2) => {
                                                                                 return [
@@ -2195,17 +2220,17 @@ export class ShoppingProductSetting {
                                                                             },
                                                                         });
                                                                     })}"
-                                                                                                >
-                                                                                                    ${(() => {
+                                                                                                    >
+                                                                                                        ${(() => {
                                                                         const text = gvc.glitter.utText.removeTag(language_data.content);
                                                                         return BgWidget.richTextView(Tool.truncateString(text, 100));
                                                                     })()}
-                                                                                                </div>`;
+                                                                                                    </div>`;
                                                                 },
                                                             };
                                                         })())}
-                                                                            </div>
-                                                                            ${(vm.documents || [])
+                                                                                </div>
+                                                                                ${(vm.documents || [])
                                                             .filter((item) => {
                                                             return language_data.content_array.includes(item.id);
                                                         })
@@ -2218,21 +2243,21 @@ export class ShoppingProductSetting {
                                                                     if (item.data.tags && item.data.tags.length > 0) {
                                                                         const id = obj.gvc.glitter.getUUID();
                                                                         return html `
-                                                                                                        <div
-                                                                                                                class="cursor_pointer text-end me-1 mb-2"
-                                                                                                                onclick="${gvc.event(() => {
+                                                                                                            <div
+                                                                                                                    class="cursor_pointer text-end me-1 mb-2"
+                                                                                                                    onclick="${gvc.event(() => {
                                                                             const originJson = JSON.parse(JSON.stringify(language_data.content_json));
                                                                             BgWidget.settingDialog({
                                                                                 gvc: gvc,
                                                                                 title: '設定',
                                                                                 innerHTML: (gvc) => {
                                                                                     return html `
-                                                                                                                                <div>
-                                                                                                                                    ${item.data.tags
+                                                                                                                                    <div>
+                                                                                                                                        ${item.data.tags
                                                                                         .map((tag) => {
                                                                                         return html `
-                                                                                                                                                    <div>
-                                                                                                                                                        ${BgWidget.editeInput({
+                                                                                                                                                        <div>
+                                                                                                                                                            ${BgWidget.editeInput({
                                                                                             gvc,
                                                                                             title: tag.title,
                                                                                             default: (() => {
@@ -2284,10 +2309,10 @@ export class ShoppingProductSetting {
                                                                                             },
                                                                                             placeHolder: '輸入文本標籤',
                                                                                         })}
-                                                                                                                                                    </div>`;
+                                                                                                                                                        </div>`;
                                                                                     })
                                                                                         .join(BgWidget.mbContainer(12))}
-                                                                                                                                </div>`;
+                                                                                                                                    </div>`;
                                                                                 },
                                                                                 footer_html: (gvc2) => {
                                                                                     return [
@@ -2306,10 +2331,10 @@ export class ShoppingProductSetting {
                                                                                 },
                                                                             });
                                                                         })}"
-                                                                                                        >
-                                                                                                            標籤設值
-                                                                                                        </div>
-                                                                                                        ${gvc.bindView((() => {
+                                                                                                            >
+                                                                                                                標籤設值
+                                                                                                            </div>
+                                                                                                            ${gvc.bindView((() => {
                                                                             return {
                                                                                 bind: `${id}-${index}`,
                                                                                 view: () => {
@@ -2317,17 +2342,17 @@ export class ShoppingProductSetting {
                                                                                     const tags = item.data.tags;
                                                                                     const jsonData = language_data.content_json.find((c) => c.id === item.id);
                                                                                     return html `
-                                                                                                                                <div style="border: 2px #DDDDDD solid; border-radius: 6px; padding: 12px;">
-                                                                                                                                    ${tags ? formatRichtext(content, tags, jsonData ? jsonData.list : []) : content}
-                                                                                                                                </div>`;
+                                                                                                                                    <div style="border: 2px #DDDDDD solid; border-radius: 6px; padding: 12px;">
+                                                                                                                                        ${tags ? formatRichtext(content, tags, jsonData ? jsonData.list : []) : content}
+                                                                                                                                    </div>`;
                                                                                 },
                                                                             };
                                                                         })())}`;
                                                                     }
                                                                     return html `
-                                                                                                    <div style="border: 1px #DDDDDD solid; border-radius: 6px; padding: 12px">
-                                                                                                        ${item.data.content || ''}
-                                                                                                    </div>`;
+                                                                                                        <div style="border: 1px #DDDDDD solid; border-radius: 6px; padding: 12px">
+                                                                                                            ${item.data.content || ''}
+                                                                                                        </div>`;
                                                                 })(),
                                                             });
                                                         })
@@ -2564,52 +2589,52 @@ export class ShoppingProductSetting {
                                                                                             let specs_in_line = [];
                                                                                             temp.option = (_b = temp.option) !== null && _b !== void 0 ? _b : [];
                                                                                             specs_in_line.push(html `
-                                                                                                                            <div class="d-flex flex-column w-100">
-                                                                                                                                <div class="d-flex  flex-column"
-                                                                                                                                     style="gap:10px;">
-                                                                                                                                    <div class="fw-500">
-                                                                                                                                        規格種類
-                                                                                                                                        -
-                                                                                                                                        ${temp.title}
-                                                                                                                                    </div>
-                                                                                                                                    <input
-                                                                                                                                            class="form-control w-100"
-                                                                                                                                            placeholder="${temp.title}"
-                                                                                                                                            style="width:100px;height: 35px;"
-                                                                                                                                            value="${temp.language_title[vm.language] || ''}"
-                                                                                                                                            onchange="${gvc.event((e, event) => {
+                                                                                                                        <div class="d-flex flex-column w-100">
+                                                                                                                            <div class="d-flex  flex-column"
+                                                                                                                                 style="gap:10px;">
+                                                                                                                                <div class="fw-500">
+                                                                                                                                    規格種類
+                                                                                                                                    -
+                                                                                                                                    ${temp.title}
+                                                                                                                                </div>
+                                                                                                                                <input
+                                                                                                                                        class="form-control w-100"
+                                                                                                                                        placeholder="${temp.title}"
+                                                                                                                                        style="width:100px;height: 35px;"
+                                                                                                                                        value="${temp.language_title[vm.language] || ''}"
+                                                                                                                                        onchange="${gvc.event((e, event) => {
                                                                                                 temp.language_title[vm.language] = e.value;
                                                                                             })}"
-                                                                                                                                    />
-                                                                                                                                </div>
-                                                                                                                                <div class="d-flex flex-column w-100"
-                                                                                                                                     style="gap:5px;">
-                                                                                                                                    ${temp.option
+                                                                                                                                />
+                                                                                                                            </div>
+                                                                                                                            <div class="d-flex flex-column w-100"
+                                                                                                                                 style="gap:5px;">
+                                                                                                                                ${temp.option
                                                                                                 .map((d, index) => {
                                                                                                 var _b;
                                                                                                 d.language_title = (_b = d.language_title) !== null && _b !== void 0 ? _b : {};
                                                                                                 return html `
-                                                                                                                                                    <div class="d-flex flex-column mt-2"
-                                                                                                                                                         style="gap:10px;">
-                                                                                                                                                        <div class="fw-500">
-                                                                                                                                                                選項${index + 1}
-                                                                                                                                                            -
-                                                                                                                                                            ${d.title}
-                                                                                                                                                        </div>
-                                                                                                                                                        <input
-                                                                                                                                                                class="form-control w-100"
-                                                                                                                                                                placeholder="${d.title}"
-                                                                                                                                                                style="width:100px;height: 35px;"
-                                                                                                                                                                value="${d.language_title[vm.language] || ''}"
-                                                                                                                                                                onchange="${gvc.event((e, event) => {
+                                                                                                                                                <div class="d-flex flex-column mt-2"
+                                                                                                                                                     style="gap:10px;">
+                                                                                                                                                    <div class="fw-500">
+                                                                                                                                                            選項${index + 1}
+                                                                                                                                                        -
+                                                                                                                                                        ${d.title}
+                                                                                                                                                    </div>
+                                                                                                                                                    <input
+                                                                                                                                                            class="form-control w-100"
+                                                                                                                                                            placeholder="${d.title}"
+                                                                                                                                                            style="width:100px;height: 35px;"
+                                                                                                                                                            value="${d.language_title[vm.language] || ''}"
+                                                                                                                                                            onchange="${gvc.event((e, event) => {
                                                                                                     d.language_title[vm.language] = e.value;
                                                                                                 })}"
-                                                                                                                                                        />
-                                                                                                                                                    </div>`;
+                                                                                                                                                    />
+                                                                                                                                                </div>`;
                                                                                             })
                                                                                                 .join('<div class="mx-1"></div>')}
-                                                                                                                                </div>
-                                                                                                                            </div>`);
+                                                                                                                            </div>
+                                                                                                                        </div>`);
                                                                                             returnHTML += specs_in_line.join(`<div class="w-100 border-top"></div>`);
                                                                                             returnHTML += html `
                                                                                                                         <div class="d-flex w-100 justify-content-end align-items-center w-100 bg-white"
@@ -2882,7 +2907,7 @@ export class ShoppingProductSetting {
                                                                                                                                 style="cursor: pointer;display: flex;width: 569px;padding-bottom: 20px;flex-direction: column;align-items: center;gap: 24px;border-radius: 10px;background: #FFF;max-width: calc(100vw - 20px);"
                                                                                                                         >
                                                                                                                             <div class="d-none"
-                                                                                                                                    style="font-size: 16px;font-weight: 700;display: flex;padding: 12px 0px 12px 20px;align-items: center;align-self: stretch;border-radius: 10px 10px 0px 0px;background: #F2F2F2;"
+                                                                                                                                 style="font-size: 16px;font-weight: 700;display: flex;padding: 12px 0px 12px 20px;align-items: center;align-self: stretch;border-radius: 10px 10px 0px 0px;background: #F2F2F2;"
                                                                                                                             >
                                                                                                                                 編輯庫存數量
                                                                                                                             </div>
@@ -3430,7 +3455,7 @@ export class ShoppingProductSetting {
                                                                                                                                         編輯原價
                                                                                                                                     </div>
                                                                                                                                     <div
-                                                                                                                                             class="d-none"
+                                                                                                                                            class="d-none"
                                                                                                                                             style="cursor: pointer;"
                                                                                                                                             onclick="${gvc.event(() => {
                                                                                             gvc.glitter.innerDialog((gvc) => {

@@ -196,7 +196,6 @@ async function createAPP(dd) {
                         req_type: 'file',
                         req: req,
                     });
-                    console.log(`req.query.page==>`, req.query.page);
                     let data = await seo_js_1.Seo.getPageInfo(appName, req.query.page, language);
                     let home_page_data = await (async () => {
                         if (data && data.config) {
@@ -206,11 +205,9 @@ async function createAPP(dd) {
                             return await seo_js_1.Seo.getPageInfo(appName, 'index', language);
                         }
                     })();
-                    console.log(`req.query.page==>`, req.query.page);
                     if (data && data.page_config) {
                         data.page_config = (_a = data.page_config) !== null && _a !== void 0 ? _a : {};
                         const d = (_b = data.page_config.seo) !== null && _b !== void 0 ? _b : {};
-                        console.log(`req.query.page`);
                         if (`${req.query.page}`.startsWith('products/')) {
                             await seo_config_js_1.SeoConfig.productSEO({
                                 data,
@@ -281,29 +278,28 @@ async function createAPP(dd) {
                         if (FBCode) {
                             seo_content.push(seo_config_js_1.SeoConfig.fbCode(FBCode));
                         }
-                        return {
-                            head: (() => {
-                                var _a;
-                                const d = data.page_config.seo;
-                                const home_seo = home_page_data.page_config.seo;
-                                return html `
+                        const head = (() => {
+                            var _a;
+                            const d = data.page_config.seo;
+                            const home_seo = home_page_data.page_config.seo;
+                            return html `
                                     ${(() => {
-                                    var _a, _b, _c;
-                                    if (req.query.type === 'editor') {
-                                        return seo_config_js_1.SeoConfig.editorSeo;
-                                    }
-                                    else {
-                                        return html `<title>${d.title || '尚未設定標題'}</title>
+                                var _a, _b, _c;
+                                if (req.query.type === 'editor') {
+                                    return seo_config_js_1.SeoConfig.editorSeo;
+                                }
+                                else {
+                                    return html `<title>${d.title || '尚未設定標題'}</title>
                                             <link
                                                     rel="canonical"
                                                     href="${(() => {
-                                            if (data.tag === 'index') {
-                                                return `https://${brandAndMemberType.domain}`;
-                                            }
-                                            else {
-                                                return `https://${brandAndMemberType.domain}/${data.tag}`;
-                                            }
-                                        })()}"
+                                        if (data.tag === 'index') {
+                                            return `https://${brandAndMemberType.domain}`;
+                                        }
+                                        else {
+                                            return `https://${brandAndMemberType.domain}/${data.tag}`;
+                                        }
+                                    })()}"
                                             />
                                             ${data.tag !== req.query.page ? `<meta name="robots" content="noindex">` : `<meta name="robots" content="index, follow"/>`}
                                             <meta name="keywords"
@@ -319,101 +315,103 @@ async function createAPP(dd) {
                                                   content="${((_b = d.content) !== null && _b !== void 0 ? _b : '').replace(/\n/g, '').replace(/"/g, '&quot;')}"/>
                                             <meta name="og:description"
                                                   content="${((_c = d.content) !== null && _c !== void 0 ? _c : '').replace(/\n/g, '').replace(/"/g, '&quot;')}"/>`;
-                                    }
-                                })()}
+                                }
+                            })()}
                                     ${(_a = d.code) !== null && _a !== void 0 ? _a : ''}
                                     ${(() => {
-                                    var _a;
-                                    if (req.query.type === 'editor') {
-                                        return ``;
-                                    }
-                                    else {
-                                        return `${((_a = data.config.globalStyle) !== null && _a !== void 0 ? _a : [])
-                                            .map((dd) => {
-                                            try {
-                                                if (dd.data.elem === 'link') {
-                                                    return html `
-                                                                    <link
-                                                                            type="text/css"
-                                                                            rel="stylesheet"
-                                                                            href="${dd.data.attr.find((dd) => {
-                                                        return dd.attr === 'href';
-                                                    }).value}"
-                                                                    />`;
-                                                }
-                                            }
-                                            catch (e) {
-                                                return ``;
-                                            }
-                                        })
-                                            .join('')}`;
-                                    }
-                                })()}
-                                `;
-                            })() + `<script>
-                                ${[
-                                (_e = d.custom_script) !== null && _e !== void 0 ? _e : '',
-                                `window.login_config = ${JSON.stringify(login_config)};`,
-                                `window.appName = '${appName}';`,
-                                `window.glitterBase = '${brandAndMemberType.brand}';`,
-                                `window.memberType = '${brandAndMemberType.memberType}';`,
-                                `window.glitterBackend = '${config_1.config.domain}';`,
-                                `window.preloadData = ${JSON.stringify(preload)
-                                    .replace(/<\/script>/g, 'sdjuescript_prepand')
-                                    .replace(/<script>/g, 'sdjuescript_prefix')};`,
-                                `window.glitter_page = '${req.query.page}';`,
-                                `window.store_info = ${JSON.stringify(store_info)};`,
-                                `window.server_execute_time = ${(new Date().getTime() - start) / 1000};`,
-                                `window.language = '${language}';`,
-                                `${distribution_code}`,
-                                `window.ip_country = '${(ip_country).country || 'TW'}';`,
-                                `window.currency_covert = ${JSON.stringify(await shopping_js_1.Shopping.currencyCovert((req.query.base || 'TWD')))};`,
-                                `window.language_list = ${JSON.stringify(language_label.label)};`
-                            ].map((dd) => {
-                                return dd.trim();
-                            }).filter((dd) => {
-                                return dd;
-                            }).join(';\n')}
-                            </script>
-                            ${[
-                                { src: 'glitterBundle/GlitterInitial.js', type: 'module' },
-                                { src: 'glitterBundle/module/html-generate.js', type: 'module' },
-                                { src: 'glitterBundle/html-component/widget.js', type: 'module' },
-                                { src: 'glitterBundle/plugins/trigger-event.js', type: 'module' },
-                                { src: 'api/pageConfig.js', type: 'module' },
-                            ]
-                                .map((dd) => {
-                                return html `
-                                            <script src="/${link_prefix && `${link_prefix}/`}${dd.src}"
-                                                    type="${dd.type}"></script>`;
-                            })
-                                .join('')}
-                            ${((_f = preload.event) !== null && _f !== void 0 ? _f : [])
-                                .filter((dd) => {
-                                return dd;
-                            })
-                                .map((dd) => {
-                                const link = dd.fun.replace(`TriggerEvent.setEventRouter(import.meta.url, '.`, 'official_event');
-                                return link.substring(0, link.length - 2);
-                            })
-                                .map((dd) => html `
-                                                <script src="/${link_prefix && `${link_prefix}/`}${dd}"
-                                                        type="module"></script>`)
-                                .join('')}
-                            ${(() => {
+                                var _a;
                                 if (req.query.type === 'editor') {
                                     return ``;
                                 }
                                 else {
-                                    return html `
+                                    return `${((_a = data.config.globalStyle) !== null && _a !== void 0 ? _a : [])
+                                        .map((dd) => {
+                                        try {
+                                            if (dd.data.elem === 'link') {
+                                                return html `
+                                                                    <link
+                                                                            type="text/css"
+                                                                            rel="stylesheet"
+                                                                            href="${dd.data.attr.find((dd) => {
+                                                    return dd.attr === 'href';
+                                                }).value}"
+                                                                    />`;
+                                            }
+                                        }
+                                        catch (e) {
+                                            return ``;
+                                        }
+                                    })
+                                        .join('')}`;
+                                }
+                            })()}
+                                `;
+                        })() + `<script>
+                                ${[
+                            (_e = d.custom_script) !== null && _e !== void 0 ? _e : '',
+                            `window.login_config = ${JSON.stringify(login_config)};`,
+                            `window.appName = '${appName}';`,
+                            `window.glitterBase = '${brandAndMemberType.brand}';`,
+                            `window.memberType = '${brandAndMemberType.memberType}';`,
+                            `window.glitterBackend = '${config_1.config.domain}';`,
+                            `window.preloadData = ${JSON.stringify(preload)
+                                .replace(/<\/script>/g, 'sdjuescript_prepand')
+                                .replace(/<script>/g, 'sdjuescript_prefix')};`,
+                            `window.glitter_page = '${req.query.page}';`,
+                            `window.store_info = ${JSON.stringify(store_info)};`,
+                            `window.server_execute_time = ${(new Date().getTime() - start) / 1000};`,
+                            `window.language = '${language}';`,
+                            `${distribution_code}`,
+                            `window.ip_country = '${(ip_country).country || 'TW'}';`,
+                            `window.currency_covert = ${JSON.stringify(await shopping_js_1.Shopping.currencyCovert((req.query.base || 'TWD')))};`,
+                            `window.language_list = ${JSON.stringify(language_label.label)};`
+                        ].map((dd) => {
+                            return dd.trim();
+                        }).filter((dd) => {
+                            return dd;
+                        }).join(';\n')}
+                            </script>
+                            ${[
+                            { src: 'glitterBundle/GlitterInitial.js', type: 'module' },
+                            { src: 'glitterBundle/module/html-generate.js', type: 'module' },
+                            { src: 'glitterBundle/html-component/widget.js', type: 'module' },
+                            { src: 'glitterBundle/plugins/trigger-event.js', type: 'module' },
+                            { src: 'api/pageConfig.js', type: 'module' },
+                        ]
+                            .map((dd) => {
+                            return html `
+                                            <script src="/${link_prefix && `${link_prefix}/`}${dd.src}"
+                                                    type="${dd.type}"></script>`;
+                        })
+                            .join('')}
+                            ${((_f = preload.event) !== null && _f !== void 0 ? _f : [])
+                            .filter((dd) => {
+                            return dd;
+                        })
+                            .map((dd) => {
+                            const link = dd.fun.replace(`TriggerEvent.setEventRouter(import.meta.url, '.`, 'official_event');
+                            return link.substring(0, link.length - 2);
+                        })
+                            .map((dd) => html `
+                                                <script src="/${link_prefix && `${link_prefix}/`}${dd}"
+                                                        type="module"></script>`)
+                            .join('')}
+                            ${(() => {
+                            if (req.query.type === 'editor') {
+                                return ``;
+                            }
+                            else {
+                                return html `
                                         ${seo_config_js_1.SeoConfig.gA4(customCode.ga4)}
                                         ${seo_config_js_1.SeoConfig.gTag(customCode.g_tag)}
                                         ${seo_content.map((dd) => {
-                                        return dd.trim();
-                                    }).join('\n')}
+                                    return dd.trim();
+                                }).join('\n')}
                                     `;
-                                }
-                            })()}`,
+                            }
+                        })()}`;
+                        return {
+                            head: head,
                             body: ``
                         };
                     }
@@ -480,7 +478,12 @@ async function createAPP(dd) {
                              where appName = ?
                                and page_config ->>'$.seo.type'='custom'
                             `, [appName])).map((d2) => {
-                        return { url: `https://${domain}/${d2.tag}`, changefreq: 'weekly' };
+                        if (d2.tag === 'index') {
+                            return { url: `https://${domain}`, changefreq: 'weekly' };
+                        }
+                        else {
+                            return { url: `https://${domain}/${d2.tag}`, changefreq: 'weekly' };
+                        }
                     }),
                     ...(article.data
                         .filter((d2) => {

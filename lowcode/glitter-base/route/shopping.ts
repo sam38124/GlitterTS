@@ -865,7 +865,10 @@ export class ApiShop {
             count: number;
         }[];
         code?: string;
+        //結帳類型
         checkOutType?: 'manual' | 'auto' | 'POS';
+        //POS的門市
+        pos_store?:string;
         use_rebate?: number;
         distribution_code?: string;
         user_info?: any;

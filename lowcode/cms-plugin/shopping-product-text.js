@@ -117,7 +117,7 @@ export class ProductText {
                                 getData: (vmi) => {
                                     ApiUser.getPublicConfig('promo-label', 'manager').then((data) => {
                                         vm.labelList = (() => {
-                                            return data.response.value == '' ? [] : data.response.value;
+                                            return !data.response.value.length ? [] : data.response.value;
                                         })();
                                         vmi.originalData = vm.labelList;
                                         vmi.tableData = getLabelList(vm.labelList);
@@ -200,7 +200,7 @@ export class ProductText {
                                 getData: (vmi) => {
                                     ApiUser.getPublicConfig('text-manager', 'manager').then((data) => {
                                         vm.dataList = (() => {
-                                            return data.response.value == '' ? [] : data.response.value;
+                                            return !data.response.value.length ? [] : data.response.value;
                                         })();
                                         vmi.originalData = vm.dataList;
                                         vmi.tableData = getTextList(vm.dataList);
@@ -548,43 +548,50 @@ export class ProductText {
                             vm.type = 'list';
                         }))}
                                 ${BgWidget.save(gvc.event(() => {
-                            if (CheckInput.isEmpty(vm.data.title)) {
-                                dialog.errorMessage({ text: '請輸入文本標題' });
-                                return;
-                            }
-                            if (vm.data.data.tags) {
-                                for (const tag of vm.data.data.tags) {
-                                    if (!vm.data.data.content.includes(`@{{${tag.key}}}`)) {
-                                        dialog.errorMessage({ text: `標籤名「${tag.title}」尚未使用<br />請加入至文本或刪除標籤` });
-                                        return;
+                            try {
+                                if (CheckInput.isEmpty(vm.data.title)) {
+                                    dialog.errorMessage({ text: '請輸入文本標題' });
+                                    return;
+                                }
+                                if (vm.data.data.tags) {
+                                    for (const tag of vm.data.data.tags) {
+                                        if (!vm.data.data.content.includes(`@{{${tag.key}}}`)) {
+                                            dialog.errorMessage({ text: `標籤名「${tag.title}」尚未使用<br />請加入至文本或刪除標籤` });
+                                            return;
+                                        }
                                     }
                                 }
-                            }
-                            vm.data.updated_time = glitter.ut.dateFormat(new Date(), 'yyyy-MM-dd hh:mm:ss');
-                            if (vm.data.id.length === 0) {
-                                vm.data.id = Tool.randomString(10);
-                                vm.dataList.push(vm.data);
-                            }
-                            else {
-                                vm.dataList[vm.dataList.findIndex((item) => item.id === vm.data.id)] = vm.data;
-                            }
-                            dialog.dataLoading({ text: '設定中...', visible: true });
-                            ApiUser.setPublicConfig({
-                                key: 'text-manager',
-                                user_id: 'manager',
-                                value: vm.dataList,
-                            }).then((result) => {
-                                dialog.dataLoading({ visible: false });
-                                if (result.response.result) {
-                                    dialog.successMessage({ text: '設定成功' });
-                                    setTimeout(() => {
-                                        vm.type = 'list';
-                                    }, 200);
+                                vm.data.updated_time = glitter.ut.dateFormat(new Date(), 'yyyy-MM-dd hh:mm:ss');
+                                if (vm.data.id.length === 0) {
+                                    vm.data.id = Tool.randomString(10);
+                                    vm.dataList.push(vm.data);
                                 }
                                 else {
-                                    dialog.errorMessage({ text: '設定失敗' });
+                                    vm.dataList[vm.dataList.findIndex((item) => item.id === vm.data.id)] = vm.data;
                                 }
-                            });
+                                dialog.dataLoading({ text: '設定中...', visible: true });
+                                ApiUser.setPublicConfig({
+                                    key: 'text-manager',
+                                    user_id: 'manager',
+                                    value: vm.dataList,
+                                }).then((result) => {
+                                    dialog.dataLoading({ visible: false });
+                                    if (result.response.result) {
+                                        dialog.successMessage({ text: '設定成功' });
+                                        setTimeout(() => {
+                                            vm.type = 'list';
+                                        }, 200);
+                                    }
+                                    else {
+                                        dialog.errorMessage({ text: '設定失敗' });
+                                    }
+                                });
+                            }
+                            catch (e) {
+                                console.log(`error`, e);
+                                return;
+                                ``;
+                            }
                         }))}
                             </div>`,
                     ].join(''));

@@ -217,7 +217,7 @@ background: ${colors.bgr ?? '#000'};overflow-x: hidden;`,
                           ${widget.formData.logo.value}
                       </div>
                   `
-                : html` <div class="d-flex align-items-center justify-content-center h-100 py-2"><img src="${widget.formData.logo.value}" style="height: 100%;" /></div> `
+                : html` <div class="d-flex align-items-center justify-content-center h-100 py-2"><img src="${widget.formData.logo.value}" style="max-height: 100%;max-width:150px;" /></div> `
         }
                         </div>
                         <!--選單列表顯示區塊-->
