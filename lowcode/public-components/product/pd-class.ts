@@ -462,6 +462,7 @@ export class PdClass {
                 : obj.vm.specs.map((spec: any) => {
                       return spec.option[0].title;
                   });
+        console.log(`obj.vm.specs=>`,obj.vm.specs)
         obj.prod.preview_image = obj.prod.preview_image.filter((dd) => {
             return dd !== 'https://d3jnmi1tfjgtti.cloudfront.net/file/234285319/1722936949034-default_image.jpg';
         });

@@ -1020,49 +1020,53 @@ export class ShoppingOrderManager {
                                 .join(BgWidget.mbContainer(18))}
                                                         </div>
                                                     `),
-                            BgWidget.mainCard(html `
+                            orderData.orderData.lineItems.find((dd) => { return dd.deduction_log; }) ?
+                                BgWidget.mainCard(html `
                                                 <div style="display: flex;flex-direction: column;align-items: flex-start;gap: 12px;align-self: stretch;">
                                                     <div class="w-100 d-flex tx_700 align-items-center justify-content-between">
                                                         <div class="">分倉出貨</div>
                                                         <div class=""
                                                              style="display: flex;padding: 6px 18px;justify-content: center;align-items: center;gap: 8px;border-radius: 10px;border: 1px solid #DDD;background: #FFF;cursor: pointer;"
                                                              onclick="${gvc.event(() => {
-                                OrderSetting.showEditShip({
-                                    gvc: gvc,
-                                    postMD: orderData.orderData.lineItems,
-                                    productData: productData,
-                                    callback: () => {
-                                        gvc.notifyDataChange('storehouseList');
-                                    }
-                                });
-                            })}">
+                                    OrderSetting.showEditShip({
+                                        gvc: gvc,
+                                        postMD: orderData.orderData.lineItems,
+                                        productData: productData,
+                                        callback: () => {
+                                            gvc.notifyDataChange('storehouseList');
+                                        }
+                                    });
+                                })}">
                                                             編輯
                                                         </div>
                                                     </div>
                                                     ${gvc.bindView({
-                                bind: "storehouseList",
-                                view: () => {
-                                    if (storeLoading) {
-                                        ApiUser.getPublicConfig('store_manager', 'manager').then((dd) => {
-                                            if (dd.result && dd.response.value) {
-                                                storeList = dd.response.value.list;
-                                                storeLoading = false;
-                                                gvc.notifyDataChange('storehouseList');
+                                    bind: "storehouseList",
+                                    view: () => {
+                                        try {
+                                            if (storeLoading) {
+                                                ApiUser.getPublicConfig('store_manager', 'manager').then((dd) => {
+                                                    if (dd.result && dd.response.value) {
+                                                        storeList = dd.response.value.list;
+                                                        storeLoading = false;
+                                                        gvc.notifyDataChange('storehouseList');
+                                                    }
+                                                    else {
+                                                    }
+                                                });
+                                                return html `讀取中...`;
                                             }
                                             else {
-                                            }
-                                        });
-                                        return html `讀取中...`;
-                                    }
-                                    else {
-                                        if (storeList.length == 0) {
-                                            return html `倉儲資訊錯誤`;
-                                        }
-                                        return storeList.map((store) => {
-                                            let returnHtml = ``;
-                                            orderData.orderData.lineItems.map((item) => {
-                                                if (item.deduction_log[store.id]) {
-                                                    returnHtml += html `
+                                                if (storeList.length == 0) {
+                                                    return html `倉儲資訊錯誤`;
+                                                }
+                                                return storeList.map((store) => {
+                                                    let returnHtml = ``;
+                                                    orderData.orderData.lineItems.map((item) => {
+                                                        console.log(`item.deduction_log=>`, item.deduction_log);
+                                                        try {
+                                                            if (item.deduction_log[store.id]) {
+                                                                returnHtml += html `
                                                                                 <div class="d-flex justify-content-between"
                                                                                      style="font-size: 16px;font-weight: 400;">
                                                                                     <div>${item.title} -
@@ -1072,10 +1076,14 @@ export class ShoppingOrderManager {
                                                                                     </div>
                                                                                 </div>
                                                                             `;
-                                                }
-                                            });
-                                            if (returnHtml) {
-                                                return html `
+                                                            }
+                                                        }
+                                                        catch (e) {
+                                                            return ``;
+                                                        }
+                                                    });
+                                                    if (returnHtml) {
+                                                        return html `
                                                                             <div class="d-flex flex-column w-100"
                                                                                  style="gap:8px;padding: 18px;border-radius: 10px;border: 1px solid #DDD;">
                                                                                 <div class="d-flex w-100 align-items-center"
@@ -1092,20 +1100,25 @@ export class ShoppingOrderManager {
                                                                                 </div>
                                                                             </div>
                                                                         `;
+                                                    }
+                                                    else {
+                                                        return ``;
+                                                    }
+                                                }).join('');
                                             }
-                                            else {
-                                                return ``;
-                                            }
-                                        }).join('');
+                                        }
+                                        catch (e) {
+                                            console.log(e);
+                                            return `error-${e}`;
+                                        }
+                                    },
+                                    divCreate: {
+                                        class: `w-100 d-flex flex-column`,
+                                        style: `gap:18px;`
                                     }
-                                },
-                                divCreate: {
-                                    class: `w-100 d-flex flex-column`,
-                                    style: `gap:18px;`
-                                }
-                            })}
+                                })}
                                                 </div>
-                                            `),
+                                            `) : ``,
                             BgWidget.mainCard([
                                 html `
                                                             <div style="display: flex;flex-direction: column;align-items: flex-start;gap: 12px;align-self: stretch;">
@@ -1251,7 +1264,9 @@ export class ShoppingOrderManager {
                                                 var _a;
                                                 if (['normal', 'black_cat', 'global_express'].includes(orderData.orderData.user_info.shipment)) {
                                                     let map = [];
-                                                    map.push(`國家 : ${(_a = CountryTw.find((dd) => { return dd.countryCode === orderData.orderData.user_info.country; })) === null || _a === void 0 ? void 0 : _a.countryName}`);
+                                                    map.push(`國家 : ${(_a = CountryTw.find((dd) => {
+                                                        return dd.countryCode === orderData.orderData.user_info.country;
+                                                    })) === null || _a === void 0 ? void 0 : _a.countryName}`);
                                                     map.push(`城市 : ${orderData.orderData.user_info.city}`);
                                                     map.push(`州/省 : ${orderData.orderData.user_info.state}`);
                                                     map.push(`郵遞區號 : ${orderData.orderData.user_info.postal_code}`);
@@ -1429,6 +1444,56 @@ export class ShoppingOrderManager {
                                                 else {
                                                     return ``;
                                                 }
+                                            })(),
+                                            (() => {
+                                                let map = [`<div class="tx_700">
+                                                                                            發票開立資訊
+                                                                                        </div>`];
+                                                if (orderData.orderData.user_info.invoice_method) {
+                                                    map.push(`開立時機: ${(() => {
+                                                        switch (orderData.orderData.user_info.invoice_method) {
+                                                            case 'nouse':
+                                                                return '不開立發票';
+                                                            case 'off_line':
+                                                                return '線下自行開立';
+                                                            default:
+                                                                return `付款時開立`;
+                                                        }
+                                                    })()}`);
+                                                }
+                                                if (orderData.orderData.user_info.invoice_method !== 'nouse') {
+                                                    map.push(`開立對象: ${(() => {
+                                                        switch (orderData.orderData.user_info.invoice_type) {
+                                                            case 'donate':
+                                                                return '捐贈';
+                                                            case 'company':
+                                                                return '公司';
+                                                            default:
+                                                                return '個人';
+                                                        }
+                                                    })()}`);
+                                                    map.push(`${(() => {
+                                                        switch (orderData.orderData.user_info.invoice_type) {
+                                                            case 'donate':
+                                                                return '發票捐贈單位: ' + orderData.orderData.user_info.love_code;
+                                                            case 'company':
+                                                                return [`公司抬頭: ${orderData.orderData.user_info.company}`,
+                                                                    `統編號碼: ${orderData.orderData.user_info.gui_number}`,
+                                                                    `發票寄送信箱: ${orderData.orderData.user_info.email || '未填寫'}`].map((dd) => {
+                                                                    return `<div>${dd}</div>`;
+                                                                }).join(BgWidget.mbContainer(8));
+                                                            default:
+                                                                return [
+                                                                    `發票寄送信箱: ${orderData.orderData.user_info.email || '未填寫'}`
+                                                                ].map((dd) => {
+                                                                    return `<div>${dd}</div>`;
+                                                                }).join(BgWidget.mbContainer(8));
+                                                        }
+                                                    })()}`);
+                                                }
+                                                return map.map((dd) => {
+                                                    return `<div>${dd}</div>`;
+                                                }).join(BgWidget.mbContainer(8));
                                             })()
                                         ].filter((dd) => {
                                             return dd;
@@ -1453,21 +1518,78 @@ export class ShoppingOrderManager {
                                     },
                                 });
                             })()),
-                            BgWidget.mainCard(html `
-                                                <div class="tx_700">訂單備註</div>
+                            BgWidget.mainCard(gvc.bindView(() => {
+                                const vm = {
+                                    edit_mode: false,
+                                    id: gvc.glitter.getUUID()
+                                };
+                                return {
+                                    bind: vm.id,
+                                    view: () => {
+                                        return html `
+                                                            <div class="w-100 d-flex tx_700 align-items-center justify-content-between">
+                                                                <div class="">顧客備註</div>
+                                                                <div class=""
+                                                                     style="display: flex;padding: 6px 18px;justify-content: center;align-items: center;gap: 8px;border-radius: 10px;border: 1px solid #DDD;background: #FFF;cursor: pointer;"
+                                                                     onclick="${gvc.event(() => {
+                                            vm.edit_mode = !vm.edit_mode;
+                                            gvc.notifyDataChange(vm.id);
+                                        })}">
+                                                                    ${vm.edit_mode ? `取消編輯` : `編輯`}
+                                                                </div>
+                                                            </div>
+                                                            ${BgWidget.mbContainer(18)}
+                                                            <div style="position: relative;">
+                                                                ${vm.edit_mode ? EditorElem.editeText({
+                                            gvc: gvc,
+                                            title: '',
+                                            default: orderData.orderData.user_info.note || '',
+                                            placeHolder: '',
+                                            callback: (text) => {
+                                                orderData.orderData.user_info.note = text;
+                                            },
+                                        }) : orderData.orderData.user_info.note || '尚未填寫顧客備註'}
+                                                            </div>
+                                                        `;
+                                    }
+                                };
+                            })),
+                            BgWidget.mainCard(gvc.bindView(() => {
+                                const vm = {
+                                    edit_mode: false,
+                                    id: gvc.glitter.getUUID()
+                                };
+                                return {
+                                    bind: vm.id,
+                                    view: () => {
+                                        return html `
+                                                <div class="w-100 d-flex tx_700 align-items-center justify-content-between">
+                                                    <div class="">商家備註</div>
+                                                    <div class=""
+                                                         style="display: flex;padding: 6px 18px;justify-content: center;align-items: center;gap: 8px;border-radius: 10px;border: 1px solid #DDD;background: #FFF;cursor: pointer;"
+                                                         onclick="${gvc.event(() => {
+                                            vm.edit_mode = !vm.edit_mode;
+                                            gvc.notifyDataChange(vm.id);
+                                        })}">
+                                                        ${vm.edit_mode ? `取消編輯` : `編輯`}
+                                                    </div>
+                                                </div>
                                                 ${BgWidget.mbContainer(18)}
                                                 <div style="position: relative;">
-                                                    ${EditorElem.editeText({
-                                gvc: gvc,
-                                title: '',
-                                default: orderData.orderData.order_note,
-                                placeHolder: '',
-                                callback: (text) => {
-                                    orderData.orderData.order_note = text;
-                                },
-                            })}
+                                                    ${vm.edit_mode ? EditorElem.editeText({
+                                            gvc: gvc,
+                                            title: '',
+                                            default: orderData.orderData.order_note || '',
+                                            placeHolder: '',
+                                            callback: (text) => {
+                                                orderData.orderData.order_note = text;
+                                            },
+                                        }) : orderData.orderData.order_note || '尚未填寫商家備註'}
                                                 </div>
-                                            `),
+                                            `;
+                                    }
+                                };
+                            })),
                             gvc.bindView({
                                 bind: 'invoiceView',
                                 view: () => {
@@ -1717,6 +1839,19 @@ export class ShoppingOrderManager {
                                             orderData.orderData.pos_info.who.config.member_id,
                                         ].join(' / ')}
                                                                                             </div>
+                                                                                             <div class="tx_700">
+                                                                                                結帳門市
+                                                                                            </div>
+                                                                                            ${gvc.bindView(() => {
+                                            return {
+                                                bind: gvc.glitter.getUUID(),
+                                                view: () => __awaiter(this, void 0, void 0, function* () {
+                                                    return (yield ApiUser.getPublicConfig('store_manager', 'manager')).response.value.list.find((dd) => {
+                                                        return dd.id === orderData.orderData.pos_info.where_store;
+                                                    }).name;
+                                                })
+                                            };
+                                        })}
                                                                                         ` : ``}
                                                                                     `);
                                         return view.join(`<div class="my-2"></div>`);
@@ -1796,49 +1931,7 @@ export class ShoppingOrderManager {
                                     }
                                 },
                                 divCreate: {},
-                            }),
-                            BgWidget.mainCard(gvc.bindView(() => {
-                                const id = glitter.getUUID();
-                                const vm = {
-                                    mode: 'read',
-                                };
-                                return {
-                                    bind: id,
-                                    view: () => {
-                                        var _a;
-                                        return html `
-                                                                            <div class="d-flex align-items-center ">
-                                                                                <div class="tx_700">用戶備註</div>
-                                                                                <div class="flex-fill"></div>
-                                                                                <i
-                                                                                        class="fa-solid fa-pencil d-none"
-                                                                                        style="cursor:pointer;"
-                                                                                        onclick="${gvc.event(() => {
-                                            vm.mode = vm.mode === 'edit' ? 'read' : 'edit';
-                                            gvc.notifyDataChange(id);
-                                        })}"
-                                                                                ></i>
-                                                                            </div>
-
-                                                                            <div class="fs-6 w-100 mt-2  lh-lg fw-normal"
-                                                                                 style="word-break: break-all;white-space:normal;">
-                                                                                ${(((_a = orderData.orderData.user_info.note) !== null && _a !== void 0 ? _a : '') + (orderData.orderData.user_info.code_note || '') || '尚未填寫').replace(/\n/g, `<br>`)}
-                                                                            </div>
-                                                                        `;
-                                    },
-                                    divCreate: {
-                                        class: ` fw-normal`,
-                                    },
-                                };
-                            })),
-                            BgWidget.mainCard(html `
-                                                        <div style="display: flex;flex-direction: column;align-items: flex-start;gap: 12px;align-self: stretch;color:#393939;">
-                                                            <div class="tx_700">訂單備註</div>
-                                                            <div style="color:#8D8D8D;font-size: 16px;font-weight: 400;line-height: 140%;">
-                                                                ${orderData.orderData.order_note ? orderData.orderData.order_note : '尚未輸入文字'}
-                                                            </div>
-                                                        </div>
-                                                    `)
+                            })
                         ]
                             .filter((dd) => {
                             return dd;
@@ -3477,16 +3570,32 @@ export class ShoppingOrderManager {
     }
     static getPaymentMethodText(key, orderData) {
         if (orderData.orderSource === 'POS') {
-            return `門市『 ${(() => {
-                switch (orderData.pos_info.payment) {
-                    case 'creditCard':
-                        return '信用卡';
-                    case 'line':
-                        return 'Line Pay';
-                    case 'cash':
-                        return '現金';
-                }
-            })()} 』付款`;
+            if (typeof orderData.pos_info.payment === 'string') {
+                return `門市『 ${(() => {
+                    switch (orderData.pos_info.payment) {
+                        case 'creditCard':
+                            return '信用卡';
+                        case 'line':
+                            return 'Line Pay';
+                        case 'cash':
+                            return '現金';
+                    }
+                })()} 』付款`;
+            }
+            else {
+                return orderData.pos_info.payment.map((dd) => {
+                    return `門市${(() => {
+                        switch (dd.method) {
+                            case 'creditCard':
+                                return '信用卡';
+                            case 'line':
+                                return 'Line Pay';
+                            case 'cash':
+                                return '現金';
+                        }
+                    })()}付款『 <span style="color:#E85757;">${dd.total.toLocaleString()}</span> 』`;
+                }).join('<div class="my-1"></div>');
+            }
         }
         switch (orderData.customer_info.payment_select) {
             case 'off_line':

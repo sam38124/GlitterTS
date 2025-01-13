@@ -23,6 +23,7 @@ import { Swal } from "../modules/sweetAlert.js";
 import { ConnectionMode } from "./pos-pages/connection-mode.js";
 import { PosFunction } from "./pos-pages/pos-function.js";
 import { UserList } from "./user-list.js";
+import { TempOrder } from "./pos-pages/temp-order.js";
 function getConfig() {
     const saasConfig = window.parent.saasConfig;
     return saasConfig;
@@ -252,65 +253,75 @@ height: 51px;
             return {
                 bind: id,
                 view: () => __awaiter(this, void 0, void 0, function* () {
-                    let [initial, res, member_auth, store_list] = yield Promise.all([POSSetting.initial(gvc), ApiUser.checkAdminAuth({
-                            app: gvc.glitter.getUrlParameter('app-id'),
-                            token: GlobalUser.saas_token,
-                        }), ApiUser.getPermission({
-                            page: 0,
-                            limit: 100
-                        }), ApiUser.getPublicConfig('store_manager', 'manager')]);
-                    member_auth = member_auth.response.data.filter((dd) => {
-                        return dd.invited && dd.status;
-                    });
-                    store_list = store_list.response.value.list;
-                    glitter.share.store_list = store_list;
-                    glitter.share.member_auth_list = member_auth;
-                    glitter.share.editorViewModel.app_config_original;
                     try {
-                        const login_user = GlobalUser.parseJWT(GlobalUser.saas_token).payload.userID;
-                        const find_ = member_auth.find((dd) => {
-                            return `${dd.user}` === `${login_user}`;
+                        let [initial, res, member_auth, store_list] = yield Promise.all([POSSetting.initial(gvc), ApiUser.checkAdminAuth({
+                                app: gvc.glitter.getUrlParameter('app-id'),
+                                token: GlobalUser.saas_token,
+                            }), ApiUser.getPermission({
+                                page: 0,
+                                limit: 100
+                            }), ApiUser.getPublicConfig('store_manager', 'manager')]);
+                        member_auth = member_auth.response.data.filter((dd) => {
+                            return dd.invited && dd.status;
                         });
-                        POSSetting.config.who = find_.user;
-                    }
-                    catch (e) {
-                    }
-                    const member_auth_ = member_auth.find((dd) => {
-                        return `${dd.user}` === `${POSSetting.config.who}`;
-                    });
-                    member_auth_.config.support_shop = member_auth_.config.support_shop.filter((dd) => {
-                        return store_list.find((d1) => {
-                            return dd === d1.id;
-                        });
-                    });
-                    if (res.response.result && (member_auth_ || POSSetting.config.who === 'manager')) {
-                        if (!member_auth_.config.support_shop || member_auth_.config.support_shop.length === 0) {
-                            const dialog = new ShareDialog(gvc.glitter);
-                            dialog.errorMessage({
-                                text: `尚未設定任何門市，請前往『 門市設定 』與『 員工設定 』中設定相關參數`,
-                                callback: () => {
-                                    const dialog = new ShareDialog(gvc.glitter);
-                                    dialog.dataLoading({ visible: true });
-                                    localStorage.removeItem('on-pos');
-                                    (window.parent).history.replaceState({}, document.title, `${glitter.root_path}cms?appName=${glitter.getUrlParameter('app-id')}&type=editor&function=backend-manger&tab=home_page`);
-                                    glitter.share.reload('cms', 'shopnex');
-                                }
+                        store_list = store_list.response.value.list;
+                        glitter.share.store_list = store_list;
+                        glitter.share.member_auth_list = member_auth;
+                        try {
+                            const login_user = GlobalUser.parseJWT(GlobalUser.saas_token).payload.userID;
+                            const find_ = member_auth.find((dd) => {
+                                return `${dd.user}` === `${login_user}`;
                             });
-                            return ``;
+                            POSSetting.config.who = find_.user;
+                        }
+                        catch (e) {
+                        }
+                        const member_auth_ = member_auth.find((dd) => {
+                            return `${dd.user}` === `${POSSetting.config.who}`;
+                        });
+                        console.log(`member_auth_=>`, member_auth_);
+                        member_auth_.config.support_shop = member_auth_.config.support_shop.filter((dd) => {
+                            return store_list.find((d1) => {
+                                return dd === d1.id;
+                            });
+                        });
+                        if (res.response.result && (member_auth_ || POSSetting.config.who === 'manager')) {
+                            if (!member_auth_.config.support_shop || member_auth_.config.support_shop.length === 0) {
+                                const dialog = new ShareDialog(gvc.glitter);
+                                dialog.errorMessage({
+                                    text: `尚未設定任何門市，請前往『 門市設定 』與『 員工設定 』中設定相關參數`,
+                                    callback: () => {
+                                        const dialog = new ShareDialog(gvc.glitter);
+                                        dialog.dataLoading({ visible: true });
+                                        localStorage.removeItem('on-pos');
+                                        (window.parent).history.replaceState({}, document.title, `${glitter.root_path}cms?appName=${glitter.getUrlParameter('app-id')}&type=editor&function=backend-manger&tab=home_page`);
+                                        glitter.share.reload('cms', 'shopnex');
+                                    }
+                                });
+                                return ``;
+                            }
+                            else {
+                                glitter.share.member_auth_list = member_auth.filter((dd) => {
+                                    return dd.config.support_shop && dd.config.support_shop.length > 0;
+                                });
+                                if (!member_auth_.config.support_shop.includes(POSSetting.config.where_store)) {
+                                    POSSetting.config.where_store = member_auth_.config.support_shop[0];
+                                }
+                                return POSSetting.posView(gvc);
+                            }
                         }
                         else {
-                            glitter.share.member_auth_list = member_auth.filter((dd) => {
-                                return dd.config.support_shop && dd.config.support_shop.length > 0;
+                            return POSSetting.loginManager(gvc, 'first', () => {
                             });
-                            if (!member_auth_.config.support_shop.includes(POSSetting.config.where_store)) {
-                                POSSetting.config.where_store = member_auth_.config.support_shop[0];
-                            }
-                            return POSSetting.posView(gvc);
                         }
                     }
-                    else {
-                        return POSSetting.loginManager(gvc, 'first', () => {
-                        });
+                    catch (e) {
+                        const dialog = new ShareDialog(gvc.glitter);
+                        dialog.dataLoading({ visible: true });
+                        localStorage.removeItem('on-pos');
+                        (window.parent).history.replaceState({}, document.title, `${glitter.root_path}cms?appName=${glitter.getUrlParameter('app-id')}&type=editor&function=backend-manger&tab=home_page`);
+                        glitter.share.reload('cms', 'shopnex');
+                        return ``;
                     }
                 }),
                 divCreate: {},
@@ -445,22 +456,27 @@ height: 51px;
                     select: true,
                 },
             ],
-            paySelect: 'cash',
+            paySelect: [],
         };
         const html = String.raw;
+        glitter.share.reloadPosPage = () => {
+            gvc.notifyDataChange(vm.id);
+        };
         let orderDetail = JSON.parse(JSON.stringify(new OrderDetail(0, 0)));
         glitter.share.clearOrderData = () => {
             orderDetail = JSON.parse(JSON.stringify(new OrderDetail(0, 0)));
             orderDetail.user_info.shipment = 'now';
         };
-        if (localStorage.getItem('pos_order_detail')) {
-            orderDetail = JSON.parse(localStorage.getItem('pos_order_detail'));
-        }
-        else {
-            orderDetail.user_info.shipment = 'now';
-        }
-        if (!orderDetail.lineItems || orderDetail.lineItems.length === 0) {
-            orderDetail.user_info.shipment = 'now';
+        function loadOrderData() {
+            if (localStorage.getItem('pos_order_detail')) {
+                orderDetail = JSON.parse(localStorage.getItem('pos_order_detail'));
+            }
+            else {
+                orderDetail.user_info.shipment = 'now';
+            }
+            if (!orderDetail.lineItems || orderDetail.lineItems.length === 0) {
+                orderDetail.user_info.shipment = 'now';
+            }
         }
         gvc.addStyle(`
                         .product-show{
@@ -489,6 +505,48 @@ height: 51px;
 <div class="spinner-border"></div>
 </div>`;
                     }
+                    loadOrderData();
+                    const cartBtn = gvc.bindView(() => {
+                        return {
+                            bind: 'cartBtn',
+                            view: () => {
+                                if (!orderDetail.lineItems || orderDetail.lineItems.length === 0) {
+                                    return `<i class="fa-regular fa-cart-shopping" style="
+cursor: pointer;
+color: #393939;
+ font-size: 20px;"></i>`;
+                                }
+                                return `<span style="position: relative;"><i class="fa-regular fa-cart-shopping" style="color: #393939;
+cursor: pointer;
+ font-size: 20px;"></i><span style="position: absolute;top:-32px;right: -12px;"><span style="display: inline-block;
+    background-color:#fe5541;
+    height: 18px;
+    width: 18px;
+    border-radius: 50%;
+    text-align: center;
+    font-size: 11px;
+    font-weight: 400;
+    line-height: 18px;
+    color: #fff;
+    position: absolute;
+    top: 25px;
+    right: 0px;">${orderDetail.lineItems.length}</span></span>
+    </span>`;
+                            },
+                            divCreate: {
+                                class: `nav-link js-cart-count d-sm-none ${vm.type !== 'menu' ? `d-none` : ``}`,
+                                style: `cursor: pointer;`,
+                                option: [
+                                    {
+                                        key: 'onclick',
+                                        value: gvc.event(() => {
+                                            gvc.glitter.openDrawer();
+                                        }),
+                                    },
+                                ],
+                            },
+                        };
+                    });
                     return html `
                             <div
                                     class="d-flex nav-top"
@@ -496,7 +554,7 @@ height: 51px;
                             >
                                 <div
                                         class="POS-logo  d-flex align-items-center ${document.body.offsetWidth < 800 ? `justify-content-center` : ``} mx-2 w-100"
-                                        style="${document.body.offsetWidth < 800 ? `gap: 0px;` : `gap: 32px;padding-left: 24px;`}height: ${(() => {
+                                        style="${document.body.offsetWidth < 800 ? `gap: 0px;` : `gap: 10px;padding-left: 24px;`}height: ${(() => {
                         if (document.body.offsetWidth > 800) {
                             return `86px`;
                         }
@@ -505,7 +563,7 @@ height: 51px;
                         }
                     })()};"
                                 >
-                                    ${document.body.offsetWidth < 800 && vm.type === 'menu'
+                                    ${document.body.offsetWidth < 800
                         ? ` `
                         : `<div class=" d-flex align-items-center h-100 border-end pe-4" style="gap:10px;"><svg width="157" height="28" viewBox="0 0 157 28" fill="none"
                                      xmlns="http://www.w3.org/2000/svg">
@@ -521,46 +579,8 @@ height: 51px;
                                 </svg>
                                 <div style="text-align: center; color: #8D8D8D; font-size: 38px; font-family: Lilita One; font-weight: 400; word-wrap: break-word">POS</div>
                                 </div>`}
-                                    ${gvc.bindView(() => {
-                        return {
-                            bind: 'cartBtn',
-                            view: () => {
-                                if (!orderDetail.lineItems || orderDetail.lineItems.length === 0) {
-                                    return `<i class="fa-duotone fa-cart-shopping" style="color: #000000;
-cursor: pointer;
- font-size: 20px;"></i>`;
-                                }
-                                return `<span style="position: relative;"><i class="fa-duotone fa-cart-shopping" style="color: #000000;
-cursor: pointer;
- font-size: 20px;"></i><span style="position: absolute;top:-32px;right: -12px;"><span style="display: inline-block;
-    background-color:#fe5541;
-    height: 18px;
-    width: 18px;
-    border-radius: 50%;
-    text-align: center;
-    font-size: 11px;
-    font-weight: 400;
-    line-height: 18px;
-    color: #fff;
-    position: absolute;
-    top: 25px;
-    right: 0px;">${orderDetail.lineItems.length}</span></span></span>`;
-                            },
-                            divCreate: {
-                                class: `nav-link js-cart-count d-sm-none ${vm.type !== 'menu' ? `d-none` : ``}`,
-                                style: `cursor: pointer;`,
-                                option: [
-                                    {
-                                        key: 'onclick',
-                                        value: gvc.event(() => {
-                                            gvc.glitter.openDrawer();
-                                        }),
-                                    },
-                                ],
-                            },
-                        };
-                    })}
-                                    <div class="searchBar ms-sm-2 me-2 ${vm.type !== 'menu' ? `d-none` : ``} ${document.body.offsetWidth < 800 ? `flex-fill` : ``}"
+                                    ${(document.body.clientWidth > 800) ? cartBtn : ``}
+                                    <div class="searchBar ms-sm-2 me-2 ${vm.type !== 'menu' ? `d-none` : ``} ${document.body.offsetWidth < 800 ? `d-none` : ``}"
                                          style="position: relative;max-width:calc(100% - 60px);
 ${document.body.clientWidth < 800 ? `` : `position: absolute;left: 50%;top:50%;transform:translate(-50%,-50%);`}
 ">
@@ -600,7 +620,7 @@ ${document.body.clientWidth < 800 ? `` : `position: absolute;left: 50%;top:50%;t
                                             </defs>
                                         </svg>
                                     </div>
-                                    ${(vm.type !== 'menu' || (document.body.clientWidth > 800)) ? `<div class="flex-fill"></div>` : ``}
+                                    ${((document.body.clientWidth > 800)) ? `<div class="flex-fill"></div>` : ``}
                                     ${gvc.bindView(() => {
                         const id = 'right_top_info';
                         function refreshUserBar() {
@@ -618,7 +638,7 @@ ${document.body.clientWidth < 800 ? `` : `position: absolute;left: 50%;top:50%;t
                                     glitter.share.select_member = select_member;
                                     glitter.share.staff_title = select_member.config.name === 'manager' ? `BOSS` : POSSetting.config.who;
                                     resolve(html `
-                                                        <div class="h-100 group dropdown border-start ps-1 d-flex align-items-center"
+                                                        <div class="h-100 group dropdown  ps-1 pe-1 d-flex align-items-center"
                                                              style="">
                                                             <div class=" btn btn-outline-secondary  border-0 p-1 position-relative"
                                                                  data-bs-toggle="dropdown" aria-haspopup="true"
@@ -626,7 +646,7 @@ ${document.body.clientWidth < 800 ? `` : `position: absolute;left: 50%;top:50%;t
                                                                 <div class="d-flex align-items-center px-sm-2"
                                                                      style="gap:10px;">
                                                                     <div class="ps-2 text-start">
-                                                                      
+
                                                                         <div class="" style="color: #393939;
                                                                         font-size: 18px;
                                                                         font-style: normal;
@@ -634,17 +654,22 @@ ${document.body.clientWidth < 800 ? `` : `position: absolute;left: 50%;top:50%;t
                                                                         line-height: normal;">
                                                                             ${select_member.config.name}
                                                                         </div>
-                                                                        <div class="fs-xs lh-1 opacity-60 fw-500 d-flex align-items-center fw-500 mt-1" style="color: #8D8D8D;
+                                                                        <div class="fs-xs lh-1 opacity-60 fw-500 d-flex align-items-center fw-500 mt-1"
+                                                                             style="color: #8D8D8D;
                                                                         font-size: 14px;
                                                                         font-style: normal;
                                                                         gap:5px;
                                                                         font-weight: 400;
                                                                         line-height: normal;">
-                                                                            ${select_member.config.title} <div>/</div> <div class="text-info fw-bold">${glitter.share.store_list.find((dd) => {
+                                                                            ${select_member.config.title}
+                                                                            <div>/</div>
+                                                                            <div class="text-info fw-bold">
+                                                                                ${glitter.share.store_list.find((dd) => {
                                         return dd.id === POSSetting.config.where_store;
-                                    }).name}</div>
+                                    }).name}
+                                                                            </div>
                                                                         </div>
-                                                                       
+
                                                                     </div>
                                                                     <i class="fa-regular fa-angle-down fs-6"></i>
                                                                 </div>
@@ -682,55 +707,7 @@ ${document.body.clientWidth < 800 ? `` : `position: absolute;left: 50%;top:50%;t
                                             else {
                                                 return [];
                                             }
-                                        })(),
-                                        ...[
-                                            ...((PayConfig.deviceType === 'pos') ? [
-                                                html `
-                                                                                <a class="dropdown-item cursor_pointer d-flex align-items-center"
-                                                                                   style="gap:10px;"
-                                                                                   onclick="${gvc.event(() => {
-                                                    ConnectionMode.main(gvc);
-                                                })}"><i
-                                                                                        class="fa-solid fa-plug d-flex align-items-center justify-content-center"
-                                                                                        style="width:20px;"></i>連線模式</a>`,
-                                            ] : []),
-                                            ...((ConnectionMode.on_connected_device) ? [
-                                                `<a class="dropdown-item cursor_pointer d-flex align-items-center"
-                                                                           style="gap:10px;"
-                                                                           onclick="${gvc.event(() => {
-                                                    const dialog = new ShareDialog(gvc.glitter);
-                                                    dialog.checkYesOrNot({
-                                                        text: '是否斷開與 IMIN 裝置的連線?',
-                                                        callback: (response) => {
-                                                            if (response) {
-                                                                dialog.infoMessage({ text: '已斷開連線' });
-                                                                ConnectionMode.last_connect_id = '';
-                                                                ConnectionMode.on_connected_device = '';
-                                                                ConnectionMode.socket.close();
-                                                            }
-                                                        }
-                                                    });
-                                                })}"><i class="fa-solid fa-power-off d-flex align-items-center justify-content-center" style="width:20px;"></i>斷開裝置連線</a>`
-                                            ] : [])
-                                        ].concat(PayConfig.deviceType === 'pos' ? [] : ConnectionMode.device_list.map((dd) => {
-                                            return html `<a
-                                                                                class="dropdown-item cursor_pointer d-flex align-items-center"
-                                                                                style="gap:10px;"
-                                                                                onclick="${gvc.event(() => {
-                                                ConnectionMode.connect(dd);
-                                            })}"><i
-                                                                                class="fa-solid fa-plug d-flex align-items-center justify-content-center"
-                                                                                style="width:20px;"></i>連線至『 ${dd} 』</a>`;
-                                        })),
-                                        ` <a class="dropdown-item cursor_pointer  d-flex align-items-center"
-                                                                   style="gap:5px;" onclick="${gvc.event(() => {
-                                            const dialog = new ShareDialog(gvc.glitter);
-                                            dialog.dataLoading({ visible: true });
-                                            localStorage.removeItem('on-pos');
-                                            (window.parent).history.replaceState({}, document.title, `${glitter.root_path}cms?appName=${glitter.getUrlParameter('app-id')}&type=editor&function=backend-manger&tab=home_page`);
-                                            glitter.share.reload('cms', 'shopnex');
-                                        })}"><i class="fa-solid fa-angle-left d-flex align-items-center justify-content-center"
-                                                                        style="width:20px;"></i>返回後台管理</a>`
+                                        })()
                                     ].join('<div class="dropdown-divider"></div>')}
                                                             </div>
                                                         </div>`);
@@ -741,6 +718,110 @@ ${document.body.clientWidth < 800 ? `` : `position: absolute;left: 50%;top:50%;t
                             }
                         };
                     })}
+                                    ${(document.body.clientWidth < 800) ? `<div class="flex-fill"></div>` : ``}
+                                    <div class="h-100 d-flex align-items-center border-start ps-1">
+                                        <div style="width:50px;height: 100%;cursor: pointer;"
+                                             class="d-flex align-items-center justify-content-center"
+                                             onclick="${gvc.event(() => {
+                        PosFunction.selectTempOrder(gvc);
+                    })}">
+                                            <div class=" btn btn-outline-secondary border-0 p-1 position-relative">
+                                                <i class="fa-regular fa-box fs-4"></i>
+                                                ${TempOrder.getTempOrders().length ? `<span style="position: absolute;top:-28px;right: -8px;"><span style="display: inline-block;
+    background-color:#fe5541;
+    height: 18px;
+    width: 18px;
+    border-radius: 50%;
+    text-align: center;
+    font-size: 11px;
+    font-weight: 400;
+    line-height: 18px;
+    color: #fff;
+    position: absolute;
+    top: 25px;
+    right: 0px;">${TempOrder.getTempOrders().length}</span></span>` : ``}
+                                            </div>
+                                        </div>
+                                        ${(document.body.clientWidth > 800 || vm.type !== 'menu') ? `` : `<div style="width:50px;" class="d-flex align-items-center justify-content-center">${cartBtn}</div>`}
+                                        ${gvc.bindView(() => {
+                        const id = gvc.glitter.getUUID();
+                        return {
+                            bind: id,
+                            view: () => {
+                                return html `
+                                                        <div class="h-100 group dropdown  ps-1 d-flex align-items-center"
+                                                             style="">
+                                                            <div class="btn btn-outline-secondary  border-0 p-1 position-relative "
+                                                                 style="cursor: pointer;"
+                                                                 data-bs-toggle="dropdown" aria-haspopup="true"
+                                                                 aria-expanded="false">
+                                                                <div class="d-flex align-items-center px-sm-2"
+                                                                     style="gap:10px;">
+                                                                    <i class="fa-solid fa-bars fs-4"></i>
+                                                                </div>
+                                                            </div>
+                                                            <div class="dropdown-menu position-absolute"
+                                                                 style="top:50px; right: 0;">
+                                                                ${[
+                                    ...[
+                                        ...((PayConfig.deviceType === 'pos') ? [
+                                            html `
+                                                                                <a class="dropdown-item cursor_pointer d-flex align-items-center"
+                                                                                   style="gap:10px;"
+                                                                                   onclick="${gvc.event(() => {
+                                                ConnectionMode.main(gvc);
+                                            })}"><i
+                                                                                        class="fa-solid fa-plug d-flex align-items-center justify-content-center"
+                                                                                        style="width:20px;"></i>連線模式</a>`,
+                                        ] : []),
+                                        ...((ConnectionMode.on_connected_device) ? [
+                                            `<a class="dropdown-item cursor_pointer d-flex align-items-center"
+                                                                           style="gap:10px;"
+                                                                           onclick="${gvc.event(() => {
+                                                const dialog = new ShareDialog(gvc.glitter);
+                                                dialog.checkYesOrNot({
+                                                    text: '是否斷開與 IMIN 裝置的連線?',
+                                                    callback: (response) => {
+                                                        if (response) {
+                                                            dialog.infoMessage({ text: '已斷開連線' });
+                                                            ConnectionMode.last_connect_id = '';
+                                                            ConnectionMode.on_connected_device = '';
+                                                            ConnectionMode.socket.close();
+                                                        }
+                                                    }
+                                                });
+                                            })}"><i class="fa-solid fa-power-off d-flex align-items-center justify-content-center" style="width:20px;"></i>斷開裝置連線</a>`
+                                        ] : [])
+                                    ].concat(PayConfig.deviceType === 'pos' ? [] : ConnectionMode.device_list.map((dd) => {
+                                        return html `<a
+                                                                                class="dropdown-item cursor_pointer d-flex align-items-center"
+                                                                                style="gap:10px;"
+                                                                                onclick="${gvc.event(() => {
+                                            ConnectionMode.connect(dd);
+                                        })}"><i
+                                                                                class="fa-solid fa-plug d-flex align-items-center justify-content-center"
+                                                                                style="width:20px;"></i>連線至『 ${dd} 』</a>`;
+                                    })),
+                                    ` <a class="dropdown-item cursor_pointer  d-flex align-items-center"
+                                                                   style="gap:5px;" onclick="${gvc.event(() => {
+                                        const dialog = new ShareDialog(gvc.glitter);
+                                        dialog.dataLoading({ visible: true });
+                                        localStorage.removeItem('on-pos');
+                                        (window.parent).history.replaceState({}, document.title, `${glitter.root_path}cms?appName=${glitter.getUrlParameter('app-id')}&type=editor&function=backend-manger&tab=home_page`);
+                                        glitter.share.reload('cms', 'shopnex');
+                                    })}"><i class="fa-solid fa-angle-left d-flex align-items-center justify-content-center"
+                                                                        style="width:20px;"></i>返回後台管理</a>`
+                                ].join('<div class="dropdown-divider"></div>')}
+                                                            </div>
+                                                        </div>`;
+                            },
+                            divCreate: {
+                                class: `d-flex align-items-center justify-content-center`,
+                                style: `width:50px;height: 100%;`
+                            }
+                        };
+                    })}
+                                    </div>
                                 </div>
                             </div>
                             ${gvc.bindView({
@@ -881,11 +962,13 @@ ${document.body.clientWidth < 800 ? `` : `position: absolute;left: 50%;top:50%;t
                                 },
                                 {
                                     selectIcon: html `
-                                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 512" width="29" height="29" fill="#393939">
+                                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 512" width="29"
+                                                     height="29" fill="#393939">
                                                     <path d="M144 144c0 44.2 35.8 80 80 80s80-35.8 80-80l0-16-160 0 0 16zm-.1-124.9l.1 .1c10.2 7.5 23.8 8.3 34.9 2L209.1 4c4.6-2.6 9.7-4 14.9-4s10.4 1.4 14.9 4l30.2 17.2c11 6.3 24.7 5.5 34.9-2l.1-.1c.3-.2 .6-.4 .8-.6l3-2.4L323.6 3.5c2.8-2.3 6.4-3.5 10-3.5L336 0c8.8 0 16 7.2 16 16l0 23 0 3.2c0 0 0 .1 0 .1L352 144c0 70.7-57.3 128-128 128s-128-57.3-128-128L96 42.3c0 0 0-.1 0-.1L96 39l0-23c0-8.8 7.2-16 16-16l2.4 0c3.6 0 7.2 1.2 10 3.5L140 16l3 2.4c.3 .2 .6 .4 .8 .6zM48.3 464l351.5 0c-4.1-62.5-56.2-112-119.7-112l-112 0c-63.6 0-115.6 49.5-119.7 112zM0 472c0-92.8 75.2-168 168-168l112 0c92.8 0 168 75.2 168 168l0 8c0 17.7-14.3 32-32 32L32 512c-17.7 0-32-14.3-32-32l0-8zM432 256c-27.7 0-53-10.1-72.6-26.7c.5-.8 1-1.5 1.4-2.3c12.1-19.9 20-42.6 22.4-67c.5-5.3 .8-10.6 .8-16l0-101.2C398.5 35.9 414.8 32 432 32c61.9 0 112 50.1 112 112s-50.1 112-112 112zM609.3 512l-137.8 0c5.4-9.4 8.6-20.3 8.6-32l0-8c0-60.7-27.1-115.2-69.8-151.8c2.4-.1 4.7-.2 7.1-.2l61.4 0C567.8 320 640 392.2 640 481.3c0 17-13.8 30.7-30.7 30.7z"/>
                                                 </svg>`,
                                     unselectIcon: html `
-                                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 512"  width="29" height="29" fill="#8D8D8D">
+                                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 512" width="29"
+                                                     height="29" fill="#8D8D8D">
                                                     <path d="M144 144c0 44.2 35.8 80 80 80s80-35.8 80-80l0-16-160 0 0 16zm-.1-124.9l.1 .1c10.2 7.5 23.8 8.3 34.9 2L209.1 4c4.6-2.6 9.7-4 14.9-4s10.4 1.4 14.9 4l30.2 17.2c11 6.3 24.7 5.5 34.9-2l.1-.1c.3-.2 .6-.4 .8-.6l3-2.4L323.6 3.5c2.8-2.3 6.4-3.5 10-3.5L336 0c8.8 0 16 7.2 16 16l0 23 0 3.2c0 0 0 .1 0 .1L352 144c0 70.7-57.3 128-128 128s-128-57.3-128-128L96 42.3c0 0 0-.1 0-.1L96 39l0-23c0-8.8 7.2-16 16-16l2.4 0c3.6 0 7.2 1.2 10 3.5L140 16l3 2.4c.3 .2 .6 .4 .8 .6zM48.3 464l351.5 0c-4.1-62.5-56.2-112-119.7-112l-112 0c-63.6 0-115.6 49.5-119.7 112zM0 472c0-92.8 75.2-168 168-168l112 0c92.8 0 168 75.2 168 168l0 8c0 17.7-14.3 32-32 32L32 512c-17.7 0-32-14.3-32-32l0-8zM432 256c-27.7 0-53-10.1-72.6-26.7c.5-.8 1-1.5 1.4-2.3c12.1-19.9 20-42.6 22.4-67c.5-5.3 .8-10.6 .8-16l0-101.2C398.5 35.9 414.8 32 432 32c61.9 0 112 50.1 112 112s-50.1 112-112 112zM609.3 512l-137.8 0c5.4-9.4 8.6-20.3 8.6-32l0-8c0-60.7-27.1-115.2-69.8-151.8c2.4-.1 4.7-.2 7.1-.2l61.4 0C567.8 320 640 392.2 640 481.3c0 17-13.8 30.7-30.7 30.7z"/>
                                                 </svg>`,
                                     title: `會員`,

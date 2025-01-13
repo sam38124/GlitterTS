@@ -200,7 +200,7 @@ background: ${colors.bgr ?? '#000'};overflow-x: hidden;`,
                                     changePage('index', 'home', {});
                                 })}"
                             >
-                                <img src="${widget.formData.logo}" style="${document.body.clientWidth < 800 ? `height:50px;` : `height: 150px;`}" />
+                                <img src="${widget.formData.logo}" style="${document.body.clientWidth < 800 ? `max-height: 100%;max-width:150px;` : `height: 150px;`}" />
                             </div>
                         </div>
                         <!--選單列表顯示區塊-->

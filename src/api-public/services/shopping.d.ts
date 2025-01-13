@@ -266,11 +266,13 @@ export declare class Shopping {
         customer_info?: any;
         email?: string;
         return_url: string;
+        order_id?: string;
         user_info: any;
         code?: string;
         use_rebate?: number;
         use_wallet?: number;
         checkOutType?: 'manual' | 'auto' | 'POS';
+        pos_store?: string;
         voucher?: any;
         discount?: number;
         total?: number;
@@ -288,6 +290,7 @@ export declare class Shopping {
         }[];
         language?: 'en-US' | 'zh-CN' | 'zh-TW';
         pos_info?: any;
+        invoice_select?: string;
     }, type?: 'add' | 'preview' | 'manual' | 'manual-preview' | 'POS', replace_order_id?: string): Promise<any>;
     getReturnOrder(query: {
         page: number;

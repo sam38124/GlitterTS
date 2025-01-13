@@ -83,8 +83,26 @@ class SharePermission {
                     WHERE appName = ? AND ${querySQL.join(' AND ')};
                 `, [base.app]);
             if (auths.length === 0) {
+                const user_data = await new user_1.User(base.brand).getUserData(`${base.user}`, 'userID');
+                user_data.userData.auth_config = user_data.userData.auth_config || {
+                    pin: user_data.userData.pin,
+                    auth: [],
+                    name: user_data.userData.name,
+                    phone: user_data.userData.phone,
+                    title: '管理員',
+                    member_id: ''
+                };
                 return {
-                    data: [],
+                    data: [{
+                            id: -1,
+                            user: `${base.user}`,
+                            appName: this.appName,
+                            config: user_data.userData.auth_config,
+                            email: user_data.account,
+                            invited: 1,
+                            status: 1,
+                            online_time: new Date()
+                        }],
                     total: 0,
                     store_permission_title: 'owner',
                 };

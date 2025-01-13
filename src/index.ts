@@ -201,7 +201,6 @@ export async function createAPP(dd: any) {
                             req_type: 'file',
                             req: req,
                         });
-                        console.log(`req.query.page==>`, req.query.page)
                         //取得SEO頁面資訊
                         let data = await Seo.getPageInfo(appName, req.query.page as string, language);
                         //首頁SEO
@@ -212,11 +211,9 @@ export async function createAPP(dd: any) {
                                 return await Seo.getPageInfo(appName, 'index', language);
                             }
                         })();
-                        console.log(`req.query.page==>`, req.query.page)
                         if (data && data.page_config) {
                             data.page_config = data.page_config ?? {};
                             const d = data.page_config.seo ?? {};
-                            console.log(`req.query.page`)
                             //商品搜索
                             if (`${req.query.page}`.startsWith('products/')) {
                                 await SeoConfig.productSEO({
@@ -289,25 +286,24 @@ export async function createAPP(dd: any) {
                             if (FBCode) {
                                 seo_content.push(SeoConfig.fbCode(FBCode))
                             }
-                            return {
-                                head: (() => {
-                                    const d = data.page_config.seo;
-                                    const home_seo = home_page_data.page_config.seo;
-                                    return html`
+                            const head=(() => {
+                                const d = data.page_config.seo;
+                                const home_seo = home_page_data.page_config.seo;
+                                return html`
                                     ${(() => {
-                                        if (req.query.type === 'editor') {
-                                            return SeoConfig.editorSeo;
-                                        } else {
-                                            return html`<title>${d.title || '尚未設定標題'}</title>
+                                    if (req.query.type === 'editor') {
+                                        return SeoConfig.editorSeo;
+                                    } else {
+                                        return html`<title>${d.title || '尚未設定標題'}</title>
                                             <link
                                                     rel="canonical"
                                                     href="${(() => {
-                                                if (data.tag === 'index') {
-                                                    return `https://${brandAndMemberType.domain}`;
-                                                } else {
-                                                    return `https://${brandAndMemberType.domain}/${data.tag}`;
-                                                }
-                                            })()}"
+                                            if (data.tag === 'index') {
+                                                return `https://${brandAndMemberType.domain}`;
+                                            } else {
+                                                return `https://${brandAndMemberType.domain}/${data.tag}`;
+                                            }
+                                        })()}"
                                             />
                                             ${data.tag !== req.query.page ? `<meta name="robots" content="noindex">` : `<meta name="robots" content="index, follow"/>`}
                                             <meta name="keywords"
@@ -323,98 +319,102 @@ export async function createAPP(dd: any) {
                                                   content="${(d.content ?? '').replace(/\n/g, '').replace(/"/g, '&quot;')}"/>
                                             <meta name="og:description"
                                                   content="${(d.content ?? '').replace(/\n/g, '').replace(/"/g, '&quot;')}"/>`;
-                                        }
-                                    })()}
+                                    }
+                                })()}
                                     ${d.code ?? ''}
                                     ${(() => {
-                                        if (req.query.type === 'editor') {
-                                            return ``;
-                                        } else {
-                                            return `${(data.config.globalStyle ?? [])
-                                                .map((dd: any) => {
-                                                    try {
-                                                        if (dd.data.elem === 'link') {
-                                                            return html`
+                                    if (req.query.type === 'editor') {
+                                        return ``;
+                                    } else {
+                                        return `${(data.config.globalStyle ?? [])
+                                            .map((dd: any) => {
+                                                try {
+                                                    if (dd.data.elem === 'link') {
+                                                        return html`
                                                                     <link
                                                                             type="text/css"
                                                                             rel="stylesheet"
                                                                             href="${dd.data.attr.find((dd: any) => {
-                                                                return dd.attr === 'href';
-                                                            }).value}"
+                                                            return dd.attr === 'href';
+                                                        }).value}"
                                                                     />`;
-                                                        }
-                                                    } catch (e) {
-                                                        return ``;
                                                     }
-                                                })
-                                                .join('')}`;
-                                        }
-                                    })()}
+                                                } catch (e) {
+                                                    return ``;
+                                                }
+                                            })
+                                            .join('')}`;
+                                    }
+                                })()}
                                 `;
-                                })()+`<script>
+                            })()+`<script>
                                 ${[
-                                    d.custom_script ?? '',
-                                    `window.login_config = ${JSON.stringify(login_config)};`,
-                                    `window.appName = '${appName}';`,
-                                    `window.glitterBase = '${brandAndMemberType.brand}';`,
-                                    `window.memberType = '${brandAndMemberType.memberType}';`,
-                                    `window.glitterBackend = '${config.domain}';`,
-                                    `window.preloadData = ${JSON.stringify(preload)
-                                        .replace(/<\/script>/g, 'sdjuescript_prepand')
-                                        .replace(/<script>/g, 'sdjuescript_prefix')};`,
-                                    `window.glitter_page = '${req.query.page}';`,
-                                    `window.store_info = ${JSON.stringify(store_info)};`,
-                                    `window.server_execute_time = ${(new Date().getTime() - start) / 1000};`,
-                                    `window.language = '${language}';`,
-                                    `${distribution_code}`,
-                                    `window.ip_country = '${(ip_country).country || 'TW'}';`,
-                                    `window.currency_covert = ${JSON.stringify(await Shopping.currencyCovert((req.query.base || 'TWD') as string))};`,
-                                    `window.language_list = ${JSON.stringify(language_label.label)};`
-                                ].map((dd) => {
-                                    return dd.trim()
-                                }).filter((dd) => {
-                                    return dd
-                                }).join(';\n')}
+                                d.custom_script ?? '',
+                                `window.login_config = ${JSON.stringify(login_config)};`,
+                                `window.appName = '${appName}';`,
+                                `window.glitterBase = '${brandAndMemberType.brand}';`,
+                                `window.memberType = '${brandAndMemberType.memberType}';`,
+                                `window.glitterBackend = '${config.domain}';`,
+                                `window.preloadData = ${JSON.stringify(preload)
+                                    .replace(/<\/script>/g, 'sdjuescript_prepand')
+                                    .replace(/<script>/g, 'sdjuescript_prefix')};`,
+                                `window.glitter_page = '${req.query.page}';`,
+                                `window.store_info = ${JSON.stringify(store_info)};`,
+                                `window.server_execute_time = ${(new Date().getTime() - start) / 1000};`,
+                                `window.language = '${language}';`,
+                                `${distribution_code}`,
+                                `window.ip_country = '${(ip_country).country || 'TW'}';`,
+                                `window.currency_covert = ${JSON.stringify(await Shopping.currencyCovert((req.query.base || 'TWD') as string))};`,
+                                `window.language_list = ${JSON.stringify(language_label.label)};`
+                            ].map((dd) => {
+                                return dd.trim()
+                            }).filter((dd) => {
+                                return dd
+                            }).join(';\n')}
                             </script>
                             ${[
-                                    {src: 'glitterBundle/GlitterInitial.js', type: 'module'},
-                                    {src: 'glitterBundle/module/html-generate.js', type: 'module'},
-                                    {src: 'glitterBundle/html-component/widget.js', type: 'module'},
-                                    {src: 'glitterBundle/plugins/trigger-event.js', type: 'module'},
-                                    {src: 'api/pageConfig.js', type: 'module'},
-                                ]
-                                    .map((dd) => {
-                                        return html`
+                                {src: 'glitterBundle/GlitterInitial.js', type: 'module'},
+                                {src: 'glitterBundle/module/html-generate.js', type: 'module'},
+                                {src: 'glitterBundle/html-component/widget.js', type: 'module'},
+                                {src: 'glitterBundle/plugins/trigger-event.js', type: 'module'},
+                                {src: 'api/pageConfig.js', type: 'module'},
+                            ]
+                                .map((dd) => {
+                                    return html`
                                             <script src="/${link_prefix && `${link_prefix}/`}${dd.src}"
                                                     type="${dd.type}"></script>`;
-                                    })
-                                    .join('')}
+                                })
+                                .join('')}
                             ${(preload.event ?? [])
-                                    .filter((dd: any) => {
-                                        return dd;
-                                    })
-                                    .map((dd: any) => {
-                                        const link = dd.fun.replace(`TriggerEvent.setEventRouter(import.meta.url, '.`, 'official_event');
-                                        return link.substring(0, link.length - 2);
-                                    })
-                                    .map((dd: any) =>
-                                        html`
+                                .filter((dd: any) => {
+                                    return dd;
+                                })
+                                .map((dd: any) => {
+                                    const link = dd.fun.replace(`TriggerEvent.setEventRouter(import.meta.url, '.`, 'official_event');
+                                    return link.substring(0, link.length - 2);
+                                })
+                                .map((dd: any) =>
+                                    html`
                                                 <script src="/${link_prefix && `${link_prefix}/`}${dd}"
                                                         type="module"></script>`)
-                                    .join('')}
+                                .join('')}
                             ${(() => {
-                                    if (req.query.type === 'editor') {
-                                        return ``;
-                                    } else {
-                                        return html`
+                                if (req.query.type === 'editor') {
+                                    return ``;
+                                } else {
+                                    return html`
                                         ${SeoConfig.gA4(customCode.ga4)}
                                         ${SeoConfig.gTag(customCode.g_tag)}
                                         ${seo_content.map((dd) => {
-                                            return dd.trim()
-                                        }).join('\n')}
+                                        return dd.trim()
+                                    }).join('\n')}
                                     `;
-                                    }
-                                })()}`,
+                                }
+                            })()}`
+
+
+                            return {
+                                head: head,
                                 body:``
                             }
 
@@ -500,7 +500,12 @@ export async function createAPP(dd: any) {
                             `,
                             [appName]
                         )).map((d2: any) => {
-                            return {url: `https://${domain}/${d2.tag}`, changefreq: 'weekly'}
+                            if(d2.tag==='index'){
+                                return {url: `https://${domain}`, changefreq: 'weekly'}
+                            }else{
+                                return {url: `https://${domain}/${d2.tag}`, changefreq: 'weekly'}
+                            }
+
                         }),
                         ...(article.data
                             .filter((d2: any) => {

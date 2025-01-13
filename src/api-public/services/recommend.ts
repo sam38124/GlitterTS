@@ -67,7 +67,7 @@ export class Recommend {
                         `SELECT id, mac_address, base_url 
                         FROM \`${saasConfig.SAAS_NAME}\`.t_monitor
                         WHERE app_name = "${this.app}"
-                        AND base_url in (${links.map((data: any) => `"/${this.app}/distribution/${data.content.link}"`).join(',')})
+                        AND base_url in (${links.map((data: any) => `"/shopnex/distribution/${data.content.link}"`).join(',')})
                      `,
                         []
                     );
@@ -82,13 +82,14 @@ export class Recommend {
                             return false;
                         }
                     });
-                    const monitor = monitors.filter((d: any) => d.base_url === `/${this.app}/distribution/${data.content.link}`);
+                    const monitor = monitors.filter((d: any) => d.base_url === `/shopnex/distribution/${data.content.link}`);
 
                     const monitorLength = monitor.length;
                     const macAddrSize = new Set(monitor.map((item: any) => item.mac_address)).size;
                     const totalOrders = orders.filter((order: any) => {
                         return order.status === 1;
                     }).length;
+
                     const totalPrice = orders.reduce((sum: number, order: any) => {
                         if (order.status === 1) {
                             return sum + order.orderData.total - order.orderData.shipment_fee;
@@ -108,7 +109,7 @@ export class Recommend {
                         });
                         orders.map((order: any) => {
                             order.orderData.lineItems.forEach((item: any) => {
-                                if (idArray.includes(item.id)) {
+                                if (idArray.includes(item.id) && order.status === 1) {
                                     console.log(`item.sale_price=>`,item.sale_price);
                                     console.log(`item.count=>`,item.count);
                                     console.log(`data.content.share_value=>`,data.content.share_value);

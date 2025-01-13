@@ -1,30 +1,30 @@
-import { IToken } from '../models/Auth.js';
+import {IToken} from '../models/Auth.js';
 import exception from '../../modules/exception.js';
 import db from '../../modules/database.js';
-import FinancialService, { LinePay, PayPal } from './financial-service.js';
-import { Private_config } from '../../services/private_config.js';
+import FinancialService, {LinePay, PayPal} from './financial-service.js';
+import {Private_config} from '../../services/private_config.js';
 import redis from '../../modules/redis.js';
-import { User } from './user.js';
+import {User} from './user.js';
 import Tool from '../../modules/tool.js';
-import { Invoice } from './invoice.js';
+import {Invoice} from './invoice.js';
 import e from 'express';
-import { Rebate } from './rebate.js';
-import { CustomCode } from '../services/custom-code.js';
+import {Rebate} from './rebate.js';
+import {CustomCode} from '../services/custom-code.js';
 import moment from 'moment';
-import { ManagerNotify } from './notify.js';
-import { AutoSendEmail } from './auto-send-email.js';
-import { Recommend } from './recommend.js';
-import { Workers } from './workers.js';
+import {ManagerNotify} from './notify.js';
+import {AutoSendEmail} from './auto-send-email.js';
+import {Recommend} from './recommend.js';
+import {Workers} from './workers.js';
 import axios from 'axios';
-import { DeliveryData } from './delivery.js';
-import { saasConfig } from '../../config.js';
-import { SMS } from './sms.js';
-import { LineMessage } from './line-message';
-import { EcInvoice } from './EcInvoice';
+import {DeliveryData} from './delivery.js';
+import {saasConfig} from '../../config.js';
+import {SMS} from './sms.js';
+import {LineMessage} from './line-message';
+import {EcInvoice} from './EcInvoice';
 import app from '../../app';
-import { onlinePayArray, paymentInterface } from '../models/glitter-finance.js';
-import { App } from '../../services/app.js';
-import { Stock } from './stock';
+import {onlinePayArray, paymentInterface} from '../models/glitter-finance.js';
+import {App} from '../../services/app.js';
+import {Stock} from './stock';
 
 type BindItem = {
     id: string;
@@ -364,14 +364,14 @@ export class Shopping {
                     .join(',');
             }
             query.collection &&
-                querySql.push(
-                    `(${query.collection
-                        .split(',')
-                        .map((dd) => {
-                            return query.accurate_search_collection ? `(JSON_CONTAINS(content->'$.collection', '"${dd}"'))` : `(JSON_EXTRACT(content, '$.collection') LIKE '%${dd}%')`;
-                        })
-                        .join(' or ')})`
-                );
+            querySql.push(
+                `(${query.collection
+                    .split(',')
+                    .map((dd) => {
+                        return query.accurate_search_collection ? `(JSON_CONTAINS(content->'$.collection', '"${dd}"'))` : `(JSON_EXTRACT(content, '$.collection') LIKE '%${dd}%')`;
+                    })
+                    .join(' or ')})`
+            );
             query.sku && querySql.push(`(id in ( select product_id from \`${this.app}\`.t_variants where content->>'$.sku'=${db.escape(query.sku)}))`);
             if (!query.id && query.status === 'active' && query.with_hide_index !== 'true') {
                 querySql.push(`((content->>'$.hideIndex' is NULL) || (content->>'$.hideIndex'='false'))`);
@@ -522,10 +522,20 @@ export class Shopping {
                     dd.content.content_json = dd.content.language_data[`${query.language}`].content_json || dd.content.content_json;
                     dd.content.preview_image = dd.content.language_data[`${query.language}`].preview_image || dd.content.preview_image;
                     (dd.content.variants || []).map((variant: any) => {
+                        variant.stock=0
                         variant.preview_image = variant[`preview_image_${query.language}`] || variant.preview_image;
                         if (variant.preview_image === 'https://d3jnmi1tfjgtti.cloudfront.net/file/234285319/1722936949034-default_image.jpg') {
                             variant.preview_image = dd.content.preview_image[0];
                         }
+                        Object.keys(variant.stockList).map((dd) => {
+                            if (!variant.stockList[dd] || !variant.stockList[dd].count) {
+                                delete variant.stockList[dd]
+                            }else{
+                                //避免存字串導致的異常
+                                variant.stockList[dd].count=parseInt(variant.stockList[dd].count,10)
+                                variant.stock+=variant.stockList[dd].count;
+                            }
+                        })
                     });
                 }
             }
@@ -555,7 +565,7 @@ export class Shopping {
                     []
                 )
             )[0];
-            return { data: data, result: !!data };
+            return {data: data, result: !!data};
         } else {
             return {
                 data: (
@@ -604,7 +614,7 @@ export class Shopping {
                     []
                 )
             )[0];
-            return { data: data, result: !!data };
+            return {data: data, result: !!data};
         } else {
             return {
                 data: await db.query(
@@ -636,10 +646,10 @@ export class Shopping {
     ) {
         let sql = `SELECT v.id,
                           v.product_id,
-                          v.content as                                            variant_content,
-                          p.content as                                            product_content,
+                          v.content                                            as variant_content,
+                          p.content                                            as product_content,
                           CAST(JSON_EXTRACT(v.content, '$.stock') AS UNSIGNED) as stock,
-                          JSON_EXTRACT(v.content, '$.stockList') as stockList
+                          JSON_EXTRACT(v.content, '$.stockList')               as stockList
                    FROM \`${this.app}\`.t_variants AS v
                             JOIN
                         \`${this.app}\`.t_manager_post AS p ON v.product_id = p.id
@@ -655,7 +665,7 @@ export class Shopping {
                     []
                 )
             )[0];
-            return { data: data, result: !!data };
+            return {data: data, result: !!data};
         } else {
             return {
                 data: await db.query(
@@ -785,11 +795,13 @@ export class Shopping {
             customer_info?: any; //顧客資訊 訂單人
             email?: string;
             return_url: string;
+            order_id?:string;
             user_info: any; //取貨人資訊
             code?: string;
             use_rebate?: number;
             use_wallet?: number;
             checkOutType?: 'manual' | 'auto' | 'POS';
+            pos_store?: string;
             voucher?: any; //自定義的voucher
             discount?: number; //自定義金額
             total?: number; //自定義總額
@@ -806,7 +818,8 @@ export class Shopping {
                 voucher_id: string;
             }[];
             language?: 'en-US' | 'zh-CN' | 'zh-TW';
-            pos_info?: any; //POS結帳資訊
+            pos_info?: any; //POS結帳資訊;
+            invoice_select?: string
         },
         type: 'add' | 'preview' | 'manual' | 'manual-preview' | 'POS' = 'add',
         replace_order_id?: string
@@ -884,7 +897,7 @@ export class Shopping {
             // 判斷購物金是否可用
             if (data.use_rebate && data.use_rebate > 0) {
                 if (userData) {
-                    const userRebate = await rebateClass.getOneRebate({ user_id: userData.userID });
+                    const userRebate = await rebateClass.getOneRebate({user_id: userData.userID});
                     const sum = userRebate ? userRebate.point : 0;
                     if (sum < data.use_rebate) {
                         data.use_rebate = 0;
@@ -914,7 +927,7 @@ export class Shopping {
 
 
                 //參照運費設定
-                const refer = (data.user_info.shipment==='global_express') ? ((
+                const refer = (data.user_info.shipment === 'global_express') ? ((
                     await Private_config.getConfig({
                         appName: this.app,
                         key: 'glitter_shipment_global_' + data.user_info.country,
@@ -925,7 +938,7 @@ export class Shopping {
                         weight: [],
                         selectCalc: 'volume',
                     },
-                }).value:(
+                }).value : (
                     (
                         await Private_config.getConfig({
                             appName: this.app,
@@ -991,7 +1004,7 @@ export class Shopping {
                 shipment_fee: 0,
                 rebate: 0,
                 use_rebate: data.use_rebate || 0,
-                orderID: (data as any).orderID || this.generateOrderID(),
+                orderID: (data).order_id || this.generateOrderID(),
                 shipment_support: shipment_setting.support as any,
                 shipment_info: shipment_setting.info as any,
                 shipment_selector: [
@@ -1045,7 +1058,7 @@ export class Shopping {
                 use_wallet: 0,
                 method: data.user_info && data.user_info.method,
                 user_email: (userData && userData.account) || data.email || (data.user_info && data.user_info.email) || '',
-                useRebateInfo: { point: 0 },
+                useRebateInfo: {point: 0},
                 custom_form_format: data.custom_form_format,
                 custom_form_data: data.custom_form_data,
                 custom_receipt_form: data.custom_receipt_form,
@@ -1088,6 +1101,7 @@ export class Shopping {
             const add_on_items: any[] = [];
             let gift_product: any[] = [];
 
+            let saveStockArray: (() => Promise<boolean>)[] = []
             for (const b of data.line_items) {
                 try {
                     const pdDqlData = (
@@ -1104,7 +1118,13 @@ export class Shopping {
                         const variant = pd.variants.find((dd: any) => {
                             return dd.spec.join('-') === b.spec.join('-');
                         });
+                        console.log(`variant1===>`, variant)
                         if ((Number.isInteger(variant.stock) || variant.show_understocking === 'false') && Number.isInteger(b.count)) {
+                            console.log(`variant2===>`, variant)
+                            if (data.checkOutType === 'POS' && variant.show_understocking !== 'false' ) {
+                                variant.stock = variant.stockList && (variant.stockList as any)[data.pos_store!].count
+
+                            }
                             // 當超過庫存數量則調整為庫存上限
                             if (variant.stock < b.count && variant.show_understocking !== 'false' && type !== 'manual' && type !== 'manual-preview') {
                                 b.count = variant.stock;
@@ -1144,26 +1164,38 @@ export class Shopping {
                                 }
                             }
                             // 當為結帳時則更改商品庫存數量
-                            if (type !== 'preview' && type !== 'manual' && type !== 'manual-preview') {
-                                //取得此variant資訊
-                                type StockList = {
-                                    [key: string]: { count: number };
-                                };
-                                //找到最大的倉儲量 順序式
-                                const returnData = new Stock(this.app, this.token).allocateStock(variant.stockList, b.count);
+                            console.log(`type=>`, type)
+                            if (type !== 'preview' && type !== 'manual' && type !== 'manual-preview' && variant.show_understocking !== 'false') {
+                                console.log(`variant資訊=>`, type)
+
                                 const countless = variant.stock - b.count;
                                 variant.stock = countless > 0 ? countless : 0;
-                                variant.deduction_log = returnData.deductionLog;
-                                b.deduction_log = returnData.deductionLog;
-                                await this.updateVariantsWithSpec(variant, b.id, b.spec);
-                                //這裡更新資訊
-                                await db.query(
-                                    `UPDATE \`${this.app}\`.\`t_manager_post\`
-                                     SET ?
-                                     WHERE 1 = 1
-                                       and id = ${pdDqlData.id}`,
-                                    [{ content: JSON.stringify(pd) }]
-                                );
+                                if(type==='POS'){
+                                    //POS的話依據分店去扣除庫存
+                                    variant.deduction_log={};
+                                    (variant.deduction_log as any)[data.pos_store!!]=b.count;
+                                    variant.stockList[data.pos_store!!].count-=b.count;
+                                    b.deduction_log=variant.deduction_log;
+                                }else {
+                                    //找到最大的倉儲量 順序式
+                                    const returnData = new Stock(this.app, this.token).allocateStock(variant.stockList, b.count);
+                                    variant.deduction_log = returnData.deductionLog;
+                                    b.deduction_log = returnData.deductionLog;
+                                }
+                                saveStockArray.push(() => {
+                                    return new Promise<boolean>(async (resolve, reject) => {
+                                        await this.updateVariantsWithSpec(variant, b.id, b.spec);
+                                        //這裡更新資訊
+                                        await db.query(
+                                            `UPDATE \`${this.app}\`.\`t_manager_post\`
+                                             SET ?
+                                             WHERE 1 = 1
+                                               and id = ${pdDqlData.id}`,
+                                            [{content: JSON.stringify(pd)}]
+                                        );
+                                        resolve(true)
+                                    })
+                                });
                             }
                         }
                         if (!pd.productType.product && pd.productType.addProduct) {
@@ -1182,8 +1214,11 @@ export class Shopping {
                             b.min_qty = pd.min_qty;
                         }
                     }
-                } catch (e) {}
+                } catch (e) {
+                    console.log(e)
+                }
             }
+
             console.log(`checkout-time-7=>`, new Date().getTime() - check_time);
             carData.shipment_fee = (() => {
                 if (data.user_info.shipment === 'now') {
@@ -1210,7 +1245,7 @@ export class Shopping {
             carData.code = data.code;
             carData.voucherList = [];
             if (userData && userData.account) {
-                const data = await rebateClass.getOneRebate({ user_id: userData.userID });
+                const data = await rebateClass.getOneRebate({user_id: userData.userID});
                 carData.user_rebate_sum = data?.point || 0;
             }
             console.log(`checkout-time-9=>`, new Date().getTime() - check_time);
@@ -1260,14 +1295,15 @@ export class Shopping {
                             //把加購品加回去
                             carData.lineItems.push(dd);
                         }
-                    } catch (e) {}
+                    } catch (e) {
+                    }
                 });
                 // 再次更新優惠內容
                 await this.checkVoucher(carData);
                 console.log(`checkout-time-check-voucher2=>`, new Date().getTime() - check_time);
                 //過濾可選贈品
                 let can_add_gift: any[] = [];
-                carData.voucherList
+                carData.voucherList!!
                     .filter((dd) => {
                         return dd.reBackType === 'giveaway';
                     })
@@ -1293,7 +1329,7 @@ export class Shopping {
                         carData.lineItems.push(dd);
                     }
                 });
-                for (const dd of carData.voucherList.filter((dd) => {
+                for (const dd of carData.voucherList!!.filter((dd) => {
                     return dd.reBackType === 'giveaway';
                 })) {
                     let index = -1;
@@ -1308,7 +1344,7 @@ export class Shopping {
                                     status: 'inRange',
                                     channel: data.checkOutType === 'POS' ? 'pos' : undefined,
                                 })
-                            ).data ?? { content: {} }
+                            ).data ?? {content: {}}
                         ).content;
                         pdDqlData.voucher_id = dd.id;
                         (dd.add_on_products as any)[index] = pdDqlData;
@@ -1388,7 +1424,7 @@ export class Shopping {
                 });
             });
             // ================================ Preview UP ================================
-            if (type === 'preview' || type === 'manual-preview') return { data: carData };
+            if (type === 'preview' || type === 'manual-preview') return {data: carData};
             // ================================ Add DOWN ================================
             console.log(`checkout-time-12=>`, new Date().getTime() - check_time);
 
@@ -1477,14 +1513,19 @@ export class Shopping {
                     [carData.orderID, data.pay_status, carData.email, JSON.stringify(carData)]
                 );
 
-                //開立電子發票
-                (carData as any).invoice = await new Invoice(this.app).postCheckoutInvoice(carData, carData.user_info.send_type !== 'carrier');
-                if (!(carData as any).invoice) {
-                    throw exception.BadRequestError('BAD_REQUEST', '發票開立失敗:', null);
+                if (data.invoice_select !== 'nouse') {
+                    (carData as any).invoice = await new Invoice(this.app).postCheckoutInvoice(carData, carData.user_info.send_type !== 'carrier');
+                    if (!(carData as any).invoice) {
+                        throw exception.BadRequestError('BAD_REQUEST', '發票開立失敗:', null);
+                    }
                 }
+                ;
                 await trans.commit();
                 await trans.release();
-                return { result: 'SUCCESS', message: 'POS訂單新增成功', data: carData };
+                await Promise.all(saveStockArray.map((dd)=>{
+                    return dd()
+                }))
+                return {result: 'SUCCESS', message: 'POS訂單新增成功', data: carData};
             } else {
                 if (userData && userData.userID) {
                     await rebateClass.insertRebate(userData.userID, carData.use_rebate * -1, '使用折抵', {
@@ -1542,6 +1583,9 @@ export class Shopping {
                 if (carData.use_wallet > 0) {
                     new Invoice(this.app).postCheckoutInvoice(carData.orderID, false);
                 }
+                await Promise.all(saveStockArray.map((dd)=>{
+                    return dd()
+                }))
                 return {
                     is_free: true,
                     return_url: `${process.env.DOMAIN}/api-public/v1/ec/redirect?g-app=${this.app}&return=${id}`,
@@ -1567,19 +1611,27 @@ export class Shopping {
                             MERCHANT_ID: kd.MERCHANT_ID,
                             TYPE: carData.customer_info.payment_select,
                         }).createOrderPage(carData);
+                        await Promise.all(saveStockArray.map((dd)=>{
+                            return dd()
+                        }))
                         return {
                             form: subMitData,
                         };
                     case 'paypal':
                         kd.ReturnURL = `${process.env.DOMAIN}/api-public/v1/ec/redirect?g-app=${this.app}&return=${id}`;
                         kd.NotifyURL = `${process.env.DOMAIN}/api-public/v1/ec/notify?g-app=${this.app}`;
+                        await Promise.all(saveStockArray.map((dd)=>{
+                            return dd()
+                        }))
                         return await new PayPal(this.app, kd).checkout(carData);
                     case 'line_pay':
                         kd.ReturnURL = `${process.env.DOMAIN}/api-public/v1/ec/redirect?g-app=${this.app}&return=${id}`;
                         kd.NotifyURL = `${process.env.DOMAIN}/api-public/v1/ec/notify?g-app=${this.app}`;
+                        await Promise.all(saveStockArray.map((dd)=>{
+                            return dd()
+                        }))
                         return await new LinePay(this.app, kd).createOrder(carData);
                     case 'paynow':
-
                     default:
                         carData.method = 'off_line';
                         // 訂單成立信件通知
@@ -1609,6 +1661,9 @@ export class Shopping {
                              values (?, ?, ?, ?)`,
                             [carData.orderID, 0, carData.email, carData]
                         );
+                        await Promise.all(saveStockArray.map((dd)=>{
+                            return dd()
+                        }))
                         return {
                             off_line: true,
                             return_url: `${process.env.DOMAIN}/api-public/v1/ec/redirect?g-app=${this.app}&return=${id}`,
@@ -1616,7 +1671,7 @@ export class Shopping {
                 }
 
                 // await new PayPal(this.app, keyData).checkout(orderData);
-            }
+            };
         } catch (e) {
             console.error(e);
             throw exception.BadRequestError('BAD_REQUEST', 'ToCheckout 5 Error:' + e, null);
@@ -1772,7 +1827,7 @@ export class Shopping {
                      SET ?
                      WHERE id = ?
                     `,
-                    [{ status: data.status, orderData: JSON.stringify(data.orderData) }, data.id]
+                    [{status: data.status, orderData: JSON.stringify(data.orderData)}, data.id]
                 );
                 return {
                     result: 'success',
@@ -1797,7 +1852,7 @@ export class Shopping {
         condition?: number;
     }> {
         try {
-            const getRS = await new User(this.app).getConfig({ key: 'rebate_setting', user_id: 'manager' });
+            const getRS = await new User(this.app).getConfig({key: 'rebate_setting', user_id: 'manager'});
             if (getRS[0] && getRS[0].value) {
                 const configData = getRS[0].value.config;
                 if (configData.condition.type === 'total_price' && configData.condition.value > total) {
@@ -1878,7 +1933,7 @@ export class Shopping {
 
         // 確認用戶資訊
         console.log(`cart.email==>`, cart.email);
-        const userData = (await userClass.getUserData(cart.email, 'email_or_phone')) ?? { userID: -1 };
+        const userData = (await userClass.getUserData(cart.email, 'email_or_phone')) ?? {userID: -1};
         // 所有優惠券
         const allVoucher: VoucherData[] = (
             await this.querySql([`(content->>'$.type'='voucher')`], {
@@ -2177,7 +2232,7 @@ export class Shopping {
             if (data.orderData) {
                 update.orderData = JSON.stringify(data.orderData);
             }
-            const store_config = await new User(this.app).getConfigV2({ key: 'store_manager', user_id: 'manager' });
+            const store_config = await new User(this.app).getConfigV2({key: 'store_manager', user_id: 'manager'});
             const origin = await db.query(
                 `SELECT *
                  FROM \`${this.app}\`.t_checkout
@@ -2198,7 +2253,7 @@ export class Shopping {
                         lineItem.deduction_log = lineItem.deduction_log || {};
                         if (Object.keys(lineItem.deduction_log).length === 0) {
                             //將舊版回填migrate成新版本
-                            lineItem.deduction_log[store_config.list[0].id] = { count: lineItem.count };
+                            lineItem.deduction_log[store_config.list[0].id] = {count: lineItem.count};
                         }
                     }
                 }
@@ -2288,7 +2343,7 @@ export class Shopping {
             );
 
             if (orderList.length !== 1) {
-                return { data: false };
+                return {data: false};
             }
 
             const origin = orderList[0];
@@ -2300,7 +2355,7 @@ export class Shopping {
 
             if (proofPurchase && paymentStatus && progressStatus && orderStatus) {
                 orderData.orderStatus = '-1';
-                const record = { time: this.formatDateString(), record: '顧客手動取消訂單' };
+                const record = {time: this.formatDateString(), record: '顧客手動取消訂單'};
                 if (orderData.editRecord) {
                     orderData.editRecord.push(record);
                 } else {
@@ -2310,12 +2365,12 @@ export class Shopping {
 
             await db.query(
                 `UPDATE \`${this.app}\`.t_checkout
-                            SET orderData = ?
-                            WHERE cart_token = ?;`,
+                 SET orderData = ?
+                 WHERE cart_token = ?;`,
                 [JSON.stringify(orderData), order_id]
             );
 
-            return { data: true };
+            return {data: true};
         } catch (e) {
             throw exception.BadRequestError('BAD_REQUEST', 'cancelOrder Error:' + e, null);
         }
@@ -2350,7 +2405,7 @@ export class Shopping {
             orderData.proof_purchase = text;
 
             // 訂單待核款信件通知
-            new ManagerNotify(this.app).uploadProof({ orderData: orderData });
+            new ManagerNotify(this.app).uploadProof({orderData: orderData});
             await AutoSendEmail.customerOrder(this.app, 'proof-purchase', order_id, orderData.email, orderData.language);
 
             if (orderData.customer_info.phone) {
@@ -2685,7 +2740,7 @@ OR JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.orderStatus')) NOT IN (-99)) `);
                 }
 
                 try {
-                    await new CustomCode(this.app).checkOutHook({ userData, cartData });
+                    await new CustomCode(this.app).checkOutHook({userData, cartData});
                 } catch (e) {
                     console.error(e);
                 }
@@ -2802,7 +2857,7 @@ OR JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.orderStatus')) NOT IN (-99)) `);
                     []
                 );
             }
-            const store_config = await new User(this.app).getConfigV2({ key: 'store_manager', user_id: 'manager' });
+            const store_config = await new User(this.app).getConfigV2({key: 'store_manager', user_id: 'manager'});
             await Promise.all(
                 content.variants.map((a: any) => {
                     content.min_price = content.min_price ?? a.sale_price;
@@ -2821,12 +2876,12 @@ OR JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.orderStatus')) NOT IN (-99)) `);
                         a.stockList = {};
                     } else if (Object.keys(a.stockList).length === 0) {
                         //適應舊版庫存更新
-                        a.stockList[store_config.list[0].id] = { count: a.stock };
+                        a.stockList[store_config.list[0].id] = {count: a.stock};
                     }
                     return new Promise(async (resolve, reject) => {
                         await db.query(
                             `INSERT INTO \`${this.app}\`.t_variants
-                                    SET ?`,
+                             SET ?`,
                             [
                                 {
                                     content: JSON.stringify(a),
@@ -2860,10 +2915,10 @@ OR JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.orderStatus')) NOT IN (-99)) `);
         const sql =
             spec.length > 0
                 ? `AND JSON_CONTAINS(content->'$.spec', JSON_ARRAY(${spec
-                      .map((data: string) => {
-                          return `\"${data}\"`;
-                      })
-                      .join(',')}));`
+                    .map((data: string) => {
+                        return `\"${data}\"`;
+                    })
+                    .join(',')}));`
                 : '';
 
         try {
@@ -2889,18 +2944,18 @@ OR JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.orderStatus')) NOT IN (-99)) `);
         const pd_data = (
             await db.query(
                 `select *
-                                         from \`${this.app}\`.t_manager_post
-                                         where id = ?`,
+                 from \`${this.app}\`.t_manager_post
+                 where id = ?`,
                 [product_id]
             )
         )[0]['content'];
-        const store_config = await new User(this.app).getConfigV2({ key: 'store_manager', user_id: 'manager' });
+        const store_config = await new User(this.app).getConfigV2({key: 'store_manager', user_id: 'manager'});
         const variant_s: any = pd_data.variants.find((dd: any) => {
             return dd.spec.join('-') === spec.join('-');
         });
         if (Object.keys(variant_s.stockList).length === 0) {
             //適應舊版庫存更新
-            variant_s.stockList[store_config.list[0].id] = { count: variant_s.stock };
+            variant_s.stockList[store_config.list[0].id] = {count: variant_s.stock};
         }
         if (variant_s.stockList[stock_id]) {
             variant_s.stockList[stock_id].count = variant_s.stockList[stock_id].count || 0;
@@ -2994,7 +3049,7 @@ OR JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.orderStatus')) NOT IN (-99)) `);
 
                 function wasteTimeRank(obj: Record<string, number>, n: number): { key: string; value: number }[] {
                     const sortedEntries = Object.entries(obj)
-                        .map(([key, value]) => ({ key, value }))
+                        .map(([key, value]) => ({key, value}))
                         .sort((a, b) => b.value - a.value);
                     return sortedEntries.slice(0, n);
                 }
@@ -3003,7 +3058,7 @@ OR JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.orderStatus')) NOT IN (-99)) `);
 
                 return result;
             }
-            return { result: false };
+            return {result: false};
         } catch (e) {
             throw exception.BadRequestError('BAD_REQUEST', 'getDataAnalyze Error:' + e, null);
         }
@@ -3027,7 +3082,7 @@ OR JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.orderStatus')) NOT IN (-99)) `);
         const startISO = startDate.toISOString();
         const endISO = endDate.toISOString();
 
-        return { startISO, endISO };
+        return {startISO, endISO};
     }
 
     formatDateString(isoDate?: string): string {
@@ -3064,7 +3119,7 @@ OR JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.orderStatus')) NOT IN (-99)) `);
         const queryData = await db.query(sql, []);
 
         const now = moment.tz('Asia/Taipei').toDate(); // 當前時間
-        const dataList = Array.from({ length: 14 }, (_, index) => {
+        const dataList = Array.from({length: 14}, (_, index) => {
             const targetDate = now;
             targetDate.setDate(now.getDate() - index); // 設定為第 index 天前的日期
 
@@ -3112,7 +3167,7 @@ OR JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.orderStatus')) NOT IN (-99)) `);
         const queryData = await db.query(sql, []);
 
         const now = moment.tz('Asia/Taipei').toDate(); // 當前時間
-        const dataList = Array.from({ length: 14 }, (_, index) => {
+        const dataList = Array.from({length: 14}, (_, index) => {
             const targetDate = now;
             targetDate.setDate(now.getDate() - index); // 設定為第 index 天前的日期
 
@@ -3309,7 +3364,7 @@ OR JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.orderStatus')) NOT IN (-99)) `);
                 WHERE MONTH (online_time) = MONTH (NOW()) AND YEAR (online_time) = YEAR (NOW());
             `;
             const month_users = await db.query(monthSQL, []);
-            return { recent: recent_users.length, months: month_users.length };
+            return {recent: recent_users.length, months: month_users.length};
         } catch (e) {
             throw exception.BadRequestError('BAD_REQUEST', 'getRecentActiveUser Error:' + e, null);
         }
@@ -3349,7 +3404,7 @@ OR JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.orderStatus')) NOT IN (-99)) `);
                 gap = Math.floor(((recent_month_total - previous_month_total) / previous_month_total) * 10000) / 10000;
             }
 
-            return { recent_month_total, previous_month_total, gap };
+            return {recent_month_total, previous_month_total, gap};
         } catch (e) {
             throw exception.BadRequestError('BAD_REQUEST', 'getRecentActiveUser Error:' + e, null);
         }
@@ -3363,15 +3418,15 @@ OR JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.orderStatus')) NOT IN (-99)) `);
                 FROM \`${this.app}\`.t_checkout
                 WHERE status = 1
                   AND ${(() => {
-                      switch (duration) {
-                          case 'day':
-                              return `created_time BETWEEN  CURDATE() AND CURDATE() + INTERVAL 1 DAY - INTERVAL 1 SECOND`;
-                          case 'month':
-                              return `(created_time BETWEEN DATE_SUB(NOW(), INTERVAL 1 MONTH) AND NOW())`;
-                          case 'all':
-                              return `1=1`;
-                      }
-                  })()};
+                    switch (duration) {
+                        case 'day':
+                            return `created_time BETWEEN  CURDATE() AND CURDATE() + INTERVAL 1 DAY - INTERVAL 1 SECOND`;
+                        case 'month':
+                            return `(created_time BETWEEN DATE_SUB(NOW(), INTERVAL 1 MONTH) AND NOW())`;
+                        case 'all':
+                            return `1=1`;
+                    }
+                })()};
             `;
             const checkouts = await db.query(checkoutSQL, []);
             const series = [];
@@ -3413,7 +3468,7 @@ OR JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.orderStatus')) NOT IN (-99)) `);
                 }
             }
 
-            return { series, categories, product_list: final_product_list };
+            return {series, categories, product_list: final_product_list};
         } catch (e) {
             throw exception.BadRequestError('BAD_REQUEST', 'getRecentActiveUser Error:' + e, null);
         }
@@ -3447,7 +3502,7 @@ OR JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.orderStatus')) NOT IN (-99)) `);
                 gap = Math.floor(((recent_month_total - previous_month_total) / previous_month_total) * 10000) / 10000;
             }
 
-            return { recent_month_total, previous_month_total, gap };
+            return {recent_month_total, previous_month_total, gap};
         } catch (e) {
             throw exception.BadRequestError('BAD_REQUEST', 'getRecentActiveUser Error:' + e, null);
         }
@@ -3907,13 +3962,13 @@ OR JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.orderStatus')) NOT IN (-99)) `);
 
             const sql = `
                 SELECT v.id,
-                        v.product_id,
-                        v.content as variant_content,
-                        p.content as product_content,
-                        CAST(JSON_EXTRACT(v.content, '$.stock') AS UNSIGNED) as stock
+                       v.product_id,
+                       v.content                                            as variant_content,
+                       p.content                                            as product_content,
+                       CAST(JSON_EXTRACT(v.content, '$.stock') AS UNSIGNED) as stock
                 FROM \`${this.app}\`.t_variants AS v
-                        JOIN
-                    \`${this.app}\`.t_manager_post AS p ON v.product_id = p.id
+                         JOIN
+                     \`${this.app}\`.t_manager_post AS p ON v.product_id = p.id
                 WHERE product_id in (${filterProducts.map((item: { id: number }) => item.id).join(',')})
                 ORDER BY id DESC
             `;
@@ -4004,7 +4059,7 @@ OR JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.orderStatus')) NOT IN (-99)) `);
                         const sub = config.value[parentIndex].array.find((item: { title: string }) => {
                             return item.title === col;
                         });
-                        return { array: [], title: col, code: sub ? sub.code : '' };
+                        return {array: [], title: col, code: sub ? sub.code : ''};
                     }),
                 };
             } else {
@@ -4117,7 +4172,7 @@ OR JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.orderStatus')) NOT IN (-99)) `);
                                     WHERE \`key\` = 'collection';`;
             await db.execute(update_col_sql, [config.value]);
 
-            return { result: true };
+            return {result: true};
         } catch (e) {
             console.error(e);
             throw exception.BadRequestError('BAD_REQUEST', 'putCollection Error:' + e, null);
@@ -4148,9 +4203,11 @@ OR JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.orderStatus')) NOT IN (-99)) `);
 
                     const sortList = data.map((item) => {
                         if (index > -1) {
-                            return config.value[index].array.find((conf: { title: string }) => conf.title === item.title);
+                            return config.value[index].array.find((conf: {
+                                title: string
+                            }) => conf.title === item.title);
                         }
-                        return { title: '', array: [], code: '' };
+                        return {title: '', array: [], code: ''};
                     });
 
                     config.value[index].array = sortList;
@@ -4276,7 +4333,7 @@ OR JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.orderStatus')) NOT IN (-99)) `);
             const title = levels[0];
             let node = nodes.find((n) => n.title === title);
             if (!node) {
-                node = { title, array: [] };
+                node = {title, array: []};
                 nodes.push(node);
             }
             if (levels.length > 1) {
@@ -4326,8 +4383,8 @@ OR JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.orderStatus')) NOT IN (-99)) `);
                             const og_data = (
                                 await db.query(
                                     `select *
-                                                         from \`${this.app}\`.\`t_manager_post\`
-                                                         where id = ?`,
+                                     from \`${this.app}\`.\`t_manager_post\`
+                                     where id = ?`,
                                     [product.id]
                                 )
                             )[0];
@@ -4454,17 +4511,19 @@ OR JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.orderStatus')) NOT IN (-99)) `);
                 if (parentTitles.length > 0) {
                     // data 為子層
                     const parentIndex = config.value.findIndex((col: { title: string }) => col.title === parentTitles);
-                    const childrenIndex = config.value[parentIndex].array.findIndex((col: { title: string }) => col.title === data.title);
+                    const childrenIndex = config.value[parentIndex].array.findIndex((col: {
+                        title: string
+                    }) => col.title === data.title);
                     const n = deleteList.findIndex((obj) => obj.parent === parentIndex);
                     if (n === -1) {
-                        deleteList.push({ parent: parentIndex, child: [childrenIndex] });
+                        deleteList.push({parent: parentIndex, child: [childrenIndex]});
                     } else {
                         deleteList[n].child.push(childrenIndex);
                     }
                 } else {
                     // data 為父層
                     const parentIndex = config.value.findIndex((col: { title: string }) => col.title === data.title);
-                    deleteList.push({ parent: parentIndex, child: [-1] });
+                    deleteList.push({parent: parentIndex, child: [-1]});
                 }
             });
 
@@ -4498,7 +4557,7 @@ OR JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.orderStatus')) NOT IN (-99)) `);
                                     WHERE \`key\` = 'collection';`;
             await db.execute(update_col_sql, [config.value]);
 
-            return { result: true };
+            return {result: true};
         } catch (e) {
             throw exception.BadRequestError('BAD_REQUEST', 'getCollectionProducts Error:' + e, null);
         }
@@ -4524,7 +4583,7 @@ OR JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.orderStatus')) NOT IN (-99)) `);
                     await this.updateProductCollection(product.content, product.id);
                 }
             }
-            return { result: true };
+            return {result: true};
         } catch (error) {
             throw exception.BadRequestError('BAD_REQUEST', 'deleteCollectionProduct Error:' + e, null);
         }
@@ -4592,14 +4651,14 @@ OR JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.orderStatus')) NOT IN (-99)) `);
             query.id && querySql.push(`(v.id = ${query.id})`);
             query.id_list && querySql.push(`(v.id in (${query.id_list}))`);
             query.collection &&
-                querySql.push(
-                    `(${query.collection
-                        .split(',')
-                        .map((dd) => {
-                            return query.accurate_search_collection ? `(JSON_CONTAINS(p.content->'$.collection', '"${dd}"'))` : `(JSON_EXTRACT(p.content, '$.collection') LIKE '%${dd}%')`;
-                        })
-                        .join(' or ')})`
-                );
+            querySql.push(
+                `(${query.collection
+                    .split(',')
+                    .map((dd) => {
+                        return query.accurate_search_collection ? `(JSON_CONTAINS(p.content->'$.collection', '"${dd}"'))` : `(JSON_EXTRACT(p.content, '$.collection') LIKE '%${dd}%')`;
+                    })
+                    .join(' or ')})`
+            );
             query.status && querySql.push(`(JSON_EXTRACT(p.content, '$.status') = '${query.status}')`);
             query.min_price && querySql.push(`(v.content->>'$.sale_price' >= ${query.min_price})`);
             query.max_price && querySql.push(`(v.content->>'$.sale_price' <= ${query.min_price})`);
@@ -4720,13 +4779,13 @@ OR JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.orderStatus')) NOT IN (-99)) `);
                     `UPDATE \`${this.app}\`.t_variants
                      SET ?
                      WHERE id = ?`,
-                    [{ content: JSON.stringify(data.variant_content) }, data.id]
+                    [{content: JSON.stringify(data.variant_content)}, data.id]
                 );
                 await db.query(
                     `UPDATE \`${this.app}\`.t_manager_post
                      SET ?
                      WHERE id = ?`,
-                    [{ content: JSON.stringify(data.product_content) }, data.product_id]
+                    [{content: JSON.stringify(data.product_content)}, data.product_id]
                 );
             }
             return {
@@ -4780,11 +4839,19 @@ OR JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.orderStatus')) NOT IN (-99)) `);
             `UPDATE \`${this.app}\`.t_invoice_memory
              SET ?
              WHERE invoice_no = ?`,
-            [{ status: 2, invoice_data: JSON.stringify(dbData.invoice_data) }, obj.invoice_no]
+            [{status: 2, invoice_data: JSON.stringify(dbData.invoice_data)}, obj.invoice_no]
         );
     }
 
-    async allowanceInvoice(obj: { invoiceID: string; allowanceData: any; orderID: string; orderData: any; allowanceInvoiceTotalAmount: string; itemList: any; invoiceDate: string }) {
+    async allowanceInvoice(obj: {
+        invoiceID: string;
+        allowanceData: any;
+        orderID: string;
+        orderData: any;
+        allowanceInvoiceTotalAmount: string;
+        itemList: any;
+        invoiceDate: string
+    }) {
         const config = await app.getAdConfig(this.app, 'invoice_setting');
         let invoiceData = await db.query(
             `
@@ -4840,8 +4907,8 @@ OR JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.orderStatus')) NOT IN (-99)) `);
         const data: any = (
             await db.query(
                 `SELECT *
-                                           FROM ${saasConfig.SAAS_NAME}.currency_config
-                                           order by id desc limit 0,1;`,
+                 FROM ${saasConfig.SAAS_NAME}.currency_config
+                 order by id desc limit 0,1;`,
                 []
             )
         )[0]['json']['rates'];
