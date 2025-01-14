@@ -8,6 +8,11 @@ import {Currency} from "../../glitter-base/global/currency.js";
 const html = String.raw;
 
 export class HeaderClass {
+    static hideShopperBtn(){
+        return !(window as any).store_info.web_type.find((dd: any) => {
+            return ['shop', 'teaching'].includes(dd)
+        });
+    }
     static spinner(obj?: {
         container?: {
             class?: string;

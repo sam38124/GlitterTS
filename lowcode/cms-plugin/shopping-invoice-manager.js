@@ -1284,7 +1284,7 @@ ${reason}</textarea
     }
     static createOrder(gvc, vm, searchOrder) {
         let viewModel = {
-            searchOrder: searchOrder !== null && searchOrder !== void 0 ? searchOrder : '1733284711278',
+            searchOrder: searchOrder !== null && searchOrder !== void 0 ? searchOrder : '',
             searchData: '',
             errorReport: '',
             invoiceData: {

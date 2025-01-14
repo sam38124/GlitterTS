@@ -199,6 +199,7 @@ export class ShoppingInformation {
                         gvc.notifyDataChange(vm.id)
                     })
                 }
+                vm.data.web_type=vm.data.web_type ?? ['shop']
                 vm.data.currency_code = vm.data.currency_code || 'TWD'
                 return BgWidget.container(html`
                     <div class="title-container mb-4">
@@ -294,6 +295,34 @@ export class ShoppingInformation {
                                     </div>
 
                                     <div class="d-flex flex-column" style="gap:8px;">
+                                        <div style="color: #393939;font-size: 16px;">網站類型</div>
+                                        <div class="d-flex align-items-center">
+                                            ${
+                                                    BgWidget.inlineCheckBox({
+                                                        title: '',
+                                                        gvc: gvc,
+                                                        def: vm.data.web_type,
+                                                        array: [
+                                                            {
+                                                                title: '購物網站',
+                                                                value: 'shop',
+                                                            },
+                                                            {
+                                                                title: '形象網站',
+                                                                value: 'image',
+                                                            },
+                                                            {
+                                                                title: '授課網站',
+                                                                value: 'teaching',
+                                                            }
+                                                        ],
+                                                        callback: (array: any) => {
+                                                            vm.data.web_type=array
+                                                        },
+                                                        type: 'multiple',
+                                                    })
+                                            }
+                                        </div>
                                         <div style="color: #393939;font-size: 16px;">啟用 AI 選品</div>
                                         <div style="color: #8D8D8D;font-size:13px;">透過 AI 選品功能用戶可以使用自然語言描述找到所需商品<br>
                                             例如:幫我找到真皮材質的三人座沙發
@@ -362,9 +391,11 @@ export class ShoppingInformation {
                                                     return html`
                                                         <div class="mt-2" style="color: #393939;font-size: 16px;">
                                                             多國語言
-                                                            <span class="cursor_pointer" style="font-size: 13px;color:#36B;" onclick="${gvc.event(()=>{
-                                                                BgWidget.selectLanguage({})
-                                                            })}"> 
+                                                            <span class="cursor_pointer"
+                                                                  style="font-size: 13px;color:#36B;"
+                                                                  onclick="${gvc.event(() => {
+                                                                      BgWidget.selectLanguage({})
+                                                                  })}"> 
                                                                 管理語言包
                                                             </span>
                                                         </div>
@@ -409,66 +440,66 @@ export class ShoppingInformation {
 </div>
 `
                                                             }).join('')}
-                                                          <div class="d-flex align-items-center">
-                                                              ${[((all_lan.length !== vm.data.language_setting.support.length) ? html`
-                                                                <div class=" d-flex align-items-center justify-content-center cursor_pointer"
-                                                                     style="color: #36B; font-size: 16px; font-weight: 400;"
-                                                                     onclick="${gvc.event(() => {
-                                                                  let add = ''
-                                                                  BgWidget.settingDialog({
-                                                                      gvc: gvc,
-                                                                      title: '新增語言',
-                                                                      innerHTML: (gvc: GVC) => {
-                                                                          const can_add = [{
-                                                                              key: 'en-US',
-                                                                              value: '英文'
-                                                                          },
-                                                                              {
-                                                                                  key: 'zh-CN',
-                                                                                  value: '簡體中文'
-                                                                              },
-                                                                              {
-                                                                                  key: 'zh-TW',
-                                                                                  value: '繁體中文'
-                                                                              }].filter((dd) => {
-                                                                              return !vm.data.language_setting.support.includes(dd.key)
-                                                                          });
-                                                                          add = can_add[0].key
-                                                                          return [
-                                                                              BgWidget.select({
-                                                                                  gvc: gvc,
-                                                                                  default: can_add[0].key,
-                                                                                  options: can_add,
-                                                                                  callback: (text) => {
-                                                                                      add = text
-                                                                                  },
-                                                                              })
-                                                                          ].join('')
-                                                                      },
-                                                                      footer_html: (gvc: GVC) => {
-                                                                          return BgWidget.save(gvc.event(() => {
-                                                                              vm.data.language_setting.support.push(add)
-                                                                              gvc.closeDialog()
-                                                                              setTimeout(() => {
-                                                                                  refreshLanguage()
-                                                                              }, 100)
+                                                            <div class="d-flex align-items-center">
+                                                                ${[((all_lan.length !== vm.data.language_setting.support.length) ? html`
+                                                                    <div class=" d-flex align-items-center justify-content-center cursor_pointer"
+                                                                         style="color: #36B; font-size: 16px; font-weight: 400;"
+                                                                         onclick="${gvc.event(() => {
+                                                                             let add = ''
+                                                                             BgWidget.settingDialog({
+                                                                                 gvc: gvc,
+                                                                                 title: '新增語言',
+                                                                                 innerHTML: (gvc: GVC) => {
+                                                                                     const can_add = [{
+                                                                                         key: 'en-US',
+                                                                                         value: '英文'
+                                                                                     },
+                                                                                         {
+                                                                                             key: 'zh-CN',
+                                                                                             value: '簡體中文'
+                                                                                         },
+                                                                                         {
+                                                                                             key: 'zh-TW',
+                                                                                             value: '繁體中文'
+                                                                                         }].filter((dd) => {
+                                                                                         return !vm.data.language_setting.support.includes(dd.key)
+                                                                                     });
+                                                                                     add = can_add[0].key
+                                                                                     return [
+                                                                                         BgWidget.select({
+                                                                                             gvc: gvc,
+                                                                                             default: can_add[0].key,
+                                                                                             options: can_add,
+                                                                                             callback: (text) => {
+                                                                                                 add = text
+                                                                                             },
+                                                                                         })
+                                                                                     ].join('')
+                                                                                 },
+                                                                                 footer_html: (gvc: GVC) => {
+                                                                                     return BgWidget.save(gvc.event(() => {
+                                                                                         vm.data.language_setting.support.push(add)
+                                                                                         gvc.closeDialog()
+                                                                                         setTimeout(() => {
+                                                                                             refreshLanguage()
+                                                                                         }, 100)
 
-                                                                          }), '新增')
-                                                                      },
-                                                                      width: 200
-                                                                  })
-                                                              })}">
-                                                                    <div>新增語系</div>
-                                                                    <div class="d-flex align-items-center justify-content-center p-2">
-                                                                        <i class="fa-solid fa-plus fs-6"
-                                                                           style="font-size: 16px; "
-                                                                           aria-hidden="true"></i>
+                                                                                     }), '新增')
+                                                                                 },
+                                                                                 width: 200
+                                                                             })
+                                                                         })}">
+                                                                        <div>新增語系</div>
+                                                                        <div class="d-flex align-items-center justify-content-center p-2">
+                                                                            <i class="fa-solid fa-plus fs-6"
+                                                                               style="font-size: 16px; "
+                                                                               aria-hidden="true"></i>
+                                                                        </div>
                                                                     </div>
-                                                                </div>
-                                                            ` : ``)].filter((dd)=>{
-                                                                  return dd.trim()
-                                                              }).join(``)}
-                                                          </div>
+                                                                ` : ``)].filter((dd) => {
+                                                                    return dd.trim()
+                                                                }).join(``)}
+                                                            </div>
                                                         </div>`
                                                 }
                                             }
@@ -528,7 +559,7 @@ export class ShoppingInformation {
                                                         ${vm.data.switch_currency ? `checked` : ``}
                                                 />
                                             </div>
-                                        </div>`:``}
+                                        </div>` : ``}
                                     </div>
                                 </div>
                             `, ``)
@@ -562,7 +593,7 @@ export class ShoppingInformation {
                                                         },
                                                     ],
                                                     callback: (text) => {
-                                                        domain_from = text as any 
+                                                        domain_from = text as any
                                                         if (origin_select === domain_from) {
                                                             domain_text = (window.parent as any).glitter.share.editorViewModel.domain.replace('.shopnex.cc', '')
                                                         } else {
@@ -665,7 +696,7 @@ ${BgWidget.title('GoDaddy DNS 設定指南')}
                                                 if (!domain_text) {
                                                     dialog.errorMessage({text: '請輸入網域名稱'})
                                                     return
-                                                }else if(glitter.share.editorViewModel.domain===domain_text){
+                                                } else if (glitter.share.editorViewModel.domain === domain_text) {
                                                     dialog.errorMessage({text: '此網域已部署完成'})
                                                     return
                                                 }

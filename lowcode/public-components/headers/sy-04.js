@@ -304,7 +304,7 @@ padding-bottom: 2px;
                 },
             };
         })}
-                            <li class="nav-item d-none d-sm-flex align-items-center justify-content-center" style="">
+                            ${(HeaderClass.hideShopperBtn()) ? `` : `<li class="nav-item d-none d-sm-flex align-items-center justify-content-center" style="">
                                 ${gvc.bindView(() => {
             const vm = {
                 id: gvc.glitter.getUUID(),
@@ -354,7 +354,7 @@ padding-bottom: 2px;
                 },
             };
         })}
-                            </li>
+                            </li>`}
                             <li class="nav-item  d-flex align-items-center justify-content-center" style="width:40px !important;">
                                 ${gvc.bindView(() => {
             const vm = {

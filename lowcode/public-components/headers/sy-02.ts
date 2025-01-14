@@ -316,34 +316,35 @@ padding-bottom: 2px;
                                         },
                                     };
                                 })}
-                                <li class="nav-item d-none d-sm-flex align-items-center justify-content-center"
+                                ${(HeaderClass.hideShopperBtn()) ? ``:`<li class="nav-item d-none d-sm-flex align-items-center justify-content-center "
                                     style="">
                                     ${gvc.bindView(() => {
-                                        const vm = {
-                                            id: gvc.glitter.getUUID(),
-                                            toggle: false,
-                                        };
-                                        return {
-                                            bind: vm.id,
-                                            view: () => {
-                                                if (!vm.toggle) {
-                                                    return html`<i
+                                    const vm = {
+                                        id: gvc.glitter.getUUID(),
+                                        toggle: false,
+                                    };
+                                    return {
+                                        bind: vm.id,
+                                        view: () => {
+
+                                            if (!vm.toggle) {
+                                                return html`<i
                                                         class="fa-regular fa-magnifying-glass"
                                                         style="color: ${widget.formData.theme_color['title'] ?? '#000'};cursor: pointer;font-size:20px;"
                                                         onclick="${gvc.event(() => {
-                                                            vm.toggle = !vm.toggle;
-                                                            gvc.notifyDataChange(vm.id);
-                                                        })}"
+                                                    vm.toggle = !vm.toggle;
+                                                    gvc.notifyDataChange(vm.id);
+                                                })}"
                                                     ></i>`;
-                                                } else {
-                                                    return html`<a class="nav-link search-container d-flex align-items-center"
+                                            } else {
+                                                return html`<a class="nav-link search-container d-flex align-items-center"
                                                         ><i
                                                             class="fa-regular fa-circle-xmark"
                                                             style="color: ${widget.formData.theme_color['title'] ?? '#000'};cursor: pointer;font-size:20px;"
                                                             onclick="${gvc.event(() => {
-                                                                vm.toggle = !vm.toggle;
-                                                                gvc.notifyDataChange(vm.id);
-                                                            })}"
+                                                    vm.toggle = !vm.toggle;
+                                                    gvc.notifyDataChange(vm.id);
+                                                })}"
                                                         ></i
                                                         ><input
                                                             class="ms-3 form-control"
@@ -351,21 +352,21 @@ padding-bottom: 2px;
                                                             placeholder="${Language.text('input_product_keyword')}"
                                                             autocomplete="off"
                                                             onchange="${gvc.event((e, event) => {
-                                                                gvc.glitter.href = `/all-product?search=${e.value}`;
-                                                                vm.toggle = !vm.toggle;
-                                                                gvc.notifyDataChange(vm.id);
-                                                            })}"
+                                                    gvc.glitter.href = `/all-product?search=${e.value}`;
+                                                    vm.toggle = !vm.toggle;
+                                                    gvc.notifyDataChange(vm.id);
+                                                })}"
                                                         />
                                                     </a>`;
-                                                }
-                                            },
-                                            divCreate: {
-                                                class: `nav-link search-container`,
-                                                elem: `a`,
-                                            },
-                                        };
-                                    })}
-                                </li>
+                                            }
+                                        },
+                                        divCreate: {
+                                            class: `nav-link search-container`,
+                                            elem: `a`,
+                                        },
+                                    };
+                                })}
+                                </li>`}
                                 <li class="nav-item  d-flex align-items-center justify-content-center"
                                     style="width:40px !important;">
                                     ${gvc.bindView(() => {

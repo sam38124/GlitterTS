@@ -7,9 +7,9 @@ import s3bucket from '../../modules/AWSLib.js';
 import crypto from "crypto";
 import process from "process";
 import qs from 'qs';
-import mime from "mime";
 import {Shopping} from "./shopping.js";
 
+const mime = require('mime');
 type ActiveSchedule = {
     start_ISO_Date?: string;
     end_ISO_Date?: string;
@@ -34,7 +34,7 @@ interface Variant {
     sku: string;
     barcode: string;
     stock: number;
-    stockList:{};
+    stockList: {};
     preview_image: string;
     show_understocking: string;
     type: string;
@@ -50,93 +50,105 @@ export interface LanguageData {
     };
 }
 
-interface Config extends AxiosRequestConfig {}
+interface Config extends AxiosRequestConfig {
+}
 
 export class Shopee {
     public app;
     public token: IToken | undefined;
 
+    public static get path() {
+        if (process.env.shopee_beta === 'true') {
+            return `https://partner.test-stable.shopeemobile.com`
+        } else {
+            return `https://partner.shopeemobile.com`
+        }
+    }
+
     constructor(app: string, token?: IToken) {
         this.app = app;
         this.token = token;
     }
-    public generateUrl(partner_id:string , api_path:string , timestamp:number){
-        // const path = "https://partner.shopeemobile.com/ "//正式版環境
-        const path = "https://partner.test-stable.shopeemobile.com";
 
-        const sign = this.cryptoSign(partner_id , api_path , timestamp);
+    public generateUrl(partner_id: string, api_path: string, timestamp: number) {
 
-        return `${path}${api_path}?partner_id=${partner_id}&timestamp=${timestamp}&sign=${sign}`
-            // ?partner_id=1249034&sign=528d448cde17720098c8886aafc973c093af54a489ff4ef80198b39de958d484&timestamp=1736322488
-    }
-    public generateShopUrl(partner_id:string , api_path:string , timestamp:number , access_token:string , shop_id:number){
-        // const path = "https://partner.shopeemobile.com/ "//正式版環境
-        const path = "https://partner.test-stable.shopeemobile.com";
 
-        const sign = this.cryptoSign(partner_id , api_path , timestamp , access_token , shop_id);
+        const sign = this.cryptoSign(partner_id, api_path, timestamp);
 
-        return `${path}${api_path}?partner_id=${partner_id}&timestamp=${timestamp}&sign=${sign}`
+
+        return `${Shopee.path}${api_path}?partner_id=${partner_id}&timestamp=${timestamp}&sign=${sign}`
+
         // ?partner_id=1249034&sign=528d448cde17720098c8886aafc973c093af54a489ff4ef80198b39de958d484&timestamp=1736322488
     }
-    private cryptoSign(partner_id:string , api_path:string , timestamp:number , access_token?:string , shop_id?:number){
-        const baseString = `${partner_id}${api_path}${timestamp}${access_token??""}${shop_id??""}`;
-        const partner_key = process.env.shopee_partner_key;
-        return crypto.createHmac('sha256', partner_key??"").update(baseString).digest('hex');
+
+    public generateShopUrl(partner_id: string, api_path: string, timestamp: number, access_token: string, shop_id: number) {
+       const sign = this.cryptoSign(partner_id, api_path, timestamp, access_token, shop_id);
+
+        return `${Shopee.path}${api_path}?partner_id=${partner_id}&timestamp=${timestamp}&sign=${sign}`
+        // ?partner_id=1249034&sign=528d448cde17720098c8886aafc973c093af54a489ff4ef80198b39de958d484&timestamp=1736322488
     }
-    public generateAuth (redirectUrl:string){
+
+    private cryptoSign(partner_id: string, api_path: string, timestamp: number, access_token?: string, shop_id?: number) {
+        const baseString = `${partner_id}${api_path}${timestamp}${access_token ?? ""}${shop_id ?? ""}`;
+        const partner_key = process.env.shopee_partner_key;
+        return crypto.createHmac('sha256', partner_key ?? "").update(baseString).digest('hex');
+    }
+
+    public generateAuth(redirectUrl: string) {
         const partner_id = process.env.shopee_partner_id;//測試版是test partner_id;
         // const path = "https://partner.shopeemobile.com/ "//正式版環境
-        const path = "https://partner.test-stable.shopeemobile.com";
         const api_path = "/api/v2/shop/auth_partner"
         const timestamp = Math.floor(Date.now() / 1000);
 
         // const redirectUrl = "https://3013f93153a1.ngrok.app/api-public/v1/shopee/listenMessage?g-app=t_1725992531001";
-        const  baseString = `${partner_id}${api_path}${timestamp}`;
-        const signature = this.cryptoSign(partner_id??"" , api_path , timestamp)
+        const baseString = `${partner_id}${api_path}${timestamp}`;
+        const signature = this.cryptoSign(partner_id ?? "", api_path, timestamp)
 
-        return `${path}${api_path}?partner_id=${partner_id}&timestamp=${timestamp}&redirect=${redirectUrl}&sign=${signature}`
+        return `${Shopee.path}${api_path}?partner_id=${partner_id}&timestamp=${timestamp}&redirect=${redirectUrl}&sign=${signature}`
     }
 
     public async getToken(code: string, shop_id: string) {
         const timestamp = Math.floor(Date.now() / 1000);
-        const partner_id = process.env.shopee_partner_id??"";//測試版是test partner_id;
+        const partner_id = process.env.shopee_partner_id ?? "";//測試版是test partner_id;
         const api_path = "/api/v2/auth/token/get"
         const config = {
             method: 'post', // 確保是 POST 方法
-            url: this.generateUrl(partner_id,api_path,timestamp),
+            url: this.generateUrl(partner_id, api_path, timestamp),
             headers: {
                 'Content-Type': 'application/json',
             },
             data: JSON.stringify({
                 code: code,
-                partner_id: parseInt(partner_id , 10) ,
-                shop_id: parseInt(shop_id) ,
+                partner_id: parseInt(partner_id, 10),
+                shop_id: parseInt(shop_id),
             })
         };
 
         try {
             const response = await axios(config);
-            const data=(await db.execute(
-                `select * from \`${saasConfig.SAAS_NAME}\`.private_config where \`app_name\`= '${this.app}' and 
-                                             \`key\`= 'shopee_access_token'
-            `,[]));
+            const data = (await db.execute(
+                `select *
+                 from \`${saasConfig.SAAS_NAME}\`.private_config
+                 where \`app_name\` = '${this.app}'
+                   and \`key\` = 'shopee_access_token'
+                `, []));
             response.data.shop_id = shop_id;
-            if (data.length == 0){
+            if (data.length == 0) {
                 await db.execute(`
-                            INSERT INTO \`${saasConfig.SAAS_NAME}\`.private_config (\`app_name\`, \`key\`, \`value\` , \`updated_at\`)
-                            VALUES (?, ?, ? ,?);
-                `
+                            INSERT INTO \`${saasConfig.SAAS_NAME}\`.private_config (\`app_name\`, \`key\`, \`value\`, \`updated_at\`)
+                            VALUES (?, ?, ?, ?);
+                    `
 
-                    ,[this.app , "shopee_access_token" , response.data , new Date()])
-            }else{
+                    , [this.app, "shopee_access_token", response.data, new Date()])
+            } else {
                 await db.execute(`
                             UPDATE \`${saasConfig.SAAS_NAME}\`.\`private_config\`
                             SET \`value\` = ?
-                            where \`app_name\`= '${this.app}' and
-                                \`key\`= 'shopee_access_token'
+                            where \`app_name\` = '${this.app}'
+                              and \`key\` = 'shopee_access_token'
 
                     `
-                    ,[response.data])
+                    , [response.data])
             }
         } catch (error: any) {
             if (axios.isAxiosError(error) && error.response) {
@@ -147,12 +159,16 @@ export class Shopee {
         }
         // return `${path}${api_path}?partner_id=${partner_id}&timestamp=${timestamp}&redirect=${redirectUrl}&sign=${signature}`
     }
+
     public async getItemList(start: string, end: string) {
         const timestamp = Math.floor(Date.now() / 1000);
-        const partner_id = process.env.shopee_partner_id??"";//測試版是test partner_id;
+        const partner_id = process.env.shopee_partner_id ?? "";//測試版是test partner_id;
         const api_path = "/api/v2/product/get_item_list";
-        const data=(await db.execute(
-            `select * from \`${saasConfig.SAAS_NAME}\`.private_config where \`app_name\`='${this.app}' and \`key\` = 'shopee_access_token'
+        const data = (await db.execute(
+            `select *
+             from \`${saasConfig.SAAS_NAME}\`.private_config
+             where \`app_name\` = '${this.app}'
+               and \`key\` = 'shopee_access_token'
             `,
             []
         ));
@@ -160,20 +176,20 @@ export class Shopee {
         // https://partner.test-stable.shopeemobile.com/api/v2/product/get_item_list?partner_id=1249034&sign=307b14fff0afa5c41a73cfa10d5a4ae5ee8d57e915e8cd8aafb66bb8ee461b02&timestamp=1736326109&shop_id=126385&access_token=70776e48537951626f715a5674446457&offset=0&page_size=10&update_time_from=1611311600&update_time_to=1736352061&item_status=NORMAL
         const config = {
             method: 'get', // 確保是 POST 方法
-            url: this.generateShopUrl(partner_id,api_path,timestamp , data[0].value.access_token,parseInt(data[0].value.shop_id)),
+            url: this.generateShopUrl(partner_id, api_path, timestamp, data[0].value.access_token, parseInt(data[0].value.shop_id)),
             headers: {
                 'Content-Type': 'application/json',
             },
             params: {
-                shop_id:parseInt(data[0].value.shop_id),
-                access_token:data[0].value.access_token,
+                shop_id: parseInt(data[0].value.shop_id),
+                access_token: data[0].value.access_token,
                 offset: 0,
-                page_size: 10 ,
+                page_size: 10,
                 update_time_from: start,
                 update_time_to: Math.floor(Date.now() / 1000),
-                item_status: ['NORMAL', 'BANNED' , 'UNLIST'],
+                item_status: ['NORMAL', 'BANNED', 'UNLIST'],
             },
-            paramsSerializer: (params:any) => qs.stringify(params, { arrayFormat: 'repeat' }),
+            paramsSerializer: (params: any) => qs.stringify(params, {arrayFormat: 'repeat'}),
         };
         // access_token:data[0].value.access_token,
         try {
@@ -193,7 +209,7 @@ export class Shopee {
             //透過item_id 取得他的detail 和 model(shopee的variants)
 
             const productData = await Promise.all(
-                itemList.map(async (item , index:number) => {
+                itemList.map(async (item, index: number) => {
                     try {
                         try {
                             const productData = await db.query(`SELECT * FROM ${this.app}.t_manager_post WHERE (content->>'$.type'='product') AND (content->>'$.shopee_id' =?);`,[item.item_id])
@@ -208,7 +224,7 @@ export class Shopee {
                     }
                 })
             );
-            const temp:any = {}
+            const temp: any = {}
             temp.data = productData.reverse();
             temp.collection = [];
             try {
@@ -226,7 +242,6 @@ export class Shopee {
             }
 
 
-
         } catch (error: any) {
             if (axios.isAxiosError(error) && error.response) {
                 console.log("Try get_item_list error")
@@ -242,8 +257,10 @@ export class Shopee {
             }
         }
     }
-    public async getProductDetail(id:number){
+
+    public async getProductDetail(id: number) {
         const that = this
+
         async function getModel(postMD: {
             template: string;
             visible: string;
@@ -278,7 +295,7 @@ export class Shopee {
             productType: { product: boolean; addProduct: boolean; giveaway: boolean };
             content_json: any[];
             status: string
-        } , origData : any) {
+        }, origData: any) {
             const timestamp = Math.floor(Date.now() / 1000);
             const partner_id = process.env.shopee_partner_id ?? "";//測試版是test partner_id;
             const api_path = "/api/v2/product/get_model_list";
@@ -296,7 +313,7 @@ export class Shopee {
             };
             try {
                 const response = await axios(config);
-                let tempVariants:Variant[] = [];
+                let tempVariants: Variant[] = [];
                 // "specs": [
                 //     {
                 //         "title": "size",
@@ -338,33 +355,33 @@ export class Shopee {
 
                 const tier_variation = response.data.response.tier_variation;
                 const model = response.data.response.model;
-                const specs:{
-                    title:string,
-                    option:{
-                        title:string,
-                        expand:false,
-                        language_title:{}
+                const specs: {
+                    title: string,
+                    option: {
+                        title: string,
+                        expand: false,
+                        language_title: {}
                     }[],
-                    language_title:{}
-                }[]=tier_variation.map((dd:any)=>{
-                    let temp:{
-                        title:string,
-                        option:{
-                            title:string,
-                            expand:false,
-                            language_title:{}
+                    language_title: {}
+                }[] = tier_variation.map((dd: any) => {
+                    let temp: {
+                        title: string,
+                        option: {
+                            title: string,
+                            expand: false,
+                            language_title: {}
                         }[],
-                        language_title:{}
-                    }={
-                        title:dd.name,
-                        option:[],
-                        language_title:{}
+                        language_title: {}
+                    } = {
+                        title: dd.name,
+                        option: [],
+                        language_title: {}
                     }
-                    dd.option_list.map((option:any)=>{
+                    dd.option_list.map((option: any) => {
                         temp.option.push({
-                            title:option.option,
-                            expand:false,
-                            language_title:{}
+                            title: option.option,
+                            expand: false,
+                            language_title: {}
                         })
                     })
                     return temp;
@@ -377,9 +394,9 @@ export class Shopee {
                         cost: 0,
                         spec: data.model_name.split(','),
                         profit: 0,
-                        v_length: origData?.dimension?.package_length??0,
-                        v_width: origData?.dimension?.package_width??0,
-                        v_height: origData?.dimension?.package_height??0,
+                        v_length: origData?.dimension?.package_length ?? 0,
+                        v_width: origData?.dimension?.package_width ?? 0,
+                        v_height: origData?.dimension?.package_height ?? 0,
                         weight: origData?.weight,
                         shipment_type: 'none',
                         sku: data.model_sku,
@@ -436,18 +453,18 @@ export class Shopee {
 
 
         const timestamp = Math.floor(Date.now() / 1000);
-        const partner_id = process.env.shopee_partner_id??"";//測試版是test partner_id;
+        const partner_id = process.env.shopee_partner_id ?? "";//測試版是test partner_id;
         const api_path = "/api/v2/product/get_item_base_info";
         const config = {
             method: 'get', // 確保是 POST 方法
-            url: this.generateShopUrl(partner_id,api_path,timestamp , data[0].value.access_token,parseInt(data[0].value.shop_id)),
+            url: this.generateShopUrl(partner_id, api_path, timestamp, data[0].value.access_token, parseInt(data[0].value.shop_id)),
             headers: {
                 'Content-Type': 'application/json',
             },
             params: {
-                shop_id:parseInt(data[0].value.shop_id),
-                access_token:data[0].value.access_token,
-                item_id_list:id
+                shop_id: parseInt(data[0].value.shop_id),
+                access_token: data[0].value.access_token,
+                item_id_list: id
             },
 
         };
@@ -552,20 +569,20 @@ export class Shopee {
                     sku: "",
                     barcode: "",
                     stock: item.stock_info_v2.summary_info.total_available_stock,
-                    stockList:{},
+                    stockList: {},
                     preview_image: "",
                     show_understocking: "true",
                     type: "product",
                 };
                 postMD.variants = [];
                 postMD.variants.push(newVariants);
-            }else{
+            } else {
                 //多規格
-                await getModel(postMD , data);
+                await getModel(postMD, data);
             }
-            if (item.image.image_url_list.length > 0){
+            if (item.image.image_url_list.length > 0) {
                 postMD.preview_image = await Promise.all(
-                    item.image.image_url_list.map(async (imageUrl: string , index:number) => {
+                    item.image.image_url_list.map(async (imageUrl: string, index: number) => {
                         try {
                             const buffer = await this.downloadImage(imageUrl);
                             const fileExtension = "jpg";
@@ -607,8 +624,9 @@ export class Shopee {
                 content_array: [],
             };
         }
+
         return {
-            type:'product',
+            type: 'product',
             title: '',
             ai_description: '',
             language_data: {
@@ -651,6 +669,7 @@ export class Shopee {
             channel: ['normal', 'pos'],
         };
     }
+
     private getDateTime = (n = 0) => {
         const now = new Date();
         now.setDate(now.getDate() + n);
@@ -660,8 +679,9 @@ export class Shopee {
         const hours = now.getHours().toString().padStart(2, '0');
         const dateStr = `${year}-${month}-${day}`;
         const timeStr = `${hours}:00`;
-        return { date: dateStr, time: timeStr };
+        return {date: dateStr, time: timeStr};
     };
+
     async uploadFile(file_name: string, fileData: Buffer) {
         const TAG = `[AWS-S3][Upload]`;
         const logger = new Logger();
@@ -707,10 +727,11 @@ export class Shopee {
             });
         });
     }
+
     async downloadImage(imageUrl: string): Promise<Buffer> {
         try {
             const response = await axios.get(imageUrl, {
-                headers: { },
+                headers: {},
                 responseType: 'arraybuffer', // 下載二進制資料
             });
 

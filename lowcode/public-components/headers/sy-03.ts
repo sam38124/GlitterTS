@@ -64,7 +64,7 @@ export class Sy03 {
                                                                 </div>
                                                             </div>
                                                             <div class="mb-3">${LanguageView.selectLanguage(gvc, colors)}</div>
-                                                            <div class="position-relative">
+                                                            <div class="position-relative ${HeaderClass.hideShopperBtn() ? `d-none`:``}">
                                                                 <input
                                                                     class="form-control fw-500 "
                                                                     placeholder="${Language.text('find_product')}"
@@ -294,33 +294,33 @@ padding-bottom: 2px;
                                     },
                                 };
                             })}
-                            <li class="nav-item d-none d-sm-flex align-items-center justify-content-center" style="min-width:45px !important;">
+                           ${HeaderClass.hideShopperBtn() ? ``:`<li class="nav-item d-none d-sm-flex align-items-center justify-content-center" style="min-width:45px !important;">
                                 ${gvc.bindView(() => {
-                                    const vm = {
-                                        id: gvc.glitter.getUUID(),
-                                        toggle: false,
-                                    };
-                                    return {
-                                        bind: vm.id,
-                                        view: () => {
-                                            if (!vm.toggle) {
-                                                return html`<i
+                               const vm = {
+                                   id: gvc.glitter.getUUID(),
+                                   toggle: false,
+                               };
+                               return {
+                                   bind: vm.id,
+                                   view: () => {
+                                       if (!vm.toggle) {
+                                           return html`<i
                                                     class="fa-regular fa-magnifying-glass"
                                                     style="color: ${widget.formData.theme_color['title'] ?? '#000'};cursor: pointer;font-size:20px;"
                                                     onclick="${gvc.event(() => {
-                                                        vm.toggle = !vm.toggle;
-                                                        gvc.notifyDataChange(vm.id);
-                                                    })}"
+                                               vm.toggle = !vm.toggle;
+                                               gvc.notifyDataChange(vm.id);
+                                           })}"
                                                 ></i>`;
-                                            } else {
-                                                return html`<a class="search-container d-flex align-items-center"
+                                       } else {
+                                           return html`<a class="search-container d-flex align-items-center"
                                                     ><i
                                                         class="fa-regular fa-circle-xmark"
                                                         style="color: ${widget.formData.theme_color['title'] ?? '#000'};cursor: pointer;font-size:20px;"
                                                         onclick="${gvc.event(() => {
-                                                            vm.toggle = !vm.toggle;
-                                                            gvc.notifyDataChange(vm.id);
-                                                        })}"
+                                               vm.toggle = !vm.toggle;
+                                               gvc.notifyDataChange(vm.id);
+                                           })}"
                                                     ></i
                                                     ><input
                                                         class="ms-3 form-control"
@@ -328,22 +328,22 @@ padding-bottom: 2px;
                                                         placeholder="${Language.text('input_product_keyword')}"
                                                         autocomplete="off"
                                                         onchange="${gvc.event((e, event) => {
-                                                            gvc.glitter.href = `/all-product?search=${e.value}`;
-                                                            vm.toggle = !vm.toggle;
-                                                            gvc.notifyDataChange(vm.id);
-                                                        })}"
+                                               gvc.glitter.href = `/all-product?search=${e.value}`;
+                                               vm.toggle = !vm.toggle;
+                                               gvc.notifyDataChange(vm.id);
+                                           })}"
                                                     />
                                                 </a>`;
-                                            }
-                                        },
-                                        divCreate: {
-                                            class: `nav-link search-container`,
-                                            elem: `a`,
-                                        },
-                                    };
-                                })}
-                            </li>
-                            <li class="nav-item  d-flex align-items-center justify-content-center" style="width:45px !important;">
+                                       }
+                                   },
+                                   divCreate: {
+                                       class: `nav-link search-container`,
+                                       elem: `a`,
+                                   },
+                               };
+                           })}
+                            </li>`}
+                            <li class="nav-item  ${(HeaderClass.hideShopperBtn()) ? `d-none`:`d-flex`} align-items-center justify-content-center" style="width:45px !important;">
                                 ${gvc.bindView(() => {
                                     const vm = {
                                         id: gvc.glitter.getUUID(),
@@ -391,7 +391,7 @@ padding-bottom: 2px;
                                     };
                                 })}
                             </li>
-                            <li class="nav-item d-flex align-items-center justify-content-center" style="width:45px !important;">
+                            <li class="nav-item d-flex align-items-center justify-content-center ${(HeaderClass.hideShopperBtn()) ? `d-none`:`d-flex`}" style="width:45px !important;">
                                 <a class="nav-link search-container">
                                     <i
                                         class="fw-500  fa-regular fa-user "

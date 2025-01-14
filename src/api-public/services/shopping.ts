@@ -1,30 +1,30 @@
-import {IToken} from '../models/Auth.js';
+import { IToken } from '../models/Auth.js';
 import exception from '../../modules/exception.js';
 import db from '../../modules/database.js';
-import FinancialService, {LinePay, PayPal} from './financial-service.js';
-import {Private_config} from '../../services/private_config.js';
+import FinancialService, { LinePay, PayPal } from './financial-service.js';
+import { Private_config } from '../../services/private_config.js';
 import redis from '../../modules/redis.js';
-import {User} from './user.js';
+import { User } from './user.js';
 import Tool from '../../modules/tool.js';
-import {Invoice} from './invoice.js';
+import { Invoice } from './invoice.js';
 import e from 'express';
-import {Rebate} from './rebate.js';
-import {CustomCode} from '../services/custom-code.js';
+import { Rebate } from './rebate.js';
+import { CustomCode } from '../services/custom-code.js';
 import moment from 'moment';
-import {ManagerNotify} from './notify.js';
-import {AutoSendEmail} from './auto-send-email.js';
-import {Recommend} from './recommend.js';
-import {Workers} from './workers.js';
+import { ManagerNotify } from './notify.js';
+import { AutoSendEmail } from './auto-send-email.js';
+import { Recommend } from './recommend.js';
+import { Workers } from './workers.js';
 import axios from 'axios';
-import {DeliveryData} from './delivery.js';
-import {saasConfig} from '../../config.js';
-import {SMS} from './sms.js';
-import {LineMessage} from './line-message';
-import {EcInvoice} from './EcInvoice';
+import { DeliveryData } from './delivery.js';
+import { saasConfig } from '../../config.js';
+import { SMS } from './sms.js';
+import { LineMessage } from './line-message';
+import { EcInvoice } from './EcInvoice';
 import app from '../../app';
-import {onlinePayArray, paymentInterface} from '../models/glitter-finance.js';
-import {App} from '../../services/app.js';
-import {Stock} from './stock';
+import { onlinePayArray, paymentInterface } from '../models/glitter-finance.js';
+import { App } from '../../services/app.js';
+import { Stock } from './stock';
 
 type BindItem = {
     id: string;
@@ -246,9 +246,13 @@ export class Shopping {
         currency_code?: string;
     }) {
         try {
-            query.language = query.language ?? (await App.getDefLanguage(this.app));
+            let store_info = await new User(this.app).getConfigV2({
+                key: 'store-information',
+                user_id: 'manager',
+            });
+            const store_config = await new User(this.app).getConfigV2({ key: 'store_manager', user_id: 'manager' });
+            query.language = query.language ?? store_info.language_setting.def;
             query.show_hidden = query.show_hidden ?? 'true';
-            console.log(`currency_code=>`, query.currency_code);
             let querySql = [`(content->>'$.type'='product')`];
             if (query.search) {
                 switch (query.searchType) {
@@ -364,14 +368,14 @@ export class Shopping {
                     .join(',');
             }
             query.collection &&
-            querySql.push(
-                `(${query.collection
-                    .split(',')
-                    .map((dd) => {
-                        return query.accurate_search_collection ? `(JSON_CONTAINS(content->'$.collection', '"${dd}"'))` : `(JSON_EXTRACT(content, '$.collection') LIKE '%${dd}%')`;
-                    })
-                    .join(' or ')})`
-            );
+                querySql.push(
+                    `(${query.collection
+                        .split(',')
+                        .map((dd) => {
+                            return query.accurate_search_collection ? `(JSON_CONTAINS(content->'$.collection', '"${dd}"'))` : `(JSON_EXTRACT(content, '$.collection') LIKE '%${dd}%')`;
+                        })
+                        .join(' or ')})`
+                );
             query.sku && querySql.push(`(id in ( select product_id from \`${this.app}\`.t_variants where content->>'$.sku'=${db.escape(query.sku)}))`);
             if (!query.id && query.status === 'active' && query.with_hide_index !== 'true') {
                 querySql.push(`((content->>'$.hideIndex' is NULL) || (content->>'$.hideIndex'='false'))`);
@@ -521,21 +525,33 @@ export class Shopping {
                     dd.content.content_array = dd.content.language_data[`${query.language}`].content_array || dd.content.content_array;
                     dd.content.content_json = dd.content.language_data[`${query.language}`].content_json || dd.content.content_json;
                     dd.content.preview_image = dd.content.language_data[`${query.language}`].preview_image || dd.content.preview_image;
+
                     (dd.content.variants || []).map((variant: any) => {
-                        variant.stock=0
+                        variant.stock = 0;
                         variant.preview_image = variant[`preview_image_${query.language}`] || variant.preview_image;
                         if (variant.preview_image === 'https://d3jnmi1tfjgtti.cloudfront.net/file/234285319/1722936949034-default_image.jpg') {
                             variant.preview_image = dd.content.preview_image[0];
                         }
                         Object.keys(variant.stockList).map((dd) => {
-                            if (!variant.stockList[dd] || !variant.stockList[dd].count) {
-                                delete variant.stockList[dd]
-                            }else{
+                            if (
+                                !store_config.list.find((d1: any) => {
+                                    return d1.id === dd;
+                                })
+                            ) {
+                                delete variant.stockList[dd];
+                            } else if (!variant.stockList[dd] || !variant.stockList[dd].count) {
+                                delete variant.stockList[dd];
+                            } else {
                                 //避免存字串導致的異常
-                                variant.stockList[dd].count=parseInt(variant.stockList[dd].count,10)
-                                variant.stock+=variant.stockList[dd].count;
+                                variant.stockList[dd].count = parseInt(variant.stockList[dd].count, 10);
+                                variant.stock += variant.stockList[dd].count;
                             }
-                        })
+                        });
+                        store_config.list.map((d1: any) => {
+                            if (!variant.stockList[d1.id]) {
+                                variant.stockList[d1.id] = { count: 0 };
+                            }
+                        });
                     });
                 }
             }
@@ -565,7 +581,7 @@ export class Shopping {
                     []
                 )
             )[0];
-            return {data: data, result: !!data};
+            return { data: data, result: !!data };
         } else {
             return {
                 data: (
@@ -614,7 +630,7 @@ export class Shopping {
                     []
                 )
             )[0];
-            return {data: data, result: !!data};
+            return { data: data, result: !!data };
         } else {
             return {
                 data: await db.query(
@@ -665,7 +681,7 @@ export class Shopping {
                     []
                 )
             )[0];
-            return {data: data, result: !!data};
+            return { data: data, result: !!data };
         } else {
             return {
                 data: await db.query(
@@ -795,7 +811,7 @@ export class Shopping {
             customer_info?: any; //顧客資訊 訂單人
             email?: string;
             return_url: string;
-            order_id?:string;
+            order_id?: string;
             user_info: any; //取貨人資訊
             code?: string;
             use_rebate?: number;
@@ -819,7 +835,8 @@ export class Shopping {
             }[];
             language?: 'en-US' | 'zh-CN' | 'zh-TW';
             pos_info?: any; //POS結帳資訊;
-            invoice_select?: string
+            invoice_select?: string;
+            pre_order?: boolean;
         },
         type: 'add' | 'preview' | 'manual' | 'manual-preview' | 'POS' = 'add',
         replace_order_id?: string
@@ -897,7 +914,7 @@ export class Shopping {
             // 判斷購物金是否可用
             if (data.use_rebate && data.use_rebate > 0) {
                 if (userData) {
-                    const userRebate = await rebateClass.getOneRebate({user_id: userData.userID});
+                    const userRebate = await rebateClass.getOneRebate({ user_id: userData.userID });
                     const sum = userRebate ? userRebate.point : 0;
                     if (sum < data.use_rebate) {
                         data.use_rebate = 0;
@@ -925,33 +942,37 @@ export class Shopping {
                     }
                 ).value;
 
-
                 //參照運費設定
-                const refer = (data.user_info.shipment === 'global_express') ? ((
-                    await Private_config.getConfig({
-                        appName: this.app,
-                        key: 'glitter_shipment_global_' + data.user_info.country,
-                    })
-                )[0] ?? {
-                    value: {
-                        volume: [],
-                        weight: [],
-                        selectCalc: 'volume',
-                    },
-                }).value : (
-                    (
-                        await Private_config.getConfig({
-                            appName: this.app,
-                            key: 'glitter_shipment_' + data.user_info.shipment,
-                        })
-                    )[0] ?? {
-                        value: {
-                            volume: [],
-                            weight: [],
-                            selectCalc: 'def',
-                        },
-                    }
-                ).value;
+                const refer =
+                    data.user_info.shipment === 'global_express'
+                        ? (
+                              (
+                                  await Private_config.getConfig({
+                                      appName: this.app,
+                                      key: 'glitter_shipment_global_' + data.user_info.country,
+                                  })
+                              )[0] ?? {
+                                  value: {
+                                      volume: [],
+                                      weight: [],
+                                      selectCalc: 'volume',
+                                  },
+                              }
+                          ).value
+                        : (
+                              (
+                                  await Private_config.getConfig({
+                                      appName: this.app,
+                                      key: 'glitter_shipment_' + data.user_info.shipment,
+                                  })
+                              )[0] ?? {
+                                  value: {
+                                      volume: [],
+                                      weight: [],
+                                      selectCalc: 'def',
+                                  },
+                              }
+                          ).value;
 
                 if (refer.selectCalc !== 'def') {
                     def = refer;
@@ -1004,7 +1025,7 @@ export class Shopping {
                 shipment_fee: 0,
                 rebate: 0,
                 use_rebate: data.use_rebate || 0,
-                orderID: (data).order_id || this.generateOrderID(),
+                orderID: data.order_id || this.generateOrderID(),
                 shipment_support: shipment_setting.support as any,
                 shipment_info: shipment_setting.info as any,
                 shipment_selector: [
@@ -1058,7 +1079,7 @@ export class Shopping {
                 use_wallet: 0,
                 method: data.user_info && data.user_info.method,
                 user_email: (userData && userData.account) || data.email || (data.user_info && data.user_info.email) || '',
-                useRebateInfo: {point: 0},
+                useRebateInfo: { point: 0 },
                 custom_form_format: data.custom_form_format,
                 custom_form_data: data.custom_form_data,
                 custom_receipt_form: data.custom_receipt_form,
@@ -1101,7 +1122,7 @@ export class Shopping {
             const add_on_items: any[] = [];
             let gift_product: any[] = [];
 
-            let saveStockArray: (() => Promise<boolean>)[] = []
+            let saveStockArray: (() => Promise<boolean>)[] = [];
             for (const b of data.line_items) {
                 try {
                     const pdDqlData = (
@@ -1118,16 +1139,19 @@ export class Shopping {
                         const variant = pd.variants.find((dd: any) => {
                             return dd.spec.join('-') === b.spec.join('-');
                         });
-                        console.log(`variant1===>`, variant)
+                        console.log(`variant1===>`, variant);
                         if ((Number.isInteger(variant.stock) || variant.show_understocking === 'false') && Number.isInteger(b.count)) {
-                            console.log(`variant2===>`, variant)
-                            if (data.checkOutType === 'POS' && variant.show_understocking !== 'false' ) {
-                                variant.stock = variant.stockList && (variant.stockList as any)[data.pos_store!].count
-
+                            console.log(`variant2===>`, variant);
+                            if (data.checkOutType === 'POS' && variant.show_understocking !== 'false') {
+                                variant.stock = variant.stockList && (variant.stockList as any)[data.pos_store!].count;
                             }
                             // 當超過庫存數量則調整為庫存上限
                             if (variant.stock < b.count && variant.show_understocking !== 'false' && type !== 'manual' && type !== 'manual-preview') {
-                                b.count = variant.stock;
+                                if (data.checkOutType === 'POS') {
+                                    (b as any).pre_order = true;
+                                } else {
+                                    b.count = variant.stock;
+                                }
                             }
                             if (variant && b.count > 0) {
                                 (b as any).specs = pd.specs;
@@ -1139,6 +1163,7 @@ export class Shopping {
                                 b.sku = variant.sku;
                                 b.stock = variant.stock;
                                 b.show_understocking = variant.show_understocking;
+                                (b as any).stockList = variant.stockList;
                                 b.shipment_obj = {
                                     type: variant.shipment_type,
                                     value: (() => {
@@ -1164,19 +1189,19 @@ export class Shopping {
                                 }
                             }
                             // 當為結帳時則更改商品庫存數量
-                            console.log(`type=>`, type)
+                            console.log(`type=>`, type);
                             if (type !== 'preview' && type !== 'manual' && type !== 'manual-preview' && variant.show_understocking !== 'false') {
-                                console.log(`variant資訊=>`, type)
+                                console.log(`variant資訊=>`, type);
 
                                 const countless = variant.stock - b.count;
                                 variant.stock = countless > 0 ? countless : 0;
-                                if(type==='POS'){
+                                if (type === 'POS') {
                                     //POS的話依據分店去扣除庫存
-                                    variant.deduction_log={};
-                                    (variant.deduction_log as any)[data.pos_store!!]=b.count;
-                                    variant.stockList[data.pos_store!!].count-=b.count;
-                                    b.deduction_log=variant.deduction_log;
-                                }else {
+                                    variant.deduction_log = {};
+                                    (variant.deduction_log as any)[data.pos_store!!] = b.count;
+                                    variant.stockList[data.pos_store!!].count -= b.count;
+                                    b.deduction_log = variant.deduction_log;
+                                } else {
                                     //找到最大的倉儲量 順序式
                                     const returnData = new Stock(this.app, this.token).allocateStock(variant.stockList, b.count);
                                     variant.deduction_log = returnData.deductionLog;
@@ -1191,10 +1216,10 @@ export class Shopping {
                                              SET ?
                                              WHERE 1 = 1
                                                and id = ${pdDqlData.id}`,
-                                            [{content: JSON.stringify(pd)}]
+                                            [{ content: JSON.stringify(pd) }]
                                         );
-                                        resolve(true)
-                                    })
+                                        resolve(true);
+                                    });
                                 });
                             }
                         }
@@ -1215,7 +1240,7 @@ export class Shopping {
                         }
                     }
                 } catch (e) {
-                    console.log(e)
+                    console.log(e);
                 }
             }
 
@@ -1245,7 +1270,7 @@ export class Shopping {
             carData.code = data.code;
             carData.voucherList = [];
             if (userData && userData.account) {
-                const data = await rebateClass.getOneRebate({user_id: userData.userID});
+                const data = await rebateClass.getOneRebate({ user_id: userData.userID });
                 carData.user_rebate_sum = data?.point || 0;
             }
             console.log(`checkout-time-9=>`, new Date().getTime() - check_time);
@@ -1295,16 +1320,15 @@ export class Shopping {
                             //把加購品加回去
                             carData.lineItems.push(dd);
                         }
-                    } catch (e) {
-                    }
+                    } catch (e) {}
                 });
                 // 再次更新優惠內容
                 await this.checkVoucher(carData);
                 console.log(`checkout-time-check-voucher2=>`, new Date().getTime() - check_time);
                 //過濾可選贈品
                 let can_add_gift: any[] = [];
-                carData.voucherList!!
-                    .filter((dd) => {
+                carData
+                    .voucherList!!.filter((dd) => {
                         return dd.reBackType === 'giveaway';
                     })
                     .map((dd) => {
@@ -1344,7 +1368,7 @@ export class Shopping {
                                     status: 'inRange',
                                     channel: data.checkOutType === 'POS' ? 'pos' : undefined,
                                 })
-                            ).data ?? {content: {}}
+                            ).data ?? { content: {} }
                         ).content;
                         pdDqlData.voucher_id = dd.id;
                         (dd.add_on_products as any)[index] = pdDqlData;
@@ -1424,7 +1448,7 @@ export class Shopping {
                 });
             });
             // ================================ Preview UP ================================
-            if (type === 'preview' || type === 'manual-preview') return {data: carData};
+            if (type === 'preview' || type === 'manual-preview') return { data: carData };
             // ================================ Add DOWN ================================
             console.log(`checkout-time-12=>`, new Date().getTime() - check_time);
 
@@ -1468,7 +1492,6 @@ export class Shopping {
                 if (tempVoucher.reBackType == 'shipment_free') {
                     carData.shipment_fee = 0;
                 }
-
                 if (tempVoucher.reBackType == 'rebate') {
                     let customerData = await userClass.getUserData(data.email! || data.user_info.email, 'account');
                     if (!customerData) {
@@ -1501,9 +1524,23 @@ export class Shopping {
                     data: carData,
                 };
             } else if (type === 'POS') {
+                console.log(`pre_order`);
                 carData.orderSource = 'POS';
                 const trans = await db.Transaction.build();
-                if (carData.user_info.shipment === 'now') {
+                if (data.pre_order) {
+                    (carData as any).progress = 'pre_order';
+                    (carData as any).orderStatus = '0';
+                    const payTotal = data.pos_info.payment
+                        .map((dd: any) => {
+                            return dd.total;
+                        })
+                        .reduce((acc: any, val: any) => acc + val, 0);
+                    if (carData.total <= payTotal) {
+                        data.pay_status = 1;
+                    } else {
+                        data.pay_status = 3;
+                    }
+                } else if (carData.user_info.shipment === 'now') {
                     (carData as any).orderStatus = '1';
                     (carData as any).progress = 'finish';
                 }
@@ -1515,17 +1552,15 @@ export class Shopping {
 
                 if (data.invoice_select !== 'nouse') {
                     (carData as any).invoice = await new Invoice(this.app).postCheckoutInvoice(carData, carData.user_info.send_type !== 'carrier');
-                    if (!(carData as any).invoice) {
-                        throw exception.BadRequestError('BAD_REQUEST', '發票開立失敗:', null);
-                    }
                 }
-                ;
                 await trans.commit();
                 await trans.release();
-                await Promise.all(saveStockArray.map((dd)=>{
-                    return dd()
-                }))
-                return {result: 'SUCCESS', message: 'POS訂單新增成功', data: carData};
+                await Promise.all(
+                    saveStockArray.map((dd) => {
+                        return dd();
+                    })
+                );
+                return { result: 'SUCCESS', message: 'POS訂單新增成功', data: carData };
             } else {
                 if (userData && userData.userID) {
                     await rebateClass.insertRebate(userData.userID, carData.use_rebate * -1, '使用折抵', {
@@ -1583,9 +1618,11 @@ export class Shopping {
                 if (carData.use_wallet > 0) {
                     new Invoice(this.app).postCheckoutInvoice(carData.orderID, false);
                 }
-                await Promise.all(saveStockArray.map((dd)=>{
-                    return dd()
-                }))
+                await Promise.all(
+                    saveStockArray.map((dd) => {
+                        return dd();
+                    })
+                );
                 return {
                     is_free: true,
                     return_url: `${process.env.DOMAIN}/api-public/v1/ec/redirect?g-app=${this.app}&return=${id}`,
@@ -1611,25 +1648,31 @@ export class Shopping {
                             MERCHANT_ID: kd.MERCHANT_ID,
                             TYPE: carData.customer_info.payment_select,
                         }).createOrderPage(carData);
-                        await Promise.all(saveStockArray.map((dd)=>{
-                            return dd()
-                        }))
+                        await Promise.all(
+                            saveStockArray.map((dd) => {
+                                return dd();
+                            })
+                        );
                         return {
                             form: subMitData,
                         };
                     case 'paypal':
                         kd.ReturnURL = `${process.env.DOMAIN}/api-public/v1/ec/redirect?g-app=${this.app}&return=${id}`;
                         kd.NotifyURL = `${process.env.DOMAIN}/api-public/v1/ec/notify?g-app=${this.app}`;
-                        await Promise.all(saveStockArray.map((dd)=>{
-                            return dd()
-                        }))
+                        await Promise.all(
+                            saveStockArray.map((dd) => {
+                                return dd();
+                            })
+                        );
                         return await new PayPal(this.app, kd).checkout(carData);
                     case 'line_pay':
                         kd.ReturnURL = `${process.env.DOMAIN}/api-public/v1/ec/redirect?g-app=${this.app}&return=${id}`;
                         kd.NotifyURL = `${process.env.DOMAIN}/api-public/v1/ec/notify?g-app=${this.app}`;
-                        await Promise.all(saveStockArray.map((dd)=>{
-                            return dd()
-                        }))
+                        await Promise.all(
+                            saveStockArray.map((dd) => {
+                                return dd();
+                            })
+                        );
                         return await new LinePay(this.app, kd).createOrder(carData);
                     case 'paynow':
                     default:
@@ -1661,9 +1704,11 @@ export class Shopping {
                              values (?, ?, ?, ?)`,
                             [carData.orderID, 0, carData.email, carData]
                         );
-                        await Promise.all(saveStockArray.map((dd)=>{
-                            return dd()
-                        }))
+                        await Promise.all(
+                            saveStockArray.map((dd) => {
+                                return dd();
+                            })
+                        );
                         return {
                             off_line: true,
                             return_url: `${process.env.DOMAIN}/api-public/v1/ec/redirect?g-app=${this.app}&return=${id}`,
@@ -1671,7 +1716,7 @@ export class Shopping {
                 }
 
                 // await new PayPal(this.app, keyData).checkout(orderData);
-            };
+            }
         } catch (e) {
             console.error(e);
             throw exception.BadRequestError('BAD_REQUEST', 'ToCheckout 5 Error:' + e, null);
@@ -1827,7 +1872,7 @@ export class Shopping {
                      SET ?
                      WHERE id = ?
                     `,
-                    [{status: data.status, orderData: JSON.stringify(data.orderData)}, data.id]
+                    [{ status: data.status, orderData: JSON.stringify(data.orderData) }, data.id]
                 );
                 return {
                     result: 'success',
@@ -1852,7 +1897,7 @@ export class Shopping {
         condition?: number;
     }> {
         try {
-            const getRS = await new User(this.app).getConfig({key: 'rebate_setting', user_id: 'manager'});
+            const getRS = await new User(this.app).getConfig({ key: 'rebate_setting', user_id: 'manager' });
             if (getRS[0] && getRS[0].value) {
                 const configData = getRS[0].value.config;
                 if (configData.condition.type === 'total_price' && configData.condition.value > total) {
@@ -1933,7 +1978,7 @@ export class Shopping {
 
         // 確認用戶資訊
         console.log(`cart.email==>`, cart.email);
-        const userData = (await userClass.getUserData(cart.email, 'email_or_phone')) ?? {userID: -1};
+        const userData = (await userClass.getUserData(cart.email, 'email_or_phone')) ?? { userID: -1 };
         // 所有優惠券
         const allVoucher: VoucherData[] = (
             await this.querySql([`(content->>'$.type'='voucher')`], {
@@ -2232,7 +2277,7 @@ export class Shopping {
             if (data.orderData) {
                 update.orderData = JSON.stringify(data.orderData);
             }
-            const store_config = await new User(this.app).getConfigV2({key: 'store_manager', user_id: 'manager'});
+            const store_config = await new User(this.app).getConfigV2({ key: 'store_manager', user_id: 'manager' });
             const origin = await db.query(
                 `SELECT *
                  FROM \`${this.app}\`.t_checkout
@@ -2253,7 +2298,7 @@ export class Shopping {
                         lineItem.deduction_log = lineItem.deduction_log || {};
                         if (Object.keys(lineItem.deduction_log).length === 0) {
                             //將舊版回填migrate成新版本
-                            lineItem.deduction_log[store_config.list[0].id] = {count: lineItem.count};
+                            lineItem.deduction_log[store_config.list[0].id] = { count: lineItem.count };
                         }
                     }
                 }
@@ -2343,7 +2388,7 @@ export class Shopping {
             );
 
             if (orderList.length !== 1) {
-                return {data: false};
+                return { data: false };
             }
 
             const origin = orderList[0];
@@ -2355,7 +2400,7 @@ export class Shopping {
 
             if (proofPurchase && paymentStatus && progressStatus && orderStatus) {
                 orderData.orderStatus = '-1';
-                const record = {time: this.formatDateString(), record: '顧客手動取消訂單'};
+                const record = { time: this.formatDateString(), record: '顧客手動取消訂單' };
                 if (orderData.editRecord) {
                     orderData.editRecord.push(record);
                 } else {
@@ -2370,7 +2415,7 @@ export class Shopping {
                 [JSON.stringify(orderData), order_id]
             );
 
-            return {data: true};
+            return { data: true };
         } catch (e) {
             throw exception.BadRequestError('BAD_REQUEST', 'cancelOrder Error:' + e, null);
         }
@@ -2405,7 +2450,7 @@ export class Shopping {
             orderData.proof_purchase = text;
 
             // 訂單待核款信件通知
-            new ManagerNotify(this.app).uploadProof({orderData: orderData});
+            new ManagerNotify(this.app).uploadProof({ orderData: orderData });
             await AutoSendEmail.customerOrder(this.app, 'proof-purchase', order_id, orderData.email, orderData.language);
 
             if (orderData.customer_info.phone) {
@@ -2740,7 +2785,7 @@ OR JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.orderStatus')) NOT IN (-99)) `);
                 }
 
                 try {
-                    await new CustomCode(this.app).checkOutHook({userData, cartData});
+                    await new CustomCode(this.app).checkOutHook({ userData, cartData });
                 } catch (e) {
                     console.error(e);
                 }
@@ -2857,7 +2902,7 @@ OR JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.orderStatus')) NOT IN (-99)) `);
                     []
                 );
             }
-            const store_config = await new User(this.app).getConfigV2({key: 'store_manager', user_id: 'manager'});
+            const store_config = await new User(this.app).getConfigV2({ key: 'store_manager', user_id: 'manager' });
             await Promise.all(
                 content.variants.map((a: any) => {
                     content.min_price = content.min_price ?? a.sale_price;
@@ -2876,7 +2921,7 @@ OR JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.orderStatus')) NOT IN (-99)) `);
                         a.stockList = {};
                     } else if (Object.keys(a.stockList).length === 0) {
                         //適應舊版庫存更新
-                        a.stockList[store_config.list[0].id] = {count: a.stock};
+                        a.stockList[store_config.list[0].id] = { count: a.stock };
                     }
                     return new Promise(async (resolve, reject) => {
                         await db.query(
@@ -2915,10 +2960,10 @@ OR JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.orderStatus')) NOT IN (-99)) `);
         const sql =
             spec.length > 0
                 ? `AND JSON_CONTAINS(content->'$.spec', JSON_ARRAY(${spec
-                    .map((data: string) => {
-                        return `\"${data}\"`;
-                    })
-                    .join(',')}));`
+                      .map((data: string) => {
+                          return `\"${data}\"`;
+                      })
+                      .join(',')}));`
                 : '';
 
         try {
@@ -2935,36 +2980,40 @@ OR JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.orderStatus')) NOT IN (-99)) `);
                 ]
             );
         } catch (e: any) {
-            console.log('error -- ', e);
+            console.error('error -- ', e);
         }
     }
 
     //更新庫存數量
     public async calcVariantsStock(calc: number, stock_id: string, product_id: string, spec: string[]) {
-        const pd_data = (
-            await db.query(
-                `select *
+        try {
+            const pd_data = (
+                await db.query(
+                    `select *
                  from \`${this.app}\`.t_manager_post
                  where id = ?`,
-                [product_id]
-            )
-        )[0]['content'];
-        const store_config = await new User(this.app).getConfigV2({key: 'store_manager', user_id: 'manager'});
-        const variant_s: any = pd_data.variants.find((dd: any) => {
-            return dd.spec.join('-') === spec.join('-');
-        });
-        if (Object.keys(variant_s.stockList).length === 0) {
-            //適應舊版庫存更新
-            variant_s.stockList[store_config.list[0].id] = {count: variant_s.stock};
-        }
-        if (variant_s.stockList[stock_id]) {
-            variant_s.stockList[stock_id].count = variant_s.stockList[stock_id].count || 0;
-            variant_s.stockList[stock_id].count = variant_s.stockList[stock_id].count + calc;
-            if (variant_s.stockList[stock_id].count < 0) {
-                variant_s.stockList[stock_id].count = 0;
+                    [product_id]
+                )
+            )[0]['content'];
+            const store_config = await new User(this.app).getConfigV2({ key: 'store_manager', user_id: 'manager' });
+            const variant_s: any = pd_data.variants.find((dd: any) => {
+                return dd.spec.join('-') === spec.join('-');
+            });
+            if (Object.keys(variant_s.stockList).length === 0) {
+                //適應舊版庫存更新
+                variant_s.stockList[store_config.list[0].id] = { count: variant_s.stock };
             }
+            if (variant_s.stockList[stock_id]) {
+                variant_s.stockList[stock_id].count = variant_s.stockList[stock_id].count || 0;
+                variant_s.stockList[stock_id].count = variant_s.stockList[stock_id].count + calc;
+                if (variant_s.stockList[stock_id].count < 0) {
+                    variant_s.stockList[stock_id].count = 0;
+                }
+            }
+            await this.postVariantsAndPriceValue(pd_data);
+        } catch (e) {
+            console.log('error -- cant find variants', e);
         }
-        await this.postVariantsAndPriceValue(pd_data);
     }
 
     async getDataAnalyze(tags: string[], query?: any) {
@@ -2977,6 +3026,7 @@ OR JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.orderStatus')) NOT IN (-99)) `);
                 let pass = 0;
                 await new Promise(async (resolve, reject) => {
                     for (const tag of tags) {
+                        console.log(`tag ===> ${tag}`);
                         new Promise(async (resolve, reject) => {
                             const start = new Date();
                             try {
@@ -2999,35 +3049,74 @@ OR JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.orderStatus')) NOT IN (-99)) `);
                                     case 'hot_products_today':
                                         result[tag] = await this.getHotProducts('day');
                                         break;
+                                    // 訂單平均
                                     case 'order_avg_sale_price':
-                                        result[tag] = await this.getOrderAvgSalePrice();
+                                        result[tag] = await this.getOrderAvgSalePrice(query);
+                                        break;
+                                    case 'order_avg_sale_price_month':
+                                        result[tag] = await this.getOrderAvgSalePriceMonth(query);
                                         break;
                                     case 'order_avg_sale_price_year':
-                                        result[tag] = await this.getOrderAvgSalePriceYear();
+                                        result[tag] = await this.getOrderAvgSalePriceYear(query);
                                         break;
+                                    case 'order_avg_sale_price_custom':
+                                        result[tag] = await this.getOrderAvgSalePriceCustomer(query);
+                                        break;
+                                    // 總訂單
                                     case 'orders_per_month_1_year':
-                                        result[tag] = await this.getOrdersPerMonth1Year();
+                                        result[tag] = await this.getOrdersPerMonth1Year(query);
                                         break;
                                     case 'orders_per_month_2_weak':
-                                        result[tag] = await this.getOrdersPerMonth2Weak();
+                                        result[tag] = await this.getOrdersPerMonth2Weak(query);
                                         break;
+                                    case 'orders_per_month':
+                                        result[tag] = await this.getOrdersPerMonth(query);
+                                        break;
+                                    case 'orders_per_month_custom':
+                                        result[tag] = await this.getOrdersPerMonthCostom(query);
+                                        break;
+                                    // 總銷售額
                                     case 'sales_per_month_2_weak':
-                                        result[tag] = await this.getSalesPerMonth2Weak();
+                                        result[tag] = await this.getSalesPerMonth2Weak(query);
                                         break;
                                     case 'sales_per_month_1_year':
-                                        result[tag] = await this.getSalesPerMonth1Year();
+                                        result[tag] = await this.getSalesPerMonth1Year(query);
                                         break;
+                                    case 'sales_per_month_1_month':
+                                        result[tag] = await this.getSalesPerMonth(query);
+                                        break;
+                                    case 'sales_per_month_custom':
+                                        result[tag] = await this.getSalesPerMonthCustom(query);
+                                        break;
+                                    // xxxx
                                     case 'order_today':
                                         result[tag] = await this.getOrderToDay();
                                         break;
-                                    case 'recent_register':
-                                        result[tag] = await this.getRegisterRecent();
+                                    // 註冊數
+                                    case 'recent_register_week':
+                                        result[tag] = await this.getRegisterYear();
+                                        break;
+                                    case 'recent_register_month':
+                                        result[tag] = await this.getRegisterMonth();
+                                        break;
+                                    case 'recent_register_year':
+                                        result[tag] = await this.getRegisterYear();
+                                        break;
+                                    case 'recent_register_custom':
+                                        result[tag] = await this.getRegisterCustom(query);
+                                        break;
+                                    // 瀏覽人數
+                                    case 'active_recent_custom':
+                                        result[tag] = await this.getActiveRecentCustom(query);
+                                        break;
+                                    case 'active_recent_month':
+                                        result[tag] = await this.getActiveRecentMonth();
                                         break;
                                     case 'active_recent_year':
                                         result[tag] = await this.getActiveRecentYear();
                                         break;
                                     case 'active_recent_2weak':
-                                        result[tag] = await this.getActiveRecent2Weak();
+                                        result[tag] = await this.getActiveRecentWeak();
                                         break;
                                 }
                                 timer[tag] = (new Date().getTime() - start.getTime()) / 1000;
@@ -3049,7 +3138,7 @@ OR JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.orderStatus')) NOT IN (-99)) `);
 
                 function wasteTimeRank(obj: Record<string, number>, n: number): { key: string; value: number }[] {
                     const sortedEntries = Object.entries(obj)
-                        .map(([key, value]) => ({key, value}))
+                        .map(([key, value]) => ({ key, value }))
                         .sort((a, b) => b.value - a.value);
                     return sortedEntries.slice(0, n);
                 }
@@ -3058,7 +3147,7 @@ OR JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.orderStatus')) NOT IN (-99)) `);
 
                 return result;
             }
-            return {result: false};
+            return { result: false };
         } catch (e) {
             throw exception.BadRequestError('BAD_REQUEST', 'getDataAnalyze Error:' + e, null);
         }
@@ -3082,7 +3171,7 @@ OR JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.orderStatus')) NOT IN (-99)) `);
         const startISO = startDate.toISOString();
         const endISO = endDate.toISOString();
 
-        return {startISO, endISO};
+        return { startISO, endISO };
     }
 
     formatDateString(isoDate?: string): string {
@@ -3119,15 +3208,14 @@ OR JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.orderStatus')) NOT IN (-99)) `);
         const queryData = await db.query(sql, []);
 
         const now = moment.tz('Asia/Taipei').toDate(); // 當前時間
-        const dataList = Array.from({length: 14}, (_, index) => {
-            const targetDate = now;
-            targetDate.setDate(now.getDate() - index); // 設定為第 index 天前的日期
+        const dataList = Array.from({ length: 12 }, (_, index) => {
+            // 計算第 index 個月前的日期
+            const targetDate = new Date(now.getFullYear(), now.getMonth() - index, 1);
 
             const year = targetDate.getFullYear();
             const month = targetDate.getMonth() + 1; // 月份從 0 開始，需要加 1
-            const day = targetDate.getDate();
 
-            // 篩選該日期的資料
+            // 篩選該月份的資料
             const filteredData = queryData.filter((item: any) => {
                 const date = moment.tz(item.created_time, 'UTC').clone().tz('Asia/Taipei').toDate();
                 return date.getFullYear() === year && date.getMonth() + 1 === month;
@@ -3139,7 +3227,6 @@ OR JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.orderStatus')) NOT IN (-99)) `);
             return {
                 year,
                 month,
-                day,
                 total_count: filteredData.length,
                 unique_count: uniqueMacAddresses.size,
             };
@@ -3152,7 +3239,7 @@ OR JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.orderStatus')) NOT IN (-99)) `);
         };
     }
 
-    async getActiveRecent2Weak() {
+    async getActiveRecentWeak() {
         const sql = `
             SELECT mac_address, CONVERT_TZ(created_time, '+00:00', '+08:00') AS created_time
             FROM \`${saasConfig.SAAS_NAME}\`.t_monitor
@@ -3167,9 +3254,9 @@ OR JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.orderStatus')) NOT IN (-99)) `);
         const queryData = await db.query(sql, []);
 
         const now = moment.tz('Asia/Taipei').toDate(); // 當前時間
-        const dataList = Array.from({length: 14}, (_, index) => {
-            const targetDate = now;
-            targetDate.setDate(now.getDate() - index); // 設定為第 index 天前的日期
+        const dataList = Array.from({ length: 14 }, (_, index) => {
+            const targetDate = new Date(now.getTime());
+            targetDate.setDate(new Date(now.getTime()).getDate() - index); // 設定為第 index 天前的日期
 
             const year = targetDate.getFullYear();
             const month = targetDate.getMonth() + 1; // 月份從 0 開始，需要加 1
@@ -3198,6 +3285,208 @@ OR JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.orderStatus')) NOT IN (-99)) `);
         return {
             count_array: result.reverse(), // 將結果反轉，保證時間順序為最近到最遠
         };
+    }
+
+    async getActiveRecentMonth() {
+        const sql = `
+            SELECT mac_address, CONVERT_TZ(created_time, '+00:00', '+08:00') AS created_time
+            FROM \`${saasConfig.SAAS_NAME}\`.t_monitor
+            WHERE app_name = ${db.escape(this.app)}
+              AND ip != 'ffff:127.0.0.1'
+                AND req_type = 'file'
+                AND CONVERT_TZ(created_time, '+00:00', '+08:00') BETWEEN (DATE_SUB(CONVERT_TZ(NOW(), '+00:00', '+08:00')
+                            , INTERVAL 30 DAY)) AND CONVERT_TZ(NOW(), '+00:00', '+08:00')
+            GROUP BY id, mac_address
+        `;
+
+        const queryData = await db.query(sql, []);
+
+        const now = moment.tz('Asia/Taipei').toDate(); // 當前時間
+        const dataList = Array.from({ length: 30 }, (_, index) => {
+            const targetDate = new Date(now.getTime());
+            targetDate.setDate(new Date(now.getTime()).getDate() - index); // 設定為第 index 天前的日期
+
+            const year = targetDate.getFullYear();
+            const month = targetDate.getMonth() + 1; // 月份從 0 開始，需要加 1
+            const day = targetDate.getDate();
+
+            // 篩選該日期的資料
+            const filteredData = queryData.filter((item: any) => {
+                const date = moment.tz(item.created_time, 'UTC').clone().tz('Asia/Taipei').toDate();
+                return date.getFullYear() === year && date.getMonth() + 1 === month && date.getDate() === day;
+            });
+
+            // 計算不重複的 mac_address
+            const uniqueMacAddresses = new Set(filteredData.map((item: any) => item.mac_address));
+
+            return {
+                year,
+                month,
+                day,
+                total_count: filteredData.length,
+                unique_count: uniqueMacAddresses.size,
+            };
+        });
+
+        const result = dataList.map((data) => data.unique_count);
+
+        return {
+            count_array: result.reverse(), // 將結果反轉，保證時間順序為最近到最遠
+        };
+    }
+
+    async getActiveRecentCustom(query: string) {
+        const qData = JSON.parse(query);
+        const formatStartDate = `"${Tool.replaceDatetime(qData.start)}"`;
+        const formatEndDate = `"${Tool.replaceDatetime(qData.end)}"`;
+        const days = this.diffDates(new Date(qData.start), new Date(qData.end));
+        const sql = `
+            SELECT mac_address, CONVERT_TZ(created_time, '+00:00', '+08:00') AS created_time
+            FROM \`${saasConfig.SAAS_NAME}\`.t_monitor
+            WHERE app_name = ${db.escape(this.app)}
+              AND ip != 'ffff:127.0.0.1'
+                AND req_type = 'file'
+                AND CONVERT_TZ(created_time, '+00:00', '+08:00') 
+                BETWEEN CONVERT_TZ(${formatStartDate}, '+00:00', '+08:00') 
+                AND CONVERT_TZ(${formatEndDate}, '+00:00', '+08:00')
+            GROUP BY id, mac_address
+        `;
+
+        const queryData = await db.query(sql, []);
+
+        const now = moment(qData.end).tz('Asia/Taipei').clone().toDate(); // 當前時間
+        const dataList = Array.from({ length: days }, (_, index) => {
+            const targetDate = new Date(now.getTime());
+            targetDate.setDate(new Date(now.getTime()).getDate() - index); // 設定為第 index 天前的日期
+
+            const year = targetDate.getFullYear();
+            const month = targetDate.getMonth() + 1; // 月份從 0 開始，需要加 1
+            const day = targetDate.getDate();
+
+            // 篩選該日期的資料
+            const filteredData = queryData.filter((item: any) => {
+                const date = moment.tz(item.created_time, 'UTC').clone().tz('Asia/Taipei').toDate();
+                return date.getFullYear() === year && date.getMonth() + 1 === month && date.getDate() === day;
+            });
+
+            // 計算不重複的 mac_address
+            const uniqueMacAddresses = new Set(filteredData.map((item: any) => item.mac_address));
+
+            return {
+                year,
+                month,
+                day,
+                total_count: filteredData.length,
+                unique_count: uniqueMacAddresses.size,
+            };
+        });
+
+        const result = dataList.map((data) => data.unique_count);
+
+        return {
+            count_array: result.reverse(), // 將結果反轉，保證時間順序為最近到最遠
+        };
+    }
+
+    async getRegisterMonth() {
+        try {
+            function convertTimeZone(date: string) {
+                return `CONVERT_TZ(${date}, '+00:00', '+08:00')`;
+            }
+
+            const formatJsonData: { sql: string; data: any[] }[] = [];
+            const countArray: any = {};
+            let pass = 0;
+            await new Promise((resolve, reject) => {
+                for (let index = 0; index < 30; index++) {
+                    const monthCheckoutSQL = `
+                        SELECT count(1)
+                        FROM \`${this.app}\`.t_user
+                        WHERE
+                            DAY (${convertTimeZone('created_time')}) = DAY (DATE_SUB(${convertTimeZone('NOW()')}
+                            , INTERVAL ${index} DAY))
+                          AND MONTH (${convertTimeZone('created_time')}) = MONTH (DATE_SUB(${convertTimeZone('NOW()')}
+                            , INTERVAL ${index} DAY))
+                          AND YEAR (${convertTimeZone('created_time')}) = YEAR (DATE_SUB(${convertTimeZone('NOW()')}
+                            , INTERVAL ${index} DAY))
+                          AND status = 1;
+                    `;
+                    db.query(monthCheckoutSQL, []).then((data) => {
+                        countArray[index] = data[0]['count(1)'];
+                        pass++;
+                        if (pass === 30) {
+                            resolve(true);
+                        }
+                    });
+                }
+            });
+
+            return {
+                countArray: Object.keys(countArray)
+                    .map((dd) => {
+                        return parseInt(dd);
+                    })
+                    .sort((a: any, b: any) => parseInt(a, 10) - parseInt(b, 10))
+                    .map((dd) => {
+                        return countArray[dd];
+                    })
+                    .reverse(),
+            };
+        } catch (e) {
+            throw exception.BadRequestError('BAD_REQUEST', 'getRecentActiveUser Error:' + e, null);
+        }
+    }
+
+    async getRegisterCustom(query: string) {
+        try {
+            const qData = JSON.parse(query);
+            const days = this.diffDates(new Date(qData.start), new Date(qData.end));
+            const formatEndDate = `"${Tool.replaceDatetime(qData.end)}"`;
+
+            function convertTimeZone(date: string) {
+                return `CONVERT_TZ(${date}, '+00:00', '+08:00')`;
+            }
+
+            const countArray: any = {};
+            let pass = 0;
+            await new Promise((resolve, reject) => {
+                for (let index = 0; index < days; index++) {
+                    const monthCheckoutSQL = `
+                        SELECT count(1)
+                        FROM \`${this.app}\`.t_user
+                        WHERE
+                            DAY (${convertTimeZone('created_time')}) = DAY (DATE_SUB(${convertTimeZone(formatEndDate)}
+                            , INTERVAL ${index} DAY))
+                          AND MONTH (${convertTimeZone('created_time')}) = MONTH (DATE_SUB(${convertTimeZone(formatEndDate)}
+                            , INTERVAL ${index} DAY))
+                          AND YEAR (${convertTimeZone('created_time')}) = YEAR (DATE_SUB(${convertTimeZone(formatEndDate)}
+                            , INTERVAL ${index} DAY))
+                          AND status = 1;
+                    `;
+                    db.query(monthCheckoutSQL, []).then((data) => {
+                        countArray[index] = data[0]['count(1)'];
+                        pass++;
+                        if (pass === days) {
+                            resolve(true);
+                        }
+                    });
+                }
+            });
+
+            return {
+                countArray: Object.keys(countArray)
+                    .map((dd) => {
+                        return parseInt(dd);
+                    })
+                    .sort((a: any, b: any) => parseInt(a, 10) - parseInt(b, 10))
+                    .map((dd) => {
+                        return countArray[dd];
+                    })
+                    .reverse(),
+            };
+        } catch (e) {
+            throw exception.BadRequestError('BAD_REQUEST', 'getRecentActiveUser Error:' + e, null);
+        }
     }
 
     async getRegister2weak() {
@@ -3249,7 +3538,7 @@ OR JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.orderStatus')) NOT IN (-99)) `);
         }
     }
 
-    async getRegisterRecent() {
+    async getRegisterYear() {
         try {
             function convertTimeZone(date: string) {
                 return `CONVERT_TZ(${date}, '+00:00', '+08:00')`;
@@ -3364,7 +3653,7 @@ OR JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.orderStatus')) NOT IN (-99)) `);
                 WHERE MONTH (online_time) = MONTH (NOW()) AND YEAR (online_time) = YEAR (NOW());
             `;
             const month_users = await db.query(monthSQL, []);
-            return {recent: recent_users.length, months: month_users.length};
+            return { recent: recent_users.length, months: month_users.length };
         } catch (e) {
             throw exception.BadRequestError('BAD_REQUEST', 'getRecentActiveUser Error:' + e, null);
         }
@@ -3404,7 +3693,7 @@ OR JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.orderStatus')) NOT IN (-99)) `);
                 gap = Math.floor(((recent_month_total - previous_month_total) / previous_month_total) * 10000) / 10000;
             }
 
-            return {recent_month_total, previous_month_total, gap};
+            return { recent_month_total, previous_month_total, gap };
         } catch (e) {
             throw exception.BadRequestError('BAD_REQUEST', 'getRecentActiveUser Error:' + e, null);
         }
@@ -3412,21 +3701,20 @@ OR JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.orderStatus')) NOT IN (-99)) `);
 
     async getHotProducts(duration: 'month' | 'day' | 'all', date?: string) {
         try {
-            console.log(`date`, date);
             const checkoutSQL = `
                 SELECT *
                 FROM \`${this.app}\`.t_checkout
                 WHERE status = 1
                   AND ${(() => {
-                    switch (duration) {
-                        case 'day':
-                            return `created_time BETWEEN  CURDATE() AND CURDATE() + INTERVAL 1 DAY - INTERVAL 1 SECOND`;
-                        case 'month':
-                            return `(created_time BETWEEN DATE_SUB(NOW(), INTERVAL 1 MONTH) AND NOW())`;
-                        case 'all':
-                            return `1=1`;
-                    }
-                })()};
+                      switch (duration) {
+                          case 'day':
+                              return `created_time BETWEEN  CURDATE() AND CURDATE() + INTERVAL 1 DAY - INTERVAL 1 SECOND`;
+                          case 'month':
+                              return `(created_time BETWEEN DATE_SUB(NOW(), INTERVAL 1 MONTH) AND NOW())`;
+                          case 'all':
+                              return `1=1`;
+                      }
+                  })()};
             `;
             const checkouts = await db.query(checkoutSQL, []);
             const series = [];
@@ -3468,7 +3756,7 @@ OR JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.orderStatus')) NOT IN (-99)) `);
                 }
             }
 
-            return {series, categories, product_list: final_product_list};
+            return { series, categories, product_list: final_product_list };
         } catch (e) {
             throw exception.BadRequestError('BAD_REQUEST', 'getRecentActiveUser Error:' + e, null);
         }
@@ -3502,18 +3790,437 @@ OR JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.orderStatus')) NOT IN (-99)) `);
                 gap = Math.floor(((recent_month_total - previous_month_total) / previous_month_total) * 10000) / 10000;
             }
 
-            return {recent_month_total, previous_month_total, gap};
+            return { recent_month_total, previous_month_total, gap };
         } catch (e) {
             throw exception.BadRequestError('BAD_REQUEST', 'getRecentActiveUser Error:' + e, null);
         }
     }
 
-    async getOrdersPerMonth2Weak() {
+    async getOrdersPerMonth2Weak(query: string) {
+        try {
+            const qData = JSON.parse(query);
+            const countArray: any = {};
+            const countArrayPos: any = {};
+            const countArrayWeb: any = {};
+            const countArrayStore: any = {};
+
+            function convertTimeZone(date: string) {
+                return `CONVERT_TZ(${date}, '+00:00', '+08:00')`;
+            }
+
+            let pass = 0;
+            await new Promise((resolve, reject) => {
+                for (let index = 0; index < 14; index++) {
+                    const monthCheckoutSQL = `
+                        SELECT id, orderData
+                        FROM \`${this.app}\`.t_checkout
+                        WHERE
+                            DAY (${convertTimeZone('created_time')}) = DAY (DATE_SUB(${convertTimeZone('NOW()')}
+                            , INTERVAL ${index} DAY))
+                          AND MONTH (${convertTimeZone('created_time')}) = MONTH (DATE_SUB(${convertTimeZone('NOW()')}
+                            , INTERVAL ${index} DAY))
+                          AND YEAR (${convertTimeZone('created_time')}) = YEAR (DATE_SUB(${convertTimeZone('NOW()')}
+                            , INTERVAL ${index} DAY))
+                          AND status = 1;
+                    `;
+                    db.query(monthCheckoutSQL, []).then((data) => {
+                        pass++;
+                        let total = 0;
+                        let total_pos = 0;
+                        let total_web = 0;
+                        let total_store = 0;
+                        data.map((checkout: any) => {
+                            if (checkout.orderData.orderSource === 'POS') {
+                                total_pos += 1;
+                                if (qData.come_from.includes('store_') && Shopping.isComeStore(checkout.orderData, qData)) {
+                                    total_store += 1;
+                                }
+                            } else {
+                                total_web += 1;
+                            }
+                            total += 1;
+                        });
+                        countArrayStore[index] = total_store;
+                        countArrayPos[index] = total_pos;
+                        countArrayWeb[index] = total_web;
+                        countArray[index] = total;
+                        if (pass === 14) {
+                            resolve(true);
+                        }
+                    });
+                }
+            });
+
+            return {
+                countArray: Object.keys(countArray)
+                    .sort((a: any, b: any) => parseInt(a, 10) - parseInt(b, 10))
+                    .map((dd) => {
+                        return countArray[dd];
+                    }),
+                countArrayPos: Object.keys(countArrayPos)
+                    .sort((a: any, b: any) => parseInt(a, 10) - parseInt(b, 10))
+                    .map((dd) => {
+                        return countArrayPos[dd];
+                    }),
+                countArrayStore: Object.keys(countArrayStore)
+                    .sort((a: any, b: any) => parseInt(a, 10) - parseInt(b, 10))
+                    .map((dd) => {
+                        return countArrayStore[dd];
+                    }),
+                countArrayWeb: Object.keys(countArrayWeb)
+                    .sort((a: any, b: any) => parseInt(a, 10) - parseInt(b, 10))
+                    .map((dd) => {
+                        return countArrayWeb[dd];
+                    }),
+            };
+        } catch (e) {
+            throw exception.BadRequestError('BAD_REQUEST', 'getRecentActiveUser Error:' + e, null);
+        }
+    }
+
+    async getOrdersPerMonth(query: string) {
+        try {
+            const qData = JSON.parse(query);
+            const countArray: any = {};
+            const countArrayPos: any = {};
+            const countArrayWeb: any = {};
+            const countArrayStore: any = {};
+
+            function convertTimeZone(date: string) {
+                return `CONVERT_TZ(${date}, '+00:00', '+08:00')`;
+            }
+
+            let pass = 0;
+            await new Promise((resolve, reject) => {
+                for (let index = 0; index < 30; index++) {
+                    const monthCheckoutSQL = `
+                        SELECT orderData
+                        FROM \`${this.app}\`.t_checkout
+                        WHERE
+                            DAY (${convertTimeZone('created_time')}) = DAY (DATE_SUB(${convertTimeZone('NOW()')}
+                            , INTERVAL ${index} DAY))
+                          AND MONTH (${convertTimeZone('created_time')}) = MONTH (DATE_SUB(${convertTimeZone('NOW()')}
+                            , INTERVAL ${index} DAY))
+                          AND YEAR (${convertTimeZone('created_time')}) = YEAR (DATE_SUB(${convertTimeZone('NOW()')}
+                            , INTERVAL ${index} DAY))
+                          AND status = 1;
+                    `;
+                    db.query(monthCheckoutSQL, []).then((data) => {
+                        pass++;
+                        let total = 0;
+                        let total_pos = 0;
+                        let total_web = 0;
+                        let total_store = 0;
+                        data.map((checkout: any) => {
+                            if (checkout.orderData.orderSource === 'POS') {
+                                total_pos += 1;
+                                if (qData.come_from.includes('store_') && Shopping.isComeStore(checkout.orderData, qData)) {
+                                    total_store += 1;
+                                }
+                            } else {
+                                total_web += 1;
+                            }
+                            total += 1;
+                        });
+                        countArrayStore[index] = total_store;
+                        countArrayPos[index] = total_pos;
+                        countArrayWeb[index] = total_web;
+                        countArray[index] = total;
+                        if (pass === 30) {
+                            resolve(true);
+                        }
+                    });
+                }
+            });
+
+            return {
+                countArray: Object.keys(countArray)
+                    .sort((a: any, b: any) => parseInt(a, 10) - parseInt(b, 10))
+                    .map((dd) => {
+                        return countArray[dd];
+                    }),
+                countArrayPos: Object.keys(countArrayPos)
+                    .sort((a: any, b: any) => parseInt(a, 10) - parseInt(b, 10))
+                    .map((dd) => {
+                        return countArrayPos[dd];
+                    }),
+                countArrayStore: Object.keys(countArrayStore)
+                    .sort((a: any, b: any) => parseInt(a, 10) - parseInt(b, 10))
+                    .map((dd) => {
+                        return countArrayStore[dd];
+                    }),
+                countArrayWeb: Object.keys(countArrayWeb)
+                    .sort((a: any, b: any) => parseInt(a, 10) - parseInt(b, 10))
+                    .map((dd) => {
+                        return countArrayWeb[dd];
+                    }),
+            };
+        } catch (e) {
+            throw exception.BadRequestError('BAD_REQUEST', 'getRecentActiveUser Error:' + e, null);
+        }
+    }
+
+    async getOrdersPerMonthCostom(query: string) {
         try {
             const countArray: any = {};
             const countArrayPos: any = {};
             const countArrayWeb: any = {};
+            const countArrayStore: any = {};
 
+            const qData = JSON.parse(query);
+            const days = this.diffDates(new Date(qData.start), new Date(qData.end));
+            const formatEndDate = `"${Tool.replaceDatetime(qData.end)}"`;
+
+            function convertTimeZone(date: string) {
+                return `CONVERT_TZ(${date}, '+00:00', '+08:00')`;
+            }
+
+            let pass = 0;
+            await new Promise((resolve, reject) => {
+                for (let index = 0; index < days; index++) {
+                    const monthCheckoutSQL = `
+                        SELECT orderData
+                        FROM \`${this.app}\`.t_checkout
+                        WHERE
+                            DAY (${convertTimeZone('created_time')}) = DAY (DATE_SUB(${formatEndDate}
+                            , INTERVAL ${index} DAY))
+                          AND MONTH (${convertTimeZone('created_time')}) = MONTH (DATE_SUB(${formatEndDate}
+                            , INTERVAL ${index} DAY))
+                          AND YEAR (${convertTimeZone('created_time')}) = YEAR (DATE_SUB(${formatEndDate}
+                            , INTERVAL ${index} DAY))
+                          AND status = 1;
+                    `;
+                    db.query(monthCheckoutSQL, []).then((data) => {
+                        pass++;
+                        let total = 0;
+                        let total_pos = 0;
+                        let total_web = 0;
+                        let total_store = 0;
+                        data.map((checkout: any) => {
+                            if (checkout.orderData.orderSource === 'POS') {
+                                total_pos += 1;
+                                if (qData.come_from.includes('store_') && Shopping.isComeStore(checkout.orderData, qData)) {
+                                    total_store += 1;
+                                }
+                            } else {
+                                total_web += 1;
+                            }
+                            total += 1;
+                        });
+                        countArrayStore[index] = total_store;
+                        countArrayPos[index] = total_pos;
+                        countArrayWeb[index] = total_web;
+                        countArray[index] = total;
+                        if (pass === days) {
+                            resolve(true);
+                        }
+                    });
+                }
+            });
+
+            return {
+                countArray: Object.keys(countArray)
+                    .sort((a: any, b: any) => parseInt(a, 10) - parseInt(b, 10))
+                    .map((dd) => {
+                        return countArray[dd];
+                    }),
+                countArrayPos: Object.keys(countArrayPos)
+                    .sort((a: any, b: any) => parseInt(a, 10) - parseInt(b, 10))
+                    .map((dd) => {
+                        return countArrayPos[dd];
+                    }),
+                countArrayStore: Object.keys(countArrayStore)
+                    .sort((a: any, b: any) => parseInt(a, 10) - parseInt(b, 10))
+                    .map((dd) => {
+                        return countArrayStore[dd];
+                    }),
+                countArrayWeb: Object.keys(countArrayWeb)
+                    .sort((a: any, b: any) => parseInt(a, 10) - parseInt(b, 10))
+                    .map((dd) => {
+                        return countArrayWeb[dd];
+                    }),
+            };
+        } catch (e) {
+            throw exception.BadRequestError('BAD_REQUEST', 'getRecentActiveUser Error:' + e, null);
+        }
+    }
+
+    async getOrdersPerMonth1Year(query: string) {
+        try {
+            const qData = JSON.parse(query);
+            const countArray: any = {};
+            const countArrayPos: any = {};
+            const countArrayWeb: any = {};
+            const countArrayStore: any = {};
+
+            function convertTimeZone(date: string) {
+                return `CONVERT_TZ(${date}, '+00:00', '+08:00')`;
+            }
+
+            let pass = 0;
+            await new Promise((resolve, reject) => {
+                for (let index = 0; index < 12; index++) {
+                    const monthCheckoutSQL = `
+                        SELECT orderData
+                        FROM \`${this.app}\`.t_checkout
+                        WHERE
+                            MONTH (${convertTimeZone('created_time')}) = MONTH (DATE_SUB(${convertTimeZone('NOW()')}
+                            , INTERVAL ${index} MONTH))
+                          AND YEAR (${convertTimeZone('created_time')}) = YEAR (DATE_SUB(${convertTimeZone('NOW()')}
+                            , INTERVAL ${index} MONTH))
+                          AND status = 1;
+                    `;
+                    db.query(monthCheckoutSQL, []).then((data) => {
+                        pass++;
+                        let total = 0;
+                        let total_pos = 0;
+                        let total_web = 0;
+                        let total_store = 0;
+                        data.map((checkout: any) => {
+                            if (checkout.orderData.orderSource === 'POS') {
+                                total_pos += 1;
+                                if (qData.come_from.includes('store_') && Shopping.isComeStore(checkout.orderData, qData)) {
+                                    total_store += 1;
+                                }
+                            } else {
+                                total_web += 1;
+                            }
+                            total += 1;
+                        });
+                        countArrayStore[index] = total_store;
+                        countArrayPos[index] = total_pos;
+                        countArrayWeb[index] = total_web;
+                        countArray[index] = total;
+                        if (pass === 12) {
+                            resolve(true);
+                        }
+                    });
+                }
+            });
+
+            return {
+                countArray: Object.keys(countArray)
+                    .sort((a: any, b: any) => parseInt(a, 10) - parseInt(b, 10))
+                    .map((dd) => {
+                        return countArray[dd];
+                    }),
+                countArrayPos: Object.keys(countArrayPos)
+                    .sort((a: any, b: any) => parseInt(a, 10) - parseInt(b, 10))
+                    .map((dd) => {
+                        return countArrayPos[dd];
+                    }),
+                countArrayStore: Object.keys(countArrayStore)
+                    .sort((a: any, b: any) => parseInt(a, 10) - parseInt(b, 10))
+                    .map((dd) => {
+                        return countArrayStore[dd];
+                    }),
+                countArrayWeb: Object.keys(countArrayWeb)
+                    .sort((a: any, b: any) => parseInt(a, 10) - parseInt(b, 10))
+                    .map((dd) => {
+                        return countArrayWeb[dd];
+                    }),
+            };
+        } catch (e) {
+            throw exception.BadRequestError('BAD_REQUEST', 'getRecentActiveUser Error:' + e, null);
+        }
+    }
+
+    static isComeStore(checkout: any, qData: any) {
+        try {
+            return checkout.pos_info.where_store === qData.come_from;
+        } catch (error) {
+            return false;
+        }
+    }
+
+    async getSalesPerMonth1Year(query: string) {
+        try {
+            const qData = JSON.parse(query);
+            const countArray: any = {};
+            const countArrayPos: any = {};
+            const countArrayWeb: any = {};
+            const countArrayStore: any = {};
+
+            function convertTimeZone(date: string) {
+                return `CONVERT_TZ(${date}, '+00:00', '+08:00')`;
+            }
+
+            let pass = 0;
+            await new Promise((resolve, reject) => {
+                for (let index = 0; index < 12; index++) {
+                    const monthCheckoutSQL = `
+                        SELECT orderData
+                        FROM \`${this.app}\`.t_checkout
+                        WHERE
+                            MONTH (${convertTimeZone('created_time')}) = MONTH (DATE_SUB(${convertTimeZone('NOW()')}
+                            , INTERVAL ${index} MONTH))
+                          AND YEAR (${convertTimeZone('created_time')}) = YEAR (DATE_SUB(${convertTimeZone('NOW()')}
+                            , INTERVAL ${index} MONTH))
+                          AND status = 1;
+                    `;
+                    db.query(monthCheckoutSQL, []).then((data) => {
+                        pass++;
+                        let total = 0;
+                        let total_pos = 0;
+                        let total_web = 0;
+                        let total_store = 0;
+                        data.map((checkout: any) => {
+                            if (checkout.orderData.orderSource === 'POS') {
+                                total_pos += parseInt(checkout.orderData.total, 10);
+                                if (qData.come_from.includes('store_') && Shopping.isComeStore(checkout.orderData, qData)) {
+                                    total_store += parseInt(checkout.orderData.total, 10);
+                                }
+                            } else {
+                                total_web += parseInt(checkout.orderData.total, 10);
+                            }
+                            total += parseInt(checkout.orderData.total, 10);
+                        });
+                        countArrayStore[index] = total_store;
+                        countArrayPos[index] = total_pos;
+                        countArrayWeb[index] = total_web;
+                        countArray[index] = total;
+                        if (pass === 12) {
+                            resolve(true);
+                        }
+                    });
+                }
+            });
+
+            return {
+                countArray: Object.keys(countArray)
+                    .sort((a: any, b: any) => parseInt(a, 10) - parseInt(b, 10))
+                    .map((dd) => {
+                        return countArray[dd];
+                    }),
+                countArrayPos: Object.keys(countArrayPos)
+                    .sort((a: any, b: any) => parseInt(a, 10) - parseInt(b, 10))
+                    .map((dd) => {
+                        return countArrayPos[dd];
+                    }),
+                countArrayStore: Object.keys(countArrayStore)
+                    .sort((a: any, b: any) => parseInt(a, 10) - parseInt(b, 10))
+                    .map((dd) => {
+                        return countArrayStore[dd];
+                    }),
+                countArrayWeb: Object.keys(countArrayWeb)
+                    .sort((a: any, b: any) => parseInt(a, 10) - parseInt(b, 10))
+                    .map((dd) => {
+                        return countArrayWeb[dd];
+                    }),
+            };
+        } catch (e) {
+            throw exception.BadRequestError('BAD_REQUEST', 'getRecentActiveUser Error:' + e, null);
+        }
+    }
+
+    async getSalesPerMonth2Weak(query: string) {
+        try {
+            const countArray: any = {};
+            const countArrayPos: any = {};
+            const countArrayWeb: any = {};
+            const countArrayStore: any = {};
+
+            const qData = JSON.parse(query);
             function convertTimeZone(date: string) {
                 return `CONVERT_TZ(${date}, '+00:00', '+08:00')`;
             }
@@ -3538,14 +4245,19 @@ OR JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.orderStatus')) NOT IN (-99)) `);
                         let total = 0;
                         let total_pos = 0;
                         let total_web = 0;
+                        let total_store = 0;
                         data.map((checkout: any) => {
                             if (checkout.orderData.orderSource === 'POS') {
-                                total_pos += 1;
+                                total_pos += parseInt(checkout.orderData.total, 10);
+                                if (qData.come_from.includes('store_') && Shopping.isComeStore(checkout.orderData, qData)) {
+                                    total_store += parseInt(checkout.orderData.total, 10);
+                                }
                             } else {
-                                total_web += 1;
+                                total_web += parseInt(checkout.orderData.total, 10);
                             }
-                            total += 1;
+                            total += parseInt(checkout.orderData.total, 10);
                         });
+                        countArrayStore[index] = total_store;
                         countArrayPos[index] = total_pos;
                         countArrayWeb[index] = total_web;
                         countArray[index] = total;
@@ -3567,73 +4279,10 @@ OR JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.orderStatus')) NOT IN (-99)) `);
                     .map((dd) => {
                         return countArrayPos[dd];
                     }),
-                countArrayWeb: Object.keys(countArrayWeb)
+                countArrayStore: Object.keys(countArrayStore)
                     .sort((a: any, b: any) => parseInt(a, 10) - parseInt(b, 10))
                     .map((dd) => {
-                        return countArrayWeb[dd];
-                    }),
-            };
-        } catch (e) {
-            throw exception.BadRequestError('BAD_REQUEST', 'getRecentActiveUser Error:' + e, null);
-        }
-    }
-
-    async getOrdersPerMonth1Year() {
-        try {
-            const countArray: any = {};
-            const countArrayPos: any = {};
-            const countArrayWeb: any = {};
-
-            function convertTimeZone(date: string) {
-                return `CONVERT_TZ(${date}, '+00:00', '+08:00')`;
-            }
-
-            let pass = 0;
-            await new Promise((resolve, reject) => {
-                for (let index = 0; index < 12; index++) {
-                    const monthCheckoutSQL = `
-                        SELECT orderData
-                        FROM \`${this.app}\`.t_checkout
-                        WHERE
-                            MONTH (${convertTimeZone('created_time')}) = MONTH (DATE_SUB(${convertTimeZone('NOW()')}
-                            , INTERVAL ${index} MONTH))
-                          AND YEAR (${convertTimeZone('created_time')}) = YEAR (DATE_SUB(${convertTimeZone('NOW()')}
-                            , INTERVAL ${index} MONTH))
-                          AND status = 1;
-                    `;
-                    db.query(monthCheckoutSQL, []).then((data) => {
-                        pass++;
-                        let total = 0;
-                        let total_pos = 0;
-                        let total_web = 0;
-                        data.map((checkout: any) => {
-                            if (checkout.orderData.orderSource === 'POS') {
-                                total_pos += 1;
-                            } else {
-                                total_web += 1;
-                            }
-                            total += 1;
-                        });
-                        countArrayPos[index] = total_pos;
-                        countArrayWeb[index] = total_web;
-                        countArray[index] = total;
-                        if (pass === 12) {
-                            resolve(true);
-                        }
-                    });
-                }
-            });
-
-            return {
-                countArray: Object.keys(countArray)
-                    .sort((a: any, b: any) => parseInt(a, 10) - parseInt(b, 10))
-                    .map((dd) => {
-                        return countArray[dd];
-                    }),
-                countArrayPos: Object.keys(countArrayPos)
-                    .sort((a: any, b: any) => parseInt(a, 10) - parseInt(b, 10))
-                    .map((dd) => {
-                        return countArrayPos[dd];
+                        return countArrayStore[dd];
                     }),
                 countArrayWeb: Object.keys(countArrayWeb)
                     .sort((a: any, b: any) => parseInt(a, 10) - parseInt(b, 10))
@@ -3646,11 +4295,14 @@ OR JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.orderStatus')) NOT IN (-99)) `);
         }
     }
 
-    async getSalesPerMonth1Year() {
+    async getSalesPerMonth(query: string) {
         try {
             const countArray: any = {};
             const countArrayPos: any = {};
             const countArrayWeb: any = {};
+            const countArrayStore: any = {};
+
+            const qData = JSON.parse(query);
 
             function convertTimeZone(date: string) {
                 return `CONVERT_TZ(${date}, '+00:00', '+08:00')`;
@@ -3658,75 +4310,7 @@ OR JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.orderStatus')) NOT IN (-99)) `);
 
             let pass = 0;
             await new Promise((resolve, reject) => {
-                for (let index = 0; index < 12; index++) {
-                    const monthCheckoutSQL = `
-                        SELECT orderData
-                        FROM \`${this.app}\`.t_checkout
-                        WHERE
-                            MONTH (${convertTimeZone('created_time')}) = MONTH (DATE_SUB(${convertTimeZone('NOW()')}
-                            , INTERVAL ${index} MONTH))
-                          AND YEAR (${convertTimeZone('created_time')}) = YEAR (DATE_SUB(${convertTimeZone('NOW()')}
-                            , INTERVAL ${index} MONTH))
-                          AND status = 1;
-                    `;
-                    db.query(monthCheckoutSQL, []).then((data) => {
-                        pass++;
-                        let total = 0;
-                        let total_pos = 0;
-                        let total_web = 0;
-                        data.map((checkout: any) => {
-                            if (checkout.orderData.orderSource === 'POS') {
-                                total_pos += parseInt(checkout.orderData.total, 10);
-                            } else {
-                                total_web += parseInt(checkout.orderData.total, 10);
-                            }
-                            total += parseInt(checkout.orderData.total, 10);
-                        });
-                        countArrayPos[index] = total_pos;
-                        countArrayWeb[index] = total_web;
-                        countArray[index] = total;
-                        if (pass === 12) {
-                            resolve(true);
-                        }
-                    });
-                }
-            });
-
-            return {
-                countArray: Object.keys(countArray)
-                    .sort((a: any, b: any) => parseInt(a, 10) - parseInt(b, 10))
-                    .map((dd) => {
-                        return countArray[dd];
-                    }),
-                countArrayPos: Object.keys(countArrayPos)
-                    .sort((a: any, b: any) => parseInt(a, 10) - parseInt(b, 10))
-                    .map((dd) => {
-                        return countArrayPos[dd];
-                    }),
-                countArrayWeb: Object.keys(countArrayWeb)
-                    .sort((a: any, b: any) => parseInt(a, 10) - parseInt(b, 10))
-                    .map((dd) => {
-                        return countArrayWeb[dd];
-                    }),
-            };
-        } catch (e) {
-            throw exception.BadRequestError('BAD_REQUEST', 'getRecentActiveUser Error:' + e, null);
-        }
-    }
-
-    async getSalesPerMonth2Weak() {
-        try {
-            const countArray: any = {};
-            const countArrayPos: any = {};
-            const countArrayWeb: any = {};
-
-            function convertTimeZone(date: string) {
-                return `CONVERT_TZ(${date}, '+00:00', '+08:00')`;
-            }
-
-            let pass = 0;
-            await new Promise((resolve, reject) => {
-                for (let index = 0; index < 14; index++) {
+                for (let index = 0; index < 30; index++) {
                     const monthCheckoutSQL = `
                         SELECT orderData
                         FROM \`${this.app}\`.t_checkout
@@ -3744,18 +4328,23 @@ OR JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.orderStatus')) NOT IN (-99)) `);
                         let total = 0;
                         let total_pos = 0;
                         let total_web = 0;
+                        let total_store = 0;
                         data.map((checkout: any) => {
                             if (checkout.orderData.orderSource === 'POS') {
                                 total_pos += parseInt(checkout.orderData.total, 10);
+                                if (qData.come_from.includes('store_') && Shopping.isComeStore(checkout.orderData, qData)) {
+                                    total_store += parseInt(checkout.orderData.total, 10);
+                                }
                             } else {
                                 total_web += parseInt(checkout.orderData.total, 10);
                             }
                             total += parseInt(checkout.orderData.total, 10);
                         });
+                        countArrayStore[index] = total_store;
                         countArrayPos[index] = total_pos;
                         countArrayWeb[index] = total_web;
                         countArray[index] = total;
-                        if (pass === 14) {
+                        if (pass === 30) {
                             resolve(true);
                         }
                     });
@@ -3773,6 +4362,11 @@ OR JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.orderStatus')) NOT IN (-99)) `);
                     .map((dd) => {
                         return countArrayPos[dd];
                     }),
+                countArrayStore: Object.keys(countArrayStore)
+                    .sort((a: any, b: any) => parseInt(a, 10) - parseInt(b, 10))
+                    .map((dd) => {
+                        return countArrayStore[dd];
+                    }),
                 countArrayWeb: Object.keys(countArrayWeb)
                     .sort((a: any, b: any) => parseInt(a, 10) - parseInt(b, 10))
                     .map((dd) => {
@@ -3784,11 +4378,105 @@ OR JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.orderStatus')) NOT IN (-99)) `);
         }
     }
 
-    async getOrderAvgSalePriceYear() {
+    diffDates(startDateObj: Date, endDateObj: Date) {
+        var timeDiff = Math.abs(endDateObj.getTime() - startDateObj.getTime());
+        var diffDays = Math.ceil(timeDiff / (1000 * 3600 * 24));
+        return diffDays;
+    }
+
+    async getSalesPerMonthCustom(query: string) {
         try {
             const countArray: any = {};
             const countArrayPos: any = {};
             const countArrayWeb: any = {};
+            const countArrayStore: any = {};
+
+            const qData = JSON.parse(query);
+
+            const days = this.diffDates(new Date(qData.start), new Date(qData.end));
+            const formatEndDate = `"${Tool.replaceDatetime(qData.end)}"`;
+
+            function convertTimeZone(date: string) {
+                return `CONVERT_TZ(${date}, '+00:00', '+08:00')`;
+            }
+
+            let pass = 0;
+            await new Promise((resolve, reject) => {
+                for (let index = 0; index < days; index++) {
+                    const monthCheckoutSQL = `
+                        SELECT orderData
+                        FROM \`${this.app}\`.t_checkout
+                        WHERE
+                            DAY (${convertTimeZone('created_time')}) = DAY (DATE_SUB(${convertTimeZone(formatEndDate)}
+                            , INTERVAL ${index} DAY))
+                          AND MONTH (${convertTimeZone('created_time')}) = MONTH (DATE_SUB(${convertTimeZone(formatEndDate)}
+                            , INTERVAL ${index} DAY))
+                          AND YEAR (${convertTimeZone('created_time')}) = YEAR (DATE_SUB(${convertTimeZone(formatEndDate)}
+                            , INTERVAL ${index} DAY))
+                          AND status = 1;
+                    `;
+                    db.query(monthCheckoutSQL, []).then((data) => {
+                        pass++;
+                        let total = 0;
+                        let total_pos = 0;
+                        let total_web = 0;
+                        let total_store = 0;
+                        data.map((checkout: any) => {
+                            if (checkout.orderData.orderSource === 'POS') {
+                                total_pos += parseInt(checkout.orderData.total, 10);
+                                if (qData.come_from.includes('store_') && Shopping.isComeStore(checkout.orderData, qData)) {
+                                    total_store += parseInt(checkout.orderData.total, 10);
+                                }
+                            } else {
+                                total_web += parseInt(checkout.orderData.total, 10);
+                            }
+                            total += parseInt(checkout.orderData.total, 10);
+                        });
+                        countArrayStore[index] = total_store;
+                        countArrayPos[index] = total_pos;
+                        countArrayWeb[index] = total_web;
+                        countArray[index] = total;
+                        if (pass === days) {
+                            resolve(true);
+                        }
+                    });
+                }
+            });
+
+            return {
+                countArray: Object.keys(countArray)
+                    .sort((a: any, b: any) => parseInt(a, 10) - parseInt(b, 10))
+                    .map((dd) => {
+                        return countArray[dd];
+                    }),
+                countArrayPos: Object.keys(countArrayPos)
+                    .sort((a: any, b: any) => parseInt(a, 10) - parseInt(b, 10))
+                    .map((dd) => {
+                        return countArrayPos[dd];
+                    }),
+                countArrayStore: Object.keys(countArrayStore)
+                    .sort((a: any, b: any) => parseInt(a, 10) - parseInt(b, 10))
+                    .map((dd) => {
+                        return countArrayStore[dd];
+                    }),
+                countArrayWeb: Object.keys(countArrayWeb)
+                    .sort((a: any, b: any) => parseInt(a, 10) - parseInt(b, 10))
+                    .map((dd) => {
+                        return countArrayWeb[dd];
+                    }),
+            };
+        } catch (e) {
+            throw exception.BadRequestError('BAD_REQUEST', 'getRecentActiveUser Error:' + e, null);
+        }
+    }
+
+    async getOrderAvgSalePriceYear(query: string) {
+        try {
+            const qData = JSON.parse(query);
+            const countArray: any = {};
+            const countArrayPos: any = {};
+            const countArrayWeb: any = {};
+            const countArrayStore: any = {};
 
             function convertTimeZone(date: string) {
                 return `CONVERT_TZ(${date}, '+00:00', '+08:00')`;
@@ -3812,18 +4500,25 @@ OR JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.orderStatus')) NOT IN (-99)) `);
                         let total = 0;
                         let total_pos = 0;
                         let total_web = 0;
+                        let total_store = 0;
                         let pos_count = 0;
+                        let store_count = 0;
                         let web_count = 0;
                         data.map((checkout: any) => {
                             if (checkout.orderData.orderSource === 'POS') {
                                 pos_count++;
                                 total_pos += parseInt(checkout.orderData.total, 10);
+                                if (qData.come_from.includes('store_') && Shopping.isComeStore(checkout.orderData, qData)) {
+                                    store_count++;
+                                    total_store += parseInt(checkout.orderData.total, 10);
+                                }
                             } else {
                                 web_count++;
                                 total_web += parseInt(checkout.orderData.total, 10);
                             }
                             total += parseInt(checkout.orderData.total, 10);
                         });
+                        countArrayStore[index] = Math.floor(total_store / store_count);
                         countArrayPos[index] = Math.floor(total_pos / pos_count);
                         countArrayWeb[index] = Math.floor(total_web / web_count);
                         countArray[index] = Math.floor(total / data.length);
@@ -3845,6 +4540,11 @@ OR JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.orderStatus')) NOT IN (-99)) `);
                     .map((dd) => {
                         return countArrayPos[dd];
                     }),
+                countArrayStore: Object.keys(countArrayStore)
+                    .sort((a: any, b: any) => parseInt(a, 10) - parseInt(b, 10))
+                    .map((dd) => {
+                        return countArrayStore[dd];
+                    }),
                 countArrayWeb: Object.keys(countArrayWeb)
                     .sort((a: any, b: any) => parseInt(a, 10) - parseInt(b, 10))
                     .map((dd) => {
@@ -3856,11 +4556,13 @@ OR JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.orderStatus')) NOT IN (-99)) `);
         }
     }
 
-    async getOrderAvgSalePrice() {
+    async getOrderAvgSalePrice(query: string) {
         try {
+            const qData = JSON.parse(query);
             const countArray: any = {};
             const countArrayPos: any = {};
             const countArrayWeb: any = {};
+            const countArrayStore: any = {};
 
             function convertTimeZone(date: string) {
                 return `CONVERT_TZ(${date}, '+00:00', '+08:00')`;
@@ -3886,18 +4588,25 @@ OR JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.orderStatus')) NOT IN (-99)) `);
                         let total = 0;
                         let total_pos = 0;
                         let total_web = 0;
+                        let total_store = 0;
                         let pos_count = 0;
+                        let store_count = 0;
                         let web_count = 0;
                         data.map((checkout: any) => {
                             if (checkout.orderData.orderSource === 'POS') {
                                 pos_count++;
                                 total_pos += parseInt(checkout.orderData.total, 10);
+                                if (qData.come_from.includes('store_') && Shopping.isComeStore(checkout.orderData, qData)) {
+                                    store_count++;
+                                    total_store += parseInt(checkout.orderData.total, 10);
+                                }
                             } else {
                                 web_count++;
                                 total_web += parseInt(checkout.orderData.total, 10);
                             }
                             total += parseInt(checkout.orderData.total, 10);
                         });
+                        countArrayStore[index] = Math.floor(total_store / store_count);
                         countArrayPos[index] = Math.floor(total_pos / pos_count);
                         countArrayWeb[index] = Math.floor(total_web / web_count);
                         countArray[index] = Math.floor(total / data.length);
@@ -3918,6 +4627,190 @@ OR JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.orderStatus')) NOT IN (-99)) `);
                     .sort((a: any, b: any) => parseInt(a, 10) - parseInt(b, 10))
                     .map((dd) => {
                         return countArrayPos[dd];
+                    }),
+                countArrayStore: Object.keys(countArrayStore)
+                    .sort((a: any, b: any) => parseInt(a, 10) - parseInt(b, 10))
+                    .map((dd) => {
+                        return countArrayStore[dd];
+                    }),
+                countArrayWeb: Object.keys(countArrayWeb)
+                    .sort((a: any, b: any) => parseInt(a, 10) - parseInt(b, 10))
+                    .map((dd) => {
+                        return countArrayWeb[dd];
+                    }),
+            };
+        } catch (e) {
+            throw exception.BadRequestError('BAD_REQUEST', 'getRecentActiveUser Error:' + e, null);
+        }
+    }
+
+    async getOrderAvgSalePriceMonth(query: string) {
+        try {
+            const qData = JSON.parse(query);
+            const countArray: any = {};
+            const countArrayPos: any = {};
+            const countArrayWeb: any = {};
+            const countArrayStore: any = {};
+
+            function convertTimeZone(date: string) {
+                return `CONVERT_TZ(${date}, '+00:00', '+08:00')`;
+            }
+
+            let pass = 0;
+            await new Promise((resolve, reject) => {
+                for (let index = 0; index < 30; index++) {
+                    const monthCheckoutSQL = `
+                        SELECT orderData
+                        FROM \`${this.app}\`.t_checkout
+                        WHERE
+                            DAY (${convertTimeZone('created_time')}) = DAY (DATE_SUB(${convertTimeZone('NOW()')}
+                            , INTERVAL ${index} DAY))
+                          AND MONTH (${convertTimeZone('created_time')}) = MONTH (DATE_SUB(${convertTimeZone('NOW()')}
+                            , INTERVAL ${index} DAY))
+                          AND YEAR (${convertTimeZone('created_time')}) = YEAR (DATE_SUB(${convertTimeZone('NOW()')}
+                            , INTERVAL ${index} DAY))
+                          AND status = 1;
+                    `;
+                    db.query(monthCheckoutSQL, []).then((data) => {
+                        pass++;
+                        let total = 0;
+                        let total_pos = 0;
+                        let total_web = 0;
+                        let total_store = 0;
+                        let pos_count = 0;
+                        let store_count = 0;
+                        let web_count = 0;
+                        data.map((checkout: any) => {
+                            if (checkout.orderData.orderSource === 'POS') {
+                                pos_count++;
+                                total_pos += parseInt(checkout.orderData.total, 10);
+                                if (qData.come_from.includes('store_') && Shopping.isComeStore(checkout.orderData, qData)) {
+                                    store_count++;
+                                    total_store += parseInt(checkout.orderData.total, 10);
+                                }
+                            } else {
+                                web_count++;
+                                total_web += parseInt(checkout.orderData.total, 10);
+                            }
+                            total += parseInt(checkout.orderData.total, 10);
+                        });
+                        countArrayStore[index] = Math.floor(total_store / store_count);
+                        countArrayPos[index] = Math.floor(total_pos / pos_count);
+                        countArrayWeb[index] = Math.floor(total_web / web_count);
+                        countArray[index] = Math.floor(total / data.length);
+                        if (pass === 30) {
+                            resolve(true);
+                        }
+                    });
+                }
+            });
+
+            return {
+                countArray: Object.keys(countArray)
+                    .sort((a: any, b: any) => parseInt(a, 10) - parseInt(b, 10))
+                    .map((dd) => {
+                        return countArray[dd];
+                    }),
+                countArrayPos: Object.keys(countArrayPos)
+                    .sort((a: any, b: any) => parseInt(a, 10) - parseInt(b, 10))
+                    .map((dd) => {
+                        return countArrayPos[dd];
+                    }),
+                countArrayStore: Object.keys(countArrayStore)
+                    .sort((a: any, b: any) => parseInt(a, 10) - parseInt(b, 10))
+                    .map((dd) => {
+                        return countArrayStore[dd];
+                    }),
+                countArrayWeb: Object.keys(countArrayWeb)
+                    .sort((a: any, b: any) => parseInt(a, 10) - parseInt(b, 10))
+                    .map((dd) => {
+                        return countArrayWeb[dd];
+                    }),
+            };
+        } catch (e) {
+            throw exception.BadRequestError('BAD_REQUEST', 'getRecentActiveUser Error:' + e, null);
+        }
+    }
+
+    async getOrderAvgSalePriceCustomer(query: string) {
+        try {
+            const countArray: any = {};
+            const countArrayPos: any = {};
+            const countArrayWeb: any = {};
+            const countArrayStore: any = {};
+
+            const qData = JSON.parse(query);
+            const days = this.diffDates(new Date(qData.start), new Date(qData.end));
+            const formatEndDate = `"${Tool.replaceDatetime(qData.end)}"`;
+
+            function convertTimeZone(date: string) {
+                return `CONVERT_TZ(${date}, '+00:00', '+08:00')`;
+            }
+
+            let pass = 0;
+            await new Promise((resolve, reject) => {
+                for (let index = 0; index < days; index++) {
+                    const monthCheckoutSQL = `
+                        SELECT orderData
+                        FROM \`${this.app}\`.t_checkout
+                        WHERE
+                            DAY (${convertTimeZone('created_time')}) = DAY (DATE_SUB(${convertTimeZone(formatEndDate)}
+                            , INTERVAL ${index} DAY))
+                          AND MONTH (${convertTimeZone('created_time')}) = MONTH (DATE_SUB(${convertTimeZone(formatEndDate)}
+                            , INTERVAL ${index} DAY))
+                          AND YEAR (${convertTimeZone('created_time')}) = YEAR (DATE_SUB(${convertTimeZone(formatEndDate)}
+                            , INTERVAL ${index} DAY))
+                          AND status = 1;
+                    `;
+                    db.query(monthCheckoutSQL, []).then((data) => {
+                        pass++;
+                        let total = 0;
+                        let total_pos = 0;
+                        let total_web = 0;
+                        let total_store = 0;
+                        let pos_count = 0;
+                        let web_count = 0;
+                        let store_count = 0;
+                        data.map((checkout: any) => {
+                            if (checkout.orderData.orderSource === 'POS') {
+                                pos_count++;
+                                total_pos += parseInt(checkout.orderData.total, 10);
+                                if (qData.come_from.includes('store_') && Shopping.isComeStore(checkout.orderData, qData)) {
+                                    store_count++;
+                                    total_store += parseInt(checkout.orderData.total, 10);
+                                }
+                            } else {
+                                web_count++;
+                                total_web += parseInt(checkout.orderData.total, 10);
+                            }
+                            total += parseInt(checkout.orderData.total, 10);
+                        });
+                        countArrayStore[index] = Math.floor(total_store / store_count);
+                        countArrayPos[index] = Math.floor(total_pos / pos_count);
+                        countArrayWeb[index] = Math.floor(total_web / web_count);
+                        countArray[index] = Math.floor(total / data.length);
+                        if (pass === days) {
+                            resolve(true);
+                        }
+                    });
+                }
+            });
+
+            return {
+                countArray: Object.keys(countArray)
+                    .sort((a: any, b: any) => parseInt(a, 10) - parseInt(b, 10))
+                    .map((dd) => {
+                        return countArray[dd];
+                    }),
+                countArrayPos: Object.keys(countArrayPos)
+                    .sort((a: any, b: any) => parseInt(a, 10) - parseInt(b, 10))
+                    .map((dd) => {
+                        return countArrayPos[dd];
+                    }),
+                countArrayStore: Object.keys(countArrayStore)
+                    .sort((a: any, b: any) => parseInt(a, 10) - parseInt(b, 10))
+                    .map((dd) => {
+                        return countArrayStore[dd];
                     }),
                 countArrayWeb: Object.keys(countArrayWeb)
                     .sort((a: any, b: any) => parseInt(a, 10) - parseInt(b, 10))
@@ -4059,7 +4952,7 @@ OR JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.orderStatus')) NOT IN (-99)) `);
                         const sub = config.value[parentIndex].array.find((item: { title: string }) => {
                             return item.title === col;
                         });
-                        return {array: [], title: col, code: sub ? sub.code : ''};
+                        return { array: [], title: col, code: sub ? sub.code : '' };
                     }),
                 };
             } else {
@@ -4172,7 +5065,7 @@ OR JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.orderStatus')) NOT IN (-99)) `);
                                     WHERE \`key\` = 'collection';`;
             await db.execute(update_col_sql, [config.value]);
 
-            return {result: true};
+            return { result: true };
         } catch (e) {
             console.error(e);
             throw exception.BadRequestError('BAD_REQUEST', 'putCollection Error:' + e, null);
@@ -4203,11 +5096,9 @@ OR JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.orderStatus')) NOT IN (-99)) `);
 
                     const sortList = data.map((item) => {
                         if (index > -1) {
-                            return config.value[index].array.find((conf: {
-                                title: string
-                            }) => conf.title === item.title);
+                            return config.value[index].array.find((conf: { title: string }) => conf.title === item.title);
                         }
-                        return {title: '', array: [], code: ''};
+                        return { title: '', array: [], code: '' };
                     });
 
                     config.value[index].array = sortList;
@@ -4332,7 +5223,7 @@ OR JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.orderStatus')) NOT IN (-99)) `);
             const title = levels[0];
             let node = nodes.find((n) => n.title === title);
             if (!node) {
-                node = {title, array: []};
+                node = { title, array: [] };
                 nodes.push(node);
             }
             if (levels.length > 1) {
@@ -4361,7 +5252,6 @@ OR JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.orderStatus')) NOT IN (-99)) `);
 
     async postMulProduct(content: any) {
         try {
-
             const store_info = await new User(this.app).getConfigV2({
                 key: 'store-information',
                 user_id: 'manager',
@@ -4389,7 +5279,6 @@ OR JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.orderStatus')) NOT IN (-99)) `);
                             )[0];
 
                             if (og_data) {
-                                // console.log(`product-in==>`,product)
                                 delete product['content'];
                                 delete product['preview_image'];
                                 const og_content = og_data['content'];
@@ -4413,17 +5302,22 @@ OR JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.orderStatus')) NOT IN (-99)) `);
                         resolve(true);
                     });
                 })
-
             );
             // return
-            let max_id = (await db.query(`select max(id) from \`${this.app}\`.t_manager_post`, []))[0]['max(id)'] || 0;
+            let max_id =
+                (
+                    await db.query(
+                        `select max(id)
+                                          from \`${this.app}\`.t_manager_post`,
+                        []
+                    )
+                )[0]['max(id)'] || 0;
             const data = await db.query(
                 `replace
                 INTO \`${this.app}\`.\`t_manager_post\` (id,userID,content) values ?`,
                 [
                     productArray.map((product: any) => {
                         if (!product.id) {
-                            // console.log(`product-not-in==>`,product)
                             product.id = max_id++;
                         }
                         product.type = 'product';
@@ -4434,7 +5328,6 @@ OR JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.orderStatus')) NOT IN (-99)) `);
             );
             let insertIDStart = data.insertId;
             await new Shopping(this.app, this.token).processProducts(productArray, insertIDStart);
-            console.log("匯入OK")
             return insertIDStart;
         } catch (e) {
             console.error(e);
@@ -4510,19 +5403,17 @@ OR JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.orderStatus')) NOT IN (-99)) `);
                 if (parentTitles.length > 0) {
                     // data 為子層
                     const parentIndex = config.value.findIndex((col: { title: string }) => col.title === parentTitles);
-                    const childrenIndex = config.value[parentIndex].array.findIndex((col: {
-                        title: string
-                    }) => col.title === data.title);
+                    const childrenIndex = config.value[parentIndex].array.findIndex((col: { title: string }) => col.title === data.title);
                     const n = deleteList.findIndex((obj) => obj.parent === parentIndex);
                     if (n === -1) {
-                        deleteList.push({parent: parentIndex, child: [childrenIndex]});
+                        deleteList.push({ parent: parentIndex, child: [childrenIndex] });
                     } else {
                         deleteList[n].child.push(childrenIndex);
                     }
                 } else {
                     // data 為父層
                     const parentIndex = config.value.findIndex((col: { title: string }) => col.title === data.title);
-                    deleteList.push({parent: parentIndex, child: [-1]});
+                    deleteList.push({ parent: parentIndex, child: [-1] });
                 }
             });
 
@@ -4556,7 +5447,7 @@ OR JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.orderStatus')) NOT IN (-99)) `);
                                     WHERE \`key\` = 'collection';`;
             await db.execute(update_col_sql, [config.value]);
 
-            return {result: true};
+            return { result: true };
         } catch (e) {
             throw exception.BadRequestError('BAD_REQUEST', 'getCollectionProducts Error:' + e, null);
         }
@@ -4582,7 +5473,7 @@ OR JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.orderStatus')) NOT IN (-99)) `);
                     await this.updateProductCollection(product.content, product.id);
                 }
             }
-            return {result: true};
+            return { result: true };
         } catch (error) {
             throw exception.BadRequestError('BAD_REQUEST', 'deleteCollectionProduct Error:' + e, null);
         }
@@ -4650,14 +5541,14 @@ OR JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.orderStatus')) NOT IN (-99)) `);
             query.id && querySql.push(`(v.id = ${query.id})`);
             query.id_list && querySql.push(`(v.id in (${query.id_list}))`);
             query.collection &&
-            querySql.push(
-                `(${query.collection
-                    .split(',')
-                    .map((dd) => {
-                        return query.accurate_search_collection ? `(JSON_CONTAINS(p.content->'$.collection', '"${dd}"'))` : `(JSON_EXTRACT(p.content, '$.collection') LIKE '%${dd}%')`;
-                    })
-                    .join(' or ')})`
-            );
+                querySql.push(
+                    `(${query.collection
+                        .split(',')
+                        .map((dd) => {
+                            return query.accurate_search_collection ? `(JSON_CONTAINS(p.content->'$.collection', '"${dd}"'))` : `(JSON_EXTRACT(p.content, '$.collection') LIKE '%${dd}%')`;
+                        })
+                        .join(' or ')})`
+                );
             query.status && querySql.push(`(JSON_EXTRACT(p.content, '$.status') = '${query.status}')`);
             query.min_price && querySql.push(`(v.content->>'$.sale_price' >= ${query.min_price})`);
             query.max_price && querySql.push(`(v.content->>'$.sale_price' <= ${query.min_price})`);
@@ -4778,13 +5669,13 @@ OR JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.orderStatus')) NOT IN (-99)) `);
                     `UPDATE \`${this.app}\`.t_variants
                      SET ?
                      WHERE id = ?`,
-                    [{content: JSON.stringify(data.variant_content)}, data.id]
+                    [{ content: JSON.stringify(data.variant_content) }, data.id]
                 );
                 await db.query(
                     `UPDATE \`${this.app}\`.t_manager_post
                      SET ?
                      WHERE id = ?`,
-                    [{content: JSON.stringify(data.product_content)}, data.product_id]
+                    [{ content: JSON.stringify(data.product_content) }, data.product_id]
                 );
             }
             return {
@@ -4838,19 +5729,11 @@ OR JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.orderStatus')) NOT IN (-99)) `);
             `UPDATE \`${this.app}\`.t_invoice_memory
              SET ?
              WHERE invoice_no = ?`,
-            [{status: 2, invoice_data: JSON.stringify(dbData.invoice_data)}, obj.invoice_no]
+            [{ status: 2, invoice_data: JSON.stringify(dbData.invoice_data) }, obj.invoice_no]
         );
     }
 
-    async allowanceInvoice(obj: {
-        invoiceID: string;
-        allowanceData: any;
-        orderID: string;
-        orderData: any;
-        allowanceInvoiceTotalAmount: string;
-        itemList: any;
-        invoiceDate: string
-    }) {
+    async allowanceInvoice(obj: { invoiceID: string; allowanceData: any; orderID: string; orderData: any; allowanceInvoiceTotalAmount: string; itemList: any; invoiceDate: string }) {
         const config = await app.getAdConfig(this.app, 'invoice_setting');
         let invoiceData = await db.query(
             `

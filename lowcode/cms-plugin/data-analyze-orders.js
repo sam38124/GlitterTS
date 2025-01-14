@@ -1,5 +1,5 @@
 import { BgWidget } from '../backend-manager/bg-widget.js';
-import { DataAnalyzeModule, DataAnalyzeModuleCart } from "./data-analyze-module.js";
+import { DataAnalyzeModule, DataAnalyzeModuleCart } from './data-analyze-module.js';
 const html = String.raw;
 export class DataAnalyze {
     static main(gvc) {
@@ -10,15 +10,15 @@ export class DataAnalyze {
                 data: {},
                 filter_date: 'week',
                 come_from: 'all',
-                switch: false
+                switch: false,
+                startDate: '',
+                endDate: '',
             };
             gvc.glitter.addMtScript([
                 {
                     src: 'https://d3jnmi1tfjgtti.cloudfront.net/file/252530754/1714105121170-apexcharts.min.js',
                 },
-            ], () => {
-            }, () => {
-            });
+            ], () => { }, () => { });
             return {
                 bind: id,
                 view: () => {
@@ -36,17 +36,19 @@ export class DataAnalyze {
                             DataAnalyzeModule.salesAmount(gvc, vm),
                             DataAnalyzeModule.orderAmount(gvc, vm),
                             DataAnalyzeModule.orderAverage(gvc, vm),
-                            DataAnalyzeModule.viewPeople(gvc),
-                            DataAnalyzeModule.registerPeople(gvc),
-                            DataAnalyzeModule.transferRatio(gvc)
-                        ].map((dd) => {
-                            return `<div class="col-12 col-lg-4 col-md-6 mb-3">${dd}</div>`;
-                        }).join('')}
+                            DataAnalyzeModule.viewPeople(gvc, vm),
+                            DataAnalyzeModule.registerPeople(gvc, vm),
+                            DataAnalyzeModule.transferRatio(gvc, vm),
+                        ]
+                            .map((dd) => {
+                            return html `<div class="col-12 col-lg-4 col-md-6 mb-3 px-2">${dd}</div>`;
+                        })
+                            .join('')}
                             </div>
                         `;
                     }
                     catch (e) {
-                        console.log(e);
+                        console.error(e);
                         return `${e}`;
                     }
                 },
