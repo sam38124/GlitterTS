@@ -1663,6 +1663,7 @@ export class ShoppingProductSetting {
                     view: () => {
                         var _b, _c, _d, _e, _f, _g;
                         const language_data = postMD.language_data[vm.language];
+                        language_data.title = language_data.title && language_data.title.trim() ? language_data.title : (postMD === null || postMD === void 0 ? void 0 : postMD.title) || "Default Title";
                         language_data.content = (_b = language_data.content) !== null && _b !== void 0 ? _b : postMD.content;
                         language_data.content_array = (_c = language_data.content_array) !== null && _c !== void 0 ? _c : postMD.content_array;
                         language_data.content_json = (_d = language_data.content_json) !== null && _d !== void 0 ? _d : postMD.content_json;
@@ -1671,6 +1672,7 @@ export class ShoppingProductSetting {
                         postMD.variants.map((variant) => {
                             variant.preview_image = variant[`preview_image_${ShoppingProductSetting.select_language}`] || variant.preview_image || BgWidget.noImageURL;
                         });
+                        console.log("language_data.title -- ", language_data);
                         updateVariants();
                         return [
                             BgWidget.container(html `

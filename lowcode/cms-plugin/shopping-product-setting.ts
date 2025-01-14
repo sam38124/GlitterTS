@@ -1971,6 +1971,8 @@ export class ShoppingProductSetting {
                 view: () => {
                     //如果沒有塞入預設值
                     const language_data: any = (postMD.language_data as any)[vm.language];
+
+                    language_data.title = language_data.title && language_data.title.trim() ? language_data.title : postMD?.title || "Default Title";
                     language_data.content = language_data.content ?? postMD.content;
                     language_data.content_array = language_data.content_array ?? postMD.content_array;
                     language_data.content_json = language_data.content_json ?? postMD.content_json;
@@ -1979,6 +1981,8 @@ export class ShoppingProductSetting {
                     postMD.variants.map((variant: any) => {
                         variant.preview_image = variant[`preview_image_${ShoppingProductSetting.select_language}`] || variant.preview_image || BgWidget.noImageURL
                     })
+                    console.log("language_data.title -- " , language_data)
+                    // console.log(postMD.title)
                     updateVariants();
                     return [
                         BgWidget.container(

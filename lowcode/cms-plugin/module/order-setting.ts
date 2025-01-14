@@ -236,7 +236,6 @@ export class OrderSetting {
                                                                        item.stockList[stock.id]!.count= (item.stockList[stock.id]!.count-(new_d-original))
                                                                    }
                                                                    gvc.notifyDataChange(id)
-                                                                   console.log("item -- " , item);
                                                                 })}">
                                                         </div>`]
                                                 }).join('')}

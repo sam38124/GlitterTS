@@ -3420,7 +3420,6 @@ OR JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.orderStatus')) NOT IN (-99)) `);
         }
     }
     checkVariantDataType(variants) {
-        console.log("variants == ", variants);
         variants.map((dd) => {
             dd.stock && (dd.stock = parseInt(dd.stock, 10));
             dd.product_id && (dd.product_id = parseInt(dd.product_id, 10));

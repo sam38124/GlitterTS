@@ -160,7 +160,13 @@ class Shopee {
             const itemList = response.data.response.item;
             const productData = await Promise.all(itemList.map(async (item, index) => {
                 try {
-                    const response = await this.getProductDetail(item.item_id);
+                    try {
+                        const productData = await database_js_1.default.query(`SELECT * FROM ${this.app}.t_manager_post WHERE (content->>'$.type'='product') AND (content->>'$.shopee_id' =?);`, [item.item_id]);
+                    }
+                    catch (e) {
+                        console.error('查詢商品失敗:', e);
+                        return;
+                    }
                     return await this.getProductDetail(item.item_id);
                 }
                 catch (error) {
@@ -193,7 +199,7 @@ class Shopee {
                 return {
                     type: "error",
                     error: error.response.data.error,
-                    message: error.response.data.message.message,
+                    message: error.response.data.message,
                 };
             }
             else {
@@ -260,7 +266,7 @@ class Shopee {
                         stock: data.stock_info_v2.summary_info.total_available_stock,
                         stockList: {},
                         preview_image: "",
-                        show_understocking: "false",
+                        show_understocking: "true",
                         type: "product",
                     };
                     if (((_g = data === null || data === void 0 ? void 0 : data.image) === null || _g === void 0 ? void 0 : _g.image_url_list.length) > 0) {
@@ -295,8 +301,15 @@ class Shopee {
                 }
             }
         }
-        const data = (await database_js_1.default.execute(`select * from \`${config_js_1.saasConfig.SAAS_NAME}\`.private_config where \`app_name\`='${this.app}' and \`key\` = 'shopee_access_token'
+        let data;
+        try {
+            const sqlData = (await database_js_1.default.execute(`select * from \`${config_js_1.saasConfig.SAAS_NAME}\`.private_config where \`app_name\`='${this.app}' and \`key\` = 'shopee_access_token'
             `, []));
+            data = sqlData;
+        }
+        catch (e) {
+            console.log("get private_config shopee_access_token error : ", e);
+        }
         const timestamp = Math.floor(Date.now() / 1000);
         const partner_id = (_a = process_1.default.env.shopee_partner_id) !== null && _a !== void 0 ? _a : "";
         const api_path = "/api/v2/product/get_item_base_info";
@@ -315,13 +328,49 @@ class Shopee {
         try {
             const response = await (0, axios_1.default)(config);
             const item = response.data.response.item_list[0];
+            let origData = {};
+            try {
+                origData = await database_js_1.default.query(`SELECT * FROM \`${this.app}\`.t_manager_post WHERE (content->>'$.type'='product') AND (content->>'$.shopee_id' = ?);`, [id]);
+            }
+            catch (e) {
+            }
             let postMD;
             postMD = this.getInitial({});
+            if (origData.length > 0) {
+                postMD = Object.assign(Object.assign({}, postMD), origData[0]);
+            }
             postMD.title = item.item_name;
+            if (item.description_info.extended_description.field_list.length > 0) {
+                let temp = ``;
+                const promises = item.description_info.extended_description.field_list.map(async (item1) => {
+                    if (item1.field_type == 'image') {
+                        try {
+                            const buffer = await this.downloadImage(item1.image_info.image_url);
+                            const fileExtension = "jpg";
+                            const fileName = `shopee/${postMD.title}/${new Date().getTime()}_${item1.image_info.image_id}.${fileExtension}`;
+                            item1.image_info.s3 = await this.uploadFile(fileName, buffer);
+                        }
+                        catch (error) {
+                            console.error('下載或上傳失敗:', error);
+                        }
+                    }
+                });
+                const html = String.raw;
+                await Promise.all(promises);
+                item.description_info.extended_description.field_list.map((item) => {
+                    if (item.field_type == 'image') {
+                        temp += html `<div style="white-space: pre-wrap;"><img src="${item.image_info.s3}" alt='${item.image_info.image_id}'></div>`;
+                    }
+                    else if (item.field_type == 'text') {
+                        temp += html `<div style="white-space: pre-wrap;">${item.text}</div>`;
+                    }
+                });
+                postMD.content = temp;
+            }
             if (item.price_info) {
                 let newVariants = {
-                    sale_price: item.price_info.current_price,
-                    compare_price: item.price_info.original_price,
+                    sale_price: item.price_info[0].current_price,
+                    compare_price: item.price_info[0].original_price,
                     cost: 0,
                     spec: [],
                     profit: 0,
@@ -335,7 +384,7 @@ class Shopee {
                     stock: item.stock_info_v2.summary_info.total_available_stock,
                     stockList: {},
                     preview_image: "",
-                    show_understocking: "false",
+                    show_understocking: "true",
                     type: "product",
                 };
                 postMD.variants = [];
