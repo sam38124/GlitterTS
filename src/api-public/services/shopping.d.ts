@@ -389,7 +389,7 @@ export declare class Shopping {
     getActiveRecentYear(): Promise<{
         count_array: number[];
     }>;
-    getActiveRecentWeak(): Promise<{
+    getActiveRecentWeek(): Promise<{
         count_array: number[];
     }>;
     getActiveRecentMonth(): Promise<{
@@ -404,13 +404,13 @@ export declare class Shopping {
     getRegisterCustom(query: string): Promise<{
         countArray: any[];
     }>;
-    getRegister2weak(): Promise<{
+    getRegister2week(): Promise<{
         countArray: any[];
     }>;
     getRegisterYear(): Promise<{
         today: any;
         count_register: any[];
-        count_2_weak_register: any[];
+        count_2_week_register: any[];
     }>;
     getOrderToDay(): Promise<{
         total_count: any;
@@ -427,7 +427,7 @@ export declare class Shopping {
         previous_month_total: number;
         gap: number;
     }>;
-    getHotProducts(duration: 'month' | 'day' | 'all', date?: string): Promise<{
+    getHotProducts(duration: 'month' | 'day' | 'all', query?: string): Promise<{
         series: number[];
         categories: string[];
         product_list: {
@@ -443,7 +443,7 @@ export declare class Shopping {
         previous_month_total: any;
         gap: number;
     }>;
-    getOrdersPerMonth2Weak(query: string): Promise<{
+    getOrdersPerMonth2week(query: string): Promise<{
         countArray: any[];
         countArrayPos: any[];
         countArrayStore: any[];
@@ -474,7 +474,7 @@ export declare class Shopping {
         countArrayStore: any[];
         countArrayWeb: any[];
     }>;
-    getSalesPerMonth2Weak(query: string): Promise<{
+    getSalesPerMonth2week(query: string): Promise<{
         countArray: any[];
         countArrayPos: any[];
         countArrayStore: any[];

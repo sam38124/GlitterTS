@@ -9,7 +9,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 };
 import { ApiShop } from '../glitter-base/route/shopping.js';
 import { BgWidget } from '../backend-manager/bg-widget.js';
-import { DataAnalyzeModule } from "./data-analyze-module.js";
+import { DataAnalyzeModule } from './data-analyze-module.js';
 const html = String.raw;
 export class DataAnalyze {
     static main(gvc) {
@@ -24,7 +24,7 @@ export class DataAnalyze {
                     src: 'https://d3jnmi1tfjgtti.cloudfront.net/file/252530754/1714105121170-apexcharts.min.js',
                 },
             ], () => { }, () => { });
-            ApiShop.ecDataAnalyze('active_recent_year,active_recent_2weak,order_today,order_avg_sale_price_year,hot_products_today,recent_register,sales_per_month_2_weak,sales,orders,orders_per_month,recent_active_user,recent_sales,recent_orders,hot_products,order_avg_sale_price,sales_per_month_1_year,orders_per_month_2_weak,orders_per_month_1_year'.split(',')).then((res) => __awaiter(this, void 0, void 0, function* () {
+            ApiShop.ecDataAnalyze('active_recent_year,active_recent_2week,order_today,order_avg_sale_price_year,hot_products_today,recent_register,sales_per_month_2_week,sales,orders,orders_per_month,recent_active_user,recent_sales,recent_orders,hot_products,order_avg_sale_price,sales_per_month_1_year,orders_per_month_2_week,orders_per_month_1_year'.split(',')).then((res) => __awaiter(this, void 0, void 0, function* () {
                 vm.loading = false;
                 vm.data = res.response;
                 gvc.notifyDataChange(id);
@@ -75,7 +75,7 @@ export class DataAnalyze {
                                         ${[
                         {
                             title: '今日瀏覽人數',
-                            value: html `${vm.data.active_recent_2weak.count_array
+                            value: html `${vm.data.active_recent_2week.count_array
                                 .map((dd) => {
                                 return dd;
                             })
@@ -153,7 +153,6 @@ export class DataAnalyze {
                             </div>
                         </div>
                         <div class="row">
-                           
                             ${DataAnalyzeModule.salesAmount(gvc)}
                             ${gvc.bindView(() => {
                         const id = gvc.glitter.getUUID();
@@ -382,10 +381,10 @@ export class DataAnalyze {
                         return {
                             bind: id,
                             view: () => {
-                                return cardStructure('每日訂單總量', 'sales_per_month_2_weak', '#ffbc00', '單位: 月/日');
+                                return cardStructure('每日訂單總量', 'sales_per_month_2_week', '#ffbc00', '單位: 月/日');
                             },
                             onCreate: () => {
-                                const class_name = '.sales_per_month_2_weak';
+                                const class_name = '.sales_per_month_2_week';
                                 const interval = setInterval(function () {
                                     var _a;
                                     const element = document.querySelector(class_name);
@@ -401,7 +400,7 @@ export class DataAnalyze {
                                             series: [
                                                 {
                                                     name: '訂單量',
-                                                    data: (_a = vm.data.orders_per_month_2_weak.countArray) !== null && _a !== void 0 ? _a : [],
+                                                    data: (_a = vm.data.orders_per_month_2_week.countArray) !== null && _a !== void 0 ? _a : [],
                                                 },
                                             ],
                                             title: { text: '', align: 'center' },
@@ -499,7 +498,7 @@ export class DataAnalyze {
                                             series: [
                                                 {
                                                     name: '會員數量',
-                                                    data: (_a = vm.data.recent_register.count_2_weak_register) !== null && _a !== void 0 ? _a : [],
+                                                    data: (_a = vm.data.recent_register.count_2_week_register) !== null && _a !== void 0 ? _a : [],
                                                 },
                                             ],
                                             title: { text: '', align: 'center' },
@@ -595,7 +594,7 @@ export class DataAnalyze {
                                             series: [
                                                 {
                                                     name: '每日不重複瀏覽人數',
-                                                    data: (_a = vm.data.active_recent_2weak.count_array) !== null && _a !== void 0 ? _a : [],
+                                                    data: (_a = vm.data.active_recent_2week.count_array) !== null && _a !== void 0 ? _a : [],
                                                 },
                                             ],
                                             title: { text: '', align: 'center' },

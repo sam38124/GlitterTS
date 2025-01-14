@@ -2329,6 +2329,7 @@ OR JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.orderStatus')) NOT IN (-99)) `);
         try {
             console.log('AnalyzeTimer Start');
             const timer = {};
+            query = query || '{}';
             if (tags.length > 0) {
                 const result = {};
                 let pass = 0;
@@ -2372,8 +2373,8 @@ OR JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.orderStatus')) NOT IN (-99)) `);
                                     case 'orders_per_month_1_year':
                                         result[tag] = await this.getOrdersPerMonth1Year(query);
                                         break;
-                                    case 'orders_per_month_2_weak':
-                                        result[tag] = await this.getOrdersPerMonth2Weak(query);
+                                    case 'orders_per_month_2_week':
+                                        result[tag] = await this.getOrdersPerMonth2week(query);
                                         break;
                                     case 'orders_per_month':
                                         result[tag] = await this.getOrdersPerMonth(query);
@@ -2381,8 +2382,8 @@ OR JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.orderStatus')) NOT IN (-99)) `);
                                     case 'orders_per_month_custom':
                                         result[tag] = await this.getOrdersPerMonthCostom(query);
                                         break;
-                                    case 'sales_per_month_2_weak':
-                                        result[tag] = await this.getSalesPerMonth2Weak(query);
+                                    case 'sales_per_month_2_week':
+                                        result[tag] = await this.getSalesPerMonth2week(query);
                                         break;
                                     case 'sales_per_month_1_year':
                                         result[tag] = await this.getSalesPerMonth1Year(query);
@@ -2395,6 +2396,9 @@ OR JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.orderStatus')) NOT IN (-99)) `);
                                         break;
                                     case 'order_today':
                                         result[tag] = await this.getOrderToDay();
+                                        break;
+                                    case 'recent_register_today':
+                                        result[tag] = await this.getRegisterYear();
                                         break;
                                     case 'recent_register_week':
                                         result[tag] = await this.getRegisterYear();
@@ -2417,8 +2421,8 @@ OR JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.orderStatus')) NOT IN (-99)) `);
                                     case 'active_recent_year':
                                         result[tag] = await this.getActiveRecentYear();
                                         break;
-                                    case 'active_recent_2weak':
-                                        result[tag] = await this.getActiveRecentWeak();
+                                    case 'active_recent_2week':
+                                        result[tag] = await this.getActiveRecentWeek();
                                         break;
                                 }
                                 timer[tag] = (new Date().getTime() - start.getTime()) / 1000;
@@ -2510,7 +2514,7 @@ OR JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.orderStatus')) NOT IN (-99)) `);
             count_array: result.reverse(),
         };
     }
-    async getActiveRecentWeak() {
+    async getActiveRecentWeek() {
         const sql = `
             SELECT mac_address, CONVERT_TZ(created_time, '+00:00', '+08:00') AS created_time
             FROM \`${config_js_1.saasConfig.SAAS_NAME}\`.t_monitor
@@ -2722,7 +2726,7 @@ OR JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.orderStatus')) NOT IN (-99)) `);
             throw exception_js_1.default.BadRequestError('BAD_REQUEST', 'getRecentActiveUser Error:' + e, null);
         }
     }
-    async getRegister2weak() {
+    async getRegister2week() {
         try {
             function convertTimeZone(date) {
                 return `CONVERT_TZ(${date}, '+00:00', '+08:00')`;
@@ -2807,7 +2811,7 @@ OR JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.orderStatus')) NOT IN (-99)) `);
                     return countArray[dd];
                 })
                     .reverse(),
-                count_2_weak_register: (await this.getRegister2weak()).countArray,
+                count_2_week_register: (await this.getRegister2week()).countArray,
             };
         }
         catch (e) {
@@ -2906,8 +2910,62 @@ OR JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.orderStatus')) NOT IN (-99)) `);
             throw exception_js_1.default.BadRequestError('BAD_REQUEST', 'getRecentActiveUser Error:' + e, null);
         }
     }
-    async getHotProducts(duration, date) {
+    async getHotProducts(duration, query) {
         try {
+            const qData = JSON.parse(query || '{}');
+            console.log(qData);
+            const sqlArray = ['1=1'];
+            if (qData.filter_date === 'custom' && qData.start && qData.end) {
+                const formatStartDate = `"${tool_js_1.default.replaceDatetime(qData.start)}"`;
+                const formatEndDate = `"${tool_js_1.default.replaceDatetime(qData.end)}"`;
+                sqlArray.push(`
+                    (CONVERT_TZ(created_time, '+00:00', '+08:00') 
+                    BETWEEN CONVERT_TZ(${formatStartDate}, '+00:00', '+08:00') 
+                    AND CONVERT_TZ(${formatEndDate}, '+00:00', '+08:00'))
+                `);
+            }
+            if (qData.come_from) {
+                switch (qData.come_from) {
+                    case 'all':
+                        break;
+                    case 'website':
+                        sqlArray.push(`
+                            (orderData->>'$.orderSource' <> 'POS')
+                        `);
+                        break;
+                    case 'store':
+                        sqlArray.push(`
+                            (orderData->>'$.orderSource' = 'POS')
+                        `);
+                        break;
+                    default:
+                        sqlArray.push(`
+                            (orderData->>'$.pos_info.where_store' = '${qData.come_from}')
+                        `);
+                        break;
+                }
+            }
+            if (qData.filter_date) {
+                const text = (() => {
+                    switch (qData.filter_date) {
+                        case 'today':
+                            return '1 DAY';
+                        case 'week':
+                            return '7 DAY';
+                        case '1m':
+                            return '30 DAY';
+                        case 'year':
+                            return '1 YEAR';
+                    }
+                })();
+                if (text) {
+                    sqlArray.push(`
+                        CONVERT_TZ(created_time, '+00:00', '+08:00') 
+                        BETWEEN (DATE_SUB(CONVERT_TZ(CURDATE(), '+00:00', '+08:00'), INTERVAL ${text})) 
+                        AND CONVERT_TZ(CURDATE(), '+00:00', '+08:00')
+                    `);
+                }
+            }
             const checkoutSQL = `
                 SELECT *
                 FROM \`${this.app}\`.t_checkout
@@ -2919,10 +2977,11 @@ OR JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.orderStatus')) NOT IN (-99)) `);
                     case 'month':
                         return `(created_time BETWEEN DATE_SUB(NOW(), INTERVAL 1 MONTH) AND NOW())`;
                     case 'all':
-                        return `1=1`;
+                        return sqlArray.join(' AND ');
                 }
             })()};
             `;
+            console.log(checkoutSQL);
             const checkouts = await database_js_1.default.query(checkoutSQL, []);
             const series = [];
             const categories = [];
@@ -2992,7 +3051,7 @@ OR JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.orderStatus')) NOT IN (-99)) `);
             throw exception_js_1.default.BadRequestError('BAD_REQUEST', 'getRecentActiveUser Error:' + e, null);
         }
     }
-    async getOrdersPerMonth2Weak(query) {
+    async getOrdersPerMonth2week(query) {
         try {
             const qData = JSON.parse(query);
             const countArray = {};
@@ -3398,7 +3457,7 @@ OR JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.orderStatus')) NOT IN (-99)) `);
             throw exception_js_1.default.BadRequestError('BAD_REQUEST', 'getRecentActiveUser Error:' + e, null);
         }
     }
-    async getSalesPerMonth2Weak(query) {
+    async getSalesPerMonth2week(query) {
         try {
             const countArray = {};
             const countArrayPos = {};
@@ -3512,7 +3571,7 @@ OR JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.orderStatus')) NOT IN (-99)) `);
                         data.map((checkout) => {
                             if (checkout.orderData.orderSource === 'POS') {
                                 total_pos += parseInt(checkout.orderData.total, 10);
-                                if (qData.come_from.includes('store_') && Shopping.isComeStore(checkout.orderData, qData)) {
+                                if (qData.come_from && qData.come_from.includes('store_') && Shopping.isComeStore(checkout.orderData, qData)) {
                                     total_store += parseInt(checkout.orderData.total, 10);
                                 }
                             }
