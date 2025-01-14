@@ -517,6 +517,35 @@ export class ApiPublic {
   UNIQUE KEY \`order_id_UNIQUE\` (\`order_id\`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci`,
                 },
+                {
+                    scheme: appName,
+                    table: `t_check_in_pos`,
+                    sql: `(
+  \`id\` INT NOT NULL AUTO_INCREMENT,
+  \`staff\` VARCHAR(45) NOT NULL,
+  \`execute\` VARCHAR(45) NOT NULL,
+  \`create_time\` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (\`id\`),
+  INDEX \`index2\` (\`staff\` ASC) VISIBLE,
+  INDEX \`index3\` (\`create_time\` ASC) VISIBLE,
+  INDEX \`index4\` (\`execute\` ASC) VISIBLE);
+`,
+                },
+                {
+                    scheme: appName,
+                    table: `t_pos_summary`,
+                    sql: `(
+  \`id\` INT NOT NULL AUTO_INCREMENT,
+  \`staff\` VARCHAR(45) NOT NULL,
+  \`summary_type\` VARCHAR(45) NOT NULL,
+  \`content\` JSON NOT NULL,
+  \`created_time\` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (\`id\`),
+  INDEX \`index2\` (\`staff\` ASC) VISIBLE,
+  INDEX \`index3\` (\`summary_type\` ASC) VISIBLE,
+  INDEX \`index4\` (\`created_time\` ASC) VISIBLE);
+`,
+                }
             ];
             for (const b of chunkArray(sqlArray, groupSize)) {
                 let check = b.length;

@@ -78,6 +78,8 @@ app.use(public_contollers);
 
 export async function initial(serverPort: number) {
     await (async () => {
+        //統一設定時區為UTC
+        process.env.TZ = 'UTC';
         await database.createPool();
         await Ai.initial();
         await SaasScheme.createScheme();

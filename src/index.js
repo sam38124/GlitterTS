@@ -96,6 +96,7 @@ exports.app.use(contollers);
 exports.app.use(public_contollers);
 async function initial(serverPort) {
     await (async () => {
+        process.env.TZ = 'UTC';
         await database_1.default.createPool();
         await ai_js_1.Ai.initial();
         await saas_table_check_1.SaasScheme.createScheme();

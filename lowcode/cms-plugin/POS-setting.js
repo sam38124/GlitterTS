@@ -26,10 +26,12 @@ import { UserList } from "./user-list.js";
 import { TempOrder } from "./pos-pages/temp-order.js";
 import { PosSummary } from "./pos-pages/pos-summary.js";
 import { ApiPos } from "../glitter-base/route/pos.js";
+import { PosWidget } from "./pos-widget.js";
 function getConfig() {
     const saasConfig = window.parent.saasConfig;
     return saasConfig;
 }
+const css = String.raw;
 export class POSSetting {
     static loginManager(gvc, mode, result) {
         const dialog = new ShareDialog(gvc.glitter);
@@ -269,6 +271,7 @@ height: 51px;
                         });
                         store_list = store_list.response.value.list;
                         glitter.share.store_list = store_list;
+                        glitter.share.work_status = work_status.response.status;
                         glitter.share.member_auth_list = member_auth;
                         try {
                             const login_user = GlobalUser.parseJWT(GlobalUser.saas_token).payload.userID;
@@ -483,54 +486,54 @@ height: 51px;
             }
         }
         gvc.addStyle(`
-                        .product-show{
-                        -ms-overflow-style: none;
-                        scrollbar-width: none;
-                        
-                        }
-                        .product-show::-webkit-scrollbar {
-                            display: none;  /* Chrome, Safari, Opera */
-                        }
-                          .hoverHidden div {
+            .product-show{
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+
+            }
+            .product-show::-webkit-scrollbar {
+            display: none;  /* Chrome, Safari, Opera */
+            }
+            .hoverHidden div {
             display: none;
-        }
+            }
 
-        .hoverHidden:hover div {
+            .hoverHidden:hover div {
             display: flex;
-        }
+            }
 
-        .tooltip {
+            .tooltip {
             z-index: 99999 !important;
-        }
+            }
 
-        .scroll-in {
+            .scroll-in {
             animation: slideInFromLeft 0.3s ease-out forwards;
-        }
+            }
 
-        .scroll-out {
+            .scroll-out {
             left: 0%; /* 將元素移到畫面外 */
             animation: slideOutFromLeft 0.3s ease-out forwards;
-        }
+            }
 
-        /* @keyframes 定義動畫 */
-        @keyframes slideInFromLeft {
+            /* @keyframes 定義動畫 */
+            @keyframes slideInFromLeft {
             0% {
-                left: -120%; /* 起始位置在畫面外 */
+            left: -120%; /* 起始位置在畫面外 */
             }
             100% {
-                left: 0; /* 結束位置在畫面內 */
+            left: 0; /* 結束位置在畫面內 */
             }
-        }
-        /* @keyframes 定義動畫 */
-        @keyframes slideOutFromLeft {
+            }
+            /* @keyframes 定義動畫 */
+            @keyframes slideOutFromLeft {
             0% {
-                left: 0; /* 起始位置在畫面外 */
+            left: 0; /* 起始位置在畫面外 */
             }
             100% {
-                left: -120%; /* 結束位置在畫面內 */
+            left: -120%; /* 結束位置在畫面內 */
             }
-        }
-                    `);
+            }
+        `);
         const apConfig = (ApiUser.getPublicConfig('store-information', 'manager')).then((res) => {
             PayConfig.pos_config = res.response.value;
             vm.loading = false;
@@ -544,9 +547,10 @@ height: 51px;
                 bind: vm.id,
                 view: () => {
                     if (vm.loading) {
-                        return `<div class="d-flex align-items-center justify-content-center p-3">
-<div class="spinner-border"></div>
-</div>`;
+                        return html `
+                                <div class="d-flex align-items-center justify-content-center p-3">
+                                    <div class="spinner-border"></div>
+                                </div>`;
                     }
                     try {
                         loadOrderData();
@@ -691,7 +695,8 @@ ${document.body.clientWidth < 800 ? `` : `position: absolute;left: 50%;top:50%;t
                                                                          style="gap:10px;">
                                                                         <div class="ps-2 text-start">
 
-                                                                            <div class="" style="color: #393939;
+                                                                            <div class="d-flex align-items-center"
+                                                                                 style="color: #393939;
                                                                         font-size: 18px;
                                                                         font-style: normal;
                                                                         font-weight: 400;
@@ -713,7 +718,25 @@ ${document.body.clientWidth < 800 ? `` : `position: absolute;left: 50%;top:50%;t
                                         }).name}
                                                                                 </div>
                                                                             </div>
-
+                                                                            <div class="d-flex align-items-center mt-1">
+                                                                                ${(glitter.share.work_status === 'off_work') ? html `
+                                                                                            <div class="rounded-circle "
+                                                                                                 style="width:8px;height: 8px;background: #fe5541;">
+                                                                                            </div>
+                                                                                            <div class="fw-500 ms-1"
+                                                                                                 style="font-size: 12px;">
+                                                                                                已下班
+                                                                                            </div>
+                                                                                        ` : html `
+                                                                                            <div class="rounded-circle "
+                                                                                                 style="width:8px;height: 8px;background: #33a252;">
+                                                                                            </div>
+                                                                                            <div class="fw-500 ms-1"
+                                                                                                 style="font-size: 12px;">
+                                                                                                上班中
+                                                                                            </div>
+                                                                                        `}
+                                                                            </div>
                                                                         </div>
                                                                         <i class="fa-regular fa-angle-down fs-6"></i>
                                                                     </div>
@@ -740,13 +763,49 @@ ${document.body.clientWidth < 800 ? `` : `position: absolute;left: 50%;top:50%;t
                                             })(),
                                             ...(() => {
                                                 if (glitter.share.select_member.config.support_shop.length > 1) {
-                                                    return [`<a
-                                                                                    class="dropdown-item cursor_pointer d-flex align-items-center" style="gap:5px;"
-                                                                                    onclick="${gvc.event(() => {
+                                                    return [html `<a
+                                                                                        class="dropdown-item cursor_pointer d-flex align-items-center"
+                                                                                        style="gap:5px;"
+                                                                                        onclick="${gvc.event(() => {
                                                             PosFunction.selectStoreSwitch(gvc);
                                                         })}">
-                                                                               <i class="fa-solid fa-store me-1"></i>切換門市
-                                                                            </a>`];
+                                                                                    <i class="fa-solid fa-store me-1"></i>切換門市
+                                                                                </a>`];
+                                                }
+                                                else {
+                                                    return [];
+                                                }
+                                            })(),
+                                            ...(() => {
+                                                if (glitter.share.work_status === 'on_work') {
+                                                    return [html `<a
+                                                                                        class="dropdown-item cursor_pointer d-flex align-items-center"
+                                                                                        style="gap:5px;"
+                                                                                        onclick="${gvc.event(() => {
+                                                            const dialog = new ShareDialog(gvc.glitter);
+                                                            dialog.checkYesOrNot({
+                                                                text: html `是否確認打卡下班?
+                                                                                                <br><span style="font-size:13px;color:gray;">*打卡下班前請記得填寫小結單*</span>`,
+                                                                callback: (response) => {
+                                                                    if (response) {
+                                                                        dialog.dataLoading({ visible: true });
+                                                                        ApiPos.setWorkStatus({
+                                                                            status: 'off_work'
+                                                                        }).then((res) => {
+                                                                            dialog.dataLoading({ visible: false });
+                                                                            if (!res.result) {
+                                                                                dialog.errorMessage({ text: '打卡異常' });
+                                                                            }
+                                                                            else {
+                                                                                gvc.recreateView();
+                                                                            }
+                                                                        });
+                                                                    }
+                                                                }
+                                                            });
+                                                        })}">
+                                                                                    <i class="fa-sharp fa-solid fa-right-from-bracket me-1  fs-6"></i>打卡下班
+                                                                                </a>`];
                                                 }
                                                 else {
                                                     return [];
@@ -874,6 +933,9 @@ ${document.body.clientWidth < 800 ? `` : `position: absolute;left: 50%;top:50%;t
                             view: () => __awaiter(this, void 0, void 0, function* () {
                                 let view = (() => {
                                     try {
+                                        if (glitter.share.work_status === 'off_work') {
+                                            return PosWidget.checkInView(gvc);
+                                        }
                                         OrderDetail.singleInstance = orderDetail;
                                         orderDetail.user_info.shipment = orderDetail.user_info.shipment || 'now';
                                         if (vm.type == 'payment') {
@@ -1031,7 +1093,7 @@ ${document.body.clientWidth < 800 ? `` : `position: absolute;left: 50%;top:50%;t
                                                     <i class="fa-solid fa-list-check fs-4" style="color:#393939;"></i>`,
                                         unselectIcon: html `
                                                     <i class="fa-solid fa-list-check fs-4" style="color:#8d8d8d;"></i>`,
-                                        title: `小結單`,
+                                        title: `小結`,
                                         type: `summary`,
                                     }
                                 ];

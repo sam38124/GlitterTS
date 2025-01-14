@@ -2601,9 +2601,10 @@ export class Shopping {
             if (query.created_time) {
                 const created_time = query.created_time.split(',');
                 if (created_time.length > 1) {
+
                     querySql.push(`
-                        (created_time BETWEEN ${db.escape(`${created_time[0]} 00:00:00`)} 
-                        AND ${db.escape(`${created_time[1]} 23:59:59`)})
+                        (created_time BETWEEN ${db.escape(`${created_time[0]}`)} 
+                        AND ${db.escape(`${created_time[1]}`)})
                     `);
                 }
             }

@@ -714,7 +714,7 @@ ${obj.gvc.bindView({
                                                             onCreate: () => {
 
                                                                 gvc.glitter.document.querySelector(`[gvc-id="${component}"]`).onResumeEvent=()=>{
-                                                                    alert('ss')
+
                                                                 }
                                                             },
                                                         }

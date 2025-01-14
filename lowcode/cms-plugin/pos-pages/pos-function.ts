@@ -271,7 +271,7 @@ export class PosFunction {
     }
 
     //SetMoney
-    public static setMoney(gvc: GVC, callback: (money: number) => void) {
+    public static setMoney(gvc: GVC, callback: (money: number) => void,title?:string) {
         gvc.glitter.innerDialog((gvc) => {
             const c_vm = {
                 text: '',
@@ -285,7 +285,7 @@ export class PosFunction {
                             <div style="flex-direction: column; justify-content: flex-start; align-items: flex-start; gap: 20px; display: inline-flex">
                                 <div style="align-self: stretch; justify-content: center; align-items: flex-start; display: inline-flex">
                                     <div class="fw-bold" style="text-align: center; color: #585858; font-size: 28px;">
-                                        輸入收款金額
+                                        ${title || '輸入收款金額'}
                                     </div>
                                 </div>
                                 <div class="border w-100 p-3 rounded-3 border d-flex align-items-center justify-content-end"

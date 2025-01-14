@@ -13,6 +13,7 @@
     "dependencies": {
         "@types/jquery": "^3.5.14",
         "ts-glitter": "^1.5.1",
+        "moment": "^2.30.1",
         "ts-node": "^10.9.1",
         "tscpaths": "^0.0.9",
         "typescript": "~4.4.4"

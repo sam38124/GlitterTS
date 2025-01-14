@@ -10,6 +10,8 @@ export class ShareDialog {
     public successMessage = (obj: { text?: string }) => {
     };
     public checkYesOrNot: (obj: { callback:(response:boolean)=>void, text: string }) => void;
+
+
     public policy: () => void;
 
     constructor(glitter: Glitter) {
@@ -39,6 +41,7 @@ export class ShareDialog {
                 },title:obj.text
             })
         }
+
 
     }
 }

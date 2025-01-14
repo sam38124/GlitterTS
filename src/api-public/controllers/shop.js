@@ -17,6 +17,7 @@ const post_js_1 = require("../services/post.js");
 const shopping_1 = require("../services/shopping");
 const rebate_1 = require("../services/rebate");
 const axios_1 = __importDefault(require("axios"));
+const pos_js_1 = require("../services/pos.js");
 const router = express_1.default.Router();
 router.post('/worker', async (req, resp) => {
     try {
@@ -1226,10 +1227,42 @@ router.post('/allowance_invoice', async (req, resp) => {
         return response_1.default.fail(resp, err);
     }
 });
+router.post('/pos/summary', async (req, resp) => {
+    try {
+        await new pos_js_1.Pos(req.get('g-app'), req.body.token).setSummary(req.body);
+        return response_1.default.succ(resp, {
+            result: true
+        });
+    }
+    catch (err) {
+        return response_1.default.fail(resp, err);
+    }
+});
 router.get('/pos/summary', async (req, resp) => {
     try {
-        let passData = {};
-        return await new shopping_1.Shopping(req.get('g-app'), req.body.token);
+        return response_1.default.succ(resp, {
+            data: await new pos_js_1.Pos(req.get('g-app'), req.body.token).getSummary()
+        });
+    }
+    catch (err) {
+        return response_1.default.fail(resp, err);
+    }
+});
+router.get('/pos/work-status', async (req, resp) => {
+    try {
+        return response_1.default.succ(resp, {
+            status: await new pos_js_1.Pos(req.get('g-app'), req.body.token).getWorkStatus()
+        });
+    }
+    catch (err) {
+        return response_1.default.fail(resp, err);
+    }
+});
+router.post('/pos/work-status', async (req, resp) => {
+    try {
+        return response_1.default.succ(resp, {
+            status: await new pos_js_1.Pos(req.get('g-app'), req.body.token).setWorkStatus(req.body)
+        });
     }
     catch (err) {
         return response_1.default.fail(resp, err);

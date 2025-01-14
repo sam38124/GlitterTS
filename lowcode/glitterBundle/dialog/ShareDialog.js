@@ -62,5 +62,13 @@ export class ShareDialog {
                 type: 'policy',
             });
         };
+        this.customCheck = (obj) => {
+            glitter.openDiaLog('glitterBundle/dialog/dialog.js', 'input_text', {
+                type: 'input_text', callback: (response) => {
+                    glitter.closeDiaLog('input_text');
+                    obj.callback(response);
+                }, title: obj.text
+            });
+        };
     }
 }

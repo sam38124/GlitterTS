@@ -1996,8 +1996,8 @@ class Shopping {
                 const created_time = query.created_time.split(',');
                 if (created_time.length > 1) {
                     querySql.push(`
-                        (created_time BETWEEN ${database_js_1.default.escape(`${created_time[0]} 00:00:00`)} 
-                        AND ${database_js_1.default.escape(`${created_time[1]} 23:59:59`)})
+                        (created_time BETWEEN ${database_js_1.default.escape(`${created_time[0]}`)} 
+                        AND ${database_js_1.default.escape(`${created_time[1]}`)})
                     `);
                 }
             }

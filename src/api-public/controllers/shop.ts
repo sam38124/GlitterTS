@@ -15,6 +15,7 @@ import { Rebate, IRebateSearch } from '../services/rebate';
 import axios from 'axios';
 import { saasConfig } from '../../config.js';
 import { Stock } from '../services/stock.js';
+import {Pos} from "../services/pos.js";
 
 const router: express.Router = express.Router();
 export = router;
@@ -1358,12 +1359,47 @@ router.post('/allowance_invoice', async (req: express.Request, resp: express.Res
 });
 
 //新增小結單
+router.post('/pos/summary',async (req: express.Request, resp: express.Response) =>{
+    try {
+        await new Pos(req.get('g-app') as string, req.body.token).setSummary(req.body)
+        return response.succ(resp, {
+            result:true
+        });
+    }catch (err) {
+        return response.fail(resp, err);
+    }
+})
+
+//取得小結單
 router.get('/pos/summary',async (req: express.Request, resp: express.Response) =>{
     try {
-        let passData={
 
-        }
-        return await new Shopping(req.get('g-app') as string, req.body.token)
+        return response.succ(resp, {
+            data:await new Pos(req.get('g-app') as string, req.body.token).getSummary()
+        });
+    }catch (err) {
+        return response.fail(resp, err);
+    }
+})
+
+//取得上班狀態
+router.get('/pos/work-status',async (req: express.Request, resp: express.Response) =>{
+    try {
+
+        return response.succ(resp, {
+            status:await new Pos(req.get('g-app') as string, req.body.token).getWorkStatus()
+        });
+    }catch (err) {
+        return response.fail(resp, err);
+    }
+})
+//取得上班狀態
+router.post('/pos/work-status',async (req: express.Request, resp: express.Response) =>{
+    try {
+
+        return response.succ(resp, {
+            status:await new Pos(req.get('g-app') as string, req.body.token).setWorkStatus(req.body)
+        });
     }catch (err) {
         return response.fail(resp, err);
     }
