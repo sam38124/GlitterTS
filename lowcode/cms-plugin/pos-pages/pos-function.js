@@ -644,22 +644,23 @@ ${PosWidget.fontBold('總金額')}
 </div>
 </div>`,
                                 TempOrder.getTempOrders().reverse().map((dd) => {
-                                    return html `
+                                    try {
+                                        return html `
                                         <div class="d-flex align-items-center justify-content-center w-100 mt-lg-4 mt-1"
                                              style="height:40px;">
                                             <div class="d-flex" style="flex:160;color:#36B;cursor: pointer;"
                                                  onclick="${gvc.event(() => {
-                                        PaymentPage.storeHistory(dd);
-                                        gvc.closeDialog();
-                                        localStorage.setItem('show_pos_page', 'payment');
-                                        gvc.glitter.share.reloadPosPage();
-                                    })}">
+                                            PaymentPage.storeHistory(dd);
+                                            gvc.closeDialog();
+                                            localStorage.setItem('show_pos_page', 'payment');
+                                            gvc.glitter.share.reloadPosPage();
+                                        })}">
                                                 ${gvc.glitter.ut.dateFormat(new Date(dd.reserve_date), 'yyyy-MM-dd hh:mm:ss')}
                                             </div>
                                             <div class="d-flex" style="flex:94;">
                                                 ${dd.lineItems.map((dd) => {
-                                        return dd.count;
-                                    }).reduce((a, b) => a + b)}
+                                            return dd.count;
+                                        }).reduce((a, b) => a + b)}
                                             </div>
                                             <div class="d-flex" style="flex:54;">
                                                 ${dd.subtotal.toLocaleString()}
@@ -667,12 +668,17 @@ ${PosWidget.fontBold('總金額')}
                                             <div class="d-flex" style="flex:34;">
                                                 <i class="fa-solid fa-xmark fs-5" style="cursor: pointer;"
                                                    onclick="${gvc.event(() => {
-                                        TempOrder.removeTempOrders(dd.orderID);
-                                        gvc.glitter.share.reloadPosPage();
-                                        gvc.closeDialog();
-                                    })}"></i>
+                                            TempOrder.removeTempOrders(dd.orderID);
+                                            gvc.glitter.share.reloadPosPage();
+                                            gvc.closeDialog();
+                                        })}"></i>
                                             </div>
                                         </div>`;
+                                    }
+                                    catch (e) {
+                                        console.log(e);
+                                        return ``;
+                                    }
                                 }).join(''),
                                 `<i class="fa-solid fa-xmark position-absolute fs-5" style="right: 20px;top:20px;cursor: pointer;" onclick="${gvc.event(() => {
                                     gvc.closeDialog();
@@ -680,6 +686,7 @@ ${PosWidget.fontBold('總金額')}
                             ].join('');
                         }
                         catch (e) {
+                            console.log(e);
                             return `${e}`;
                         }
                     },

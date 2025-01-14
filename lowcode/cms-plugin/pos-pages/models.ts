@@ -123,11 +123,6 @@ export  type ViewModel = {
     searchable: boolean;
     categorySearch: boolean;
     categories: any[];
-    paySelect: {
-        method:'cash'|'creditCard'|'line',
-        total:number,
-        paied?:boolean
-    }[];
     loading:boolean
 };
 

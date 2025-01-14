@@ -1226,5 +1226,14 @@ router.post('/allowance_invoice', async (req, resp) => {
         return response_1.default.fail(resp, err);
     }
 });
+router.get('/pos/summary', async (req, resp) => {
+    try {
+        let passData = {};
+        return await new shopping_1.Shopping(req.get('g-app'), req.body.token);
+    }
+    catch (err) {
+        return response_1.default.fail(resp, err);
+    }
+});
 module.exports = router;
 //# sourceMappingURL=shop.js.map

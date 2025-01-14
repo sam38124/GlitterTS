@@ -17,6 +17,7 @@ import {ApiPageConfig} from '../api/pageConfig.js';
 import {Language} from "../glitter-base/global/language.js";
 import {OrderSetting} from "./module/order-setting.js";
 import {CountryTw} from "../modules/country-language/country-tw.js";
+import {PaymentPage} from "./pos-pages/payment-page.js";
 
 interface VoucherData {
     id: number;
@@ -611,8 +612,6 @@ export class ShoppingOrderManager {
                                                                         <div class="d-flex align-items-center gap-2">
                                                                             ${dd.cart_token}${(() => {
                                                                                 switch (dd.orderData.orderSource) {
-                                                                                    case 'POS':
-                                                                                        return BgWidget.notifyInsignia('POS');
                                                                                     case 'manual':
                                                                                         return BgWidget.primaryInsignia('手動');
                                                                                     default:
@@ -1313,7 +1312,6 @@ export class ShoppingOrderManager {
                                                                             return storeList.map((store: any) => {
                                                                                 let returnHtml = ``;
                                                                                 orderData.orderData.lineItems.map((item: any) => {
-                                                                                    console.log(`item.deduction_log=>`, item.deduction_log)
                                                                                     try {
                                                                                         if (item.deduction_log[store.id]) {
                                                                                             returnHtml += html`
@@ -4027,12 +4025,12 @@ export class ShoppingOrderManager {
                                 case 'cash':
                                     return '現金'
                             }
-                        })()}付款 『 <span class="fw-500" style="color:#E85757;">$ ${dd.total.toLocaleString()}</span> 』`;
+                        })()}付款<span class="fw-500" style="color:#E85757;"> $${dd.total.toLocaleString()}</span>`;
                     })
                     if (pay_total < orderData.total) {
                         map_.push(html`
                             <div class="d-flex align-items-center">
-                                <span class="fw-500 text-danger">付款金額尚不足</span>
+                                <span class="fw-500 text-danger">付款金額不足</span>
                                 <div class="mx-1"></div>
                                 <span class="fw-500"> $${(orderData.total - pay_total).toLocaleString()}</span>
                                 <div class="mx-1"></div>
@@ -4043,16 +4041,19 @@ export class ShoppingOrderManager {
                                                 size: 'sm',
                                             },
                                             text: {
-                                                name: '補足款項'
+                                                name: '前往結帳'
                                             },
                                             event: gvc.event(() => {
-
+                                                PaymentPage.storeHistory(orderData);
+                                                gvc.closeDialog()
+                                                localStorage.setItem('show_pos_page', 'payment')
+                                                gvc.glitter.share.reloadPosPage()
                                             })
                                         }
                                 )}
                             </div>`)
                     }
-                    return map_.join('<div class="my-2 border-top"></div>')
+                    return map_.join('<div class="w-100"></div>')
                 }
             })()}
             `

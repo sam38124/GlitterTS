@@ -539,6 +539,36 @@ class Shopping {
                     throw exception_js_1.default.BadRequestError('BAD_REQUEST', 'ToCheckout 1 Error:Cant find this orderID.', null);
                 }
             }
+            if (data.order_id && type === 'POS') {
+                const order = (await database_js_1.default.query(`select * from \`${this.app}\`.t_checkout where cart_token='${data.order_id}'`, []))[0];
+                if (order) {
+                    for (const b of order.orderData.lineItems) {
+                        const pdDqlData = (await this.getProduct({
+                            page: 0,
+                            limit: 50,
+                            id: b.id,
+                            status: 'inRange',
+                            channel: data.checkOutType === 'POS' ? 'pos' : undefined,
+                        })).data;
+                        const pd = pdDqlData.content;
+                        const variant = pd.variants.find((dd) => {
+                            return dd.spec.join('-') === b.spec.join('-');
+                        });
+                        Object.keys(b.deduction_log).map((dd) => {
+                            try {
+                                variant.stockList[dd].count += b.deduction_log[dd];
+                            }
+                            catch (e) {
+                            }
+                        });
+                        await this.updateVariantsWithSpec(variant, b.id, b.spec);
+                        await database_js_1.default.query(`UPDATE \`${this.app}\`.\`t_manager_post\`
+                                             SET ?
+                                             WHERE 1 = 1
+                                               and id = ${pdDqlData.id}`, [{ content: JSON.stringify(pd) }]);
+                    }
+                }
+            }
             if (data.checkOutType === 'POS') {
                 this.token = undefined;
             }
@@ -1141,7 +1171,7 @@ class Shopping {
                     carData.orderStatus = '1';
                     carData.progress = 'finish';
                 }
-                await trans.execute(`INSERT INTO \`${this.app}\`.t_checkout (cart_token, status, email, orderData)
+                await trans.execute(`replace INTO \`${this.app}\`.t_checkout (cart_token, status, email, orderData)
                      values (?, ?, ?, ?)`, [carData.orderID, data.pay_status, carData.email, JSON.stringify(carData)]);
                 if (data.invoice_select !== 'nouse') {
                     carData.invoice = await new invoice_js_1.Invoice(this.app).postCheckoutInvoice(carData, carData.user_info.send_type !== 'carrier');
@@ -2981,7 +3011,6 @@ OR JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.orderStatus')) NOT IN (-99)) `);
                 }
             })()};
             `;
-            console.log(checkoutSQL);
             const checkouts = await database_js_1.default.query(checkoutSQL, []);
             const series = [];
             const categories = [];

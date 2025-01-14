@@ -35,9 +35,17 @@ const AWSLib_js_1 = __importDefault(require("../../modules/AWSLib.js"));
 const crypto_1 = __importDefault(require("crypto"));
 const process_1 = __importDefault(require("process"));
 const qs_1 = __importDefault(require("qs"));
-const mime_1 = __importDefault(require("mime"));
 const shopping_js_1 = require("./shopping.js");
+const mime = require('mime');
 class Shopee {
+    static get path() {
+        if (process_1.default.env.shopee_beta === 'true') {
+            return `https://partner.test-stable.shopeemobile.com`;
+        }
+        else {
+            return `https://partner.shopeemobile.com`;
+        }
+    }
     constructor(app, token) {
         this.getDateTime = (n = 0) => {
             const now = new Date();
@@ -54,14 +62,12 @@ class Shopee {
         this.token = token;
     }
     generateUrl(partner_id, api_path, timestamp) {
-        const path = "https://partner.test-stable.shopeemobile.com";
         const sign = this.cryptoSign(partner_id, api_path, timestamp);
-        return `${path}${api_path}?partner_id=${partner_id}&timestamp=${timestamp}&sign=${sign}`;
+        return `${Shopee.path}${api_path}?partner_id=${partner_id}&timestamp=${timestamp}&sign=${sign}`;
     }
     generateShopUrl(partner_id, api_path, timestamp, access_token, shop_id) {
-        const path = "https://partner.test-stable.shopeemobile.com";
         const sign = this.cryptoSign(partner_id, api_path, timestamp, access_token, shop_id);
-        return `${path}${api_path}?partner_id=${partner_id}&timestamp=${timestamp}&sign=${sign}`;
+        return `${Shopee.path}${api_path}?partner_id=${partner_id}&timestamp=${timestamp}&sign=${sign}`;
     }
     cryptoSign(partner_id, api_path, timestamp, access_token, shop_id) {
         const baseString = `${partner_id}${api_path}${timestamp}${access_token !== null && access_token !== void 0 ? access_token : ""}${shop_id !== null && shop_id !== void 0 ? shop_id : ""}`;
@@ -70,12 +76,11 @@ class Shopee {
     }
     generateAuth(redirectUrl) {
         const partner_id = process_1.default.env.shopee_partner_id;
-        const path = "https://partner.test-stable.shopeemobile.com";
         const api_path = "/api/v2/shop/auth_partner";
         const timestamp = Math.floor(Date.now() / 1000);
         const baseString = `${partner_id}${api_path}${timestamp}`;
         const signature = this.cryptoSign(partner_id !== null && partner_id !== void 0 ? partner_id : "", api_path, timestamp);
-        return `${path}${api_path}?partner_id=${partner_id}&timestamp=${timestamp}&redirect=${redirectUrl}&sign=${signature}`;
+        return `${Shopee.path}${api_path}?partner_id=${partner_id}&timestamp=${timestamp}&redirect=${redirectUrl}&sign=${signature}`;
     }
     async getToken(code, shop_id) {
         var _a;
@@ -96,22 +101,24 @@ class Shopee {
         };
         try {
             const response = await (0, axios_1.default)(config);
-            const data = (await database_js_1.default.execute(`select * from \`${config_js_1.saasConfig.SAAS_NAME}\`.private_config where \`app_name\`= '${this.app}' and 
-                                             \`key\`= 'shopee_access_token'
-            `, []));
+            const data = (await database_js_1.default.execute(`select *
+                 from \`${config_js_1.saasConfig.SAAS_NAME}\`.private_config
+                 where \`app_name\` = '${this.app}'
+                   and \`key\` = 'shopee_access_token'
+                `, []));
             response.data.shop_id = shop_id;
             if (data.length == 0) {
                 await database_js_1.default.execute(`
-                            INSERT INTO \`${config_js_1.saasConfig.SAAS_NAME}\`.private_config (\`app_name\`, \`key\`, \`value\` , \`updated_at\`)
-                            VALUES (?, ?, ? ,?);
-                `, [this.app, "shopee_access_token", response.data, new Date()]);
+                            INSERT INTO \`${config_js_1.saasConfig.SAAS_NAME}\`.private_config (\`app_name\`, \`key\`, \`value\`, \`updated_at\`)
+                            VALUES (?, ?, ?, ?);
+                    `, [this.app, "shopee_access_token", response.data, new Date()]);
             }
             else {
                 await database_js_1.default.execute(`
                             UPDATE \`${config_js_1.saasConfig.SAAS_NAME}\`.\`private_config\`
                             SET \`value\` = ?
-                            where \`app_name\`= '${this.app}' and
-                                \`key\`= 'shopee_access_token'
+                            where \`app_name\` = '${this.app}'
+                              and \`key\` = 'shopee_access_token'
 
                     `, [response.data]);
             }
@@ -130,7 +137,10 @@ class Shopee {
         const timestamp = Math.floor(Date.now() / 1000);
         const partner_id = (_a = process_1.default.env.shopee_partner_id) !== null && _a !== void 0 ? _a : "";
         const api_path = "/api/v2/product/get_item_list";
-        const data = (await database_js_1.default.execute(`select * from \`${config_js_1.saasConfig.SAAS_NAME}\`.private_config where \`app_name\`='${this.app}' and \`key\` = 'shopee_access_token'
+        const data = (await database_js_1.default.execute(`select *
+             from \`${config_js_1.saasConfig.SAAS_NAME}\`.private_config
+             where \`app_name\` = '${this.app}'
+               and \`key\` = 'shopee_access_token'
             `, []));
         const config = {
             method: 'get',
@@ -493,7 +503,7 @@ class Shopee {
                     return `application/x-www-form-urlencoded; charset=UTF-8`;
                 }
                 else {
-                    return mime_1.default.getType(fullUrl.split('.').pop());
+                    return mime.getType(fullUrl.split('.').pop());
                 }
             })(),
         };

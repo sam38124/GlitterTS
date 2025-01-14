@@ -873,7 +873,43 @@ export class Shopping {
                     throw exception.BadRequestError('BAD_REQUEST', 'ToCheckout 1 Error:Cant find this orderID.', null);
                 }
             }
+            //判斷是POS重新支付<例如:預購單>，則把原先商品庫存加回去
+            if(data.order_id && type==='POS'){
+                const order=(await db.query(`select * from \`${this.app}\`.t_checkout where cart_token='${data.order_id}'`,[]))[0]
+                if(order){
+                    for (const b of order.orderData.lineItems){
+                        const pdDqlData = (
+                            await this.getProduct({
+                                page: 0,
+                                limit: 50,
+                                id: b.id,
+                                status: 'inRange',
+                                channel: data.checkOutType === 'POS' ? 'pos' : undefined,
+                            })
+                        ).data;
+                        const pd = pdDqlData.content;
+                        const variant = pd.variants.find((dd: any) => {
+                            return dd.spec.join('-') === b.spec.join('-');
+                        });
+                        Object.keys(b.deduction_log).map((dd)=>{
+                            try {
+                                variant.stockList[dd].count += b.deduction_log[dd];
+                            }catch (e) {
 
+                            }
+                        })
+                        await this.updateVariantsWithSpec(variant, b.id, b.spec);
+                        //這裡更新資訊
+                        await db.query(
+                            `UPDATE \`${this.app}\`.\`t_manager_post\`
+                                             SET ?
+                                             WHERE 1 = 1
+                                               and id = ${pdDqlData.id}`,
+                            [{content: JSON.stringify(pd)}]
+                        );
+                    }
+                }
+            }
             //判斷是checkOutType 是POS則清空token，因為結帳對象不是結帳人
             if (data.checkOutType === 'POS') {
                 this.token = undefined;
@@ -1545,7 +1581,7 @@ export class Shopping {
                     (carData as any).progress = 'finish';
                 }
                 await trans.execute(
-                    `INSERT INTO \`${this.app}\`.t_checkout (cart_token, status, email, orderData)
+                    `replace INTO \`${this.app}\`.t_checkout (cart_token, status, email, orderData)
                      values (?, ?, ?, ?)`,
                     [carData.orderID, data.pay_status, carData.email, JSON.stringify(carData)]
                 );

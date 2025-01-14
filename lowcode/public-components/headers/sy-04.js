@@ -48,7 +48,7 @@ export class Sy04 {
                             ? html `
                                                                               <div
                                                                                   class=" fw-bold d-flex align-items-center justify-content-center"
-                                                                                  style="width: 150px;    margin-bottom: 20px;font-size: 36px;color: ${(_a = widget.formData.theme_color['title']) !== null && _a !== void 0 ? _a : '#000'};"
+                                                                                  style="margin-bottom: 20px;font-size: 20px;color: ${(_a = widget.formData.theme_color['title']) !== null && _a !== void 0 ? _a : '#000'};"
                                                                               >
                                                                                   ${widget.formData.logo.value}
                                                                               </div>
@@ -65,7 +65,7 @@ export class Sy04 {
                                                                 </div>
                                                             </div>
                                                         </div>
-                                                        <div class="mb-3">${LanguageView.selectLanguage(gvc, colors)}</div>
+                                                        ${LanguageView.selectLanguage(gvc, colors) ? `<div class="mb-3">${LanguageView.selectLanguage(gvc, colors)}</div>` : ``}
                                                         <div class="position-relative">
                                                             <input
                                                                 class="form-control fw-500 "
@@ -204,8 +204,8 @@ background: ${(_a = colors.bgr) !== null && _a !== void 0 ? _a : '#000'};overflo
                             ${widget.formData.logo.type === 'text'
             ? html `
                                       <div
-                                          class=" fw-bold d-flex align-items-center h-100 mb-1 mb-sm-auto"
-                                          style="font-size: 28px;line-height: 28px;color: ${(_c = widget.formData.theme_color['title']) !== null && _c !== void 0 ? _c : '#000'};"
+                                          class="fw-bold d-flex align-items-center h-100 mb-1 mb-sm-auto"
+                                          style="letter-spacing: 1.5px; font-size: 19px;line-height: 28px;color: ${(_c = widget.formData.theme_color['title']) !== null && _c !== void 0 ? _c : '#000'};"
                                       >
                                           ${widget.formData.logo.value}
                                       </div>

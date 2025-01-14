@@ -121,6 +121,7 @@ FilterOptions.orderFunnel = [
         data: [
             { key: '-1', name: '付款失敗' },
             { key: '1', name: '已付款' },
+            { key: '3', name: '部分付款' },
             { key: '0', name: '未付款' },
             { key: '-2', name: '已退款' },
         ],
@@ -135,6 +136,7 @@ FilterOptions.orderFunnel = [
             { key: 'finish', name: '已取貨' },
             { key: 'returns', name: '已退貨' },
             { key: 'arrived', name: '已到貨' },
+            { key: 'pre_order', name: '待預購' },
         ],
     },
     {

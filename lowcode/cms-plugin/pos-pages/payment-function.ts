@@ -189,13 +189,10 @@ export class PaymentFunction {
         );
     }
 
-    public static lineFinish(gvc: GVC, total:number,orderDetail: OrderDetail, callback: (result: boolean) => void) {
+    public static lineFinish(gvc: GVC, total:number,prefix:number,orderDetail: OrderDetail, callback: (result: boolean) => void) {
         const dialog = new ShareDialog(gvc.glitter);
-
-
         gvc.glitter.innerDialog(
             (gvc: GVC) => {
-
                 let block = false
                 PayConfig.onPayment = (scanText) => {
                     if (block) {

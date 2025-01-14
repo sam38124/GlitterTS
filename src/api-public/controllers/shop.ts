@@ -1356,3 +1356,15 @@ router.post('/allowance_invoice', async (req: express.Request, resp: express.Res
         return response.fail(resp, err);
     }
 });
+
+//新增小結單
+router.get('/pos/summary',async (req: express.Request, resp: express.Response) =>{
+    try {
+        let passData={
+
+        }
+        return await new Shopping(req.get('g-app') as string, req.body.token)
+    }catch (err) {
+        return response.fail(resp, err);
+    }
+})

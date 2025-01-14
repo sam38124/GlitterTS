@@ -175,7 +175,7 @@ export class PaymentFunction {
             },
         });
     }
-    static lineFinish(gvc, total, orderDetail, callback) {
+    static lineFinish(gvc, total, prefix, orderDetail, callback) {
         const dialog = new ShareDialog(gvc.glitter);
         gvc.glitter.innerDialog((gvc) => {
             let block = false;
