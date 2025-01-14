@@ -11,6 +11,7 @@ export interface LanguageData {
 export declare class Shopee {
     app: string;
     token: IToken | undefined;
+    static get path(): "https://partner.test-stable.shopeemobile.com" | "https://partner.shopeemobile.com";
     constructor(app: string, token?: IToken);
     generateUrl(partner_id: string, api_path: string, timestamp: number): string;
     generateShopUrl(partner_id: string, api_path: string, timestamp: number, access_token: string, shop_id: number): string;

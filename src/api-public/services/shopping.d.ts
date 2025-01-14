@@ -291,6 +291,7 @@ export declare class Shopping {
         language?: 'en-US' | 'zh-CN' | 'zh-TW';
         pos_info?: any;
         invoice_select?: string;
+        pre_order?: boolean;
     }, type?: 'add' | 'preview' | 'manual' | 'manual-preview' | 'POS', replace_order_id?: string): Promise<any>;
     getReturnOrder(query: {
         page: number;

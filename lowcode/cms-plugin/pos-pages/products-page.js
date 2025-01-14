@@ -207,10 +207,6 @@ export class ProductsPage {
                                                 return {
                                                     bind: 'count_bt',
                                                     view: () => {
-                                                        if (count > 1 && selectVariant.stock < count && (`${selectVariant.show_understocking}` !== 'false')) {
-                                                            count = selectVariant.stock;
-                                                            dialog.infoMessage({ text: `此商品僅剩${selectVariant.stock}個庫存` });
-                                                        }
                                                         return html `
                                                                                                  <div class="d-flex align-items-center justify-content-between"
                                                                                                       style="gap: 10px;padding: 10px 18px;border-radius: 5px;border: 1px solid #DDD;">
@@ -239,9 +235,7 @@ export class ProductsPage {
                                                                                                      <div class="d-flex align-items-center justify-content-center"
                                                                                                           style="border-radius: 10px;cursor: pointer;"
                                                                                                           onclick="${gvc.event(() => {
-                                                            if (!selectVariant.show_understocking || (selectVariant.stock >= count + 1)) {
-                                                                count++;
-                                                            }
+                                                            count++;
                                                             gvc.notifyDataChange(['count_bt', 'product_btn']);
                                                         })}">
                                                                                                          <svg xmlns="http://www.w3.org/2000/svg"
@@ -296,48 +290,60 @@ export class ProductsPage {
                                                     bind: 'product_btn',
                                                     view: () => {
                                                         if (selectVariant.show_understocking && selectVariant.stock === 0) {
-                                                            return `尚無庫存`;
+                                                            return `預購商品`;
                                                         }
                                                         return `加入購物車`;
                                                     },
                                                     divCreate: () => {
                                                         return {
                                                             class: `d-flex align-items-center justify-content-center`,
-                                                            style: `flex:1;padding: 12px 24px;font-size: 20px;color: #FFF;font-weight: 500;border-radius: 10px;background: ${(selectVariant.show_understocking && selectVariant.stock === 0) ? `#B8B8B8;` : `#393939;`}min-height: 58px;`,
+                                                            style: `flex:1;padding: 12px 24px;font-size: 20px;color: #FFF;font-weight: 500;border-radius: 10px;background: ${(selectVariant.show_understocking && selectVariant.stock === 0) ? `#FF6C02;` : `#393939;`}min-height: 58px;`,
                                                             option: [
                                                                 {
                                                                     key: 'onclick',
                                                                     value: gvc.event(() => {
+                                                                        function next() {
+                                                                            let addItem = orderDetail.lineItems.find((item) => {
+                                                                                console.log(data);
+                                                                                console.log(item);
+                                                                                console.log(selectVariant);
+                                                                                return data.content.title == item.title && arraysEqual(item.spec, selectVariant.spec);
+                                                                            });
+                                                                            if (addItem) {
+                                                                                addItem.count += count;
+                                                                            }
+                                                                            else {
+                                                                                orderDetail.lineItems.push({
+                                                                                    id: data.id,
+                                                                                    title: data.content.title,
+                                                                                    preview_image: (selectVariant.preview_image.length > 1) ? selectVariant.preview_image : data.content.preview_image[0],
+                                                                                    spec: selectVariant.spec,
+                                                                                    count: count,
+                                                                                    sale_price: selectVariant.sale_price,
+                                                                                    sku: selectVariant.sku
+                                                                                });
+                                                                            }
+                                                                            if (document.querySelector('.js-cart-count')) {
+                                                                                document.querySelector('.js-cart-count').recreateView();
+                                                                            }
+                                                                            gvc.glitter.share.checkStock();
+                                                                            gvc.glitter.closeDiaLog();
+                                                                        }
                                                                         if (selectVariant.show_understocking && selectVariant.stock === 0) {
                                                                             const dialog = new ShareDialog(gvc.glitter);
-                                                                            dialog.errorMessage({ text: ' 庫存數量不足' });
+                                                                            dialog.checkYesOrNot({
+                                                                                text: ' 庫存數量不足，是否進行預購?',
+                                                                                callback: (response) => {
+                                                                                    if (response) {
+                                                                                        next();
+                                                                                    }
+                                                                                }
+                                                                            });
                                                                             return;
                                                                         }
-                                                                        let addItem = orderDetail.lineItems.find((item) => {
-                                                                            console.log(data);
-                                                                            console.log(item);
-                                                                            console.log(selectVariant);
-                                                                            return data.content.title == item.title && arraysEqual(item.spec, selectVariant.spec);
-                                                                        });
-                                                                        if (addItem) {
-                                                                            addItem.count += count;
-                                                                        }
                                                                         else {
-                                                                            orderDetail.lineItems.push({
-                                                                                id: data.id,
-                                                                                title: data.content.title,
-                                                                                preview_image: (selectVariant.preview_image.length > 1) ? selectVariant.preview_image : data.content.preview_image[0],
-                                                                                spec: selectVariant.spec,
-                                                                                count: count,
-                                                                                sale_price: selectVariant.sale_price,
-                                                                                sku: selectVariant.sku
-                                                                            });
+                                                                            next();
                                                                         }
-                                                                        if (document.querySelector('.js-cart-count')) {
-                                                                            document.querySelector('.js-cart-count').recreateView();
-                                                                        }
-                                                                        gvc.glitter.share.checkStock();
-                                                                        gvc.glitter.closeDiaLog();
                                                                     })
                                                                 }
                                                             ]
@@ -405,29 +411,8 @@ export class ProductsPage {
             function checkStock() {
                 return __awaiter(this, void 0, void 0, function* () {
                     checking = true;
-                    gvc.notifyDataChange(checkId);
-                    const res_ = yield ApiShop.getCheckout({
-                        line_items: orderDetail.lineItems,
-                        checkOutType: 'POS',
-                        pos_store: POSSetting.config.where_store
-                    });
-                    let remove = false;
-                    orderDetail.lineItems.map((data) => {
-                        const find = res_.response.data.lineItems.find((dd) => {
-                            return `${dd.id}-${dd.spec.join('')}` === `${data.id}-${data.spec.join('')}`;
-                        });
-                        if (!find || (find.count !== data.count)) {
-                            dialog.errorMessage({ text: `『 ${data.title} 』庫存數量不足${data.count}個，系統已自動移除。` });
-                            data.count = (find && find.count) || 0;
-                            remove = true;
-                        }
-                    });
-                    orderDetail.lineItems = orderDetail.lineItems.filter((dd) => { return dd.count; });
-                    if (remove) {
-                        gvc.notifyDataChange('order');
-                    }
-                    checking = false;
                     PaymentPage.storeHistory(orderDetail);
+                    checking = false;
                     gvc.notifyDataChange(checkId);
                 });
             }
@@ -435,28 +420,32 @@ export class ProductsPage {
             checkStock();
             function checkStockInterVal() {
                 clearInterval(interVal);
-                interVal = setTimeout(() => { checkStock(); }, 300);
+                interVal = setTimeout(() => {
+                    checkStock();
+                }, 300);
             }
             const view = html `
                     <div class=""
                          style="height: 100%;width: 352px;max-width:100%;overflow: auto;${(document.body.clientWidth > 800) ? `padding: 36px 24px;` : `padding: 10px 12px;`};background: #FFF;box-shadow: 1px 0 10px 0 rgba(0, 0, 0, 0.10);">
-                       ${gvc.bindView(() => {
+                        ${gvc.bindView(() => {
                 return {
                     bind: checkId,
                     view: () => {
                         if (checking) {
-                            return html `<div class="w-100 ">
-                                <div class="d-flex align-items-center justify-content-center mb-4 p-2 fw-500 rounded-3"
-                                     style="background: #ffb400;color:#393939;gap:10px;">
-                                    <div class="spinner-border" style="width:20px;height: 20px;"></div>
-                                    庫存檢查中...
-                                </div>
-                            </div>`;
+                            return html `
+                                            <div class="w-100 ">
+                                                <div class="d-flex align-items-center justify-content-center mb-4 p-2 fw-500 rounded-3"
+                                                     style="background: #ffb400;color:#393939;gap:10px;">
+                                                    <div class="spinner-border" style="width:20px;height: 20px;"></div>
+                                                    庫存檢查中...
+                                                </div>
+                                            </div>`;
                         }
                         else {
-                            return html `<div style="color:#393939;font-size: 32px;font-weight: 700;letter-spacing: 3px;">
-                                購物清單
-                            </div>`;
+                            return html `
+                                            <div style="color:#393939;font-size: 32px;font-weight: 700;letter-spacing: 3px;">
+                                                購物清單
+                                            </div>`;
                         }
                     },
                     divCreate: {
@@ -464,8 +453,8 @@ export class ProductsPage {
                         style: `height:50px; margin-bottom:24px;`
                     }
                 };
-            })}                    
-                       
+            })}
+
                         ${gvc.bindView({
                 bind: 'order',
                 dataList: [{ obj: vm, key: 'order' }],
@@ -512,7 +501,7 @@ export class ProductsPage {
                                                             <input class="border-0"
                                                                    style="width: 50px;height: 25px;color: #393939;font-size: 18px;font-weight: 500;text-align: center"
                                                                    value="${item.count}"
-                                                            onchange="${gvc.event((e, event) => {
+                                                                   onchange="${gvc.event((e, event) => {
                             item.count = e.value;
                             checkStockInterVal();
                             gvc.notifyDataChange('order');
@@ -590,7 +579,7 @@ export class ProductsPage {
                         }).join(``);
                     })()}
                                         </div>
-                                    
+
                                     </div>
                                 `;
                 }, divCreate: { class: `display: flex;flex-direction: column;gap: 24px;` },

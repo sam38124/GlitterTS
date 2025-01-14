@@ -365,7 +365,7 @@ letter-spacing: 0.72px;
 text-transform: uppercase;
                                 ">總金額${PosWidget.bigTitle('$' + obj.orderData.total.toLocaleString())}</div>`,
                                 `<div class="d-flex align-items-center justify-content-center w-100 mt-lg-4 mt-3" style="">
-<div class="d-flex" style="flex:94;">
+<div class="d-flex" style="flex:68;">
 ${PosWidget.fontLight('付款方式')}
 </div>
 <div class="d-flex" style="flex:94;">
@@ -381,13 +381,8 @@ ${PosWidget.fontLight('付款狀態')}
                                     return html`
                                         <div class="d-flex align-items-center justify-content-center w-100 mt-lg-4 mt-1"
                                              style="height:60px;">
-                                            <div class="d-flex" style="flex:94;color:#36B;cursor: pointer;"
-                                                 onclick="${gvc.event(() => {
-                                                     PaymentPage.storeHistory(dd);
-                                                     gvc.closeDialog()
-                                                     localStorage.setItem('show_pos_page', 'payment')
-                                                     gvc.glitter.share.reloadPosPage()
-                                                 })}">
+                                            <div class="d-flex" style="flex:68;color:#36B;cursor: pointer;"
+                                            >
                                                 ${(() => {
                                                     switch (dd.method) {
                                                         case 'cash':
@@ -403,6 +398,10 @@ ${PosWidget.fontLight('付款狀態')}
                                                 <input style="display: flex;width: calc(100% - 20px);padding: 9px 18px;border-radius: 10px;border: 1px solid #DDD;text-align: right;"
                                                        class="" value="${dd.total}"
                                                        onclick="${gvc.event(() => {
+                                                           if(dd.paied){
+                                                               dialog.errorMessage({text:'此付款金額已結清，無法進行調整'})
+                                                               return
+                                                           }
                                                            PosFunction.setMoney(gvc, (money) => {
                                                                dd.total = (money || 0)
                                                                gvc.notifyDataChange(id)
@@ -410,11 +409,15 @@ ${PosWidget.fontLight('付款狀態')}
                                                        })}">
                                             </div>
                                             <div class="d-flex" style="flex:68;">
-                                                尚未付款
+                                                ${!dd.paied ? `尚未付款`:`已付款`}
                                             </div>
                                             <div class="d-flex" style="flex:34;">
                                                 ${(paymentMethod.length > 1) ? `<i class="fa-solid fa-xmark fs-5" style="cursor: pointer;"
                                                    onclick="${gvc.event(() => {
+                                                    if(dd.paied){
+                                                        dialog.errorMessage({text:'此付款金額已結清，無法刪除'})
+                                                        return
+                                                    }
                                                     paymentMethod.splice(index,1)
                                                     gvc.notifyDataChange(id)
                                                 })}"></i>` : ``}
@@ -446,7 +449,7 @@ ${BgWidget.save(gvc.event(() => {
 
                     },
                     divCreate: {
-                        class: `p-lg-5 p-2 py-3`, style: css`max-width: calc(100vw - 10px);
+                        class: `p-lg-4 p-2 py-3`, style: css`max-width: calc(100vw - 10px);
                             position: relative;
                             width: 546px;
                             max-height: calc(100vh - 100px);
@@ -614,7 +617,7 @@ ${BgWidget.save(gvc.event(() => {
                     divCreate: {
                         class: `p-lg-4 p-2 py-3`, style: css`max-width: calc(100vw - 10px);
                             position: relative;
-                            width: 546px;
+                            width: 406px;
                             max-height: calc(100vh - 100px);
                             overflow-y: auto;
                             border-radius: 10px;
@@ -707,7 +710,7 @@ ${PosWidget.fontBold('總金額')}
 
                     },
                     divCreate: {
-                        class: `p-lg-5 p-2 py-3`, style: css`max-width: calc(100vw - 10px);
+                        class: `p-lg-4 p-2 py-3`, style: css`max-width: calc(100vw - 10px);
                             position: relative;
                             width: 846px;
                             max-height: calc(100vh - 100px);

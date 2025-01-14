@@ -10,6 +10,8 @@ import {Language} from './glitter-base/global/language.js';
 
 export class Entry {
     public static onCreate(glitter: Glitter) {
+        //預設為購物網站
+        (window as any).store_info.web_type = (window as any).store_info.web_type ?? ['shop']
         const shopp=localStorage.getItem('shopee')
         if(shopp){
             localStorage.removeItem('shopee')
@@ -88,7 +90,7 @@ export class Entry {
         }
         (window as any).renderClock = (window as any).renderClock ?? clockF();
         console.log(`Entry-time:`, (window as any).renderClock.stop());
-        glitter.share.editerVersion = 'V_16.6.3';
+        glitter.share.editerVersion = 'V_16.6.7';
         glitter.share.start = new Date();
         const vm: {
             appConfig: any;

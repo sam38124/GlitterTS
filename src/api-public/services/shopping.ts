@@ -246,9 +246,13 @@ export class Shopping {
         currency_code?: string;
     }) {
         try {
-            query.language = query.language ?? (await App.getDefLanguage(this.app));
+            let store_info = await new User(this.app).getConfigV2({
+                key: 'store-information',
+                user_id: 'manager',
+            });
+            const store_config = await new User(this.app).getConfigV2({key: 'store_manager', user_id: 'manager'});
+            query.language = query.language ?? store_info.language_setting.def;
             query.show_hidden = query.show_hidden ?? 'true';
-            console.log(`currency_code=>`, query.currency_code);
             let querySql = [`(content->>'$.type'='product')`];
             if (query.search) {
                 switch (query.searchType) {
@@ -521,19 +525,29 @@ export class Shopping {
                     dd.content.content_array = dd.content.language_data[`${query.language}`].content_array || dd.content.content_array;
                     dd.content.content_json = dd.content.language_data[`${query.language}`].content_json || dd.content.content_json;
                     dd.content.preview_image = dd.content.language_data[`${query.language}`].preview_image || dd.content.preview_image;
+
                     (dd.content.variants || []).map((variant: any) => {
-                        variant.stock=0
+                        variant.stock = 0
                         variant.preview_image = variant[`preview_image_${query.language}`] || variant.preview_image;
                         if (variant.preview_image === 'https://d3jnmi1tfjgtti.cloudfront.net/file/234285319/1722936949034-default_image.jpg') {
                             variant.preview_image = dd.content.preview_image[0];
                         }
                         Object.keys(variant.stockList).map((dd) => {
-                            if (!variant.stockList[dd] || !variant.stockList[dd].count) {
+                            if (!store_config.list.find((d1: any) => {
+                                return d1.id === dd
+                            })) {
                                 delete variant.stockList[dd]
-                            }else{
+                            } else if (!variant.stockList[dd] || !variant.stockList[dd].count) {
+                                delete variant.stockList[dd]
+                            } else {
                                 //避免存字串導致的異常
-                                variant.stockList[dd].count=parseInt(variant.stockList[dd].count,10)
-                                variant.stock+=variant.stockList[dd].count;
+                                variant.stockList[dd].count = parseInt(variant.stockList[dd].count, 10)
+                                variant.stock += variant.stockList[dd].count;
+                            }
+                        })
+                        store_config.list.map((d1: any) => {
+                            if (!variant.stockList[d1.id]) {
+                                variant.stockList[d1.id] = {count: 0}
                             }
                         })
                     });
@@ -795,7 +809,7 @@ export class Shopping {
             customer_info?: any; //顧客資訊 訂單人
             email?: string;
             return_url: string;
-            order_id?:string;
+            order_id?: string;
             user_info: any; //取貨人資訊
             code?: string;
             use_rebate?: number;
@@ -819,7 +833,8 @@ export class Shopping {
             }[];
             language?: 'en-US' | 'zh-CN' | 'zh-TW';
             pos_info?: any; //POS結帳資訊;
-            invoice_select?: string
+            invoice_select?: string;
+            pre_order?: boolean
         },
         type: 'add' | 'preview' | 'manual' | 'manual-preview' | 'POS' = 'add',
         replace_order_id?: string
@@ -1121,13 +1136,17 @@ export class Shopping {
                         console.log(`variant1===>`, variant)
                         if ((Number.isInteger(variant.stock) || variant.show_understocking === 'false') && Number.isInteger(b.count)) {
                             console.log(`variant2===>`, variant)
-                            if (data.checkOutType === 'POS' && variant.show_understocking !== 'false' ) {
+                            if (data.checkOutType === 'POS' && variant.show_understocking !== 'false') {
                                 variant.stock = variant.stockList && (variant.stockList as any)[data.pos_store!].count
 
                             }
                             // 當超過庫存數量則調整為庫存上限
-                            if (variant.stock < b.count && variant.show_understocking !== 'false' && type !== 'manual' && type !== 'manual-preview') {
-                                b.count = variant.stock;
+                            if ((variant.stock < b.count && variant.show_understocking !== 'false') && (type !== 'manual' && type !== 'manual-preview')) {
+                                if (data.checkOutType === 'POS') {
+                                    (b as any).pre_order = true;
+                                } else {
+                                    b.count = variant.stock;
+                                }
                             }
                             if (variant && b.count > 0) {
                                 (b as any).specs = pd.specs;
@@ -1139,6 +1158,7 @@ export class Shopping {
                                 b.sku = variant.sku;
                                 b.stock = variant.stock;
                                 b.show_understocking = variant.show_understocking;
+                                (b as any).stockList = variant.stockList;
                                 b.shipment_obj = {
                                     type: variant.shipment_type,
                                     value: (() => {
@@ -1170,13 +1190,13 @@ export class Shopping {
 
                                 const countless = variant.stock - b.count;
                                 variant.stock = countless > 0 ? countless : 0;
-                                if(type==='POS'){
+                                if (type === 'POS') {
                                     //POS的話依據分店去扣除庫存
-                                    variant.deduction_log={};
-                                    (variant.deduction_log as any)[data.pos_store!!]=b.count;
-                                    variant.stockList[data.pos_store!!].count-=b.count;
-                                    b.deduction_log=variant.deduction_log;
-                                }else {
+                                    variant.deduction_log = {};
+                                    (variant.deduction_log as any)[data.pos_store!!] = b.count;
+                                    variant.stockList[data.pos_store!!].count -= b.count;
+                                    b.deduction_log = variant.deduction_log;
+                                } else {
                                     //找到最大的倉儲量 順序式
                                     const returnData = new Stock(this.app, this.token).allocateStock(variant.stockList, b.count);
                                     variant.deduction_log = returnData.deductionLog;
@@ -1468,7 +1488,6 @@ export class Shopping {
                 if (tempVoucher.reBackType == 'shipment_free') {
                     carData.shipment_fee = 0;
                 }
-
                 if (tempVoucher.reBackType == 'rebate') {
                     let customerData = await userClass.getUserData(data.email! || data.user_info.email, 'account');
                     if (!customerData) {
@@ -1501,9 +1520,21 @@ export class Shopping {
                     data: carData,
                 };
             } else if (type === 'POS') {
+                console.log(`pre_order`)
                 carData.orderSource = 'POS';
                 const trans = await db.Transaction.build();
-                if (carData.user_info.shipment === 'now') {
+                if (data.pre_order) {
+                    (carData as any).progress = 'pre_order';
+                    (carData as any).orderStatus = '0';
+                    const payTotal = data.pos_info.payment.map((dd: any) => {
+                        return dd.total
+                    }).reduce((acc: any, val: any) => acc + val, 0)
+                    if (carData.total <= payTotal) {
+                        data.pay_status = 1
+                    }else{
+                        data.pay_status = 3
+                    }
+                } else if (carData.user_info.shipment === 'now') {
                     (carData as any).orderStatus = '1';
                     (carData as any).progress = 'finish';
                 }
@@ -1515,14 +1546,10 @@ export class Shopping {
 
                 if (data.invoice_select !== 'nouse') {
                     (carData as any).invoice = await new Invoice(this.app).postCheckoutInvoice(carData, carData.user_info.send_type !== 'carrier');
-                    if (!(carData as any).invoice) {
-                        throw exception.BadRequestError('BAD_REQUEST', '發票開立失敗:', null);
-                    }
                 }
-                ;
                 await trans.commit();
                 await trans.release();
-                await Promise.all(saveStockArray.map((dd)=>{
+                await Promise.all(saveStockArray.map((dd) => {
                     return dd()
                 }))
                 return {result: 'SUCCESS', message: 'POS訂單新增成功', data: carData};
@@ -1583,7 +1610,7 @@ export class Shopping {
                 if (carData.use_wallet > 0) {
                     new Invoice(this.app).postCheckoutInvoice(carData.orderID, false);
                 }
-                await Promise.all(saveStockArray.map((dd)=>{
+                await Promise.all(saveStockArray.map((dd) => {
                     return dd()
                 }))
                 return {
@@ -1611,7 +1638,7 @@ export class Shopping {
                             MERCHANT_ID: kd.MERCHANT_ID,
                             TYPE: carData.customer_info.payment_select,
                         }).createOrderPage(carData);
-                        await Promise.all(saveStockArray.map((dd)=>{
+                        await Promise.all(saveStockArray.map((dd) => {
                             return dd()
                         }))
                         return {
@@ -1620,14 +1647,14 @@ export class Shopping {
                     case 'paypal':
                         kd.ReturnURL = `${process.env.DOMAIN}/api-public/v1/ec/redirect?g-app=${this.app}&return=${id}`;
                         kd.NotifyURL = `${process.env.DOMAIN}/api-public/v1/ec/notify?g-app=${this.app}`;
-                        await Promise.all(saveStockArray.map((dd)=>{
+                        await Promise.all(saveStockArray.map((dd) => {
                             return dd()
                         }))
                         return await new PayPal(this.app, kd).checkout(carData);
                     case 'line_pay':
                         kd.ReturnURL = `${process.env.DOMAIN}/api-public/v1/ec/redirect?g-app=${this.app}&return=${id}`;
                         kd.NotifyURL = `${process.env.DOMAIN}/api-public/v1/ec/notify?g-app=${this.app}`;
-                        await Promise.all(saveStockArray.map((dd)=>{
+                        await Promise.all(saveStockArray.map((dd) => {
                             return dd()
                         }))
                         return await new LinePay(this.app, kd).createOrder(carData);
@@ -1661,7 +1688,7 @@ export class Shopping {
                              values (?, ?, ?, ?)`,
                             [carData.orderID, 0, carData.email, carData]
                         );
-                        await Promise.all(saveStockArray.map((dd)=>{
+                        await Promise.all(saveStockArray.map((dd) => {
                             return dd()
                         }))
                         return {
@@ -1671,7 +1698,8 @@ export class Shopping {
                 }
 
                 // await new PayPal(this.app, keyData).checkout(orderData);
-            };
+            }
+            ;
         } catch (e) {
             console.error(e);
             throw exception.BadRequestError('BAD_REQUEST', 'ToCheckout 5 Error:' + e, null);
@@ -2941,30 +2969,34 @@ OR JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.orderStatus')) NOT IN (-99)) `);
 
     //更新庫存數量
     public async calcVariantsStock(calc: number, stock_id: string, product_id: string, spec: string[]) {
-        const pd_data = (
-            await db.query(
-                `select *
+      try {
+          const pd_data = (
+              await db.query(
+                  `select *
                  from \`${this.app}\`.t_manager_post
                  where id = ?`,
-                [product_id]
-            )
-        )[0]['content'];
-        const store_config = await new User(this.app).getConfigV2({key: 'store_manager', user_id: 'manager'});
-        const variant_s: any = pd_data.variants.find((dd: any) => {
-            return dd.spec.join('-') === spec.join('-');
-        });
-        if (Object.keys(variant_s.stockList).length === 0) {
-            //適應舊版庫存更新
-            variant_s.stockList[store_config.list[0].id] = {count: variant_s.stock};
-        }
-        if (variant_s.stockList[stock_id]) {
-            variant_s.stockList[stock_id].count = variant_s.stockList[stock_id].count || 0;
-            variant_s.stockList[stock_id].count = variant_s.stockList[stock_id].count + calc;
-            if (variant_s.stockList[stock_id].count < 0) {
-                variant_s.stockList[stock_id].count = 0;
-            }
-        }
-        await this.postVariantsAndPriceValue(pd_data);
+                  [product_id]
+              )
+          )[0]['content'];
+          const store_config = await new User(this.app).getConfigV2({key: 'store_manager', user_id: 'manager'});
+          const variant_s: any = pd_data.variants.find((dd: any) => {
+              return dd.spec.join('-') === spec.join('-');
+          });
+          if (Object.keys(variant_s.stockList).length === 0) {
+              //適應舊版庫存更新
+              variant_s.stockList[store_config.list[0].id] = {count: variant_s.stock};
+          }
+          if (variant_s.stockList[stock_id]) {
+              variant_s.stockList[stock_id].count = variant_s.stockList[stock_id].count || 0;
+              variant_s.stockList[stock_id].count = variant_s.stockList[stock_id].count + calc;
+              if (variant_s.stockList[stock_id].count < 0) {
+                  variant_s.stockList[stock_id].count = 0;
+              }
+          }
+          await this.postVariantsAndPriceValue(pd_data);
+      }catch (e) {
+          console.log('error -- cant find variants', e);
+      }
     }
 
     async getDataAnalyze(tags: string[], query?: any) {
@@ -4230,7 +4262,7 @@ OR JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.orderStatus')) NOT IN (-99)) `);
     }
 
     checkVariantDataType(variants: any[]) {
-        console.log("variants == " , variants)
+        console.log("variants == ", variants)
         variants.map((dd) => {
             dd.stock && (dd.stock = parseInt(dd.stock, 10));
             dd.product_id && (dd.product_id = parseInt(dd.product_id, 10));
@@ -4414,10 +4446,10 @@ OR JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.orderStatus')) NOT IN (-99)) `);
                         resolve(true);
                     });
                 })
-
             );
             // return
-            let max_id = (await db.query(`select max(id) from \`${this.app}\`.t_manager_post`, []))[0]['max(id)'] || 0;
+            let max_id = (await db.query(`select max(id)
+                                          from \`${this.app}\`.t_manager_post`, []))[0]['max(id)'] || 0;
             const data = await db.query(
                 `replace
                 INTO \`${this.app}\`.\`t_manager_post\` (id,userID,content) values ?`,

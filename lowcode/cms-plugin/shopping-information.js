@@ -163,6 +163,7 @@ export class ShoppingInformation {
             bind: vm.id,
             dataList: [{ obj: vm, key: 'type' }],
             view: () => {
+                var _a;
                 if (vm.mainLoading) {
                     ApiUser.getPublicConfig("store-information", "manager").then((r) => {
                         vm.data = r.response.value;
@@ -176,6 +177,7 @@ export class ShoppingInformation {
                         gvc.notifyDataChange(vm.id);
                     });
                 }
+                vm.data.web_type = (_a = vm.data.web_type) !== null && _a !== void 0 ? _a : ['shop'];
                 vm.data.currency_code = vm.data.currency_code || 'TWD';
                 return BgWidget.container(html `
                     <div class="title-container mb-4">
@@ -272,6 +274,32 @@ export class ShoppingInformation {
                                     </div>
 
                                     <div class="d-flex flex-column" style="gap:8px;">
+                                        <div style="color: #393939;font-size: 16px;">網站類型</div>
+                                        <div class="d-flex align-items-center">
+                                            ${BgWidget.inlineCheckBox({
+                            title: '',
+                            gvc: gvc,
+                            def: vm.data.web_type,
+                            array: [
+                                {
+                                    title: '購物網站',
+                                    value: 'shop',
+                                },
+                                {
+                                    title: '形象網站',
+                                    value: 'image',
+                                },
+                                {
+                                    title: '授課網站',
+                                    value: 'teaching',
+                                }
+                            ],
+                            callback: (array) => {
+                                vm.data.web_type = array;
+                            },
+                            type: 'multiple',
+                        })}
+                                        </div>
                                         <div style="color: #393939;font-size: 16px;">啟用 AI 選品</div>
                                         <div style="color: #8D8D8D;font-size:13px;">透過 AI 選品功能用戶可以使用自然語言描述找到所需商品<br>
                                             例如:幫我找到真皮材質的三人座沙發
@@ -337,7 +365,9 @@ export class ShoppingInformation {
                                     return html `
                                                         <div class="mt-2" style="color: #393939;font-size: 16px;">
                                                             多國語言
-                                                            <span class="cursor_pointer" style="font-size: 13px;color:#36B;" onclick="${gvc.event(() => {
+                                                            <span class="cursor_pointer"
+                                                                  style="font-size: 13px;color:#36B;"
+                                                                  onclick="${gvc.event(() => {
                                         BgWidget.selectLanguage({});
                                     })}"> 
                                                                 管理語言包
@@ -380,11 +410,11 @@ export class ShoppingInformation {
 </div>
 `;
                                     }).join('')}
-                                                          <div class="d-flex align-items-center">
-                                                              ${[((all_lan.length !== vm.data.language_setting.support.length) ? html `
-                                                                <div class=" d-flex align-items-center justify-content-center cursor_pointer"
-                                                                     style="color: #36B; font-size: 16px; font-weight: 400;"
-                                                                     onclick="${gvc.event(() => {
+                                                            <div class="d-flex align-items-center">
+                                                                ${[((all_lan.length !== vm.data.language_setting.support.length) ? html `
+                                                                    <div class=" d-flex align-items-center justify-content-center cursor_pointer"
+                                                                         style="color: #36B; font-size: 16px; font-weight: 400;"
+                                                                         onclick="${gvc.event(() => {
                                             let add = '';
                                             BgWidget.settingDialog({
                                                 gvc: gvc,
@@ -428,17 +458,17 @@ export class ShoppingInformation {
                                                 width: 200
                                             });
                                         })}">
-                                                                    <div>新增語系</div>
-                                                                    <div class="d-flex align-items-center justify-content-center p-2">
-                                                                        <i class="fa-solid fa-plus fs-6"
-                                                                           style="font-size: 16px; "
-                                                                           aria-hidden="true"></i>
+                                                                        <div>新增語系</div>
+                                                                        <div class="d-flex align-items-center justify-content-center p-2">
+                                                                            <i class="fa-solid fa-plus fs-6"
+                                                                               style="font-size: 16px; "
+                                                                               aria-hidden="true"></i>
+                                                                        </div>
                                                                     </div>
-                                                                </div>
-                                                            ` : ``)].filter((dd) => {
+                                                                ` : ``)].filter((dd) => {
                                         return dd.trim();
                                     }).join(``)}
-                                                          </div>
+                                                            </div>
                                                         </div>`;
                                 }
                             };

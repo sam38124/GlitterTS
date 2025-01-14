@@ -5,6 +5,7 @@ export class OrderDetail {
     rebate: number;
     orderID?:string;
     cart_token: string;
+    line_prefix?:number;
     code_array?:string[]
     voucher?: VoucherData;
     lineItems: {
@@ -124,7 +125,8 @@ export  type ViewModel = {
     categories: any[];
     paySelect: {
         method:'cash'|'creditCard'|'line',
-        total:number
+        total:number,
+        paied?:boolean
     }[];
     loading:boolean
 };

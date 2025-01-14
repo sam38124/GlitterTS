@@ -1082,7 +1082,8 @@ router.post('/pos/checkout', async (req: express.Request, resp: express.Response
                     code_array: req.body.code_array,
                     pos_info: req.body.pos_info,
                     pos_store:req.body.pos_store,
-                    invoice_select:req.body.invoice_select
+                    invoice_select:req.body.invoice_select,
+                    pre_order:req.body.pre_order
                 },
                 'POS'
             )

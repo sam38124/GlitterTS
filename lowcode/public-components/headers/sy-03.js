@@ -61,7 +61,7 @@ export class Sy03 {
                                                                 </div>
                                                             </div>
                                                             <div class="mb-3">${LanguageView.selectLanguage(gvc, colors)}</div>
-                                                            <div class="position-relative">
+                                                            <div class="position-relative ${HeaderClass.hideShopperBtn() ? `d-none` : ``}">
                                                                 <input
                                                                     class="form-control fw-500 "
                                                                     placeholder="${Language.text('find_product')}"
@@ -291,7 +291,7 @@ padding-bottom: 2px;
                 },
             };
         })}
-                            <li class="nav-item d-none d-sm-flex align-items-center justify-content-center" style="min-width:45px !important;">
+                           ${HeaderClass.hideShopperBtn() ? `` : `<li class="nav-item d-none d-sm-flex align-items-center justify-content-center" style="min-width:45px !important;">
                                 ${gvc.bindView(() => {
             const vm = {
                 id: gvc.glitter.getUUID(),
@@ -341,8 +341,8 @@ padding-bottom: 2px;
                 },
             };
         })}
-                            </li>
-                            <li class="nav-item  d-flex align-items-center justify-content-center" style="width:45px !important;">
+                            </li>`}
+                            <li class="nav-item  ${(HeaderClass.hideShopperBtn()) ? `d-none` : `d-flex`} align-items-center justify-content-center" style="width:45px !important;">
                                 ${gvc.bindView(() => {
             const vm = {
                 id: gvc.glitter.getUUID(),
@@ -389,7 +389,7 @@ padding-bottom: 2px;
             };
         })}
                             </li>
-                            <li class="nav-item d-flex align-items-center justify-content-center" style="width:45px !important;">
+                            <li class="nav-item d-flex align-items-center justify-content-center ${(HeaderClass.hideShopperBtn()) ? `d-none` : `d-flex`}" style="width:45px !important;">
                                 <a class="nav-link search-container">
                                     <i
                                         class="fw-500  fa-regular fa-user "

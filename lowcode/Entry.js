@@ -17,7 +17,8 @@ import { ShareDialog } from './glitterBundle/dialog/ShareDialog.js';
 import { Language } from './glitter-base/global/language.js';
 export class Entry {
     static onCreate(glitter) {
-        var _a;
+        var _a, _b;
+        window.store_info.web_type = (_a = window.store_info.web_type) !== null && _a !== void 0 ? _a : ['shop'];
         const shopp = localStorage.getItem('shopee');
         if (shopp) {
             localStorage.removeItem('shopee');
@@ -87,9 +88,9 @@ export class Entry {
         if (glitter.getUrlParameter('appName')) {
             window.appName = glitter.getUrlParameter('appName');
         }
-        window.renderClock = (_a = window.renderClock) !== null && _a !== void 0 ? _a : clockF();
+        window.renderClock = (_b = window.renderClock) !== null && _b !== void 0 ? _b : clockF();
         console.log(`Entry-time:`, window.renderClock.stop());
-        glitter.share.editerVersion = 'V_16.6.3';
+        glitter.share.editerVersion = 'V_16.6.7';
         glitter.share.start = new Date();
         const vm = {
             appConfig: [],

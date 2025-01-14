@@ -14,6 +14,11 @@ import { Language } from '../../glitter-base/global/language.js';
 import { Currency } from "../../glitter-base/global/currency.js";
 const html = String.raw;
 export class HeaderClass {
+    static hideShopperBtn() {
+        return !window.store_info.web_type.find((dd) => {
+            return ['shop', 'teaching'].includes(dd);
+        });
+    }
     static spinner(obj) {
         var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m, _o;
         const container = {

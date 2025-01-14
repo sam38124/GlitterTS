@@ -16,6 +16,7 @@ import {IminModule} from "./imin-module.js";
 import {ConnectionMode} from "./connection-mode.js";
 import {PosFunction} from "./pos-function.js";
 import {TempOrder} from "./temp-order.js";
+import {PaymentFunction} from "./payment-function.js";
 
 const html = String.raw;
 
@@ -78,7 +79,14 @@ export class PaymentPage {
         return gvc.bindView(() => {
             const id = 'checkout-page';
 
+            let last_to = 0
+
             function refreshOrderView() {
+                try {
+                    last_to = document.querySelector('.right_pan_payment')!!.scrollTop
+                } catch (e) {
+
+                }
                 gvc.notifyDataChange(id);
             }
 
@@ -124,6 +132,9 @@ export class PaymentPage {
                         })();
                         const ap_config = (await ApiUser.getPublicConfig('store-information', 'manager')).response.value;
                         ap_config.support_pos_payment = ap_config.support_pos_payment ?? []
+                        setTimeout(() => {
+                            document.querySelector('.right_pan_payment')!!.scrollTop = last_to
+                        }, 10)
                         resolve(html`
                             <div
                                     class="left-panel"
@@ -135,7 +146,7 @@ export class PaymentPage {
                                 <div
                                         class="d-flex flex-column ${document.body.offsetWidth < 800 ? `` : ``}"
                                         style="${document.body.offsetWidth < 800
-                                                ? `margin-top:18px;`
+                                                ? ``
                                                 : `padding:24px;border-radius: 10px;background: #FFF;box-shadow: 0px 0px 10px 0px rgba(0, 0, 0, 0.08);margin-top:32px;`}"
                                 >
                                     <div class="d-none d-sm-flex"
@@ -147,7 +158,7 @@ export class PaymentPage {
                                         <div class="col-2 text-center">小計</div>
                                     </div>
                                     <div class="d-flex flex-column"
-                                         style="${document.body.offsetWidth < 800 ? `` : `padding-top: 26px;`}">
+                                         style="${document.body.offsetWidth < 800 ? `` : ``}">
                                         ${(() => {
                                             if (orderDetail.lineItems.length > 0) {
                                                 return orderDetail.lineItems
@@ -155,10 +166,28 @@ export class PaymentPage {
                                                             return html`
                                                                 <div class="d-flex" style="">
                                                                     <div class="col-8 col-sm-6 d-flex align-items-center">
-                                                                        <div style="width: 54px;height: 54px;border-radius: 5px;background: 50%/cover url('${data.preview_image || 'https://d3jnmi1tfjgtti.cloudfront.net/file/234285319/1722936949034-default_image.jpg'}')"></div>
+                                                                        <div class="d-flex flex-column align-items-center justify-content-center" style="gap:5px;width:75px;">
+                                                                            <div style="height: 20px;"></div>
+                                                                            <div style="width: 54px;height: 54px;border-radius: 5px;background: 50%/cover url('${data.preview_image || 'https://d3jnmi1tfjgtti.cloudfront.net/file/234285319/1722936949034-default_image.jpg'}')"></div>
+                                                                            <div style="font-size: 14px;height: 20px;" class="fw-500 ${(data.pre_order) ? `text-danger`:``}">庫存:${
+                                                                                    (()=>{
+                                                                                        if(`${data.show_understocking}`==='false'){
+                                                                                            return `不追蹤`
+                                                                                        }else{
+                                                                                            return (data.stockList[POSSetting.config.where_store] && data.stockList[POSSetting.config.where_store].count ) || 0
+                                                                                        }
+                                                                                    })()
+                                                                            }</div>
+                                                                        </div>
                                                                         <div class="d-flex flex-column"
                                                                              style="font-size: 16px;font-style: normal;font-weight: 500;letter-spacing: 0.64px;margin-left: 12px;">
-                                                                            ${data.title}
+                                                                            <div class="d-flex align-items-center" style="gap:10px;">${data.title}${ (()=>{
+                                                                                if(!data.pre_order){
+                                                                                    return ``
+                                                                                }else{
+                                                                                    return BgWidget.dangerInsignia('需預購')
+                                                                                }
+                                                                            })()}</div>
                                                                             <span
                                                                                     style="color: #949494;
                                                                                 font-size: 16px;
@@ -204,9 +233,9 @@ text-transform: uppercase;">NT.${parseInt(data.sale_price as any, 10).toLocaleSt
                                                         .join(
                                                                 (() => {
                                                                     if (document.body.clientWidth < 800) {
-                                                                        return `<div style="margin-top: 14px;margin-bottom: 14px;background: #DDD;width: 100%;height: 1px;"></div>`;
+                                                                        return `<div style="margin-top: 20px;background: #DDD;width: 100%;height: 1px;"></div>`;
                                                                     } else {
-                                                                        return `<div style="height: 26px;"></div>`;
+                                                                        return `<div style=""></div>`;
                                                                     }
                                                                 })()
                                                         );
@@ -772,7 +801,7 @@ background: #EAEAEA;box-shadow: 0px 0px 10px 0px rgba(0, 0, 0, 0.15);`,
                                 }), 'p-0 p-sm-2')}
                             </div>
                             <div
-                                    class=""
+                                    class="right_pan_payment"
                                     style="${document.body.offsetWidth < 800
                                             ? `width:100%`
                                             : `width: 446px;height: 100%;overflow: auto;`};padding: 36px 24px;background: #FFF;box-shadow: 1px 0 10px 0 rgba(0, 0, 0, 0.10);"
@@ -1086,46 +1115,93 @@ ${PosWidget.fontLight('付款方式')}
 ${PosWidget.fontLight('付款金額')}
 </div>
 <div class="d-flex" style="flex:68;">
-${PosWidget.fontLight('付款狀態')}
+${PosWidget.fontLight('狀態')}
+</div>
+<div class="d-flex" style="flex:34;">
+
 </div>
 </div>
 ${
-                                                                    vm.paySelect.map((dd: any,index:number) => {
+                                                                    vm.paySelect.map((dd: any, index: number) => {
                                                                         return html`
-                                        <div class="d-flex align-items-center justify-content-center w-100 mt-lg-4 mt-1"
-                                             style="height:50px;">
-                                            <div class="d-flex" style="flex:68;color:#36B;cursor: pointer;"
-                                                 onclick="${gvc.event(() => {
-                                                                            PaymentPage.storeHistory(dd);
-                                                                            gvc.closeDialog()
-                                                                            localStorage.setItem('show_pos_page', 'payment')
-                                                                            gvc.glitter.share.reloadPosPage()
-                                                                        })}">
-                                                ${(() => {
-                                                                            switch (dd.method) {
-                                                                                case 'cash':
-                                                                                    return `現金`
-                                                                                case 'creditCard':
-                                                                                    return `刷卡`
-                                                                                case 'line':
-                                                                                    return `LINE PAY`
-                                                                            }
-                                                                        })()}
-                                            </div>
-                                            <div class="d-flex" style="flex:94;">
-                                                <input style="display: flex;width: calc(100% - 20px);padding: 9px 18px;border-radius: 10px;border: 1px solid #DDD;text-align: right;"
-                                                       class="" value="${dd.total}"
-                                                       onclick="${gvc.event(() => {
-                                                                            PosFunction.setMoney(gvc, (money) => {
-                                                                                dd.total = (money || 0)
-                                                                                gvc.notifyDataChange(id)
-                                                                            })
-                                                                        })}">
-                                            </div>
-                                            <div class="d-flex" style="flex:68;">
-                                                ${BgWidget.save(gvc.event(()=>{}),'點我支付')}
-                                            </div>
-                                        </div>`
+                                                                            <div class="d-flex align-items-center justify-content-center w-100 mt-lg-4 mt-2"
+                                                                                 style="height:50px;">
+                                                                                <div class="d-flex"
+                                                                                     style="flex:68;color:#36B;cursor: pointer;"
+                                                                                     onclick="${gvc.event(() => {
+
+                                                                                     })}">
+                                                                                    ${(() => {
+                                                                                        switch (dd.method) {
+                                                                                            case 'cash':
+                                                                                                return `現金`
+                                                                                            case 'creditCard':
+                                                                                                return `刷卡`
+                                                                                            case 'line':
+                                                                                                return `LINE PAY`
+                                                                                        }
+                                                                                    })()}
+                                                                                </div>
+                                                                                <div class="d-flex" style="flex:94;">
+                                                                                    <input style="display: flex;width: calc(100% - 20px);padding: 9px 18px;border-radius: 10px;border: 1px solid #DDD;text-align: right;"
+                                                                                           class="" value="${dd.total}"
+                                                                                           onclick="${gvc.event(() => {
+                                                                                               if (dd.paied) {
+                                                                                                   dialog.errorMessage({text: '此付款金額已結清，無法進行調整'})
+                                                                                                   return
+                                                                                               }
+                                                                                               PosFunction.setMoney(gvc, (money) => {
+                                                                                                   dd.total = (money || 0)
+                                                                                                   refreshOrderView()
+                                                                                               })
+                                                                                           })}">
+                                                                                </div>
+                                                                                <div class="d-flex" style="flex:68;">
+                                                                                    ${dd.paied ? `已付款` : `尚未付款`}
+                                                                                </div>
+                                                                                <div class="d-flex" style="flex:34;">
+                                                                                    ${(!dd.paied) ? BgWidget.save(gvc.event(() => {
+                                                                                        switch (dd.method) {
+                                                                                            case 'cash':
+                                                                                                PaymentFunction.cashFinish(gvc, dd.total, (result) => {
+                                                                                                    if (result) {
+                                                                                                        dd.paied = true
+                                                                                                        refreshOrderView()
+                                                                                                    }
+                                                                                                })
+                                                                                                break
+                                                                                            case 'creditCard':
+                                                                                                PaymentFunction.creditFinish(gvc, dd.total, orderDetail, (result) => {
+                                                                                                    if (result) {
+                                                                                                        dd.paied = true
+                                                                                                        refreshOrderView()
+                                                                                                    }
+                                                                                                })
+                                                                                                break
+                                                                                            case 'line':
+                                                                                                obj.ogOrderData.line_prefix = obj.ogOrderData.line_prefix || 0
+                                                                                                PaymentFunction.lineFinish(gvc, dd.total, obj.ogOrderData, (result) => {
+                                                                                                    if (result) {
+                                                                                                        dd.paied = true;
+                                                                                                        obj.ogOrderData.line_prefix!++
+                                                                                                        refreshOrderView()
+                                                                                                    }
+                                                                                                })
+                                                                                                break
+                                                                                        }
+                                                                                    }), '支付') : BgWidget.danger(gvc.event(() => {
+                                                                                        dialog.checkYesOrNot({
+                                                                                            text: '此款項已支付，是否確認移除付款資訊?',
+                                                                                            callback: (response) => {
+                                                                                                if (response) {
+                                                                                                    dd.paied = false;
+                                                                                                    refreshOrderView()
+                                                                                                }
+                                                                                            }
+                                                                                        })
+                                                                                    }), '取消')}
+                                                                                </div>
+                                                                            </div>`
                                                                     }).join('')
                                                             }</div>`
                                                         }
@@ -1138,11 +1214,11 @@ ${
                                                 `<div style="height:24px;"></div>`,
                                                 PosWidget.buttonSnow(`多種付款方式`, gvc.event(() => {
                                                     PosFunction.selectPaymentMethod({
-                                                        gvc:gvc,
-                                                        orderData:orderDetail,
-                                                        callback:(data)=>{
-                                                            obj.ogOrderData.pos_info.payment=data
-                                                            vm.paySelect=data
+                                                        gvc: gvc,
+                                                        orderData: orderDetail,
+                                                        callback: (data) => {
+                                                            obj.ogOrderData.pos_info.payment = data
+                                                            vm.paySelect = data
                                                             refreshOrderView()
                                                         }
                                                     })
@@ -1180,12 +1256,12 @@ ${
                                                             ([
                                                                 {
                                                                     title: '實際收款金額',
-                                                                    value: total,
+                                                                    value: total.toLocaleString(),
                                                                     color: `#393939`
                                                                 },
                                                                 {
                                                                     title: (total - parseInt(orderDetail.total as any, 10)) < 0 ? `不足` : `找零`,
-                                                                    value: total - parseInt(orderDetail.total as any, 10),
+                                                                    value: (total - parseInt(orderDetail.total as any, 10)).toLocaleString(),
                                                                     color: (total - parseInt(orderDetail.total as any, 10)) >= 0 ? `#4D86DB` : `#E85757`,
                                                                 }
                                                             ]).map((dd) => {
@@ -1202,7 +1278,7 @@ ${
                                                     }
                                                 </div>`)
 
-                                            function paymentNext() {
+                                            function paymentNext(pre_order:boolean) {
                                                 TempOrder.removeTempOrders(orderDetail.orderID)
                                                 if (orderDetail.lineItems.length <= 0) {
                                                     dialog.errorMessage({text: '請先選擇商品!'});
@@ -1227,25 +1303,42 @@ ${
                                                 passData.total = orderDetail.total;
                                                 passData.orderStatus = 1;
                                                 passData.pay_status = 1;
+                                                passData.pre_order = pre_order
+                                                vm.paySelect.map((dd) => {
+                                                    dd.paied = true
+                                                })
                                                 //只有一種付款方式時結帳付款
                                                 if (vm.paySelect.length === 1) {
                                                     if (vm.paySelect.find((dd) => {
                                                         return dd.method === 'cash'
                                                     })) {
-                                                        PaymentPage.selectInvoice(gvc, orderDetail, vm, passData);
+                                                        PaymentFunction.cashFinish(gvc, orderDetail.total, (result) => {
+                                                            if (result) {
+                                                                PaymentPage.selectInvoice(gvc, orderDetail, vm, passData);
+                                                            }
+                                                        })
                                                     } else if (vm.paySelect.find((dd) => {
                                                         return dd.method === 'creditCard'
                                                     })) {
-                                                        PaymentPage.creditFinish(gvc, orderDetail, vm, passData);
+                                                        PaymentFunction.creditFinish(gvc, orderDetail.total, orderDetail, (result) => {
+                                                            if (result) {
+                                                                PaymentPage.selectInvoice(gvc, orderDetail, vm, passData);
+                                                            }
+                                                        })
                                                     } else if (vm.paySelect.find((dd) => {
                                                         return dd.method === 'line'
                                                     })) {
-                                                        PaymentPage.lineFinish(gvc, orderDetail, vm, passData);
+                                                        PaymentFunction.lineFinish(gvc, orderDetail.total, orderDetail, (result) => {
+                                                            if (result) {
+                                                                PaymentPage.selectInvoice(gvc, orderDetail, vm, passData);
+                                                            }
+                                                        });
                                                     } else {
                                                         PaymentPage.selectInvoice(gvc, orderDetail, vm, passData);
                                                     }
+                                                } else {
+                                                    PaymentPage.selectInvoice(gvc, orderDetail, vm, passData);
                                                 }
-
                                             }
 
                                             view.push(html`
@@ -1267,11 +1360,19 @@ ${
                                                             class=""
                                                             style="flex:1;display: flex;padding: 12px 24px;justify-content: center;align-items: center;border-radius: 10px;background: #FF6C02;color: #FFF;font-size: 18px;font-style: normal;font-weight: 500;line-height: normal;letter-spacing: 0.72px;"
                                                             onclick="${gvc.event(() => {
+                                                                if ((vm.paySelect.length > 1) && (vm.paySelect.find((dd: any) => {
+                                                                    return !dd.paied
+                                                                }))) {
+                                                                    dialog.errorMessage({
+                                                                        text: `請結清所有款項`
+                                                                    })
+                                                                    return;
+                                                                }
                                                                 dialog.checkYesOrNot({
                                                                     text: '是否確認建立預購單?',
                                                                     callback: (response) => {
                                                                         if (response) {
-                                                                            paymentNext()
+                                                                            paymentNext(true)
                                                                         }
                                                                     }
                                                                 })
@@ -1286,12 +1387,27 @@ ${
                                                                 if ((total - parseInt(orderDetail.total as any, 10)) < 0) {
                                                                     dialog.errorMessage({text: `收款金額尚需要『 ${((total - parseInt(orderDetail.total as any, 10)) * -1).toLocaleString()} 』`});
                                                                     return;
+                                                                } else if ((vm.paySelect.length > 1) && (vm.paySelect.find((dd: any) => {
+                                                                    return !dd.paied
+                                                                }))) {
+                                                                    dialog.errorMessage({
+                                                                        text: `請結清所有款項`
+                                                                    })
+                                                                    return;
+                                                                }else if(orderDetail.lineItems.find((dd:any)=>{
+                                                                    return dd.pre_order
+                                                                })){
+                                                                    dialog.errorMessage({
+                                                                        text: `庫存不足，請建立預購單`
+                                                                    })
+                                                                    return;
                                                                 }
+
                                                                 PaymentPage.storeHistory(orderDetail)
                                                                 dialog.checkYesOrNot({
                                                                     text: '是否確認前往結帳?', callback: (response) => {
                                                                         if (response) {
-                                                                            paymentNext()
+                                                                            paymentNext(false)
                                                                         }
                                                                     }
                                                                 })
@@ -1341,185 +1457,6 @@ ${
                     </div>`;
     }
 
-    public static cashFinish(gvc: GVC, orderDetail: any, vm: any, passData: any) {
-        gvc.addStyle(`
-                .dialog-box {
-                    width: 100vw;
-                    height: 100vh;
-                    display: flex;
-                    align-items: center;
-                    justify-content: center;
-                    background-color: rgba(0, 0, 0, 0.5);
-                    z-index: 10000;
-                }
-
-                .dialog-absolute {
-                    width: 100%;
-                    border-top: 1px solid #e2e5f1;
-                    position: absolute;
-                    left: 0px;
-                    bottom: 0px;
-                    height: 40px;
-                    display: flex;
-                    align-items: center;
-                    justify-content: center;
-                    cursor: pointer;
-                }
-
-                .hover-cancel {
-                    background-color: #fff;
-                    border-radius: 0 0 0 0.5rem;
-                }
-
-                .hover-cancel:hover {
-                    background-color: #e6e6e6;
-                }
-
-                .hover-save {
-                    background-color: #393939;
-                    border-radius: 0 0 0.5rem;
-                }
-
-                .hover-save:hover {
-                    background-color: #646464;
-                }
-            `);
-        const dialog = new ShareDialog(gvc.glitter);
-        gvc.glitter.innerDialog(
-            (gvc: GVC) => {
-                return html`
-                    <div class="dialog-box">
-                        <div class="dialog-content position-relative pb-5"
-                             style="width: 452px;max-width: calc(100% - 20px);">
-                            <div
-                                    class="my-3 fs-6 fw-500 text-center"
-                                    style="white-space: normal; overflow-wrap: anywhere;font-size: 28px;font-style: normal;font-weight: 700;line-height: normal;letter-spacing: 2.8px;"
-                            >
-                                請先收取現金後進行結帳
-                            </div>
-                            <div style="font-size: 18px;font-style: normal;font-weight: 400;line-height: 160%;letter-spacing: 0.72px;">
-                                本次結帳金額為 <span
-                                    style="font-size: 28px;font-style: normal;font-weight: 700;line-height: 160%;">$${orderDetail.total.toLocaleString()}</span>
-                            </div>
-                            <div class="d-flex align-items-center justify-content-center"
-                                 style="margin-top: 24px;font-size: 16px;font-weight: 700;letter-spacing: 0.64px;">
-                                <div
-                                        style="border-radius: 10px;border: 1px solid #DDD;background: #FFF;padding: 12px 24px;color: #393939;width:120px;text-align:center;"
-                                        onclick="${gvc.event(() => {
-                                            gvc.glitter.closeDiaLog();
-                                        })}"
-                                >
-                                    取消
-                                </div>
-                                <div
-                                        style="border-radius: 10px;background: #393939;padding: 12px 24px;color: #FFF;margin-left: 24px;width:120px;text-align:center;"
-                                        onclick="${gvc.event(() => {
-                                            gvc.closeDialog();
-                                            PaymentPage.selectInvoice(gvc, orderDetail, vm, passData);
-                                        })}"
-                                >
-                                    下一步
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                `;
-            },
-            'orderFinish',
-            {
-                dismiss: () => {
-                    // vm.type = "list";
-                },
-            }
-        );
-    }
-
-    public static creditFinish(gvc: GVC, orderDetail: any, vm: any, passData: any) {
-        const dialog = new ShareDialog(gvc.glitter);
-
-        function next() {
-            PaymentPage.selectInvoice(gvc, orderDetail, vm, passData);
-        }
-
-        const pwd = orderDetail.payment_setting.find((dd: any) => {
-            return dd.key === 'ut_credit_card'
-        }).pwd
-        gvc.glitter.innerDialog(
-            (gvc: GVC) => {
-                if (PayConfig.deviceType === 'pos') {
-                    gvc.glitter.runJsInterFace(
-                        'credit_card',
-                        {
-                            amount: `${orderDetail.total}`,
-                            memo: `訂單ID:${orderDetail.orderID}`,
-                            pwd: pwd
-                        },
-                        (res: any) => {
-                            if (res.result) {
-                                gvc.closeDialog();
-                                next();
-                            } else {
-                                gvc.closeDialog();
-                                dialog.errorMessage({text: '交易失敗'});
-                            }
-                        }
-                    );
-                } else if (ConnectionMode.on_connected_device) {
-                    gvc.glitter.share.credit_card_callback = (res: any) => {
-                        if (res.result) {
-                            gvc.closeDialog();
-                            next();
-                        } else {
-                            gvc.closeDialog();
-                            dialog.errorMessage({text: '交易失敗'});
-                        }
-                    }
-                    ConnectionMode.sendCommand({
-                        cmd: 'credit_card',
-                        amount: `${orderDetail.total}`,
-                        memo: `訂單ID:${orderDetail.orderID}`,
-                        pwd: pwd
-                    })
-                } else {
-                    setTimeout(() => {
-                        gvc.closeDialog();
-                        dialog.errorMessage({text: '尚未連線Imin裝置'});
-                    }, 100)
-                }
-
-
-                return html`
-                    <div class="dialog-box">
-                        <div class="dialog-content position-relative "
-                             style="width: 370px;max-width: calc(100% - 20px);">
-                            <div class="my-3  fw-500 text-center"
-                                 style="white-space: normal; overflow-wrap: anywhere;font-size: 20px;font-style: normal;font-weight: 700;line-height: normal;letter-spacing: 2.8px;">
-                                請感應或插入信用卡進行付款
-                            </div>
-                            <div style="font-size: 16px;font-style: normal;font-weight: 400;line-height: 160%;letter-spacing: 0.72px;">
-                                若逾時將重新選擇付款方式
-                            </div>
-                            <img class="mt-3" style="max-width:70%;"
-                                 src="https://d3jnmi1tfjgtti.cloudfront.net/file/234285319/size1440_s*px$_scsds7s8sbsfs3s8_b00f1f368f2a9b9fb067a844f940ca2a.gif"></img>
-                            <div class="fw-500 w-100 mt-3"
-                                 style="border-radius: 10px;border: 1px solid #DDD;background: #FFF;padding: 12px 24px;color: #393939;width:120px;text-align:center;"
-                                 onclick="${gvc.event(() => {
-                                     // clearTimeout(timer)
-                                     gvc.glitter.closeDiaLog();
-                                 })}">取消付款
-                            </div>
-                        </div>
-                    </div>
-                `;
-            },
-            'orderFinish',
-            {
-                dismiss: () => {
-                    // vm.type = "list";
-                },
-            }
-        );
-    }
 
     public static scanVoucher(gvc: GVC, orderDetail: any, reload: () => void) {
         const c_vm = {
@@ -1734,126 +1671,6 @@ ${
         );
     }
 
-    public static lineFinish(gvc: GVC, orderDetail: any, vm: any, passData: any) {
-        const dialog = new ShareDialog(gvc.glitter);
-
-        function next() {
-            PaymentPage.selectInvoice(gvc, orderDetail, vm, passData);
-        }
-
-        gvc.glitter.innerDialog(
-            (gvc: GVC) => {
-
-                let block = false
-                PayConfig.onPayment = (scanText) => {
-                    if (block) {
-                        return
-                    }
-                    dialog.dataLoading({visible: true});
-                    ApiShop.toPOSLinePay({
-                        amount: orderDetail.total,
-                        currency: 'TWD',
-                        orderId: orderDetail.orderID,
-                        productName: orderDetail.lineItems
-                            .map((data: any) => {
-                                return `${data.title} * ${data.count}`;
-                            })
-                            .join(','),
-                        oneTimeKey: scanText,
-                    }).then((res) => {
-                        dialog.dataLoading({visible: false});
-                        if (!res.result || !res.response.result) {
-                            dialog.errorMessage({text: '交易失敗'});
-                        } else {
-                            gvc.closeDialog();
-                            PayConfig.onPayment = undefined
-                            next();
-                        }
-                    });
-                }
-                let m_text = ''
-                return html`
-                    <div class="dialog-box">
-                        <div class="dialog-content position-relative "
-                             style="width: 370px;max-width: calc(100% - 20px);">
-                            <div class="my-3  fw-500 text-center"
-                                 style="white-space: normal; overflow-wrap: anywhere;font-size: 20px;font-style: normal;font-weight: 700;line-height: normal;letter-spacing: 2.8px;">
-                                請掃描LINE Pay付款條碼
-                            </div>
-                            <img class="mt-3" style="max-width:70%;"
-                                 src="https://d3jnmi1tfjgtti.cloudfront.net/file/234285319/size1440_s*px$_s6sfs4scs5s3s0sa_Screenshot2024-09-06at12.28.00 PM.jpg"></img>
-                            <div class="d-flex w-100 align-items-center mt-3"
-                                 style="border:1px solid grey;height: 50px;">
-                                <input
-                                        class="form-control h-100"
-                                        style="border: none;"
-                                        placeholder="請輸入或掃描付款代碼"
-                                        onchange="${gvc.event((e, event) => {
-                                            m_text = e.value
-                                        })}"
-                                        value="${m_text || ''}"
-                                        onfocus="${gvc.event(() => {
-                                            block = true
-                                        })}"
-                                        onblur="${gvc.event(() => {
-                                            block = false
-                                        })}"
-                                />
-                                <div class="flex-fill"></div>
-                                <div
-                                        style="background: grey;width: 50px;"
-                                        class="d-flex align-items-center justify-content-center text-white h-100"
-                                        onclick="${gvc.event(() => {
-                                            gvc.glitter.runJsInterFace('start_scan', {}, (res) => {
-                                                PayConfig.onPayment!(res.text);
-                                            });
-                                        })}"
-                                >
-                                    <i class="fa-regular fa-barcode-read"></i>
-                                </div>
-                            </div>
-                            <div class="d-flex align-items-center justify-content-center w-100"
-                                 style="margin-top: 24px;font-size: 16px;font-weight: 700;letter-spacing: 0.64px;">
-                                <div
-                                        class="flex-fill"
-                                        style="border-radius: 10px;border: 1px solid #DDD;background: #FFF;padding: 12px 24px;color: #393939;text-align:center;"
-                                        onclick="${gvc.event(() => {
-                                            PayConfig.onPayment = undefined
-                                            gvc.glitter.closeDiaLog();
-                                        })}"
-                                >
-                                    取消
-                                </div>
-                                <div class="mx-2"></div>
-                                <div
-                                        class="flex-fill"
-                                        style="border-radius: 10px;background: #393939;padding: 12px 24px;color: #FFF;text-align:center;"
-                                        onclick="${gvc.event(async () => {
-                                            if (!m_text) {
-                                                dialog.errorMessage({text: '請輸入交易條碼'})
-                                                return
-                                            }
-                                            block = false
-                                            PayConfig.onPayment!(m_text)
-                                        })}"
-                                >
-                                    確定
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                `;
-            },
-            'orderFinish',
-            {
-                dismiss: () => {
-                    // vm.type = "list";
-                    gvc.glitter.share.scan_back = () => {
-                    };
-                },
-            }
-        );
-    }
 
     public static stripHtmlTags(htmlString: string) {
         // 创建一个临时DOM元素

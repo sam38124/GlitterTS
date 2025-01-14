@@ -234,6 +234,8 @@ export class ShoppingOrderManager {
                                                     出貨狀態: (() => {
                                                         var _a;
                                                         switch ((_a = orderData.progress) !== null && _a !== void 0 ? _a : 'wait') {
+                                                            case 'pre_order':
+                                                                return '待預購';
                                                             case 'shipping':
                                                                 return '已出貨';
                                                             case 'finish':
@@ -420,6 +422,8 @@ export class ShoppingOrderManager {
                                                                     return BgWidget.warningInsignia('貨到付款');
                                                                 }
                                                                 return BgWidget.notifyInsignia('未付款');
+                                                            case 3:
+                                                                return BgWidget.warningInsignia('部分付款');
                                                             case 1:
                                                                 return BgWidget.infoInsignia('已付款');
                                                             case -1:
@@ -434,6 +438,8 @@ export class ShoppingOrderManager {
                                                     value: (() => {
                                                         var _a;
                                                         switch ((_a = dd.orderData.progress) !== null && _a !== void 0 ? _a : 'wait') {
+                                                            case 'pre_order':
+                                                                return BgWidget.notifyInsignia('待預購');
                                                             case 'wait':
                                                                 return BgWidget.notifyInsignia('未出貨');
                                                             case 'shipping':
@@ -726,6 +732,9 @@ export class ShoppingOrderManager {
                 else if (orderData.status === 1) {
                     return BgWidget.infoInsignia('已付款');
                 }
+                else if (orderData.status === 3) {
+                    return BgWidget.warningInsignia('部分付款');
+                }
                 else if (orderData.status === -2) {
                     return BgWidget.notifyInsignia('已退款');
                 }
@@ -744,6 +753,8 @@ export class ShoppingOrderManager {
                         return BgWidget.warningInsignia('已送達');
                     case 'wait':
                         return BgWidget.notifyInsignia('未出貨');
+                    case 'pre_order':
+                        return BgWidget.notifyInsignia('待預購');
                     case 'returns':
                         return BgWidget.notifyInsignia('已退貨');
                 }
@@ -908,6 +919,7 @@ export class ShoppingOrderManager {
                                                                                             <div>${dd.title}</div>
                                                                                             ${dd.is_gift ? `<div class="">${showTag("#FFE9B2", "贈品")}</div>` : ``}
                                                                                             ${dd.is_add_on_items ? `<div class="">${showTag("#D8E7EC", "加購品")}</div>` : ``}
+                                                                                            ${dd.pre_order ? `<div class="">${showTag("#D8E7EC", "預購")}</div>` : ``}
                                                                                         </div>
                                                                                         ${dd.spec.length > 0 ? BgWidget.grayNote(dd.spec.join(', ')) : ''}
                                                                                         ${BgWidget.grayNote(`存貨單位 (SKU)：${dd.sku && dd.sku.length > 0 ? dd.sku : '無'}`)}
@@ -1020,14 +1032,16 @@ export class ShoppingOrderManager {
                                 .join(BgWidget.mbContainer(18))}
                                                         </div>
                                                     `),
-                            orderData.orderData.lineItems.find((dd) => { return dd.deduction_log; }) ?
+                            orderData.orderData.lineItems.find((dd) => {
+                                return dd.deduction_log;
+                            }) ?
                                 BgWidget.mainCard(html `
-                                                <div style="display: flex;flex-direction: column;align-items: flex-start;gap: 12px;align-self: stretch;">
-                                                    <div class="w-100 d-flex tx_700 align-items-center justify-content-between">
-                                                        <div class="">分倉出貨</div>
-                                                        <div class=""
-                                                             style="display: flex;padding: 6px 18px;justify-content: center;align-items: center;gap: 8px;border-radius: 10px;border: 1px solid #DDD;background: #FFF;cursor: pointer;"
-                                                             onclick="${gvc.event(() => {
+                                                        <div style="display: flex;flex-direction: column;align-items: flex-start;gap: 12px;align-self: stretch;">
+                                                            <div class="w-100 d-flex tx_700 align-items-center justify-content-between">
+                                                                <div class="">分倉出貨</div>
+                                                                <div class=""
+                                                                     style="display: flex;padding: 6px 18px;justify-content: center;align-items: center;gap: 8px;border-radius: 10px;border: 1px solid #DDD;background: #FFF;cursor: pointer;"
+                                                                     onclick="${gvc.event(() => {
                                     OrderSetting.showEditShip({
                                         gvc: gvc,
                                         postMD: orderData.orderData.lineItems,
@@ -1037,10 +1051,10 @@ export class ShoppingOrderManager {
                                         }
                                     });
                                 })}">
-                                                            編輯
-                                                        </div>
-                                                    </div>
-                                                    ${gvc.bindView({
+                                                                    編輯
+                                                                </div>
+                                                            </div>
+                                                            ${gvc.bindView({
                                     bind: "storehouseList",
                                     view: () => {
                                         try {
@@ -1067,15 +1081,16 @@ export class ShoppingOrderManager {
                                                         try {
                                                             if (item.deduction_log[store.id]) {
                                                                 returnHtml += html `
-                                                                                <div class="d-flex justify-content-between"
-                                                                                     style="font-size: 16px;font-weight: 400;">
-                                                                                    <div>${item.title} -
-                                                                                        ${item.spec.join(',')}
-                                                                                    </div>
-                                                                                    <div>${item.deduction_log[store.id]}
-                                                                                    </div>
-                                                                                </div>
-                                                                            `;
+                                                                                                <div class="d-flex justify-content-between"
+                                                                                                     style="font-size: 16px;font-weight: 400;">
+                                                                                                    <div>${item.title} -
+                                                                                                        ${item.spec.join(',')}
+                                                                                                    </div>
+                                                                                                    <div>
+                                                                                                        ${item.deduction_log[store.id]}
+                                                                                                    </div>
+                                                                                                </div>
+                                                                                            `;
                                                             }
                                                         }
                                                         catch (e) {
@@ -1084,22 +1099,22 @@ export class ShoppingOrderManager {
                                                     });
                                                     if (returnHtml) {
                                                         return html `
-                                                                            <div class="d-flex flex-column w-100"
-                                                                                 style="gap:8px;padding: 18px;border-radius: 10px;border: 1px solid #DDD;">
-                                                                                <div class="d-flex w-100 align-items-center"
-                                                                                     style="gap:8px;">
-                                                                                    出貨地點
-                                                                                    <div style="font-size: 14px;color:#333;border-radius: 7px;background: rgba(221, 221, 221, 0.87);padding: 4px 6px;">
-                                                                                        ${store.name}
-                                                                                    </div>
-                                                                                </div>
-                                                                                <div class="w-100"
-                                                                                     style="background-color: #DDD;height: 1px;"></div>
-                                                                                <div class="d-flex flex-column">
-                                                                                    ${returnHtml}
-                                                                                </div>
-                                                                            </div>
-                                                                        `;
+                                                                                        <div class="d-flex flex-column w-100"
+                                                                                             style="gap:8px;padding: 18px;border-radius: 10px;border: 1px solid #DDD;">
+                                                                                            <div class="d-flex w-100 align-items-center"
+                                                                                                 style="gap:8px;">
+                                                                                                出貨地點
+                                                                                                <div style="font-size: 14px;color:#333;border-radius: 7px;background: rgba(221, 221, 221, 0.87);padding: 4px 6px;">
+                                                                                                    ${store.name}
+                                                                                                </div>
+                                                                                            </div>
+                                                                                            <div class="w-100"
+                                                                                                 style="background-color: #DDD;height: 1px;"></div>
+                                                                                            <div class="d-flex flex-column">
+                                                                                                ${returnHtml}
+                                                                                            </div>
+                                                                                        </div>
+                                                                                    `;
                                                     }
                                                     else {
                                                         return ``;
@@ -1117,8 +1132,8 @@ export class ShoppingOrderManager {
                                         style: `gap:18px;`
                                     }
                                 })}
-                                                </div>
-                                            `) : ``,
+                                                        </div>
+                                                    `) : ``,
                             BgWidget.mainCard([
                                 html `
                                                             <div style="display: flex;flex-direction: column;align-items: flex-start;gap: 12px;align-self: stretch;">
@@ -1136,6 +1151,10 @@ export class ShoppingOrderManager {
                                         {
                                             title: '已付款',
                                             value: '1',
+                                        },
+                                        {
+                                            title: '部分付款',
+                                            value: '3',
                                         },
                                         {
                                             title: orderData.orderData.proof_purchase ? `待核款` : `未付款`,
@@ -1158,7 +1177,7 @@ export class ShoppingOrderManager {
                                                             <div style="display: flex;flex-direction: column;align-items: flex-start;gap: 12px;align-self: stretch;">
                                                                 <div class="tx_700">付款方式</div>
                                                                 <div class="tx_normal">
-                                                                    ${ShoppingOrderManager.getPaymentMethodText(orderData.orderData.method, orderData.orderData)}
+                                                                    ${ShoppingOrderManager.getPaymentMethodText(orderData.orderData.method, orderData.orderData, gvc)}
                                                                 </div>
                                                                 ${ShoppingOrderManager.getProofPurchaseString(orderData.orderData, gvc)}
                                                             </div>`
@@ -1194,6 +1213,10 @@ export class ShoppingOrderManager {
                                                     {
                                                         title: '已出貨',
                                                         value: 'shipping',
+                                                    },
+                                                    {
+                                                        title: '待預購',
+                                                        value: 'pre_order',
                                                     },
                                                     { title: '未出貨', value: 'wait' },
                                                     { title: '已取貨', value: 'finish' },
@@ -1446,10 +1469,11 @@ export class ShoppingOrderManager {
                                                 }
                                             })(),
                                             (() => {
-                                                let map = [`<div class="tx_700">
-                                                                                            發票開立資訊
-                                                                                        </div>`];
+                                                let map = [];
                                                 if (orderData.orderData.user_info.invoice_method) {
+                                                    map.push(`<div class="tx_700">
+                                                                                            發票開立資訊
+                                                                                        </div>`);
                                                     map.push(`開立時機: ${(() => {
                                                         switch (orderData.orderData.user_info.invoice_method) {
                                                             case 'nouse':
@@ -1461,7 +1485,7 @@ export class ShoppingOrderManager {
                                                         }
                                                     })()}`);
                                                 }
-                                                if (orderData.orderData.user_info.invoice_method !== 'nouse') {
+                                                if (orderData.orderData.user_info.invoice_method && orderData.orderData.user_info.invoice_method !== 'nouse') {
                                                     map.push(`開立對象: ${(() => {
                                                         switch (orderData.orderData.user_info.invoice_type) {
                                                             case 'donate':
@@ -1563,20 +1587,20 @@ export class ShoppingOrderManager {
                                     bind: vm.id,
                                     view: () => {
                                         return html `
-                                                <div class="w-100 d-flex tx_700 align-items-center justify-content-between">
-                                                    <div class="">商家備註</div>
-                                                    <div class=""
-                                                         style="display: flex;padding: 6px 18px;justify-content: center;align-items: center;gap: 8px;border-radius: 10px;border: 1px solid #DDD;background: #FFF;cursor: pointer;"
-                                                         onclick="${gvc.event(() => {
+                                                            <div class="w-100 d-flex tx_700 align-items-center justify-content-between">
+                                                                <div class="">商家備註</div>
+                                                                <div class=""
+                                                                     style="display: flex;padding: 6px 18px;justify-content: center;align-items: center;gap: 8px;border-radius: 10px;border: 1px solid #DDD;background: #FFF;cursor: pointer;"
+                                                                     onclick="${gvc.event(() => {
                                             vm.edit_mode = !vm.edit_mode;
                                             gvc.notifyDataChange(vm.id);
                                         })}">
-                                                        ${vm.edit_mode ? `取消編輯` : `編輯`}
-                                                    </div>
-                                                </div>
-                                                ${BgWidget.mbContainer(18)}
-                                                <div style="position: relative;">
-                                                    ${vm.edit_mode ? EditorElem.editeText({
+                                                                    ${vm.edit_mode ? `取消編輯` : `編輯`}
+                                                                </div>
+                                                            </div>
+                                                            ${BgWidget.mbContainer(18)}
+                                                            <div style="position: relative;">
+                                                                ${vm.edit_mode ? EditorElem.editeText({
                                             gvc: gvc,
                                             title: '',
                                             default: orderData.orderData.order_note || '',
@@ -1585,8 +1609,8 @@ export class ShoppingOrderManager {
                                                 orderData.orderData.order_note = text;
                                             },
                                         }) : orderData.orderData.order_note || '尚未填寫商家備註'}
-                                                </div>
-                                            `;
+                                                            </div>
+                                                        `;
                                     }
                                 };
                             })),
@@ -1761,7 +1785,7 @@ export class ShoppingOrderManager {
                                                                                         <div class="tx_700">付款方式
                                                                                         </div>
                                                                                         <div>
-                                                                                            ${ShoppingOrderManager.getPaymentMethodText(orderData.orderData.method, orderData.orderData)}
+                                                                                            ${ShoppingOrderManager.getPaymentMethodText(orderData.orderData.method, orderData.orderData, gvc)}
                                                                                         </div>
                                                                                         <div class="tx_700">配送方式
                                                                                         </div>
@@ -1942,7 +1966,7 @@ export class ShoppingOrderManager {
                     })}
                             ${BgWidget.mbContainer(240)}
                             <div class="update-bar-container">
-                                <div class="${orderData.orderData.method == 'off_line' && orderData.status == 1 ? '' : 'd-none'}">
+                                <div class="">
                                     ${gvc.bindView(() => {
                         const id = gvc.glitter.getUUID();
                         return {
@@ -2026,6 +2050,7 @@ export class ShoppingOrderManager {
                             if (orderData.status != origData.status) {
                                 let text = {
                                     '1': '付款成功',
+                                    '3': '部分付款',
                                     '-2': '退款成功',
                                     '0': '修改為未付款',
                                 };
@@ -3568,24 +3593,12 @@ export class ShoppingOrderManager {
                 </div>
             `);
     }
-    static getPaymentMethodText(key, orderData) {
+    static getPaymentMethodText(key, orderData, gvc) {
         if (orderData.orderSource === 'POS') {
-            if (typeof orderData.pos_info.payment === 'string') {
-                return `門市『 ${(() => {
-                    switch (orderData.pos_info.payment) {
-                        case 'creditCard':
-                            return '信用卡';
-                        case 'line':
-                            return 'Line Pay';
-                        case 'cash':
-                            return '現金';
-                    }
-                })()} 』付款`;
-            }
-            else {
-                return orderData.pos_info.payment.map((dd) => {
-                    return `門市${(() => {
-                        switch (dd.method) {
+            return `${(() => {
+                if (typeof orderData.pos_info.payment === 'string') {
+                    return `門市『 ${(() => {
+                        switch (orderData.pos_info.payment) {
                             case 'creditCard':
                                 return '信用卡';
                             case 'line':
@@ -3593,9 +3606,48 @@ export class ShoppingOrderManager {
                             case 'cash':
                                 return '現金';
                         }
-                    })()}付款『 <span style="color:#E85757;">${dd.total.toLocaleString()}</span> 』`;
-                }).join('<div class="my-1"></div>');
-            }
+                    })()} 』付款`;
+                }
+                else {
+                    const pay_total = orderData.pos_info.payment.map((dd) => {
+                        return dd.total;
+                    }).reduce((acc, val) => acc + val, 0);
+                    let map_ = orderData.pos_info.payment.map((dd) => {
+                        return `${(() => {
+                            switch (dd.method) {
+                                case 'creditCard':
+                                    return '信用卡';
+                                case 'line':
+                                    return 'Line Pay';
+                                case 'cash':
+                                    return '現金';
+                            }
+                        })()}付款 『 <span class="fw-500" style="color:#E85757;">$ ${dd.total.toLocaleString()}</span> 』`;
+                    });
+                    if (pay_total < orderData.total) {
+                        map_.push(html `
+                            <div class="d-flex align-items-center">
+                                <span class="fw-500 text-danger">付款金額尚不足</span>
+                                <div class="mx-1"></div>
+                                <span class="fw-500"> $${(orderData.total - pay_total).toLocaleString()}</span>
+                                <div class="mx-1"></div>
+                                ${BgWidget.customButton({
+                            button: {
+                                color: 'gray',
+                                size: 'sm',
+                            },
+                            text: {
+                                name: '補足款項'
+                            },
+                            event: gvc.event(() => {
+                            })
+                        })}
+                            </div>`);
+                    }
+                    return map_.join('<div class="my-2 border-top"></div>');
+                }
+            })()}
+            `;
         }
         switch (orderData.customer_info.payment_select) {
             case 'off_line':
