@@ -1,7 +1,7 @@
-import {GVC} from '../glitterBundle/GVController.js';
-import {ApiShop} from '../glitter-base/route/shopping.js';
-import {BgWidget} from '../backend-manager/bg-widget.js';
-import {DataAnalyzeModule, DataAnalyzeModuleCart} from "./data-analyze-module.js";
+import { GVC } from '../glitterBundle/GVController.js';
+import { ApiShop } from '../glitter-base/route/shopping.js';
+import { BgWidget } from '../backend-manager/bg-widget.js';
+import { DataAnalyzeModule, DataAnalyzeModuleCart } from './data-analyze-module.js';
 
 const html = String.raw;
 
@@ -12,15 +12,19 @@ export class DataAnalyze {
             const vm: {
                 loading: boolean;
                 data: any;
-                filter_date:'week'|'year'|'custom';
-                come_from:'all'|'website'|'store';
-                switch:boolean
+                filter_date: 'week' | 'year' | 'custom';
+                come_from: 'all' | 'website' | 'store';
+                switch: boolean;
+                startDate: string;
+                endDate: string;
             } = {
                 loading: true,
                 data: {},
-                filter_date:'week',
-                come_from:'all',
-                switch:false
+                filter_date: 'week',
+                come_from: 'all',
+                switch: false,
+                startDate: '',
+                endDate: '',
             };
 
             gvc.glitter.addMtScript(
@@ -29,12 +33,9 @@ export class DataAnalyze {
                         src: 'https://d3jnmi1tfjgtti.cloudfront.net/file/252530754/1714105121170-apexcharts.min.js',
                     },
                 ],
-                () => {
-                },
-                () => {
-                }
+                () => {},
+                () => {}
             );
-
 
             return {
                 bind: id,
@@ -45,25 +46,27 @@ export class DataAnalyze {
                             <div class="my-3"></div>
                             <div class="row">
                                 <div class="col-12 mb-3">
-                                    ${DataAnalyzeModuleCart.filterCart(gvc,vm,()=>{
-                                        gvc.notifyDataChange(id)
+                                    ${DataAnalyzeModuleCart.filterCart(gvc, vm, () => {
+                                        gvc.notifyDataChange(id);
                                     })}
                                 </div>
                                 ${[
-                                    DataAnalyzeModule.salesAmount(gvc,vm),
-                                    DataAnalyzeModule.orderAmount(gvc,vm),
-                                    DataAnalyzeModule.orderAverage(gvc,vm),
-                                    DataAnalyzeModule.viewPeople(gvc),
-                                    DataAnalyzeModule.registerPeople(gvc),
-                                    DataAnalyzeModule.transferRatio(gvc)
-                                ].map((dd) => {
-                                    return `<div class="col-12 col-lg-4 col-md-6 mb-3">${dd}</div>`
-                                }).join('')}
+                                    DataAnalyzeModule.salesAmount(gvc, vm),
+                                    DataAnalyzeModule.orderAmount(gvc, vm),
+                                    DataAnalyzeModule.orderAverage(gvc, vm),
+                                    DataAnalyzeModule.viewPeople(gvc, vm),
+                                    DataAnalyzeModule.registerPeople(gvc, vm),
+                                    DataAnalyzeModule.transferRatio(gvc, vm),
+                                ]
+                                    .map((dd) => {
+                                        return html`<div class="col-12 col-lg-4 col-md-6 mb-3 px-2">${dd}</div>`;
+                                    })
+                                    .join('')}
                             </div>
                         `;
                     } catch (e) {
-                        console.log(e)
-                        return `${e}`
+                        console.error(e);
+                        return `${e}`;
                     }
                 },
                 divCreate: {

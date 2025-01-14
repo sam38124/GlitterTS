@@ -389,13 +389,25 @@ export declare class Shopping {
     getActiveRecentYear(): Promise<{
         count_array: number[];
     }>;
-    getActiveRecent2Weak(): Promise<{
+    getActiveRecentWeak(): Promise<{
         count_array: number[];
+    }>;
+    getActiveRecentMonth(): Promise<{
+        count_array: number[];
+    }>;
+    getActiveRecentCustom(query: string): Promise<{
+        count_array: number[];
+    }>;
+    getRegisterMonth(): Promise<{
+        countArray: any[];
+    }>;
+    getRegisterCustom(query: string): Promise<{
+        countArray: any[];
     }>;
     getRegister2weak(): Promise<{
         countArray: any[];
     }>;
-    getRegisterRecent(): Promise<{
+    getRegisterYear(): Promise<{
         today: any;
         count_register: any[];
         count_2_weak_register: any[];
@@ -431,34 +443,78 @@ export declare class Shopping {
         previous_month_total: any;
         gap: number;
     }>;
-    getOrdersPerMonth2Weak(): Promise<{
+    getOrdersPerMonth2Weak(query: string): Promise<{
         countArray: any[];
         countArrayPos: any[];
+        countArrayStore: any[];
         countArrayWeb: any[];
     }>;
-    getOrdersPerMonth1Year(): Promise<{
+    getOrdersPerMonth(query: string): Promise<{
         countArray: any[];
         countArrayPos: any[];
+        countArrayStore: any[];
         countArrayWeb: any[];
     }>;
-    getSalesPerMonth1Year(): Promise<{
+    getOrdersPerMonthCostom(query: string): Promise<{
         countArray: any[];
         countArrayPos: any[];
+        countArrayStore: any[];
         countArrayWeb: any[];
     }>;
-    getSalesPerMonth2Weak(): Promise<{
+    getOrdersPerMonth1Year(query: string): Promise<{
         countArray: any[];
         countArrayPos: any[];
+        countArrayStore: any[];
         countArrayWeb: any[];
     }>;
-    getOrderAvgSalePriceYear(): Promise<{
+    static isComeStore(checkout: any, qData: any): boolean;
+    getSalesPerMonth1Year(query: string): Promise<{
         countArray: any[];
         countArrayPos: any[];
+        countArrayStore: any[];
         countArrayWeb: any[];
     }>;
-    getOrderAvgSalePrice(): Promise<{
+    getSalesPerMonth2Weak(query: string): Promise<{
         countArray: any[];
         countArrayPos: any[];
+        countArrayStore: any[];
+        countArrayWeb: any[];
+    }>;
+    getSalesPerMonth(query: string): Promise<{
+        countArray: any[];
+        countArrayPos: any[];
+        countArrayStore: any[];
+        countArrayWeb: any[];
+    }>;
+    diffDates(startDateObj: Date, endDateObj: Date): number;
+    getSalesPerMonthCustom(query: string): Promise<{
+        countArray: any[];
+        countArrayPos: any[];
+        countArrayStore: any[];
+        countArrayWeb: any[];
+    }>;
+    getOrderAvgSalePriceYear(query: string): Promise<{
+        countArray: any[];
+        countArrayPos: any[];
+        countArrayStore: any[];
+        countArrayWeb: any[];
+    }>;
+    getOrderAvgSalePrice(query: string): Promise<{
+        countArray: any[];
+        countArrayPos: any[];
+        countArrayStore: any[];
+        countArrayWeb: any[];
+    }>;
+    getOrderAvgSalePriceMonth(query: string): Promise<{
+        countArray: any[];
+        countArrayPos: any[];
+        countArrayStore: any[];
+        countArrayWeb: any[];
+    }>;
+    getOrderAvgSalePriceCustomer(query: string): Promise<{
+        countArray: any[];
+        countArrayPos: any[];
+        countArrayStore: any[];
         countArrayWeb: any[];
     }>;
     getCollectionProducts(tags: string): Promise<any>;
