@@ -4420,7 +4420,6 @@ ${obj.default ?? ''}</textarea
             </div>`;
         }, windowID);
     }
-
     static richTextEditor(obj: { gvc: GVC; content: string; callback: (content: string) => void; title: string }) {
         const gvc = obj.gvc;
         return gvc.bindView(
