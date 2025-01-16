@@ -358,6 +358,7 @@ export class PathSelect {
                             { name: '所有商品', icon: 'fa-regular fa-tag', link: '/all-product', items: productList },
                             { name: '商品分類', icon: 'fa-regular fa-tags', link: '', items: collectionList },
                             { name: '網誌文章', icon: 'fa-regular fa-newspaper', link: '/blogs', items: acticleList },
+
                         ].filter((menu) => {
                             if (menu.items === undefined) return true;
                             return menu.items.length > 0 || menu.link.length > 0;

@@ -58,7 +58,7 @@ init(import.meta.url, (gvc, glitter, gBundle) => {
                                                 type: 'blog',
                                                 icon: `fa-solid fa-blog`,
                                                 title: "網誌文章",
-                                                desc: '關於我們 / 隱私權政策 / 服務條款 / 退款政策...等。'
+                                                desc: '關於我們 / 隱私權政策 / 服務條款 / 退換貨政策...等。'
                                             }].map((dd) => {
                                                 return ` 
  <div class="col-6 mb-1 p-2" >

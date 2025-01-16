@@ -26,7 +26,9 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.createAPP = exports.initial = exports.app = void 0;
+exports.app = void 0;
+exports.initial = initial;
+exports.createAPP = createAPP;
 const path_1 = __importDefault(require("path"));
 const express_1 = __importDefault(require("express"));
 const cors_1 = __importDefault(require("cors"));
@@ -67,6 +69,7 @@ const monitor_js_1 = require("./api-public/services/monitor.js");
 const sitemap_1 = require("sitemap");
 const stream_1 = require("stream");
 const seo_config_js_1 = require("./seo-config.js");
+const Language_js_1 = require("./Language.js");
 exports.app = (0, express_1.default)();
 const logger = new logger_1.default();
 exports.app.options('/*', (req, res) => {
@@ -119,7 +122,6 @@ async function initial(serverPort) {
         console.log('Starting up the server now.');
     })();
 }
-exports.initial = initial;
 function createContext(req, res, next) {
     const uuid = (0, uuid_1.v4)();
     const ip = req.ip;
@@ -149,7 +151,6 @@ async function createAPP(dd) {
             root_path: '/' + encodeURI(dd.appName) + '/',
             seoManager: async (req) => {
                 var _a, _b, _c, _d, _e, _f;
-                console.log(`X-Original-URL=>`, req.headers['x-original-url']);
                 const og_url = req.headers['x-original-url'];
                 try {
                     if (req.query.state === 'google_login') {
@@ -238,6 +239,12 @@ async function createAPP(dd) {
                                 appName,
                                 data,
                             });
+                        }
+                        else if (['privacy', 'term', 'refund', 'delivery'].includes(`${req.query.page}`)) {
+                            data.page_config.seo = {
+                                title: Language_js_1.Language.text(`${req.query.page}`, language),
+                                content: Language_js_1.Language.text(`${req.query.page}`, language)
+                            };
                         }
                         else if (d.type !== 'custom') {
                             data = home_page_data;
@@ -350,7 +357,7 @@ async function createAPP(dd) {
                         })() +
                             `<script>
                                 ${[
-                                (_e = d.custom_script) !== null && _e !== void 0 ? _e : '',
+                                (_e = (req.query.type !== 'editor' && d.custom_script)) !== null && _e !== void 0 ? _e : '',
                                 `window.login_config = ${JSON.stringify(login_config)};`,
                                 `window.appName = '${appName}';`,
                                 `window.glitterBase = '${brandAndMemberType.brand}';`,
@@ -369,7 +376,7 @@ async function createAPP(dd) {
                                 `window.language_list = ${JSON.stringify(language_label.label)};`,
                             ]
                                 .map((dd) => {
-                                return dd.trim();
+                                return (dd || '').trim();
                             })
                                 .filter((dd) => {
                                 return dd;
@@ -637,7 +644,6 @@ async function createAPP(dd) {
         };
     }));
 }
-exports.createAPP = createAPP;
 async function getSeoDetail(appName, req) {
     const sqlData = await private_config_js_1.Private_config.getConfig({
         appName: appName,

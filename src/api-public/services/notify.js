@@ -238,7 +238,7 @@ class ManagerNotify {
                                                                                             rel="noopener"
                                                                                             style="box-sizing: border-box; color: rgb(28, 28, 28); text-decoration: underline; -webkit-font-smoothing: antialiased; transition: color 0.2s ease-in-out 0s; user-select: auto;"
                                                                                             >服務條款</a
-                                                                                        >&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;
+                                                                                        >
                                                                                         <a
                                                                                             href="https://shopnex.tw/?article=privacyterms&page=blog_detail"
                                                                                             target="_blank"

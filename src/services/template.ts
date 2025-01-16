@@ -229,7 +229,7 @@ SELECT * FROM  \`${saasConfig.SAAS_NAME}\`.page_config where  1=1 ${where_};
 
         //判斷是條款頁面時
         if(['privacy','term','refund','delivery'].includes(query_page)){
-            page = 'blog_detail'
+            return  'official-router'
         }
         //當判斷是Blog時
         if ((query_page.split('/')[0] === 'blogs' && query_page.split('/')[1] )) {
@@ -332,6 +332,9 @@ SELECT * FROM  \`${saasConfig.SAAS_NAME}\`.page_config where  1=1 ${where_};
     }): Promise<any> {
         if (config.tag) {
             config.tag = await Template.getRealPage(config.tag, config.appName!);
+            if(config.tag==='official-router'){
+                config.appName='cms_system'
+            }
         }
         try {
             const page_db = (() => {

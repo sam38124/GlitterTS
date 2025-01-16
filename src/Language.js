@@ -1,119 +1,7 @@
-export class Language {
-    static languageSupport() {
-        const sup = [
-            {
-                key: 'en-US',
-                value: 'English',
-            },
-            {
-                key: 'zh-CN',
-                value: '简体中文',
-            },
-            {
-                key: 'zh-TW',
-                value: '繁體中文',
-            },
-        ];
-        return sup.filter((dd) => {
-            return (window.parent.store_info.language_setting.support).includes(dd.key);
-        }).sort((dd) => {
-            return dd.key === window.parent.store_info.language_setting.def ? -1 : 1;
-        });
-    }
-    static getLanguage() {
-        if (window.glitter.getUrlParameter('function') === 'backend-manger') {
-            return `zh-TW`;
-        }
-        let last_select = localStorage.getItem('select_language_' + window.appName) || navigator.language;
-        if (!window.store_info.language_setting.support.includes(last_select)) {
-            last_select = window.store_info.language_setting.def;
-        }
-        return last_select;
-    }
-    static getLanguageLinkPrefix(pre = true, compare, d_window) {
-        const lan = (() => {
-            if ((compare || Language.getLanguage()) !== (d_window || window).store_info.language_setting.def) {
-                switch (compare || Language.getLanguage()) {
-                    case 'en-US':
-                        return `en`;
-                    case 'zh-CN':
-                        return `cn`;
-                    case 'zh-TW':
-                        return `tw`;
-                }
-            }
-            return '';
-        })();
-        if (lan) {
-            if (pre) {
-                return `${lan}/`;
-            }
-            else {
-                return `/${lan}`;
-            }
-        }
-        else {
-            return ``;
-        }
-    }
-    static getLanguageText(cf) {
-        var _a;
-        const sup = [
-            {
-                key: 'en-US',
-                value: cf.local ? 'English' : '英',
-            },
-            {
-                key: 'zh-CN',
-                value: cf.local ? '简体中文' : '简',
-            },
-            {
-                key: 'zh-TW',
-                value: cf.local ? '繁體中文' : '繁',
-            },
-        ];
-        return (_a = sup.find((dd) => {
-            return dd.key === (cf.compare || Language.getLanguage());
-        })) === null || _a === void 0 ? void 0 : _a.value;
-    }
-    static setLanguage(value) {
-        localStorage.setItem('select_language_' + window.appName, value);
-    }
-    static text(key) {
-        const find_ = this.languageDataList().find((dd) => {
-            return dd.key === key;
-        });
-        if (!find_) {
-            return undefined;
-        }
-        return find_[(() => {
-            switch (Language.getLanguage()) {
-                case 'zh-TW':
-                    return 'tw';
-                case 'zh-CN':
-                    return 'cn';
-                case 'en-US':
-                    return 'en';
-                default:
-                    return `en`;
-            }
-        })()];
-    }
-    static checkKeys() {
-        const arr = this.languageDataList();
-        const keySet = new Set();
-        for (const item of arr) {
-            if (keySet.has(item.key)) {
-                alert(`重複值: ${item.key}`);
-                return;
-            }
-            else {
-                keySet.add(item.key);
-            }
-        }
-        alert('沒有重複值');
-        return;
-    }
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.Language = void 0;
+class Language {
     static languageDataList() {
         return [
             {
@@ -799,24 +687,26 @@ export class Language {
             { key: 'delivery', tw: '購買與配送須知', cn: '配送须知', en: 'Shipping instructions' }
         ];
     }
-    static getLanguageCustomText(text) {
-        if (Array.isArray(text)) {
-            text = text.join('');
+    static text(key, lan) {
+        const find_ = this.languageDataList().find((dd) => {
+            return dd.key === key;
+        });
+        if (!find_) {
+            return undefined;
         }
-        const pattern = /#{{(.*?)}}/g;
-        let match;
-        let convert = text || '';
-        while ((match = pattern.exec(text)) !== null) {
-            const placeholder = match[0];
-            const value = match[1];
-            const find_ = window.parent.language_list.find((dd) => {
-                return dd.tag === value;
-            });
-            if (find_) {
-                convert = convert || '';
-                convert = (convert.replace(placeholder, find_[Language.getLanguage()]));
+        return find_[(() => {
+            switch (lan) {
+                case 'zh-TW':
+                    return 'tw';
+                case 'zh-CN':
+                    return 'cn';
+                case 'en-US':
+                    return 'en';
+                default:
+                    return `en`;
             }
-        }
-        return convert;
+        })()];
     }
 }
+exports.Language = Language;
+//# sourceMappingURL=Language.js.map

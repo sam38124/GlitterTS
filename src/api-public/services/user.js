@@ -52,6 +52,7 @@ const sms_js_1 = require("./sms.js");
 const form_check_js_1 = require("./form-check.js");
 const ut_permission_js_1 = require("../utils/ut-permission.js");
 const share_permission_js_1 = require("./share-permission.js");
+const terms_check_js_1 = require("./terms-check.js");
 class User {
     static generateUserID() {
         let userID = '';
@@ -1795,6 +1796,16 @@ class User {
                             value: {
                                 "label": []
                             },
+                        });
+                        return await this.getConfigV2(config);
+                    case 'terms-related-refund-zh-TW':
+                    case 'terms-related-delivery-zh-TW':
+                    case 'terms-related-privacy-zh-TW':
+                    case 'terms-related-term-zh-TW':
+                        await this.setConfig({
+                            key: config.key,
+                            user_id: config.user_id,
+                            value: terms_check_js_1.TermsCheck.check(config.key),
                         });
                         return await this.getConfigV2(config);
                 }

@@ -26,6 +26,7 @@ import {LoginTicket} from 'google-auth-library/build/src/auth/loginticket.js';
 import {AiRobot} from './ai-robot.js';
 import {UtPermission} from "../utils/ut-permission.js";
 import {SharePermission} from "./share-permission.js";
+import {TermsCheck} from "./terms-check.js";
 
 interface UserQuery {
     page?: number;
@@ -2219,6 +2220,17 @@ export class User {
                             },
                         });
                         return await this.getConfigV2(config);
+                    case 'terms-related-refund-zh-TW':
+                    case 'terms-related-delivery-zh-TW':
+                    case 'terms-related-privacy-zh-TW':
+                    case 'terms-related-term-zh-TW':
+                        await this.setConfig({
+                            key: config.key,
+                            user_id: config.user_id,
+                            value: TermsCheck.check(config.key),
+                        });
+                        return await this.getConfigV2(config);
+
                 }
             }
             if (data[0] && data[0].value) {

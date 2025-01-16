@@ -195,7 +195,7 @@ SELECT * FROM  \`${config_1.saasConfig.SAAS_NAME}\`.page_config where  1=1 ${whe
         query_page = query_page || 'index';
         let page = query_page;
         if (['privacy', 'term', 'refund', 'delivery'].includes(query_page)) {
-            page = 'blog_detail';
+            return 'official-router';
         }
         if ((query_page.split('/')[0] === 'blogs' && query_page.split('/')[1])) {
             page = (await database_1.default.query(`SELECT *
@@ -245,6 +245,9 @@ SELECT * FROM  \`${config_1.saasConfig.SAAS_NAME}\`.page_config where  1=1 ${whe
     async getPage(config) {
         if (config.tag) {
             config.tag = await Template.getRealPage(config.tag, config.appName);
+            if (config.tag === 'official-router') {
+                config.appName = 'cms_system';
+            }
         }
         try {
             const page_db = (() => {

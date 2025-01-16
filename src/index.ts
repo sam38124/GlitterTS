@@ -43,6 +43,7 @@ import { SitemapStream, streamToPromise } from 'sitemap';
 import { Readable } from 'stream';
 import AWS from 'aws-sdk';
 import { extractCols, extractProds, SeoConfig } from './seo-config.js';
+import {Language} from "./Language.js";
 
 export const app = express();
 const logger = new Logger();
@@ -143,7 +144,6 @@ export async function createAPP(dd: any) {
                 app_name: dd.appName,
                 root_path: '/' + encodeURI(dd.appName) + '/',
                 seoManager: async (req) => {
-                    console.log(`X-Original-URL=>`, req.headers['x-original-url']);
                     const og_url = req.headers['x-original-url'];
                     try {
                         if (req.query.state === 'google_login') {
@@ -236,7 +236,12 @@ export async function createAPP(dd: any) {
                                     appName,
                                     data,
                                 });
-                            } else if (d.type !== 'custom') {
+                            }else if(['privacy','term','refund','delivery'].includes(`${req.query.page}`)){
+                                data.page_config.seo={
+                                    title:Language.text(`${req.query.page}`,language),
+                                    content:Language.text(`${req.query.page}`,language)
+                                }
+                            }else if (d.type !== 'custom') {
                                 data = home_page_data;
                             }
                             const preload = req.query.isIframe === 'true' ? {} : await App.preloadPageData(appName, req.query.page as any, language);
@@ -343,7 +348,7 @@ export async function createAPP(dd: any) {
                                 })() +
                                 `<script>
                                 ${[
-                                    d.custom_script ?? '',
+                                    (req.query.type !== 'editor' && d.custom_script) ?? '',
                                     `window.login_config = ${JSON.stringify(login_config)};`,
                                     `window.appName = '${appName}';`,
                                     `window.glitterBase = '${brandAndMemberType.brand}';`,
@@ -362,7 +367,7 @@ export async function createAPP(dd: any) {
                                     `window.language_list = ${JSON.stringify(language_label.label)};`,
                                 ]
                                     .map((dd) => {
-                                        return dd.trim();
+                                        return (dd || '').trim();
                                     })
                                     .filter((dd) => {
                                         return dd;

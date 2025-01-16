@@ -13,6 +13,7 @@ import { ApiUser } from '../glitter-base/route/user.js';
 import { BaseApi } from "../glitterBundle/api/base.js";
 import { config } from "../config.js";
 import { Currency } from "../glitter-base/global/currency.js";
+import { LanguageBackend } from "./language-backend.js";
 export class ShoppingInformation {
     static main(gvc) {
         const glitter = gvc.glitter;
@@ -711,7 +712,6 @@ ${BgWidget.title('GoDaddy DNS 設定指南')}
                         }
                     };
                 })}
-                    ${this.policy(gvc)}
                     <div style="margin-top: 300px;"></div>
                     <div class="shadow"
                          style="width: 100%;padding: 14px 16px;background: #FFF; display: flex;justify-content: end;position: fixed;bottom: 0;right: 0;z-index:1;gap:14px;">
@@ -719,6 +719,10 @@ ${BgWidget.title('GoDaddy DNS 設定指南')}
                     const dialog = new ShareDialog(gvc.glitter);
                     dialog.dataLoading({ visible: true });
                     yield vm.save_info();
+                    yield Promise.all(ShoppingInformation.saveArray.map((dd) => {
+                        return dd();
+                    }));
+                    ShoppingInformation.saveArray = [];
                     dialog.dataLoading({ visible: false });
                     dialog.successMessage({ text: '儲存成功' });
                 })), '儲存', 'guide3-5')}
@@ -730,26 +734,125 @@ ${BgWidget.title('GoDaddy DNS 設定指南')}
     static policy(gvc) {
         const id = gvc.glitter.getUUID();
         const html = String.raw;
-        return gvc.bindView(() => {
+        const vm2 = {
+            language: window.parent.store_info.language_setting.def
+        };
+        return BgWidget.container(gvc.bindView(() => {
             return {
                 bind: id,
                 view: () => {
-                    return BgWidget.mainCard(`<div class="d-flex flex-column" style="">${[
+                    return [
                         html `
-                                <div class="tx_normal fw-bold">相關條款</div>`,
-                        html `
-                                <div style="color: #393939;font-size: 16px;">服務條款</div>
-                                <div style="color: #36B;font-size:13px;cursor:pointer;">
-                                    https://${window.parent.glitter.share.editorViewModel.domain}/terms
-                                </div>`
-                    ].join('<div class="my-1"></div>')}</div>`);
-                },
-                divCreate: {
-                    class: `mt-3`, style: ``
+                            <div class="title-container mb-4">
+                                ${BgWidget.title(`商店條款`)}
+                                <div class="flex-fill"></div>
+                                ${LanguageBackend.switchBtn({
+                            gvc: gvc,
+                            language: vm2.language,
+                            callback: (language) => {
+                                vm2.language = language;
+                                gvc.notifyDataChange(id);
+                            }
+                        })}
+                            </div>`,
+                        gvc.bindView(() => {
+                            return {
+                                bind: gvc.glitter.getUUID(),
+                                view: () => {
+                                    return BgWidget.mainCard(`<div class="d-flex flex-column" style="">${[
+                                        ...[{
+                                                key: 'privacy',
+                                                title: '隱私權政策'
+                                            }, {
+                                                key: 'term',
+                                                title: '服務條款'
+                                            }, {
+                                                key: 'refund',
+                                                title: '退換貨政策'
+                                            }, {
+                                                key: 'delivery',
+                                                title: '購買與配送須知'
+                                            }].map((dd) => {
+                                            return html `
+                                                    <div style="color: #393939;font-size: 16px;">${dd.title}</div>
+                                                    <div style="color: #36B;font-size:13px;cursor:pointer;"
+                                                         onclick="${gvc.event(() => {
+                                                window.parent.glitter.openNewTab(`https://${window.parent.glitter.share.editorViewModel.domain}/${dd.key}`);
+                                            })}">
+                                                            https://${window.parent.glitter.share.editorViewModel.domain}/${dd.key}
+                                                    </div>
+                                                    ${gvc.bindView(() => {
+                                                const key = dd.key;
+                                                const vm = {
+                                                    id: gvc.glitter.getUUID(),
+                                                    loading: true,
+                                                    data: {}
+                                                };
+                                                ApiUser.getPublicConfig(`terms-related-${key}-${vm2.language}`, 'manager').then((dd) => {
+                                                    dd.response.value && (vm.data = dd.response.value);
+                                                    vm.loading = false;
+                                                    gvc.notifyDataChange(vm.id);
+                                                });
+                                                return {
+                                                    bind: vm.id,
+                                                    view: () => {
+                                                        if (vm.loading) {
+                                                            return `<div class="w-100 d-flex align-items-center justify-content-center">${BgWidget.spinner()}</div>`;
+                                                        }
+                                                        return BgWidget.richTextEditor({
+                                                            gvc: gvc,
+                                                            content: vm.data.text || '',
+                                                            callback: (content) => {
+                                                                vm.data.text = content;
+                                                                ShoppingInformation.saveArray.push(() => {
+                                                                    return new Promise((resolve, reject) => __awaiter(this, void 0, void 0, function* () {
+                                                                        yield ApiUser.setPublicConfig({
+                                                                            key: `terms-related-${key}-${vm2.language}`,
+                                                                            user_id: 'manager',
+                                                                            value: vm.data
+                                                                        });
+                                                                        resolve(true);
+                                                                    }));
+                                                                });
+                                                            },
+                                                            title: dd.title
+                                                        });
+                                                    },
+                                                    divCreate: {
+                                                        class: `w-100 mt-2`
+                                                    }
+                                                };
+                                            })}
+                                                `;
+                                        })
+                                    ].join('<div class="my-1"></div>')}
+                    <div class="shadow"
+                         style="width: 100%;padding: 14px 16px;background: #FFF; display: flex;justify-content: end;position: fixed;bottom: 0;right: 0;z-index:1;gap:14px;">
+                        ${BgWidget.save(gvc.event(() => __awaiter(this, void 0, void 0, function* () {
+                                        const dialog = new ShareDialog(gvc.glitter);
+                                        dialog.dataLoading({ visible: true });
+                                        yield Promise.all(ShoppingInformation.saveArray.map((dd) => {
+                                            return dd();
+                                        }));
+                                        ShoppingInformation.saveArray = [];
+                                        dialog.dataLoading({ visible: false });
+                                        dialog.successMessage({ text: '儲存成功' });
+                                    })), '儲存')}
+                    </div>
+</div>`);
+                                },
+                                divCreate: {
+                                    class: `mt-3`, style: ``
+                                }
+                            };
+                        }),
+                        `<div style="margin-top: 300px;"></div>`
+                    ].join('');
                 }
             };
-        });
+        }));
     }
 }
+ShoppingInformation.saveArray = [];
 ShoppingInformation.question = {};
 window.glitter.setModule(import.meta.url, ShoppingInformation);

@@ -1278,6 +1278,28 @@ ${obj.default ?? ''}</textarea
                                 items: oneStoreList,
                                 ignoreFirst: true,
                             },
+                            { name: '政策條款', icon: 'fa-regular fa-memo-circle-info', link: '', items: [
+                                    {
+                                        name: '隱私權政策',
+                                        icon: 'fa-regular fa-memo-circle-info',
+                                        link: '/privacy'
+                                    },
+                                    {
+                                        name: '服務條款',
+                                        icon: 'fa-regular fa-memo-circle-info',
+                                        link: '/term'
+                                    },
+                                    {
+                                        name: '退換貨政策',
+                                        icon: 'fa-regular fa-memo-circle-info',
+                                        link: '/refund'
+                                    },
+                                    {
+                                        name: '購買與配送須知',
+                                        icon: 'fa-regular fa-memo-circle-info',
+                                        link: '/delivery'
+                                    }
+                                ],ignoreFirst: true },
                         ].filter((menu) => {
                             if (obj.filter && obj.filter.page && obj.filter.page.length > 0 && !obj.filter.page.includes(menu.name)) {
                                 return false; // 篩選不需顯示的連結頁面
