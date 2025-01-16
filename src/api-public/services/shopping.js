@@ -238,11 +238,11 @@ class Shopping {
                                         content->>'$.active_schedule' IS NULL OR (
                                             (
                                             CONCAT(content->>'$.active_schedule.start_ISO_Date') IS NULL OR
-                                            CONCAT(content->>'$.active_schedule.start_ISO_Date') <= ${convertTimeZone('NOW()')}
+                                            CONCAT(content->>'$.active_schedule.start_ISO_Date') <= NOW()
                                             )
                                             AND (
                                                 CONCAT(content->>'$.active_schedule.end_ISO_Date') IS NULL
-                                                OR CONCAT(content->>'$.active_schedule.end_ISO_Date') >= ${convertTimeZone('NOW()')}
+                                                OR CONCAT(content->>'$.active_schedule.end_ISO_Date') >= NOW()
                                             )
                                         )
                                     )
@@ -252,14 +252,14 @@ class Shopping {
                             return `
                                 OR (
                                     JSON_EXTRACT(content, '$.status') = 'active'
-                                    AND CONCAT(content->>'$.active_schedule.start_ISO_Date') > ${convertTimeZone('NOW()')}
+                                    AND CONCAT(content->>'$.active_schedule.start_ISO_Date') > NOW()
                                 )
                             `;
                         case 'afterEnd':
                             return `
                                 OR (
                                     JSON_EXTRACT(content, '$.status') = 'active'
-                                    AND CONCAT(content->>'$.active_schedule.end_ISO_Date') < ${convertTimeZone('NOW()')}
+                                    AND CONCAT(content->>'$.active_schedule.end_ISO_Date') < NOW()
                                 )
                             `;
                         default:
