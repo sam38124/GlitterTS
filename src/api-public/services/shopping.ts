@@ -402,11 +402,11 @@ export class Shopping {
                                         content->>'$.active_schedule' IS NULL OR (
                                             (
                                             CONCAT(content->>'$.active_schedule.start_ISO_Date') IS NULL OR
-                                            CONCAT(content->>'$.active_schedule.start_ISO_Date') <= NOW()
+                                            CONCAT(content->>'$.active_schedule.start_ISO_Date') <= ${convertTimeZone('NOW()')}
                                             )
                                             AND (
                                                 CONCAT(content->>'$.active_schedule.end_ISO_Date') IS NULL
-                                                OR CONCAT(content->>'$.active_schedule.end_ISO_Date') >= NOW()
+                                                OR CONCAT(content->>'$.active_schedule.end_ISO_Date') >= ${convertTimeZone('NOW()')}
                                             )
                                         )
                                     )
@@ -416,14 +416,14 @@ export class Shopping {
                                 return `
                                 OR (
                                     JSON_EXTRACT(content, '$.status') = 'active'
-                                    AND CONCAT(content->>'$.active_schedule.start_ISO_Date') > NOW()
+                                    AND CONCAT(content->>'$.active_schedule.start_ISO_Date') > ${convertTimeZone('NOW()')}
                                 )
                             `;
                             case 'afterEnd':
                                 return `
                                 OR (
                                     JSON_EXTRACT(content, '$.status') = 'active'
-                                    AND CONCAT(content->>'$.active_schedule.end_ISO_Date') < NOW()
+                                    AND CONCAT(content->>'$.active_schedule.end_ISO_Date') < ${convertTimeZone('NOW()')}
                                 )
                             `;
                             default:
@@ -571,6 +571,7 @@ export class Shopping {
                    FROM \`${this.app}\`.t_manager_post
                    WHERE ${querySql.join(' and ')} ${query.order_by || `order by id desc`}
         `;
+
         if (query.id) {
             const data = (
                 await db.query(
@@ -714,7 +715,7 @@ export class Shopping {
                 result: true,
             };
         } catch (e) {
-            throw exception.BadRequestError('BAD_REQUEST', 'GetProduct Error:' + e, null);
+            throw exception.BadRequestError('BAD_REQUEST', 'DeleteProduct Error:' + e, null);
         }
     }
 
@@ -730,7 +731,7 @@ export class Shopping {
                 result: true,
             };
         } catch (e) {
-            throw exception.BadRequestError('BAD_REQUEST', 'GetProduct Error:' + e, null);
+            throw exception.BadRequestError('BAD_REQUEST', 'DeleteVoucher Error:' + e, null);
         }
     }
 
@@ -874,10 +875,10 @@ export class Shopping {
                 }
             }
             //判斷是POS重新支付<例如:預購單>，則把原先商品庫存加回去
-            if(data.order_id && type==='POS'){
-                const order=(await db.query(`select * from \`${this.app}\`.t_checkout where cart_token='${data.order_id}'`,[]))[0]
-                if(order){
-                    for (const b of order.orderData.lineItems){
+            if (data.order_id && type === 'POS') {
+                const order = (await db.query(`select * from \`${this.app}\`.t_checkout where cart_token='${data.order_id}'`, []))[0];
+                if (order) {
+                    for (const b of order.orderData.lineItems) {
                         const pdDqlData = (
                             await this.getProduct({
                                 page: 0,
@@ -891,13 +892,11 @@ export class Shopping {
                         const variant = pd.variants.find((dd: any) => {
                             return dd.spec.join('-') === b.spec.join('-');
                         });
-                        Object.keys(b.deduction_log).map((dd)=>{
+                        Object.keys(b.deduction_log).map((dd) => {
                             try {
                                 variant.stockList[dd].count += b.deduction_log[dd];
-                            }catch (e) {
-
-                            }
-                        })
+                            } catch (e) {}
+                        });
                         await this.updateVariantsWithSpec(variant, b.id, b.spec);
                         //這裡更新資訊
                         await db.query(
@@ -905,7 +904,7 @@ export class Shopping {
                                              SET ?
                                              WHERE 1 = 1
                                                and id = ${pdDqlData.id}`,
-                            [{content: JSON.stringify(pd)}]
+                            [{ content: JSON.stringify(pd) }]
                         );
                     }
                 }
@@ -1864,7 +1863,7 @@ export class Shopping {
                 };
             }
         } catch (e) {
-            throw exception.BadRequestError('BAD_REQUEST', 'GetProduct Error:' + e, null);
+            throw exception.BadRequestError('BAD_REQUEST', 'getReturnOrder Error:' + e, null);
         }
     }
 
@@ -2601,7 +2600,6 @@ export class Shopping {
             if (query.created_time) {
                 const created_time = query.created_time.split(',');
                 if (created_time.length > 1) {
-
                     querySql.push(`
                         (created_time BETWEEN ${db.escape(`${created_time[0]}`)} 
                         AND ${db.escape(`${created_time[1]}`)})
@@ -2713,7 +2711,7 @@ OR JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.orderStatus')) NOT IN (-99)) `);
                 };
             }
         } catch (e) {
-            throw exception.BadRequestError('BAD_REQUEST', 'GetProduct Error:' + e, null);
+            throw exception.BadRequestError('BAD_REQUEST', 'getCheckOut Error:' + e, null);
         }
     }
 
@@ -3282,13 +3280,13 @@ OR JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.orderStatus')) NOT IN (-99)) `);
 
     async getActiveRecentWeek() {
         const sql = `
-            SELECT mac_address, CONVERT_TZ(created_time, '+00:00', '+08:00') AS created_time
+            SELECT mac_address, ${convertTimeZone('created_time')} AS created_time
             FROM \`${saasConfig.SAAS_NAME}\`.t_monitor
             WHERE app_name = ${db.escape(this.app)}
               AND ip != 'ffff:127.0.0.1'
                 AND req_type = 'file'
-                AND CONVERT_TZ(created_time, '+00:00', '+08:00') BETWEEN (DATE_SUB(CONVERT_TZ(NOW(), '+00:00', '+08:00')
-                            , INTERVAL 14 DAY)) AND CONVERT_TZ(NOW(), '+00:00', '+08:00')
+                AND ${convertTimeZone('created_time')} BETWEEN (DATE_SUB(${convertTimeZone('NOW()')}
+                            , INTERVAL 14 DAY)) AND ${convertTimeZone('NOW()')}
             GROUP BY id, mac_address
         `;
 
@@ -3330,13 +3328,13 @@ OR JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.orderStatus')) NOT IN (-99)) `);
 
     async getActiveRecentMonth() {
         const sql = `
-            SELECT mac_address, CONVERT_TZ(created_time, '+00:00', '+08:00') AS created_time
+            SELECT mac_address, ${convertTimeZone('created_time')} AS created_time
             FROM \`${saasConfig.SAAS_NAME}\`.t_monitor
             WHERE app_name = ${db.escape(this.app)}
               AND ip != 'ffff:127.0.0.1'
                 AND req_type = 'file'
-                AND CONVERT_TZ(created_time, '+00:00', '+08:00') BETWEEN (DATE_SUB(CONVERT_TZ(NOW(), '+00:00', '+08:00')
-                            , INTERVAL 30 DAY)) AND CONVERT_TZ(NOW(), '+00:00', '+08:00')
+                AND ${convertTimeZone('created_time')} BETWEEN (DATE_SUB(${convertTimeZone('NOW()')}
+                            , INTERVAL 30 DAY)) AND ${convertTimeZone('NOW()')}
             GROUP BY id, mac_address
         `;
 
@@ -3382,14 +3380,14 @@ OR JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.orderStatus')) NOT IN (-99)) `);
         const formatEndDate = `"${Tool.replaceDatetime(qData.end)}"`;
         const days = this.diffDates(new Date(qData.start), new Date(qData.end));
         const sql = `
-            SELECT mac_address, CONVERT_TZ(created_time, '+00:00', '+08:00') AS created_time
+            SELECT mac_address, ${convertTimeZone('created_time')} AS created_time
             FROM \`${saasConfig.SAAS_NAME}\`.t_monitor
             WHERE app_name = ${db.escape(this.app)}
               AND ip != 'ffff:127.0.0.1'
                 AND req_type = 'file'
-                AND CONVERT_TZ(created_time, '+00:00', '+08:00') 
-                BETWEEN CONVERT_TZ(${formatStartDate}, '+00:00', '+08:00') 
-                AND CONVERT_TZ(${formatEndDate}, '+00:00', '+08:00')
+                AND ${convertTimeZone('created_time')} 
+                BETWEEN ${convertTimeZone(formatStartDate)} 
+                AND ${convertTimeZone(formatEndDate)}
             GROUP BY id, mac_address
         `;
 
@@ -3431,11 +3429,6 @@ OR JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.orderStatus')) NOT IN (-99)) `);
 
     async getRegisterMonth() {
         try {
-            function convertTimeZone(date: string) {
-                return `CONVERT_TZ(${date}, '+00:00', '+08:00')`;
-            }
-
-            const formatJsonData: { sql: string; data: any[] }[] = [];
             const countArray: any = {};
             let pass = 0;
             await new Promise((resolve, reject) => {
@@ -3484,10 +3477,6 @@ OR JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.orderStatus')) NOT IN (-99)) `);
             const days = this.diffDates(new Date(qData.start), new Date(qData.end));
             const formatEndDate = `"${Tool.replaceDatetime(qData.end)}"`;
 
-            function convertTimeZone(date: string) {
-                return `CONVERT_TZ(${date}, '+00:00', '+08:00')`;
-            }
-
             const countArray: any = {};
             let pass = 0;
             await new Promise((resolve, reject) => {
@@ -3532,11 +3521,6 @@ OR JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.orderStatus')) NOT IN (-99)) `);
 
     async getRegister2week() {
         try {
-            function convertTimeZone(date: string) {
-                return `CONVERT_TZ(${date}, '+00:00', '+08:00')`;
-            }
-
-            const formatJsonData: { sql: string; data: any[] }[] = [];
             const countArray: any = {};
             let pass = 0;
             await new Promise((resolve, reject) => {
@@ -3581,10 +3565,6 @@ OR JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.orderStatus')) NOT IN (-99)) `);
 
     async getRegisterYear() {
         try {
-            function convertTimeZone(date: string) {
-                return `CONVERT_TZ(${date}, '+00:00', '+08:00')`;
-            }
-
             const formatJsonData: { sql: string; data: any[] }[] = [];
             const countArray: any = {};
             const order = await db.query(
@@ -3751,9 +3731,9 @@ OR JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.orderStatus')) NOT IN (-99)) `);
                 const formatEndDate = `"${Tool.replaceDatetime(qData.end)}"`;
 
                 sqlArray.push(`
-                    (CONVERT_TZ(created_time, '+00:00', '+08:00') 
-                    BETWEEN CONVERT_TZ(${formatStartDate}, '+00:00', '+08:00') 
-                    AND CONVERT_TZ(${formatEndDate}, '+00:00', '+08:00'))
+                    (${convertTimeZone('created_time')} 
+                    BETWEEN ${convertTimeZone(formatStartDate)} 
+                    AND ${convertTimeZone(formatEndDate)})
                 `);
             }
 
@@ -3795,9 +3775,9 @@ OR JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.orderStatus')) NOT IN (-99)) `);
 
                 if (text) {
                     sqlArray.push(`
-                        CONVERT_TZ(created_time, '+00:00', '+08:00') 
-                        BETWEEN (DATE_SUB(CONVERT_TZ(CURDATE(), '+00:00', '+08:00'), INTERVAL ${text})) 
-                        AND CONVERT_TZ(CURDATE(), '+00:00', '+08:00')
+                        ${convertTimeZone('created_time')} 
+                        BETWEEN (DATE_SUB(${convertTimeZone('CURDATE()')}, INTERVAL ${text})) 
+                        AND ${convertTimeZone('CURDATE()')}
                     `);
                 }
             }
@@ -3906,10 +3886,6 @@ OR JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.orderStatus')) NOT IN (-99)) `);
             const countArrayWeb: any = {};
             const countArrayStore: any = {};
 
-            function convertTimeZone(date: string) {
-                return `CONVERT_TZ(${date}, '+00:00', '+08:00')`;
-            }
-
             let pass = 0;
             await new Promise((resolve, reject) => {
                 for (let index = 0; index < 14; index++) {
@@ -3987,10 +3963,6 @@ OR JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.orderStatus')) NOT IN (-99)) `);
             const countArrayPos: any = {};
             const countArrayWeb: any = {};
             const countArrayStore: any = {};
-
-            function convertTimeZone(date: string) {
-                return `CONVERT_TZ(${date}, '+00:00', '+08:00')`;
-            }
 
             let pass = 0;
             await new Promise((resolve, reject) => {
@@ -4073,10 +4045,6 @@ OR JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.orderStatus')) NOT IN (-99)) `);
             const days = this.diffDates(new Date(qData.start), new Date(qData.end));
             const formatEndDate = `"${Tool.replaceDatetime(qData.end)}"`;
 
-            function convertTimeZone(date: string) {
-                return `CONVERT_TZ(${date}, '+00:00', '+08:00')`;
-            }
-
             let pass = 0;
             await new Promise((resolve, reject) => {
                 for (let index = 0; index < days; index++) {
@@ -4154,10 +4122,6 @@ OR JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.orderStatus')) NOT IN (-99)) `);
             const countArrayPos: any = {};
             const countArrayWeb: any = {};
             const countArrayStore: any = {};
-
-            function convertTimeZone(date: string) {
-                return `CONVERT_TZ(${date}, '+00:00', '+08:00')`;
-            }
 
             let pass = 0;
             await new Promise((resolve, reject) => {
@@ -4243,10 +4207,6 @@ OR JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.orderStatus')) NOT IN (-99)) `);
             const countArrayWeb: any = {};
             const countArrayStore: any = {};
 
-            function convertTimeZone(date: string) {
-                return `CONVERT_TZ(${date}, '+00:00', '+08:00')`;
-            }
-
             let pass = 0;
             await new Promise((resolve, reject) => {
                 for (let index = 0; index < 12; index++) {
@@ -4323,9 +4283,6 @@ OR JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.orderStatus')) NOT IN (-99)) `);
             const countArrayStore: any = {};
 
             const qData = JSON.parse(query);
-            function convertTimeZone(date: string) {
-                return `CONVERT_TZ(${date}, '+00:00', '+08:00')`;
-            }
 
             let pass = 0;
             await new Promise((resolve, reject) => {
@@ -4405,10 +4362,6 @@ OR JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.orderStatus')) NOT IN (-99)) `);
             const countArrayStore: any = {};
 
             const qData = JSON.parse(query);
-
-            function convertTimeZone(date: string) {
-                return `CONVERT_TZ(${date}, '+00:00', '+08:00')`;
-            }
 
             let pass = 0;
             await new Promise((resolve, reject) => {
@@ -4498,10 +4451,6 @@ OR JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.orderStatus')) NOT IN (-99)) `);
             const days = this.diffDates(new Date(qData.start), new Date(qData.end));
             const formatEndDate = `"${Tool.replaceDatetime(qData.end)}"`;
 
-            function convertTimeZone(date: string) {
-                return `CONVERT_TZ(${date}, '+00:00', '+08:00')`;
-            }
-
             let pass = 0;
             await new Promise((resolve, reject) => {
                 for (let index = 0; index < days; index++) {
@@ -4579,11 +4528,6 @@ OR JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.orderStatus')) NOT IN (-99)) `);
             const countArrayPos: any = {};
             const countArrayWeb: any = {};
             const countArrayStore: any = {};
-
-            function convertTimeZone(date: string) {
-                return `CONVERT_TZ(${date}, '+00:00', '+08:00')`;
-            }
-
             let pass = 0;
             await new Promise((resolve, reject) => {
                 for (let index = 0; index < 12; index++) {
@@ -4665,10 +4609,6 @@ OR JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.orderStatus')) NOT IN (-99)) `);
             const countArrayPos: any = {};
             const countArrayWeb: any = {};
             const countArrayStore: any = {};
-
-            function convertTimeZone(date: string) {
-                return `CONVERT_TZ(${date}, '+00:00', '+08:00')`;
-            }
 
             let pass = 0;
             await new Promise((resolve, reject) => {
@@ -4753,10 +4693,6 @@ OR JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.orderStatus')) NOT IN (-99)) `);
             const countArrayPos: any = {};
             const countArrayWeb: any = {};
             const countArrayStore: any = {};
-
-            function convertTimeZone(date: string) {
-                return `CONVERT_TZ(${date}, '+00:00', '+08:00')`;
-            }
 
             let pass = 0;
             await new Promise((resolve, reject) => {
@@ -4844,10 +4780,6 @@ OR JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.orderStatus')) NOT IN (-99)) `);
             const qData = JSON.parse(query);
             const days = this.diffDates(new Date(qData.start), new Date(qData.end));
             const formatEndDate = `"${Tool.replaceDatetime(qData.end)}"`;
-
-            function convertTimeZone(date: string) {
-                return `CONVERT_TZ(${date}, '+00:00', '+08:00')`;
-            }
 
             let pass = 0;
             await new Promise((resolve, reject) => {
@@ -5902,4 +5834,8 @@ OR JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.orderStatus')) NOT IN (-99)) `);
         });
         return data;
     }
+}
+
+function convertTimeZone(date: string) {
+    return `CONVERT_TZ(${date}, '+00:00', '+08:00')`;
 }

@@ -237,11 +237,11 @@ class Shopping {
                                         content->>'$.active_schedule' IS NULL OR (
                                             (
                                             CONCAT(content->>'$.active_schedule.start_ISO_Date') IS NULL OR
-                                            CONCAT(content->>'$.active_schedule.start_ISO_Date') <= NOW()
+                                            CONCAT(content->>'$.active_schedule.start_ISO_Date') <= ${convertTimeZone('NOW()')}
                                             )
                                             AND (
                                                 CONCAT(content->>'$.active_schedule.end_ISO_Date') IS NULL
-                                                OR CONCAT(content->>'$.active_schedule.end_ISO_Date') >= NOW()
+                                                OR CONCAT(content->>'$.active_schedule.end_ISO_Date') >= ${convertTimeZone('NOW()')}
                                             )
                                         )
                                     )
@@ -251,14 +251,14 @@ class Shopping {
                             return `
                                 OR (
                                     JSON_EXTRACT(content, '$.status') = 'active'
-                                    AND CONCAT(content->>'$.active_schedule.start_ISO_Date') > NOW()
+                                    AND CONCAT(content->>'$.active_schedule.start_ISO_Date') > ${convertTimeZone('NOW()')}
                                 )
                             `;
                         case 'afterEnd':
                             return `
                                 OR (
                                     JSON_EXTRACT(content, '$.status') = 'active'
-                                    AND CONCAT(content->>'$.active_schedule.end_ISO_Date') < NOW()
+                                    AND CONCAT(content->>'$.active_schedule.end_ISO_Date') < ${convertTimeZone('NOW()')}
                                 )
                             `;
                         default:
@@ -558,8 +558,7 @@ class Shopping {
                             try {
                                 variant.stockList[dd].count += b.deduction_log[dd];
                             }
-                            catch (e) {
-                            }
+                            catch (e) { }
                         });
                         await this.updateVariantsWithSpec(variant, b.id, b.spec);
                         await database_js_1.default.query(`UPDATE \`${this.app}\`.\`t_manager_post\`
@@ -2546,13 +2545,13 @@ OR JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.orderStatus')) NOT IN (-99)) `);
     }
     async getActiveRecentWeek() {
         const sql = `
-            SELECT mac_address, CONVERT_TZ(created_time, '+00:00', '+08:00') AS created_time
+            SELECT mac_address, ${convertTimeZone('created_time')} AS created_time
             FROM \`${config_js_1.saasConfig.SAAS_NAME}\`.t_monitor
             WHERE app_name = ${database_js_1.default.escape(this.app)}
               AND ip != 'ffff:127.0.0.1'
                 AND req_type = 'file'
-                AND CONVERT_TZ(created_time, '+00:00', '+08:00') BETWEEN (DATE_SUB(CONVERT_TZ(NOW(), '+00:00', '+08:00')
-                            , INTERVAL 14 DAY)) AND CONVERT_TZ(NOW(), '+00:00', '+08:00')
+                AND ${convertTimeZone('created_time')} BETWEEN (DATE_SUB(${convertTimeZone('NOW()')}
+                            , INTERVAL 14 DAY)) AND ${convertTimeZone('NOW()')}
             GROUP BY id, mac_address
         `;
         const queryData = await database_js_1.default.query(sql, []);
@@ -2583,13 +2582,13 @@ OR JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.orderStatus')) NOT IN (-99)) `);
     }
     async getActiveRecentMonth() {
         const sql = `
-            SELECT mac_address, CONVERT_TZ(created_time, '+00:00', '+08:00') AS created_time
+            SELECT mac_address, ${convertTimeZone('created_time')} AS created_time
             FROM \`${config_js_1.saasConfig.SAAS_NAME}\`.t_monitor
             WHERE app_name = ${database_js_1.default.escape(this.app)}
               AND ip != 'ffff:127.0.0.1'
                 AND req_type = 'file'
-                AND CONVERT_TZ(created_time, '+00:00', '+08:00') BETWEEN (DATE_SUB(CONVERT_TZ(NOW(), '+00:00', '+08:00')
-                            , INTERVAL 30 DAY)) AND CONVERT_TZ(NOW(), '+00:00', '+08:00')
+                AND ${convertTimeZone('created_time')} BETWEEN (DATE_SUB(${convertTimeZone('NOW()')}
+                            , INTERVAL 30 DAY)) AND ${convertTimeZone('NOW()')}
             GROUP BY id, mac_address
         `;
         const queryData = await database_js_1.default.query(sql, []);
@@ -2624,14 +2623,14 @@ OR JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.orderStatus')) NOT IN (-99)) `);
         const formatEndDate = `"${tool_js_1.default.replaceDatetime(qData.end)}"`;
         const days = this.diffDates(new Date(qData.start), new Date(qData.end));
         const sql = `
-            SELECT mac_address, CONVERT_TZ(created_time, '+00:00', '+08:00') AS created_time
+            SELECT mac_address, ${convertTimeZone('created_time')} AS created_time
             FROM \`${config_js_1.saasConfig.SAAS_NAME}\`.t_monitor
             WHERE app_name = ${database_js_1.default.escape(this.app)}
               AND ip != 'ffff:127.0.0.1'
                 AND req_type = 'file'
-                AND CONVERT_TZ(created_time, '+00:00', '+08:00') 
-                BETWEEN CONVERT_TZ(${formatStartDate}, '+00:00', '+08:00') 
-                AND CONVERT_TZ(${formatEndDate}, '+00:00', '+08:00')
+                AND ${convertTimeZone('created_time')} 
+                BETWEEN ${convertTimeZone(formatStartDate)} 
+                AND ${convertTimeZone(formatEndDate)}
             GROUP BY id, mac_address
         `;
         const queryData = await database_js_1.default.query(sql, []);
@@ -2662,10 +2661,6 @@ OR JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.orderStatus')) NOT IN (-99)) `);
     }
     async getRegisterMonth() {
         try {
-            function convertTimeZone(date) {
-                return `CONVERT_TZ(${date}, '+00:00', '+08:00')`;
-            }
-            const formatJsonData = [];
             const countArray = {};
             let pass = 0;
             await new Promise((resolve, reject) => {
@@ -2712,9 +2707,6 @@ OR JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.orderStatus')) NOT IN (-99)) `);
             const qData = JSON.parse(query);
             const days = this.diffDates(new Date(qData.start), new Date(qData.end));
             const formatEndDate = `"${tool_js_1.default.replaceDatetime(qData.end)}"`;
-            function convertTimeZone(date) {
-                return `CONVERT_TZ(${date}, '+00:00', '+08:00')`;
-            }
             const countArray = {};
             let pass = 0;
             await new Promise((resolve, reject) => {
@@ -2758,10 +2750,6 @@ OR JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.orderStatus')) NOT IN (-99)) `);
     }
     async getRegister2week() {
         try {
-            function convertTimeZone(date) {
-                return `CONVERT_TZ(${date}, '+00:00', '+08:00')`;
-            }
-            const formatJsonData = [];
             const countArray = {};
             let pass = 0;
             await new Promise((resolve, reject) => {
@@ -2805,9 +2793,6 @@ OR JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.orderStatus')) NOT IN (-99)) `);
     }
     async getRegisterYear() {
         try {
-            function convertTimeZone(date) {
-                return `CONVERT_TZ(${date}, '+00:00', '+08:00')`;
-            }
             const formatJsonData = [];
             const countArray = {};
             const order = await database_js_1.default.query(`SELECT count(1)
@@ -2949,9 +2934,9 @@ OR JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.orderStatus')) NOT IN (-99)) `);
                 const formatStartDate = `"${tool_js_1.default.replaceDatetime(qData.start)}"`;
                 const formatEndDate = `"${tool_js_1.default.replaceDatetime(qData.end)}"`;
                 sqlArray.push(`
-                    (CONVERT_TZ(created_time, '+00:00', '+08:00') 
-                    BETWEEN CONVERT_TZ(${formatStartDate}, '+00:00', '+08:00') 
-                    AND CONVERT_TZ(${formatEndDate}, '+00:00', '+08:00'))
+                    (${convertTimeZone('created_time')} 
+                    BETWEEN ${convertTimeZone(formatStartDate)} 
+                    AND ${convertTimeZone(formatEndDate)})
                 `);
             }
             if (qData.come_from) {
@@ -2990,9 +2975,9 @@ OR JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.orderStatus')) NOT IN (-99)) `);
                 })();
                 if (text) {
                     sqlArray.push(`
-                        CONVERT_TZ(created_time, '+00:00', '+08:00') 
-                        BETWEEN (DATE_SUB(CONVERT_TZ(CURDATE(), '+00:00', '+08:00'), INTERVAL ${text})) 
-                        AND CONVERT_TZ(CURDATE(), '+00:00', '+08:00')
+                        ${convertTimeZone('created_time')} 
+                        BETWEEN (DATE_SUB(${convertTimeZone('CURDATE()')}, INTERVAL ${text})) 
+                        AND ${convertTimeZone('CURDATE()')}
                     `);
                 }
             }
@@ -3087,9 +3072,6 @@ OR JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.orderStatus')) NOT IN (-99)) `);
             const countArrayPos = {};
             const countArrayWeb = {};
             const countArrayStore = {};
-            function convertTimeZone(date) {
-                return `CONVERT_TZ(${date}, '+00:00', '+08:00')`;
-            }
             let pass = 0;
             await new Promise((resolve, reject) => {
                 for (let index = 0; index < 14; index++) {
@@ -3167,9 +3149,6 @@ OR JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.orderStatus')) NOT IN (-99)) `);
             const countArrayPos = {};
             const countArrayWeb = {};
             const countArrayStore = {};
-            function convertTimeZone(date) {
-                return `CONVERT_TZ(${date}, '+00:00', '+08:00')`;
-            }
             let pass = 0;
             await new Promise((resolve, reject) => {
                 for (let index = 0; index < 30; index++) {
@@ -3249,9 +3228,6 @@ OR JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.orderStatus')) NOT IN (-99)) `);
             const qData = JSON.parse(query);
             const days = this.diffDates(new Date(qData.start), new Date(qData.end));
             const formatEndDate = `"${tool_js_1.default.replaceDatetime(qData.end)}"`;
-            function convertTimeZone(date) {
-                return `CONVERT_TZ(${date}, '+00:00', '+08:00')`;
-            }
             let pass = 0;
             await new Promise((resolve, reject) => {
                 for (let index = 0; index < days; index++) {
@@ -3329,9 +3305,6 @@ OR JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.orderStatus')) NOT IN (-99)) `);
             const countArrayPos = {};
             const countArrayWeb = {};
             const countArrayStore = {};
-            function convertTimeZone(date) {
-                return `CONVERT_TZ(${date}, '+00:00', '+08:00')`;
-            }
             let pass = 0;
             await new Promise((resolve, reject) => {
                 for (let index = 0; index < 12; index++) {
@@ -3415,9 +3388,6 @@ OR JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.orderStatus')) NOT IN (-99)) `);
             const countArrayPos = {};
             const countArrayWeb = {};
             const countArrayStore = {};
-            function convertTimeZone(date) {
-                return `CONVERT_TZ(${date}, '+00:00', '+08:00')`;
-            }
             let pass = 0;
             await new Promise((resolve, reject) => {
                 for (let index = 0; index < 12; index++) {
@@ -3493,9 +3463,6 @@ OR JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.orderStatus')) NOT IN (-99)) `);
             const countArrayWeb = {};
             const countArrayStore = {};
             const qData = JSON.parse(query);
-            function convertTimeZone(date) {
-                return `CONVERT_TZ(${date}, '+00:00', '+08:00')`;
-            }
             let pass = 0;
             await new Promise((resolve, reject) => {
                 for (let index = 0; index < 14; index++) {
@@ -3573,9 +3540,6 @@ OR JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.orderStatus')) NOT IN (-99)) `);
             const countArrayWeb = {};
             const countArrayStore = {};
             const qData = JSON.parse(query);
-            function convertTimeZone(date) {
-                return `CONVERT_TZ(${date}, '+00:00', '+08:00')`;
-            }
             let pass = 0;
             await new Promise((resolve, reject) => {
                 for (let index = 0; index < 30; index++) {
@@ -3660,9 +3624,6 @@ OR JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.orderStatus')) NOT IN (-99)) `);
             const qData = JSON.parse(query);
             const days = this.diffDates(new Date(qData.start), new Date(qData.end));
             const formatEndDate = `"${tool_js_1.default.replaceDatetime(qData.end)}"`;
-            function convertTimeZone(date) {
-                return `CONVERT_TZ(${date}, '+00:00', '+08:00')`;
-            }
             let pass = 0;
             await new Promise((resolve, reject) => {
                 for (let index = 0; index < days; index++) {
@@ -3740,9 +3701,6 @@ OR JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.orderStatus')) NOT IN (-99)) `);
             const countArrayPos = {};
             const countArrayWeb = {};
             const countArrayStore = {};
-            function convertTimeZone(date) {
-                return `CONVERT_TZ(${date}, '+00:00', '+08:00')`;
-            }
             let pass = 0;
             await new Promise((resolve, reject) => {
                 for (let index = 0; index < 12; index++) {
@@ -3824,9 +3782,6 @@ OR JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.orderStatus')) NOT IN (-99)) `);
             const countArrayPos = {};
             const countArrayWeb = {};
             const countArrayStore = {};
-            function convertTimeZone(date) {
-                return `CONVERT_TZ(${date}, '+00:00', '+08:00')`;
-            }
             let pass = 0;
             await new Promise((resolve, reject) => {
                 for (let index = 0; index < 14; index++) {
@@ -3910,9 +3865,6 @@ OR JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.orderStatus')) NOT IN (-99)) `);
             const countArrayPos = {};
             const countArrayWeb = {};
             const countArrayStore = {};
-            function convertTimeZone(date) {
-                return `CONVERT_TZ(${date}, '+00:00', '+08:00')`;
-            }
             let pass = 0;
             await new Promise((resolve, reject) => {
                 for (let index = 0; index < 30; index++) {
@@ -3998,9 +3950,6 @@ OR JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.orderStatus')) NOT IN (-99)) `);
             const qData = JSON.parse(query);
             const days = this.diffDates(new Date(qData.start), new Date(qData.end));
             const formatEndDate = `"${tool_js_1.default.replaceDatetime(qData.end)}"`;
-            function convertTimeZone(date) {
-                return `CONVERT_TZ(${date}, '+00:00', '+08:00')`;
-            }
             let pass = 0;
             await new Promise((resolve, reject) => {
                 for (let index = 0; index < days; index++) {
@@ -4895,4 +4844,7 @@ OR JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.orderStatus')) NOT IN (-99)) `);
     }
 }
 exports.Shopping = Shopping;
+function convertTimeZone(date) {
+    return `CONVERT_TZ(${date}, '+00:00', '+08:00')`;
+}
 //# sourceMappingURL=shopping.js.map
