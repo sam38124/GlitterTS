@@ -161,7 +161,7 @@ export async function createAPP(dd: any) {
                             }else{
                                 return {
                                     head:'',
-                                    body:`<script>window.location.href='https://shopnex.cc'</script>`
+                                    body:`<script>window.location.href='https://shopnex.tw'</script>`
                                 }
                             }
                         }
@@ -207,11 +207,7 @@ export async function createAPP(dd: any) {
                         let data = await Seo.getPageInfo(appName, req.query.page as string, language);
                         //首頁SEO
                         let home_page_data = await (async () => {
-                            if (data && data.config) {
-                                return await Seo.getPageInfo(appName, data.config.homePage, language);
-                            } else {
-                                return await Seo.getPageInfo(appName, 'index', language);
-                            }
+                            return await Seo.getPageInfo(appName, 'index', language);
                         })();
                         if (data && data.page_config) {
                             data.page_config = data.page_config ?? {};

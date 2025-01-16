@@ -22,7 +22,7 @@ export class Sy03 {
 "
             >
                 <div class="container header-place  h-100 align-items-center justify-content-center d-flex" style="${document.body.clientWidth < 800 ? `height:76px !important;` : ``}">
-                    <div class="d-flex flex-column align-items-center justify-content-center pb-md-3 flex-fill">
+                    <div class="d-flex flex-column align-items-center justify-content-center pb-md-3 pt-md-3 flex-fill">
                         <!--LOGO顯示區塊-->
                         <div class="d-flex align-items-center justify-content-start justify-content-md-center h-100 w-100 gap-2">
                             <!--手機版選單-->
@@ -196,7 +196,7 @@ background: ${(_a = colors.bgr) !== null && _a !== void 0 ? _a : '#000'};overflo
             changePage('index', 'home', {});
         })}"
                             >
-                                <img src="${widget.formData.logo}" style="${document.body.clientWidth < 800 ? `max-height: 100%;max-width:150px;` : `height: 150px;`}" />
+                                <img src="${widget.formData.logo}" style="${document.body.clientWidth < 800 ? `max-height: 100%;max-width:200px;` : `height: 150px;`}" />
                             </div>
                         </div>
                         <!--選單列表顯示區塊-->
@@ -240,7 +240,7 @@ background: ${(_a = colors.bgr) !== null && _a !== void 0 ? _a : '#000'};overflo
                     return loopItems(vm.data);
                 },
                 divCreate: {
-                    class: `navbar-nav ms-3 me-auto`,
+                    class: `navbar-nav ms-3 me-auto mt-3`,
                     style: `flex-direction: row; gap: 15px;`,
                     elem: `ul`,
                 },

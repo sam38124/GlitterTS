@@ -225,11 +225,14 @@ SELECT * FROM  \`${saasConfig.SAAS_NAME}\`.page_config where  1=1 ${where_};
 
     public static async getRealPage(query_page: string, appName: string): Promise<string> {
         query_page = query_page || 'index';
-        console.log(`query_page=>${query_page}`);
         let page = query_page;
 
+        //判斷是條款頁面時
+        if(['privacy','term','refund','delivery'].includes(query_page)){
+            page = 'blog_detail'
+        }
         //當判斷是Blog時
-        if (query_page.split('/')[0] === 'blogs' && query_page.split('/')[1]) {
+        if ((query_page.split('/')[0] === 'blogs' && query_page.split('/')[1] )) {
             page = (
                 await db.query(
                     `SELECT *
@@ -239,9 +242,8 @@ SELECT * FROM  \`${saasConfig.SAAS_NAME}\`.page_config where  1=1 ${where_};
                 )
             )[0].content.template;
         }
-
         //當判斷是Page時
-        if (query_page.split('/')[0] === 'pages' && query_page.split('/')[1]) {
+        if ((query_page.split('/')[0] === 'pages' && query_page.split('/')[1])) {
             page = (
                 await db.query(
                     `SELECT *
@@ -266,7 +268,6 @@ SELECT * FROM  \`${saasConfig.SAAS_NAME}\`.page_config where  1=1 ${where_};
                 )
             )[0].content.template;
         }
-
         //當判斷是隱形賣場時
         if (query_page.split('/')[0] === 'hidden' && query_page.split('/')[1]) {
             page = (
@@ -296,7 +297,6 @@ SELECT * FROM  \`${saasConfig.SAAS_NAME}\`.page_config where  1=1 ${where_};
                 page = '';
             }
         }
-
         //當判斷是Collection時
         if (query_page.split('/')[0] === 'collections' && query_page.split('/')[1]) {
             page = 'all-product';
@@ -313,6 +313,8 @@ SELECT * FROM  \`${saasConfig.SAAS_NAME}\`.page_config where  1=1 ${where_};
         if (query_page === 'voucher-list') {
             page = 'rebate';
         }
+
+
         return page;
     }
     public async getPage(config: {
@@ -331,7 +333,6 @@ SELECT * FROM  \`${saasConfig.SAAS_NAME}\`.page_config where  1=1 ${where_};
         if (config.tag) {
             config.tag = await Template.getRealPage(config.tag, config.appName!);
         }
-
         try {
             const page_db = (() => {
                 switch (config.language) {

@@ -974,7 +974,7 @@ export class SaasViewModel {
                                                                 <div class="mb-1">免費商店網址</div>
                                                                 <div class="d-flex flex-column" style="">
                                                                     ${BgWidget.grayNote('建議輸入與品牌相關的英文名稱')}
-                                                                    ${BgWidget.greenNote(`https://${postMD.sub_domain || '尚未輸入'}.shopnex.cc`, '', 'margin-top: 0.5rem')}
+                                                                    ${BgWidget.greenNote(`https://${postMD.sub_domain || '尚未輸入'}.shopnex.tw`, '', 'margin-top: 0.5rem')}
                                                                 </div>
                                                             </div>
                                                         `,

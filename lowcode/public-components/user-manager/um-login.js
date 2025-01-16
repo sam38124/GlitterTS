@@ -727,7 +727,7 @@ export class UMLogin {
                     AppleID.auth.init({
                         clientId: widget.share.apple.id,
                         scope: 'name email',
-                        redirectURI: 'https://shopnex.cc/login',
+                        redirectURI: 'https://shopnex.tw/login',
                         usePopup: false,
                     });
                     AppleID.auth.signIn();

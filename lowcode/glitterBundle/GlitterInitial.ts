@@ -101,7 +101,7 @@ function traverseHTML(element: any, document: any) {
                         ApiUser.getPublicConfig(`alt_`+tag,'manager').then((res)=>{
                             if(res && res.response.value){
                                 setTimeout(()=>{
-                                    element.setAttribute('alt', res.response.value.alt);
+                                    element.setAttribute('alt', res.response.value.alt || '');
                                 },10)
                             }
                         })

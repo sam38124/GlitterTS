@@ -144,7 +144,7 @@ export class ThirdPartyLine {
                                     html `<div class="tx_normal">
                                                         前往
                                                         ${BgWidget.blueNote(`『 教學步驟 』`, gvc.event(() => {
-                                        window.parent.glitter.openNewTab('https://shopnex.cc/blogs/lineapiconnect');
+                                        window.parent.glitter.openNewTab('https://shopnex.tw/blogs/lineapiconnect');
                                     }))}
                                                         查看串接設定流程
                                                     </div>`,

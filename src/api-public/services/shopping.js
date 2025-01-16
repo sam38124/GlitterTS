@@ -135,6 +135,7 @@ class Shopping {
             if (query.domain) {
                 let sql_join_search = [];
                 sql_join_search.push(`content->>'$.seo.domain'='${decodeURIComponent(query.domain)}'`);
+                sql_join_search.push(`content->>'$.title'='${decodeURIComponent(query.domain)}'`);
                 sql_join_search.push(`content->>'$.language_data."${query.language}".seo.domain'='${decodeURIComponent(query.domain)}'`);
                 querySql.push(`(${sql_join_search
                     .map((dd) => {
@@ -450,7 +451,7 @@ class Shopping {
             };
         }
         catch (e) {
-            throw exception_js_1.default.BadRequestError('BAD_REQUEST', 'GetProduct Error:' + e, null);
+            throw exception_js_1.default.BadRequestError('BAD_REQUEST', 'DeleteProduct Error:' + e, null);
         }
     }
     async deleteVoucher(query) {
@@ -463,7 +464,7 @@ class Shopping {
             };
         }
         catch (e) {
-            throw exception_js_1.default.BadRequestError('BAD_REQUEST', 'GetProduct Error:' + e, null);
+            throw exception_js_1.default.BadRequestError('BAD_REQUEST', 'DeleteVoucher Error:' + e, null);
         }
     }
     generateOrderID() {
@@ -1376,7 +1377,7 @@ class Shopping {
             }
         }
         catch (e) {
-            throw exception_js_1.default.BadRequestError('BAD_REQUEST', 'GetProduct Error:' + e, null);
+            throw exception_js_1.default.BadRequestError('BAD_REQUEST', 'getReturnOrder Error:' + e, null);
         }
     }
     async createReturnOrder(data) {
@@ -2084,7 +2085,7 @@ OR JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.orderStatus')) NOT IN (-99)) `);
             }
         }
         catch (e) {
-            throw exception_js_1.default.BadRequestError('BAD_REQUEST', 'GetProduct Error:' + e, null);
+            throw exception_js_1.default.BadRequestError('BAD_REQUEST', 'getCheckOut Error:' + e, null);
         }
     }
     async releaseCheckout(status, order_id) {

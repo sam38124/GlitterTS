@@ -2575,6 +2575,6 @@ BgLine.maxSize = 160;
 BgLine.longSMS = 153;
 BgLine.ticket = 1.5;
 function defaultEmailText() {
-    return `【商店名稱】親愛的顧客，限時優惠！全館商品即日起至9月30日享85折優惠，結帳時輸入優惠代碼：SALE2024，立即享受折扣！詳情請見：https://shopnex.cc/index。`;
+    return `【商店名稱】親愛的顧客，限時優惠！全館商品即日起至9月30日享85折優惠，結帳時輸入優惠代碼：SALE2024，立即享受折扣！詳情請見：https://shopnex.tw/index。`;
 }
 window.glitter.setModule(import.meta.url, BgLine);

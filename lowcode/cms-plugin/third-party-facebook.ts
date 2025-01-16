@@ -237,7 +237,7 @@ export class ThirdPartyLine {
                                                         ${BgWidget.blueNote(
                                                             `『 教學步驟 』`,
                                                             gvc.event(() => {
-                                                                (window.parent as any).glitter.openNewTab('https://shopnex.cc/blogs/fbapiconnect');
+                                                                (window.parent as any).glitter.openNewTab('https://shopnex.tw/blogs/fbapiconnect');
                                                             })
                                                         )}
                                                         查看串接設定流程

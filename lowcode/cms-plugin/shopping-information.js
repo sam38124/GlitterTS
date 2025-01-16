@@ -536,9 +536,9 @@ export class ShoppingInformation {
                 })}
                     <div style="margin-top: 24px;"></div>
                     ${gvc.bindView(() => {
-                    const origin_select = window.parent.glitter.share.editorViewModel.domain.includes('shopnex.cc') ? `free` : `custom`;
-                    let domain_from = window.parent.glitter.share.editorViewModel.domain.includes('shopnex.cc') ? `free` : `custom`;
-                    let domain_text = window.parent.glitter.share.editorViewModel.domain.replace('.shopnex.cc', '');
+                    const origin_select = window.parent.glitter.share.editorViewModel.domain.includes('shopnex.tw') ? `free` : `custom`;
+                    let domain_from = window.parent.glitter.share.editorViewModel.domain.includes('shopnex.tw') ? `free` : `custom`;
+                    let domain_text = window.parent.glitter.share.editorViewModel.domain.replace('.shopnex.tw', '');
                     return {
                         bind: `domain`,
                         view: () => {
@@ -564,7 +564,7 @@ export class ShoppingInformation {
                                 callback: (text) => {
                                     domain_from = text;
                                     if (origin_select === domain_from) {
-                                        domain_text = window.parent.glitter.share.editorViewModel.domain.replace('.shopnex.cc', '');
+                                        domain_text = window.parent.glitter.share.editorViewModel.domain.replace('.shopnex.tw', '');
                                     }
                                     else {
                                         domain_text = '';
@@ -654,7 +654,7 @@ ${BgWidget.title('GoDaddy DNS 設定指南')}
                             })}" value="${domain_text}">
                                                 <div class="${domain_from === 'custom' ? `d-none` : ``}"
                                                      style="padding: 9px 10px;border-radius: 0px 10px 10px 0px;background: #EAEAEA;">
-                                                    .shopnex.cc
+                                                    .shopnex.tw
                                                 </div>
                                             </div>
                                         </div>
@@ -697,7 +697,7 @@ ${BgWidget.title('GoDaddy DNS 設定指南')}
                                         dialog.dataLoading({ visible: false });
                                         if (res.result) {
                                             dialog.successMessage({ text: '網域部署成功!' });
-                                            glitter.share.editorViewModel.domain = `${domain_text}.shopnex.cc`;
+                                            glitter.share.editorViewModel.domain = `${domain_text}.shopnex.tw`;
                                         }
                                         else {
                                             dialog.errorMessage({ text: '網域部署失敗!' });
@@ -711,6 +711,7 @@ ${BgWidget.title('GoDaddy DNS 設定指南')}
                         }
                     };
                 })}
+                    ${this.policy(gvc)}
                     <div style="margin-top: 300px;"></div>
                     <div class="shadow"
                          style="width: 100%;padding: 14px 16px;background: #FFF; display: flex;justify-content: end;position: fixed;bottom: 0;right: 0;z-index:1;gap:14px;">
@@ -724,6 +725,29 @@ ${BgWidget.title('GoDaddy DNS 設定指南')}
                     </div>
                 `);
             }, divCreate: { style: `color:#393939;font-size: 14px;` }
+        });
+    }
+    static policy(gvc) {
+        const id = gvc.glitter.getUUID();
+        const html = String.raw;
+        return gvc.bindView(() => {
+            return {
+                bind: id,
+                view: () => {
+                    return BgWidget.mainCard(`<div class="d-flex flex-column" style="">${[
+                        html `
+                                <div class="tx_normal fw-bold">相關條款</div>`,
+                        html `
+                                <div style="color: #393939;font-size: 16px;">服務條款</div>
+                                <div style="color: #36B;font-size:13px;cursor:pointer;">
+                                    https://${window.parent.glitter.share.editorViewModel.domain}/terms
+                                </div>`
+                    ].join('<div class="my-1"></div>')}</div>`);
+                },
+                divCreate: {
+                    class: `mt-3`, style: ``
+                }
+            };
         });
     }
 }

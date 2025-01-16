@@ -442,11 +442,12 @@ export class ProductDetail {
                                 try {
                                     if (Array.isArray(dataArray[1].response.data)) {
                                         vm.data = dataArray[1].response.data[0];
-                                        glitter.setUrlParameter('page', 'products/' + encodeURIComponent(vm.data.content.seo.domain));
+                                        glitter.setUrlParameter('page', 'products/' + encodeURIComponent(vm.data.content.seo.domain || vm.data.content.title) );
                                     } else {
                                         vm.data = dataArray[1].response.data;
-                                        glitter.setUrlParameter('page', 'products/' + encodeURIComponent(vm.data.content.seo.domain));
+                                        glitter.setUrlParameter('page', 'products/' + encodeURIComponent(vm.data.content.seo.domain || vm.data.content.title));
                                     }
+
                                 } catch (e) {
                                     (vm.data as any) = {};
                                 }

@@ -210,7 +210,7 @@ background: ${(_a = colors.bgr) !== null && _a !== void 0 ? _a : '#000'};overflo
                                           ${widget.formData.logo.value}
                                       </div>
                                   `
-            : html ` <div class="d-flex align-items-center justify-content-center h-100 py-2"><img src="${widget.formData.logo.value}" style="max-height: 100%;max-width:150px;" /></div> `}
+            : html ` <div class="d-flex align-items-center justify-content-center h-100 py-2"><img src="${widget.formData.logo.value}" style="max-height: 100%;max-width:200px;" /></div> `}
                         </div>
                     </div>
                     <div class="">

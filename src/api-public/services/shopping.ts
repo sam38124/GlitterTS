@@ -287,6 +287,7 @@ export class Shopping {
                 let sql_join_search = [];
                 // querySql.push();
                 sql_join_search.push(`content->>'$.seo.domain'='${decodeURIComponent(query.domain)}'`);
+                sql_join_search.push(`content->>'$.title'='${decodeURIComponent(query.domain)}'`);
                 sql_join_search.push(`content->>'$.language_data."${query.language}".seo.domain'='${decodeURIComponent(query.domain)}'`);
                 querySql.push(
                     `(${sql_join_search
@@ -390,6 +391,7 @@ export class Shopping {
                 // 基本條件
                 const statusCondition = `JSON_EXTRACT(content, '$.status') IN (${statusJoin})`;
 
+//2024-12-11
                 // 時間條件
                 const scheduleConditions = statusSplit
                     .map((status) => {
@@ -402,11 +404,11 @@ export class Shopping {
                                         content->>'$.active_schedule' IS NULL OR (
                                             (
                                             CONCAT(content->>'$.active_schedule.start_ISO_Date') IS NULL OR
-                                            CONCAT(content->>'$.active_schedule.start_ISO_Date') <= ${convertTimeZone('NOW()')}
+                                            CONCAT(content->>'$.active_schedule.start_ISO_Date') <= NOW()
                                             )
                                             AND (
                                                 CONCAT(content->>'$.active_schedule.end_ISO_Date') IS NULL
-                                                OR CONCAT(content->>'$.active_schedule.end_ISO_Date') >= ${convertTimeZone('NOW()')}
+                                                OR CONCAT(content->>'$.active_schedule.end_ISO_Date') >= NOW()
                                             )
                                         )
                                     )
@@ -416,14 +418,14 @@ export class Shopping {
                                 return `
                                 OR (
                                     JSON_EXTRACT(content, '$.status') = 'active'
-                                    AND CONCAT(content->>'$.active_schedule.start_ISO_Date') > ${convertTimeZone('NOW()')}
+                                    AND CONCAT(content->>'$.active_schedule.start_ISO_Date') > NOW()
                                 )
                             `;
                             case 'afterEnd':
                                 return `
                                 OR (
                                     JSON_EXTRACT(content, '$.status') = 'active'
-                                    AND CONCAT(content->>'$.active_schedule.end_ISO_Date') < ${convertTimeZone('NOW()')}
+                                    AND CONCAT(content->>'$.active_schedule.end_ISO_Date') < NOW()
                                 )
                             `;
                             default:

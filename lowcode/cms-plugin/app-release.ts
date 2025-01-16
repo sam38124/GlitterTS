@@ -321,7 +321,7 @@ export class AppRelease {
                                                                 title: html`<div class="d-flex flex-column" style="gap:3px;">
                                                                     App 支援網址（URL）
                                                                     ${BgWidget.grayNote(
-                                                                        '如有疑問，用戶可透過提供的支援網站獲取幫助。該網站應包含真實聯絡資訊，方便用戶就 App 的問題、使用回饋或功能優化提出建議。請提供包含協議的完整網址（例如：http://support.shopnex.cc）。此支援網址將顯示給已購買此 App 的用戶，並僅在 App Store 中顯示。'
+                                                                        '如有疑問，用戶可透過提供的支援網站獲取幫助。該網站應包含真實聯絡資訊，方便用戶就 App 的問題、使用回饋或功能優化提出建議。請提供包含協議的完整網址（例如：http://support.shopnex.tw）。此支援網址將顯示給已購買此 App 的用戶，並僅在 App Store 中顯示。'
                                                                     )}
                                                                 </div>`,
                                                                 default: postMD.support_url || '',

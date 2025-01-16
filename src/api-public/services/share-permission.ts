@@ -561,12 +561,12 @@ export class SharePermission {
                                     functionName: 'closeWebView',
                                     callBackId: 0,
                                     data: {
-                                        redirect: 'https://shopnex.cc/login',
+                                        redirect: 'https://shopnex.tw/login',
                                     },
                                 })
                             );
                         } catch (e) {}
-                        location.href = 'https://shopnex.cc/login';
+                        location.href = 'https://shopnex.tw/login';
                     </script>
                 </body>
             </html> `;
