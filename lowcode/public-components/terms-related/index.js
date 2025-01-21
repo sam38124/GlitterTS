@@ -20,14 +20,24 @@ export class TermsRelated {
             return {
                 bind: glitter.getUUID(),
                 view: () => __awaiter(this, void 0, void 0, function* () {
-                    let lan_d = (yield ApiUser.getPublicConfig(`terms-related-${page}-${Language.getLanguage()}`, 'manager')).response.value.text;
-                    if (!lan_d) {
-                        lan_d = (yield ApiUser.getPublicConfig(`terms-related-${page}-${window.store_info.language_setting.def}`, 'manager')).response.value.text;
+                    if ((`${glitter.getUrlParameter('page')}`.startsWith(`collections`)) ||
+                        (`${glitter.getUrlParameter('page')}`.startsWith(`all-product`))) {
+                        return yield new Promise((resolve, reject) => {
+                            glitter.getModule(new URL('./public-components/product/product-list.js', gvc.glitter.root_path).href, (res) => {
+                                resolve(res.main(gvc));
+                            });
+                        });
                     }
-                    return html `<h1 class="my-sm-5 my-4 fs-1" style="color:${title_color};">服務條款</h1>
-                    <div class="mb-5" style="min-height: calc(100vh - 200px);">
-                        ${lan_d || ''}
-                    </div>`;
+                    else {
+                        let lan_d = (yield ApiUser.getPublicConfig(`terms-related-${page}-${Language.getLanguage()}`, 'manager')).response.value.text;
+                        if (!lan_d) {
+                            lan_d = (yield ApiUser.getPublicConfig(`terms-related-${page}-${window.store_info.language_setting.def}`, 'manager')).response.value.text;
+                        }
+                        return html `<h1 class="my-sm-5 my-4 fs-1" style="color:${title_color};">服務條款</h1>
+                        <div class="mb-5" style="min-height: calc(100vh - 200px);">
+                            ${lan_d || ''}
+                        </div>`;
+                    }
                 }),
                 divCreate: {
                     class: `container text-center`

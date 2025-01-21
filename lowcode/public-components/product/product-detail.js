@@ -383,6 +383,7 @@ export class ProductDetail {
                                 });
                             }),
                         ]).then((dataArray) => {
+                            var _a, _b;
                             if (dataArray[0].result && dataArray[0].response.value) {
                                 vm.content_manager = dataArray[0].response.value;
                             }
@@ -390,12 +391,15 @@ export class ProductDetail {
                                 try {
                                     if (Array.isArray(dataArray[1].response.data)) {
                                         vm.data = dataArray[1].response.data[0];
-                                        glitter.setUrlParameter('page', 'products/' + encodeURIComponent(vm.data.content.seo.domain || vm.data.content.title));
                                     }
                                     else {
                                         vm.data = dataArray[1].response.data;
-                                        glitter.setUrlParameter('page', 'products/' + encodeURIComponent(vm.data.content.seo.domain || vm.data.content.title));
                                     }
+                                    glitter.setUrlParameter('page', 'products/' + encodeURIComponent(vm.data.content.seo.domain || vm.data.content.title), [
+                                        (_a = window.home_seo.title_prefix) !== null && _a !== void 0 ? _a : "",
+                                        (vm.data.content.seo.domain || vm.data.content.title),
+                                        (_b = window.home_seo.title_suffix) !== null && _b !== void 0 ? _b : "",
+                                    ].join(''));
                                 }
                                 catch (e) {
                                     vm.data = {};

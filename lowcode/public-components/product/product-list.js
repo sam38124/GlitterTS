@@ -654,6 +654,7 @@ export class ProductList {
                             vm.pageIndex = p;
                             loadings.product = true;
                             gvc.notifyDataChange(ids.product);
+                            document.querySelector('html').scrollTo(0, 0);
                         })}
                                             <div style="margin-top: 240px;"></div>`;
                     }

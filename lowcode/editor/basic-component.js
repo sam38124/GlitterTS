@@ -3332,6 +3332,11 @@ BasicComponent.componentList = [
         }
     },
     {
+        title: '重點搜尋區塊',
+        config: { "id": "s5s1sas9s5sds6s9", "js": "./official_view_component/official.js", "css": { "class": {}, "style": {} }, "data": { "tag": "module-banner-hightlight", "_gap": "", "attr": [], "elem": "div", "list": [], "inner": "", "_other": {}, "_border": {}, "_margin": {}, "_radius": "", "_padding": {}, "_reverse": "false", "carryData": {}, "refer_app": "shop_template_black_style", "_max_width": "", "_background": "", "_style_refer": "custom", "_hor_position": "center", "refer_form_data": { "hint": "今天我想要學...", "ratio": "22:9", "title": "啟動知識的旅程，\n隨時隨地學習的可能。", "back_img": { "type": "image", "value": "https://d3jnmi1tfjgtti.cloudfront.net/file/234285319/size1440_s*px$_sbs3s0s0sds1s8s7_Banner.jpg" }, "sub_title": "連結世界的學習，無限可能在您的手中", "search_tag": [{ "title": "理財與風險管理" }, { "title": "從家常美食到國際料理大師" }, { "title": "跨文化線上市場開發" }, { "title": "營養、運動與心理平衡" }, { "title": "從零到程式高手" }, { "title": "掌握數位時代的關鍵技能" }], "title-size": "42", "cover_color": "#0000001C", "theme_color": { "id": "custom-theme_color", "title": "#FFFFFF", "content": "#D7D7D7", "sec-title": "#000000", "background": "#ffffff", "sec-background": "#FFFFFF", "solid-button-bg": "#BB4430", "border-button-bg": "#FFFFFF", "solid-button-text": "#FFFFFF", "border-button-text": "#FFFFFF" }, "sub-title-size": "20" }, "_background_setting": { "type": "none" }, "_style_refer_global": { "index": "0" } }, "list": [], "type": "component", "class": "w-100", "index": 1, "label": "重點搜尋Banner", "style": "", "global": [], "mobile": { "id": "s5s1sas9s5sds6s9", "js": "./official_view_component/official.js", "css": { "class": {}, "style": {} }, "data": { "refer_app": "shop_template_black_style", "refer_form_data": { "ratio": "1:1", "search_tag": [{ "title": "理財與風險管理" }, { "title": "從零到程式高手" }], "title-size": "24", "sub-title-size": "14" } }, "list": [], "type": "component", "class": "w-100", "index": 1, "label": "重點搜尋Banner", "style": "", "global": [], "toggle": true, "stylist": [], "version": "v2", "visible": true, "dataType": "static", "style_from": "code", "classDataType": "static", "editor_bridge": {}, "preloadEvenet": {}, "container_fonts": 0, "mobile_editable": ["ratio", "title-size", "sub-title-size", "search_tag"], "desktop_editable": [], "refreshAllParameter": {}, "refreshComponentParameter": {}, "refer": "custom" }, "toggle": true, "desktop": { "data": { "refer_app": "shop_template_black_style", "refer_form_data": {} }, "refer": "custom" }, "stylist": [], "version": "v2", "visible": true, "dataType": "static", "style_from": "code", "classDataType": "static", "editor_bridge": {}, "preloadEvenet": {}, "container_fonts": 0, "mobile_editable": ["ratio", "title-size", "sub-title-size", "search_tag"], "desktop_editable": [], "refreshAllParameter": {}, "refreshComponentParameter": {}, "formData": {} },
+        image: `https://d3jnmi1tfjgtti.cloudfront.net/file/122538856/Screenshot 2025-01-20 at 7.50.44 PM.jpg`
+    },
+    {
         title: '輪播圖',
         config: {
             "id": "sasas2s9s2s1scsa",
@@ -3485,7 +3490,7 @@ BasicComponent.componentList = [
             "refreshComponentParameter": {},
             "formData": {}
         },
-        image: `https://d3jnmi1tfjgtti.cloudfront.net/file/234285319/size1440_s*px$_s4s2sbs1s7s4s4sd_Frame38.png`
+        image: `https://d3jnmi1tfjgtti.cloudfront.net/file/122538856/Screenshot 2025-01-20 at 7.51.35 PM.jpg`
     },
     {
         title: '影片組合',

@@ -24,9 +24,9 @@ export class ApiPos {
             data: JSON.stringify(obj),
         });
     }
-    static getSummary() {
+    static getSummary(shop) {
         return BaseApi.create({
-            url: getBaseUrl() + `/api-public/v1/ec/pos/summary`,
+            url: getBaseUrl() + `/api-public/v1/ec/pos/summary?shop=${shop}`,
             type: 'GET',
             headers: {
                 'g-app': getConfig().config.appName,

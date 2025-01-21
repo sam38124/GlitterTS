@@ -27,6 +27,9 @@ export class ArrayItems {
                     let viewArray = [];
                     viewArray.push(gvc.bindView(() => {
                         const id = gvc.glitter.getUUID();
+                        function refresh() {
+                            gvc.notifyDataChange(id);
+                        }
                         return {
                             bind: id,
                             view: () => {
@@ -82,9 +85,12 @@ export class ArrayItems {
                                                                     gvc: gvc,
                                                                     array: widget.bundle.form_config['form_array'] || [],
                                                                     formData: edit_data,
-                                                                    refresh: (widget.bundle.refresh && widget.bundle.refresh) || (() => {
-                                                                        widget.refreshComponent();
-                                                                    })
+                                                                    refresh: () => {
+                                                                        refresh();
+                                                                        ((widget.bundle.refresh && widget.bundle.refresh) || (() => {
+                                                                            widget.refreshComponent();
+                                                                        }))();
+                                                                    }
                                                                 }));
                                                             });
                                                         }));

@@ -58,9 +58,9 @@ class Pos {
             throw exception_js_1.default.BadRequestError('INTERNAL_SERVER_ERROR', 'setSummary is Failed. ' + e, null);
         }
     }
-    async getSummary() {
+    async getSummary(shop) {
         try {
-            return (await database_js_1.default.query(`select * from \`${this.app}\`.\`t_pos_summary\` order by id desc`, [])).map((dd) => {
+            return (await database_js_1.default.query(`select * from \`${this.app}\`.\`t_pos_summary\` where content->>'$.store'=? order by id desc`, [shop])).map((dd) => {
                 dd.created_time = dd.created_time.toISOString();
                 return dd;
             });

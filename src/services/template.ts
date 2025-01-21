@@ -226,7 +226,6 @@ SELECT * FROM  \`${saasConfig.SAAS_NAME}\`.page_config where  1=1 ${where_};
     public static async getRealPage(query_page: string, appName: string): Promise<string> {
         query_page = query_page || 'index';
         let page = query_page;
-
         //判斷是條款頁面時
         if(['privacy','term','refund','delivery'].includes(query_page)){
             return  'official-router'
@@ -313,8 +312,6 @@ SELECT * FROM  \`${saasConfig.SAAS_NAME}\`.page_config where  1=1 ${where_};
         if (query_page === 'voucher-list') {
             page = 'rebate';
         }
-
-
         return page;
     }
     public async getPage(config: {
@@ -333,6 +330,9 @@ SELECT * FROM  \`${saasConfig.SAAS_NAME}\`.page_config where  1=1 ${where_};
         if (config.tag) {
             config.tag = await Template.getRealPage(config.tag, config.appName!);
             if(config.tag==='official-router'){
+                config.appName='cms_system'
+            }else if(config.tag==='all-product'){
+                config.tag='official-router'
                 config.appName='cms_system'
             }
         }

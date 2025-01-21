@@ -482,23 +482,17 @@ export class ProductText {
                                                                 return {
                                                                     bind: ids.content,
                                                                     view: () => {
-                                                                        return EditorElem.richText({
+                                                                        return   BgWidget.richTextEditor({
                                                                             gvc: gvc,
-                                                                            def: generateRichtext(vm.data.data.content),
-                                                                            callback: (text) => {
-                                                                                vm.data.data.content = originRichtext(text);
+                                                                            content: generateRichtext(vm.data.data.content) || '',
+                                                                            callback: (content) => {
+                                                                                vm.data.data.content = originRichtext(content);
                                                                             },
-                                                                        });
+                                                                            title: '顯示文本編輯'
+                                                                        })
                                                                     },
                                                                     onCreate: () => {
-                                                                        // 監聽貼上事件
-                                                                        function pasteEvent() {
-                                                                            setTimeout(() => {
-                                                                                gvc.notifyDataChange(ids.content);
-                                                                            }, 10);
-                                                                        }
-                                                                        document.removeEventListener('paste', pasteEvent);
-                                                                        document.addEventListener('paste', pasteEvent);
+                                                                    
                                                                     },
                                                                 };
                                                             })()

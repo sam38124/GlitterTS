@@ -1,7 +1,7 @@
 import { GVC } from '../../glitterBundle/GVController.js';
 import { ApiShop } from '../../glitter-base/route/shopping.js';
 import { ApiUser } from '../../glitter-base/route/user.js';
-import { PdClass, Product, FileList } from './pd-class.js';
+import { PdClass, Product_l, FileList } from './pd-class.js';
 import { Language } from '../../glitter-base/global/language.js';
 
 /*
@@ -84,7 +84,7 @@ export class ProductDetail {
         const isPhone = document.body.clientWidth < 768;
 
         const vm = {
-            data: {} as Product,
+            data: {} as Product_l,
             content_manager: [] as FileList,
             content_tag: 'default' as string,
             specs: [] as string[],
@@ -442,18 +442,21 @@ export class ProductDetail {
                                 try {
                                     if (Array.isArray(dataArray[1].response.data)) {
                                         vm.data = dataArray[1].response.data[0];
-                                        glitter.setUrlParameter('page', 'products/' + encodeURIComponent(vm.data.content.seo.domain || vm.data.content.title) );
                                     } else {
                                         vm.data = dataArray[1].response.data;
-                                        glitter.setUrlParameter('page', 'products/' + encodeURIComponent(vm.data.content.seo.domain || vm.data.content.title));
                                     }
+                                    glitter.setUrlParameter('page', 'products/' + encodeURIComponent(vm.data.content.seo.domain || vm.data.content.title), [
+                                        (window as any).home_seo.title_prefix ?? "",
+                                        (vm.data.content.seo.domain || vm.data.content.title),
+                                        (window as any).home_seo.title_suffix ?? "",
+                                    ].join(''));
 
                                 } catch (e) {
                                     (vm.data as any) = {};
                                 }
                             }
                             if (dataArray[2].result && dataArray[2].response.data) {
-                                vm.wishStatus = dataArray[2].response.data.some((item: Product) => item.id === vm.data.id);
+                                vm.wishStatus = dataArray[2].response.data.some((item: Product_l) => item.id === vm.data.id);
                             }
                             loadings.page = false;
                             gvc.notifyDataChange(ids.page);

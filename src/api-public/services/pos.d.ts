@@ -14,5 +14,5 @@ export declare class Pos {
         summary_type: string;
         content: any;
     }): Promise<void>;
-    getSummary(): Promise<any>;
+    getSummary(shop: string): Promise<any>;
 }

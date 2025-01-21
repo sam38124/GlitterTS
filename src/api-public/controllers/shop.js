@@ -1241,7 +1241,7 @@ router.post('/pos/summary', async (req, resp) => {
 router.get('/pos/summary', async (req, resp) => {
     try {
         return response_1.default.succ(resp, {
-            data: await new pos_js_1.Pos(req.get('g-app'), req.body.token).getSummary()
+            data: await new pos_js_1.Pos(req.get('g-app'), req.body.token).getSummary(req.query.shop)
         });
     }
     catch (err) {

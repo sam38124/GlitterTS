@@ -777,6 +777,21 @@ export class CheckoutIndex {
                                                             return ``;
                                                         }
                                                     })()}
+                                                                                        ${(() => {
+                                                        let max_qty = (item.max_qty && parseInt(item.max_qty, 10)) || Infinity;
+                                                        let count = 0;
+                                                        for (const b of vm.cartData.lineItems) {
+                                                            if (b.id === item.id) {
+                                                                count += b.count;
+                                                            }
+                                                        }
+                                                        if (count > max_qty) {
+                                                            return `<div class="text-danger">${Language.text('max_p_count').replace('_c_', max_qty)}</div>`;
+                                                        }
+                                                        else {
+                                                            return ``;
+                                                        }
+                                                    })()}
                                                                                     </div>
                                                                                 </div>
                                                                             `;
@@ -2310,6 +2325,7 @@ export class CheckoutIndex {
                                         <button
                                             class="${gClass('button-bgr')}"
                                             onclick="${gvc.event(() => {
+                            var _a;
                             const dialog = new ShareDialog(gvc.glitter);
                             if (!this.checkFormData(gvc, vm.cartData, widget)) {
                                 return;
@@ -2317,6 +2333,7 @@ export class CheckoutIndex {
                             for (const item of vm.cartData.lineItems) {
                                 const title = (item.language_data && item.language_data[Language.getLanguage()].title) || item.title;
                                 let min = (item.min_qty && parseInt(item.min_qty, 10)) || 1;
+                                let max_qty = (item.max_qty && parseInt(item.max_qty, 10)) || Infinity;
                                 let count = 0;
                                 for (const b of vm.cartData.lineItems) {
                                     if (b.id === item.id) {
@@ -2325,6 +2342,10 @@ export class CheckoutIndex {
                                 }
                                 if (count < min) {
                                     dialog.errorMessage({ text: Language.text('min_p_count_d').replace('_c_', min).replace('_p_', `『${title}』`) });
+                                    return;
+                                }
+                                if (count > max_qty) {
+                                    dialog.errorMessage({ text: Language.text('max_p_count_d').replace('_c_', min).replace('_p_', `『${title}』`) });
                                     return;
                                 }
                             }
@@ -2361,7 +2382,7 @@ export class CheckoutIndex {
                                 custom_form_format: vm.cartData.custom_form_format,
                                 custom_form_data: vm.cartData.custom_form_data,
                                 custom_receipt_form: vm.cartData.receipt_form,
-                                distribution_code: apiCart.cart.distribution_code,
+                                distribution_code: (_a = localStorage.getItem('distributionCode')) !== null && _a !== void 0 ? _a : '',
                                 give_away: apiCart.cart.give_away,
                             }).then((res) => {
                                 dialog.dataLoading({ visible: false });

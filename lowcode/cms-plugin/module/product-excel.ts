@@ -3,27 +3,7 @@ import { ShareDialog } from '../../glitterBundle/dialog/ShareDialog.js';
 import { ApiShop } from '../../glitter-base/route/shopping.js';
 import { CheckInput } from '../../modules/checkInput.js';
 import * as domain from "node:domain";
-
-export interface Variant {
-    save_stock?: string;
-    sale_price: number;
-    compare_price: number;
-    cost: number;
-    spec: string[];
-    profit: number;
-    v_length: number;
-    v_width: number;
-    v_height: number;
-    weight: number;
-    shipment_type: 'weight' | 'none' | 'volume';
-    sku: string;
-    barcode: string;
-    stock: number;
-    stockList:{};
-    preview_image: string;
-    show_understocking: string;
-    type: string;
-}
+import {Variant} from "../../public-models/product.js";
 
 export interface RowInitData {
     id?: string;

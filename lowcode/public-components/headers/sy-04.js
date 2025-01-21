@@ -25,7 +25,7 @@ export class Sy04 {
                     <div class="d-flex align-items-center justify-content-center h-100 gap-2">
                         <!--手機版選單-->
                         <div
-                            class="d-flex align-items-center justify-content-center"
+                            class="d-flex d-lg-none align-items-center justify-content-center"
                             style="width:40px !important;height:40px !important;"
                             onclick="${gvc.event(() => {
             gvc.glitter.setDrawer(gvc.bindView(() => {
@@ -58,7 +58,6 @@ export class Sy04 {
     background-position: center;
     background-size: cover;
     background-repeat: no-repeat;
-    border-radius: 10px;
     margin-bottom: 20px;"
                                                                               src="${widget.formData.logo.value}"
                                                                           /> `}
@@ -190,7 +189,7 @@ background: ${(_a = colors.bgr) !== null && _a !== void 0 ? _a : '#000'};overflo
         })}"
                         >
                             <i
-                                class="fa-solid fa-bars fa-fw d-md-none "
+                                class="fa-solid fa-bars fa-fw d-lg-none "
                                 style="font-size: 20px;
     color: ${(_b = widget.formData.theme_color['title']) !== null && _b !== void 0 ? _b : '#000'};"
                             ></i>
@@ -210,12 +209,12 @@ background: ${(_a = colors.bgr) !== null && _a !== void 0 ? _a : '#000'};overflo
                                           ${widget.formData.logo.value}
                                       </div>
                                   `
-            : html ` <div class="d-flex align-items-center justify-content-center h-100 py-2"><img src="${widget.formData.logo.value}" style="max-height: 100%;max-width:200px;" /></div> `}
+            : html ` <div class="d-flex align-items-center justify-content-center h-100 py-2" style="${document.body.clientWidth < 800 ? `max-width:calc(100vw - 200px);` : `max-width:200px;`}"><img src="${widget.formData.logo.value}" style="max-height: 100%;${document.body.clientWidth < 800 ? `max-width:calc(100vw - 200px);` : `max-width:200px;`}" /></div> `}
                         </div>
                     </div>
                     <div class="">
                         <!--選單列表顯示區塊-->
-                        <ul class="navbar-nav position-absolute start-50 top-50 d-none d-md-block" style="transform: translate(-50%, -50%);">
+                        <ul class="navbar-nav position-absolute start-50 top-50 d-none d-lg-block" style="transform: translate(-50%, -50%);">
                             ${gvc.bindView(() => {
             const id = gvc.glitter.getUUID();
             const vm = {
@@ -235,7 +234,7 @@ background: ${(_a = colors.bgr) !== null && _a !== void 0 ? _a : '#000'};overflo
                             return html ` <li class="nav-item dropdown">
                                                         <a
                                                             class="nav-link header-link "
-                                                            style="color: ${(_a = widget.formData.theme_color['title']) !== null && _a !== void 0 ? _a : '#000'} !important;cursor: pointer;"
+                                                            style="color: ${(_a = widget.formData.theme_color['title']) !== null && _a !== void 0 ? _a : '#000'} !important;cursor: pointer;white-space: nowrap;overflow: hidden;text-overflow: ellipsis;"
                                                             onclick="${gvc.event(() => {
                                 if (dd.link) {
                                     gvc.glitter.href = dd.link;
@@ -256,7 +255,7 @@ background: ${(_a = colors.bgr) !== null && _a !== void 0 ? _a : '#000'};overflo
                 },
                 divCreate: {
                     class: `navbar-nav ms-3 me-auto `,
-                    style: `flex-direction: row; gap: 15px;`,
+                    style: `flex-direction: row; gap: 0px;`,
                     elem: `ul`,
                 },
             };

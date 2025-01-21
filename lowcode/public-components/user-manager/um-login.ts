@@ -214,9 +214,9 @@ export class UMLogin {
                                         >
                                     </div>
                                     <div class="${gClass('font-14')}">
-                                        ${Language.text('registration_terms_agreement')}<a class="${gClass('blue-note')}" href="/pages/privacy">${Language.text('terms_of_service')}</a>${Language.text(
+                                        ${Language.text('registration_terms_agreement')}<a class="${gClass('blue-note')}" href="/privacy">${Language.text('terms_of_service')}</a>${Language.text(
                                             'and'
-                                        )}<a class="${gClass('blue-note')}" href="/pages/terms">${Language.text('privacy_policy')}</a>
+                                        )}<a class="${gClass('blue-note')}" href="/term">${Language.text('privacy_policy')}</a>
                                     </div>
                                 </div>
                             </div>
@@ -265,9 +265,9 @@ export class UMLogin {
                                     >
                                 </div>
                                 <div class="${gClass('font-14')}">
-                                    ${Language.text('login_terms_agreement')}<a class="${gClass('blue-note')}" href="/pages/privacy">${Language.text('terms_of_service')}</a>${Language.text('and')}<a
+                                    ${Language.text('login_terms_agreement')}<a class="${gClass('blue-note')}" href="/privacy">${Language.text('terms_of_service')}</a>${Language.text('and')}<a
                                         class="${gClass('blue-note')}"
-                                        href="/pages/terms"
+                                        href="/term"
                                         >${Language.text('privacy_policy')}</a
                                     >
                                 </div>

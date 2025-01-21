@@ -668,7 +668,7 @@ cursor: pointer;
                                                 if (document.body.offsetWidth > 800) {
                                                     return `86px`
                                                 } else {
-                                                    return `66px`
+                                                    return `76px`
                                                 }
                                             })()};"
                                     >

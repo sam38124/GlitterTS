@@ -276,6 +276,7 @@ export class Shopping {
                             `(${[
                                 `(UPPER(JSON_UNQUOTE(JSON_EXTRACT(content, '$.title'))) LIKE UPPER('%${query.search}%'))`,
                                 `(UPPER(content->>'$.language_data."${query.language}".title') LIKE UPPER('%${query.search}%'))`,
+                                `UPPER(content->>'$.product_tag.language."${query.language}"') like '%${query.search}%'`,
                                 `JSON_EXTRACT(content, '$.variants[*].sku') LIKE '%${query.search}%'`,
                                 `JSON_EXTRACT(content, '$.variants[*].barcode') LIKE '%${query.search}%'`,
                             ].join(' or ')})`
@@ -283,6 +284,7 @@ export class Shopping {
                         break;
                 }
             }
+
             if (query.domain) {
                 let sql_join_search = [];
                 // querySql.push();
@@ -404,11 +406,11 @@ export class Shopping {
                                         content->>'$.active_schedule' IS NULL OR (
                                             (
                                             CONCAT(content->>'$.active_schedule.start_ISO_Date') IS NULL OR
-                                            CONCAT(content->>'$.active_schedule.start_ISO_Date') <= NOW()
+                                            CONCAT(content->>'$.active_schedule.start_ISO_Date') <= ${db.escape(new Date().toISOString())}
                                             )
                                             AND (
                                                 CONCAT(content->>'$.active_schedule.end_ISO_Date') IS NULL
-                                                OR CONCAT(content->>'$.active_schedule.end_ISO_Date') >= NOW()
+                                                OR CONCAT(content->>'$.active_schedule.end_ISO_Date') >= ${db.escape(new Date().toISOString())}
                                             )
                                         )
                                     )
@@ -418,14 +420,14 @@ export class Shopping {
                                 return `
                                 OR (
                                     JSON_EXTRACT(content, '$.status') = 'active'
-                                    AND CONCAT(content->>'$.active_schedule.start_ISO_Date') > NOW()
+                                    AND CONCAT(content->>'$.active_schedule.start_ISO_Date') >${db.escape(new Date().toISOString())}
                                 )
                             `;
                             case 'afterEnd':
                                 return `
                                 OR (
                                     JSON_EXTRACT(content, '$.status') = 'active'
-                                    AND CONCAT(content->>'$.active_schedule.end_ISO_Date') < NOW()
+                                    AND CONCAT(content->>'$.active_schedule.end_ISO_Date') < ${db.escape(new Date().toISOString())}
                                 )
                             `;
                             default:
@@ -527,7 +529,6 @@ export class Shopping {
                     dd.content.content_array = dd.content.language_data[`${query.language}`].content_array || dd.content.content_array;
                     dd.content.content_json = dd.content.language_data[`${query.language}`].content_json || dd.content.content_json;
                     dd.content.preview_image = dd.content.language_data[`${query.language}`].preview_image || dd.content.preview_image;
-
                     (dd.content.variants || []).map((variant: any) => {
                         variant.stock = 0;
                         variant.preview_image = variant[`preview_image_${query.language}`] || variant.preview_image;
@@ -799,6 +800,7 @@ export class Shopping {
                 count: number;
                 sale_price: number;
                 min_qty?: number;
+                max_qty?:number;
                 collection?: string[];
                 title?: string;
                 preview_image?: string;
@@ -1275,6 +1277,9 @@ export class Shopping {
                         if (pd.min_qty) {
                             b.min_qty = pd.min_qty;
                         }
+                        if (pd.max_qty) {
+                            b.max_qty = pd.max_qty;
+                        }
                     }
                 } catch (e) {
                     console.log(e);
@@ -1311,6 +1316,7 @@ export class Shopping {
                 carData.user_rebate_sum = data?.point || 0;
             }
             console.log(`checkout-time-9=>`, new Date().getTime() - check_time);
+
             // 判斷是否有分銷連結
             if (data.distribution_code) {
                 const linkList = await new Recommend(this.app, this.token).getLinkList({
@@ -1320,8 +1326,10 @@ export class Shopping {
                     status: true,
                     no_detail: true,
                 });
+                console.log(`linkList.data.length=>`,linkList.data.length)
                 if (linkList.data.length > 0) {
                     const content = linkList.data[0].content;
+                    console.log(`linkList.data.content=>`,content)
                     if (this.checkDuring(content)) {
                         carData.distribution_info = content;
                     }
@@ -5523,12 +5531,13 @@ OR JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.orderStatus')) NOT IN (-99)) `);
 
     checkDuring(jsonData: { startDate: string; startTime: string; endDate?: string; endTime?: string }): boolean {
         const now = new Date().getTime();
-        const startDateTime = new Date(`${jsonData.startDate}T${jsonData.startTime}`).getTime();
+
+        const startDateTime = new Date(moment.tz(`${jsonData.startDate} ${jsonData.startTime}:00`, "YYYY-MM-DD HH:mm:ss", "Asia/Taipei").toISOString()).getTime();
         if (isNaN(startDateTime)) return false;
 
         if (!jsonData.endDate || !jsonData.endTime) return true;
 
-        const endDateTime = new Date(`${jsonData.endDate}T${jsonData.endTime}`).getTime();
+        const endDateTime = new Date(moment.tz(`${jsonData.endDate} ${jsonData.endTime}:00`, "YYYY-MM-DD HH:mm:ss", "Asia/Taipei").toISOString()).getTime();
         if (isNaN(endDateTime)) return false;
 
         return now >= startDateTime && now <= endDateTime;

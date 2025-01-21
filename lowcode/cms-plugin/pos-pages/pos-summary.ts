@@ -18,7 +18,7 @@ export class PosSummary {
         const dialog = new ShareDialog(gvc.glitter)
         const oGvc = gvc
         dialog.dataLoading({visible: true})
-        ApiPos.getSummary().then(async (r) => {
+        ApiPos.getSummary(POSSetting.config.where_store).then(async (r) => {
             const saasConfig: { config: any; api: any } = (window.parent as any).saasConfig;
             const data = (await saasConfig.api.getPrivateConfig(saasConfig.config.appName, 'glitter_finance')).response.result[0].value;
             dialog.dataLoading({visible: false})
@@ -143,9 +143,7 @@ ${dd.title}
     public static async checkSummary(check_list: any, gvc: GVC, refresh: () => void) {
         const dialog = new ShareDialog(gvc.glitter);
         dialog.dataLoading({visible: true});
-
-
-        ApiPos.getSummary().then(async (r) => {
+        ApiPos.getSummary(POSSetting.config.where_store).then(async (r) => {
             const last_= r.response.data[0].content;
             last_.check_list=(last_.check_list ?? [
                 {
@@ -490,13 +488,11 @@ ${((dd.real) - (last_m+dd.payment) === 0) ? '$0':`<span class="text-danger">${((
                             getData: (vd) => {
                                 let vmi = vd;
                                 const limit = 10;
-                                ApiPos.getSummary().then((r) => {
+                                ApiPos.getSummary(POSSetting.config.where_store).then((r) => {
                                     function getDatalist() {
                                         return r.response.data.map((dd: any) => {
                                             try {
                                                 const content = dd.content;
-                                                
-
                                                 return [
                                                     {
                                                         key: '建立日期',

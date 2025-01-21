@@ -248,6 +248,10 @@ SELECT * FROM  \`${config_1.saasConfig.SAAS_NAME}\`.page_config where  1=1 ${whe
             if (config.tag === 'official-router') {
                 config.appName = 'cms_system';
             }
+            else if (config.tag === 'all-product') {
+                config.tag = 'official-router';
+                config.appName = 'cms_system';
+            }
         }
         try {
             const page_db = (() => {

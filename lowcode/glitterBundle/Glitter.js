@@ -729,7 +729,10 @@ ${(!error.message) ? `` : `錯誤訊息:${error.message}`}${(!error.lineNumber) 
             console.log(text);
         }
     }
-    setUrlParameter(tag, value) {
+    setUrlParameter(tag, value, title) {
+        if (title) {
+            document.title = title;
+        }
         if (tag === 'page' && value) {
             try {
                 this.page = value;
@@ -742,7 +745,7 @@ ${(!error.message) ? `` : `錯誤訊息:${error.message}`}${(!error.lineNumber) 
                     }
                 })());
                 url.searchParams.delete('page');
-                window.history.replaceState({}, document.title, url.href);
+                window.history.replaceState({}, title || document.title, url.href);
             }
             catch (e) {
             }
@@ -754,7 +757,7 @@ ${(!error.message) ? `` : `錯誤訊息:${error.message}`}${(!error.lineNumber) 
                 url.searchParams.set(tag, value);
             }
             try {
-                window.history.replaceState({}, document.title, url.href);
+                window.history.replaceState({}, title || document.title, url.href);
             }
             catch (e) {
             }

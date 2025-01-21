@@ -21,7 +21,7 @@ export class PosSummary {
         const dialog = new ShareDialog(gvc.glitter);
         const oGvc = gvc;
         dialog.dataLoading({ visible: true });
-        ApiPos.getSummary().then((r) => __awaiter(this, void 0, void 0, function* () {
+        ApiPos.getSummary(POSSetting.config.where_store).then((r) => __awaiter(this, void 0, void 0, function* () {
             const saasConfig = window.parent.saasConfig;
             const data = (yield saasConfig.api.getPrivateConfig(saasConfig.config.appName, 'glitter_finance')).response.result[0].value;
             dialog.dataLoading({ visible: false });
@@ -145,7 +145,7 @@ ${dd.title}
         return __awaiter(this, void 0, void 0, function* () {
             const dialog = new ShareDialog(gvc.glitter);
             dialog.dataLoading({ visible: true });
-            ApiPos.getSummary().then((r) => __awaiter(this, void 0, void 0, function* () {
+            ApiPos.getSummary(POSSetting.config.where_store).then((r) => __awaiter(this, void 0, void 0, function* () {
                 var _a;
                 const last_ = r.response.data[0].content;
                 last_.check_list = ((_a = last_.check_list) !== null && _a !== void 0 ? _a : [
@@ -477,7 +477,7 @@ ${((dd.real) - (last_m + dd.payment) === 0) ? '$0' : `<span class="text-danger">
                         getData: (vd) => {
                             let vmi = vd;
                             const limit = 10;
-                            ApiPos.getSummary().then((r) => {
+                            ApiPos.getSummary(POSSetting.config.where_store).then((r) => {
                                 function getDatalist() {
                                     return r.response.data.map((dd) => {
                                         try {

@@ -31,9 +31,9 @@ export class ApiPos {
         });
     }
 
-    public static getSummary(){
+    public static getSummary(shop:string){
         return BaseApi.create({
-            url: getBaseUrl() + `/api-public/v1/ec/pos/summary`,
+            url: getBaseUrl() + `/api-public/v1/ec/pos/summary?shop=${shop}`,
             type: 'GET',
             headers: {
                 'g-app': getConfig().config.appName,

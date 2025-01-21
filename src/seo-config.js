@@ -3,7 +3,9 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.extractProds = exports.extractCols = exports.SeoConfig = void 0;
+exports.SeoConfig = void 0;
+exports.extractCols = extractCols;
+exports.extractProds = extractProds;
 const manager_js_1 = require("./api-public/services/manager.js");
 const database_js_1 = __importDefault(require("./modules/database.js"));
 const ut_database_js_1 = require("./api-public/utils/ut-database.js");
@@ -103,7 +105,7 @@ class SeoConfig {
             const language_data = pd.data.content.language_data;
             cf.data.page_config = (_c = cf.data.page_config) !== null && _c !== void 0 ? _c : {};
             cf.data.page_config.seo = (_d = cf.data.page_config.seo) !== null && _d !== void 0 ? _d : {};
-            cf.data.page_config.seo.title = productSeo.title;
+            cf.data.page_config.seo.title = productSeo.title || pd.data.content.title;
             cf.data.page_config.seo.image = (language_data && language_data[cf.language] && language_data.preview_image && language_data.preview_image[0]) || pd.data.content.preview_image[0];
             cf.data.page_config.seo.content = productSeo.content;
             cf.data.tag = cf.page;
@@ -279,7 +281,6 @@ function extractCols(data) {
     });
     return items;
 }
-exports.extractCols = extractCols;
 function extractProds(data) {
     const items = [];
     data.map((item) => {
@@ -288,7 +289,6 @@ function extractProds(data) {
     });
     return items;
 }
-exports.extractProds = extractProds;
 function isCurrentTimeWithinRange(data) {
     const now = new Date();
     now.setTime(now.getTime() + 8 * 3600 * 1000);

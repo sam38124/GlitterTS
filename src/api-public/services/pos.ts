@@ -67,9 +67,9 @@ export class Pos {
     }
 
     //取得小結單
-    public async getSummary(){
+    public async getSummary(shop:string){
         try {
-            return (await db.query(`select * from \`${this.app}\`.\`t_pos_summary\` order by id desc`,[ ])).map((dd:any)=>{
+            return (await db.query(`select * from \`${this.app}\`.\`t_pos_summary\` where content->>'$.store'=? order by id desc`,[shop])).map((dd:any)=>{
                 dd.created_time=dd.created_time.toISOString()
                 return dd
             })

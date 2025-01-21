@@ -308,7 +308,10 @@ ${(!error.message) ? `` : `錯誤訊息:${error.message}`}${(!error.lineNumber) 
         }
     }
 
-    public setUrlParameter(tag: string, value?: string) {
+    public setUrlParameter(tag: string, value?: string,title?:string) {
+       if(title){
+           document.title=title
+       }
         if (tag === 'page' && value) {
             try {
                 this.page = value;
@@ -320,7 +323,7 @@ ${(!error.message) ? `` : `錯誤訊息:${error.message}`}${(!error.lineNumber) 
                     }
                 })())
                 url.searchParams.delete('page')
-                window.history.replaceState({}, document.title, url.href);
+                window.history.replaceState({}, title || document.title, url.href);
             } catch (e) {
             }
         } else {
@@ -330,7 +333,7 @@ ${(!error.message) ? `` : `錯誤訊息:${error.message}`}${(!error.lineNumber) 
                 url.searchParams.set(tag, value)
             }
             try {
-                window.history.replaceState({}, document.title, url.href);
+                window.history.replaceState({},title ||  document.title, url.href);
             } catch (e) {
             }
         }

@@ -293,28 +293,33 @@ async function createAPP(dd) {
                         if (FBCode) {
                             seo_content.push(seo_config_js_1.SeoConfig.fbCode(FBCode));
                         }
-                        const head = (() => {
-                            var _a;
-                            const d = data.page_config.seo;
-                            const home_seo = home_page_data.page_config.seo || {};
-                            return html `
+                        const home_seo = home_page_data.page_config.seo || {};
+                        const head = [
+                            (() => {
+                                var _a;
+                                const d = data.page_config.seo;
+                                return html `
                                         ${(() => {
-                                var _a, _b, _c;
-                                if (req.query.type === 'editor') {
-                                    return seo_config_js_1.SeoConfig.editorSeo;
-                                }
-                                else {
-                                    return html `<title>${d.title || '尚未設定標題'}</title>
+                                    var _a, _b, _c;
+                                    if (req.query.type === 'editor') {
+                                        return seo_config_js_1.SeoConfig.editorSeo;
+                                    }
+                                    else {
+                                        return html `<title>${[
+                                            home_seo.title_prefix || '',
+                                            d.title || '',
+                                            home_seo.title_suffix || ''
+                                        ].join('') || '尚未設定標題'}</title>
                                                     <link
                                                         rel="canonical"
                                                         href="${(() => {
-                                        if (data.tag === 'index') {
-                                            return `https://${brandAndMemberType.domain}`;
-                                        }
-                                        else {
-                                            return `https://${brandAndMemberType.domain}/${data.tag}`;
-                                        }
-                                    })()}"
+                                            if (data.tag === 'index') {
+                                                return `https://${brandAndMemberType.domain}`;
+                                            }
+                                            else {
+                                                return `https://${brandAndMemberType.domain}/${data.tag}`;
+                                            }
+                                        })()}"
                                                     />
                                                     ${data.tag !== req.query.page ? `<meta name="robots" content="noindex">` : `<meta name="robots" content="index, follow"/>`}
                                                     <meta name="keywords" content="${(d.keywords || '尚未設定關鍵字').replace(/"/g, '&quot;')}" />
@@ -324,37 +329,37 @@ async function createAPP(dd) {
                                                     <meta property="og:title" content="${((_a = d.title) !== null && _a !== void 0 ? _a : '').replace(/\n/g, '').replace(/"/g, '&quot;')}" />
                                                     <meta name="description" content="${((_b = d.content) !== null && _b !== void 0 ? _b : '').replace(/\n/g, '').replace(/"/g, '&quot;')}" />
                                                     <meta name="og:description" content="${((_c = d.content) !== null && _c !== void 0 ? _c : '').replace(/\n/g, '').replace(/"/g, '&quot;')}" />`;
-                                }
-                            })()}
+                                    }
+                                })()}
                                         ${(_a = d.code) !== null && _a !== void 0 ? _a : ''}
                                         ${(() => {
-                                var _a;
-                                if (req.query.type === 'editor') {
-                                    return ``;
-                                }
-                                else {
-                                    return `${((_a = data.config.globalStyle) !== null && _a !== void 0 ? _a : [])
-                                        .map((dd) => {
-                                        try {
-                                            if (dd.data.elem === 'link') {
-                                                return html ` <link
+                                    var _a;
+                                    if (req.query.type === 'editor') {
+                                        return ``;
+                                    }
+                                    else {
+                                        return `${((_a = data.config.globalStyle) !== null && _a !== void 0 ? _a : [])
+                                            .map((dd) => {
+                                            try {
+                                                if (dd.data.elem === 'link') {
+                                                    return html ` <link
                                                                     type="text/css"
                                                                     rel="stylesheet"
                                                                     href="${dd.data.attr.find((dd) => {
-                                                    return dd.attr === 'href';
-                                                }).value}"
+                                                        return dd.attr === 'href';
+                                                    }).value}"
                                                                 />`;
+                                                }
                                             }
-                                        }
-                                        catch (e) {
-                                            return ``;
-                                        }
-                                    })
-                                        .join('')}`;
-                                }
-                            })()}
+                                            catch (e) {
+                                                return ``;
+                                            }
+                                        })
+                                            .join('')}`;
+                                    }
+                                })()}
                                     `;
-                        })() +
+                            })(),
                             `<script>
                                 ${[
                                 (_e = (req.query.type !== 'editor' && d.custom_script)) !== null && _e !== void 0 ? _e : '',
@@ -374,6 +379,8 @@ async function createAPP(dd) {
                                 `window.ip_country = '${ip_country.country || 'TW'}';`,
                                 `window.currency_covert = ${JSON.stringify(await shopping_js_1.Shopping.currencyCovert((req.query.base || 'TWD')))};`,
                                 `window.language_list = ${JSON.stringify(language_label.label)};`,
+                                `window.home_seo=${JSON.stringify(home_seo).replace(/<\/script>/g, 'sdjuescript_prepand')
+                                    .replace(/<script>/g, 'sdjuescript_prefix')};`
                             ]
                                 .map((dd) => {
                                 return (dd || '').trim();
@@ -418,7 +425,8 @@ async function createAPP(dd) {
                                         .join('\n')}
                                     `;
                                 }
-                            })()}`;
+                            })()}`
+                        ].join('');
                         return {
                             head: head,
                             body: ``,

@@ -1375,7 +1375,7 @@ router.get('/pos/summary',async (req: express.Request, resp: express.Response) =
     try {
 
         return response.succ(resp, {
-            data:await new Pos(req.get('g-app') as string, req.body.token).getSummary()
+            data:await new Pos(req.get('g-app') as string, req.body.token).getSummary(req.query.shop as string)
         });
     }catch (err) {
         return response.fail(resp, err);

@@ -153,7 +153,7 @@ export class SeoConfig {
             const language_data = pd.data.content.language_data
             cf.data.page_config = cf.data.page_config ?? {};
             cf.data.page_config.seo = cf.data.page_config.seo ?? {};
-            cf.data.page_config.seo.title = productSeo.title;
+            cf.data.page_config.seo.title = productSeo.title || pd.data.content.title;
             cf.data.page_config.seo.image = (language_data && language_data[cf.language] && language_data.preview_image && language_data.preview_image[0]) || pd.data.content.preview_image[0];
             cf.data.page_config.seo.content = productSeo.content;
             cf.data.tag = cf.page;

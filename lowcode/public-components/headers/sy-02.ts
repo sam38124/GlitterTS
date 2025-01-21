@@ -19,7 +19,6 @@ export class Sy02 {
             changePage = cl.changePage;
         });
         const colors = Color.getTheme(gvc, widget.formData);
-
         return html`
             <div style="height: 76px;"></div>
             <nav
@@ -234,6 +233,7 @@ background: ${colors.bgr ?? '#000'};overflow-x: hidden;`,
                                 return {
                                     bind: id,
                                     view: () => {
+                                       
                                         function loopItems(data: any) {
                                             return data
                                                 .map((dd: any) => {

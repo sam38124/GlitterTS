@@ -290,25 +290,30 @@ export async function createAPP(dd: any) {
                             if (FBCode) {
                                 seo_content.push(SeoConfig.fbCode(FBCode));
                             }
-                            const head =
-                                (() => {
-                                    const d = data.page_config.seo;
-                                    const home_seo = home_page_data.page_config.seo || {};
-                                    return html`
+
+                            const home_seo = home_page_data.page_config.seo || {};
+                            const head =[
+                                    (() => {
+                                        const d = data.page_config.seo;
+                                        return html`
                                         ${(() => {
                                             if (req.query.type === 'editor') {
                                                 return SeoConfig.editorSeo;
                                             } else {
-                                                return html`<title>${d.title || '尚未設定標題'}</title>
+                                                return html`<title>${[
+                                                    home_seo.title_prefix || '',
+                                                    d.title || '',
+                                                    home_seo.title_suffix || ''
+                                                ].join('') || '尚未設定標題'}</title>
                                                     <link
                                                         rel="canonical"
                                                         href="${(() => {
-                                                            if (data.tag === 'index') {
-                                                                return `https://${brandAndMemberType.domain}`;
-                                                            } else {
-                                                                return `https://${brandAndMemberType.domain}/${data.tag}`;
-                                                            }
-                                                        })()}"
+                                                    if (data.tag === 'index') {
+                                                        return `https://${brandAndMemberType.domain}`;
+                                                    } else {
+                                                        return `https://${brandAndMemberType.domain}/${data.tag}`;
+                                                    }
+                                                })()}"
                                                     />
                                                     ${data.tag !== req.query.page ? `<meta name="robots" content="noindex">` : `<meta name="robots" content="index, follow"/>`}
                                                     <meta name="keywords" content="${(d.keywords || '尚未設定關鍵字').replace(/"/g, '&quot;')}" />
@@ -333,8 +338,8 @@ export async function createAPP(dd: any) {
                                                                     type="text/css"
                                                                     rel="stylesheet"
                                                                     href="${dd.data.attr.find((dd: any) => {
-                                                                        return dd.attr === 'href';
-                                                                    }).value}"
+                                                                    return dd.attr === 'href';
+                                                                }).value}"
                                                                 />`;
                                                             }
                                                         } catch (e) {
@@ -345,7 +350,7 @@ export async function createAPP(dd: any) {
                                             }
                                         })()}
                                     `;
-                                })() +
+                                    })(),
                                 `<script>
                                 ${[
                                     (req.query.type !== 'editor' && d.custom_script) ?? '',
@@ -365,6 +370,8 @@ export async function createAPP(dd: any) {
                                     `window.ip_country = '${ip_country.country || 'TW'}';`,
                                     `window.currency_covert = ${JSON.stringify(await Shopping.currencyCovert((req.query.base || 'TWD') as string))};`,
                                     `window.language_list = ${JSON.stringify(language_label.label)};`,
+                                    `window.home_seo=${JSON.stringify(home_seo) .replace(/<\/script>/g, 'sdjuescript_prepand')
+                                        .replace(/<script>/g, 'sdjuescript_prefix')};`
                                 ]
                                     .map((dd) => {
                                         return (dd || '').trim();
@@ -375,31 +382,31 @@ export async function createAPP(dd: any) {
                                     .join(';\n')}
                             </script>
                             ${[
-                                { src: 'glitterBundle/GlitterInitial.js', type: 'module' },
-                                { src: 'glitterBundle/module/html-generate.js', type: 'module' },
-                                { src: 'glitterBundle/html-component/widget.js', type: 'module' },
-                                { src: 'glitterBundle/plugins/trigger-event.js', type: 'module' },
-                                { src: 'api/pageConfig.js', type: 'module' },
-                            ]
-                                .map((dd) => {
-                                    return html` <script src="/${link_prefix && `${link_prefix}/`}${dd.src}" type="${dd.type}"></script>`;
-                                })
-                                .join('')}
+                                    { src: 'glitterBundle/GlitterInitial.js', type: 'module' },
+                                    { src: 'glitterBundle/module/html-generate.js', type: 'module' },
+                                    { src: 'glitterBundle/html-component/widget.js', type: 'module' },
+                                    { src: 'glitterBundle/plugins/trigger-event.js', type: 'module' },
+                                    { src: 'api/pageConfig.js', type: 'module' },
+                                ]
+                                    .map((dd) => {
+                                        return html` <script src="/${link_prefix && `${link_prefix}/`}${dd.src}" type="${dd.type}"></script>`;
+                                    })
+                                    .join('')}
                             ${(preload.event ?? [])
-                                .filter((dd: any) => {
-                                    return dd;
-                                })
-                                .map((dd: any) => {
-                                    const link = dd.fun.replace(`TriggerEvent.setEventRouter(import.meta.url, '.`, 'official_event');
-                                    return link.substring(0, link.length - 2);
-                                })
-                                .map((dd: any) => html` <script src="/${link_prefix && `${link_prefix}/`}${dd}" type="module"></script>`)
-                                .join('')}
+                                    .filter((dd: any) => {
+                                        return dd;
+                                    })
+                                    .map((dd: any) => {
+                                        const link = dd.fun.replace(`TriggerEvent.setEventRouter(import.meta.url, '.`, 'official_event');
+                                        return link.substring(0, link.length - 2);
+                                    })
+                                    .map((dd: any) => html` <script src="/${link_prefix && `${link_prefix}/`}${dd}" type="module"></script>`)
+                                    .join('')}
                             ${(() => {
-                                if (req.query.type === 'editor') {
-                                    return ``;
-                                } else {
-                                    return html`
+                                    if (req.query.type === 'editor') {
+                                        return ``;
+                                    } else {
+                                        return html`
                                         ${SeoConfig.gA4(customCode.ga4)} ${SeoConfig.gTag(customCode.g_tag)}
                                         ${seo_content
                                             .map((dd) => {
@@ -407,9 +414,9 @@ export async function createAPP(dd: any) {
                                             })
                                             .join('\n')}
                                     `;
-                                }
-                            })()}`;
-
+                                    }
+                                })()}`
+                                ].join('')
                             return {
                                 head: head,
                                 body: ``,
