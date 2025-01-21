@@ -10,10 +10,6 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 import { BgWidget } from '../backend-manager/bg-widget.js';
 import { Tool } from '../modules/tool.js';
 import { ApiUser } from '../glitter-base/route/user.js';
-import { EditorElem } from '../glitterBundle/plugins/editor-elem.js';
-import { ProductAi } from "./ai-generator/product-ai.js";
-import { imageLibrary } from "../modules/image-library.js";
-import { ShareDialog } from "../glitterBundle/dialog/ShareDialog.js";
 import { LanguageBackend } from "./language-backend.js";
 const html = String.raw;
 export class AutoReply {
@@ -233,106 +229,57 @@ export class AutoReply {
                                             return {
                                                 bind: id,
                                                 view: () => {
+                                                    var _a;
                                                     try {
-                                                        return html `
-                                                                                    <div
-                                                                                            class="d-flex justify-content-between align-items-center gap-3 mb-1"
-                                                                                            style="cursor: pointer;"
-                                                                                            onclick="${gvc.event(() => {
-                                                            const originContent = `${language_data.content}`;
-                                                            BgWidget.fullDialog({
-                                                                gvc: gvc,
-                                                                title: (gvc2) => {
-                                                                    return `<div class="d-flex align-items-center" style="gap:10px;">${'內文編輯' + BgWidget.aiChatButton({
-                                                                        gvc: gvc2,
-                                                                        select: 'writer',
-                                                                        click: () => {
-                                                                            ProductAi.generateRichText(gvc, (text) => {
-                                                                                language_data.content += text;
-                                                                                gvc.notifyDataChange(id);
-                                                                                gvc2.recreateView();
-                                                                            });
-                                                                        }
-                                                                    })}</div>`;
-                                                                },
-                                                                innerHTML: (gvc2) => {
-                                                                    return html `
-                                                                                                            <div>
-                                                                                                                ${EditorElem.richText({
-                                                                        gvc: gvc2,
-                                                                        def: language_data.content,
-                                                                        setHeight: '100vh',
-                                                                        hiddenBorder: true,
-                                                                        insertImageEvent: (editor) => {
-                                                                            const mark = `{{${Tool.randomString(8)}}}`;
-                                                                            editor.selection.setAtEnd(editor.$el.get(0));
-                                                                            editor.html.insert(mark);
-                                                                            editor.undo.saveStep();
-                                                                            imageLibrary.selectImageLibrary(gvc, (urlArray) => {
-                                                                                if (urlArray.length > 0) {
-                                                                                    const imgHTML = urlArray
-                                                                                        .map((url) => {
-                                                                                        return html `
-                                                                                                                                                        <img src="${url.data}"/>`;
-                                                                                    })
-                                                                                        .join('');
-                                                                                    editor.html.set(editor.html
-                                                                                        .get(0)
-                                                                                        .replace(mark, html `
-                                                                                                                                                                    <div class="d-flex flex-column">
-                                                                                                                                                                        ${imgHTML}
-                                                                                                                                                                    </div>`));
-                                                                                    editor.undo.saveStep();
-                                                                                }
-                                                                                else {
-                                                                                    const dialog = new ShareDialog(gvc.glitter);
-                                                                                    dialog.errorMessage({ text: '請選擇至少一張圖片' });
-                                                                                }
-                                                                            }, html `
-                                                                                                                                    <div
-                                                                                                                                            class="d-flex flex-column"
-                                                                                                                                            style="border-radius: 10px 10px 0px 0px;background: #F2F2F2;"
-                                                                                                                                    >
-                                                                                                                                        圖片庫
-                                                                                                                                    </div>`, {
-                                                                                mul: true,
-                                                                                cancelEvent: () => {
-                                                                                    editor.html.set(editor.html.get(0).replace(mark, ''));
-                                                                                    editor.undo.saveStep();
-                                                                                },
-                                                                            });
-                                                                        },
-                                                                        callback: (text) => {
-                                                                            language_data.content = text;
-                                                                        },
-                                                                        rich_height: `calc(${window.parent.innerHeight}px - 70px - 58px - 49px - 64px - 40px + ${document.body.clientWidth < 800 ? `70` : `0`}px)`,
-                                                                    })}
-                                                                                                            </div>`;
-                                                                },
-                                                                footer_html: (gvc2) => {
-                                                                    return [
-                                                                        BgWidget.cancel(gvc2.event(() => {
-                                                                            language_data.content = originContent;
-                                                                            gvc2.closeDialog();
-                                                                        })),
-                                                                        BgWidget.save(gvc2.event(() => {
-                                                                            gvc2.closeDialog();
-                                                                            gvc.notifyDataChange(id);
-                                                                        })),
-                                                                    ].join('');
-                                                                },
-                                                                closeCallback: () => {
-                                                                    language_data.content = originContent;
-                                                                },
-                                                            });
-                                                        })}"
-                                                                                    >
-                                                                                        ${(() => {
-                                                            language_data.content = language_data.content || '';
-                                                            const text = gvc.glitter.utText.removeTag(language_data.content);
-                                                            return BgWidget.richTextView(Tool.truncateString(text, 100));
-                                                        })()}
-                                                                                    </div>`;
+                                                        return BgWidget.richTextEditor({
+                                                            gvc: gvc,
+                                                            content: (_a = language_data.content) !== null && _a !== void 0 ? _a : '',
+                                                            callback: (content) => {
+                                                                language_data.content = content;
+                                                            },
+                                                            title: '內容編輯',
+                                                            quick_insert: (() => {
+                                                                switch (tag) {
+                                                                    case 'auto-email-payment-successful':
+                                                                        return [
+                                                                            {
+                                                                                title: '商家名稱',
+                                                                                value: '@{{app_name}}'
+                                                                            },
+                                                                            {
+                                                                                title: '訂單號碼',
+                                                                                value: '@{{訂單號碼}}'
+                                                                            },
+                                                                            {
+                                                                                title: '會員姓名',
+                                                                                value: '@{{user_name}}'
+                                                                            },
+                                                                            {
+                                                                                title: '訂單金額',
+                                                                                value: '@{{訂單金額}}'
+                                                                            },
+                                                                            {
+                                                                                title: '姓名',
+                                                                                value: '@{{姓名}}'
+                                                                            },
+                                                                            {
+                                                                                title: '電話',
+                                                                                value: '@{{電話}}'
+                                                                            },
+                                                                            {
+                                                                                title: '地址',
+                                                                                value: '@{{地址}}'
+                                                                            },
+                                                                            {
+                                                                                title: '信箱',
+                                                                                value: '@{{信箱}}'
+                                                                            }
+                                                                        ];
+                                                                    default:
+                                                                        return [];
+                                                                }
+                                                            })()
+                                                        });
                                                     }
                                                     catch (e) {
                                                         console.log(`error=>`, e);

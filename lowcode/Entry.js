@@ -88,7 +88,7 @@ export class Entry {
         }
         window.renderClock = (_b = window.renderClock) !== null && _b !== void 0 ? _b : clockF();
         console.log(`Entry-time:`, window.renderClock.stop());
-        glitter.share.editerVersion = 'V_16.8.6';
+        glitter.share.editerVersion = 'V_16.8.8';
         glitter.share.start = new Date();
         const vm = {
             appConfig: [],
@@ -247,6 +247,23 @@ export class Entry {
             }
         }));
         glitter.share.LanguageApi = Language;
+        glitter.share.plan_text = () => {
+            const config = window.parent.glitter.share.editorViewModel.app_config_original;
+            let planText = '「  企業電商方案（免費試用30天）」';
+            if (config.plan === 'light-year') {
+                planText = '「 輕便電商方案 」';
+            }
+            else if (config.plan === 'basic-year') {
+                planText = '「 標準電商方案 」';
+            }
+            else if (config.plan === 'omo-year') {
+                planText = '「 企業電商方案 」';
+            }
+            else if (config.plan === 'app-year') {
+                planText = '「 旗艦電商方案 」';
+            }
+            return planText;
+        };
     }
     static checkIframe(glitter) {
         if (glitter.getUrlParameter('isIframe') === 'true') {

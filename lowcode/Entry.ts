@@ -88,7 +88,7 @@ export class Entry {
         }
         (window as any).renderClock = (window as any).renderClock ?? clockF();
         console.log(`Entry-time:`, (window as any).renderClock.stop());
-        glitter.share.editerVersion = 'V_16.8.6';
+        glitter.share.editerVersion = 'V_16.8.8';
         glitter.share.start = new Date();
         const vm: {
             appConfig: any;
@@ -253,6 +253,21 @@ export class Entry {
             }
         });
         glitter.share.LanguageApi = Language;
+        //當前方案
+        glitter.share.plan_text=()=>{
+            const config = (window.parent as any).glitter.share.editorViewModel.app_config_original;
+            let planText = '「  企業電商方案（免費試用30天）」'
+            if (config.plan === 'light-year') {
+                planText = '「 輕便電商方案 」'
+            } else if (config.plan === 'basic-year') {
+                planText = '「 標準電商方案 」'
+            } else if (config.plan === 'omo-year') {
+                planText = '「 企業電商方案 」'
+            } else if (config.plan === 'app-year') {
+                planText = '「 旗艦電商方案 」'
+            }
+            return planText
+        }
     }
 
     // 判斷是否為Iframe來覆寫Glitter代碼

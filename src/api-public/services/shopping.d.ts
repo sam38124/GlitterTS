@@ -146,7 +146,7 @@ export declare class Shopping {
         type: string;
         divisor: number;
         executionTime: string;
-        queryStatus: "error" | "success";
+        queryStatus: "success" | "error";
         queryData: any;
     } | {
         type: string;
@@ -381,6 +381,7 @@ export declare class Shopping {
     postVariantsAndPriceValue(content: any): Promise<void>;
     updateVariantsWithSpec(data: any, product_id: string, spec: string[]): Promise<void>;
     calcVariantsStock(calc: number, stock_id: string, product_id: string, spec: string[]): Promise<void>;
+    calcSoldOutStock(calc: number, product_id: string, spec: string[]): Promise<void>;
     getDataAnalyze(tags: string[], query?: any): Promise<any>;
     generateTimeRange(index: number): {
         startISO: string;

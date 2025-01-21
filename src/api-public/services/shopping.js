@@ -318,6 +318,7 @@ class Shopping {
                 });
             }
             for (const dd of Array.isArray(products.data) ? products.data : [products.data]) {
+                let total_sale = 0;
                 if (query.language && dd.content.language_data && dd.content.language_data[`${query.language}`]) {
                     dd.content.seo = dd.content.language_data[`${query.language}`].seo;
                     dd.content.title = dd.content.language_data[`${query.language}`].title || dd.content.title;
@@ -327,6 +328,7 @@ class Shopping {
                     dd.content.preview_image = dd.content.language_data[`${query.language}`].preview_image || dd.content.preview_image;
                     (dd.content.variants || []).map((variant) => {
                         variant.stock = 0;
+                        variant.sold_out = variant.sold_out || 0;
                         variant.preview_image = variant[`preview_image_${query.language}`] || variant.preview_image;
                         if (variant.preview_image === 'https://d3jnmi1tfjgtti.cloudfront.net/file/234285319/1722936949034-default_image.jpg') {
                             variant.preview_image = dd.content.preview_image[0];
@@ -350,8 +352,10 @@ class Shopping {
                                 variant.stockList[d1.id] = { count: 0 };
                             }
                         });
+                        total_sale += variant.sold_out;
                     });
                 }
+                dd.total_sales = total_sale;
             }
             if (query.domain && products.data[0]) {
                 products.data = products.data[0];
@@ -516,7 +520,7 @@ class Shopping {
         }
     }
     async toCheckout(data, type = 'add', replace_order_id) {
-        var _a, _b, _c, _d, _e, _f, _g, _h, _j;
+        var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k;
         const check_time = new Date().getTime();
         try {
             data.line_items = (_a = (data.line_items || data.lineItems)) !== null && _a !== void 0 ? _a : [];
@@ -542,7 +546,9 @@ class Shopping {
                 }
             }
             if (data.order_id && type === 'POS') {
-                const order = (await database_js_1.default.query(`select * from \`${this.app}\`.t_checkout where cart_token='${data.order_id}'`, []))[0];
+                const order = (await database_js_1.default.query(`select *
+                                               from \`${this.app}\`.t_checkout
+                                               where cart_token = '${data.order_id}'`, []))[0];
                 if (order) {
                     for (const b of order.orderData.lineItems) {
                         const pdDqlData = (await this.getProduct({
@@ -560,13 +566,14 @@ class Shopping {
                             try {
                                 variant.stockList[dd].count += b.deduction_log[dd];
                             }
-                            catch (e) { }
+                            catch (e) {
+                            }
                         });
                         await this.updateVariantsWithSpec(variant, b.id, b.spec);
                         await database_js_1.default.query(`UPDATE \`${this.app}\`.\`t_manager_post\`
-                                             SET ?
-                                             WHERE 1 = 1
-                                               and id = ${pdDqlData.id}`, [{ content: JSON.stringify(pd) }]);
+                             SET ?
+                             WHERE 1 = 1
+                               and id = ${pdDqlData.id}`, [{ content: JSON.stringify(pd) }]);
                     }
                 }
             }
@@ -973,7 +980,8 @@ class Shopping {
                             carData.lineItems.push(dd);
                         }
                     }
-                    catch (e) { }
+                    catch (e) {
+                    }
                 });
                 await this.checkVoucher(carData);
                 console.log(`checkout-time-check-voucher2=>`, new Date().getTime() - check_time);
@@ -1177,7 +1185,8 @@ class Shopping {
                     carData.orderStatus = '1';
                     carData.progress = 'finish';
                 }
-                await trans.execute(`replace INTO \`${this.app}\`.t_checkout (cart_token, status, email, orderData)
+                await trans.execute(`replace
+                    INTO \`${this.app}\`.t_checkout (cart_token, status, email, orderData)
                      values (?, ?, ?, ?)`, [carData.orderID, data.pay_status, carData.email, JSON.stringify(carData)]);
                 if (data.invoice_select !== 'nouse') {
                     carData.invoice = await new invoice_js_1.Invoice(this.app).postCheckoutInvoice(carData, carData.user_info.send_type !== 'carrier');
@@ -1187,6 +1196,7 @@ class Shopping {
                 await Promise.all(saveStockArray.map((dd) => {
                     return dd();
                 }));
+                await new Shopping(this.app).releaseCheckout((_k = data.pay_status) !== null && _k !== void 0 ? _k : 0, carData.orderID);
                 return { result: 'SUCCESS', message: 'POS訂單新增成功', data: carData };
             }
             else {
@@ -1291,7 +1301,7 @@ class Shopping {
                             await line.sendCustomerLine('auto-line-order-create', carData.orderID, carData.customer_info.lineID);
                             console.log('訂單line訊息寄送成功');
                         }
-                        await auto_send_email_js_1.AutoSendEmail.customerOrder(this.app, 'auto-email-order-create', carData.orderID, carData.email, carData.language);
+                        auto_send_email_js_1.AutoSendEmail.customerOrder(this.app, 'auto-email-order-create', carData.orderID, carData.email, carData.language);
                         await database_js_1.default.execute(`INSERT INTO \`${this.app}\`.t_checkout (cart_token, status, email, orderData)
                              values (?, ?, ?, ?)`, [carData.orderID, 0, carData.email, carData]);
                         await Promise.all(saveStockArray.map((dd) => {
@@ -1808,7 +1818,7 @@ class Shopping {
                     }
                     await auto_send_email_js_1.AutoSendEmail.customerOrder(this.app, 'auto-email-order-cancel-success', data.orderData.orderID, data.orderData.email, data.orderData.language);
                 }
-                else if (origin[0].orderData.progress !== 'shipping' && updateProgress === 'shipping') {
+                if (origin[0].orderData.progress !== 'shipping' && updateProgress === 'shipping') {
                     if (data.orderData.customer_info.phone) {
                         await sns.sendCustomerSns('auto-sns-shipment', data.orderData.orderID, data.orderData.customer_info.phone);
                         console.log('出貨簡訊寄送成功');
@@ -1816,7 +1826,7 @@ class Shopping {
                     if (data.orderData.customer_info.lineID) {
                         let line = new line_message_1.LineMessage(this.app);
                         await line.sendCustomerLine('auto-line-shipment', data.orderData.orderID, data.orderData.customer_info.lineID);
-                        console.log('付款成功line訊息寄送成功');
+                        console.log('出貨line訊息寄送成功');
                     }
                     await auto_send_email_js_1.AutoSendEmail.customerOrder(this.app, 'auto-email-shipment', data.orderData.orderID, data.orderData.email, data.orderData.language);
                 }
@@ -1828,7 +1838,7 @@ class Shopping {
                     if (data.orderData.customer_info.lineID) {
                         let line = new line_message_1.LineMessage(this.app);
                         await line.sendCustomerLine('auto-line-shipment-arrival', data.orderData.orderID, data.orderData.customer_info.lineID);
-                        console.log('付款成功line訊息寄送成功');
+                        console.log('到貨line訊息寄送成功');
                     }
                     await auto_send_email_js_1.AutoSendEmail.customerOrder(this.app, 'auto-email-shipment-arrival', data.orderData.orderID, data.orderData.email, data.orderData.language);
                 }
@@ -1846,8 +1856,8 @@ class Shopping {
                         }
                     }
                 }
-                if (origin[0].status !== 1 && update.status === 1) {
-                    await this.releaseCheckout(1, data.orderData.orderID);
+                if (origin[0].status !== update.status) {
+                    await this.releaseCheckout(update.status, data.orderData.orderID);
                 }
             }
             await database_js_1.default.query(`UPDATE \`${this.app}\`.t_checkout
@@ -2096,19 +2106,31 @@ OR JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.orderStatus')) NOT IN (-99)) `);
     }
     async releaseCheckout(status, order_id) {
         try {
+            const order_data = (await database_js_1.default.query(`SELECT *
+                     FROM \`${this.app}\`.t_checkout
+                     WHERE cart_token = ?
+                    `, [order_id]))[0];
+            const original_status = order_data['status'];
             if (status === -1) {
+                if (original_status === -1) {
+                    return;
+                }
                 await database_js_1.default.execute(`UPDATE \`${this.app}\`.t_checkout
                      SET status = ?
                      WHERE cart_token = ?`, [-1, order_id]);
                 await this.releaseVoucherHistory(order_id, 0);
             }
+            if ((original_status === 1) && status !== 1) {
+                for (const b of order_data['orderData'].lineItems) {
+                    await this.calcSoldOutStock(b.count * -1, b.id, b.spec);
+                }
+            }
             if (status === 1) {
-                const notProgress = (await database_js_1.default.query(`SELECT count(1)
-                         FROM \`${this.app}\`.t_checkout
-                         WHERE cart_token = ?
-                           AND status = 0;`, [order_id]))[0]['count(1)'];
-                if (!notProgress) {
+                if (original_status === 1) {
                     return;
+                }
+                for (const b of order_data['orderData'].lineItems) {
+                    await this.calcSoldOutStock(b.count, b.id, b.spec);
                 }
                 await database_js_1.default.execute(`UPDATE \`${this.app}\`.t_checkout
                      SET status = ?
@@ -2339,8 +2361,8 @@ OR JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.orderStatus')) NOT IN (-99)) `);
     async calcVariantsStock(calc, stock_id, product_id, spec) {
         try {
             const pd_data = (await database_js_1.default.query(`select *
-                 from \`${this.app}\`.t_manager_post
-                 where id = ?`, [product_id]))[0]['content'];
+                     from \`${this.app}\`.t_manager_post
+                     where id = ?`, [product_id]))[0]['content'];
             const store_config = await new user_js_1.User(this.app).getConfigV2({ key: 'store_manager', user_id: 'manager' });
             const variant_s = pd_data.variants.find((dd) => {
                 return dd.spec.join('-') === spec.join('-');
@@ -2354,6 +2376,26 @@ OR JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.orderStatus')) NOT IN (-99)) `);
                 if (variant_s.stockList[stock_id].count < 0) {
                     variant_s.stockList[stock_id].count = 0;
                 }
+            }
+            await this.postVariantsAndPriceValue(pd_data);
+        }
+        catch (e) {
+            console.log('error -- cant find variants', e);
+        }
+    }
+    async calcSoldOutStock(calc, product_id, spec) {
+        var _a;
+        try {
+            const pd_data = (await database_js_1.default.query(`select *
+                     from \`${this.app}\`.t_manager_post
+                     where id = ?`, [product_id]))[0]['content'];
+            const variant_s = pd_data.variants.find((dd) => {
+                return dd.spec.join('-') === spec.join('-');
+            });
+            variant_s.sold_out = (_a = variant_s.sold_out) !== null && _a !== void 0 ? _a : 0;
+            variant_s.sold_out += calc;
+            if (variant_s.sold_out < 0) {
+                variant_s.sold_out = 0;
             }
             await this.postVariantsAndPriceValue(pd_data);
         }
@@ -2558,7 +2600,8 @@ OR JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.orderStatus')) NOT IN (-99)) `);
               AND ip != 'ffff:127.0.0.1'
                 AND req_type = 'file'
                 AND ${convertTimeZone('created_time')} BETWEEN (DATE_SUB(${convertTimeZone('NOW()')}
-                            , INTERVAL 14 DAY)) AND ${convertTimeZone('NOW()')}
+                , INTERVAL 14 DAY))
+              AND ${convertTimeZone('NOW()')}
             GROUP BY id, mac_address
         `;
         const queryData = await database_js_1.default.query(sql, []);
@@ -2595,7 +2638,8 @@ OR JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.orderStatus')) NOT IN (-99)) `);
               AND ip != 'ffff:127.0.0.1'
                 AND req_type = 'file'
                 AND ${convertTimeZone('created_time')} BETWEEN (DATE_SUB(${convertTimeZone('NOW()')}
-                            , INTERVAL 30 DAY)) AND ${convertTimeZone('NOW()')}
+                , INTERVAL 30 DAY))
+              AND ${convertTimeZone('NOW()')}
             GROUP BY id, mac_address
         `;
         const queryData = await database_js_1.default.query(sql, []);
@@ -2635,9 +2679,9 @@ OR JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.orderStatus')) NOT IN (-99)) `);
             WHERE app_name = ${database_js_1.default.escape(this.app)}
               AND ip != 'ffff:127.0.0.1'
                 AND req_type = 'file'
-                AND ${convertTimeZone('created_time')} 
-                BETWEEN ${convertTimeZone(formatStartDate)} 
-                AND ${convertTimeZone(formatEndDate)}
+                AND ${convertTimeZone('created_time')}
+                BETWEEN ${convertTimeZone(formatStartDate)}
+              AND ${convertTimeZone(formatEndDate)}
             GROUP BY id, mac_address
         `;
         const queryData = await database_js_1.default.query(sql, []);
@@ -4436,7 +4480,7 @@ OR JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.orderStatus')) NOT IN (-99)) `);
                 });
             }));
             let max_id = (await database_js_1.default.query(`select max(id)
-                                          from \`${this.app}\`.t_manager_post`, []))[0]['max(id)'] || 0;
+                         from \`${this.app}\`.t_manager_post`, []))[0]['max(id)'] || 0;
             const data = await database_js_1.default.query(`replace
                 INTO \`${this.app}\`.\`t_manager_post\` (id,userID,content) values ?`, [
                 productArray.map((product) => {

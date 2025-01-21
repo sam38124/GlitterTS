@@ -4178,6 +4178,7 @@ ${(_c = obj.default) !== null && _c !== void 0 ? _c : ''}</textarea
                                         def: obj.content || '',
                                         setHeight: '100vh',
                                         hiddenBorder: true,
+                                        quick_insert: obj.quick_insert,
                                         insertImageEvent: (editor) => {
                                             const mark = `{{${Tool.randomString(8)}}}`;
                                             editor.selection.setAtEnd(editor.$el.get(0));

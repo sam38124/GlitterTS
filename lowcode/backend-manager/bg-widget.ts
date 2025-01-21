@@ -4832,7 +4832,7 @@ ${obj.default ?? ''}</textarea
         }, windowID);
     }
 
-    static richTextEditor(obj: { gvc: GVC; content: string; callback: (content: string) => void; title: string }) {
+    static richTextEditor(obj: { gvc: GVC; content: string; callback: (content: string) => void; title: string,quick_insert?:{ title:string,value:string }[] }) {
         const gvc = obj.gvc;
         return gvc.bindView(
             (() => {
@@ -4878,6 +4878,7 @@ ${obj.default ?? ''}</textarea
                                                                 def: obj.content || '',
                                                                 setHeight: '100vh',
                                                                 hiddenBorder: true,
+                                                                quick_insert:obj.quick_insert,
                                                                 insertImageEvent: (editor) => {
                                                                     const mark = `{{${Tool.randomString(8)}}}`;
                                                                     editor.selection.setAtEnd(editor.$el.get(0));

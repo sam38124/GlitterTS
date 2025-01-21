@@ -715,13 +715,7 @@ export class SaasViewModel {
                                                                             </div>
                                                                             ${(() => {
                                                         const config = dd;
-                                                        let planText = '免費試用方案';
-                                                        if (config.plan === 'basic') {
-                                                            planText = '基本開店方案';
-                                                        }
-                                                        else if (config.plan === 'web+app') {
-                                                            planText = 'Web+App方案';
-                                                        }
+                                                        let planText = (gvc.glitter).share.plan_text();
                                                         return html `
                                                                                     <div class="d-flex flex-column tx_normal_14">
                                                                                         當前方案 : ${planText}
