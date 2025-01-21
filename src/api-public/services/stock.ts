@@ -735,12 +735,12 @@ export class Stock {
         }, 0);
 
         // 修改 producr variant 的 stock, stockList
-        const producrVariant = product_content.variants.find((item: any) => {
-            return item.spec.sort().join(',') === variant_content.spec.sort().join(',');
+        const productVariant = product_content.variants.find((item: any) => {
+            return item.spec.join(',') === variant_content.spec.join(',');
         });
-        if (producrVariant) {
-            producrVariant.stockList = variant_content.stockList;
-            producrVariant.stock = variant_content.stock;
+        if (productVariant) {
+            productVariant.stockList = variant_content.stockList;
+            productVariant.stock = variant_content.stock;
         }
 
         return {

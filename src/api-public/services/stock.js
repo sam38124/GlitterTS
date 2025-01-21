@@ -558,12 +558,12 @@ class Stock {
             }
             return sum;
         }, 0);
-        const producrVariant = product_content.variants.find((item) => {
-            return item.spec.sort().join(',') === variant_content.spec.sort().join(',');
+        const productVariant = product_content.variants.find((item) => {
+            return item.spec.join(',') === variant_content.spec.join(',');
         });
-        if (producrVariant) {
-            producrVariant.stockList = variant_content.stockList;
-            producrVariant.stock = variant_content.stock;
+        if (productVariant) {
+            productVariant.stockList = variant_content.stockList;
+            productVariant.stock = variant_content.stock;
         }
         return {
             product_content,
