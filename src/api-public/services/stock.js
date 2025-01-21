@@ -435,7 +435,7 @@ class Stock {
         }
     }
     async putHistory(json) {
-        var _a, _b, _c;
+        var _a, _b;
         try {
             if (!this.token) {
                 return { data: false };
@@ -496,7 +496,8 @@ class Stock {
                 const item = json.content.product_list.find((item) => item.variant_id === variant.id);
                 if (item) {
                     const originVariant = originList.find((origin) => item.variant_id === origin.variant_id);
-                    const count = originVariant ? ((_a = item.recent_count) !== null && _a !== void 0 ? _a : 0) - ((_b = originVariant.recent_count) !== null && _b !== void 0 ? _b : 0) : ((_c = item.recent_count) !== null && _c !== void 0 ? _c : 0);
+                    const recent_count = (_a = item.recent_count) !== null && _a !== void 0 ? _a : 0;
+                    const count = originVariant ? recent_count - ((_b = originVariant.recent_count) !== null && _b !== void 0 ? _b : 0) : recent_count;
                     const { type, content } = json;
                     const { store_in, store_out } = content;
                     if (type === 'restocking') {
@@ -507,7 +508,7 @@ class Stock {
                         dataList.push(createStockEntry('minus', store_out, count, variant));
                     }
                     else if (type === 'checking' && (json.status === 0 || json.status === 1)) {
-                        dataList.push(createStockEntry('equal', store_out, count, variant));
+                        dataList.push(createStockEntry('equal', store_out, recent_count, variant));
                     }
                 }
             }
@@ -530,6 +531,8 @@ class Stock {
         const product_content = data.product_content;
         const variant_content = data.variant_content;
         const stockList = variant_content.stockList;
+        console.log('======= 修改 variant stockList =======');
+        console.log(stockList[store], type, count);
         if (stockList[store]) {
             if (type === 'plus') {
                 if (stockList[store].count) {
@@ -544,14 +547,13 @@ class Stock {
                     stockList[store].count -= count;
                 }
                 else {
-                    stockList[store].count = 0;
+                    stockList[store].count = -count;
                 }
             }
             else {
                 stockList[store].count = count;
             }
         }
-        stockList[store].count = stockList[store].count > 0 ? stockList[store].count : 0;
         variant_content.stock = Object.keys(stockList).reduce((sum, key) => {
             if (stockList[key] && stockList[key].count) {
                 return sum + stockList[key].count;
@@ -561,9 +563,12 @@ class Stock {
         const productVariant = product_content.variants.find((item) => {
             return item.spec.join(',') === variant_content.spec.join(',');
         });
+        console.log(productVariant);
         if (productVariant) {
             productVariant.stockList = variant_content.stockList;
             productVariant.stock = variant_content.stock;
+            console.log(productVariant.stockList);
+            console.log(productVariant.stock);
         }
         return {
             product_content,
