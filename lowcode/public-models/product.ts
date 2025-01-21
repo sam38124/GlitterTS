@@ -58,13 +58,13 @@ export interface Product {
             'en-US': string[];
             'zh-CN': string[];
             'zh-TW': string[];
-        }
-    },
+        };
+    };
     unit: {
         'en-US': string;
         'zh-CN': string;
         'zh-TW': string;
-    }
+    };
     hideIndex: string;
     collection: string[];
     status: 'active' | 'draft' | 'schedule';
@@ -99,27 +99,31 @@ export interface Product {
     channel: ('normal' | 'pos')[];
     min_qty?: number;
     max_qty?: number;
-    match_by_with?: string[]
+    match_by_with?: string[];
+    designated_logistics: {
+        type: 'all' | 'designated';
+        list?: string[];
+    };
 }
 
 export class ProductInitial {
     public static initial(postMD: any) {
         postMD.product_tag = postMD.product_tag ?? {};
         //商品標籤檢查
-        (postMD).product_tag = {
+        postMD.product_tag = {
             language: {
-                "en-US": [],
+                'en-US': [],
                 'zh-CN': [],
                 'zh-TW': [],
-                ...postMD.product_tag.language
-            }
+                ...postMD.product_tag.language,
+            },
         };
         //單位檢查
-        (postMD).unit = {
-            "en-US": '',
+        postMD.unit = {
+            'en-US': '',
             'zh-CN': '',
             'zh-TW': '',
-            ...postMD.unit
-        }
+            ...postMD.unit,
+        };
     }
 }
