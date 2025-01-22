@@ -147,7 +147,6 @@ class Shopping {
             if (`${query.id || ''}`) {
                 if (`${query.id}`.includes(',')) {
                     querySql.push(`id in (${query.id})`);
-                    console.log('query.id -- ', query.id);
                 }
                 else {
                     querySql.push(`id = ${query.id}`);
@@ -645,7 +644,7 @@ class Shopping {
             if (data.checkOutType === 'POS') {
                 this.token = undefined;
             }
-            console.log(`checkout-time-1=>`, new Date().getTime() - check_time);
+            console.log(`checkout-time-01=>`, new Date().getTime() - check_time);
             const userClass = new user_js_1.User(this.app);
             const rebateClass = new rebate_js_1.Rebate(this.app);
             if (type !== 'preview' && !(this.token && this.token.userID) && !data.email && !(data.user_info && data.user_info.email)) {
@@ -666,7 +665,7 @@ class Shopping {
                     return {};
                 }
             })();
-            console.log(`checkout-time-2=>`, new Date().getTime() - check_time);
+            console.log(`checkout-time-02=>`, new Date().getTime() - check_time);
             if (userData && userData.account) {
                 data.email = userData.account;
             }
@@ -690,7 +689,7 @@ class Shopping {
                     data.use_rebate = 0;
                 }
             }
-            console.log(`checkout-time-3=>`, new Date().getTime() - check_time);
+            console.log(`checkout-time-03=>`, new Date().getTime() - check_time);
             const shipment = await (async () => {
                 var _a, _b, _c;
                 data.user_info = data.user_info || {};
@@ -730,7 +729,7 @@ class Shopping {
                 }
                 return def;
             })();
-            console.log(`checkout-time-4=>`, new Date().getTime() - check_time);
+            console.log(`checkout-time-04=>`, new Date().getTime() - check_time);
             const shipment_setting = await new Promise(async (resolve, reject) => {
                 var _a;
                 try {
@@ -749,7 +748,7 @@ class Shopping {
                     resolve([]);
                 }
             });
-            console.log(`checkout-time-5=>`, new Date().getTime() - check_time);
+            console.log(`checkout-time-05=>`, new Date().getTime() - check_time);
             shipment_setting.custom_delivery = (_b = shipment_setting.custom_delivery) !== null && _b !== void 0 ? _b : [];
             for (const form of shipment_setting.custom_delivery) {
                 form.form =
@@ -761,7 +760,7 @@ class Shopping {
             shipment_setting.support = (_c = shipment_setting.support) !== null && _c !== void 0 ? _c : [];
             shipment_setting.info =
                 (_d = (shipment_setting.language_data && shipment_setting.language_data[data.language] && shipment_setting.language_data[data.language].info)) !== null && _d !== void 0 ? _d : shipment_setting.info;
-            console.log(`checkout-time-6=>`, new Date().getTime() - check_time);
+            console.log(`checkout-time-06=>`, new Date().getTime() - check_time);
             const carData = {
                 customer_info: data.customer_info || {},
                 lineItems: [],
@@ -876,9 +875,7 @@ class Shopping {
                         const variant = pd.variants.find((dd) => {
                             return dd.spec.join('-') === b.spec.join('-');
                         });
-                        console.log(`variant1===>`, variant);
                         if ((Number.isInteger(variant.stock) || variant.show_understocking === 'false') && Number.isInteger(b.count)) {
-                            console.log(`variant2===>`, variant);
                             if (data.checkOutType === 'POS' && variant.show_understocking !== 'false') {
                                 variant.stock = variant.stockList && variant.stockList[data.pos_store].count;
                             }
@@ -901,6 +898,7 @@ class Shopping {
                                 b.stock = variant.stock;
                                 b.show_understocking = variant.show_understocking;
                                 b.stockList = variant.stockList;
+                                b.weight = parseInt(`${variant.weight || 0}`, 10);
                                 b.shipment_obj = {
                                     type: variant.shipment_type,
                                     value: (() => {
@@ -926,7 +924,6 @@ class Shopping {
                                     b.sale_price = 0;
                                 }
                             }
-                            console.log(`type=>`, type);
                             if (type !== 'preview' && type !== 'manual' && type !== 'manual-preview' && variant.show_understocking !== 'false') {
                                 const countless = variant.stock - b.count;
                                 variant.stock = countless > 0 ? countless : 0;
@@ -977,7 +974,7 @@ class Shopping {
                     console.error(e);
                 }
             }
-            console.log(`checkout-time-7=>`, new Date().getTime() - check_time);
+            console.log(`checkout-time-07=>`, new Date().getTime() - check_time);
             carData.shipment_fee = (() => {
                 if (data.user_info.shipment === 'now') {
                     return 0;
@@ -996,7 +993,7 @@ class Shopping {
             })();
             carData.total += carData.shipment_fee;
             const f_rebate = await this.formatUseRebate(carData.total, carData.use_rebate);
-            console.log(`checkout-time-8=>`, new Date().getTime() - check_time);
+            console.log(`checkout-time-08=>`, new Date().getTime() - check_time);
             carData.useRebateInfo = f_rebate;
             carData.use_rebate = f_rebate.point;
             carData.total -= carData.use_rebate;
@@ -1006,7 +1003,7 @@ class Shopping {
                 const data = await rebateClass.getOneRebate({ user_id: userData.userID });
                 carData.user_rebate_sum = (data === null || data === void 0 ? void 0 : data.point) || 0;
             }
-            console.log(`checkout-time-9=>`, new Date().getTime() - check_time);
+            console.log(`checkout-time-09=>`, new Date().getTime() - check_time);
             if (data.distribution_code) {
                 const linkList = await new recommend_js_1.Recommend(this.app, this.token).getLinkList({
                     page: 0,
@@ -1031,7 +1028,7 @@ class Shopping {
                     return !gift_product.includes(dd);
                 });
                 const c_carData = await this.checkVoucher(JSON.parse(JSON.stringify(carData)));
-                console.log(`checkout-time-check-voucher=>`, new Date().getTime() - check_time);
+                console.log(`checkout-time-check-voucher-1=>`, new Date().getTime() - check_time);
                 add_on_items.map((dd) => {
                     var _a;
                     try {
@@ -1158,9 +1155,7 @@ class Shopping {
                 carData.total = subtotal + carData.shipment_fee;
             }
             carData.lineItems.map((item) => {
-                if (item.shipment_obj.type === 'weight') {
-                    carData.goodsWeight += item.count * item.shipment_obj.value;
-                }
+                carData.goodsWeight += item.weight * item.count;
             });
             const excludedValuesByTotal = new Set(['UNIMARTC2C', 'FAMIC2C', 'HILIFEC2C', 'OKMARTC2C']);
             const excludedValuesByWeight = new Set(['normal', 'black_cat']);
@@ -1175,8 +1170,14 @@ class Shopping {
                     return item.designated_logistics === undefined || item.designated_logistics.type === 'all' || item.designated_logistics.list.includes(dd.value);
                 });
             };
-            carData.shipment_selector = carData.shipment_selector.filter((dd) => {
-                return !isExcludedByTotal(dd) && !isExcludedByWeight(dd) && isIncludedInDesignatedLogistics(dd);
+            carData.shipment_selector = carData.shipment_selector
+                .filter((dd) => {
+                return isIncludedInDesignatedLogistics(dd);
+            })
+                .map((dd) => {
+                dd.isExcludedByTotal = isExcludedByTotal(dd);
+                dd.isExcludedByWeight = isExcludedByWeight(dd);
+                return dd;
             });
             carData.code_array = (carData.code_array || []).filter((code) => {
                 return (carData.voucherList || []).find((dd) => {

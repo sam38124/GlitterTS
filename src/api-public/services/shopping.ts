@@ -127,6 +127,7 @@ type CartItem = {
     preview_image: string;
     shipment_obj: { type: string; value: number };
     discount_price?: number;
+    weight: number;
     rebate: number;
     designated_logistics: {
         type: 'all' | 'designated';
@@ -147,7 +148,12 @@ type Cart = {
     use_rebate: number;
     orderID: string;
     shipment_support: string[];
-    shipment_selector: { name: string; value: string }[];
+    shipment_selector: {
+        name: string;
+        value: string;
+        isExcludedByWeight?: boolean;
+        isExcludedByTotal?: boolean;
+    }[];
     shipment_info: any;
     use_wallet: number;
     user_email: string;
@@ -307,7 +313,6 @@ export class Shopping {
             if (`${query.id || ''}`) {
                 if (`${query.id}`.includes(',')) {
                     querySql.push(`id in (${query.id})`);
-                    console.log('query.id -- ', query.id);
                 } else {
                     querySql.push(`id = ${query.id}`);
                 }
@@ -863,6 +868,7 @@ export class Shopping {
                     type: string;
                     value: number;
                 };
+                weight: number;
                 is_gift?: boolean;
                 stock: number;
                 show_understocking: 'true' | 'false';
@@ -982,7 +988,7 @@ export class Shopping {
             if (data.checkOutType === 'POS') {
                 this.token = undefined;
             }
-            console.log(`checkout-time-1=>`, new Date().getTime() - check_time);
+            console.log(`checkout-time-01=>`, new Date().getTime() - check_time);
             const userClass = new User(this.app);
             const rebateClass = new Rebate(this.app);
             //電話信箱擇一
@@ -1003,7 +1009,7 @@ export class Shopping {
                     return {};
                 }
             })();
-            console.log(`checkout-time-2=>`, new Date().getTime() - check_time);
+            console.log(`checkout-time-02=>`, new Date().getTime() - check_time);
             if (userData && userData.account) {
                 data.email = userData.account;
             }
@@ -1027,7 +1033,7 @@ export class Shopping {
                     data.use_rebate = 0;
                 }
             }
-            console.log(`checkout-time-3=>`, new Date().getTime() - check_time);
+            console.log(`checkout-time-03=>`, new Date().getTime() - check_time);
             // 運費設定
             const shipment: ShipmentConfig = await (async () => {
                 data.user_info = data.user_info || {};
@@ -1083,7 +1089,7 @@ export class Shopping {
                 }
                 return def;
             })();
-            console.log(`checkout-time-4=>`, new Date().getTime() - check_time);
+            console.log(`checkout-time-04=>`, new Date().getTime() - check_time);
             // 物流設定
             const shipment_setting: any = await new Promise(async (resolve, reject) => {
                 try {
@@ -1103,7 +1109,7 @@ export class Shopping {
                     resolve([]);
                 }
             });
-            console.log(`checkout-time-5=>`, new Date().getTime() - check_time);
+            console.log(`checkout-time-05=>`, new Date().getTime() - check_time);
             //載入自訂配送表單
             shipment_setting.custom_delivery = shipment_setting.custom_delivery ?? [];
             for (const form of shipment_setting.custom_delivery) {
@@ -1118,7 +1124,7 @@ export class Shopping {
             shipment_setting.support = shipment_setting.support ?? [];
             shipment_setting.info =
                 (shipment_setting.language_data && shipment_setting.language_data[data.language as any] && shipment_setting.language_data[data.language as any].info) ?? shipment_setting.info;
-            console.log(`checkout-time-6=>`, new Date().getTime() - check_time);
+            console.log(`checkout-time-06=>`, new Date().getTime() - check_time);
             // 購物車資料
             const carData: Cart = {
                 customer_info: data.customer_info || {},
@@ -1244,9 +1250,7 @@ export class Shopping {
                         const variant = pd.variants.find((dd: any) => {
                             return dd.spec.join('-') === b.spec.join('-');
                         });
-                        console.log(`variant1===>`, variant);
                         if ((Number.isInteger(variant.stock) || variant.show_understocking === 'false') && Number.isInteger(b.count)) {
-                            console.log(`variant2===>`, variant);
                             if (data.checkOutType === 'POS' && variant.show_understocking !== 'false') {
                                 variant.stock = variant.stockList && (variant.stockList as any)[data.pos_store!].count;
                             }
@@ -1269,6 +1273,7 @@ export class Shopping {
                                 b.stock = variant.stock;
                                 b.show_understocking = variant.show_understocking;
                                 (b as any).stockList = variant.stockList;
+                                b.weight = parseInt(`${variant.weight || 0}`, 10);
                                 b.shipment_obj = {
                                     type: variant.shipment_type,
                                     value: (() => {
@@ -1295,7 +1300,6 @@ export class Shopping {
                                 }
                             }
                             // 當為結帳時則更改商品庫存數量
-                            console.log(`type=>`, type);
                             if (type !== 'preview' && type !== 'manual' && type !== 'manual-preview' && variant.show_understocking !== 'false') {
                                 const countless = variant.stock - b.count;
                                 variant.stock = countless > 0 ? countless : 0;
@@ -1351,7 +1355,7 @@ export class Shopping {
                 }
             }
 
-            console.log(`checkout-time-7=>`, new Date().getTime() - check_time);
+            console.log(`checkout-time-07=>`, new Date().getTime() - check_time);
             carData.shipment_fee = (() => {
                 if (data.user_info.shipment === 'now') {
                     return 0;
@@ -1370,7 +1374,7 @@ export class Shopping {
             })();
             carData.total += carData.shipment_fee;
             const f_rebate = await this.formatUseRebate(carData.total, carData.use_rebate);
-            console.log(`checkout-time-8=>`, new Date().getTime() - check_time);
+            console.log(`checkout-time-08=>`, new Date().getTime() - check_time);
             carData.useRebateInfo = f_rebate;
             carData.use_rebate = f_rebate.point;
             carData.total -= carData.use_rebate;
@@ -1380,7 +1384,7 @@ export class Shopping {
                 const data = await rebateClass.getOneRebate({ user_id: userData.userID });
                 carData.user_rebate_sum = data?.point || 0;
             }
-            console.log(`checkout-time-9=>`, new Date().getTime() - check_time);
+            console.log(`checkout-time-09=>`, new Date().getTime() - check_time);
 
             // 判斷是否有分銷連結
             if (data.distribution_code) {
@@ -1412,7 +1416,7 @@ export class Shopping {
 
                 // 濾出可用的加購商品，避免折扣被double所以要stringify
                 const c_carData = await this.checkVoucher(JSON.parse(JSON.stringify(carData)));
-                console.log(`checkout-time-check-voucher=>`, new Date().getTime() - check_time);
+                console.log(`checkout-time-check-voucher-1=>`, new Date().getTime() - check_time);
                 add_on_items.map((dd) => {
                     try {
                         if (
@@ -1552,9 +1556,7 @@ export class Shopping {
             }
 
             carData.lineItems.map((item) => {
-                if (item.shipment_obj.type === 'weight') {
-                    carData.goodsWeight += item.count * item.shipment_obj.value;
-                }
+                carData.goodsWeight += item.weight * item.count;
             });
 
             const excludedValuesByTotal = new Set(['UNIMARTC2C', 'FAMIC2C', 'HILIFEC2C', 'OKMARTC2C']);
@@ -1571,15 +1573,21 @@ export class Shopping {
                     return item.designated_logistics === undefined || item.designated_logistics.type === 'all' || item.designated_logistics.list.includes(dd.value);
                 });
             };
-            carData.shipment_selector = carData.shipment_selector.filter((dd: any) => {
-                return !isExcludedByTotal(dd) && !isExcludedByWeight(dd) && isIncludedInDesignatedLogistics(dd);
-            });
-
+            carData.shipment_selector = carData.shipment_selector
+                .filter((dd: any) => {
+                    return isIncludedInDesignatedLogistics(dd);
+                })
+                .map((dd) => {
+                    dd.isExcludedByTotal = isExcludedByTotal(dd);
+                    dd.isExcludedByWeight = isExcludedByWeight(dd);
+                    return dd;
+                });
             carData.code_array = (carData.code_array || []).filter((code) => {
                 return (carData.voucherList || []).find((dd) => {
                     return dd.code === code;
                 });
             });
+
             // ================================ Preview UP ================================
             if (type === 'preview' || type === 'manual-preview') return { data: carData };
             // ================================ Add DOWN ================================

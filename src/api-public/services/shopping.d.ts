@@ -93,6 +93,7 @@ type CartItem = {
         value: number;
     };
     discount_price?: number;
+    weight: number;
     rebate: number;
     designated_logistics: {
         type: 'all' | 'designated';
@@ -115,6 +116,8 @@ type Cart = {
     shipment_selector: {
         name: string;
         value: string;
+        isExcludedByWeight?: boolean;
+        isExcludedByTotal?: boolean;
     }[];
     shipment_info: any;
     use_wallet: number;
@@ -269,6 +272,7 @@ export declare class Shopping {
                 type: string;
                 value: number;
             };
+            weight: number;
             is_gift?: boolean;
             stock: number;
             show_understocking: 'true' | 'false';
