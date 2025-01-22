@@ -102,7 +102,7 @@ export interface Product {
     match_by_with?: string[];
     designated_logistics: {
         type: 'all' | 'designated';
-        list?: string[];
+        list: string[];
     };
 }
 

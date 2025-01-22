@@ -1,30 +1,30 @@
-import {IToken} from '../models/Auth.js';
+import { IToken } from '../models/Auth.js';
 import exception from '../../modules/exception.js';
 import db from '../../modules/database.js';
-import FinancialService, {LinePay, PayPal} from './financial-service.js';
-import {Private_config} from '../../services/private_config.js';
+import FinancialService, { LinePay, PayPal } from './financial-service.js';
+import { Private_config } from '../../services/private_config.js';
 import redis from '../../modules/redis.js';
-import {User} from './user.js';
+import { User } from './user.js';
 import Tool from '../../modules/tool.js';
-import {Invoice} from './invoice.js';
+import { Invoice } from './invoice.js';
 import e from 'express';
-import {Rebate} from './rebate.js';
-import {CustomCode} from '../services/custom-code.js';
+import { Rebate } from './rebate.js';
+import { CustomCode } from '../services/custom-code.js';
 import moment from 'moment';
-import {ManagerNotify} from './notify.js';
-import {AutoSendEmail} from './auto-send-email.js';
-import {Recommend} from './recommend.js';
-import {Workers} from './workers.js';
+import { ManagerNotify } from './notify.js';
+import { AutoSendEmail } from './auto-send-email.js';
+import { Recommend } from './recommend.js';
+import { Workers } from './workers.js';
 import axios from 'axios';
-import {DeliveryData} from './delivery.js';
-import {saasConfig} from '../../config.js';
-import {SMS} from './sms.js';
-import {LineMessage} from './line-message';
-import {EcInvoice} from './EcInvoice';
+import { DeliveryData } from './delivery.js';
+import { saasConfig } from '../../config.js';
+import { SMS } from './sms.js';
+import { LineMessage } from './line-message';
+import { EcInvoice } from './EcInvoice';
 import app from '../../app';
-import {onlinePayArray, paymentInterface} from '../models/glitter-finance.js';
-import {App} from '../../services/app.js';
-import {Stock} from './stock';
+import { onlinePayArray, paymentInterface } from '../models/glitter-finance.js';
+import { App } from '../../services/app.js';
+import { Stock } from './stock';
 
 type BindItem = {
     id: string;
@@ -128,6 +128,10 @@ type CartItem = {
     shipment_obj: { type: string; value: number };
     discount_price?: number;
     rebate: number;
+    designated_logistics: {
+        type: 'all' | 'designated';
+        list: string[];
+    };
 };
 
 type Cart = {
@@ -162,6 +166,7 @@ type Cart = {
     give_away: CartItem[];
     language?: string;
     pos_info?: any; //POS結帳資訊
+    goodsWeight: number;
 };
 
 export class Shopping {
@@ -250,7 +255,7 @@ export class Shopping {
                 key: 'store-information',
                 user_id: 'manager',
             });
-            const store_config = await new User(this.app).getConfigV2({key: 'store_manager', user_id: 'manager'});
+            const store_config = await new User(this.app).getConfigV2({ key: 'store_manager', user_id: 'manager' });
             query.language = query.language ?? store_info.language_setting.def;
             query.show_hidden = query.show_hidden ?? 'true';
             let querySql = [`(content->>'$.type'='product')`];
@@ -371,14 +376,14 @@ export class Shopping {
                     .join(',');
             }
             query.collection &&
-            querySql.push(
-                `(${query.collection
-                    .split(',')
-                    .map((dd) => {
-                        return query.accurate_search_collection ? `(JSON_CONTAINS(content->'$.collection', '"${dd}"'))` : `(JSON_EXTRACT(content, '$.collection') LIKE '%${dd}%')`;
-                    })
-                    .join(' or ')})`
-            );
+                querySql.push(
+                    `(${query.collection
+                        .split(',')
+                        .map((dd) => {
+                            return query.accurate_search_collection ? `(JSON_CONTAINS(content->'$.collection', '"${dd}"'))` : `(JSON_EXTRACT(content, '$.collection') LIKE '%${dd}%')`;
+                        })
+                        .join(' or ')})`
+                );
             query.sku && querySql.push(`(id in ( select product_id from \`${this.app}\`.t_variants where content->>'$.sku'=${db.escape(query.sku)}))`);
             if (!query.id && query.status === 'active' && query.with_hide_index !== 'true') {
                 querySql.push(`((content->>'$.hideIndex' is NULL) || (content->>'$.hideIndex'='false'))`);
@@ -393,7 +398,7 @@ export class Shopping {
                 // 基本條件
                 const statusCondition = `JSON_EXTRACT(content, '$.status') IN (${statusJoin})`;
 
-//2024-12-11
+                //2024-12-11
                 // 時間條件
                 const scheduleConditions = statusSplit
                     .map((status) => {
@@ -499,7 +504,7 @@ export class Shopping {
 
             //判斷需要多國語言
             for (const dd of Array.isArray(products.data) ? products.data : [products.data]) {
-                let total_sale=0
+                let total_sale = 0;
                 if (query.language && dd.content.language_data && dd.content.language_data[`${query.language}`]) {
                     dd.content.seo = dd.content.language_data[`${query.language}`].seo;
                     dd.content.title = dd.content.language_data[`${query.language}`].title || dd.content.title;
@@ -509,7 +514,7 @@ export class Shopping {
                     dd.content.preview_image = dd.content.language_data[`${query.language}`].preview_image || dd.content.preview_image;
                     (dd.content.variants || []).map((variant: any) => {
                         variant.stock = 0;
-                        variant.sold_out=variant.sold_out || 0;
+                        variant.sold_out = variant.sold_out || 0;
                         variant.preview_image = variant[`preview_image_${query.language}`] || variant.preview_image;
                         if (variant.preview_image === 'https://d3jnmi1tfjgtti.cloudfront.net/file/234285319/1722936949034-default_image.jpg') {
                             variant.preview_image = dd.content.preview_image[0];
@@ -531,15 +536,14 @@ export class Shopping {
                         });
                         store_config.list.map((d1: any) => {
                             if (!variant.stockList[d1.id]) {
-                                variant.stockList[d1.id] = {count: 0};
+                                variant.stockList[d1.id] = { count: 0 };
                             }
                         });
-                        total_sale+=variant.sold_out
+                        total_sale += variant.sold_out;
                     });
                 }
-                dd.total_sales=total_sale
+                dd.total_sales = total_sale;
             }
-
 
             if (query.domain && products.data[0]) {
                 products.data = products.data[0];
@@ -567,7 +571,7 @@ export class Shopping {
                     []
                 )
             )[0];
-            return {data: data, result: !!data};
+            return { data: data, result: !!data };
         } else {
             return {
                 data: (
@@ -616,7 +620,7 @@ export class Shopping {
                     []
                 )
             )[0];
-            return {data: data, result: !!data};
+            return { data: data, result: !!data };
         } else {
             return {
                 data: await db.query(
@@ -667,7 +671,7 @@ export class Shopping {
                     []
                 )
             )[0];
-            return {data: data, result: !!data};
+            return { data: data, result: !!data };
         } else {
             return {
                 data: await db.query(
@@ -747,13 +751,81 @@ export class Shopping {
             axios
                 .request(config)
                 .then((response: any) => {
-                    console.log(response);
                     resolve(response.data.returnCode === '0000');
                 })
                 .catch((error: any) => {
                     resolve(false);
                 });
         });
+    }
+
+    async getShippingMethod() {
+        const shipment_setting: any = await new Promise(async (resolve, reject) => {
+            try {
+                resolve(
+                    ((await Private_config.getConfig({
+                        appName: this.app,
+                        key: 'logistics_setting',
+                    })) ?? [
+                        {
+                            value: {
+                                support: [],
+                            },
+                        },
+                    ])[0].value
+                );
+            } catch (e) {
+                resolve([]);
+            }
+        });
+        return [
+            {
+                name: '中華郵政',
+                value: 'normal',
+            },
+            {
+                name: '黑貓到府',
+                value: 'black_cat',
+            },
+            {
+                name: '全家店到店',
+                value: 'FAMIC2C',
+            },
+            {
+                name: '萊爾富店到店',
+                value: 'HILIFEC2C',
+            },
+            {
+                name: 'OK超商店到店',
+                value: 'OKMARTC2C',
+            },
+            {
+                name: '7-ELEVEN超商交貨便',
+                value: 'UNIMARTC2C',
+            },
+            {
+                name: '實體門市取貨',
+                value: 'shop',
+            },
+            {
+                name: '國際快遞',
+                value: 'global_express',
+            },
+        ]
+            .concat(
+                (shipment_setting.custom_delivery ?? []).map((dd: any) => {
+                    return {
+                        form: dd.form,
+                        name: dd.name,
+                        value: dd.id,
+                    };
+                })
+            )
+            .filter((d1) => {
+                return shipment_setting.support.find((d2: any) => {
+                    return d2 === d1.value;
+                });
+            });
     }
 
     public async getPostAddressData(address: string) {
@@ -794,6 +866,10 @@ export class Shopping {
                 is_gift?: boolean;
                 stock: number;
                 show_understocking: 'true' | 'false';
+                designated_logistics: {
+                    type: 'all' | 'designated';
+                    list: string[];
+                };
             }[];
             customer_info?: any; //顧客資訊 訂單人
             email?: string;
@@ -862,9 +938,14 @@ export class Shopping {
             }
             //判斷是POS重新支付<例如:預購單>，則把原先商品庫存加回去
             if (data.order_id && type === 'POS') {
-                const order = (await db.query(`select *
+                const order = (
+                    await db.query(
+                        `select *
                                                from \`${this.app}\`.t_checkout
-                                               where cart_token = '${data.order_id}'`, []))[0];
+                                               where cart_token = '${data.order_id}'`,
+                        []
+                    )
+                )[0];
                 if (order) {
                     for (const b of order.orderData.lineItems) {
                         const pdDqlData = (
@@ -883,8 +964,7 @@ export class Shopping {
                         Object.keys(b.deduction_log).map((dd) => {
                             try {
                                 variant.stockList[dd].count += b.deduction_log[dd];
-                            } catch (e) {
-                            }
+                            } catch (e) {}
                         });
                         await this.updateVariantsWithSpec(variant, b.id, b.spec);
                         //這裡更新資訊
@@ -893,7 +973,7 @@ export class Shopping {
                              SET ?
                              WHERE 1 = 1
                                and id = ${pdDqlData.id}`,
-                            [{content: JSON.stringify(pd)}]
+                            [{ content: JSON.stringify(pd) }]
                         );
                     }
                 }
@@ -938,7 +1018,7 @@ export class Shopping {
             // 判斷購物金是否可用
             if (data.use_rebate && data.use_rebate > 0) {
                 if (userData) {
-                    const userRebate = await rebateClass.getOneRebate({user_id: userData.userID});
+                    const userRebate = await rebateClass.getOneRebate({ user_id: userData.userID });
                     const sum = userRebate ? userRebate.point : 0;
                     if (sum < data.use_rebate) {
                         data.use_rebate = 0;
@@ -970,33 +1050,33 @@ export class Shopping {
                 const refer =
                     data.user_info.shipment === 'global_express'
                         ? (
-                            (
-                                await Private_config.getConfig({
-                                    appName: this.app,
-                                    key: 'glitter_shipment_global_' + data.user_info.country,
-                                })
-                            )[0] ?? {
-                                value: {
-                                    volume: [],
-                                    weight: [],
-                                    selectCalc: 'volume',
-                                },
-                            }
-                        ).value
+                              (
+                                  await Private_config.getConfig({
+                                      appName: this.app,
+                                      key: 'glitter_shipment_global_' + data.user_info.country,
+                                  })
+                              )[0] ?? {
+                                  value: {
+                                      volume: [],
+                                      weight: [],
+                                      selectCalc: 'volume',
+                                  },
+                              }
+                          ).value
                         : (
-                            (
-                                await Private_config.getConfig({
-                                    appName: this.app,
-                                    key: 'glitter_shipment_' + data.user_info.shipment,
-                                })
-                            )[0] ?? {
-                                value: {
-                                    volume: [],
-                                    weight: [],
-                                    selectCalc: 'def',
-                                },
-                            }
-                        ).value;
+                              (
+                                  await Private_config.getConfig({
+                                      appName: this.app,
+                                      key: 'glitter_shipment_' + data.user_info.shipment,
+                                  })
+                              )[0] ?? {
+                                  value: {
+                                      volume: [],
+                                      weight: [],
+                                      selectCalc: 'def',
+                                  },
+                              }
+                          ).value;
 
                 if (refer.selectCalc !== 'def') {
                     def = refer;
@@ -1048,6 +1128,7 @@ export class Shopping {
                 user_info: data.user_info,
                 shipment_fee: 0,
                 rebate: 0,
+                goodsWeight: 0,
                 use_rebate: data.use_rebate || 0,
                 orderID: data.order_id || this.generateOrderID(),
                 shipment_support: shipment_setting.support as any,
@@ -1103,7 +1184,7 @@ export class Shopping {
                 use_wallet: 0,
                 method: data.user_info && data.user_info.method,
                 user_email: (userData && userData.account) || data.email || (data.user_info && data.user_info.email) || '',
-                useRebateInfo: {point: 0},
+                useRebateInfo: { point: 0 },
                 custom_form_format: data.custom_form_format,
                 custom_form_data: data.custom_form_data,
                 custom_receipt_form: data.custom_receipt_form,
@@ -1203,6 +1284,7 @@ export class Shopping {
                                         return 0;
                                     })(),
                                 };
+                                b.designated_logistics = pd.designated_logistics ?? { type: 'all', list: [] };
                                 variant.shipment_weight = parseInt(variant.shipment_weight || 0);
                                 carData.lineItems.push(b as any);
                                 if (type !== 'manual' && !pd.productType.giveaway) {
@@ -1215,8 +1297,6 @@ export class Shopping {
                             // 當為結帳時則更改商品庫存數量
                             console.log(`type=>`, type);
                             if (type !== 'preview' && type !== 'manual' && type !== 'manual-preview' && variant.show_understocking !== 'false') {
-                                console.log(`variant資訊=>`, type);
-
                                 const countless = variant.stock - b.count;
                                 variant.stock = countless > 0 ? countless : 0;
                                 if (type === 'POS') {
@@ -1240,7 +1320,7 @@ export class Shopping {
                                              SET ?
                                              WHERE 1 = 1
                                                and id = ${pdDqlData.id}`,
-                                            [{content: JSON.stringify(pd)}]
+                                            [{ content: JSON.stringify(pd) }]
                                         );
                                         resolve(true);
                                     });
@@ -1267,7 +1347,7 @@ export class Shopping {
                         }
                     }
                 } catch (e) {
-                    console.log(e);
+                    console.error(e);
                 }
             }
 
@@ -1297,7 +1377,7 @@ export class Shopping {
             carData.code = data.code;
             carData.voucherList = [];
             if (userData && userData.account) {
-                const data = await rebateClass.getOneRebate({user_id: userData.userID});
+                const data = await rebateClass.getOneRebate({ user_id: userData.userID });
                 carData.user_rebate_sum = data?.point || 0;
             }
             console.log(`checkout-time-9=>`, new Date().getTime() - check_time);
@@ -1311,10 +1391,8 @@ export class Shopping {
                     status: true,
                     no_detail: true,
                 });
-                console.log(`linkList.data.length=>`, linkList.data.length)
                 if (linkList.data.length > 0) {
                     const content = linkList.data[0].content;
-                    console.log(`linkList.data.content=>`, content)
                     if (this.checkDuring(content)) {
                         carData.distribution_info = content;
                     }
@@ -1350,18 +1428,17 @@ export class Shopping {
                             //把加購品加回去
                             carData.lineItems.push(dd);
                         }
-                    } catch (e) {
-                    }
+                    } catch (e) {}
                 });
                 // 再次更新優惠內容
                 await this.checkVoucher(carData);
-                console.log(`checkout-time-check-voucher2=>`, new Date().getTime() - check_time);
+                console.log(`checkout-time-check-voucher-2=>`, new Date().getTime() - check_time);
                 //過濾可選贈品
                 let can_add_gift: any[] = [];
                 carData
                     .voucherList!!.filter((dd) => {
-                    return dd.reBackType === 'giveaway';
-                })
+                        return dd.reBackType === 'giveaway';
+                    })
                     .map((dd) => {
                         can_add_gift.push(dd.add_on_products);
                     });
@@ -1399,7 +1476,7 @@ export class Shopping {
                                     status: 'inRange',
                                     channel: data.checkOutType === 'POS' ? 'pos' : undefined,
                                 })
-                            ).data ?? {content: {}}
+                            ).data ?? { content: {} }
                         ).content;
                         pdDqlData.voucher_id = dd.id;
                         (dd.add_on_products as any)[index] = pdDqlData;
@@ -1473,13 +1550,38 @@ export class Shopping {
                 carData.use_rebate = 0;
                 carData.total = subtotal + carData.shipment_fee;
             }
+
+            carData.lineItems.map((item) => {
+                if (item.shipment_obj.type === 'weight') {
+                    carData.goodsWeight += item.count * item.shipment_obj.value;
+                }
+            });
+
+            const excludedValuesByTotal = new Set(['UNIMARTC2C', 'FAMIC2C', 'HILIFEC2C', 'OKMARTC2C']);
+            const excludedValuesByWeight = new Set(['normal', 'black_cat']);
+
+            const isExcludedByTotal = (dd: any) => {
+                return carData.total > 20000 && excludedValuesByTotal.has(dd.value);
+            };
+            const isExcludedByWeight = (dd: any) => {
+                return carData.goodsWeight > 20 && excludedValuesByWeight.has(dd.value);
+            };
+            const isIncludedInDesignatedLogistics = (dd: any) => {
+                return carData.lineItems.every((item) => {
+                    return item.designated_logistics === undefined || item.designated_logistics.type === 'all' || item.designated_logistics.list.includes(dd.value);
+                });
+            };
+            carData.shipment_selector = carData.shipment_selector.filter((dd: any) => {
+                return !isExcludedByTotal(dd) && !isExcludedByWeight(dd) && isIncludedInDesignatedLogistics(dd);
+            });
+
             carData.code_array = (carData.code_array || []).filter((code) => {
                 return (carData.voucherList || []).find((dd) => {
                     return dd.code === code;
                 });
             });
             // ================================ Preview UP ================================
-            if (type === 'preview' || type === 'manual-preview') return {data: carData};
+            if (type === 'preview' || type === 'manual-preview') return { data: carData };
             // ================================ Add DOWN ================================
             console.log(`checkout-time-12=>`, new Date().getTime() - check_time);
 
@@ -1555,7 +1657,6 @@ export class Shopping {
                     data: carData,
                 };
             } else if (type === 'POS') {
-                console.log(`pre_order`);
                 carData.orderSource = 'POS';
                 const trans = await db.Transaction.build();
                 if (data.pre_order) {
@@ -1594,7 +1695,7 @@ export class Shopping {
                 );
                 //通知付款
                 await new Shopping(this.app).releaseCheckout((data.pay_status as any) ?? 0, carData.orderID);
-                return {result: 'SUCCESS', message: 'POS訂單新增成功', data: carData};
+                return { result: 'SUCCESS', message: 'POS訂單新增成功', data: carData };
             } else {
                 if (userData && userData.userID) {
                     await rebateClass.insertRebate(userData.userID, carData.use_rebate * -1, '使用折抵', {
@@ -1623,9 +1724,9 @@ export class Shopping {
 
             // Genetate notify redirect id
             const id = 'redirect_' + Tool.randomString(6);
-            const return_url = new URL(data.return_url);
-            return_url.searchParams.set('cart_token', carData.orderID);
-            await redis.setValue(id, return_url.href);
+            const redirect_url = new URL(data.return_url);
+            redirect_url.searchParams.set('cart_token', carData.orderID);
+            await redis.setValue(id, redirect_url.href);
 
             // 當不需付款時直接寫入，並開發票
             if (carData.use_wallet === carData.total) {
@@ -1907,7 +2008,7 @@ export class Shopping {
                      SET ?
                      WHERE id = ?
                     `,
-                    [{status: data.status, orderData: JSON.stringify(data.orderData)}, data.id]
+                    [{ status: data.status, orderData: JSON.stringify(data.orderData) }, data.id]
                 );
                 return {
                     result: 'success',
@@ -1932,7 +2033,7 @@ export class Shopping {
         condition?: number;
     }> {
         try {
-            const getRS = await new User(this.app).getConfig({key: 'rebate_setting', user_id: 'manager'});
+            const getRS = await new User(this.app).getConfig({ key: 'rebate_setting', user_id: 'manager' });
             if (getRS[0] && getRS[0].value) {
                 const configData = getRS[0].value.config;
                 if (configData.condition.type === 'total_price' && configData.condition.value > total) {
@@ -2013,7 +2114,7 @@ export class Shopping {
 
         // 確認用戶資訊
         console.log(`cart.email==>`, cart.email);
-        const userData = (await userClass.getUserData(cart.email, 'email_or_phone')) ?? {userID: -1};
+        const userData = (await userClass.getUserData(cart.email, 'email_or_phone')) ?? { userID: -1 };
         // 所有優惠券
         const allVoucher: VoucherData[] = (
             await this.querySql([`(content->>'$.type'='voucher')`], {
@@ -2312,7 +2413,7 @@ export class Shopping {
             if (data.orderData) {
                 update.orderData = JSON.stringify(data.orderData);
             }
-            const store_config = await new User(this.app).getConfigV2({key: 'store_manager', user_id: 'manager'});
+            const store_config = await new User(this.app).getConfigV2({ key: 'store_manager', user_id: 'manager' });
             const origin = await db.query(
                 `SELECT *
                  FROM \`${this.app}\`.t_checkout
@@ -2333,7 +2434,7 @@ export class Shopping {
                         lineItem.deduction_log = lineItem.deduction_log || {};
                         if (Object.keys(lineItem.deduction_log).length === 0) {
                             //將舊版回填migrate成新版本
-                            lineItem.deduction_log[store_config.list[0].id] = {count: lineItem.count};
+                            lineItem.deduction_log[store_config.list[0].id] = { count: lineItem.count };
                         }
                     }
                 }
@@ -2352,7 +2453,6 @@ export class Shopping {
                     }
                     await AutoSendEmail.customerOrder(this.app, 'auto-email-order-cancel-success', data.orderData.orderID, data.orderData.email, data.orderData.language);
                 }
-
 
                 if (origin[0].orderData.progress !== 'shipping' && updateProgress === 'shipping') {
                     if (data.orderData.customer_info.phone) {
@@ -2397,7 +2497,6 @@ export class Shopping {
                 if (origin[0].status !== update.status) {
                     await this.releaseCheckout(update.status, data.orderData.orderID);
                 }
-
             }
 
             await db.query(
@@ -2429,7 +2528,7 @@ export class Shopping {
             );
 
             if (orderList.length !== 1) {
-                return {data: false};
+                return { data: false };
             }
 
             const origin = orderList[0];
@@ -2441,7 +2540,7 @@ export class Shopping {
 
             if (proofPurchase && paymentStatus && progressStatus && orderStatus) {
                 orderData.orderStatus = '-1';
-                const record = {time: this.formatDateString(), record: '顧客手動取消訂單'};
+                const record = { time: this.formatDateString(), record: '顧客手動取消訂單' };
                 if (orderData.editRecord) {
                     orderData.editRecord.push(record);
                 } else {
@@ -2456,7 +2555,7 @@ export class Shopping {
                 [JSON.stringify(orderData), order_id]
             );
 
-            return {data: true};
+            return { data: true };
         } catch (e) {
             throw exception.BadRequestError('BAD_REQUEST', 'cancelOrder Error:' + e, null);
         }
@@ -2491,7 +2590,7 @@ export class Shopping {
             orderData.proof_purchase = text;
 
             // 訂單待核款信件通知
-            new ManagerNotify(this.app).uploadProof({orderData: orderData});
+            new ManagerNotify(this.app).uploadProof({ orderData: orderData });
             await AutoSendEmail.customerOrder(this.app, 'proof-purchase', order_id, orderData.email, orderData.language);
 
             if (orderData.customer_info.phone) {
@@ -2732,10 +2831,9 @@ OR JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.orderStatus')) NOT IN (-99)) `);
                     `,
                     [order_id]
                 )
-            )[0]
+            )[0];
             //原先的付款狀態
             const original_status = order_data['status'];
-
 
             if (status === -1) {
                 if (original_status === -1) {
@@ -2751,10 +2849,10 @@ OR JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.orderStatus')) NOT IN (-99)) `);
             }
 
             //如果原先狀態為已付款，且更改的狀態不為已付款
-            if((original_status===1) && status!==1){
+            if (original_status === 1 && status !== 1) {
                 //清除購買數量
                 for (const b of order_data['orderData'].lineItems) {
-                    await this.calcSoldOutStock(b.count * -1, b.id, b.spec)
+                    await this.calcSoldOutStock(b.count * -1, b.id, b.spec);
                 }
             }
 
@@ -2764,7 +2862,7 @@ OR JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.orderStatus')) NOT IN (-99)) `);
                 }
                 //更改為已付款，統一新增購買數量
                 for (const b of order_data['orderData'].lineItems) {
-                    await this.calcSoldOutStock(b.count, b.id, b.spec)
+                    await this.calcSoldOutStock(b.count, b.id, b.spec);
                 }
                 await db.execute(
                     `UPDATE \`${this.app}\`.t_checkout
@@ -2844,7 +2942,7 @@ OR JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.orderStatus')) NOT IN (-99)) `);
                 }
 
                 try {
-                    await new CustomCode(this.app).checkOutHook({userData, cartData});
+                    await new CustomCode(this.app).checkOutHook({ userData, cartData });
                 } catch (e) {
                     console.error(e);
                 }
@@ -2961,7 +3059,7 @@ OR JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.orderStatus')) NOT IN (-99)) `);
                     []
                 );
             }
-            const store_config = await new User(this.app).getConfigV2({key: 'store_manager', user_id: 'manager'});
+            const store_config = await new User(this.app).getConfigV2({ key: 'store_manager', user_id: 'manager' });
             await Promise.all(
                 content.variants.map((a: any) => {
                     content.min_price = content.min_price ?? a.sale_price;
@@ -2980,7 +3078,7 @@ OR JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.orderStatus')) NOT IN (-99)) `);
                         a.stockList = {};
                     } else if (Object.keys(a.stockList).length === 0) {
                         //適應舊版庫存更新
-                        a.stockList[store_config.list[0].id] = {count: a.stock};
+                        a.stockList[store_config.list[0].id] = { count: a.stock };
                     }
                     return new Promise(async (resolve, reject) => {
                         await db.query(
@@ -3019,10 +3117,10 @@ OR JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.orderStatus')) NOT IN (-99)) `);
         const sql =
             spec.length > 0
                 ? `AND JSON_CONTAINS(content->'$.spec', JSON_ARRAY(${spec
-                    .map((data: string) => {
-                        return `\"${data}\"`;
-                    })
-                    .join(',')}));`
+                      .map((data: string) => {
+                          return `\"${data}\"`;
+                      })
+                      .join(',')}));`
                 : '';
 
         try {
@@ -3054,13 +3152,13 @@ OR JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.orderStatus')) NOT IN (-99)) `);
                     [product_id]
                 )
             )[0]['content'];
-            const store_config = await new User(this.app).getConfigV2({key: 'store_manager', user_id: 'manager'});
+            const store_config = await new User(this.app).getConfigV2({ key: 'store_manager', user_id: 'manager' });
             const variant_s: any = pd_data.variants.find((dd: any) => {
                 return dd.spec.join('-') === spec.join('-');
             });
             if (Object.keys(variant_s.stockList).length === 0) {
                 //適應舊版庫存更新
-                variant_s.stockList[store_config.list[0].id] = {count: variant_s.stock};
+                variant_s.stockList[store_config.list[0].id] = { count: variant_s.stock };
             }
             if (variant_s.stockList[stock_id]) {
                 variant_s.stockList[stock_id].count = variant_s.stockList[stock_id].count || 0;
@@ -3071,7 +3169,7 @@ OR JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.orderStatus')) NOT IN (-99)) `);
             }
             await this.postVariantsAndPriceValue(pd_data);
         } catch (e) {
-            console.log('error -- cant find variants', e);
+            console.error('error -- can not find variants', e);
         }
     }
 
@@ -3090,13 +3188,13 @@ OR JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.orderStatus')) NOT IN (-99)) `);
                 return dd.spec.join('-') === spec.join('-');
             });
             variant_s.sold_out = variant_s.sold_out ?? 0;
-            variant_s.sold_out += calc
+            variant_s.sold_out += calc;
             if (variant_s.sold_out < 0) {
-                variant_s.sold_out = 0
+                variant_s.sold_out = 0;
             }
             await this.postVariantsAndPriceValue(pd_data);
         } catch (e) {
-            console.log('error -- cant find variants', e);
+            console.error('calcSoldOutStock error', e);
         }
     }
 
@@ -3226,7 +3324,7 @@ OR JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.orderStatus')) NOT IN (-99)) `);
 
                 function wasteTimeRank(obj: Record<string, number>, n: number): { key: string; value: number }[] {
                     const sortedEntries = Object.entries(obj)
-                        .map(([key, value]) => ({key, value}))
+                        .map(([key, value]) => ({ key, value }))
                         .sort((a, b) => b.value - a.value);
                     return sortedEntries.slice(0, n);
                 }
@@ -3235,7 +3333,7 @@ OR JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.orderStatus')) NOT IN (-99)) `);
 
                 return result;
             }
-            return {result: false};
+            return { result: false };
         } catch (e) {
             throw exception.BadRequestError('BAD_REQUEST', 'getDataAnalyze Error:' + e, null);
         }
@@ -3259,7 +3357,7 @@ OR JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.orderStatus')) NOT IN (-99)) `);
         const startISO = startDate.toISOString();
         const endISO = endDate.toISOString();
 
-        return {startISO, endISO};
+        return { startISO, endISO };
     }
 
     formatDateString(isoDate?: string): string {
@@ -3296,7 +3394,7 @@ OR JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.orderStatus')) NOT IN (-99)) `);
         const queryData = await db.query(sql, []);
 
         const now = moment.tz('Asia/Taipei').toDate(); // 當前時間
-        const dataList = Array.from({length: 12}, (_, index) => {
+        const dataList = Array.from({ length: 12 }, (_, index) => {
             // 計算第 index 個月前的日期
             const targetDate = new Date(now.getFullYear(), now.getMonth() - index, 1);
 
@@ -3343,7 +3441,7 @@ OR JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.orderStatus')) NOT IN (-99)) `);
         const queryData = await db.query(sql, []);
 
         const now = moment.tz('Asia/Taipei').toDate(); // 當前時間
-        const dataList = Array.from({length: 14}, (_, index) => {
+        const dataList = Array.from({ length: 14 }, (_, index) => {
             const targetDate = new Date(now.getTime());
             targetDate.setDate(new Date(now.getTime()).getDate() - index); // 設定為第 index 天前的日期
 
@@ -3392,7 +3490,7 @@ OR JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.orderStatus')) NOT IN (-99)) `);
         const queryData = await db.query(sql, []);
 
         const now = moment.tz('Asia/Taipei').toDate(); // 當前時間
-        const dataList = Array.from({length: 30}, (_, index) => {
+        const dataList = Array.from({ length: 30 }, (_, index) => {
             const targetDate = new Date(now.getTime());
             targetDate.setDate(new Date(now.getTime()).getDate() - index); // 設定為第 index 天前的日期
 
@@ -3445,7 +3543,7 @@ OR JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.orderStatus')) NOT IN (-99)) `);
         const queryData = await db.query(sql, []);
 
         const now = moment(qData.end).tz('Asia/Taipei').clone().toDate(); // 當前時間
-        const dataList = Array.from({length: days}, (_, index) => {
+        const dataList = Array.from({ length: days }, (_, index) => {
             const targetDate = new Date(now.getTime());
             targetDate.setDate(new Date(now.getTime()).getDate() - index); // 設定為第 index 天前的日期
 
@@ -3725,7 +3823,7 @@ OR JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.orderStatus')) NOT IN (-99)) `);
                 WHERE MONTH (online_time) = MONTH (NOW()) AND YEAR (online_time) = YEAR (NOW());
             `;
             const month_users = await db.query(monthSQL, []);
-            return {recent: recent_users.length, months: month_users.length};
+            return { recent: recent_users.length, months: month_users.length };
         } catch (e) {
             throw exception.BadRequestError('BAD_REQUEST', 'getRecentActiveUser Error:' + e, null);
         }
@@ -3765,7 +3863,7 @@ OR JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.orderStatus')) NOT IN (-99)) `);
                 gap = Math.floor(((recent_month_total - previous_month_total) / previous_month_total) * 10000) / 10000;
             }
 
-            return {recent_month_total, previous_month_total, gap};
+            return { recent_month_total, previous_month_total, gap };
         } catch (e) {
             throw exception.BadRequestError('BAD_REQUEST', 'getRecentActiveUser Error:' + e, null);
         }
@@ -3774,7 +3872,6 @@ OR JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.orderStatus')) NOT IN (-99)) `);
     async getHotProducts(duration: 'month' | 'day' | 'all', query?: string) {
         try {
             const qData = JSON.parse(query || '{}');
-            console.log(qData);
 
             const sqlArray = ['1=1'];
             if (qData.filter_date === 'custom' && qData.start && qData.end) {
@@ -3838,15 +3935,15 @@ OR JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.orderStatus')) NOT IN (-99)) `);
                 FROM \`${this.app}\`.t_checkout
                 WHERE status = 1
                   AND ${(() => {
-                    switch (duration) {
-                        case 'day':
-                            return `created_time BETWEEN  CURDATE() AND CURDATE() + INTERVAL 1 DAY - INTERVAL 1 SECOND`;
-                        case 'month':
-                            return `(created_time BETWEEN DATE_SUB(NOW(), INTERVAL 1 MONTH) AND NOW())`;
-                        case 'all':
-                            return sqlArray.join(' AND ');
-                    }
-                })()};
+                      switch (duration) {
+                          case 'day':
+                              return `created_time BETWEEN  CURDATE() AND CURDATE() + INTERVAL 1 DAY - INTERVAL 1 SECOND`;
+                          case 'month':
+                              return `(created_time BETWEEN DATE_SUB(NOW(), INTERVAL 1 MONTH) AND NOW())`;
+                          case 'all':
+                              return sqlArray.join(' AND ');
+                      }
+                  })()};
             `;
 
             const checkouts = await db.query(checkoutSQL, []);
@@ -3889,7 +3986,7 @@ OR JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.orderStatus')) NOT IN (-99)) `);
                 }
             }
 
-            return {series, categories, product_list: final_product_list};
+            return { series, categories, product_list: final_product_list };
         } catch (e) {
             throw exception.BadRequestError('BAD_REQUEST', 'getRecentActiveUser Error:' + e, null);
         }
@@ -3923,7 +4020,7 @@ OR JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.orderStatus')) NOT IN (-99)) `);
                 gap = Math.floor(((recent_month_total - previous_month_total) / previous_month_total) * 10000) / 10000;
             }
 
-            return {recent_month_total, previous_month_total, gap};
+            return { recent_month_total, previous_month_total, gap };
         } catch (e) {
             throw exception.BadRequestError('BAD_REQUEST', 'getRecentActiveUser Error:' + e, null);
         }
@@ -5037,7 +5134,7 @@ OR JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.orderStatus')) NOT IN (-99)) `);
                         const sub = config.value[parentIndex].array.find((item: { title: string }) => {
                             return item.title === col;
                         });
-                        return {array: [], title: col, code: sub ? sub.code : ''};
+                        return { array: [], title: col, code: sub ? sub.code : '' };
                     }),
                 };
             } else {
@@ -5150,7 +5247,7 @@ OR JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.orderStatus')) NOT IN (-99)) `);
                                     WHERE \`key\` = 'collection';`;
             await db.execute(update_col_sql, [config.value]);
 
-            return {result: true};
+            return { result: true };
         } catch (e) {
             console.error(e);
             throw exception.BadRequestError('BAD_REQUEST', 'putCollection Error:' + e, null);
@@ -5181,11 +5278,9 @@ OR JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.orderStatus')) NOT IN (-99)) `);
 
                     const sortList = data.map((item) => {
                         if (index > -1) {
-                            return config.value[index].array.find((conf: {
-                                title: string
-                            }) => conf.title === item.title);
+                            return config.value[index].array.find((conf: { title: string }) => conf.title === item.title);
                         }
-                        return {title: '', array: [], code: ''};
+                        return { title: '', array: [], code: '' };
                     });
 
                     config.value[index].array = sortList;
@@ -5310,7 +5405,7 @@ OR JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.orderStatus')) NOT IN (-99)) `);
             const title = levels[0];
             let node = nodes.find((n) => n.title === title);
             if (!node) {
-                node = {title, array: []};
+                node = { title, array: [] };
                 nodes.push(node);
             }
             if (levels.length > 1) {
@@ -5490,19 +5585,17 @@ OR JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.orderStatus')) NOT IN (-99)) `);
                 if (parentTitles.length > 0) {
                     // data 為子層
                     const parentIndex = config.value.findIndex((col: { title: string }) => col.title === parentTitles);
-                    const childrenIndex = config.value[parentIndex].array.findIndex((col: {
-                        title: string
-                    }) => col.title === data.title);
+                    const childrenIndex = config.value[parentIndex].array.findIndex((col: { title: string }) => col.title === data.title);
                     const n = deleteList.findIndex((obj) => obj.parent === parentIndex);
                     if (n === -1) {
-                        deleteList.push({parent: parentIndex, child: [childrenIndex]});
+                        deleteList.push({ parent: parentIndex, child: [childrenIndex] });
                     } else {
                         deleteList[n].child.push(childrenIndex);
                     }
                 } else {
                     // data 為父層
                     const parentIndex = config.value.findIndex((col: { title: string }) => col.title === data.title);
-                    deleteList.push({parent: parentIndex, child: [-1]});
+                    deleteList.push({ parent: parentIndex, child: [-1] });
                 }
             });
 
@@ -5536,7 +5629,7 @@ OR JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.orderStatus')) NOT IN (-99)) `);
                                     WHERE \`key\` = 'collection';`;
             await db.execute(update_col_sql, [config.value]);
 
-            return {result: true};
+            return { result: true };
         } catch (e) {
             throw exception.BadRequestError('BAD_REQUEST', 'getCollectionProducts Error:' + e, null);
         }
@@ -5562,7 +5655,7 @@ OR JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.orderStatus')) NOT IN (-99)) `);
                     await this.updateProductCollection(product.content, product.id);
                 }
             }
-            return {result: true};
+            return { result: true };
         } catch (error) {
             throw exception.BadRequestError('BAD_REQUEST', 'deleteCollectionProduct Error:' + e, null);
         }
@@ -5577,12 +5670,12 @@ OR JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.orderStatus')) NOT IN (-99)) `);
     checkDuring(jsonData: { startDate: string; startTime: string; endDate?: string; endTime?: string }): boolean {
         const now = new Date().getTime();
 
-        const startDateTime = new Date(moment.tz(`${jsonData.startDate} ${jsonData.startTime}:00`, "YYYY-MM-DD HH:mm:ss", "Asia/Taipei").toISOString()).getTime();
+        const startDateTime = new Date(moment.tz(`${jsonData.startDate} ${jsonData.startTime}:00`, 'YYYY-MM-DD HH:mm:ss', 'Asia/Taipei').toISOString()).getTime();
         if (isNaN(startDateTime)) return false;
 
         if (!jsonData.endDate || !jsonData.endTime) return true;
 
-        const endDateTime = new Date(moment.tz(`${jsonData.endDate} ${jsonData.endTime}:00`, "YYYY-MM-DD HH:mm:ss", "Asia/Taipei").toISOString()).getTime();
+        const endDateTime = new Date(moment.tz(`${jsonData.endDate} ${jsonData.endTime}:00`, 'YYYY-MM-DD HH:mm:ss', 'Asia/Taipei').toISOString()).getTime();
         if (isNaN(endDateTime)) return false;
 
         return now >= startDateTime && now <= endDateTime;
@@ -5631,14 +5724,14 @@ OR JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.orderStatus')) NOT IN (-99)) `);
             query.id && querySql.push(`(v.id = ${query.id})`);
             query.id_list && querySql.push(`(v.id in (${query.id_list}))`);
             query.collection &&
-            querySql.push(
-                `(${query.collection
-                    .split(',')
-                    .map((dd) => {
-                        return query.accurate_search_collection ? `(JSON_CONTAINS(p.content->'$.collection', '"${dd}"'))` : `(JSON_EXTRACT(p.content, '$.collection') LIKE '%${dd}%')`;
-                    })
-                    .join(' or ')})`
-            );
+                querySql.push(
+                    `(${query.collection
+                        .split(',')
+                        .map((dd) => {
+                            return query.accurate_search_collection ? `(JSON_CONTAINS(p.content->'$.collection', '"${dd}"'))` : `(JSON_EXTRACT(p.content, '$.collection') LIKE '%${dd}%')`;
+                        })
+                        .join(' or ')})`
+                );
             query.status && querySql.push(`(JSON_EXTRACT(p.content, '$.status') = '${query.status}')`);
             query.min_price && querySql.push(`(v.content->>'$.sale_price' >= ${query.min_price})`);
             query.max_price && querySql.push(`(v.content->>'$.sale_price' <= ${query.min_price})`);
@@ -5759,13 +5852,13 @@ OR JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.orderStatus')) NOT IN (-99)) `);
                     `UPDATE \`${this.app}\`.t_variants
                      SET ?
                      WHERE id = ?`,
-                    [{content: JSON.stringify(data.variant_content)}, data.id]
+                    [{ content: JSON.stringify(data.variant_content) }, data.id]
                 );
                 await db.query(
                     `UPDATE \`${this.app}\`.t_manager_post
                      SET ?
                      WHERE id = ?`,
-                    [{content: JSON.stringify(data.product_content)}, data.product_id]
+                    [{ content: JSON.stringify(data.product_content) }, data.product_id]
                 );
             }
             return {
@@ -5819,19 +5912,11 @@ OR JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.orderStatus')) NOT IN (-99)) `);
             `UPDATE \`${this.app}\`.t_invoice_memory
              SET ?
              WHERE invoice_no = ?`,
-            [{status: 2, invoice_data: JSON.stringify(dbData.invoice_data)}, obj.invoice_no]
+            [{ status: 2, invoice_data: JSON.stringify(dbData.invoice_data) }, obj.invoice_no]
         );
     }
 
-    async allowanceInvoice(obj: {
-        invoiceID: string;
-        allowanceData: any;
-        orderID: string;
-        orderData: any;
-        allowanceInvoiceTotalAmount: string;
-        itemList: any;
-        invoiceDate: string
-    }) {
+    async allowanceInvoice(obj: { invoiceID: string; allowanceData: any; orderID: string; orderData: any; allowanceInvoiceTotalAmount: string; itemList: any; invoiceDate: string }) {
         const config = await app.getAdConfig(this.app, 'invoice_setting');
         let invoiceData = await db.query(
             `

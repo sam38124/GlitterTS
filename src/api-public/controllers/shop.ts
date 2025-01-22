@@ -15,7 +15,7 @@ import { Rebate, IRebateSearch } from '../services/rebate';
 import axios from 'axios';
 import { saasConfig } from '../../config.js';
 import { Stock } from '../services/stock.js';
-import {Pos} from "../services/pos.js";
+import { Pos } from '../services/pos.js';
 
 const router: express.Router = express.Router();
 export = router;
@@ -201,7 +201,7 @@ router.post('/checkout/preview', async (req: express.Request, resp: express.Resp
                     distribution_code: req.body.distribution_code,
                     code_array: req.body.code_array,
                     give_away: req.body.give_away,
-                    pos_store:req.body.pos_store,
+                    pos_store: req.body.pos_store,
                     language: req.headers['language'] as any,
                 },
                 'preview'
@@ -618,29 +618,31 @@ async function redirect_link(req: express.Request, resp: express.Response) {
         if (req.query.paynow === 'true') {
         }
         const html = String.raw;
-        return resp.send(html`<!DOCTYPE html>
-            <html lang="en">
-                <head>
-                    <meta charset="UTF-8" />
-                    <title>Title</title>
-                </head>
-                <body>
-                    <script>
-                        try {
-                            window.webkit.messageHandlers.addJsInterFace.postMessage(
-                                JSON.stringify({
-                                    functionName: 'check_out_finish',
-                                    callBackId: 0,
-                                    data: {
-                                        redirect: '${return_url.href}',
-                                    },
-                                })
-                            );
-                        } catch (e) {}
-                        location.href = '${return_url.href}';
-                    </script>
-                </body>
-            </html> `);
+        return resp.send(
+            html`<!DOCTYPE html>
+                <html lang="en">
+                    <head>
+                        <meta charset="UTF-8" />
+                        <title>Title</title>
+                    </head>
+                    <body>
+                        <script>
+                            try {
+                                window.webkit.messageHandlers.addJsInterFace.postMessage(
+                                    JSON.stringify({
+                                        functionName: 'check_out_finish',
+                                        callBackId: 0,
+                                        data: {
+                                            redirect: '${return_url.href}',
+                                        },
+                                    })
+                                );
+                            } catch (e) {}
+                            location.href = '${return_url.href}';
+                        </script>
+                    </body>
+                </html> `
+        );
     } catch (err) {
         return response.fail(resp, err);
     }
@@ -815,6 +817,15 @@ router.get('/dataAnalyze', async (req: express.Request, resp: express.Response) 
         } else {
             throw exception.BadRequestError('BAD_REQUEST', 'No permission.', null);
         }
+    } catch (err) {
+        return response.fail(resp, err);
+    }
+});
+
+// 資料分析
+router.get('/shippingMethod', async (req: express.Request, resp: express.Response) => {
+    try {
+        return response.succ(resp, await new Shopping(req.get('g-app') as string, req.body.token).getShippingMethod());
     } catch (err) {
         return response.fail(resp, err);
     }
@@ -1069,7 +1080,7 @@ router.post('/pos/checkout', async (req: express.Request, resp: express.Response
             resp,
             await new Shopping(req.get('g-app') as string, req.body.token).toCheckout(
                 {
-                    order_id:req.body.orderID,
+                    order_id: req.body.orderID,
                     line_items: req.body.lineItems as any,
                     email: req.body.customer_info.email,
                     return_url: req.body.return_url,
@@ -1082,9 +1093,9 @@ router.post('/pos/checkout', async (req: express.Request, resp: express.Response
                     pay_status: req.body.pay_status,
                     code_array: req.body.code_array,
                     pos_info: req.body.pos_info,
-                    pos_store:req.body.pos_store,
-                    invoice_select:req.body.invoice_select,
-                    pre_order:req.body.pre_order
+                    pos_store: req.body.pos_store,
+                    invoice_select: req.body.invoice_select,
+                    pre_order: req.body.pre_order,
                 },
                 'POS'
             )
@@ -1359,48 +1370,45 @@ router.post('/allowance_invoice', async (req: express.Request, resp: express.Res
 });
 
 //新增小結單
-router.post('/pos/summary',async (req: express.Request, resp: express.Response) =>{
+router.post('/pos/summary', async (req: express.Request, resp: express.Response) => {
     try {
-        await new Pos(req.get('g-app') as string, req.body.token).setSummary(req.body)
+        await new Pos(req.get('g-app') as string, req.body.token).setSummary(req.body);
         return response.succ(resp, {
-            result:true
+            result: true,
         });
-    }catch (err) {
+    } catch (err) {
         return response.fail(resp, err);
     }
-})
+});
 
 //取得小結單
-router.get('/pos/summary',async (req: express.Request, resp: express.Response) =>{
+router.get('/pos/summary', async (req: express.Request, resp: express.Response) => {
     try {
-
         return response.succ(resp, {
-            data:await new Pos(req.get('g-app') as string, req.body.token).getSummary(req.query.shop as string)
+            data: await new Pos(req.get('g-app') as string, req.body.token).getSummary(req.query.shop as string),
         });
-    }catch (err) {
+    } catch (err) {
         return response.fail(resp, err);
     }
-})
+});
 
 //取得上班狀態
-router.get('/pos/work-status',async (req: express.Request, resp: express.Response) =>{
+router.get('/pos/work-status', async (req: express.Request, resp: express.Response) => {
     try {
-
         return response.succ(resp, {
-            status:await new Pos(req.get('g-app') as string, req.body.token).getWorkStatus()
+            status: await new Pos(req.get('g-app') as string, req.body.token).getWorkStatus(),
         });
-    }catch (err) {
+    } catch (err) {
         return response.fail(resp, err);
     }
-})
+});
 //取得上班狀態
-router.post('/pos/work-status',async (req: express.Request, resp: express.Response) =>{
+router.post('/pos/work-status', async (req: express.Request, resp: express.Response) => {
     try {
-
         return response.succ(resp, {
-            status:await new Pos(req.get('g-app') as string, req.body.token).setWorkStatus(req.body)
+            status: await new Pos(req.get('g-app') as string, req.body.token).setWorkStatus(req.body),
         });
-    }catch (err) {
+    } catch (err) {
         return response.fail(resp, err);
     }
-})
+});

@@ -336,6 +336,18 @@ export class ApiShop {
         });
     }
 
+    static getShippingMethod() {
+        return BaseApi.create({
+            url: getBaseUrl() + `/api-public/v1/ec/shippingMethod`,
+            type: 'get',
+            headers: {
+                'Content-Type': 'application/json',
+                'g-app': getConfig().config.appName,
+                Authorization: GlobalUser.token,
+            },
+        });
+    }
+
     static getProduct(json: {
         limit: number;
         page: number;
@@ -868,7 +880,7 @@ export class ApiShop {
         //結帳類型
         checkOutType?: 'manual' | 'auto' | 'POS';
         //POS的門市
-        pos_store?:string;
+        pos_store?: string;
         use_rebate?: number;
         distribution_code?: string;
         user_info?: any;

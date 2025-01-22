@@ -94,6 +94,10 @@ type CartItem = {
     };
     discount_price?: number;
     rebate: number;
+    designated_logistics: {
+        type: 'all' | 'designated';
+        list: string[];
+    };
 };
 type Cart = {
     customer_info: any;
@@ -134,6 +138,7 @@ type Cart = {
     give_away: CartItem[];
     language?: string;
     pos_info?: any;
+    goodsWeight: number;
 };
 export declare class Shopping {
     app: string;
@@ -240,6 +245,10 @@ export declare class Shopping {
     }>;
     private generateOrderID;
     linePay(data: any): Promise<unknown>;
+    getShippingMethod(): Promise<{
+        name: string;
+        value: string;
+    }[]>;
     getPostAddressData(address: string): Promise<any>;
     toCheckout(data: {
         line_items: {
@@ -263,6 +272,10 @@ export declare class Shopping {
             is_gift?: boolean;
             stock: number;
             show_understocking: 'true' | 'false';
+            designated_logistics: {
+                type: 'all' | 'designated';
+                list: string[];
+            };
         }[];
         customer_info?: any;
         email?: string;

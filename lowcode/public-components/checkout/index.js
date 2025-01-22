@@ -48,7 +48,6 @@ export class CheckoutIndex {
             rebateConfig: {
                 title: '購物金',
             },
-            goodsWeight: 0,
         };
         const classPrefix = Tool.randomString(6);
         PdClass.addSpecStyle(gvc);
@@ -603,7 +602,6 @@ export class CheckoutIndex {
                                         bind: glitter.getUUID(),
                                         view: () => {
                                             try {
-                                                vm.goodsWeight = 0;
                                                 return vm.cartData.lineItems
                                                     .map((item, index) => {
                                                     function getBadgeClass() {
@@ -638,9 +636,6 @@ export class CheckoutIndex {
                                                             return ``;
                                                         }
                                                     })();
-                                                    if (item.shipment_obj.type === 'weight') {
-                                                        vm.goodsWeight += item.count * item.shipment_obj.value;
-                                                    }
                                                     if (vm.cartData.lineItems.length === index + 1) {
                                                         gvc.notifyDataChange(ids.shipping);
                                                     }
@@ -1497,9 +1492,9 @@ export class CheckoutIndex {
                             bind: ids.shipping,
                             view: () => {
                                 return html ` <div>
-                                                            <select
-                                                                class="w-100 ${gClass('select')}"
-                                                                onchange="${gvc.event((e) => {
+                                                        <select
+                                                            class="w-100 ${gClass('select')}"
+                                                            onchange="${gvc.event((e) => {
                                     [
                                         'CVSStoreName',
                                         'MerchantTradeNo',
@@ -1517,30 +1512,18 @@ export class CheckoutIndex {
                                     this.storeLocalData(vm.cartData);
                                     refreshCartData();
                                 })}"
-                                                            >
-                                                                ${(() => {
+                                                        >
+                                                            ${(() => {
                                     return this.getShipmentMethod(vm.cartData)
-                                        .filter((dd) => {
-                                        if (vm.cartData.total > 20000 && ['UNIMARTC2C', 'FAMIC2C', 'HILIFEC2C', 'OKMARTC2C'].includes(dd.value)) {
-                                            return false;
-                                        }
-                                        if (vm.goodsWeight > 20 && ['normal', 'black_cat'].includes(dd.value)) {
-                                            return false;
-                                        }
-                                        return true;
-                                    })
                                         .map((dd) => {
                                         return html ` <option value="${dd.value}" ${vm.cartData.user_info.shipment === dd.value ? `selected` : ``}>
-                                                                                ${Language.text(`ship_${dd.value}`) || Language.getLanguageCustomText(dd.name)}
-                                                                            </option>`;
+                                                                            ${Language.text(`ship_${dd.value}`) || Language.getLanguageCustomText(dd.name)}
+                                                                        </option>`;
                                     })
                                         .join('');
                                 })()}
-                                                            </select>
-                                                        </div>
-
-                                                        ${vm.cartData.total > 20000 ? html `<p class="${gClass('shipping-hint')} d-none">若總金額超過20,000元，無法提供四大超商配送</p>` : ''}
-                                                        ${vm.goodsWeight > 20 ? html `<p class="${gClass('shipping-hint')} d-none">若訂單總重超過20公斤，無法提供中華郵政/黑貓宅配服務</p>` : ''}`;
+                                                        </select>
+                                                    </div>`;
                             },
                         })}
                                         </div>
@@ -2565,8 +2548,6 @@ export class CheckoutIndex {
             return false;
         }
         const leakData_customer = FormWidget.checkLeakDataObj(widget.share.custom_form_checkout, Object.assign(Object.assign({}, userData), cartData.custom_form_data));
-        console.log(`leakData_customer===>`, leakData_customer);
-        console.log(`leakData_user===>`, userData);
         if (leakData_customer) {
             dialog.errorMessage({
                 text: (() => {

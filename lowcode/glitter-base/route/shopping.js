@@ -324,6 +324,17 @@ export class ApiShop {
             },
         });
     }
+    static getShippingMethod() {
+        return BaseApi.create({
+            url: getBaseUrl() + `/api-public/v1/ec/shippingMethod`,
+            type: 'get',
+            headers: {
+                'Content-Type': 'application/json',
+                'g-app': getConfig().config.appName,
+                Authorization: GlobalUser.token,
+            },
+        });
+    }
     static getProduct(json) {
         return BaseApi.create({
             url: getBaseUrl() +

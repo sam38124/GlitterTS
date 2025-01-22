@@ -531,8 +531,6 @@ class Stock {
         const product_content = data.product_content;
         const variant_content = data.variant_content;
         const stockList = variant_content.stockList;
-        console.log('======= 修改 variant stockList =======');
-        console.log(stockList[store], type, count);
         if (stockList[store]) {
             if (type === 'plus') {
                 if (stockList[store].count) {
@@ -563,12 +561,9 @@ class Stock {
         const productVariant = product_content.variants.find((item) => {
             return item.spec.join(',') === variant_content.spec.join(',');
         });
-        console.log(productVariant);
         if (productVariant) {
             productVariant.stockList = variant_content.stockList;
             productVariant.stock = variant_content.stock;
-            console.log(productVariant.stockList);
-            console.log(productVariant.stock);
         }
         return {
             product_content,

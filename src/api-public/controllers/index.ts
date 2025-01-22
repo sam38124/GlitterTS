@@ -121,6 +121,7 @@ const whiteList: {}[] = [
     { url: config.getRoute(config.public_route.ec + '/redirect', 'public'), method: 'GET' },
     { url: config.getRoute(config.public_route.ec + '/apple-webhook', 'public'), method: 'POST' },
     { url: config.getRoute(config.public_route.ec + '/notify', 'public'), method: 'POST' },
+    { url: config.getRoute(config.public_route.ec + '/shippingMethod', 'public'), method: 'GET' },
     { url: config.getRoute(config.public_route.ai_points + '/notify', 'public'), method: 'POST' },
     { url: config.getRoute(config.public_route.ec + '/payment/method', 'public'), method: 'GET' },
     { url: config.getRoute(config.public_route.ec + '/currency-covert', 'public'), method: 'GET' },

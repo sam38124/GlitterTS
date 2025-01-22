@@ -52,7 +52,6 @@ export class CheckoutIndex {
             rebateConfig: {
                 title: '購物金',
             } as any,
-            goodsWeight: 0,
         };
         const classPrefix = Tool.randomString(6);
         PdClass.addSpecStyle(gvc);
@@ -658,7 +657,6 @@ export class CheckoutIndex {
                                                             bind: glitter.getUUID(),
                                                             view: () => {
                                                                 try {
-                                                                    vm.goodsWeight = 0;
                                                                     return vm.cartData.lineItems
                                                                         .map((item: any, index: number) => {
                                                                             // min_qty
@@ -692,9 +690,6 @@ export class CheckoutIndex {
                                                                                     return ``;
                                                                                 }
                                                                             })();
-                                                                            if (item.shipment_obj.type === 'weight') {
-                                                                                vm.goodsWeight += item.count * item.shipment_obj.value;
-                                                                            }
                                                                             if (vm.cartData.lineItems.length === index + 1) {
                                                                                 gvc.notifyDataChange(ids.shipping);
                                                                             }
@@ -1595,50 +1590,38 @@ export class CheckoutIndex {
                                                 bind: ids.shipping,
                                                 view: () => {
                                                     return html` <div>
-                                                            <select
-                                                                class="w-100 ${gClass('select')}"
-                                                                onchange="${gvc.event((e) => {
-                                                                    [
-                                                                        'CVSStoreName',
-                                                                        'MerchantTradeNo',
-                                                                        'LogisticsSubType',
-                                                                        'CVSStoreID',
-                                                                        'CVSStoreName',
-                                                                        'CVSTelephone',
-                                                                        'CVSOutSide',
-                                                                        'ExtraData',
-                                                                        'CVSAddress',
-                                                                    ].map((dd) => {
-                                                                        gvc.glitter.setUrlParameter(dd);
-                                                                    });
-                                                                    vm.cartData.user_info.shipment = e.value;
-                                                                    this.storeLocalData(vm.cartData);
-                                                                    refreshCartData();
-                                                                })}"
-                                                            >
-                                                                ${(() => {
-                                                                    return this.getShipmentMethod(vm.cartData)
-                                                                        .filter((dd: any) => {
-                                                                            if (vm.cartData.total > 20000 && ['UNIMARTC2C', 'FAMIC2C', 'HILIFEC2C', 'OKMARTC2C'].includes(dd.value)) {
-                                                                                return false;
-                                                                            }
-                                                                            if (vm.goodsWeight > 20 && ['normal', 'black_cat'].includes(dd.value)) {
-                                                                                return false;
-                                                                            }
-                                                                            return true;
-                                                                        })
-                                                                        .map((dd: { name: string; value: string }) => {
-                                                                            return html` <option value="${dd.value}" ${vm.cartData.user_info.shipment === dd.value ? `selected` : ``}>
-                                                                                ${Language.text(`ship_${dd.value}`) || Language.getLanguageCustomText(dd.name)}
-                                                                            </option>`;
-                                                                        })
-                                                                        .join('');
-                                                                })()}
-                                                            </select>
-                                                        </div>
-
-                                                        ${vm.cartData.total > 20000 ? html`<p class="${gClass('shipping-hint')} d-none">若總金額超過20,000元，無法提供四大超商配送</p>` : ''}
-                                                        ${vm.goodsWeight > 20 ? html`<p class="${gClass('shipping-hint')} d-none">若訂單總重超過20公斤，無法提供中華郵政/黑貓宅配服務</p>` : ''}`;
+                                                        <select
+                                                            class="w-100 ${gClass('select')}"
+                                                            onchange="${gvc.event((e) => {
+                                                                [
+                                                                    'CVSStoreName',
+                                                                    'MerchantTradeNo',
+                                                                    'LogisticsSubType',
+                                                                    'CVSStoreID',
+                                                                    'CVSStoreName',
+                                                                    'CVSTelephone',
+                                                                    'CVSOutSide',
+                                                                    'ExtraData',
+                                                                    'CVSAddress',
+                                                                ].map((dd) => {
+                                                                    gvc.glitter.setUrlParameter(dd);
+                                                                });
+                                                                vm.cartData.user_info.shipment = e.value;
+                                                                this.storeLocalData(vm.cartData);
+                                                                refreshCartData();
+                                                            })}"
+                                                        >
+                                                            ${(() => {
+                                                                return this.getShipmentMethod(vm.cartData)
+                                                                    .map((dd: { name: string; value: string }) => {
+                                                                        return html` <option value="${dd.value}" ${vm.cartData.user_info.shipment === dd.value ? `selected` : ``}>
+                                                                            ${Language.text(`ship_${dd.value}`) || Language.getLanguageCustomText(dd.name)}
+                                                                        </option>`;
+                                                                    })
+                                                                    .join('');
+                                                            })()}
+                                                        </select>
+                                                    </div>`;
                                                 },
                                             })}
                                         </div>
@@ -2474,7 +2457,7 @@ export class CheckoutIndex {
                                                         dialog.errorMessage({ text: Language.text('min_p_count_d').replace('_c_', min).replace('_p_', `『${title}』`) });
                                                         return;
                                                     }
-                                                    if(count > max_qty){
+                                                    if (count > max_qty) {
                                                         dialog.errorMessage({ text: Language.text('max_p_count_d').replace('_c_', min).replace('_p_', `『${title}』`) });
                                                         return;
                                                     }
@@ -2729,8 +2712,6 @@ export class CheckoutIndex {
             ...userData,
             ...cartData.custom_form_data,
         });
-        console.log(`leakData_customer===>`, leakData_customer);
-        console.log(`leakData_user===>`, userData);
         if (leakData_customer) {
             dialog.errorMessage({
                 text: (() => {

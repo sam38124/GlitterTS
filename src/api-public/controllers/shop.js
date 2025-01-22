@@ -555,28 +555,28 @@ async function redirect_link(req, resp) {
         }
         const html = String.raw;
         return resp.send(html `<!DOCTYPE html>
-            <html lang="en">
-                <head>
-                    <meta charset="UTF-8" />
-                    <title>Title</title>
-                </head>
-                <body>
-                    <script>
-                        try {
-                            window.webkit.messageHandlers.addJsInterFace.postMessage(
-                                JSON.stringify({
-                                    functionName: 'check_out_finish',
-                                    callBackId: 0,
-                                    data: {
-                                        redirect: '${return_url.href}',
-                                    },
-                                })
-                            );
-                        } catch (e) {}
-                        location.href = '${return_url.href}';
-                    </script>
-                </body>
-            </html> `);
+                <html lang="en">
+                    <head>
+                        <meta charset="UTF-8" />
+                        <title>Title</title>
+                    </head>
+                    <body>
+                        <script>
+                            try {
+                                window.webkit.messageHandlers.addJsInterFace.postMessage(
+                                    JSON.stringify({
+                                        functionName: 'check_out_finish',
+                                        callBackId: 0,
+                                        data: {
+                                            redirect: '${return_url.href}',
+                                        },
+                                    })
+                                );
+                            } catch (e) {}
+                            location.href = '${return_url.href}';
+                        </script>
+                    </body>
+                </html> `);
     }
     catch (err) {
         return response_1.default.fail(resp, err);
@@ -723,6 +723,14 @@ router.get('/dataAnalyze', async (req, resp) => {
         else {
             throw exception_1.default.BadRequestError('BAD_REQUEST', 'No permission.', null);
         }
+    }
+    catch (err) {
+        return response_1.default.fail(resp, err);
+    }
+});
+router.get('/shippingMethod', async (req, resp) => {
+    try {
+        return response_1.default.succ(resp, await new shopping_1.Shopping(req.get('g-app'), req.body.token).getShippingMethod());
     }
     catch (err) {
         return response_1.default.fail(resp, err);
@@ -996,7 +1004,7 @@ router.post('/pos/checkout', async (req, resp) => {
             pos_info: req.body.pos_info,
             pos_store: req.body.pos_store,
             invoice_select: req.body.invoice_select,
-            pre_order: req.body.pre_order
+            pre_order: req.body.pre_order,
         }, 'POS'));
     }
     try {
@@ -1231,7 +1239,7 @@ router.post('/pos/summary', async (req, resp) => {
     try {
         await new pos_js_1.Pos(req.get('g-app'), req.body.token).setSummary(req.body);
         return response_1.default.succ(resp, {
-            result: true
+            result: true,
         });
     }
     catch (err) {
@@ -1241,7 +1249,7 @@ router.post('/pos/summary', async (req, resp) => {
 router.get('/pos/summary', async (req, resp) => {
     try {
         return response_1.default.succ(resp, {
-            data: await new pos_js_1.Pos(req.get('g-app'), req.body.token).getSummary(req.query.shop)
+            data: await new pos_js_1.Pos(req.get('g-app'), req.body.token).getSummary(req.query.shop),
         });
     }
     catch (err) {
@@ -1251,7 +1259,7 @@ router.get('/pos/summary', async (req, resp) => {
 router.get('/pos/work-status', async (req, resp) => {
     try {
         return response_1.default.succ(resp, {
-            status: await new pos_js_1.Pos(req.get('g-app'), req.body.token).getWorkStatus()
+            status: await new pos_js_1.Pos(req.get('g-app'), req.body.token).getWorkStatus(),
         });
     }
     catch (err) {
@@ -1261,7 +1269,7 @@ router.get('/pos/work-status', async (req, resp) => {
 router.post('/pos/work-status', async (req, resp) => {
     try {
         return response_1.default.succ(resp, {
-            status: await new pos_js_1.Pos(req.get('g-app'), req.body.token).setWorkStatus(req.body)
+            status: await new pos_js_1.Pos(req.get('g-app'), req.body.token).setWorkStatus(req.body),
         });
     }
     catch (err) {
