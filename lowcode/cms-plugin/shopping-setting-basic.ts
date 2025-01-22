@@ -844,13 +844,42 @@ export class ShoppingSettingBasic {
                     BgWidget.mainCard(html`
                         <div class="d-flex align-items-center justify-content-between" style="color: #393939;font-size: 16px;font-weight: 700;margin-bottom: 18px;">
                             <div class="d-flex align-items-center">圖片${BgWidget.languageInsignia(sel_lan(), 'margin-left:5px;')}</div>
+                            <div class="d-flex align-items-center gap-2">${BgWidget.customButton({
+                                button: {
+                                    color: 'black',
+                                    size: 'sm',
+                                },
+                                text: {
+                                    name: '上傳圖片',
+                                },
+                                event: gvc.event(() => {
+                                    EditorElem.uploadFileFunction({
+                                        gvc: gvc,
+                                        callback: (images: any) => {
+                                            const addImage = (urlArray: string[]) => {
+                                                if (urlArray.length > 0) {
+                                                    language_data.preview_image.push(...urlArray);
+                                                    obj.gvc.notifyDataChange('image_view');
+                                                } else {
+                                                    const dialog = new ShareDialog(gvc.glitter);
+                                                    dialog.errorMessage({ text: '請選擇至少一張圖片' });
+                                                }
+                                            }
+                                            addImage(images)
+                                        },
+                                        type: `image/*`,
+                                        return_array: true,
+                                        multiple: true,
+                                    });
+                                }),
+                            })}
                             ${BgWidget.customButton({
                                 button: {
                                     color: 'black',
                                     size: 'sm',
                                 },
                                 text: {
-                                    name: '新增圖片',
+                                    name: '從圖片庫選取',
                                 },
                                 event: gvc.event(() => {
                                     imageLibrary.selectImageLibrary(
@@ -872,7 +901,7 @@ export class ShoppingSettingBasic {
                                         { mul: true }
                                     );
                                 }),
-                            })}
+                            })}</div>
                         </div>
                         ${obj.gvc.bindView(() => {
                             return {
