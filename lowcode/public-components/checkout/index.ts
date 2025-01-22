@@ -200,6 +200,7 @@ export class CheckoutIndex {
                     background: #dddddd;
                     padding: 0 24px;
                     margin: 18px 0;
+                    cursor: not-allowed !important;
                 }
 
                 .${classPrefix}-button-text {
@@ -2423,22 +2424,26 @@ export class CheckoutIndex {
                                         };
                                     })}
                                     ${(() => {
-                                        const temp = [];
+                                        const verify = [];
                                         const shipment = vm.cartData.shipment_selector.find((item: any) => item.value === vm.cartData.user_info.shipment);
                                         if (shipment.isExcludedByTotal) {
-                                            temp.push(html`<p class="${gClass('shipping-hint')}">提示：若總金額超過20,000元，結帳系統無法提供四大超商配送，請調整購買項目</p>`);
+                                            verify.push('提示：若總金額超過20,000元，結帳系統無法提供四大超商配送，請調整購買項目');
                                         }
                                         if (shipment.isExcludedByWeight) {
-                                            temp.push(html`<p class="${gClass('shipping-hint')}">提示：若訂單總重超過20公斤，無法提供中華郵政/黑貓宅配服務，請調整購買項目</p>`);
+                                            verify.push('提示：若訂單總重超過20公斤，無法提供中華郵政/黑貓宅配服務，請調整購買項目');
                                         }
                                         return html`<div class="w-100 d-flex flex-column align-items-end justify-content-cneter px-2 mt-3">
                                             ${[
-                                                temp.join(''),
+                                                verify
+                                                    .map((text) => {
+                                                        return html`<p class="${gClass('shipping-hint')}">${text}</p>`;
+                                                    })
+                                                    .join(''),
                                                 html`
                                                     <button
-                                                        class="${gClass(temp.length > 0 ? 'button-bgr-disable' : 'button-bgr')}"
+                                                        class="${gClass(verify.length > 0 ? 'button-bgr-disable' : 'button-bgr')}"
                                                         onclick="${gvc.event(() => {
-                                                            if (temp.length > 0) {
+                                                            if (verify.length > 0) {
                                                                 return;
                                                             }
                                                             // glitter.innerDialog((gvc:GVC)=>{
