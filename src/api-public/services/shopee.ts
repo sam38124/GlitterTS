@@ -82,7 +82,7 @@ export class Shopee {
     }
 
     public generateShopUrl(partner_id: string, api_path: string, timestamp: number, access_token: string, shop_id: number) {
-       const sign = this.cryptoSign(partner_id, api_path, timestamp, access_token, shop_id);
+        const sign = this.cryptoSign(partner_id, api_path, timestamp, access_token, shop_id);
 
         return `${Shopee.path}${api_path}?partner_id=${partner_id}&timestamp=${timestamp}&sign=${sign}`
         // ?partner_id=1249034&sign=528d448cde17720098c8886aafc973c093af54a489ff4ef80198b39de958d484&timestamp=1736322488
@@ -160,7 +160,7 @@ export class Shopee {
         // return `${path}${api_path}?partner_id=${partner_id}&timestamp=${timestamp}&redirect=${redirectUrl}&sign=${signature}`
     }
 
-    public async getItemList(start: string, end: string,index:number=0) {
+    public async getItemList(start: string, end: string, index: number = 0) {
         const timestamp = Math.floor(Date.now() / 1000);
         const partner_id = process.env.shopee_partner_id ?? "";//測試版是test partner_id;
         const api_path = "/api/v2/product/get_item_list";
@@ -197,26 +197,29 @@ export class Shopee {
             const response = await axios(config);
             if (response.data.error.length > 0) {
                 return {
-                    type : "error",
-                    message : response.data.error
+                    type: "error",
+                    message: response.data.error
                 }
             }
 
-            console.log(`蝦皮回覆:`,response.data);
-            const itemList:{
-                item_id:number,
-                item_status:string,
-                update_time:number
-            }[]=response.data.response.item;
+            console.log(`蝦皮回覆:`, response.data);
+            const itemList: {
+                item_id: number,
+                item_status: string,
+                update_time: number
+            }[] = response.data.response.item;
             //透過item_id 取得他的detail 和 model(shopee的variants)
 
             const productData = await Promise.all(
                 itemList.map(async (item, index: number) => {
                     try {
-                        const productData = await db.query(`SELECT count(1) FROM ${this.app}.t_manager_post WHERE (content->>'$.type'='product') AND (content->>'$.shopee_id' =?);`,[item.item_id])
-                        if(productData[0]['count(1)']>0){
+                        const productData = await db.query(`SELECT count(1)
+                                                            FROM ${this.app}.t_manager_post
+                                                            WHERE (content ->>'$.type'='product')
+                                                              AND (content ->>'$.shopee_id' =?);`, [item.item_id])
+                        if (productData[0]['count(1)'] > 0) {
                             return null
-                        }else{
+                        } else {
                             return await this.getProductDetail(item.item_id); // 返回上傳後的資料
                         }
                     } catch (error) {
@@ -226,27 +229,27 @@ export class Shopee {
                 })
             );
             const temp: any = {}
-            temp.data = productData.reverse().filter((dd)=>{
+            temp.data = productData.reverse().filter((dd) => {
                 return dd
             });
             temp.collection = [];
 
             try {
-                await new Shopping(this.app , this.token).postMulProduct(temp);
-                if(response.data.response.has_next_page){
+                await new Shopping(this.app, this.token).postMulProduct(temp);
+                if (response.data.response.has_next_page) {
 
-                    await this.getItemList(start,end,response.data.response.next_offset)
+                    await this.getItemList(start, end, response.data.response.next_offset)
                 }
                 return {
-                    data : temp.data,
-                    message:'匯入OK'
+                    data: temp.data,
+                    message: '匯入OK'
                 }
-            }catch (error:any){
-
+            } catch (error: any) {
+                console.error(error)
                 return {
-                    type : "error",
-                    data : temp.data,
-                    message:'產品匯入資料庫失敗'
+                    type: "error",
+                    data: temp.data,
+                    message: '產品匯入資料庫失敗'
                 }
             }
 
@@ -257,7 +260,7 @@ export class Shopee {
                 console.error('Error Response:', error.response.data);
 
                 return {
-                    type : "error",
+                    type: "error",
                     error: error.response.data.error,
                     message: error.response.data.message,
                 }
@@ -448,16 +451,20 @@ export class Shopee {
                 }
             }
         }
-        let data:any;
+
+        let data: any;
         try {
-            const sqlData=(await db.execute(
-                `select * from \`${saasConfig.SAAS_NAME}\`.private_config where \`app_name\`='${this.app}' and \`key\` = 'shopee_access_token'
-            `,
+            const sqlData = (await db.execute(
+                `select *
+                 from \`${saasConfig.SAAS_NAME}\`.private_config
+                 where \`app_name\` = '${this.app}'
+                   and \`key\` = 'shopee_access_token'
+                `,
                 []
             ));
             data = sqlData
-        }catch (e:any){
-            console.log("get private_config shopee_access_token error : " , e);
+        } catch (e: any) {
+            console.log("get private_config shopee_access_token error : ", e);
         }
 
 
@@ -482,10 +489,13 @@ export class Shopee {
             const item = response.data.response.item_list[0]
 
             //取得是否原本有資料
-            let origData:any = {};
+            let origData: any = {};
             try {
-                origData = await db.query(`SELECT * FROM \`${this.app}\`.t_manager_post WHERE (content->>'$.type'='product') AND (content->>'$.shopee_id' = ?);`,[id])
-            }catch (e:any){
+                origData = await db.query(`SELECT *
+                                           FROM \`${this.app}\`.t_manager_post
+                                           WHERE (content ->>'$.type'='product')
+                                             AND (content ->>'$.shopee_id' = ?);`, [id])
+            } catch (e: any) {
 
             }
             let postMD: {
@@ -525,7 +535,7 @@ export class Shopee {
             };
 
             postMD = this.getInitial({});
-            if (origData.length>0){
+            if (origData.length > 0) {
                 postMD = {
                     ...postMD,
                     ...origData[0]
@@ -534,9 +544,9 @@ export class Shopee {
 
             postMD.title = item.item_name;
             // 兩邊商品介紹結構不同
-            if (item.description_info.extended_description.field_list.length > 0){
+            if (item.description_info.extended_description.field_list.length > 0) {
                 let temp = ``;
-                const promises = item.description_info.extended_description.field_list.map(async (item1:any) => {
+                const promises = item.description_info.extended_description.field_list.map(async (item1: any) => {
                     if (item1.field_type == 'image') {
                         try {
                             const buffer = await this.downloadImage(item1.image_info.image_url);
@@ -551,20 +561,23 @@ export class Shopee {
                 });
                 const html = String.raw;
                 await Promise.all(promises);
-                item.description_info.extended_description.field_list.map((item:any)=>{
+                item.description_info.extended_description.field_list.map((item: any) => {
 
                     if (item.field_type == 'image') {
-                        temp += html`<div style="white-space: pre-wrap;"><img src="${item.image_info.s3}" alt='${item.image_info.image_id}'></div>`
-                    }else if (item.field_type == 'text') {
-                        temp += html`<div style="white-space: pre-wrap;">${item.text}</div>`
+                        temp += html`
+                            <div style="white-space: pre-wrap;"><img src="${item.image_info.s3}"
+                                                                     alt='${item.image_info.image_id}'></div>`
+                    } else if (item.field_type == 'text') {
+                        temp += html`
+                            <div style="white-space: pre-wrap;">${item.text}</div>`
                     }
                 })
                 postMD.content = temp;
             }
 
-            if (item.price_info){
+            if (item.price_info) {
                 //單規格
-                let newVariants:Variant ={
+                let newVariants: Variant = {
                     sale_price: item.price_info[0].current_price,
                     compare_price: item.price_info[0].original_price,
                     cost: 0,

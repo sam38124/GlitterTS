@@ -200,6 +200,7 @@ class Shopee {
                 };
             }
             catch (error) {
+                console.error(error);
                 return {
                     type: "error",
                     data: temp.data,
