@@ -150,6 +150,16 @@ export class ShoppingSettingAdvance {
             obj.gvc.notifyDataChange(variantsViewID);
         }
         updateVariants();
+        const cat_title = (() => {
+            switch (postMD.product_category) {
+                case "commodity":
+                    return '商品';
+                case 'course':
+                    return '課程';
+                default:
+                    return '商品';
+            }
+        })();
         return BgWidget.container(gvc.bindView(() => {
             const id = gvc.glitter.getUUID();
             function refresh() {
@@ -162,8 +172,8 @@ export class ShoppingSettingAdvance {
                         BgWidget.mainCard([
                             html `
                                         <div class="d-flex flex-column guide5-4">
-                                            <div style="font-weight: 700;" class="mb-1">商品標籤 ${BgWidget.languageInsignia(vm.language, 'margin-left:5px;')}</div>
-                                            ${BgWidget.grayNote('用戶於前台搜尋標籤，即可搜尋到此商品')}
+                                            <div style="font-weight: 700;" class="mb-1">${cat_title}標籤 ${BgWidget.languageInsignia(vm.language, 'margin-left:5px;')}</div>
+                                            ${BgWidget.grayNote('用戶於前台搜尋標籤，即可搜尋到此' + cat_title)}
                                             <div class="mb-2"></div>
                                             ${BgWidget.multipleInput(gvc, postMD.product_tag.language[vm.language], {
                                 save: (def) => {
@@ -173,7 +183,7 @@ export class ShoppingSettingAdvance {
                                         </div>
                                     `,
                             html ` <div class="mt-2 mb-2 position-relative" style="font-weight: 700;">
-                                            商品促銷標籤
+                                            ${cat_title}促銷標籤
                                             ${BgWidget.questionButton(gvc.event(() => {
                                 QuestionInfo.promoteLabel(gvc);
                             }))}
@@ -213,7 +223,7 @@ export class ShoppingSettingAdvance {
                                     },
                                 };
                             })())}`,
-                            html ` <div class="d-flex flex-column mt-2">
+                            (postMD.product_category === 'course') ? `` : `<div class="d-flex flex-column mt-2">
                                         <div style="font-weight: 700;" class="mb-1">數量單位 ${BgWidget.languageInsignia(vm.language, 'margin-left:5px;')}</div>
                                         ${BgWidget.grayNote('例如 : 坪、件、個、打，預設單位為件。')}
                                         <div class="mb-2"></div>
@@ -228,12 +238,12 @@ export class ShoppingSettingAdvance {
                                     gvc.notifyDataChange(id);
                                 },
                             })}
-                                    </div>`,
+                                    </div>`
                         ].join('')),
                         BgWidget.mainCard([
                             html `
                                         <div class="d-flex flex-column guide5-4">
-                                            <div style="font-weight: 700;" class="mb-2">商品購買限制</div>
+                                            <div style="font-weight: 700;" class="mb-2">${cat_title}購買限制</div>
                                         </div>
                                     `,
                             ...(postMD.productType.giveaway
@@ -250,9 +260,14 @@ export class ShoppingSettingAdvance {
                                         checked: postMD.max_qty,
                                     },
                                     {
-                                        title: '購買特定商品才能購買此商品',
+                                        title: `需連同特定${cat_title}一併購買`,
                                         key: 'match_by_with',
                                         checked: postMD.match_by_with,
+                                    },
+                                    {
+                                        title: `過往購買過特定${cat_title}才能購買此${cat_title}`,
+                                        key: 'legacy_by_with',
+                                        checked: postMD.legacy_by_with,
                                     },
                                 ].map((dd) => {
                                     const text_ = [
@@ -284,6 +299,15 @@ export class ShoppingSettingAdvance {
                                                         }
                                                         else {
                                                             postMD['match_by_with'] = [];
+                                                        }
+                                                        gvc.notifyDataChange(id);
+                                                        break;
+                                                    case 'legacy_by_with':
+                                                        if (postMD['legacy_by_with']) {
+                                                            delete postMD['legacy_by_with'];
+                                                        }
+                                                        else {
+                                                            postMD['legacy_by_with'] = [];
                                                         }
                                                         gvc.notifyDataChange(id);
                                                         break;
@@ -321,7 +345,87 @@ export class ShoppingSettingAdvance {
                                                             try {
                                                                 return html `
                                                                                   <div style="font-weight: 700;" class=" d-flex flex-column">
-                                                                                      ${BgWidget.grayNote('購物車必須連同包含以下其中一個商品才可結帳')}
+                                                                                      ${BgWidget.grayNote(`購物車必須連同包含以下其中一個${postMD.product_category === 'course' ? `課程或商品` : `商品`}才可結帳`)}
+                                                                                  </div>
+                                                                                  <div class="d-flex align-items-center gray-bottom-line-18" style="gap: 24px; justify-content: space-between;">
+                                                                                      <div class="form-check-label c_updown_label">
+                                                                                          <div class="tx_normal">商品列表</div>
+                                                                                      </div>
+                                                                                      ${BgWidget.grayButton('選擇商品', gvc.event(() => {
+                                                                    BgProduct.productsDialog({
+                                                                        gvc: gvc,
+                                                                        default: postMD.match_by_with,
+                                                                        callback: (value) => __awaiter(this, void 0, void 0, function* () {
+                                                                            postMD.match_by_with = value;
+                                                                            gvc.notifyDataChange(id);
+                                                                        }),
+                                                                        filter: (dd) => {
+                                                                            return dd.key !== postMD.id;
+                                                                        },
+                                                                    });
+                                                                }), { textStyle: 'font-weight: 400;' })}
+                                                                                  </div>
+                                                                                  ${gvc.bindView(() => {
+                                                                    const vm = {
+                                                                        id: gvc.glitter.getUUID(),
+                                                                        loading: true,
+                                                                        data: [],
+                                                                    };
+                                                                    BgProduct.getProductOpts(postMD.match_by_with).then((res) => {
+                                                                        vm.data = res;
+                                                                        vm.loading = false;
+                                                                        gvc.notifyDataChange(vm.id);
+                                                                    });
+                                                                    return {
+                                                                        bind: vm.id,
+                                                                        view: () => __awaiter(this, void 0, void 0, function* () {
+                                                                            if (vm.loading) {
+                                                                                return BgWidget.spinner();
+                                                                            }
+                                                                            return vm.data
+                                                                                .map((opt, index) => {
+                                                                                return html ` <div class="d-flex align-items-center form-check-label c_updown_label gap-3">
+                                                                                                          <span class="tx_normal">${index + 1} .</span>
+                                                                                                          ${BgWidget.validImageBox({
+                                                                                    gvc: gvc,
+                                                                                    image: opt.image,
+                                                                                    width: 40,
+                                                                                })}
+                                                                                                          <div class="tx_normal ${opt.note ? 'mb-1' : ''}">${opt.value}</div>
+                                                                                                          ${opt.note ? html ` <div class="tx_gray_12">${opt.note}</div> ` : ''}
+                                                                                                      </div>`;
+                                                                            })
+                                                                                .join('');
+                                                                        }),
+                                                                        divCreate: {
+                                                                            class: `d-flex py-2 flex-column`,
+                                                                            style: `gap:10px;`,
+                                                                        },
+                                                                    };
+                                                                })}
+                                                                              `;
+                                                            }
+                                                            catch (e) {
+                                                                console.error(e);
+                                                                return '';
+                                                            }
+                                                        },
+                                                        divCreate: {
+                                                            class: `w-100`,
+                                                        },
+                                                    };
+                                                }));
+                                                break;
+                                            case 'legacy_by_with':
+                                                text_.push(obj.gvc.bindView(() => {
+                                                    const id = gvc.glitter.getUUID();
+                                                    return {
+                                                        bind: id,
+                                                        view: () => {
+                                                            try {
+                                                                return html `
+                                                                                  <div style="font-weight: 700;" class=" d-flex flex-column">
+                                                                                      ${BgWidget.grayNote(`已購買過的訂單記錄中，必須包含以下${postMD.product_category === 'course' ? `課程或商品` : `商品`}才可以結帳`)}
                                                                                   </div>
                                                                                   <div class="d-flex align-items-center gray-bottom-line-18" style="gap: 24px; justify-content: space-between;">
                                                                                       <div class="form-check-label c_updown_label">
@@ -397,7 +501,7 @@ export class ShoppingSettingAdvance {
                                     return text_.join('');
                                 })),
                         ].join(``)),
-                        BgWidget.mainCard(obj.gvc.bindView(() => {
+                        (postMD.product_category === 'commodity') ? BgWidget.mainCard(obj.gvc.bindView(() => {
                             var _a;
                             let loading = true;
                             let dataList = [];
@@ -542,7 +646,7 @@ export class ShoppingSettingAdvance {
                                     }
                                 },
                             };
-                        })),
+                        })) : ``,
                         BgWidget.mainCard(obj.gvc.bindView(() => {
                             const id = gvc.glitter.getUUID();
                             return {
@@ -622,6 +726,64 @@ export class ShoppingSettingAdvance {
                             };
                         })),
                         BgWidget.mainCard(obj.gvc.bindView(() => {
+                            const id = gvc.glitter.getUUID();
+                            return {
+                                bind: id,
+                                view: () => {
+                                    var _a, _b;
+                                    postMD.relative_product = (_a = postMD.relative_product) !== null && _a !== void 0 ? _a : [];
+                                    try {
+                                        return html `
+                                                    <div style="font-weight: 700;" class="mb-3 d-flex flex-column">${cat_title}通知 ${BgWidget.grayNote(`購買此${cat_title}會收到的通知信，內容為空則不寄送。`)}</div>
+                                                    ${BgWidget.richTextEditor({
+                                            gvc: gvc,
+                                            content: (_b = postMD.email_notice) !== null && _b !== void 0 ? _b : '',
+                                            callback: (content) => {
+                                                postMD.email_notice = content;
+                                            },
+                                            title: '內容編輯',
+                                            quick_insert: (() => {
+                                                return [
+                                                    {
+                                                        title: '商家名稱',
+                                                        value: '@{{app_name}}'
+                                                    },
+                                                    {
+                                                        title: '會員姓名',
+                                                        value: '@{{user_name}}'
+                                                    },
+                                                    {
+                                                        title: '姓名',
+                                                        value: '@{{姓名}}'
+                                                    },
+                                                    {
+                                                        title: '電話',
+                                                        value: '@{{電話}}'
+                                                    },
+                                                    {
+                                                        title: '地址',
+                                                        value: '@{{地址}}'
+                                                    },
+                                                    {
+                                                        title: '信箱',
+                                                        value: '@{{信箱}}'
+                                                    }
+                                                ];
+                                            })()
+                                        })}
+                                                `;
+                                    }
+                                    catch (e) {
+                                        console.error(e);
+                                        return '';
+                                    }
+                                },
+                                divCreate: {
+                                    class: `w-100`,
+                                },
+                            };
+                        })),
+                        BgWidget.mainCard(obj.gvc.bindView(() => {
                             const id = obj.gvc.glitter.getUUID();
                             return {
                                 bind: id,
@@ -675,7 +837,9 @@ export class ShoppingSettingAdvance {
                                 },
                             };
                         })),
-                    ].join('<div class="my-3"></div>');
+                    ].filter((dd) => {
+                        return dd;
+                    }).join('<div class="my-3"></div>');
                 },
                 divCreate: {
                     class: `w-100`,

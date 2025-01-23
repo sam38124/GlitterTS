@@ -160,7 +160,7 @@ export class Shopee {
         // return `${path}${api_path}?partner_id=${partner_id}&timestamp=${timestamp}&redirect=${redirectUrl}&sign=${signature}`
     }
 
-    public async getItemList(start: string, end: string) {
+    public async getItemList(start: string, end: string,index:number=0) {
         const timestamp = Math.floor(Date.now() / 1000);
         const partner_id = process.env.shopee_partner_id ?? "";//測試版是test partner_id;
         const api_path = "/api/v2/product/get_item_list";
@@ -183,7 +183,7 @@ export class Shopee {
             params: {
                 shop_id: parseInt(data[0].value.shop_id),
                 access_token: data[0].value.access_token,
-                offset: 0,
+                offset: index || 0,
                 page_size: 10,
                 update_time_from: start,
                 update_time_to: Math.floor(Date.now() / 1000),
@@ -201,6 +201,8 @@ export class Shopee {
                     message : response.data.error
                 }
             }
+
+            console.log(`蝦皮回覆:`,response.data);
             const itemList:{
                 item_id:number,
                 item_status:string,
@@ -211,13 +213,12 @@ export class Shopee {
             const productData = await Promise.all(
                 itemList.map(async (item, index: number) => {
                     try {
-                        try {
-                            const productData = await db.query(`SELECT * FROM ${this.app}.t_manager_post WHERE (content->>'$.type'='product') AND (content->>'$.shopee_id' =?);`,[item.item_id])
-                        }catch(e){
-                            console.error('查詢商品失敗:', e);
-                            return
+                        const productData = await db.query(`SELECT count(1) FROM ${this.app}.t_manager_post WHERE (content->>'$.type'='product') AND (content->>'$.shopee_id' =?);`,[item.item_id])
+                        if(productData[0]['count(1)']>0){
+                            return null
+                        }else{
+                            return await this.getProductDetail(item.item_id); // 返回上傳後的資料
                         }
-                        return await this.getProductDetail(item.item_id); // 返回上傳後的資料
                     } catch (error) {
                         console.error('下載或上傳失敗:', error);
                         return null; // 返回 null 以處理失敗的情況
@@ -225,15 +226,23 @@ export class Shopee {
                 })
             );
             const temp: any = {}
-            temp.data = productData.reverse();
+            temp.data = productData.reverse().filter((dd)=>{
+                return dd
+            });
             temp.collection = [];
+
             try {
                 await new Shopping(this.app , this.token).postMulProduct(temp);
+                if(response.data.response.has_next_page){
+
+                    await this.getItemList(start,end,response.data.response.next_offset)
+                }
                 return {
                     data : temp.data,
                     message:'匯入OK'
                 }
             }catch (error:any){
+
                 return {
                     type : "error",
                     data : temp.data,

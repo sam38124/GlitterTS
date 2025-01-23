@@ -192,7 +192,7 @@ export class ProductCard01 {
             divCreate: { class: `probLabel w-100 h-100`, style: `position: absolute;left: 0;top: 0;` },
         })}
                 <img
-                    class="card-image-fit-center"
+                    class="card-image-fit-center "
                     src="${(() => {
             const innerText = prod.preview_image[0] || this.noImageURL;
             let rela_link = innerText;

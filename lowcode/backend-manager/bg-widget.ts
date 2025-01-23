@@ -3967,7 +3967,7 @@ ${obj.default ?? ''}</textarea
             return html`
                 <div
                         class="bg-white shadow rounded-3"
-                        style="overflow-y: auto; ${document.body.clientWidth > 768 ? `min-width: 400px; width: ${obj.width ?? 600}px;max-width:calc(100vw - 20px);` : 'min-width: calc(100vw - 10px);; max-width: calc(100vw - 10px);'}"
+                        style="overflow-y: auto; ${document.body.clientWidth > 768 ? `width: ${obj.width ?? 600}px;max-width:calc(100vw - 20px);` : 'min-width: calc(100vw - 10px);; max-width: calc(100vw - 10px);'}"
                 >
                     ${gvc.bindView({
                         bind: vm.id,

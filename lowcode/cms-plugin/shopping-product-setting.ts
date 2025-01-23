@@ -16,10 +16,12 @@ import {ProductConfig} from './product-config.js';
 import {ShoppingSettingBasic} from "./shopping-setting-basic.js";
 import {ShoppingSettingAdvance} from "./shopping-setting-advance.js";
 import {ActiveSchedule, Product, ProductInitial} from "../public-models/product.js";
+import {FileItem} from "../modules/file-system.js";
 
 
 export class ShoppingProductSetting {
     public static select_language = (window.parent as any).store_info.language_setting.def;
+    public static select_product_type: 'course' | 'commodity' = 'commodity'
 
     public static main(gvc: GVC, type: 'product' | 'addProduct' | 'giveaway' | 'hidden' = 'product') {
         const html = String.raw;
@@ -481,8 +483,54 @@ export class ShoppingProductSetting {
                                                             BgWidget.darkButton(
                                                                     '新增',
                                                                     gvc.event(() => {
-                                                                        ShoppingProductSetting.select_language = ((window.parent as any).store_info.language_setting.def)
-                                                                        vm.type = 'add';
+                                                                        ShoppingProductSetting.select_language = ((window.parent as any).store_info.language_setting.def);
+                                                                        const support_pd = [
+                                                                            {
+                                                                                key: 'course',
+                                                                                value: '課程販售',
+                                                                                compare: 'teaching'
+                                                                            },
+                                                                            {
+                                                                                key: 'commodity',
+                                                                                value: '實體商品',
+                                                                                compare: 'shop'
+                                                                            }
+                                                                        ].filter((dd) => {
+                                                                            return ((window.parent as any).store_info.web_type || []).includes(dd.compare)
+                                                                        })
+                                                                        if (support_pd.length <= 1) {
+                                                                            (ShoppingProductSetting.select_product_type as any) = (support_pd[0] && support_pd[0].key) || ''
+                                                                            vm.type = 'add'
+                                                                            return
+                                                                        }
+                                                                        BgWidget.settingDialog({
+                                                                            gvc: gvc,
+                                                                            title: '選擇商品類型',
+                                                                            innerHTML: (gvc: GVC) => {
+                                                                                (ShoppingProductSetting.select_product_type as any) = support_pd[0].key
+                                                                                return html`
+                                                                                    <div class="d-flex align-items-center">
+                                                                                        ${BgWidget.select({
+                                                                                            gvc: gvc,
+                                                                                            callback: (data) => {
+                                                                                                (ShoppingProductSetting.select_product_type as any) = data.key
+                                                                                            },
+                                                                                            options: support_pd,
+                                                                                            default: ShoppingProductSetting.select_product_type
+                                                                                        })}
+                                                                                    </div>
+                                                                                `
+                                                                            },
+                                                                            footer_html: (gvc: GVC) => {
+                                                                                return [
+                                                                                    BgWidget.save(gvc.event(() => {
+                                                                                        vm.type = 'add';
+                                                                                        gvc.closeDialog();
+                                                                                    }), '下一步')
+                                                                                ].join('');
+                                                                            },
+                                                                            width: 300,
+                                                                        });
                                                                     }),
                                                                     {
                                                                         class: `guide5-3`,
@@ -1049,69 +1097,74 @@ export class ShoppingProductSetting {
                                                     })
                                             )
                                             : ''}
-                                    ${BgWidget.mainCard(html`
-                                        <div class="w-100" style="display: flex;gap: 18px;flex-direction: column;">
-                                            <div style="font-weight: 700;">定價</div>
-                                            <div class="d-flex w-100" style="gap:18px;">
-                                                <div class="d-flex w-50 flex-column guide5-5" style="gap: 8px;">
-                                                    <div>售價*</div>
-                                                    <input
-                                                            style="width: 100%;border-radius: 10px;border: 1px solid #DDD;height: 40px;padding: 0px 18px;"
-                                                            placeholder="請輸入售價"
-                                                            onchange="${gvc.event((e) => {
-                                                                variant.sale_price = e.value;
-                                                            })}"
-                                                            min="0"
-                                                            value="${variant.sale_price || '0'}"
-                                                            type="number"
-                                                    />
+                                    ${(() => {
+                                        let map_: string[] = [
+                                            BgWidget.mainCard(html`
+                                                <div class="w-100"
+                                                     style="display: flex;gap: 18px;flex-direction: column;">
+                                                    <div style="font-weight: 700;">定價</div>
+                                                    <div class="d-flex w-100" style="gap:18px;">
+                                                        <div class="d-flex w-50 flex-column guide5-5" style="gap: 8px;">
+                                                            <div>售價*</div>
+                                                            <input
+                                                                    style="width: 100%;border-radius: 10px;border: 1px solid #DDD;height: 40px;padding: 0px 18px;"
+                                                                    placeholder="請輸入售價"
+                                                                    onchange="${gvc.event((e) => {
+                                                                        variant.sale_price = e.value;
+                                                                    })}"
+                                                                    min="0"
+                                                                    value="${variant.sale_price || '0'}"
+                                                                    type="number"
+                                                            />
+                                                        </div>
+                                                        <div class="d-flex w-50 flex-column" style="gap: 8px;">
+                                                            <div>原價</div>
+                                                            <input
+                                                                    style="width: 100%;border-radius: 10px;border: 1px solid #DDD;height: 40px;padding: 0px 18px;"
+                                                                    placeholder="請輸入原價"
+                                                                    min="0"
+                                                                    onchange="${gvc.event((e) => {
+                                                                        variant.compare_price = e.value;
+                                                                    })}"
+                                                                    value="${variant.compare_price || '0'}"
+                                                                    type="number"
+                                                            />
+                                                        </div>
+                                                    </div>
+                                                    <div class="d-flex w-100" style="gap:18px;">
+                                                        <div class="d-flex w-50 flex-column" style="gap: 8px;">
+                                                            <div>成本</div>
+                                                            <input
+                                                                    style="width: 100%;border-radius: 10px;border: 1px solid #DDD;height: 40px;padding: 0px 18px;"
+                                                                    placeholder="請輸入成本"
+                                                                    min="0"
+                                                                    onchange="${gvc.event((e) => {
+                                                                        variant.cost = e.value;
+                                                                    })}"
+                                                                    value="${variant.cost || 0}"
+                                                                    type="number"
+                                                            />
+                                                        </div>
+                                                        <div class="d-flex w-50 flex-column" style="gap: 8px;">
+                                                            <div>利潤</div>
+                                                            <input
+                                                                    style="width: 100%;border-radius: 10px;border: 1px solid #DDD;height: 40px;padding: 0px 18px;"
+                                                                    min="0"
+                                                                    onchange="${gvc.event((e) => {
+                                                                        variant.profit = e.value;
+                                                                    })}"
+                                                                    placeholder="-"
+                                                                    value="${variant.profit}"
+                                                                    type="number"
+                                                            />
+                                                        </div>
+                                                    </div>
                                                 </div>
-                                                <div class="d-flex w-50 flex-column" style="gap: 8px;">
-                                                    <div>原價</div>
-                                                    <input
-                                                            style="width: 100%;border-radius: 10px;border: 1px solid #DDD;height: 40px;padding: 0px 18px;"
-                                                            placeholder="請輸入原價"
-                                                            min="0"
-                                                            onchange="${gvc.event((e) => {
-                                                                variant.compare_price = e.value;
-                                                            })}"
-                                                            value="${variant.compare_price || '0'}"
-                                                            type="number"
-                                                    />
-                                                </div>
-                                            </div>
-                                            <div class="d-flex w-100" style="gap:18px;">
-                                                <div class="d-flex w-50 flex-column" style="gap: 8px;">
-                                                    <div>成本</div>
-                                                    <input
-                                                            style="width: 100%;border-radius: 10px;border: 1px solid #DDD;height: 40px;padding: 0px 18px;"
-                                                            placeholder="請輸入成本"
-                                                            min="0"
-                                                            onchange="${gvc.event((e) => {
-                                                                variant.cost = e.value;
-                                                            })}"
-                                                            value="${variant.cost || 0}"
-                                                            type="number"
-                                                    />
-                                                </div>
-                                                <div class="d-flex w-50 flex-column" style="gap: 8px;">
-                                                    <div>利潤</div>
-                                                    <input
-                                                            style="width: 100%;border-radius: 10px;border: 1px solid #DDD;height: 40px;padding: 0px 18px;"
-                                                            min="0"
-                                                            onchange="${gvc.event((e) => {
-                                                                variant.profit = e.value;
-                                                            })}"
-                                                            placeholder="-"
-                                                            value="${variant.profit}"
-                                                            type="number"
-                                                    />
-                                                </div>
-                                            </div>
-                                        </div>
-                                    `)}
-                                    ${BgWidget.mainCard(
-                                            gvc.bindView(() => {
+                                            `),
+                                        ]
+                                        postMD.product_category = postMD.product_category || 'commodity'
+                                        if (postMD.product_category === 'commodity') {
+                                            map_.push(BgWidget.mainCard(gvc.bindView(() => {
                                                 const vm = {
                                                     id: gvc.glitter.getUUID(),
                                                 };
@@ -1151,324 +1204,331 @@ export class ShoppingProductSetting {
                                                         style: `gap:12px;`,
                                                     },
                                                 };
-                                            })
-                                    )}
-                                    ${BgWidget.mainCard(html`
-                                        <div class="d-flex flex-column " style="gap:18px;">
-                                            <div class="d-flex flex-column guide5-7" style="gap:18px;">
-                                                <div style="font-weight: 700;">商品材積</div>
-                                                <div class="row">
-                                                    ${[
-                                                        {
-                                                            title: '長度',
-                                                            value: 'v_length',
-                                                            unit: '公分',
-                                                        },
-                                                        {
-                                                            title: '寬度',
-                                                            value: 'v_width',
-                                                            unit: '公分',
-                                                        },
-                                                        {
-                                                            title: '高度',
-                                                            value: 'v_height',
-                                                            unit: '公分',
-                                                        },
-                                                    ]
-                                                            .map((dd) => {
-                                                                return html`
-                                                                    <div style="display: flex;justify-content: center;align-items: center;gap: 10px;position: relative;"
-                                                                         class=" col-12 col-sm-4 mb-2">
-                                                                        <div style="white-space: nowrap;">${dd.title}
-                                                                        </div>
-                                                                        <input
-                                                                                class="ps-3"
-                                                                                style="border-radius: 10px;border: 1px solid #DDD;height: 40px;width: calc(100% - 50px);"
-                                                                                type="number"
-                                                                                onchange="${gvc.event((e) => {
-                                                                                    variant[dd.value] = e.value;
-                                                                                })}"
-                                                                                value="${variant[dd.value]}"
-                                                                        />
-                                                                        <div style="color: #8D8D8D;position: absolute;right: 25px;top: 7px;">
-                                                                            ${dd.unit}
-                                                                        </div>
-                                                                    </div>`;
-                                                            })
-                                                            .join('')}
-                                                </div>
-                                            </div>
-                                            <div style="font-weight: 700;">商品重量</div>
-                                            <div class="w-100 row m-0" style="color:#393939;">
-                                                <input
-                                                        class="col-6"
-                                                        style="display: flex;height: 40px;padding: 10px 18px;align-items: center;gap: 10px;border-radius: 10px;border: 1px solid #DDD;"
-                                                        placeholder="請輸入商品重量"
-                                                        value="${variant.weight || 0}"
-                                                        onchange="${gvc.event((e) => {
-                                                            variant.weight = e.value;
-                                                        })}"
-                                                />
-                                                <div class="col-6" style="display: flex;align-items: center;gap: 10px;">
-                                                    <div style="white-space: nowrap;">單位</div>
-                                                    <select class="form-select d-flex align-items-center flex-fill"
-                                                            style="border-radius: 10px;border: 1px solid #DDD;padding-left: 18px;">
-                                                        <option value="kg">公斤</option>
-                                                    </select>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    `)}
-                                    ${BgWidget.mainCard(html`
-                                        <div class="d-flex flex-column" style="gap: 18px;">
-                                            <div style="font-weight: 700;">庫存政策</div>
-                                            ${gvc.bindView(() => {
-                                                const id = gvc.glitter.getUUID();
-                                                return {
-                                                    bind: stockId,
-                                                    view: () => {
-                                                        function showStockView() {
-                                                            function initStockList() {
-                                                                let newList: any = {};
-                                                                //用於原本的陣列轉object
-                                                                if (variant.stockList && Object.entries(variant.stockList).length > 0) {
-                                                                    variant.stockList.forEach((stock: {
-                                                                        id: string,
-                                                                        value: number
-                                                                    }) => {
-                                                                        newList[stock.id] = {
-                                                                            count: stock.value
-                                                                        };
+                                            })))
+                                            map_.push(BgWidget.mainCard(html`
+                                                <div class="d-flex flex-column " style="gap:18px;">
+                                                    <div class="d-flex flex-column guide5-7" style="gap:18px;">
+                                                        <div style="font-weight: 700;">商品材積</div>
+                                                        <div class="row">
+                                                            ${[
+                                                                {
+                                                                    title: '長度',
+                                                                    value: 'v_length',
+                                                                    unit: '公分',
+                                                                },
+                                                                {
+                                                                    title: '寬度',
+                                                                    value: 'v_width',
+                                                                    unit: '公分',
+                                                                },
+                                                                {
+                                                                    title: '高度',
+                                                                    value: 'v_height',
+                                                                    unit: '公分',
+                                                                },
+                                                            ]
+                                                                    .map((dd) => {
+                                                                        return html`
+                                                                            <div style="display: flex;justify-content: center;align-items: center;gap: 10px;position: relative;"
+                                                                                 class=" col-12 col-sm-4 mb-2">
+                                                                                <div style="white-space: nowrap;">
+                                                                                    ${dd.title}
+                                                                                </div>
+                                                                                <input
+                                                                                        class="ps-3"
+                                                                                        style="border-radius: 10px;border: 1px solid #DDD;height: 40px;width: calc(100% - 50px);"
+                                                                                        type="number"
+                                                                                        onchange="${gvc.event((e) => {
+                                                                                            variant[dd.value] = e.value;
+                                                                                        })}"
+                                                                                        value="${variant[dd.value]}"
+                                                                                />
+                                                                                <div style="color: #8D8D8D;position: absolute;right: 25px;top: 7px;">
+                                                                                    ${dd.unit}
+                                                                                </div>
+                                                                            </div>`;
                                                                     })
-                                                                } else {
-                                                                    stockList.forEach((stock: {
-                                                                        id: string,
-                                                                        value: number
-                                                                    }) => {
-                                                                        newList[stock.id] = {
-                                                                            count: 0
-                                                                        };
-                                                                    })
+                                                                    .join('')}
+                                                        </div>
+                                                    </div>
+                                                    <div style="font-weight: 700;">商品重量</div>
+                                                    <div class="w-100 row m-0" style="color:#393939;">
+                                                        <input
+                                                                class="col-6"
+                                                                style="display: flex;height: 40px;padding: 10px 18px;align-items: center;gap: 10px;border-radius: 10px;border: 1px solid #DDD;"
+                                                                placeholder="請輸入商品重量"
+                                                                value="${variant.weight || 0}"
+                                                                onchange="${gvc.event((e) => {
+                                                                    variant.weight = e.value;
+                                                                })}"
+                                                        />
+                                                        <div class="col-6"
+                                                             style="display: flex;align-items: center;gap: 10px;">
+                                                            <div style="white-space: nowrap;">單位</div>
+                                                            <select class="form-select d-flex align-items-center flex-fill"
+                                                                    style="border-radius: 10px;border: 1px solid #DDD;padding-left: 18px;">
+                                                                <option value="kg">公斤</option>
+                                                            </select>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            `))
+                                        }
+                                        map_.push(BgWidget.mainCard(html`
+                                            <div class="d-flex flex-column" style="gap: 18px;">
+                                                <div style="font-weight: 700;">庫存政策</div>
+                                                ${gvc.bindView(() => {
+                                                    const id = gvc.glitter.getUUID();
+                                                    return {
+                                                        bind: stockId,
+                                                        view: () => {
+                                                            function showStockView() {
+                                                                function initStockList() {
+                                                                    let newList: any = {};
+                                                                    //用於原本的陣列轉object
+                                                                    if (variant.stockList && Object.entries(variant.stockList).length > 0) {
+                                                                        variant.stockList.forEach((stock: {
+                                                                            id: string,
+                                                                            value: number
+                                                                        }) => {
+                                                                            newList[stock.id] = {
+                                                                                count: stock.value
+                                                                            };
+                                                                        })
+                                                                    } else {
+                                                                        stockList.forEach((stock: {
+                                                                            id: string,
+                                                                            value: number
+                                                                        }) => {
+                                                                            newList[stock.id] = {
+                                                                                count: 0
+                                                                            };
+                                                                        })
+                                                                    }
+
+
+                                                                    variant.stockList = newList;
                                                                 }
 
-
-                                                                variant.stockList = newList;
-                                                            }
-
-                                                            // 把variant的stockList 從陣列改成object
-                                                            if (Array.isArray(variant.stockList) && variant.stockList.length > 0) {
-                                                                initStockList()
-                                                            }
-                                                            // 庫存倉庫超過一個
-                                                            if (stockList.length > 1) {
-
-                                                                //先確認商品資訊是否有被正確記錄，沒有的話先初始化，或是先從陣列轉為object
-                                                                if (!variant.stockList || Object.entries(variant.stockList).length == 0) {
-                                                                    initStockList();
+                                                                // 把variant的stockList 從陣列改成object
+                                                                if (Array.isArray(variant.stockList) && variant.stockList.length > 0) {
+                                                                    initStockList()
                                                                 }
+                                                                // 庫存倉庫超過一個
+                                                                if (stockList.length > 1) {
 
-                                                                return html`
-                                                                    <div
-                                                                            class="w-100 align-items-center"
-                                                                            style="display: flex;padding-left: 8px;align-items: flex-start;gap: 14px;align-self: stretch;margin-top: 8px;"
-                                                                    >
-                                                                        <div class="flex-fill d-flex flex-column"
-                                                                             style="gap: 8px;border-left:solid 1px #E5E5E5;padding-left:14px;">
-                                                                            <div class="w-100"
-                                                                                 style="font-size: 14px;font-weight: 400;color: #8D8D8D;">
-                                                                                線上販售的商品將優先從庫存量較多的庫存點中扣除
+                                                                    //先確認商品資訊是否有被正確記錄，沒有的話先初始化，或是先從陣列轉為object
+                                                                    if (!variant.stockList || Object.entries(variant.stockList).length == 0) {
+                                                                        initStockList();
+                                                                    }
+
+                                                                    return html`
+                                                                        <div
+                                                                                class="w-100 align-items-center"
+                                                                                style="display: flex;padding-left: 8px;align-items: flex-start;gap: 14px;align-self: stretch;margin-top: 8px;"
+                                                                        >
+                                                                            <div class="flex-fill d-flex flex-column"
+                                                                                 style="gap: 8px;border-left:solid 1px #E5E5E5;padding-left:14px;">
+                                                                                <div class="w-100"
+                                                                                     style="font-size: 14px;font-weight: 400;color: #8D8D8D;">
+                                                                                    線上販售的商品將優先從庫存量較多的庫存點中扣除
+                                                                                </div>
+                                                                                ${(() => {
+                                                                                    return stockList.map((stockSpot: any) => {
+                                                                                        console.log(`stockSpot.id=>`, stockSpot.id)
+                                                                                        variant.stockList = variant.stockList ?? {}
+                                                                                        variant.stockList[stockSpot.id] = variant.stockList[stockSpot.id] ?? {count: 0}
+                                                                                        return html`
+                                                                                            <div>${stockSpot.name}</div>
+                                                                                            <input
+                                                                                                    class="w-100"
+                                                                                                    value="${variant.stockList[stockSpot.id].count ?? 0}"
+                                                                                                    type="number"
+                                                                                                    style="padding: 9px 18px;border-radius: 10px;border: 1px solid #DDD;"
+                                                                                                    placeholder="請輸入該庫存點庫存數量"
+                                                                                                    onchange="${gvc.event((e) => {
+                                                                                                        // variant.stock = e.value;
+                                                                                                        // const target = data.find(item => item.id === 'any');
+                                                                                                        const inputValue = parseInt(e.value, 10) || 0;
+                                                                                                        variant.stockList[stockSpot.id].count = inputValue;
+                                                                                                        variant.stock += inputValue;
+                                                                                                        console.log("variant.stock -- ", variant.stock)
+                                                                                                    })}"
+                                                                                            />
+                                                                                        `
+                                                                                    }).join(``)
+                                                                                })()}
                                                                             </div>
-                                                                            ${(() => {
-                                                                                return stockList.map((stockSpot: any) => {
-                                                                                    console.log(`stockSpot.id=>`, stockSpot.id)
-                                                                                    variant.stockList = variant.stockList ?? {}
-                                                                                    variant.stockList[stockSpot.id] = variant.stockList[stockSpot.id] ?? {count: 0}
-                                                                                    return html`
-                                                                                        <div>${stockSpot.name}</div>
-                                                                                        <input
-                                                                                                class="w-100"
-                                                                                                value="${variant.stockList[stockSpot.id].count ?? 0}"
-                                                                                                type="number"
-                                                                                                style="padding: 9px 18px;border-radius: 10px;border: 1px solid #DDD;"
-                                                                                                placeholder="請輸入該庫存點庫存數量"
-                                                                                                onchange="${gvc.event((e) => {
-                                                                                                    // variant.stock = e.value;
-                                                                                                    // const target = data.find(item => item.id === 'any');
-                                                                                                    const inputValue = parseInt(e.value, 10) || 0;
-                                                                                                    variant.stockList[stockSpot.id].count = inputValue;
-                                                                                                    variant.stock += inputValue;
-                                                                                                    console.log("variant.stock -- ", variant.stock)
-                                                                                                })}"
-                                                                                        />
-                                                                                    `
-                                                                                }).join(``)
-                                                                            })()}
-                                                                        </div>
 
-                                                                    </div>`
-                                                            } else {
-                                                                return html`
-                                                                    <div
-                                                                            class="w-100 align-items-center"
-                                                                            style="display: flex;padding-left: 8px;align-items: flex-start;gap: 14px;align-self: stretch;margin-top: 8px;"
-                                                                    >
-                                                                        <div style="background-color: #E5E5E5;height: 80px;width: 1px;"></div>
-                                                                        <div class="flex-fill d-flex flex-column"
-                                                                             style="gap: 8px">
-                                                                            <div>庫存數量</div>
-                                                                            <input
-                                                                                    class="w-100"
-                                                                                    type="number"
-                                                                                    value="${variant.stock ?? '0'}"
-                                                                                    style="padding: 9px 18px;border-radius: 10px;border: 1px solid #DDD;"
-                                                                                    placeholder="請輸入庫存數量"
-                                                                                    onchange="${gvc.event((e) => {
-                                                                                        variant.stock = e.value;
-                                                                                    })}"
-                                                                            />
-                                                                        </div>
+                                                                        </div>`
+                                                                } else {
+                                                                    return html`
+                                                                        <div
+                                                                                class="w-100 align-items-center"
+                                                                                style="display: flex;padding-left: 8px;align-items: flex-start;gap: 14px;align-self: stretch;margin-top: 8px;"
+                                                                        >
+                                                                            <div style="background-color: #E5E5E5;height: 80px;width: 1px;"></div>
+                                                                            <div class="flex-fill d-flex flex-column"
+                                                                                 style="gap: 8px">
+                                                                                <div>庫存數量</div>
+                                                                                <input
+                                                                                        class="w-100"
+                                                                                        type="number"
+                                                                                        value="${variant.stock ?? '0'}"
+                                                                                        style="padding: 9px 18px;border-radius: 10px;border: 1px solid #DDD;"
+                                                                                        placeholder="請輸入庫存數量"
+                                                                                        onchange="${gvc.event((e) => {
+                                                                                            variant.stock = e.value;
+                                                                                        })}"
+                                                                                />
+                                                                            </div>
 
-                                                                    </div>`
+                                                                        </div>`
+                                                                }
                                                             }
-                                                        }
 
-                                                        return html`
-                                                            <div class="d-flex flex-column w-100">
+                                                            return html`
+                                                                <div class="d-flex flex-column w-100">
+                                                                    <div
+                                                                            class="d-flex align-items-center"
+                                                                            style="gap:6px;cursor: pointer;"
+                                                                            onclick="${gvc.event(() => {
+                                                                                variant.show_understocking = 'true';
+                                                                                gvc.notifyDataChange(stockId);
+                                                                            })}"
+                                                                    >
+                                                                        ${variant.show_understocking != 'false'
+                                                                                ? html`
+                                                                                    <div style="width: 16px;height: 16px;border-radius: 20px;border: 4px solid #393939;"></div>`
+                                                                                : html`
+                                                                                    <div style="width: 16px;height: 16px;border-radius: 20px;border: 1px solid #DDD;"></div>`}
+                                                                        追蹤庫存
+                                                                    </div>
+                                                                    ${variant.show_understocking != 'false'
+                                                                            ? showStockView()
+                                                                            : ``}
+                                                                </div>
                                                                 <div
                                                                         class="d-flex align-items-center"
                                                                         style="gap:6px;cursor: pointer;"
                                                                         onclick="${gvc.event(() => {
-                                                                            variant.show_understocking = 'true';
+                                                                            variant.show_understocking = 'false';
                                                                             gvc.notifyDataChange(stockId);
                                                                         })}"
                                                                 >
-                                                                    ${variant.show_understocking != 'false'
+                                                                    ${variant.show_understocking == 'false'
                                                                             ? html`
                                                                                 <div style="width: 16px;height: 16px;border-radius: 20px;border: 4px solid #393939;"></div>`
                                                                             : html`
                                                                                 <div style="width: 16px;height: 16px;border-radius: 20px;border: 1px solid #DDD;"></div>`}
-                                                                    追蹤庫存
+                                                                    不追蹤庫存
                                                                 </div>
-                                                                ${variant.show_understocking != 'false'
-                                                                        ? showStockView()
-                                                                        : ``}
-                                                            </div>
-                                                            <div
-                                                                    class="d-flex align-items-center"
-                                                                    style="gap:6px;cursor: pointer;"
-                                                                    onclick="${gvc.event(() => {
-                                                                        variant.show_understocking = 'false';
-                                                                        gvc.notifyDataChange(stockId);
-                                                                    })}"
-                                                            >
-                                                                ${variant.show_understocking == 'false'
-                                                                        ? html`
-                                                                            <div style="width: 16px;height: 16px;border-radius: 20px;border: 4px solid #393939;"></div>`
-                                                                        : html`
-                                                                            <div style="width: 16px;height: 16px;border-radius: 20px;border: 1px solid #DDD;"></div>`}
-                                                                不追蹤庫存
-                                                            </div>
-                                                            <div style="width:100%;height:1px;backgound:#DDDDDD;"></div>
-                                                            ${
-                                                                    variant.show_understocking == 'false' ? '' : html`
-                                                                        <div class="flex-fill d-flex flex-column"
-                                                                             style="gap: 8px;font-size: 16px;font-weight: 700;">
-                                                                            <div>安全庫存</div>
-                                                                            <input
-                                                                                    class="w-100"
-                                                                                    value="${variant.save_stock ?? '0'}"
-                                                                                    style="padding: 9px 18px;border-radius: 10px;border: 1px solid #DDD;"
-                                                                                    placeholder="請輸入安全庫存"
-                                                                                    onchange="${gvc.event((e) => {
-                                                                                        variant.save_stock = e.value;
-                                                                                    })}"
-                                                                            />
-                                                                        </div>`
-                                                            }
-                                                        `;
-                                                    },
-                                                    divCreate: {style: `display: flex;flex-direction: column;align-items: flex-start;gap: 12px;align-self: stretch;`},
-                                                };
-                                            })}
-                                        </div>
-                                    `)}
-                                    ${BgWidget.mainCard(html`
-                                        <div style="display: flex;flex-direction: column;align-items: flex-start;gap: 18px;">
-                                            <div class="title-container px-0">
-                                                <div style="color:#393939;font-weight: 700;">商品管理</div>
-                                                <div class="flex-fill"></div>
-                                                ${BgWidget.grayButton(
-                                                        '商品條碼',
-                                                        gvc.event(() => {
-                                                            const dialog = new ShareDialog(gvc.glitter);
-                                                            if (!variant.barcode) {
-                                                                dialog.errorMessage({text: '請先設定商品條碼'});
-                                                                return;
-                                                            }
-                                                            (window.parent as any).glitter.addMtScript(
-                                                                    [
-                                                                        {
-                                                                            src: 'https://cdn.jsdelivr.net/npm/qrcode/build/qrcode.min.js',
-                                                                        },
-                                                                    ],
-                                                                    () => {
-                                                                        (window.parent as any).QRCode.toDataURL(
-                                                                                `variants-` + variant.barcode,
-                                                                                {
-                                                                                    width: 200,
-                                                                                    margin: 2,
-                                                                                },
-                                                                                function (err: any, url: any) {
-                                                                                    if (err) {
-                                                                                        console.error(err);
-                                                                                        return;
-                                                                                    }
-                                                                                    (window.parent as any).glitter.openDiaLog(new URL('../dialog/image-preview.js', import.meta.url).href, 'preview', url);
-                                                                                }
-                                                                        );
-                                                                    },
-                                                                    () => {
+                                                                <div style="width:100%;height:1px;backgound:#DDDDDD;"></div>
+                                                                ${
+                                                                        variant.show_understocking == 'false' ? '' : html`
+                                                                            <div class="flex-fill d-flex flex-column"
+                                                                                 style="gap: 8px;font-size: 16px;font-weight: 700;">
+                                                                                <div>安全庫存</div>
+                                                                                <input
+                                                                                        class="w-100"
+                                                                                        value="${variant.save_stock ?? '0'}"
+                                                                                        style="padding: 9px 18px;border-radius: 10px;border: 1px solid #DDD;"
+                                                                                        placeholder="請輸入安全庫存"
+                                                                                        onchange="${gvc.event((e) => {
+                                                                                            variant.save_stock = e.value;
+                                                                                        })}"
+                                                                                />
+                                                                            </div>`
+                                                                }
+                                                            `;
+                                                        },
+                                                        divCreate: {style: `display: flex;flex-direction: column;align-items: flex-start;gap: 12px;align-self: stretch;`},
+                                                    };
+                                                })}
+                                            </div>
+                                        `))
+                                        if (postMD.product_category === 'commodity') {
+                                            map_.push(BgWidget.mainCard(html`
+                                                <div style="display: flex;flex-direction: column;align-items: flex-start;gap: 18px;">
+                                                    <div class="title-container px-0">
+                                                        <div style="color:#393939;font-weight: 700;">商品管理</div>
+                                                        <div class="flex-fill"></div>
+                                                        ${BgWidget.grayButton(
+                                                                '商品條碼',
+                                                                gvc.event(() => {
+                                                                    const dialog = new ShareDialog(gvc.glitter);
+                                                                    if (!variant.barcode) {
+                                                                        dialog.errorMessage({text: '請先設定商品條碼'});
+                                                                        return;
                                                                     }
-                                                            );
-                                                        }),
-                                                        {icon: `fa-regular fa-eye`}
-                                                )}
-                                            </div>
-                                            <div style="display: flex;width: 100%;height: 70px;flex-direction: column;justify-content: center;align-items: flex-start;gap: 8px;">
-                                                <div style="font-weight: 400;font-size: 16px;">存貨單位 (SKU)</div>
-                                                <input
-                                                        style="width:100%;border-radius: 10px;border: 1px solid #DDD;height: 40px;padding: 0px 18px;"
-                                                        placeholder="請輸入存貨單位"
-                                                        value="${variant.sku ?? ''}"
-                                                        onchange="${gvc.event((e) => {
-                                                            variant.sku = e.value;
-                                                        })}"
-                                                />
-                                            </div>
-                                            <div style="display: flex;width: 100%;height: 70px;flex-direction: column;justify-content: center;align-items: flex-start;gap: 8px;">
-                                                <div style="font-weight: 400;font-size: 16px;">商品條碼
-                                                    (ISBN、UPC、GTIN等)
+                                                                    (window.parent as any).glitter.addMtScript(
+                                                                            [
+                                                                                {
+                                                                                    src: 'https://cdn.jsdelivr.net/npm/qrcode/build/qrcode.min.js',
+                                                                                },
+                                                                            ],
+                                                                            () => {
+                                                                                (window.parent as any).QRCode.toDataURL(
+                                                                                        `variants-` + variant.barcode,
+                                                                                        {
+                                                                                            width: 200,
+                                                                                            margin: 2,
+                                                                                        },
+                                                                                        function (err: any, url: any) {
+                                                                                            if (err) {
+                                                                                                console.error(err);
+                                                                                                return;
+                                                                                            }
+                                                                                            (window.parent as any).glitter.openDiaLog(new URL('../dialog/image-preview.js', import.meta.url).href, 'preview', url);
+                                                                                        }
+                                                                                );
+                                                                            },
+                                                                            () => {
+                                                                            }
+                                                                    );
+                                                                }),
+                                                                {icon: `fa-regular fa-eye`}
+                                                        )}
+                                                    </div>
+                                                    <div style="display: flex;width: 100%;height: 70px;flex-direction: column;justify-content: center;align-items: flex-start;gap: 8px;">
+                                                        <div style="font-weight: 400;font-size: 16px;">存貨單位 (SKU)
+                                                        </div>
+                                                        <input
+                                                                style="width:100%;border-radius: 10px;border: 1px solid #DDD;height: 40px;padding: 0px 18px;"
+                                                                placeholder="請輸入存貨單位"
+                                                                value="${variant.sku ?? ''}"
+                                                                onchange="${gvc.event((e) => {
+                                                                    variant.sku = e.value;
+                                                                })}"
+                                                        />
+                                                    </div>
+                                                    <div style="display: flex;width: 100%;height: 70px;flex-direction: column;justify-content: center;align-items: flex-start;gap: 8px;">
+                                                        <div style="font-weight: 400;font-size: 16px;">商品條碼
+                                                            (ISBN、UPC、GTIN等)
+                                                        </div>
+                                                        <input
+                                                                style="width:100%;border-radius: 10px;border: 1px solid #DDD;height: 40px;padding: 0px 18px;"
+                                                                placeholder="請輸入商品條碼"
+                                                                value="${variant.barcode ?? ''}"
+                                                                onchange="${gvc.event((e) => {
+                                                                    // 正则表达式检查是否只包含英文字母和数字
+                                                                    const regex = /^[a-zA-Z0-9]+$/;
+                                                                    // 测试字符串是否匹配正则表达式
+                                                                    if (!regex.test(e.value)) {
+                                                                        e.value = '';
+                                                                        const dialog = new ShareDialog(gvc.glitter);
+                                                                        dialog.errorMessage({text: '條碼僅能輸入英數字'});
+                                                                    } else {
+                                                                        variant.barcode = e.value;
+                                                                    }
+                                                                })}"
+                                                        />
+                                                    </div>
                                                 </div>
-                                                <input
-                                                        style="width:100%;border-radius: 10px;border: 1px solid #DDD;height: 40px;padding: 0px 18px;"
-                                                        placeholder="請輸入商品條碼"
-                                                        value="${variant.barcode ?? ''}"
-                                                        onchange="${gvc.event((e) => {
-                                                            // 正则表达式检查是否只包含英文字母和数字
-                                                            const regex = /^[a-zA-Z0-9]+$/;
-                                                            // 测试字符串是否匹配正则表达式
-                                                            if (!regex.test(e.value)) {
-                                                                e.value = '';
-                                                                const dialog = new ShareDialog(gvc.glitter);
-                                                                dialog.errorMessage({text: '條碼僅能輸入英數字'});
-                                                            } else {
-                                                                variant.barcode = e.value;
-                                                            }
-                                                        })}"
-                                                />
-                                            </div>
-                                        </div>
-                                    `)}
+                                            `))
+                                        }
+                                        return map_.join('')
+                                    })()}
                                     ${document.body.clientWidth > 768 && obj.single === undefined ? BgWidget.mbContainer(120) : ''}
                                 </div>
                                 <div class="${obj.single ? `d-none` : ``}" style="min-width:300px; max-width:100%;">
@@ -1685,6 +1745,7 @@ export class ShoppingProductSetting {
             };
         } else {
             obj.vm.replaceData = postMD;
+            postMD.product_category = ShoppingProductSetting.select_product_type
         }
         let origin_data = JSON.stringify(postMD);
         setTimeout(() => {
@@ -1695,21 +1756,17 @@ export class ShoppingProductSetting {
         const gvc = obj.gvc;
         const dialog = new ShareDialog(gvc.glitter);
         const saasConfig: { config: any; api: any } = (window.parent as any).saasConfig;
-
         let shipment_config: any = await saasConfig.api.getPrivateConfig(saasConfig.config.appName, `glitter_shipment`);
         if (shipment_config.response.result[0]) {
             shipment_config = shipment_config.response.result[0].value || {};
         } else {
             shipment_config = {};
         }
-
-
         gvc.addStyle(`
             .specInput:focus {
                 outline: none;
             }
         `);
-
         const vm: {
             id: string,
             language: any,
@@ -1728,6 +1785,7 @@ export class ShoppingProductSetting {
         }
 
         ProductInitial.initial(postMD)
+        postMD.product_category = postMD.product_category || 'commodity'
         return gvc.bindView(() => {
             return {
                 bind: vm.id,
@@ -1746,7 +1804,16 @@ export class ShoppingProductSetting {
                     })
                     console.log("language_data.title -- ", language_data)
                     // console.log(postMD.title)
-
+                    const cat_title=(()=>{
+                        switch (postMD.product_category){
+                            case "commodity":
+                                return '商品'
+                            case 'course':
+                                return '課程'
+                            default:
+                                return '商品'
+                        }
+                    })()
                     return [
                         BgWidget.container(
                             html`
@@ -1773,7 +1840,7 @@ export class ShoppingProductSetting {
                                         )}
                                         <div class="d-flex align-items-center ">
                                             <h3 class="mb-0 me-2 tx_title">
-                                                ${obj.type === 'replace' ? postMD.title || '編輯商品' : `新增商品`}</h3>
+                                                ${obj.type === 'replace' ? postMD.title || '編輯'+cat_title : `新增${cat_title}`}</h3>
                                         </div>
                                         <div class="flex-fill"></div>
                                     </div>

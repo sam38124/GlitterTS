@@ -186,17 +186,27 @@ export class ShoppingSettingBasic {
         };
         const language_data = obj.language_data;
         updateVariants();
+        const cat_title = (() => {
+            switch (postMD.product_category) {
+                case "commodity":
+                    return '商品';
+                case 'course':
+                    return '課程';
+                default:
+                    return '商品';
+            }
+        })();
         return BgWidget.container1x2({
             html: [
                 BgWidget.mainCard(html `
                         <div class="d-flex flex-column guide5-4">
-                            <div style="font-weight: 700;" class="">商品名稱 ${BgWidget.languageInsignia(vm.language, 'margin-left:5px;')}</div>
+                            <div style="font-weight: 700;" class="">${cat_title}名稱 ${BgWidget.languageInsignia(vm.language, 'margin-left:5px;')}</div>
                             ${BgWidget.editeInput({
                     gvc: gvc,
                     title: '',
                     type: 'text',
                     default: (_a = language_data.title) !== null && _a !== void 0 ? _a : '',
-                    placeHolder: '請輸入商品名稱',
+                    placeHolder: `請輸入${cat_title}名稱`,
                     callback: (text) => {
                         if (language_data.seo.domain === language_data.title) {
                             language_data.seo.domain = text;
@@ -223,11 +233,11 @@ export class ShoppingSettingBasic {
                             view: () => __awaiter(this, void 0, void 0, function* () {
                                 return html ` <div class="d-flex align-items-center justify-content-end ">
                                                 <div class="d-flex align-items-center gap-2">
-                                                    <div style="color: #393939; font-weight: 700;">商品簡述 ${BgWidget.languageInsignia(sel_lan(), 'margin-left:5px;')}</div>
+                                                    <div style="color: #393939; font-weight: 700;">${cat_title}簡述 ${BgWidget.languageInsignia(sel_lan(), 'margin-left:5px;')}</div>
                                                 </div>
                                                 <div class="flex-fill"></div>
                                             </div>
-                                            ${BgWidget.grayNote('將顯示於商品名稱下方，快速呈現商品重點資訊，建議精簡')}
+                                            ${BgWidget.grayNote(`將顯示於${cat_title}名稱下方，快速呈現${cat_title}重點資訊，建議精簡`)}
                                             <div class="my-3">
                                                 ${gvc.bindView((() => {
                                     var _a;
@@ -244,7 +254,7 @@ export class ShoppingSettingBasic {
                                                 BgWidget.fullDialog({
                                                     gvc: gvc,
                                                     title: (gvc2) => {
-                                                        return `<div class="d-flex align-items-center" style="gap:10px;">${'商品簡述' +
+                                                        return `<div class="d-flex align-items-center" style="gap:10px;">${`${cat_title}簡述` +
                                                             BgWidget.aiChatButton({
                                                                 gvc: gvc2,
                                                                 select: 'writer',
@@ -394,7 +404,7 @@ export class ShoppingSettingBasic {
                                     }
                                     return html ` <div class="d-flex align-items-center justify-content-end mb-3">
                                                     <div class="d-flex align-items-center gap-2">
-                                                        <div style="color: #393939; font-weight: 700;">商品詳細描述 ${BgWidget.languageInsignia(sel_lan(), 'margin-left:5px;')}</div>
+                                                        <div style="color: #393939; font-weight: 700;">${cat_title}詳細描述 ${BgWidget.languageInsignia(sel_lan(), 'margin-left:5px;')}</div>
                                                     </div>
                                                     <div class="flex-fill"></div>
                                                     <div
@@ -529,7 +539,7 @@ export class ShoppingSettingBasic {
                                                     BgWidget.fullDialog({
                                                         gvc: gvc,
                                                         title: (gvc2) => {
-                                                            return `<div class="d-flex align-items-center" style="gap:10px;">${'商品描述' +
+                                                            return `<div class="d-flex align-items-center" style="gap:10px;">${`${cat_title}描述` +
                                                                 BgWidget.aiChatButton({
                                                                     gvc: gvc2,
                                                                     select: 'writer',
@@ -841,7 +851,7 @@ export class ShoppingSettingBasic {
                         view: () => {
                             let returnHTML = html `
                                         <div class="d-flex align-items-center justify-content-between" style="font-size: 16px;font-weight: 700;">
-                                            商品規格 ${BgWidget.languageInsignia(sel_lan(), '')}
+                                            ${cat_title}規格 ${BgWidget.languageInsignia(sel_lan(), '')}
                                         </div>
                                     `;
                             let editSpectPage = [];
@@ -1300,7 +1310,7 @@ export class ShoppingSettingBasic {
                                                                                               編輯售價
                                                                                           </div>
                                                                                           <div class="w-100 d-flex flex-column" style="margin-bottom:18px;padding: 0px 20px;gap:8px;color:#393939;">
-                                                                                              將商品材積套用到所有選取的規格中
+                                                                                              將${cat_title}材積套用到所有選取的規格中
                                                                                               <div class="row">
                                                                                                   ${[
                                                                                 {
@@ -1358,15 +1368,15 @@ export class ShoppingSettingBasic {
                                                                                           <div
                                                                                               style="font-size: 16px;font-weight: 700;display: flex;padding: 12px 0px 12px 20px;align-items: center;align-self: stretch;border-radius: 10px 10px 0px 0px;background: #F2F2F2;"
                                                                                           >
-                                                                                              編輯商品重量
+                                                                                              編輯${cat_title}重量
                                                                                           </div>
                                                                                           <div class="w-100 d-flex flex-column" style="margin-bottom:18px;padding: 0px 20px;gap:8px;color:#393939;">
-                                                                                              將商品重量套用到所有選取的規格中
+                                                                                              將${cat_title}重量套用到所有選取的規格中
                                                                                               <div class="w-100 row m-0" style="color:#393939;">
                                                                                                   <input
                                                                                                       class="col-6"
                                                                                                       style="display: flex;height: 40px;padding: 10px 18px;align-items: center;gap: 10px;border-radius: 10px;border: 1px solid #DDD;"
-                                                                                                      placeholder="請輸入商品重量"
+                                                                                                      placeholder="請輸入${cat_title}重量"
                                                                                                       onchange="${gvc.event((e) => {
                                                                                 inputTemp = e.value;
                                                                             })}"
@@ -1460,7 +1470,7 @@ export class ShoppingSettingBasic {
                                                                                                   </defs>
                                                                                               </svg>
                                                                                               <div style="color: #393939;text-align: center;font-size: 16px;font-weight: 400;line-height: 160%;">
-                                                                                                  確定要刪除這個商品規格嗎？此操作將無法復原
+                                                                                                  確定要刪除這個${cat_title}規格嗎？此操作將無法復原
                                                                                               </div>
                                                                                               <div class="w-100 justify-content-center d-flex" style="padding-right: 20px;gap: 14px;">
                                                                                                   ${BgWidget.cancel(gvc.event(() => {
@@ -1784,7 +1794,7 @@ export class ShoppingSettingBasic {
                                                                         }, 'volume');
                                                                     })}"
                                                                                                     >
-                                                                                                        編輯商品材積
+                                                                                                        編輯${cat_title}材積
                                                                                                     </div>
                                                                                                     <div
                                                                                                         style="cursor: pointer;"
@@ -1794,7 +1804,7 @@ export class ShoppingSettingBasic {
                                                                         }, 'weight');
                                                                     })}"
                                                                                                     >
-                                                                                                        編輯商品重量
+                                                                                                        編輯${cat_title}重量
                                                                                                     </div>
                                                                                                 </div>
                                                                                             `
@@ -2272,7 +2282,7 @@ export class ShoppingSettingBasic {
                                 const href = `https://${window.parent.glitter.share.editorViewModel.domain}/${Language.getLanguageLinkPrefix(true, sel_lan())}products`;
                                 return html ` <div style="font-weight: 700;" class="mb-3">搜尋引擎列表 ${BgWidget.languageInsignia(sel_lan(), 'margin-left:5px;')}</div>
                                             ${[
-                                    html ` <div class="tx_normal fw-normal mb-2" style="">商品網址</div>`,
+                                    html ` <div class="tx_normal fw-normal mb-2" style="">${cat_title}網址</div>`,
                                     html ` <div
                                                     style="  justify-content: flex-start; align-items: center; display: inline-flex;border:1px solid #EAEAEA;border-radius: 10px;overflow: hidden; ${document
                                         .body.clientWidth > 768
@@ -2293,7 +2303,7 @@ export class ShoppingSettingBasic {
                                         .body.clientWidth > 768
                                         ? ''
                                         : 'padding: 9px 18px;width:100%;'}"
-                                                        placeholder="請輸入商品連結"
+                                                        placeholder="請輸入${cat_title}連結"
                                                         value="${language_data.seo.domain || ''}"
                                                         onchange="${gvc.event((e) => {
                                         let text = e.value;
@@ -2353,7 +2363,7 @@ ${(_b = language_data.seo.content) !== null && _b !== void 0 ? _b : ''}</textare
             html: html ` <div class="summary-card p-0">
                     ${[
                 BgWidget.mainCard(html ` <div class="mb-2" style="font-weight: 700;">${BgWidget.infoInsignia(ShoppingProductSetting.getProductTypeString(postMD))}</div>
-                                <div class="mb-2" style="font-weight: 700;">商品狀態</div>
+                                <div class="mb-2" style="font-weight: 700;">${cat_title}狀態</div>
                                 ${gvc.bindView((() => {
                     const id = gvc.glitter.getUUID();
                     const inputStyle = 'display: block; width: 200px;';
@@ -2380,7 +2390,7 @@ ${(_b = language_data.seo.content) !== null && _b !== void 0 ? _b : ''}</textare
                             innerHTML: (gvc) => {
                                 var _a, _b;
                                 return html ` <div class="d-flex flex-column gap-3">
-                                                        ${BgWidget.grayNote('若系統時間大於設定的開始時間，商品狀態將會從「待上架」自動變成「上架」')}
+                                                        ${BgWidget.grayNote('若系統時間大於設定的開始時間，${cat_title}狀態將會從「待上架」自動變成「上架」')}
                                                         <div class="d-flex mb-1 ${document.body.clientWidth < 768 ? 'flex-column' : ''}" style="gap: 12px">
                                                             <div class="d-flex flex-column">
                                                                 <span class="tx_normal me-2">開始日期</span>
@@ -2487,7 +2497,7 @@ ${(_b = language_data.seo.content) !== null && _b !== void 0 ? _b : ''}</textare
                                             switch (state) {
                                                 case 'afterEnd':
                                                     dialog.warningMessage({
-                                                        text: '您的時間設定將會更改商品狀態為「下架」<br/>是否確定更改嗎？',
+                                                        text: '您的時間設定將會更改${cat_title}狀態為「下架」<br/>是否確定更改嗎？',
                                                         callback: (bool) => {
                                                             refresh(bool);
                                                         },
@@ -2495,7 +2505,7 @@ ${(_b = language_data.seo.content) !== null && _b !== void 0 ? _b : ''}</textare
                                                     return;
                                                 case 'inRange':
                                                     dialog.warningMessage({
-                                                        text: '您的時間設定將會更改商品狀態為「上架」<br/>是否確定更改嗎？',
+                                                        text: '您的時間設定將會更改${cat_title}狀態為「上架」<br/>是否確定更改嗎？',
                                                         callback: (bool) => {
                                                             refresh(bool);
                                                         },
@@ -2503,7 +2513,7 @@ ${(_b = language_data.seo.content) !== null && _b !== void 0 ? _b : ''}</textare
                                                     return;
                                                 case 'beforeStart':
                                                     dialog.warningMessage({
-                                                        text: '您的時間設定將會更改商品狀態為「待上架」<br/>是否確定更改嗎？',
+                                                        text: '您的時間設定將會更改${cat_title}狀態為「待上架」<br/>是否確定更改嗎？',
                                                         callback: (bool) => {
                                                             refresh(bool);
                                                         },
@@ -2619,7 +2629,7 @@ ${(_b = language_data.seo.content) !== null && _b !== void 0 ? _b : ''}</textare
                     postMD.channel = text;
                 }, { single: false })}`),
                 BgWidget.mainCard(html ` <div class="mb-2 position-relative" style="font-weight: 700;">
-                                    商品促銷標籤
+                                    ${cat_title}促銷標籤
                                     ${BgWidget.questionButton(gvc.event(() => {
                     QuestionInfo.promoteLabel(gvc);
                 }))}
@@ -2665,14 +2675,14 @@ ${(_b = language_data.seo.content) !== null && _b !== void 0 ? _b : ''}</textare
                         bind: id,
                         view: () => {
                             return [
-                                html ` <div class="mb-2" style="font-weight: 700;">商品分類</div>`,
+                                html ` <div class="mb-2" style="font-weight: 700;">${cat_title}分類</div>`,
                                 postMD.collection
                                     .map((dd) => {
                                     return html `<span style="font-size: 14px;">${dd}</span>`;
                                 })
                                     .join(html ` <div class="my-1"></div>`),
                                 html ` <div class="w-100 mt-3">
-                                                ${BgWidget.grayButton(`設定商品分類`, gvc.event(() => {
+                                                ${BgWidget.grayButton(`設定${cat_title}分類`, gvc.event(() => {
                                     BgProduct.collectionsDialog({
                                         gvc: gvc,
                                         default: postMD.collection.map((dd) => {

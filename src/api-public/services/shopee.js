@@ -132,7 +132,7 @@ class Shopee {
             }
         }
     }
-    async getItemList(start, end) {
+    async getItemList(start, end, index = 0) {
         var _a;
         const timestamp = Math.floor(Date.now() / 1000);
         const partner_id = (_a = process_1.default.env.shopee_partner_id) !== null && _a !== void 0 ? _a : "";
@@ -151,7 +151,7 @@ class Shopee {
             params: {
                 shop_id: parseInt(data[0].value.shop_id),
                 access_token: data[0].value.access_token,
-                offset: 0,
+                offset: index || 0,
                 page_size: 10,
                 update_time_from: start,
                 update_time_to: Math.floor(Date.now() / 1000),
@@ -167,17 +167,17 @@ class Shopee {
                     message: response.data.error
                 };
             }
+            console.log(`蝦皮回覆:`, response.data);
             const itemList = response.data.response.item;
             const productData = await Promise.all(itemList.map(async (item, index) => {
                 try {
-                    try {
-                        const productData = await database_js_1.default.query(`SELECT * FROM ${this.app}.t_manager_post WHERE (content->>'$.type'='product') AND (content->>'$.shopee_id' =?);`, [item.item_id]);
+                    const productData = await database_js_1.default.query(`SELECT count(1) FROM ${this.app}.t_manager_post WHERE (content->>'$.type'='product') AND (content->>'$.shopee_id' =?);`, [item.item_id]);
+                    if (productData[0]['count(1)'] > 0) {
+                        return null;
                     }
-                    catch (e) {
-                        console.error('查詢商品失敗:', e);
-                        return;
+                    else {
+                        return await this.getProductDetail(item.item_id);
                     }
-                    return await this.getProductDetail(item.item_id);
                 }
                 catch (error) {
                     console.error('下載或上傳失敗:', error);
@@ -185,10 +185,15 @@ class Shopee {
                 }
             }));
             const temp = {};
-            temp.data = productData.reverse();
+            temp.data = productData.reverse().filter((dd) => {
+                return dd;
+            });
             temp.collection = [];
             try {
                 await new shopping_js_1.Shopping(this.app, this.token).postMulProduct(temp);
+                if (response.data.response.has_next_page) {
+                    await this.getItemList(start, end, response.data.response.next_offset);
+                }
                 return {
                     data: temp.data,
                     message: '匯入OK'

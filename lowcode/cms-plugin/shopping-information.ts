@@ -217,7 +217,8 @@ export class ShoppingInformation {
                                         value: vm.data,
                                         user_id: 'manager'
                                     }).then(r => {
-                                        resolve(true)
+                                        resolve(true);
+                                        (window.parent as any).store_info.web_type=vm.data.web_type;
                                     })
                                 })
                             }

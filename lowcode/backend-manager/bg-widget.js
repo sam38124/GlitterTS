@@ -3377,7 +3377,7 @@ ${(_c = obj.default) !== null && _c !== void 0 ? _c : ''}</textarea
             return html `
                 <div
                         class="bg-white shadow rounded-3"
-                        style="overflow-y: auto; ${document.body.clientWidth > 768 ? `min-width: 400px; width: ${(_a = obj.width) !== null && _a !== void 0 ? _a : 600}px;max-width:calc(100vw - 20px);` : 'min-width: calc(100vw - 10px);; max-width: calc(100vw - 10px);'}"
+                        style="overflow-y: auto; ${document.body.clientWidth > 768 ? `width: ${(_a = obj.width) !== null && _a !== void 0 ? _a : 600}px;max-width:calc(100vw - 20px);` : 'min-width: calc(100vw - 10px);; max-width: calc(100vw - 10px);'}"
                 >
                     ${gvc.bindView({
                 bind: vm.id,

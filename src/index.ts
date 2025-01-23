@@ -315,7 +315,7 @@ export async function createAPP(dd: any) {
                                                     }
                                                 })()}"
                                                     />
-                                                    ${data.tag !== req.query.page ? `<meta name="robots" content="noindex">` : `<meta name="robots" content="index, follow"/>`}
+                                                    ${((data.tag !== req.query.page) || (req.query.page==='index-mobile')) ? `<meta name="robots" content="noindex">` : `<meta name="robots" content="index, follow"/>`}
                                                     <meta name="keywords" content="${(d.keywords || '尚未設定關鍵字').replace(/"/g, '&quot;')}" />
                                                     <link id="appImage" rel="shortcut icon" href="${d.logo || home_seo.logo || ''}" type="image/x-icon" />
                                                     <link rel="icon" href="${d.logo || home_seo.logo || ''}" type="image/png" sizes="128x128" />

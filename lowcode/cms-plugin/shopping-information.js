@@ -197,6 +197,7 @@ export class ShoppingInformation {
                                     user_id: 'manager'
                                 }).then(r => {
                                     resolve(true);
+                                    window.parent.store_info.web_type = vm.data.web_type;
                                 });
                             });
                         };

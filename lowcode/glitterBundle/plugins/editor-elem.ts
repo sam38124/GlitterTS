@@ -1193,6 +1193,24 @@ ${obj.structEnd ? obj.structEnd : '})()'}`,
                             function render() {
                                 setTimeout(() => {
                                     const FroalaEditor = (glitter.window as any).FroalaEditor;
+                                    function dataChange(){
+                                        const parser = new DOMParser();
+                                        const doc = parser.parseFromString(editor.html.get(), 'text/html');
+                                        try {
+                                            doc.documentElement.querySelectorAll('li').forEach((element: any) => {
+                                                element.style['list-style'] = 'revert';
+                                            });
+
+                                            doc.documentElement.querySelectorAll('iframe.fr-draggable').forEach(function (videoElement: any) {
+                                                videoElement.removeAttribute('height');
+                                            });
+                                            editor.selection.save()
+                                        }catch (e) {
+
+                                        }
+
+                                        obj.callback(doc.documentElement.outerHTML);
+                                    }
                                     editor = new FroalaEditor('#' + richID, {
                                         enter: FroalaEditor.ENTER_DIV,
                                         language: 'zh_tw',
@@ -1205,18 +1223,7 @@ ${obj.structEnd ? obj.structEnd : '})()'}`,
                                             imageMaxSize: 5 * 1024 * 1024,
                                             imageAllowedTypes: ['jpeg', 'jpg', 'png'],
                                             contentChanged: function () {
-                                                const parser = new DOMParser();
-                                                const doc = parser.parseFromString(editor.html.get(), 'text/html');
-                                                doc.documentElement.querySelectorAll('li').forEach((element: any) => {
-                                                    element.style['list-style'] = 'revert';
-                                                });
-
-                                                doc.documentElement.querySelectorAll('iframe.fr-draggable').forEach(function (videoElement: any) {
-                                                    videoElement.removeAttribute('height');
-                                                });
-
-                                                obj.callback(doc.documentElement.outerHTML);
-                                                editor.selection.save()
+                                                dataChange()
                                             },
                                             'image.uploaded': function (response: any) {
                                                 console.info(`image.uploaded`);
@@ -1297,11 +1304,13 @@ ${obj.structEnd ? obj.structEnd : '})()'}`,
                                             'keydown': function () {
                                                 console.log('光標位置可能改變 (按下鍵):', editor.selection.get());
                                                 editor.selection.save()
+                                                dataChange()
                                             },
                                             // 在鬆開按鍵時觸發
                                             'keyup': function () {
                                                 console.log('光標位置改變 (鬆開鍵):', editor.selection.get());
                                                 editor.selection.save()
+                                                dataChange()
                                             },
                                             'mouseup': function () {
                                                 console.log('光標位置可能改變 (滑鼠點擊):', editor.selection.get());

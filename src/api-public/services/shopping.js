@@ -280,6 +280,7 @@ class Shopping {
             query.min_price && querySql.push(`(id in (select product_id from \`${this.app}\`.t_variants where content->>'$.sale_price'>=${query.min_price})) `);
             query.max_price && querySql.push(`(id in (select product_id from \`${this.app}\`.t_variants where content->>'$.sale_price'<=${query.max_price})) `);
             const products = await this.querySql(querySql, query);
+            console.log(`querySql=>${querySql}`);
             const productList = (Array.isArray(products.data) ? products.data : [products.data]).filter((product) => product);
             if (this.token && this.token.userID) {
                 for (const b of productList) {
