@@ -906,6 +906,7 @@ console.log(`querySql=>${querySql}`)
             pos_info?: any; //POS結帳資訊;
             invoice_select?: string;
             pre_order?: boolean;
+            voucherList?: any;
         },
         type: 'add' | 'preview' | 'manual' | 'manual-preview' | 'POS' = 'add',
         replace_order_id?: string
@@ -913,6 +914,7 @@ console.log(`querySql=>${querySql}`)
         const check_time = new Date().getTime();
         try {
             data.line_items = (data.line_items || (data as any).lineItems) ?? [];
+
             //判斷是重新付款則取代
             if (replace_order_id) {
                 const orderData = (
@@ -942,16 +944,11 @@ console.log(`querySql=>${querySql}`)
                     throw exception.BadRequestError('BAD_REQUEST', 'ToCheckout 1 Error:Cant find this orderID.', null);
                 }
             }
-            //判斷是POS重新支付<例如:預購單>，則把原先商品庫存加回去
+
+            // 判斷是 POS 重新支付<例如:預購單>，則把原先商品庫存加回去
             if (data.order_id && type === 'POS') {
-                const order = (
-                    await db.query(
-                        `select *
-                                               from \`${this.app}\`.t_checkout
-                                               where cart_token = '${data.order_id}'`,
-                        []
-                    )
-                )[0];
+                const order = (await db.query(`SELECT * FROM \`${this.app}\`.t_checkout WHERE cart_token = ?`, [data.order_id]))[0];
+
                 if (order) {
                     for (const b of order.orderData.lineItems) {
                         const pdDqlData = (
@@ -963,31 +960,42 @@ console.log(`querySql=>${querySql}`)
                                 channel: data.checkOutType === 'POS' ? 'pos' : undefined,
                             })
                         ).data;
+
                         const pd = pdDqlData.content;
-                        const variant = pd.variants.find((dd: any) => {
-                            return dd.spec.join('-') === b.spec.join('-');
-                        });
-                        Object.keys(b.deduction_log).map((dd) => {
-                            try {
-                                variant.stockList[dd].count += b.deduction_log[dd];
-                            } catch (e) {}
-                        });
+                        const variant = pd.variants.find((dd: any) => dd.spec.join('-') === b.spec.join('-'));
+
+                        // 更新庫存
+                        updateStock(variant, b.deduction_log);
+
+                        // 更新變體資訊
                         await this.updateVariantsWithSpec(variant, b.id, b.spec);
-                        //這裡更新資訊
+
+                        // 更新資料庫中的商品內容
                         await db.query(
-                            `UPDATE \`${this.app}\`.\`t_manager_post\`
-                             SET ?
-                             WHERE 1 = 1
-                               and id = ${pdDqlData.id}`,
-                            [{ content: JSON.stringify(pd) }]
+                            `UPDATE \`${this.app}\`.\`t_manager_post\` SET content = ? WHERE id = ?
+                            `,
+                            [JSON.stringify(pd), pdDqlData.id]
                         );
                     }
                 }
             }
+
+            // 更新庫存的輔助函數
+            async function updateStock(variant: any, deductionLog: any) {
+                Object.keys(deductionLog).forEach((key) => {
+                    try {
+                        variant.stockList[key].count += deductionLog[key];
+                    } catch (e) {
+                        console.error(`Error updating stock for variant ${variant.id}:`, e);
+                    }
+                });
+            }
+
             //判斷是checkOutType 是POS則清空token，因為結帳對象不是結帳人
             if (data.checkOutType === 'POS') {
                 this.token = undefined;
             }
+
             console.log(`checkout-time-01=>`, new Date().getTime() - check_time);
             const userClass = new User(this.app);
             const rebateClass = new Rebate(this.app);
@@ -999,28 +1007,48 @@ console.log(`querySql=>${querySql}`)
                     throw exception.BadRequestError('BAD_REQUEST', 'ToCheckout 2 Error:No email address.', null);
                 }
             }
-            const userData = await (async () => {
-                if (type !== 'preview' || (this.token && this.token.userID)) {
-                    return this.token && this.token.userID
-                        ? await userClass.getUserData(this.token.userID as any, 'userID')
-                        : await userClass.getUserData(data.email! || data.user_info.email, 'account');
-                    //     檢查
-                } else {
+
+            const getUserDataAsync = async (
+                type: string,
+                token: IToken | undefined,
+                data: {
+                    email?: string;
+                    user_info: { email: string };
+                }
+            ) => {
+                // 檢查預覽模式下的條件
+                if (type === 'preview' && !(token?.userID || data.user_info.email)) {
                     return {};
                 }
-            })();
+
+                // 根據 token 獲取用戶數據
+                if (token?.userID) {
+                    return await userClass.getUserData(`${token.userID}`, 'userID');
+                }
+
+                // 獲取 email 並從帳號獲取數據
+                const email = data.email || data.user_info.email;
+                const dataByAccount = await userClass.getUserData(email, 'account');
+
+                // 如果找到帳號數據，則返回
+                if (dataByAccount && Object.keys(dataByAccount).length > 0) {
+                    return dataByAccount;
+                }
+
+                // 否則根據 email 或電話獲取數據
+                return await userClass.getUserData(email, 'email_or_phone');
+            };
+
+            const userData = await getUserDataAsync(type, this.token, data);
+
             console.log(`checkout-time-02=>`, new Date().getTime() - check_time);
             if (userData && userData.account) {
                 data.email = userData.account;
             }
-
             if (!data.email && type !== 'preview') {
-                if (data.user_info && data.user_info.email) {
-                    data.email = data.user_info.email;
-                } else {
-                    data.email = data.email || 'no-email';
-                }
+                data.email = data.user_info?.email || 'no-email';
             }
+
             // 判斷購物金是否可用
             if (data.use_rebate && data.use_rebate > 0) {
                 if (userData) {
@@ -1033,6 +1061,7 @@ console.log(`querySql=>${querySql}`)
                     data.use_rebate = 0;
                 }
             }
+
             console.log(`checkout-time-03=>`, new Date().getTime() - check_time);
             // 運費設定
             const shipment: ShipmentConfig = await (async () => {
@@ -1089,6 +1118,7 @@ console.log(`querySql=>${querySql}`)
                 }
                 return def;
             })();
+
             console.log(`checkout-time-04=>`, new Date().getTime() - check_time);
             // 物流設定
             const shipment_setting: any = await new Promise(async (resolve, reject) => {
@@ -1109,6 +1139,7 @@ console.log(`querySql=>${querySql}`)
                     resolve([]);
                 }
             });
+
             console.log(`checkout-time-05=>`, new Date().getTime() - check_time);
             //載入自訂配送表單
             shipment_setting.custom_delivery = shipment_setting.custom_delivery ?? [];
@@ -1124,6 +1155,7 @@ console.log(`querySql=>${querySql}`)
             shipment_setting.support = shipment_setting.support ?? [];
             shipment_setting.info =
                 (shipment_setting.language_data && shipment_setting.language_data[data.language as any] && shipment_setting.language_data[data.language as any].info) ?? shipment_setting.info;
+
             console.log(`checkout-time-06=>`, new Date().getTime() - check_time);
             // 購物車資料
             const carData: Cart = {
@@ -1251,82 +1283,102 @@ console.log(`querySql=>${querySql}`)
                             return dd.spec.join('-') === b.spec.join('-');
                         });
                         if ((Number.isInteger(variant.stock) || variant.show_understocking === 'false') && Number.isInteger(b.count)) {
-                            if (data.checkOutType === 'POS' && variant.show_understocking !== 'false') {
-                                variant.stock = variant.stockList && (variant.stockList as any)[data.pos_store!].count;
+                            const isPOS = data.checkOutType === 'POS';
+                            const isUnderstockingVisible = variant.show_understocking !== 'false';
+                            const isManualType = type === 'manual' || type === 'manual-preview';
+
+                            // Set stock based on POS store data
+                            if (isPOS && isUnderstockingVisible) {
+                                variant.stock = variant.stockList?.[data.pos_store!]?.count || 0; // Default to 0 if undefined
                             }
-                            // 當超過庫存數量則調整為庫存上限
-                            if (variant.stock < b.count && variant.show_understocking !== 'false' && type !== 'manual' && type !== 'manual-preview') {
-                                if (data.checkOutType === 'POS') {
+
+                            // Adjust count if it exceeds available stock
+                            if (variant.stock < b.count && isUnderstockingVisible && !isManualType) {
+                                if (isPOS) {
                                     (b as any).pre_order = true;
                                 } else {
                                     b.count = variant.stock;
                                 }
                             }
                             if (variant && b.count > 0) {
-                                (b as any).specs = pd.specs;
-                                (b as any).language_data = pd.language_data;
-                                b.preview_image = variant.preview_image || pd.preview_image[0];
-                                b.title = pd.title;
-                                b.sale_price = variant.sale_price;
-                                b.collection = pd['collection'];
-                                b.sku = variant.sku;
-                                b.stock = variant.stock;
-                                b.show_understocking = variant.show_understocking;
-                                (b as any).stockList = variant.stockList;
-                                b.weight = parseInt(`${variant.weight || 0}`, 10);
+                                // Assign basic properties
+                                Object.assign(b, {
+                                    specs: pd.specs,
+                                    language_data: pd.language_data,
+                                    preview_image: variant.preview_image || pd.preview_image[0],
+                                    title: pd.title,
+                                    sale_price: variant.sale_price,
+                                    collection: pd.collection,
+                                    sku: variant.sku,
+                                    stock: variant.stock,
+                                    show_understocking: variant.show_understocking,
+                                    stockList: variant.stockList,
+                                    weight: parseInt(variant.weight || '0', 10),
+                                    designated_logistics: pd.designated_logistics ?? { type: 'all', list: [] },
+                                });
+
+                                // Calculate shipment object
+                                const shipmentValue = (() => {
+                                    if (!variant.shipment_type || variant.shipment_type === 'none') return 0;
+                                    if (variant.shipment_type === 'volume') {
+                                        return b.count * variant.v_length * variant.v_width * variant.v_height;
+                                    }
+                                    if (variant.shipment_type === 'weight') {
+                                        return b.count * variant.weight;
+                                    }
+                                    return 0;
+                                })();
+
                                 b.shipment_obj = {
                                     type: variant.shipment_type,
-                                    value: (() => {
-                                        if (!variant.shipment_type || variant.shipment_type === 'none') {
-                                            return 0;
-                                        }
-                                        if (variant.shipment_type === 'volume') {
-                                            return b.count * variant.v_length * variant.v_width * variant.v_height;
-                                        }
-                                        if (variant.shipment_type === 'weight') {
-                                            return b.count * variant.weight;
-                                        }
-                                        return 0;
-                                    })(),
+                                    value: shipmentValue,
                                 };
-                                b.designated_logistics = pd.designated_logistics ?? { type: 'all', list: [] };
-                                variant.shipment_weight = parseInt(variant.shipment_weight || 0);
+
+                                // Process shipment weight
+                                variant.shipment_weight = parseInt(variant.shipment_weight || '0', 10);
                                 carData.lineItems.push(b as any);
-                                if (type !== 'manual' && !pd.productType.giveaway) {
-                                    carData.total += variant.sale_price * b.count;
-                                }
-                                if (pd.productType.giveaway) {
-                                    b.sale_price = 0;
+
+                                // Update total price if not manual or giveaway
+                                if (type !== 'manual') {
+                                    if (pd.productType.giveaway) {
+                                        b.sale_price = 0;
+                                    } else {
+                                        carData.total += variant.sale_price * b.count;
+                                    }
                                 }
                             }
-                            // 當為結帳時則更改商品庫存數量
+                            // Adjust stock quantity during checkout
                             if (type !== 'preview' && type !== 'manual' && type !== 'manual-preview' && variant.show_understocking !== 'false') {
-                                const countless = variant.stock - b.count;
-                                variant.stock = countless > 0 ? countless : 0;
+                                const remainingStock = Math.max(variant.stock - b.count, 0);
+                                variant.stock = remainingStock;
+
+                                // Handle stock deduction based on checkout type
                                 if (type === 'POS') {
-                                    //POS的話依據分店去扣除庫存
-                                    variant.deduction_log = {};
-                                    (variant.deduction_log as any)[data.pos_store!!] = b.count;
+                                    // Deduct stock based on store for POS
+                                    variant.deduction_log = { [data.pos_store!!]: b.count };
                                     variant.stockList[data.pos_store!!].count -= b.count;
                                     b.deduction_log = variant.deduction_log;
                                 } else {
-                                    //找到最大的倉儲量 順序式
+                                    // Allocate stock from the largest storage
                                     const returnData = new Stock(this.app, this.token).allocateStock(variant.stockList, b.count);
                                     variant.deduction_log = returnData.deductionLog;
                                     b.deduction_log = returnData.deductionLog;
                                 }
+
                                 saveStockArray.push(() => {
                                     return new Promise<boolean>(async (resolve, reject) => {
-                                        await this.updateVariantsWithSpec(variant, b.id, b.spec);
-                                        //這裡更新資訊
-                                        await db.query(
-                                            `UPDATE \`${this.app}\`.\`t_manager_post\`
-                                             SET ?
-                                             WHERE 1 = 1
-                                               and id = ${pdDqlData.id}`,
-                                            [{ content: JSON.stringify(pd) }]
-                                        );
-                                        resolve(true);
+                                        try {
+                                            await this.updateVariantsWithSpec(variant, b.id, b.spec);
+                                            // Update information in the database
+                                            await db.query(
+                                                `UPDATE \`${this.app}\`.\`t_manager_post\` SET ? WHERE id = ${pdDqlData.id}
+                                                `,
+                                                [{ content: JSON.stringify(pd) }]
+                                            );
+                                            resolve(true);
+                                        } catch (error) {
+                                            reject(error);
+                                        }
                                     });
                                 });
                             }
@@ -1374,16 +1426,19 @@ console.log(`querySql=>${querySql}`)
             })();
             carData.total += carData.shipment_fee;
             const f_rebate = await this.formatUseRebate(carData.total, carData.use_rebate);
+
             console.log(`checkout-time-08=>`, new Date().getTime() - check_time);
             carData.useRebateInfo = f_rebate;
             carData.use_rebate = f_rebate.point;
             carData.total -= carData.use_rebate;
             carData.code = data.code;
             carData.voucherList = [];
+
             if (userData && userData.account) {
                 const data = await rebateClass.getOneRebate({ user_id: userData.userID });
                 carData.user_rebate_sum = data?.point || 0;
             }
+
             console.log(`checkout-time-09=>`, new Date().getTime() - check_time);
 
             // 判斷是否有分銷連結
@@ -1436,38 +1491,28 @@ console.log(`querySql=>${querySql}`)
                 });
                 // 再次更新優惠內容
                 await this.checkVoucher(carData);
+
                 console.log(`checkout-time-check-voucher-2=>`, new Date().getTime() - check_time);
-                //過濾可選贈品
+                // 過濾可選贈品
                 let can_add_gift: any[] = [];
-                carData
-                    .voucherList!!.filter((dd) => {
-                        return dd.reBackType === 'giveaway';
-                    })
-                    .map((dd) => {
-                        can_add_gift.push(dd.add_on_products);
-                    });
-                gift_product.map((dd) => {
-                    let max_count = can_add_gift.filter((d1) => {
-                        return d1.includes(dd.id);
-                    }).length;
+
+                // 收集可添加的贈品
+                carData.voucherList?.filter((dd) => dd.reBackType === 'giveaway').forEach((dd) => can_add_gift.push(dd.add_on_products));
+
+                // 處理每個贈品
+                gift_product.forEach((dd) => {
+                    const max_count = can_add_gift.filter((d1) => d1.includes(dd.id)).length;
+
                     if (dd.count <= max_count) {
+                        // 移除已添加的贈品
                         for (let a = 0; a < dd.count; a++) {
-                            let find = false;
-                            can_add_gift = can_add_gift.filter((d1) => {
-                                if (d1.includes(dd.id) || find) {
-                                    find = true;
-                                    return false;
-                                } else {
-                                    return true;
-                                }
-                            });
+                            can_add_gift = can_add_gift.filter((d1) => !d1.includes(dd.id));
                         }
                         carData.lineItems.push(dd);
                     }
                 });
-                for (const dd of carData.voucherList!!.filter((dd) => {
-                    return dd.reBackType === 'giveaway';
-                })) {
+
+                for (const dd of carData.voucherList!!.filter((dd) => dd.reBackType === 'giveaway')) {
                     let index = -1;
                     for (const b of dd.add_on_products ?? []) {
                         index++;
@@ -1487,6 +1532,7 @@ console.log(`querySql=>${querySql}`)
                     }
                 }
             }
+
             console.log(`checkout-time-11=>`, new Date().getTime() - check_time);
             // 付款資訊設定
             const keyData: paymentInterface = (
@@ -1666,6 +1712,16 @@ console.log(`querySql=>${querySql}`)
                 };
             } else if (type === 'POS') {
                 carData.orderSource = 'POS';
+
+                if (data.checkOutType === 'POS' && Array.isArray(data.voucherList)) {
+                    const manualVoucher = data.voucherList.find((item: any) => item.id === 0);
+                    if (manualVoucher) {
+                        manualVoucher.discount = manualVoucher.discount_total;
+                        carData.total -= manualVoucher.discount;
+                        carData.voucherList.push(manualVoucher);
+                    }
+                }
+
                 const trans = await db.Transaction.build();
                 if (data.pre_order) {
                     (carData as any).progress = 'pre_order';

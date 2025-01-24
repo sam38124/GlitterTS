@@ -310,6 +310,7 @@ export declare class Shopping {
         pos_info?: any;
         invoice_select?: string;
         pre_order?: boolean;
+        voucherList?: any;
     }, type?: 'add' | 'preview' | 'manual' | 'manual-preview' | 'POS', replace_order_id?: string): Promise<any>;
     getReturnOrder(query: {
         page: number;

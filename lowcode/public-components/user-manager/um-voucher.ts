@@ -35,6 +35,7 @@ export interface VoucherContent {
     rebateEndDay: string;
     conditionType: string;
     start_ISO_Date: string;
+    language: 'en-US' | 'zh-CN' | 'zh-TW';
 }
 
 export interface Voucher {

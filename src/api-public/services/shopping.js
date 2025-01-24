@@ -586,7 +586,7 @@ class Shopping {
         }
     }
     async toCheckout(data, type = 'add', replace_order_id) {
-        var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l;
+        var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m, _o, _p, _q;
         const check_time = new Date().getTime();
         try {
             data.line_items = (_a = (data.line_items || data.lineItems)) !== null && _a !== void 0 ? _a : [];
@@ -612,9 +612,7 @@ class Shopping {
                 }
             }
             if (data.order_id && type === 'POS') {
-                const order = (await database_js_1.default.query(`select *
-                                               from \`${this.app}\`.t_checkout
-                                               where cart_token = '${data.order_id}'`, []))[0];
+                const order = (await database_js_1.default.query(`SELECT * FROM \`${this.app}\`.t_checkout WHERE cart_token = ?`, [data.order_id]))[0];
                 if (order) {
                     for (const b of order.orderData.lineItems) {
                         const pdDqlData = (await this.getProduct({
@@ -625,22 +623,23 @@ class Shopping {
                             channel: data.checkOutType === 'POS' ? 'pos' : undefined,
                         })).data;
                         const pd = pdDqlData.content;
-                        const variant = pd.variants.find((dd) => {
-                            return dd.spec.join('-') === b.spec.join('-');
-                        });
-                        Object.keys(b.deduction_log).map((dd) => {
-                            try {
-                                variant.stockList[dd].count += b.deduction_log[dd];
-                            }
-                            catch (e) { }
-                        });
+                        const variant = pd.variants.find((dd) => dd.spec.join('-') === b.spec.join('-'));
+                        updateStock(variant, b.deduction_log);
                         await this.updateVariantsWithSpec(variant, b.id, b.spec);
-                        await database_js_1.default.query(`UPDATE \`${this.app}\`.\`t_manager_post\`
-                             SET ?
-                             WHERE 1 = 1
-                               and id = ${pdDqlData.id}`, [{ content: JSON.stringify(pd) }]);
+                        await database_js_1.default.query(`UPDATE \`${this.app}\`.\`t_manager_post\` SET content = ? WHERE id = ?
+                            `, [JSON.stringify(pd), pdDqlData.id]);
                     }
                 }
+            }
+            async function updateStock(variant, deductionLog) {
+                Object.keys(deductionLog).forEach((key) => {
+                    try {
+                        variant.stockList[key].count += deductionLog[key];
+                    }
+                    catch (e) {
+                        console.error(`Error updating stock for variant ${variant.id}:`, e);
+                    }
+                });
             }
             if (data.checkOutType === 'POS') {
                 this.token = undefined;
@@ -656,27 +655,27 @@ class Shopping {
                     throw exception_js_1.default.BadRequestError('BAD_REQUEST', 'ToCheckout 2 Error:No email address.', null);
                 }
             }
-            const userData = await (async () => {
-                if (type !== 'preview' || (this.token && this.token.userID)) {
-                    return this.token && this.token.userID
-                        ? await userClass.getUserData(this.token.userID, 'userID')
-                        : await userClass.getUserData(data.email || data.user_info.email, 'account');
-                }
-                else {
+            const getUserDataAsync = async (type, token, data) => {
+                if (type === 'preview' && !((token === null || token === void 0 ? void 0 : token.userID) || data.user_info.email)) {
                     return {};
                 }
-            })();
+                if (token === null || token === void 0 ? void 0 : token.userID) {
+                    return await userClass.getUserData(`${token.userID}`, 'userID');
+                }
+                const email = data.email || data.user_info.email;
+                const dataByAccount = await userClass.getUserData(email, 'account');
+                if (dataByAccount && Object.keys(dataByAccount).length > 0) {
+                    return dataByAccount;
+                }
+                return await userClass.getUserData(email, 'email_or_phone');
+            };
+            const userData = await getUserDataAsync(type, this.token, data);
             console.log(`checkout-time-02=>`, new Date().getTime() - check_time);
             if (userData && userData.account) {
                 data.email = userData.account;
             }
             if (!data.email && type !== 'preview') {
-                if (data.user_info && data.user_info.email) {
-                    data.email = data.user_info.email;
-                }
-                else {
-                    data.email = data.email || 'no-email';
-                }
+                data.email = ((_b = data.user_info) === null || _b === void 0 ? void 0 : _b.email) || 'no-email';
             }
             if (data.use_rebate && data.use_rebate > 0) {
                 if (userData) {
@@ -750,7 +749,7 @@ class Shopping {
                 }
             });
             console.log(`checkout-time-05=>`, new Date().getTime() - check_time);
-            shipment_setting.custom_delivery = (_b = shipment_setting.custom_delivery) !== null && _b !== void 0 ? _b : [];
+            shipment_setting.custom_delivery = (_c = shipment_setting.custom_delivery) !== null && _c !== void 0 ? _c : [];
             for (const form of shipment_setting.custom_delivery) {
                 form.form =
                     (await new user_js_1.User(this.app).getConfigV2({
@@ -758,15 +757,15 @@ class Shopping {
                         key: `form_delivery_${form.id}`,
                     })).list || [];
             }
-            shipment_setting.support = (_c = shipment_setting.support) !== null && _c !== void 0 ? _c : [];
+            shipment_setting.support = (_d = shipment_setting.support) !== null && _d !== void 0 ? _d : [];
             shipment_setting.info =
-                (_d = (shipment_setting.language_data && shipment_setting.language_data[data.language] && shipment_setting.language_data[data.language].info)) !== null && _d !== void 0 ? _d : shipment_setting.info;
+                (_e = (shipment_setting.language_data && shipment_setting.language_data[data.language] && shipment_setting.language_data[data.language].info)) !== null && _e !== void 0 ? _e : shipment_setting.info;
             console.log(`checkout-time-06=>`, new Date().getTime() - check_time);
             const carData = {
                 customer_info: data.customer_info || {},
                 lineItems: [],
                 total: 0,
-                email: (_e = data.email) !== null && _e !== void 0 ? _e : ((data.user_info && data.user_info.email) || ''),
+                email: (_f = data.email) !== null && _f !== void 0 ? _f : ((data.user_info && data.user_info.email) || ''),
                 user_info: data.user_info,
                 shipment_fee: 0,
                 rebate: 0,
@@ -809,7 +808,7 @@ class Shopping {
                         value: 'global_express',
                     },
                 ]
-                    .concat(((_f = shipment_setting.custom_delivery) !== null && _f !== void 0 ? _f : []).map((dd) => {
+                    .concat(((_g = shipment_setting.custom_delivery) !== null && _g !== void 0 ? _g : []).map((dd) => {
                     return {
                         form: dd.form,
                         name: dd.name,
@@ -877,11 +876,14 @@ class Shopping {
                             return dd.spec.join('-') === b.spec.join('-');
                         });
                         if ((Number.isInteger(variant.stock) || variant.show_understocking === 'false') && Number.isInteger(b.count)) {
-                            if (data.checkOutType === 'POS' && variant.show_understocking !== 'false') {
-                                variant.stock = variant.stockList && variant.stockList[data.pos_store].count;
+                            const isPOS = data.checkOutType === 'POS';
+                            const isUnderstockingVisible = variant.show_understocking !== 'false';
+                            const isManualType = type === 'manual' || type === 'manual-preview';
+                            if (isPOS && isUnderstockingVisible) {
+                                variant.stock = ((_j = (_h = variant.stockList) === null || _h === void 0 ? void 0 : _h[data.pos_store]) === null || _j === void 0 ? void 0 : _j.count) || 0;
                             }
-                            if (variant.stock < b.count && variant.show_understocking !== 'false' && type !== 'manual' && type !== 'manual-preview') {
-                                if (data.checkOutType === 'POS') {
+                            if (variant.stock < b.count && isUnderstockingVisible && !isManualType) {
+                                if (isPOS) {
                                     b.pre_order = true;
                                 }
                                 else {
@@ -889,48 +891,51 @@ class Shopping {
                                 }
                             }
                             if (variant && b.count > 0) {
-                                b.specs = pd.specs;
-                                b.language_data = pd.language_data;
-                                b.preview_image = variant.preview_image || pd.preview_image[0];
-                                b.title = pd.title;
-                                b.sale_price = variant.sale_price;
-                                b.collection = pd['collection'];
-                                b.sku = variant.sku;
-                                b.stock = variant.stock;
-                                b.show_understocking = variant.show_understocking;
-                                b.stockList = variant.stockList;
-                                b.weight = parseInt(`${variant.weight || 0}`, 10);
+                                Object.assign(b, {
+                                    specs: pd.specs,
+                                    language_data: pd.language_data,
+                                    preview_image: variant.preview_image || pd.preview_image[0],
+                                    title: pd.title,
+                                    sale_price: variant.sale_price,
+                                    collection: pd.collection,
+                                    sku: variant.sku,
+                                    stock: variant.stock,
+                                    show_understocking: variant.show_understocking,
+                                    stockList: variant.stockList,
+                                    weight: parseInt(variant.weight || '0', 10),
+                                    designated_logistics: (_k = pd.designated_logistics) !== null && _k !== void 0 ? _k : { type: 'all', list: [] },
+                                });
+                                const shipmentValue = (() => {
+                                    if (!variant.shipment_type || variant.shipment_type === 'none')
+                                        return 0;
+                                    if (variant.shipment_type === 'volume') {
+                                        return b.count * variant.v_length * variant.v_width * variant.v_height;
+                                    }
+                                    if (variant.shipment_type === 'weight') {
+                                        return b.count * variant.weight;
+                                    }
+                                    return 0;
+                                })();
                                 b.shipment_obj = {
                                     type: variant.shipment_type,
-                                    value: (() => {
-                                        if (!variant.shipment_type || variant.shipment_type === 'none') {
-                                            return 0;
-                                        }
-                                        if (variant.shipment_type === 'volume') {
-                                            return b.count * variant.v_length * variant.v_width * variant.v_height;
-                                        }
-                                        if (variant.shipment_type === 'weight') {
-                                            return b.count * variant.weight;
-                                        }
-                                        return 0;
-                                    })(),
+                                    value: shipmentValue,
                                 };
-                                b.designated_logistics = (_g = pd.designated_logistics) !== null && _g !== void 0 ? _g : { type: 'all', list: [] };
-                                variant.shipment_weight = parseInt(variant.shipment_weight || 0);
+                                variant.shipment_weight = parseInt(variant.shipment_weight || '0', 10);
                                 carData.lineItems.push(b);
-                                if (type !== 'manual' && !pd.productType.giveaway) {
-                                    carData.total += variant.sale_price * b.count;
-                                }
-                                if (pd.productType.giveaway) {
-                                    b.sale_price = 0;
+                                if (type !== 'manual') {
+                                    if (pd.productType.giveaway) {
+                                        b.sale_price = 0;
+                                    }
+                                    else {
+                                        carData.total += variant.sale_price * b.count;
+                                    }
                                 }
                             }
                             if (type !== 'preview' && type !== 'manual' && type !== 'manual-preview' && variant.show_understocking !== 'false') {
-                                const countless = variant.stock - b.count;
-                                variant.stock = countless > 0 ? countless : 0;
+                                const remainingStock = Math.max(variant.stock - b.count, 0);
+                                variant.stock = remainingStock;
                                 if (type === 'POS') {
-                                    variant.deduction_log = {};
-                                    variant.deduction_log[data.pos_store] = b.count;
+                                    variant.deduction_log = { [data.pos_store]: b.count };
                                     variant.stockList[data.pos_store].count -= b.count;
                                     b.deduction_log = variant.deduction_log;
                                 }
@@ -941,12 +946,15 @@ class Shopping {
                                 }
                                 saveStockArray.push(() => {
                                     return new Promise(async (resolve, reject) => {
-                                        await this.updateVariantsWithSpec(variant, b.id, b.spec);
-                                        await database_js_1.default.query(`UPDATE \`${this.app}\`.\`t_manager_post\`
-                                             SET ?
-                                             WHERE 1 = 1
-                                               and id = ${pdDqlData.id}`, [{ content: JSON.stringify(pd) }]);
-                                        resolve(true);
+                                        try {
+                                            await this.updateVariantsWithSpec(variant, b.id, b.spec);
+                                            await database_js_1.default.query(`UPDATE \`${this.app}\`.\`t_manager_post\` SET ? WHERE id = ${pdDqlData.id}
+                                                `, [{ content: JSON.stringify(pd) }]);
+                                            resolve(true);
+                                        }
+                                        catch (error) {
+                                            reject(error);
+                                        }
                                     });
                                 });
                             }
@@ -1047,46 +1055,27 @@ class Shopping {
                 await this.checkVoucher(carData);
                 console.log(`checkout-time-check-voucher-2=>`, new Date().getTime() - check_time);
                 let can_add_gift = [];
-                carData
-                    .voucherList.filter((dd) => {
-                    return dd.reBackType === 'giveaway';
-                })
-                    .map((dd) => {
-                    can_add_gift.push(dd.add_on_products);
-                });
-                gift_product.map((dd) => {
-                    let max_count = can_add_gift.filter((d1) => {
-                        return d1.includes(dd.id);
-                    }).length;
+                (_l = carData.voucherList) === null || _l === void 0 ? void 0 : _l.filter((dd) => dd.reBackType === 'giveaway').forEach((dd) => can_add_gift.push(dd.add_on_products));
+                gift_product.forEach((dd) => {
+                    const max_count = can_add_gift.filter((d1) => d1.includes(dd.id)).length;
                     if (dd.count <= max_count) {
                         for (let a = 0; a < dd.count; a++) {
-                            let find = false;
-                            can_add_gift = can_add_gift.filter((d1) => {
-                                if (d1.includes(dd.id) || find) {
-                                    find = true;
-                                    return false;
-                                }
-                                else {
-                                    return true;
-                                }
-                            });
+                            can_add_gift = can_add_gift.filter((d1) => !d1.includes(dd.id));
                         }
                         carData.lineItems.push(dd);
                     }
                 });
-                for (const dd of carData.voucherList.filter((dd) => {
-                    return dd.reBackType === 'giveaway';
-                })) {
+                for (const dd of carData.voucherList.filter((dd) => dd.reBackType === 'giveaway')) {
                     let index = -1;
-                    for (const b of (_h = dd.add_on_products) !== null && _h !== void 0 ? _h : []) {
+                    for (const b of (_m = dd.add_on_products) !== null && _m !== void 0 ? _m : []) {
                         index++;
-                        const pdDqlData = ((_j = (await this.getProduct({
+                        const pdDqlData = ((_o = (await this.getProduct({
                             page: 0,
                             limit: 50,
                             id: `${b}`,
                             status: 'inRange',
                             channel: data.checkOutType === 'POS' ? 'pos' : undefined,
-                        })).data) !== null && _j !== void 0 ? _j : { content: {} }).content;
+                        })).data) !== null && _o !== void 0 ? _o : { content: {} }).content;
                         pdDqlData.voucher_id = dd.id;
                         dd.add_on_products[index] = pdDqlData;
                     }
@@ -1222,7 +1211,7 @@ class Shopping {
                 carData.discount = data.discount;
                 carData.voucherList = [tempVoucher];
                 carData.customer_info = data.customer_info;
-                carData.total = (_k = data.total) !== null && _k !== void 0 ? _k : 0;
+                carData.total = (_p = data.total) !== null && _p !== void 0 ? _p : 0;
                 carData.rebate = tempVoucher.rebate_total;
                 if (tempVoucher.reBackType == 'shipment_free') {
                     carData.shipment_fee = 0;
@@ -1250,6 +1239,14 @@ class Shopping {
             }
             else if (type === 'POS') {
                 carData.orderSource = 'POS';
+                if (data.checkOutType === 'POS' && Array.isArray(data.voucherList)) {
+                    const manualVoucher = data.voucherList.find((item) => item.id === 0);
+                    if (manualVoucher) {
+                        manualVoucher.discount = manualVoucher.discount_total;
+                        carData.total -= manualVoucher.discount;
+                        carData.voucherList.push(manualVoucher);
+                    }
+                }
                 const trans = await database_js_1.default.Transaction.build();
                 if (data.pre_order) {
                     carData.progress = 'pre_order';
@@ -1281,7 +1278,7 @@ class Shopping {
                 await Promise.all(saveStockArray.map((dd) => {
                     return dd();
                 }));
-                await new Shopping(this.app).releaseCheckout((_l = data.pay_status) !== null && _l !== void 0 ? _l : 0, carData.orderID);
+                await new Shopping(this.app).releaseCheckout((_q = data.pay_status) !== null && _q !== void 0 ? _q : 0, carData.orderID);
                 return { result: 'SUCCESS', message: 'POS訂單新增成功', data: carData };
             }
             else {

@@ -612,6 +612,8 @@ export class ApiShop {
         page: number;
         search?: string;
         id?: string;
+        date_confirm?: boolean;
+        user_email?: string;
         data_from?: 'user' | 'manager';
         voucher_type?: 'rebate' | 'discount' | 'shipment_free' | 'add_on_items' | 'giveaway';
     }) {
@@ -622,6 +624,8 @@ export class ApiShop {
                     let par = [`limit=${json.limit}`, `page=${json.page}`];
                     json.search && par.push(`search=${json.search}`);
                     json.id && par.push(`id=${json.id}`);
+                    json.date_confirm && par.push(`date_confirm=${json.date_confirm}`);
+                    json.user_email && par.push(`user_email=${json.user_email}`);
                     json.voucher_type && par.push(`voucher_type=${json.voucher_type}`);
                     return par.join('&');
                 })()}`,
@@ -877,10 +881,8 @@ export class ApiShop {
             count: number;
         }[];
         code?: string;
-        //結帳類型
-        checkOutType?: 'manual' | 'auto' | 'POS';
-        //POS的門市
-        pos_store?: string;
+        checkOutType?: 'manual' | 'auto' | 'POS'; //結帳類型
+        pos_store?: string; //POS的門市
         use_rebate?: number;
         distribution_code?: string;
         user_info?: any;

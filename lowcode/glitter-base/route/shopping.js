@@ -541,6 +541,8 @@ export class ApiShop {
                     let par = [`limit=${json.limit}`, `page=${json.page}`];
                     json.search && par.push(`search=${json.search}`);
                     json.id && par.push(`id=${json.id}`);
+                    json.date_confirm && par.push(`date_confirm=${json.date_confirm}`);
+                    json.user_email && par.push(`user_email=${json.user_email}`);
                     json.voucher_type && par.push(`voucher_type=${json.voucher_type}`);
                     return par.join('&');
                 })()}`,
