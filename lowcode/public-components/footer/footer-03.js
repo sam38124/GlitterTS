@@ -173,7 +173,7 @@ export class Footer02 {
                                             }
                                         })}"
                                                                             >
-                                                                                <a class="f-aclass">${chi.title}</a>
+                                                                                <a class="f-aclass" title="${chi.title}">${chi.title}</a>
                                                                             </li>`;
                                     })
                                         .join('')}

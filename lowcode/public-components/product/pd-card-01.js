@@ -20,7 +20,7 @@ export class ProductCard01 {
         var _a, _b;
         const glitter = gvc.glitter;
         const wishId = glitter.getUUID();
-        const prod = subData.content;
+        const prod = (typeof subData.content !== "object") ? subData : subData.content;
         const titleFontColor = (_a = glitter.share.globalValue['theme_color.0.title']) !== null && _a !== void 0 ? _a : '#333333';
         let label = {};
         let loading = false;
@@ -57,8 +57,6 @@ export class ProductCard01 {
                 background: none !important;
             }
             .card-image {
-                border-radius: ${radius.map((dd) => `${dd}px`).join(' ')};
-                padding-bottom: ${((rsp[1] / rsp[0]) * 100).toFixed(0)}%;
                 cursor: pointer;
                 background-repeat: no-repeat;
                 background-size: cover;
@@ -159,7 +157,8 @@ export class ProductCard01 {
             PdClass.changePage(prod, gvc);
         })}"
         >
-            <div class="card-img-top parent card-image position-relative" style="overflow: hidden;">
+            <div class="card-img-top parent card-image position-relative" style="overflow: hidden;  border-radius: ${radius.map((dd) => `${dd}px`).join(' ')};
+                padding-bottom: ${((rsp[1] / rsp[0]) * 100).toFixed(0)}%;">
                 ${gvc.bindView({
             bind: labelID,
             view: () => {

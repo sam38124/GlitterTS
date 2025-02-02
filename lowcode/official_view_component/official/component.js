@@ -122,6 +122,7 @@ export const component = Plugin.createComponent(import.meta.url, (glitter, editM
                                             });
                                             function getFormData(ref) {
                                                 var _a, _b;
+                                                ref = window.parent.glitter.share.updated_form_data[`${page_request_config.appName}_${tag}`] || ref;
                                                 let formData = JSON.parse(JSON.stringify(ref || {}));
                                                 if ((widget.data.refer_app)) {
                                                     GlobalWidget.initialShowCaseData({
@@ -158,13 +159,15 @@ export const component = Plugin.createComponent(import.meta.url, (glitter, editM
                                             const id = gvc.glitter.getUUID();
                                             function updatePageConfig(formData, type, oWidget) {
                                                 oWidget && (widget = oWidget);
-                                                viewConfig.formData = getFormData((widget.data.refer_app) ? (widget.data.refer_form_data || data.page_config.formData) : data.page_config.formData);
+                                                const ref = (widget.data.refer_app) ? (widget.data.refer_form_data || data.page_config.formData) : data.page_config.formData;
+                                                viewConfig.formData = getFormData(ref);
+                                                window.parent.glitter.share.updated_form_data[`${page_request_config.appName}_${tag}`] = ref;
                                                 const view = getView();
                                                 window.parent.glitter.share.loading_dialog.dataLoading({ visible: true });
                                                 setTimeout(() => {
                                                     document.querySelector(`[gvc-id="${gvc.id(id)}"]`).outerHTML = view;
                                                     window.parent.glitter.share.loading_dialog.dataLoading({ visible: false });
-                                                }, 10);
+                                                }, 50);
                                             }
                                             function getView() {
                                                 function loop(array) {
@@ -182,7 +185,7 @@ export const component = Plugin.createComponent(import.meta.url, (glitter, editM
                                                     createOption.option = (_b = createOption.option) !== null && _b !== void 0 ? _b : [];
                                                     createOption.class = createOption.class || ``;
                                                     createOption.childContainer = true;
-                                                    createOption.class += ` ${(glitter.htmlGenerate.isEditMode()) ? `${page_request_config.appName}_${page_request_config.tag} ${widget.id}` : ``}`;
+                                                    createOption.class += ` ${(glitter.htmlGenerate.isEditMode()) ? `${page_request_config.appName}_${page_request_config.tag} ${widget.id} ` : ``}`;
                                                     createOption.style = (_c = createOption.style) !== null && _c !== void 0 ? _c : '';
                                                     createOption.style += RenderValue.custom_style.container_style(gvc, widget);
                                                     createOption.style += (() => {
@@ -872,7 +875,19 @@ export const component = Plugin.createComponent(import.meta.url, (glitter, editM
                                                                                                                         catch (_a) {
                                                                                                                         }
                                                                                                                     }
-                                                                                                                    widget.storage && widget.storage.updatePageConfig && widget.storage.updatePageConfig(refer_form, device, oWidget);
+                                                                                                                    if (widget.storage && widget.storage.updatePageConfig) {
+                                                                                                                        widget.storage && widget.storage.updatePageConfig && widget.storage.updatePageConfig(refer_form, device, oWidget);
+                                                                                                                    }
+                                                                                                                    else {
+                                                                                                                        try {
+                                                                                                                            for (const b of window.parent.document.querySelector('.iframe_view').contentWindow.document.querySelectorAll(`.${widget.data.refer_app || window.appName}_${pageData.tag}`)) {
+                                                                                                                                b.updatePageConfig(refer_form, device, oWidget);
+                                                                                                                            }
+                                                                                                                        }
+                                                                                                                        catch (e) {
+                                                                                                                        }
+                                                                                                                    }
+                                                                                                                    subData.editor_updated_callback && subData.editor_updated_callback(oWidget);
                                                                                                                 }
                                                                                                                 function getItemsVisibility(dd) {
                                                                                                                     const descriptor = Object.getOwnPropertyDescriptor(refer_form, dd.key);
@@ -1084,7 +1099,7 @@ font-weight: 700;" onclick="${gvc.event(() => {
                                                                                                                                 vm.page = 'setting';
                                                                                                                                 gvc.notifyDataChange(id);
                                                                                                                             })}">
-                                                                                                                                            設定
+                                                                                                                                            樣式設定
                                                                                                                                             <i class="fa-solid fa-angle-right"></i>
                                                                                                                                         </div>`
                                                                                                                         ].join('');

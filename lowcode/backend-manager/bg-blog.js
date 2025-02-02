@@ -626,17 +626,8 @@ function editor(cf) {
         };
     }));
 }
-function detail(gvc, cf, vm, cVm, page_tab) {
-    vm.data.content.tag = vm.data.content.tag || `${new Date().getTime()}`;
-    if (!vm.data.id && cf.is_page) {
-        setTimeout(() => {
-            cVm.type = 'template';
-            vm.data.content.template = 'article';
-            gvc.notifyDataChange(cVm.id);
-        }, 100);
-        return ``;
-    }
-    if (!vm.data.content.language_data) {
+function initialData(content) {
+    if (!content.language_data) {
         function empty() {
             return {
                 name: '',
@@ -650,18 +641,30 @@ function detail(gvc, cf, vm, cVm, page_tab) {
                 config: ''
             };
         }
-        vm.data.content.language_data = {
+        content.language_data = {
             'en-US': empty(),
             'zh-CN': empty(),
             'zh-TW': {
-                name: vm.data.content.name,
-                seo: vm.data.content.seo,
-                text: vm.data.content.text,
-                config: vm.data.content.config
+                name: content.name,
+                seo: content.seo,
+                text: content.text,
+                config: content.config
             }
         };
     }
-    let language = window.parent.store_info.language_setting.def;
+}
+let language = window.parent.store_info.language_setting.def;
+function detail(gvc, cf, vm, cVm, page_tab) {
+    vm.data.content.tag = vm.data.content.tag || `${new Date().getTime()}`;
+    if (!vm.data.id && cf.is_page) {
+        setTimeout(() => {
+            cVm.type = 'template';
+            vm.data.content.template = 'article';
+            gvc.notifyDataChange(cVm.id);
+        }, 100);
+        return ``;
+    }
+    initialData(vm.data.content);
     const domainPrefix = `${cf.is_page
         ? (() => {
             switch (page_tab) {
@@ -702,6 +705,9 @@ function detail(gvc, cf, vm, cVm, page_tab) {
                                 if (res) {
                                     next();
                                 }
+                                else {
+                                    gvc.notifyDataChange(id);
+                                }
                             });
                         }
                         else {
@@ -738,14 +744,15 @@ function detail(gvc, cf, vm, cVm, page_tab) {
                     })()
                     : '編輯網誌')}
                             <div class="flex-fill"></div>
-                          <div class="${cf.is_page ? `d-none` : ``}">  ${LanguageBackend.switchBtn({
+                            <div class="${cf.is_page ? `d-none` : ``}"> ${LanguageBackend.switchBtn({
                     gvc: gvc,
                     language: language,
                     callback: (lan) => {
                         language = lan;
                         refreshProductPage();
                     }
-                })}</div>
+                })}
+                            </div>
                         </div>
                         <div class="flex-fill my-2 ${cf.is_page ? `` : `d-none`}"></div>
                         <div class="d-flex ${cf.is_page ? `` : `d-none`}  ${(document.body.clientWidth < 800) ? `w-100` : ``}">
@@ -816,7 +823,7 @@ function detail(gvc, cf, vm, cVm, page_tab) {
                                                 html `
                                                                         <div>
                                                                             <div class="tx_normal fw-normal mb-2">
-                                                                                    自訂網址
+                                                                                自訂網址
                                                                             </div>
                                                                             <div
                                                                                     style="justify-content: flex-start; align-items: center; display: inline-flex;border:1px solid #EAEAEA;border-radius: 10px;overflow: hidden; ${document
@@ -906,7 +913,7 @@ function detail(gvc, cf, vm, cVm, page_tab) {
                                                                 html `
                                                                                         <div class="d-flex w-100 align-items-center justify-content-between p-0 my-2">
                                                                                             <div class="tx_normal fw-normal">
-                                                                                                網誌內文${BgWidget.languageInsignia(language, 'margin-left:5px;')}
+                                                                                                    網誌內文${BgWidget.languageInsignia(language, 'margin-left:5px;')}
                                                                                             </div>
                                                                                         </div>`,
                                                                 gvc.bindView((() => {
@@ -916,10 +923,10 @@ function detail(gvc, cf, vm, cVm, page_tab) {
                                                                         view: () => {
                                                                             try {
                                                                                 return html `
-                                                                                                            <div
-                                                                                                                    class="d-flex justify-content-between align-items-center gap-3 mb-1"
-                                                                                                                    style="cursor: pointer;"
-                                                                                                                    onclick="${gvc.event(() => {
+                                                                                                                <div
+                                                                                                                        class="d-flex justify-content-between align-items-center gap-3 mb-1"
+                                                                                                                        style="cursor: pointer;"
+                                                                                                                        onclick="${gvc.event(() => {
                                                                                     const originContent = `${language_data.text}`;
                                                                                     BgWidget.fullDialog({
                                                                                         gvc: gvc,
@@ -938,8 +945,8 @@ function detail(gvc, cf, vm, cVm, page_tab) {
                                                                                         },
                                                                                         innerHTML: (gvc2) => {
                                                                                             return html `
-                                                                                                                                    <div>
-                                                                                                                                        ${EditorElem.richText({
+                                                                                                                                        <div>
+                                                                                                                                            ${EditorElem.richText({
                                                                                                 gvc: gvc2,
                                                                                                 def: language_data.text,
                                                                                                 setHeight: '100vh',
@@ -954,15 +961,15 @@ function detail(gvc, cf, vm, cVm, page_tab) {
                                                                                                             const imgHTML = urlArray
                                                                                                                 .map((url) => {
                                                                                                                 return html `
-                                                                                                                                                                                <img src="${url.data}"/>`;
+                                                                                                                                                                                    <img src="${url.data}"/>`;
                                                                                                             })
                                                                                                                 .join('');
                                                                                                             editor.html.set(editor.html
                                                                                                                 .get(0)
                                                                                                                 .replace(mark, html `
-                                                                                                                                                                                            <div class="d-flex flex-column">
-                                                                                                                                                                                                ${imgHTML}
-                                                                                                                                                                                            </div>`));
+                                                                                                                                                                                                <div class="d-flex flex-column">
+                                                                                                                                                                                                    ${imgHTML}
+                                                                                                                                                                                                </div>`));
                                                                                                             editor.undo.saveStep();
                                                                                                         }
                                                                                                         else {
@@ -970,12 +977,12 @@ function detail(gvc, cf, vm, cVm, page_tab) {
                                                                                                             dialog.errorMessage({ text: '請選擇至少一張圖片' });
                                                                                                         }
                                                                                                     }, html `
-                                                                                                                                                            <div
-                                                                                                                                                                    class="d-flex flex-column"
-                                                                                                                                                                    style="border-radius: 10px 10px 0px 0px;background: #F2F2F2;"
-                                                                                                                                                            >
-                                                                                                                                                                圖片庫
-                                                                                                                                                            </div>`, {
+                                                                                                                                                                <div
+                                                                                                                                                                        class="d-flex flex-column"
+                                                                                                                                                                        style="border-radius: 10px 10px 0px 0px;background: #F2F2F2;"
+                                                                                                                                                                >
+                                                                                                                                                                    圖片庫
+                                                                                                                                                                </div>`, {
                                                                                                         mul: true,
                                                                                                         cancelEvent: () => {
                                                                                                             editor.html.set(editor.html.get(0).replace(mark, ''));
@@ -988,7 +995,7 @@ function detail(gvc, cf, vm, cVm, page_tab) {
                                                                                                 },
                                                                                                 rich_height: `calc(${window.parent.innerHeight}px - 70px - 58px - 49px - 64px - 40px + ${document.body.clientWidth < 800 ? `70` : `0`}px)`,
                                                                                             })}
-                                                                                                                                    </div>`;
+                                                                                                                                        </div>`;
                                                                                         },
                                                                                         footer_html: (gvc2) => {
                                                                                             return [
@@ -1007,13 +1014,13 @@ function detail(gvc, cf, vm, cVm, page_tab) {
                                                                                         },
                                                                                     });
                                                                                 })}"
-                                                                                                            >
-                                                                                                                ${(() => {
+                                                                                                                >
+                                                                                                                    ${(() => {
                                                                                     language_data.text = language_data.text || '';
                                                                                     const text = gvc.glitter.utText.removeTag(language_data.text);
                                                                                     return BgWidget.richTextView(Tool.truncateString(text, 100));
                                                                                 })()}
-                                                                                                            </div>`;
+                                                                                                                </div>`;
                                                                             }
                                                                             catch (e) {
                                                                                 console.log(`error=>`, e);
@@ -1063,7 +1070,7 @@ function detail(gvc, cf, vm, cVm, page_tab) {
                                                         return BgWidget.mainCard([
                                                             BgWidget.title(html `商品顯示區塊 ${index + 1}`, 'font-size: 16px;'),
                                                             html `
-                                                                                        <div class="my-2"></div>`,
+                                                                                            <div class="my-2"></div>`,
                                                             [
                                                                 html `${(() => {
                                                                     return gvc.bindView(() => {
@@ -1089,16 +1096,16 @@ function detail(gvc, cf, vm, cVm, page_tab) {
                                                                                     return BgWidget.spinner();
                                                                                 }
                                                                                 return html `
-                                                                                                            <div class="d-flex flex-column p-2"
-                                                                                                                 style="gap: 18px;">
-                                                                                                                <div class="d-flex align-items-center gray-bottom-line-18 "
-                                                                                                                     style="gap: 24px; justify-content: space-between;">
-                                                                                                                    <div class="form-check-label c_updown_label">
-                                                                                                                        <div class="tx_normal">
-                                                                                                                            產品列表
+                                                                                                                <div class="d-flex flex-column p-2"
+                                                                                                                     style="gap: 18px;">
+                                                                                                                    <div class="d-flex align-items-center gray-bottom-line-18 "
+                                                                                                                         style="gap: 24px; justify-content: space-between;">
+                                                                                                                        <div class="form-check-label c_updown_label">
+                                                                                                                            <div class="tx_normal">
+                                                                                                                                產品列表
+                                                                                                                            </div>
                                                                                                                         </div>
-                                                                                                                    </div>
-                                                                                                                    ${BgWidget.grayButton('搜尋商品', gvc.event(() => {
+                                                                                                                        ${BgWidget.grayButton('搜尋商品', gvc.event(() => {
                                                                                     BgProduct.productsDialog({
                                                                                         default: d1.value,
                                                                                         gvc: gvc,
@@ -1109,8 +1116,8 @@ function detail(gvc, cf, vm, cVm, page_tab) {
                                                                                         filter_visible: page_tab === 'hidden' ? 'false' : 'true',
                                                                                     });
                                                                                 }), { textStyle: 'font-weight: 400;' })}
-                                                                                                                </div>
-                                                                                                                ${dataList
+                                                                                                                    </div>
+                                                                                                                    ${dataList
                                                                                     .map((opt, index) => {
                                                                                     return `<div class="d-flex align-items-center form-check-label c_updown_label px-1"
                                                                  style="justify-content: space-between"
@@ -1139,8 +1146,8 @@ function detail(gvc, cf, vm, cVm, page_tab) {
                                                             </div>`;
                                                                                 })
                                                                                     .join('')}
-                                                                                                            </div>
-                                                                                                        `;
+                                                                                                                </div>
+                                                                                                            `;
                                                                             },
                                                                             onCreate: () => {
                                                                             },
@@ -1154,12 +1161,12 @@ function detail(gvc, cf, vm, cVm, page_tab) {
                                                     BgWidget.mbContainer(24),
                                                     BgWidget.mainCard([
                                                         BgWidget.title(html `預設加入購物車
-                                                                                <div class="badge ms-2"
-                                                                                     style="background:#eaeaea;color:#393939;">
-                                                                                    以下設定的商品與規格會自動加入購物車
-                                                                                </div>`, 'font-size: 16px;'),
+                                                                                    <div class="badge ms-2"
+                                                                                         style="background:#eaeaea;color:#393939;">
+                                                                                        以下設定的商品與規格會自動加入購物車
+                                                                                    </div>`, 'font-size: 16px;'),
                                                         html `
-                                                                            <div class="my-2"></div>`,
+                                                                                <div class="my-2"></div>`,
                                                         [
                                                             html `${(() => {
                                                                 return gvc.bindView(() => {
@@ -1175,16 +1182,16 @@ function detail(gvc, cf, vm, cVm, page_tab) {
                                                                                 return BgWidget.spinner();
                                                                             }
                                                                             return html `
-                                                                                                <div class="d-flex flex-column p-2"
-                                                                                                     style="gap: 18px;">
-                                                                                                    <div class="d-flex align-items-center gray-bottom-line-18 "
-                                                                                                         style="gap: 24px; justify-content: space-between;">
-                                                                                                        <div class="form-check-label c_updown_label">
-                                                                                                            <div class="tx_normal">
-                                                                                                                產品列表
+                                                                                                    <div class="d-flex flex-column p-2"
+                                                                                                         style="gap: 18px;">
+                                                                                                        <div class="d-flex align-items-center gray-bottom-line-18 "
+                                                                                                             style="gap: 24px; justify-content: space-between;">
+                                                                                                            <div class="form-check-label c_updown_label">
+                                                                                                                <div class="tx_normal">
+                                                                                                                    產品列表
+                                                                                                                </div>
                                                                                                             </div>
-                                                                                                        </div>
-                                                                                                        ${BgWidget.grayButton('搜尋商品', gvc.event(() => {
+                                                                                                            ${BgWidget.grayButton('搜尋商品', gvc.event(() => {
                                                                                 BgProduct.variantsSelector({
                                                                                     gvc: gvc,
                                                                                     filter_variants: vm.data.content.relative_data.map((dd) => {
@@ -1205,37 +1212,37 @@ function detail(gvc, cf, vm, cVm, page_tab) {
                                                                                     show_mode: 'all',
                                                                                 });
                                                                             }), { textStyle: 'font-weight: 400;' })}
-                                                                                                    </div>
-                                                                                                    ${subVM.dataList
+                                                                                                        </div>
+                                                                                                        ${subVM.dataList
                                                                                 .map((opt, index) => {
                                                                                 return html `
-                                                                                                                    <div class="d-flex align-items-center form-check-label c_updown_label gap-3">
+                                                                                                                        <div class="d-flex align-items-center form-check-label c_updown_label gap-3">
                                                                                                                         <span class="tx_normal"
                                                                                                                               style="min-width: 20px;">${index + 1} .</span>
-                                                                                                                        ${BgWidget.validImageBox({
+                                                                                                                            ${BgWidget.validImageBox({
                                                                                     gvc: gvc,
                                                                                     image: opt.image,
                                                                                     width: 40,
                                                                                 })}
-                                                                                                                        <div class="tx_normal ${opt.note ? 'mb-1' : ''} d-flex flex-column">
-                                                                                                                            ${opt.value}
-                                                                                                                            ${opt.note ? html `
-                                                                                                                                <div class="tx_gray_12">
-                                                                                                                                    ${opt.note}
-                                                                                                                                </div> ` : ''}
-                                                                                                                        </div>
-                                                                                                                        <div class="flex-fill"></div>
-                                                                                                                        ${BgWidget.cancel(gvc.event(() => {
+                                                                                                                            <div class="tx_normal ${opt.note ? 'mb-1' : ''} d-flex flex-column">
+                                                                                                                                ${opt.value}
+                                                                                                                                ${opt.note ? html `
+                                                                                                                                    <div class="tx_gray_12">
+                                                                                                                                        ${opt.note}
+                                                                                                                                    </div> ` : ''}
+                                                                                                                            </div>
+                                                                                                                            <div class="flex-fill"></div>
+                                                                                                                            ${BgWidget.cancel(gvc.event(() => {
                                                                                     vm.data.content.relative_data.splice(index, 1);
                                                                                     subVM.dataList.splice(index, 1);
                                                                                     gvc.notifyDataChange(subVM.id);
                                                                                 }), '移除')}
-                                                                                                                    </div>
-                                                                                                                `;
+                                                                                                                        </div>
+                                                                                                                    `;
                                                                             })
                                                                                 .join('') || `<div class="w-100 d-flex align-content-center justify-content-center">尚未加入任何賣場商品</div>`}
-                                                                                                </div>
-                                                                                            `;
+                                                                                                    </div>
+                                                                                                `;
                                                                         },
                                                                         onCreate: () => {
                                                                             if (subVM.loading) {
@@ -1619,7 +1626,11 @@ function detail(gvc, cf, vm, cVm, page_tab) {
                     vm.type = 'list';
                 }), '取消')}
                         ${BgWidget.save(gvc.event(() => __awaiter(this, void 0, void 0, function* () {
-                    saveData(gvc, cf, vm, cVm, false);
+                    saveData(gvc, cf, vm, cVm, false).then((res) => {
+                        if (!res) {
+                            gvc.notifyDataChange(id);
+                        }
+                    });
                 })))}
                     </div>
                 `;
@@ -1636,7 +1647,12 @@ function saveData(gvc, cf, vm, cVm, silence) {
             });
             res_(false);
         }
-        else if (!vm.data.content.name) {
+        else if (window.parent.store_info.language_setting.support.find((d1) => {
+            return !(vm.data.content.language_data[d1].name);
+        })) {
+            language = window.parent.store_info.language_setting.support.find((d1) => {
+                return !(vm.data.content.language_data[d1].name);
+            });
             yield cf.widget.event('error', {
                 title: '請設定名稱',
             });
@@ -2148,6 +2164,7 @@ function template_select(gvc, cf, vm, cVm, page_type) {
         if (c2) {
             vm.data.content.config = c2;
             vm.data.content.name = c2.name;
+            initialData(vm.data.content);
             saveData(gvc, cf, vm, cVm, false).then(() => {
                 cVm.type = 'detail';
             });

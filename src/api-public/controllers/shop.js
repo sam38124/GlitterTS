@@ -1270,8 +1270,16 @@ router.get('/pos/summary', async (req, resp) => {
 router.get('/pos/work-status', async (req, resp) => {
     try {
         return response_1.default.succ(resp, {
-            status: await new pos_js_1.Pos(req.get('g-app'), req.body.token).getWorkStatus(),
+            status: await new pos_js_1.Pos(req.get('g-app'), req.body.token).getWorkStatus(req.query),
         });
+    }
+    catch (err) {
+        return response_1.default.fail(resp, err);
+    }
+});
+router.get('/pos/work-status-list', async (req, resp) => {
+    try {
+        return response_1.default.succ(resp, await new pos_js_1.Pos(req.get('g-app'), req.body.token).getWorkStatusList(req.query));
     }
     catch (err) {
         return response_1.default.fail(resp, err);

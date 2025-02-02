@@ -11,14 +11,25 @@ class Pos {
         this.app = app;
         this.token = token;
     }
-    async getWorkStatus() {
-        var _a;
+    async getWorkStatus(query) {
         try {
             const status = await database_js_1.default.query(`SELECT *
                                            FROM \`${this.app}\`.t_check_in_pos
-                                           where staff = ?
-                                           order by id desc limit 0,1;`, [(_a = this.token) === null || _a === void 0 ? void 0 : _a.userID]);
+                                           where staff = ? and store=?
+                                           order by id desc limit 0,1;`, [query.userID, query.store]);
             return (status[0] && status[0].execute) || 'off_work';
+        }
+        catch (e) {
+            throw exception_js_1.default.BadRequestError('INTERNAL_SERVER_ERROR', 'getWorkStatus is Failed. ' + e, null);
+        }
+    }
+    async getWorkStatusList(query) {
+        try {
+            let querySql = [`1=1`];
+            if (query.store) {
+                querySql.push(`store=${database_js_1.default.escape(query.store)}`);
+            }
+            return await this.querySql(querySql, query, 't_check_in_pos');
         }
         catch (e) {
             throw exception_js_1.default.BadRequestError('INTERNAL_SERVER_ERROR', 'getWorkStatus is Failed. ' + e, null);
@@ -27,9 +38,10 @@ class Pos {
     async setWorkStatus(obj) {
         var _a;
         try {
-            await database_js_1.default.query(`insert into \`${this.app}\`.t_check_in_pos (staff,execute) values (?,?)`, [
+            await database_js_1.default.query(`insert into \`${this.app}\`.t_check_in_pos (staff,execute,store) values (?,?,?)`, [
                 (_a = this.token) === null || _a === void 0 ? void 0 : _a.userID,
-                obj.status
+                obj.status,
+                obj.store
             ]);
         }
         catch (e) {
@@ -67,6 +79,32 @@ class Pos {
         }
         catch (e) {
             throw exception_js_1.default.BadRequestError('INTERNAL_SERVER_ERROR', 'setSummary is Failed. ' + e, null);
+        }
+    }
+    async querySql(querySql, query, db_n) {
+        let sql = `SELECT *
+                   FROM \`${this.app}\`.\`${db_n}\`
+                   WHERE ${querySql.join(' and ')} ${query.order_by || `order by id desc`}
+        `;
+        console.log(`query=string=>`, sql);
+        if (query.id) {
+            const data = (await database_js_1.default.query(`SELECT *
+                     FROM (${sql}) as subqyery
+                         limit ${query.page * query.limit}
+                        , ${query.limit}`, []))[0];
+            return { data: data, result: !!data };
+        }
+        else {
+            return {
+                data: (await database_js_1.default.query(`SELECT *
+                         FROM (${sql}) as subqyery
+                             limit ${query.page * query.limit}
+                            , ${query.limit}`, [])).map((dd) => {
+                    return dd;
+                }),
+                total: (await database_js_1.default.query(`SELECT count(1)
+                         FROM (${sql}) as subqyery`, []))[0]['count(1)'],
+            };
         }
     }
 }

@@ -819,7 +819,7 @@ export class ShoppingSettingBasic {
                         },
                         divCreate: {
                             class: `d-flex w-100`,
-                            style: `overflow-y:scroll;height:150px;`,
+                            style: `overflow-y:scroll;height:180px;`,
                         },
                     };
                 })}
@@ -1787,6 +1787,30 @@ export class ShoppingSettingBasic {
                                                                                                         運費計算方式
                                                                                                     </div>
                                                                                                     <div
+                                                                                                            style="cursor: pointer;"
+                                                                                                            onclick="${gvc.event(() => {
+                                                                        const language_data = postMD.language_data[ShoppingProductSetting.select_language];
+                                                                        imageLibrary.selectImageFromArray(language_data.preview_image, {
+                                                                            gvc: gvc,
+                                                                            title: html `
+                                                                                        <div class="d-flex flex-column"
+                                                                                             style="border-radius: 10px 10px 0px 0px;background: #F2F2F2;">
+                                                                                            圖片庫
+                                                                                        </div>`,
+                                                                            getSelect: (imageUrl) => {
+                                                                                postMD.variants.filter((dd) => {
+                                                                                    if (dd.checked) {
+                                                                                        dd[`preview_image_${ShoppingProductSetting.select_language}`] = imageUrl;
+                                                                                    }
+                                                                                });
+                                                                                gvc.notifyDataChange(vm.id);
+                                                                            },
+                                                                        });
+                                                                    })}"
+                                                                                                    >
+                                                                                                        編輯規格圖片
+                                                                                                    </div>
+                                                                                                    <div
                                                                                                         style="cursor: pointer;"
                                                                                                         onclick="${gvc.event(() => {
                                                                         gvc.glitter.innerDialog((gvc) => {
@@ -1930,6 +1954,7 @@ export class ShoppingSettingBasic {
                                                                                     })
                                                                                         .forEach((d1) => {
                                                                                         d1.preview_image = imageUrl;
+                                                                                        d1['preview_image_' + sel_lan()] = imageUrl;
                                                                                     });
                                                                                     obj.gvc.notifyDataChange(vm.id);
                                                                                 },
@@ -1938,7 +1963,8 @@ export class ShoppingSettingBasic {
                                                                                                   >
                                                                                                       ${BgWidget.validImageBox({
                                                                             gvc,
-                                                                            image: getPreviewImage(postMD.variants.filter((dd) => dd.spec[0] === spec.title)[0].preview_image),
+                                                                            image: getPreviewImage(postMD.variants.filter((dd) => dd.spec[0] === spec.title)[0]['preview_image_' + sel_lan()] ||
+                                                                                postMD.variants.filter((dd) => dd.spec[0] === spec.title)[0].preview_image),
                                                                             width: 50,
                                                                             style: 'border-radius: 10px;cursor:pointer;',
                                                                         })}

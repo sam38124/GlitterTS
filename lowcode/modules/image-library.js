@@ -87,7 +87,7 @@ export class imageLibrary {
             const userAgent = navigator.userAgent.toLowerCase();
             return userAgent.includes('safari') && !userAgent.includes('chrome') && !userAgent.includes('edg');
         })();
-        BgWidget.imageLibraryDialog({
+        return BgWidget.imageLibraryDialog({
             gvc: gvc,
             title: cf.title,
             innerHTML: (gvc) => {
@@ -957,7 +957,7 @@ export class imageLibrary {
                                     });
                                 }
                                 if (cf.key == 'image-manager' || cf.key == 'folderEdit') {
-                                    if (select.length > 0) {
+                                    if (select.length > 0 || cf.edit_only) {
                                         save(() => {
                                             cf.getSelect(select);
                                             gvc.closeDialog();
@@ -1133,7 +1133,7 @@ export class imageLibrary {
             },
         });
     }
-    static selectImageLibrary(gvc, callback, title, opt) {
+    static selectImageLibrary(gvc, callback, title, opt, edit_only) {
         var _a, _b, _c;
         return __awaiter(this, void 0, void 0, function* () {
             let alt = '';
@@ -1203,6 +1203,7 @@ export class imageLibrary {
             }
             imageLibrary.fileSystem({
                 getSelect: callback,
+                edit_only: edit_only,
                 gvc: gvc,
                 key: opt ? (_a = opt.key) !== null && _a !== void 0 ? _a : 'image-manager' : 'image-manager',
                 title: title,

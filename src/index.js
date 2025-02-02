@@ -152,6 +152,7 @@ async function createAPP(dd) {
             seoManager: async (req) => {
                 var _a, _b, _c, _d, _e, _f;
                 const og_url = req.headers['x-original-url'];
+                const custom_heads = [];
                 try {
                     if (req.query.state === 'google_login') {
                         req.query.page = 'login';

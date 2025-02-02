@@ -25,6 +25,7 @@ import app from '../../app';
 import { onlinePayArray, paymentInterface } from '../models/glitter-finance.js';
 import { App } from '../../services/app.js';
 import { Stock } from './stock';
+import {SeoConfig} from "../../seo-config.js";
 
 type BindItem = {
     id: string;
@@ -300,6 +301,7 @@ export class Shopping {
                 let sql_join_search = [];
                 // querySql.push();
                 sql_join_search.push(`content->>'$.seo.domain'='${decodeURIComponent(query.domain)}'`);
+
                 sql_join_search.push(`content->>'$.title'='${decodeURIComponent(query.domain)}'`);
                 sql_join_search.push(`content->>'$.language_data."${query.language}".seo.domain'='${decodeURIComponent(query.domain)}'`);
                 querySql.push(
@@ -411,7 +413,7 @@ export class Shopping {
                             case 'inRange':
                                 return `
                                 OR (
-                                    JSON_EXTRACT(content, '$.status') = 'active'
+                                    JSON_EXTRACT(content, '$.status') in ('active',1)
                                     AND (
                                         content->>'$.active_schedule' IS NULL OR (
                                             (
@@ -429,14 +431,14 @@ export class Shopping {
                             case 'beforeStart':
                                 return `
                                 OR (
-                                    JSON_EXTRACT(content, '$.status') = 'active'
+                                    JSON_EXTRACT(content, '$.status') in ('active',1)
                                     AND CONCAT(content->>'$.active_schedule.start_ISO_Date') >${db.escape(new Date().toISOString())}
                                 )
                             `;
                             case 'afterEnd':
                                 return `
                                 OR (
-                                    JSON_EXTRACT(content, '$.status') = 'active'
+                                    JSON_EXTRACT(content, '$.status') in ('active',1)
                                     AND CONCAT(content->>'$.active_schedule.end_ISO_Date') < ${db.escape(new Date().toISOString())}
                                 )
                             `;
@@ -448,6 +450,8 @@ export class Shopping {
 
                 // 組合 SQL 條件
                 querySql.push(`(${statusCondition} ${scheduleConditions})`);
+                //
+                console.log(`(${statusCondition} ${scheduleConditions})`)
             }
             if (query.channel) {
                 const channelSplit = query.channel.split(',').map((channel) => channel.trim());
@@ -461,7 +465,10 @@ export class Shopping {
             query.min_price && querySql.push(`(id in (select product_id from \`${this.app}\`.t_variants where content->>'$.sale_price'>=${query.min_price})) `);
             query.max_price && querySql.push(`(id in (select product_id from \`${this.app}\`.t_variants where content->>'$.sale_price'<=${query.max_price})) `);
             const products = await this.querySql(querySql, query);
-console.log(`querySql=>${querySql}`)
+            querySql.map((dd)=>{
+                console.log(`querySql=>${dd}`)
+            })
+
             // 產品清單
             const productList = (Array.isArray(products.data) ? products.data : [products.data]).filter((product) => product);
 
@@ -551,7 +558,20 @@ console.log(`querySql=>${querySql}`)
             }
 
             if (query.domain && products.data[0]) {
-                products.data = products.data[0];
+                products.data = products.data.find((dd:any)=>{
+                    return (
+                        dd.content.language_data &&
+                        dd.content.language_data[`${query.language}`].seo &&
+                        dd.content.language_data[`${query.language}`].seo.domain===decodeURIComponent(query.domain!!)
+                    ) || (
+                        dd.content.seo &&
+                        dd.content.seo.domain===decodeURIComponent(query.domain!!)
+                    )
+                }) || products.data[0];
+
+            }
+            if ((query.domain || query.id)) {
+                products.data.json_ld = await SeoConfig.getProductJsonLd(this.app,products.data.content);
             }
             return products;
         } catch (e) {
@@ -565,7 +585,7 @@ console.log(`querySql=>${querySql}`)
                    FROM \`${this.app}\`.t_manager_post
                    WHERE ${querySql.join(' and ')} ${query.order_by || `order by id desc`}
         `;
-
+console.log(`query.order_by=>`,query.order_by)
         if (query.id) {
             const data = (
                 await db.query(
@@ -5558,6 +5578,14 @@ OR JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.orderStatus')) NOT IN (-99)) `);
                         []
                     )
                 )[0]['max(id)'] || 0;
+            console.log(`insert=>`, productArray.map((product: any) => {
+                if (!product.id) {
+                    product.id = max_id++;
+                }
+                product.type = 'product';
+                this.checkVariantDataType(product.variants);
+                return [product.id || null, this.token?.userID, JSON.stringify(product)];
+            }))
             const data = await db.query(
                 `replace
                 INTO \`${this.app}\`.\`t_manager_post\` (id,userID,content) values ?`,
@@ -5572,6 +5600,7 @@ OR JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.orderStatus')) NOT IN (-99)) `);
                     }),
                 ]
             );
+
             let insertIDStart = data.insertId;
             await new Shopping(this.app, this.token).processProducts(productArray, insertIDStart);
             return insertIDStart;

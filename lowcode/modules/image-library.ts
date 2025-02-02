@@ -28,6 +28,7 @@ export class imageLibrary {
         plus: (gvc: GVC, callback: (file: FileItem[]) => void, fileType?: string) => void;
         edit: (file: FileItem, callback: (file?: FileItem) => void) => void;
         cancelEvent?: () => void;
+        edit_only?:boolean
     }) {
         const gvc = cf.gvc;
         const vm: {
@@ -116,7 +117,7 @@ export class imageLibrary {
             return userAgent.includes('safari') && !userAgent.includes('chrome') && !userAgent.includes('edg');
         })();
 
-        BgWidget.imageLibraryDialog({
+        return BgWidget.imageLibraryDialog({
             gvc: gvc,
             title: cf.title,
             innerHTML: (gvc: GVC) => {
@@ -1101,7 +1102,7 @@ export class imageLibrary {
                                         });
                                     }
                                     if (cf.key == 'image-manager' || cf.key == 'folderEdit') {
-                                        if (select.length > 0) {
+                                        if (select.length > 0 || cf.edit_only) {
                                             save(() => {
                                                 cf.getSelect(select);
                                                 gvc.closeDialog();
@@ -1304,7 +1305,8 @@ export class imageLibrary {
             mul?: boolean;
             tag?: string;
             cancelEvent?: () => void;
-        }
+        },
+        edit_only?:boolean
     ) {
         let alt: any = '';
         let saveAlt = function () {
@@ -1377,6 +1379,7 @@ export class imageLibrary {
 
         imageLibrary.fileSystem({
             getSelect: callback,
+            edit_only:edit_only,
             gvc: gvc,
             key: opt ? opt.key ?? 'image-manager' : 'image-manager',
             title: title,

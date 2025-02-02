@@ -1301,26 +1301,26 @@ ${obj.structEnd ? obj.structEnd : '})()'}`,
                                                     initEvent();
                                                 }, 200);
                                             },
-                                            'keydown': function () {
-                                                console.log('光標位置可能改變 (按下鍵):', editor.selection.get());
-                                                editor.selection.save()
-                                                dataChange()
-                                            },
-                                            // 在鬆開按鍵時觸發
-                                            'keyup': function () {
-                                                console.log('光標位置改變 (鬆開鍵):', editor.selection.get());
-                                                editor.selection.save()
-                                                dataChange()
-                                            },
-                                            'mouseup': function () {
-                                                console.log('光標位置可能改變 (滑鼠點擊):', editor.selection.get());
-                                                editor.selection.save()
-                                            },
-                                            // 當編輯器獲得焦點時觸發
-                                            'focus': function () {
-                                                console.log('光標位置改變 (焦點獲得):', editor.selection.get());
-                                                editor.selection.save()
-                                            }
+                                            // 'keydown': function () {
+                                            //     console.log('光標位置可能改變 (按下鍵):', editor.selection.get());
+                                            //     editor.selection.save()
+                                            //     dataChange()
+                                            // },
+                                            // // 在鬆開按鍵時觸發
+                                            // 'keyup': function () {
+                                            //     console.log('光標位置改變 (鬆開鍵):', editor.selection.get());
+                                            //     editor.selection.save()
+                                            //     dataChange()
+                                            // },
+                                            // 'mouseup': function () {
+                                            //     console.log('光標位置可能改變 (滑鼠點擊):', editor.selection.get());
+                                            //     editor.selection.save()
+                                            // },
+                                            // // 當編輯器獲得焦點時觸發
+                                            // 'focus': function () {
+                                            //     console.log('光標位置改變 (焦點獲得):', editor.selection.get());
+                                            //     editor.selection.save()
+                                            // }
                                         },
                                         key: 'hWA2C-7I2B2C4B3E4E2G3wd1DBKSPF1WKTUCQOa1OURPJ1KDe2F-11D2C2D2D2C3B3C1D6B1C2==',
                                         toolbarButtons: toolBarArray,
@@ -2685,23 +2685,25 @@ ${obj.gvc.bindView(() => {
                     return html`<i class="${obj.def ? `fa-solid fa-square-check` : `fa-regular fa-square`} "
                                    style="color: #393939;"></i>`;
                 },
-                divCreate: {
-                    option: [
-                        {
-                            key: 'onclick',
-                            value: obj.gvc.event((e, event) => {
-                                const bool = !obj.def;
-                                if (!obj.stopChangeView) {
-                                    obj.def = !obj.def;
-                                }
-                                obj.callback(bool);
-                                event.stopPropagation();
-                                obj.gvc.notifyDataChange(id);
-                            }),
-                        },
-                    ],
-                    class: `d-flex align-items-center justify-content-center`,
-                    style: `height:20px;font-size:18px;cursor:pointer;${obj.style ?? ''}`,
+                divCreate: ()=>{
+                    return {
+                        option: [
+                            {
+                                key: 'onclick',
+                                value: obj.gvc.event((e, event) => {
+                                    const bool = !obj.def;
+                                    if (!obj.stopChangeView) {
+                                        obj.def = !obj.def;
+                                    }
+                                    obj.callback(bool);
+                                    event.stopPropagation();
+                                    obj.gvc.notifyDataChange(id);
+                                }),
+                            },
+                        ],
+                        class: `d-flex align-items-center justify-content-center`,
+                        style: `height:20px;font-size:18px;cursor:pointer;${obj.style ?? ''}`,
+                    }
                 },
             };
         });

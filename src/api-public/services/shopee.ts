@@ -237,7 +237,6 @@ export class Shopee {
             try {
                 await new Shopping(this.app, this.token).postMulProduct(temp);
                 if (response.data.response.has_next_page) {
-
                     await this.getItemList(start, end, response.data.response.next_offset)
                 }
                 return {
@@ -246,6 +245,10 @@ export class Shopee {
                 }
             } catch (error: any) {
                 console.error(error)
+                //失敗繼續跑匯入
+                // if (response.data.response.has_next_page) {
+                //     await this.getItemList(start, end, response.data.response.next_offset)
+                // }
                 return {
                     type: "error",
                     data: temp.data,
@@ -498,6 +501,7 @@ export class Shopee {
             } catch (e: any) {
 
             }
+            console.log(`item==>`,item)
             let postMD: {
                 template: string;
                 visible: string;
@@ -544,7 +548,7 @@ export class Shopee {
 
             postMD.title = item.item_name;
             // 兩邊商品介紹結構不同
-            if (item.description_info.extended_description.field_list.length > 0) {
+            if (item.description_info && item.description_info.extended_description.field_list.length > 0) {
                 let temp = ``;
                 const promises = item.description_info.extended_description.field_list.map(async (item1: any) => {
                     if (item1.field_type == 'image') {
@@ -561,17 +565,19 @@ export class Shopee {
                 });
                 const html = String.raw;
                 await Promise.all(promises);
-                item.description_info.extended_description.field_list.map((item: any) => {
-
-                    if (item.field_type == 'image') {
-                        temp += html`
+                if(item.description_info && item.description_info.extended_description){
+                    item.description_info.extended_description.field_list.map((item: any) => {
+                        if (item.field_type == 'image') {
+                            temp += html`
                             <div style="white-space: pre-wrap;"><img src="${item.image_info.s3}"
                                                                      alt='${item.image_info.image_id}'></div>`
-                    } else if (item.field_type == 'text') {
-                        temp += html`
+                        } else if (item.field_type == 'text') {
+                            temp += html`
                             <div style="white-space: pre-wrap;">${item.text}</div>`
-                    }
-                })
+                        }
+                    })
+                }
+
                 postMD.content = temp;
             }
 

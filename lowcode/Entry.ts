@@ -10,6 +10,7 @@ import {Language} from './glitter-base/global/language.js';
 
 export class Entry {
     public static onCreate(glitter: Glitter) {
+
         //預設為購物網站
         (window as any).store_info.web_type = (window as any).store_info.web_type ?? ['shop']
         const shopp=localStorage.getItem('shopee')
@@ -35,6 +36,7 @@ export class Entry {
             (window as any).glitter_page = page;
             location.reload();
         };
+        glitter.share.updated_form_data={};
         glitter.share.top_inset = 0;
         glitter.share.bottom_inset = 0;
         glitter.share.reload_code_hash = function () {
@@ -88,7 +90,7 @@ export class Entry {
         }
         (window as any).renderClock = (window as any).renderClock ?? clockF();
         console.log(`Entry-time:`, (window as any).renderClock.stop());
-        glitter.share.editerVersion = 'V_16.9.2';
+        glitter.share.editerVersion = 'V_17.2.1';
         glitter.share.start = new Date();
         const vm: {
             appConfig: any;
@@ -504,6 +506,7 @@ export class Entry {
     }
 
     public static toNormalRender(glitter: Glitter, vm: any, callback: () => void) {
+        glitter.addStyleLink([`https://cdn.jsdelivr.net/npm/froala-editor@latest/css/froala_editor.pkgd.min.css`])
         glitter.addMtScript(
             [
                 {

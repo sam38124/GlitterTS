@@ -2,9 +2,9 @@ import db from './modules/database';
 
 export class UpdateScript {
     public static async run() {
-        // const migrate_template = (await db.query('SELECT appName FROM glitter.app_config where template_type!=0;', [])).map((dd: any) => {
-        //     return dd.appName
-        // }).concat(['shop-template-clothing-v3'])
+        const migrate_template = (await db.query('SELECT * FROM glitter.app_config', [])).map((dd: any) => {
+            return dd.appName
+        })
         // this.migrateDialog(migrate_template)
         // UpdateScript.migrateTermsOfService(['3131_shop', 't_1717152410650', 't_1717141688550', 't_1717129048727', 't_1719819344426'])
         // UpdateScript.migrateHeaderAndFooterAndCollection(migrate_template.filter((dd:any)=>{
@@ -13,9 +13,11 @@ export class UpdateScript {
         // UpdateScript.migrateAccount('shop_template_black_style')
         // await UpdateScript.migrateLink(migrate_template)
         //  await UpdateScript.migrateLink(migrate_template)
-        // migrate_template.map((dd:any)=>{
-        //     UpdateScript.migrateAccount(dd)
-        // })
+        console.log(`migrate-start`)
+        await Promise.all(migrate_template.map((dd:any)=>{
+            return UpdateScript.migrateAccount(dd)
+        }))
+        console.log(`migrate-finish`)
         // await
         // await UpdateScript.migratePages(migrate_template.filter((dd:any)=>{
         //     return dd !=='t_1719819344426'
@@ -26,7 +28,7 @@ export class UpdateScript {
         //     return dd !=='t_1719819344426'
         // }))
         // await this.migrateHomePageFooter(migrate_template)
-        await this.migrateArticle()
+        // await this.migrateArticle()
         // for (const b of await db.query('SELECT appName FROM glitter.app_config where brand=?;', ['shopnex'])){
         //     await this.footer_migrate(b.appName)
         // }
@@ -1354,9 +1356,8 @@ export class UpdateScript {
     public static async migrateAccount(appName: string) {
         const page_list = (await db.query(`SELECT *
                                            FROM glitter.page_config
-                                           where appName = 't_1719819344426'
-                                             and tag in ('account_userinfo', 'rebate', 'order_list', 'wishlist',
-                                                         'register')`, []));
+                                           where appName = 't_1725992531001'
+                                             and tag = 'advertise'`, []));
         page_list.map((d: any) => {
             Object.keys(d).map((dd) => {
                 if (typeof d[dd] === 'object') {
@@ -1378,6 +1379,7 @@ export class UpdateScript {
                 b
             ])
         }
+        console.log(`appName=>${appName}`)
     }
 
     public static async migrateHeaderAndFooterAndCollection(appList: string[]) {

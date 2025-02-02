@@ -9,6 +9,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 };
 import { NormalPageEditor } from '../../editor/normal-page-editor.js';
 import { ShareDialog } from "../../glitterBundle/dialog/ShareDialog.js";
+import { BgWidget } from "../../backend-manager/bg-widget.js";
 const html = String.raw;
 export class ArrayItems {
     static main(cf) {
@@ -34,16 +35,23 @@ export class ArrayItems {
                             bind: id,
                             view: () => {
                                 return (cf.formData[cf.key] || []).map((dd, index) => {
-                                    return `<li onclick="${gvc.event(() => {
+                                    return html `
+                                        <li onclick="${gvc.event(() => {
                                     })}">
-                                                                    <div class="w-100 fw-500 d-flex align-items-center  fs-6 hoverBtn h_item  rounded px-2 hoverF2 mb-1" style="gap:5px;color:#393939;" >
-                                                                        <div class=" p-1 dragItem " >
-                                                                            <i class="fa-solid fa-grip-dots-vertical d-flex align-items-center justify-content-center  " style="width:15px;height:15px;" aria-hidden="true"></i>
-                                                                        </div>
-                                                                        <span style="text-overflow: ellipsis;max-width: calc(100% - 100px);overflow: hidden;white-space: nowrap;">${dd[widget.bundle.form_config.refer_title] || `選項 ${index + 1}`}</span>
-                                                                        <div class="flex-fill"></div>
-                                                                      
-                                                                        <div class="hoverBtn p-1 child" onclick="${gvc.event((e, event) => {
+                                            <div class="w-100 fw-500 d-flex align-items-center  fs-6 hoverBtn h_item  rounded px-2 hoverF2 mb-1"
+                                                 style="gap:5px;color:#393939;">
+                                                <div class=" p-1 dragItem ">
+                                                    <i class="fa-solid fa-grip-dots-vertical d-flex align-items-center justify-content-center  "
+                                                       style="width:15px;height:15px;" aria-hidden="true"></i>
+                                                </div>
+                                                ${widget.bundle.form_config.preview_img ? `
+                                                <div class="rounded-3 me-1" style="width:32px;height: 32px; background-image: url('${dd[widget.bundle.form_config.preview_img] || BgWidget.noImageURL}');background-size: cover;background-repeat: no-repeat;background-position: center;"></div>
+                                                ` : ``}
+                                                
+                                                <span style="text-overflow: ellipsis;max-width: calc(100% - 100px);overflow: hidden;white-space: nowrap;">${dd[widget.bundle.form_config.refer_title] || `選項 ${index + 1}`}</span>
+                                                <div class="flex-fill"></div>
+
+                                                <div class="hoverBtn p-1 child" onclick="${gvc.event((e, event) => {
                                         event.stopPropagation();
                                         event.preventDefault();
                                         const dialog = new ShareDialog(gvc.glitter);
@@ -58,9 +66,10 @@ export class ArrayItems {
                                             }
                                         });
                                     })}">
-                                                                            <i class="fa-regular fa-trash d-flex align-items-center justify-content-center " aria-hidden="true"></i>
-                                                                        </div>
-                                                                          <div class="hoverBtn p-1 child " onclick="${gvc.event((e, event) => {
+                                                    <i class="fa-regular fa-trash d-flex align-items-center justify-content-center "
+                                                       aria-hidden="true"></i>
+                                                </div>
+                                                <div class="hoverBtn p-1 child " onclick="${gvc.event((e, event) => {
                                         event.stopPropagation();
                                         event.preventDefault();
                                         const edit_data = dd;
@@ -102,10 +111,10 @@ export class ArrayItems {
                                             title: edit_data[widget.bundle.form_config.refer_title] || `選項 ${index + 1}`
                                         });
                                     })}">
-                                                                            <i class="fa-solid fa-pencil"></i>
-                                                                               </div>
-                                                                    </div>
-                                                                </li>`;
+                                                    <i class="fa-solid fa-pencil"></i>
+                                                </div>
+                                            </div>
+                                        </li>`;
                                 }).join('');
                             },
                             divCreate: {
@@ -149,23 +158,30 @@ export class ArrayItems {
                                                     },
                                                 });
                                             }
-                                            catch (e) { }
+                                            catch (e) {
+                                            }
                                             clearInterval(interval);
                                         }
                                     }, 100);
-                                }, () => { });
+                                }, () => {
+                                });
                             }
                         };
                     }));
-                    viewArray.push(`<div class="w-100" style="justify-content: center; align-items: center; gap: 4px; display: flex;color: #3366BB;cursor: pointer;" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false"
-onclick="${gvc.event(() => {
+                    viewArray.push(html `
+                        <div class="w-100"
+                             style="justify-content: center; align-items: center; gap: 4px; display: flex;color: #3366BB;cursor: pointer;"
+                             data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false"
+                             onclick="${gvc.event(() => {
                         cf.formData[cf.key].push({});
                         cf.callback(cf.formData[cf.key]);
                         cf.gvc.notifyDataChange(id);
                     })}">
-                        <div style="font-size: 16px; font-family: Noto Sans; font-weight: 400; word-wrap: break-word">${cf.widget.bundle.form_config['plus_title'] || '新增選項'}</div>
-                        <i class="fa-solid fa-plus" aria-hidden="true"></i>
-                    </div>`);
+                            <div style="font-size: 16px; font-family: Noto Sans; font-weight: 400; word-wrap: break-word">
+                                ${cf.widget.bundle.form_config['plus_title'] || '新增選項'}
+                            </div>
+                            <i class="fa-solid fa-plus" aria-hidden="true"></i>
+                        </div>`);
                     return viewArray.join('<div class="my-2"></div>');
                 },
                 divCreate: {

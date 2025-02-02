@@ -36,6 +36,13 @@ function listenElementChange(query: string) {
     observer.observe(targetElement, {childList: true, subtree: true});
 }
 
+//等待取得的ALT
+let alt_wait: { key: string, callback: (_v: string) => void }[] = []
+//已取得的ALT
+let alt_get_ed: {key: string, value: {alt:string}}[] = []
+//ALT取得的Timer
+let alt_getter_timer: any = 0
+
 function traverseHTML(element: any, document: any) {
     try {
         if (element.classList.contains('page-box')) {
@@ -91,23 +98,43 @@ function traverseHTML(element: any, document: any) {
             traverseHTML(children[j], document);
         }
     }
-    if((element.tagName || '').toLowerCase() === 'img' ){
-        const src=element.getAttribute('src');
-        if(src){
+    if ((element.tagName || '').toLowerCase() === 'img') {
+        const src = element.getAttribute('src');
+        if (src) {
             try {
-                const tag=glitter.generateCheckSum(src,9)
-                setTimeout(()=>{
-                    if(element){
-                        ApiUser.getPublicConfig(`alt_`+tag,'manager').then((res)=>{
-                            if(res && res.response.value){
-                                setTimeout(()=>{
-                                    element.setAttribute('alt', res.response.value.alt || '');
-                                },10)
+                const tag = glitter.generateCheckSum(src, 9)
+                alt_wait.push({
+                    key: `alt_` + tag,
+                    callback: (v) => {
+                        try {
+                            element.setAttribute('alt', v || '');
+                        } catch (e) {
+                        }
+                    }
+                })
+                clearInterval(alt_getter_timer)
+                alt_getter_timer = setTimeout(async () => {
+                    const wait_get_key = alt_wait.map((dd) => {
+                        return dd.key
+                    }).filter((dd)=>{
+                        return !alt_get_ed.find((d1)=>{return d1.key===dd})
+                    });
+                    ApiUser.getPublicConfig(wait_get_key.concat('alt_00000').join(','), 'manager').then((res) => {
+                        alt_get_ed=alt_get_ed.concat(res.response.value)
+                        alt_wait=alt_wait.filter((d2)=>{
+                            const get=alt_get_ed.find((d3)=>{
+                                return d3.key===d2.key
+                            })
+                            if(get){
+                                d2.callback(get.value.alt ?? '')
+                                return  false
+                            }else{
+                                return true
                             }
                         })
-                    }
-                },10)
-            }catch (e) {
+                    })
+                }, 10)
+            } catch (e) {
 
             }
         }
@@ -198,7 +225,7 @@ function traverseHTML(element: any, document: any) {
                             if (document.querySelector(`[gvc-id="${id}"]`) !== null) {
                                 document.querySelector(`[gvc-id="${id}"]`).wasRecreate = true;
                                 document.querySelector(`[gvc-id="${id}"]`).wasRender = false;
-                                if(!document.querySelector(`[gvc-id="${id}"]`).style.height){
+                                if (!document.querySelector(`[gvc-id="${id}"]`).style.height) {
                                     const height = document.querySelector(`[gvc-id="${id}"]`).offsetHeight;
                                     if (height) {
                                         document.querySelector(`[gvc-id="${id}"]`).style.height = height + 'px';

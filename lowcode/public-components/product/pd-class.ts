@@ -371,7 +371,8 @@ export class PdClass {
         const isPhone = document.body.clientWidth < 768;
         obj.gvc.glitter.addStyleLink(['https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css']);
         obj.gvc.glitter.addMtScript(
-            [{src: `https://unpkg.com/@lottiefiles/lottie-player@latest/dist/lottie-player.js`}, {src: `https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js`}],
+            [{src: `https://unpkg.com/@lottiefiles/lottie-player@latest/dist/lottie-player.js`},
+                {src: `https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js`}],
             () => {
             },
             () => {
@@ -379,6 +380,7 @@ export class PdClass {
         );
 
         obj.prod.variants.forEach((variant) => {
+            variant.preview_image=(variant as any)[`preview_image_${Language.getLanguage()}`] || variant.preview_image;
             if (variant.preview_image && !obj.prod.preview_image.includes(variant.preview_image)) {
                 obj.prod.preview_image.push(variant.preview_image);
             }
@@ -452,7 +454,6 @@ export class PdClass {
                 : obj.vm.specs.map((spec: any) => {
                     return spec.option[0].title;
                 });
-        console.log(`obj.vm.specs=>`, obj.vm.specs)
         obj.prod.preview_image = obj.prod.preview_image.filter((dd) => {
             return dd !== 'https://d3jnmi1tfjgtti.cloudfront.net/file/234285319/1722936949034-default_image.jpg';
         });

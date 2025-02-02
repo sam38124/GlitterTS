@@ -1,6 +1,7 @@
 import {IToken} from "../models/Auth.js";
 import db from '../../modules/database.js';
 import exception from "../../modules/exception.js";
+import {Shopping} from "./shopping.js";
 
 export class Pos {
     public app: string;
@@ -13,13 +14,34 @@ export class Pos {
     }
 
     //取得上下班狀態
-    public async getWorkStatus() {
+    public async getWorkStatus(query:{
+        userID:string,
+        store:string
+    }) {
         try {
             const status = await db.query(`SELECT *
                                            FROM \`${this.app}\`.t_check_in_pos
-                                           where staff = ?
-                                           order by id desc limit 0,1;`, [this.token?.userID]);
+                                           where staff = ? and store=?
+                                           order by id desc limit 0,1;`, [query.userID,query.store]);
             return (status[0] && status[0].execute) || 'off_work'
+        } catch (e) {
+            throw exception.BadRequestError('INTERNAL_SERVER_ERROR', 'getWorkStatus is Failed. ' + e, null);
+        }
+    }
+
+    //取得上下班列表
+    public async getWorkStatusList(query: {
+        store:string;
+        page: number;
+        limit: number;
+    }) {
+        try {
+
+            let querySql:string[]=[`1=1`];
+            if(query.store){
+                querySql.push(`store=${db.escape(query.store)}`)
+            }
+            return   await this.querySql(querySql, query,'t_check_in_pos');
         } catch (e) {
             throw exception.BadRequestError('INTERNAL_SERVER_ERROR', 'getWorkStatus is Failed. ' + e, null);
         }
@@ -27,12 +49,14 @@ export class Pos {
     //設定上下班狀態
     public async setWorkStatus(obj:{
         user_id?:string,
-        status:'off_work'|'on_work'
+        status:'off_work'|'on_work',
+        store:string
     }){
         try {
-            await db.query(`insert into \`${this.app}\`.t_check_in_pos (staff,execute) values (?,?)`,[
+            await db.query(`insert into \`${this.app}\`.t_check_in_pos (staff,execute,store) values (?,?,?)`,[
                 this.token?.userID,
-                obj.status
+                obj.status,
+                obj.store
             ])
         }catch (e) {
             throw exception.BadRequestError('INTERNAL_SERVER_ERROR', 'setWorkStatus is Failed. ' + e, null);
@@ -75,6 +99,47 @@ export class Pos {
             })
         }catch (e) {
             throw exception.BadRequestError('INTERNAL_SERVER_ERROR', 'setSummary is Failed. ' + e, null);
+        }
+    }
+
+    public async querySql(querySql: string[], query: { page: number; limit: number; id?: string; order_by?: string },db_n:string) {
+        let sql = `SELECT *
+                   FROM \`${this.app}\`.\`${db_n}\`
+                   WHERE ${querySql.join(' and ')} ${query.order_by || `order by id desc`}
+        `;
+        console.log(`query=string=>`,sql)
+        if (query.id) {
+            const data = (
+                await db.query(
+                    `SELECT *
+                     FROM (${sql}) as subqyery
+                         limit ${query.page * query.limit}
+                        , ${query.limit}`,
+                    []
+                )
+            )[0];
+            return { data: data, result: !!data };
+        } else {
+            return {
+                data: (
+                    await db.query(
+                        `SELECT *
+                         FROM (${sql}) as subqyery
+                             limit ${query.page * query.limit}
+                            , ${query.limit}`,
+                        []
+                    )
+                ).map((dd: any) => {
+                    return dd;
+                }),
+                total: (
+                    await db.query(
+                        `SELECT count(1)
+                         FROM (${sql}) as subqyery`,
+                        []
+                    )
+                )[0]['count(1)'],
+            };
         }
     }
 }

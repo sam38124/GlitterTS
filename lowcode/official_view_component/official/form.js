@@ -293,7 +293,9 @@ export class FormWidget {
                                                         }));
                                                         return config_array;
                                                     })(),
-                                                ].join('<div class="my-2"></div>')}`;
+                                                ].join('<div class="my-2"></div>')}
+                                                <div style="height:50px;"></div>
+                                                `;
                                             },
                                             divCreate: {
                                                 class: `p-2`,

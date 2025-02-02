@@ -1415,8 +1415,16 @@ router.get('/pos/summary', async (req: express.Request, resp: express.Response) 
 router.get('/pos/work-status', async (req: express.Request, resp: express.Response) => {
     try {
         return response.succ(resp, {
-            status: await new Pos(req.get('g-app') as string, req.body.token).getWorkStatus(),
+            status: await new Pos(req.get('g-app') as string, req.body.token).getWorkStatus(req.query as any),
         });
+    } catch (err) {
+        return response.fail(resp, err);
+    }
+});
+//取得上班狀態
+router.get('/pos/work-status-list', async (req: express.Request, resp: express.Response) => {
+    try {
+        return response.succ(resp, await new Pos(req.get('g-app') as string, req.body.token).getWorkStatusList(req.query as any));
     } catch (err) {
         return response.fail(resp, err);
     }

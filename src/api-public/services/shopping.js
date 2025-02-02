@@ -52,6 +52,7 @@ const app_1 = __importDefault(require("../../app"));
 const glitter_finance_js_1 = require("../models/glitter-finance.js");
 const app_js_1 = require("../../services/app.js");
 const stock_1 = require("./stock");
+const seo_config_js_1 = require("../../seo-config.js");
 class Shopping {
     constructor(app, token) {
         this.app = app;
@@ -233,7 +234,7 @@ class Shopping {
                         case 'inRange':
                             return `
                                 OR (
-                                    JSON_EXTRACT(content, '$.status') = 'active'
+                                    JSON_EXTRACT(content, '$.status') in ('active',1)
                                     AND (
                                         content->>'$.active_schedule' IS NULL OR (
                                             (
@@ -251,14 +252,14 @@ class Shopping {
                         case 'beforeStart':
                             return `
                                 OR (
-                                    JSON_EXTRACT(content, '$.status') = 'active'
+                                    JSON_EXTRACT(content, '$.status') in ('active',1)
                                     AND CONCAT(content->>'$.active_schedule.start_ISO_Date') >${database_js_1.default.escape(new Date().toISOString())}
                                 )
                             `;
                         case 'afterEnd':
                             return `
                                 OR (
-                                    JSON_EXTRACT(content, '$.status') = 'active'
+                                    JSON_EXTRACT(content, '$.status') in ('active',1)
                                     AND CONCAT(content->>'$.active_schedule.end_ISO_Date') < ${database_js_1.default.escape(new Date().toISOString())}
                                 )
                             `;
@@ -268,6 +269,7 @@ class Shopping {
                 })
                     .join('');
                 querySql.push(`(${statusCondition} ${scheduleConditions})`);
+                console.log(`(${statusCondition} ${scheduleConditions})`);
             }
             if (query.channel) {
                 const channelSplit = query.channel.split(',').map((channel) => channel.trim());
@@ -280,7 +282,9 @@ class Shopping {
             query.min_price && querySql.push(`(id in (select product_id from \`${this.app}\`.t_variants where content->>'$.sale_price'>=${query.min_price})) `);
             query.max_price && querySql.push(`(id in (select product_id from \`${this.app}\`.t_variants where content->>'$.sale_price'<=${query.max_price})) `);
             const products = await this.querySql(querySql, query);
-            console.log(`querySql=>${querySql}`);
+            querySql.map((dd) => {
+                console.log(`querySql=>${dd}`);
+            });
             const productList = (Array.isArray(products.data) ? products.data : [products.data]).filter((product) => product);
             if (this.token && this.token.userID) {
                 for (const b of productList) {
@@ -358,7 +362,15 @@ class Shopping {
                 dd.total_sales = total_sale;
             }
             if (query.domain && products.data[0]) {
-                products.data = products.data[0];
+                products.data = products.data.find((dd) => {
+                    return (dd.content.language_data &&
+                        dd.content.language_data[`${query.language}`].seo &&
+                        dd.content.language_data[`${query.language}`].seo.domain === decodeURIComponent(query.domain)) || (dd.content.seo &&
+                        dd.content.seo.domain === decodeURIComponent(query.domain));
+                }) || products.data[0];
+            }
+            if ((query.domain || query.id)) {
+                products.data.json_ld = await seo_config_js_1.SeoConfig.getProductJsonLd(this.app, products.data.content);
             }
             return products;
         }
@@ -372,6 +384,7 @@ class Shopping {
                    FROM \`${this.app}\`.t_manager_post
                    WHERE ${querySql.join(' and ')} ${query.order_by || `order by id desc`}
         `;
+        console.log(`query.order_by=>`, query.order_by);
         if (query.id) {
             const data = (await database_js_1.default.query(`SELECT *
                      FROM (${sql}) as subqyery
@@ -4562,6 +4575,15 @@ OR JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.orderStatus')) NOT IN (-99)) `);
             }));
             let max_id = (await database_js_1.default.query(`select max(id)
                          from \`${this.app}\`.t_manager_post`, []))[0]['max(id)'] || 0;
+            console.log(`insert=>`, productArray.map((product) => {
+                var _a;
+                if (!product.id) {
+                    product.id = max_id++;
+                }
+                product.type = 'product';
+                this.checkVariantDataType(product.variants);
+                return [product.id || null, (_a = this.token) === null || _a === void 0 ? void 0 : _a.userID, JSON.stringify(product)];
+            }));
             const data = await database_js_1.default.query(`replace
                 INTO \`${this.app}\`.\`t_manager_post\` (id,userID,content) values ?`, [
                 productArray.map((product) => {

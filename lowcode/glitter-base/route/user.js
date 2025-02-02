@@ -11,7 +11,8 @@ import { BaseApi } from '../../glitterBundle/api/base.js';
 import { GlobalUser } from '../global/global-user.js';
 import { ApiShop } from './shopping.js';
 export class ApiUser {
-    constructor() { }
+    constructor() {
+    }
     static register(json) {
         return BaseApi.create({
             url: getBaseUrl() + `/api-public/v1/user/register`,
@@ -633,21 +634,16 @@ export class ApiUser {
                 resolve(config[key + user_id]);
                 return;
             }
-            BaseApi.create({
-                url: getBaseUrl() + `/api-public/v1/user/public/config?key=${key}&user_id=${user_id}`,
-                type: 'GET',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'g-app': appName,
-                    Authorization: getConfig().config.token,
-                },
-            }).then((res) => {
+            function callback(res) {
                 switch (key) {
                     case 'collection':
                     case 'footer-setting':
                     case 'menu-setting':
                     case 'message_setting':
-                        config[key + user_id] = res;
+                    case 'promo-label':
+                        if (window.parent.glitter.getUrlParameter('function') !== 'backend-manger') {
+                            config[key + user_id] = res;
+                        }
                         break;
                     case 'image-manager':
                         if (!Array.isArray(res.response.value)) {
@@ -659,7 +655,37 @@ export class ApiUser {
                     config[key + user_id] = res;
                 }
                 resolve(res);
+            }
+            const find_ = this.getting_config.find((dd) => {
+                return dd.key === key;
             });
+            if (find_) {
+                find_.array.push(callback);
+            }
+            else {
+                this.getting_config.push({ key: key, array: [callback] });
+                BaseApi.create({
+                    url: getBaseUrl() + `/api-public/v1/user/public/config?key=${key}&user_id=${user_id}`,
+                    type: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'g-app': appName,
+                        Authorization: getConfig().config.token,
+                    },
+                }).then((res) => {
+                    this.getting_config = this.getting_config.filter((d1) => {
+                        if (d1.key === key) {
+                            d1.array.map((dd) => {
+                                return dd(res);
+                            });
+                            return false;
+                        }
+                        else {
+                            return true;
+                        }
+                    });
+                });
+            }
         });
     }
     static getUserGroupList(type, tag) {
@@ -760,6 +786,7 @@ export class ApiUser {
         });
     }
 }
+ApiUser.getting_config = [];
 function getConfig() {
     const saasConfig = window.parent.saasConfig;
     return saasConfig;

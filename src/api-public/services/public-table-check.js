@@ -11,6 +11,7 @@ const tool_js_1 = __importDefault(require("../../services/tool.js"));
 const ai_robot_js_1 = require("./ai-robot.js");
 const user_js_1 = require("./user.js");
 const shopping_js_1 = require("./shopping.js");
+const updated_table_checked_js_1 = require("./updated-table-checked.js");
 class ApiPublic {
     static async createScheme(appName) {
         if (ApiPublic.checkApp.find((dd) => {
@@ -502,11 +503,13 @@ class ApiPublic {
   \`id\` INT NOT NULL AUTO_INCREMENT,
   \`staff\` VARCHAR(45) NOT NULL,
   \`execute\` VARCHAR(45) NOT NULL,
+  \`store\` VARCHAR(45) NOT NULL DEFAULT '',
   \`create_time\` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (\`id\`),
   INDEX \`index2\` (\`staff\` ASC) VISIBLE,
   INDEX \`index3\` (\`create_time\` ASC) VISIBLE,
-  INDEX \`index4\` (\`execute\` ASC) VISIBLE);
+  INDEX \`index5\` (\`store\` ASC) VISIBLE,
+  INDEX \`index4\` (\`execute\` ASC) VISIBLE) COMMENT = 'V1.1';
 `,
                 },
                 {
@@ -540,6 +543,7 @@ class ApiPublic {
             }
             await ai_robot_js_1.AiRobot.syncAiRobot(appName);
             await ApiPublic.migrateVariants(appName);
+            await updated_table_checked_js_1.UpdatedTableChecked.startCheck(appName);
         }
         catch (e) {
             console.error(e);

@@ -171,7 +171,10 @@ class Shopee {
             const itemList = response.data.response.item;
             const productData = await Promise.all(itemList.map(async (item, index) => {
                 try {
-                    const productData = await database_js_1.default.query(`SELECT count(1) FROM ${this.app}.t_manager_post WHERE (content->>'$.type'='product') AND (content->>'$.shopee_id' =?);`, [item.item_id]);
+                    const productData = await database_js_1.default.query(`SELECT count(1)
+                                                            FROM ${this.app}.t_manager_post
+                                                            WHERE (content ->>'$.type'='product')
+                                                              AND (content ->>'$.shopee_id' =?);`, [item.item_id]);
                     if (productData[0]['count(1)'] > 0) {
                         return null;
                     }
@@ -319,8 +322,11 @@ class Shopee {
         }
         let data;
         try {
-            const sqlData = (await database_js_1.default.execute(`select * from \`${config_js_1.saasConfig.SAAS_NAME}\`.private_config where \`app_name\`='${this.app}' and \`key\` = 'shopee_access_token'
-            `, []));
+            const sqlData = (await database_js_1.default.execute(`select *
+                 from \`${config_js_1.saasConfig.SAAS_NAME}\`.private_config
+                 where \`app_name\` = '${this.app}'
+                   and \`key\` = 'shopee_access_token'
+                `, []));
             data = sqlData;
         }
         catch (e) {
@@ -346,17 +352,21 @@ class Shopee {
             const item = response.data.response.item_list[0];
             let origData = {};
             try {
-                origData = await database_js_1.default.query(`SELECT * FROM \`${this.app}\`.t_manager_post WHERE (content->>'$.type'='product') AND (content->>'$.shopee_id' = ?);`, [id]);
+                origData = await database_js_1.default.query(`SELECT *
+                                           FROM \`${this.app}\`.t_manager_post
+                                           WHERE (content ->>'$.type'='product')
+                                             AND (content ->>'$.shopee_id' = ?);`, [id]);
             }
             catch (e) {
             }
+            console.log(`item==>`, item);
             let postMD;
             postMD = this.getInitial({});
             if (origData.length > 0) {
                 postMD = Object.assign(Object.assign({}, postMD), origData[0]);
             }
             postMD.title = item.item_name;
-            if (item.description_info.extended_description.field_list.length > 0) {
+            if (item.description_info && item.description_info.extended_description.field_list.length > 0) {
                 let temp = ``;
                 const promises = item.description_info.extended_description.field_list.map(async (item1) => {
                     if (item1.field_type == 'image') {
@@ -373,14 +383,19 @@ class Shopee {
                 });
                 const html = String.raw;
                 await Promise.all(promises);
-                item.description_info.extended_description.field_list.map((item) => {
-                    if (item.field_type == 'image') {
-                        temp += html `<div style="white-space: pre-wrap;"><img src="${item.image_info.s3}" alt='${item.image_info.image_id}'></div>`;
-                    }
-                    else if (item.field_type == 'text') {
-                        temp += html `<div style="white-space: pre-wrap;">${item.text}</div>`;
-                    }
-                });
+                if (item.description_info && item.description_info.extended_description) {
+                    item.description_info.extended_description.field_list.map((item) => {
+                        if (item.field_type == 'image') {
+                            temp += html `
+                            <div style="white-space: pre-wrap;"><img src="${item.image_info.s3}"
+                                                                     alt='${item.image_info.image_id}'></div>`;
+                        }
+                        else if (item.field_type == 'text') {
+                            temp += html `
+                            <div style="white-space: pre-wrap;">${item.text}</div>`;
+                        }
+                    });
+                }
                 postMD.content = temp;
             }
             if (item.price_info) {

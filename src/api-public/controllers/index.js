@@ -115,6 +115,7 @@ const whiteList = [
     { url: config_1.config.getRoute(config_1.config.public_route.ec + '/checkout/preview', 'public'), method: 'POST' },
     { url: config_1.config.getRoute(config_1.config.public_route.ec + '/redirect', 'public'), method: 'POST' },
     { url: config_1.config.getRoute(config_1.config.public_route.ec + '/order', 'public'), method: 'GET' },
+    { url: config_1.config.getRoute(config_1.config.public_route.ec + '/order/cancel', 'public'), method: 'PUT' },
     { url: config_1.config.getRoute(config_1.config.public_route.ec + '/order/proof-purchase', 'public'), method: 'PUT' },
     { url: config_1.config.getRoute(config_1.config.public_route.ec + '/order/payment-method', 'public'), method: 'GET' },
     { url: config_1.config.getRoute(config_1.config.public_route.ec + '/redirect', 'public'), method: 'GET' },

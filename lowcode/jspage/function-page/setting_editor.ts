@@ -9,6 +9,7 @@ import { EditorConfig } from '../../editor-config.js';
 import { ApiUser } from '../../glitter-base/route/user.js';
 import { BgWidget } from '../../backend-manager/bg-widget.js';
 import { GlobalUser } from '../../glitter-base/global/global-user.js';
+import {imageLibrary} from "../../modules/image-library.js";
 
 export class Setting_editor {
     static pluginUrl = '';
@@ -107,14 +108,6 @@ export class Setting_editor {
                 appName: 'cms_system',
                 groupIcon: 'https://d3jnmi1tfjgtti.cloudfront.net/file/252530754/1716566571091-Property 1=gear-regular.svg',
                 moduleName: '員工設定',
-            },
-            {
-                icon: '',
-                page: 'shop_list',
-                group: '商店設定',
-                title: '門市設定',
-                appName: 'cms_system',
-                groupIcon: 'https://d3jnmi1tfjgtti.cloudfront.net/file/234285319/1716652645450-boxes-stacked-regular (1).svg',
             },
             {
                 icon: '',
@@ -645,6 +638,16 @@ export class Setting_editor {
             },
             {
                 icon: '',
+                page: 'image_manager',
+                group: '品牌官網',
+                title: '圖庫管理',
+                appName: 'cms_system',
+                groupIcon: 'https://d3jnmi1tfjgtti.cloudfront.net/file/234285319/1716654741305-Component 56 (5).svg',
+                moduleName: '商店設計',
+                guideClass: '',
+            },
+            {
+                icon: '',
                 page: 'app-design',
                 group: 'APP',
                 title: 'APP設計',
@@ -678,6 +681,32 @@ export class Setting_editor {
                 appName: 'cms_system',
                 groupIcon: 'https://d3jnmi1tfjgtti.cloudfront.net/file/252530754/1713414599944-Component 56 (5).svg',
                 moduleName: '推播訊息管理',
+            },
+            {
+                icon: '',
+                page: 'shop_list',
+                group: 'POS實體門市',
+                title: '門市設定',
+                appName: 'cms_system',
+                groupIcon: 'https://d3jnmi1tfjgtti.cloudfront.net/file/122538856/cash-register-regular (1).svg',
+            },
+            {
+                icon: '',
+                page: 'work-status',
+                group: 'POS實體門市',
+                title: '上下班打卡',
+                appName: 'cms_system',
+                groupIcon: 'https://d3jnmi1tfjgtti.cloudfront.net/file/122538856/cash-register-regular (1).svg',
+                moduleName: 'POS實體門市',
+            },
+            {
+                icon: '',
+                page: 'summary-pos',
+                group: 'POS實體門市',
+                title: '每日小結單',
+                appName: 'cms_system',
+                groupIcon: 'https://d3jnmi1tfjgtti.cloudfront.net/file/122538856/cash-register-regular (1).svg',
+                moduleName: 'POS實體門市',
             },
             {
                 icon: '',
@@ -1008,6 +1037,22 @@ export class Setting_editor {
                                                                         ''} ${dd.type === 'container' ? `mainRow${index}` : ''}"
                                                                         style="gap:7px; color:#393939; ${dd.toggle ? `border-radius: 5px; background: #F2F2F2;` : ``}"
                                                                         onclick="${gvc.event(async () => {
+                                                                         try {
+                                                                             if(items[parseInt(dd.index)].page==='image_manager'){
+                                                                                 imageLibrary.selectImageLibrary(
+                                                                                         gvc,
+                                                                                         (urlArray) => {
+
+                                                                                         },
+                                                                                         html` <div class="d-flex flex-column" style="border-radius: 10px 10px 0px 0px;background: #F2F2F2;">圖片庫</div>`,
+                                                                                         { mul: true },
+                                                                                         true
+                                                                                 )
+                                                                                 return
+                                                                             }
+                                                                         }catch (e) {
+                                                                             
+                                                                         }
                                                                             gvc.glitter.setUrlParameter('page-id');
                                                                             if (dd.type === 'container') {
                                                                                 list.forEach((item: any, index2: number) => {

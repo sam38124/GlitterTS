@@ -1,9 +1,10 @@
-import { BaseApi } from '../../glitterBundle/api/base.js';
-import { GlobalUser } from '../global/global-user.js';
-import { ApiShop } from './shopping.js';
+import {BaseApi} from '../../glitterBundle/api/base.js';
+import {GlobalUser} from '../global/global-user.js';
+import {ApiShop} from './shopping.js';
 
 export class ApiUser {
-    constructor() {}
+    constructor() {
+    }
 
     public static register(json: { account: string; pwd: string; userData: any }) {
         return BaseApi.create({
@@ -112,6 +113,7 @@ export class ApiUser {
             },
         });
     }
+
     public static getPhoneCount(phone: string) {
         return BaseApi.create({
             url: getBaseUrl() + `/api-public/v1/user/check/phone/exists?phone=${phone}`,
@@ -174,6 +176,7 @@ export class ApiUser {
             },
         });
     }
+
     public static getUsersDataWithEmailOrPhone(search_s: string) {
         return BaseApi.create({
             url: getBaseUrl() + `/api-public/v1/user?search=${search_s}&type=email_or_phone`,
@@ -200,6 +203,7 @@ export class ApiUser {
             }),
         });
     }
+
     public static emailVerify(email: string, app_name?: string) {
         return BaseApi.create({
             url: getBaseUrl() + `/api-public/v1/user/email-verify`,
@@ -213,6 +217,7 @@ export class ApiUser {
             }),
         });
     }
+
     public static phoneVerify(phone_number: string) {
         return BaseApi.create({
             url: getBaseUrl() + `/api-public/v1/user/phone-verify`,
@@ -324,7 +329,13 @@ export class ApiUser {
         });
     }
 
-    public static getUserList(json: { limit: number; page: number; search?: string; id?: string; search_type?: string }) {
+    public static getUserList(json: {
+        limit: number;
+        page: number;
+        search?: string;
+        id?: string;
+        search_type?: string
+    }) {
         return BaseApi.create({
             url:
                 getBaseUrl() +
@@ -425,12 +436,14 @@ export class ApiUser {
             if (array.length > 0) {
                 await new Promise((resolve, reject) => {
                     let pass = 0;
+
                     function checkPass() {
                         pass++;
                         if (pass === array.length) {
                             resolve(true);
                         }
                     }
+
                     for (let index = 0; index < array.length; index++) {
                         function execute() {
                             Promise.all([
@@ -471,6 +484,7 @@ export class ApiUser {
                                 checkPass();
                             });
                         }
+
                         execute();
                     }
                 });
@@ -623,14 +637,14 @@ export class ApiUser {
     public static login(json: {
         app_name?: string;
         account?: string;
-        user_id?:string;
+        user_id?: string;
         pwd?: string;
         login_type?: 'fb' | 'normal' | 'line' | 'google' | 'apple' | 'pin';
         google_token?: string;
         fb_token?: string;
         token?: string;
         line_token?: string;
-        pin?:string;
+        pin?: string;
         redirect?: string;
     }) {
         return BaseApi.create({
@@ -639,7 +653,7 @@ export class ApiUser {
             headers: {
                 'Content-Type': 'application/json',
                 'g-app': json.app_name || getConfig().config.appName,
-                Authorization:json.token
+                Authorization: json.token
             },
             data: JSON.stringify(json),
         });
@@ -660,7 +674,7 @@ export class ApiUser {
     public static setPublicConfig(cf: { key: string; value: any; user_id?: string; token?: string }) {
         (window as any).glitter.share._public_config = (window as any).glitter.share._public_config ?? {};
         const config = (window as any).glitter.share._public_config;
-        config[cf.key + cf.user_id]=undefined;
+        config[cf.key + cf.user_id] = undefined;
         return BaseApi.create({
             url: getBaseUrl() + `/api-public/v1/user/public/config`,
             type: 'PUT',
@@ -677,6 +691,8 @@ export class ApiUser {
         });
     }
 
+    public static getting_config: { key: string, array: ((res: any) => void)[] }[] = []
+
     public static getPublicConfig(key: string, user_id: string, appName: string = getConfig().config.appName) {
         return new Promise<{ result: boolean; response: any }>((resolve, reject) => {
             (window as any).glitter.share._public_config = (window as any).glitter.share._public_config ?? {};
@@ -685,33 +701,60 @@ export class ApiUser {
                 resolve(config[key + user_id]);
                 return;
             }
-            BaseApi.create({
-                url: getBaseUrl() + `/api-public/v1/user/public/config?key=${key}&user_id=${user_id}`,
-                type: 'GET',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'g-app': appName,
-                    Authorization: getConfig().config.token,
-                },
-            }).then((res) => {
+
+            function callback(res: any) {
                 switch (key) {
                     case 'collection':
                     case 'footer-setting':
                     case 'menu-setting':
                     case 'message_setting':
-                        config[key + user_id] = res;
-                        break;
+                    case 'promo-label':
+                        //前台才有暫存功能
+                        if ((window.parent as any).glitter.getUrlParameter('function') !== 'backend-manger') {
+                            config[key + user_id] = res;
+                        }
+                        break
                     case 'image-manager':
-                        if(!Array.isArray(res.response.value)){
-                            res.response.value=[]
+                        if (!Array.isArray(res.response.value)) {
+                            res.response.value = []
                         }
                         break
                 }
-                if(key.indexOf('alt_')===0){
+                if (key.indexOf('alt_') === 0) {
                     config[key + user_id] = res;
                 }
                 resolve(res);
-            });
+            }
+
+            const find_ = this.getting_config.find((dd) => {
+                return dd.key === key
+            })
+            if (find_) {
+                find_.array.push(callback)
+            } else {
+                this.getting_config.push({key: key, array: [callback]})
+                BaseApi.create({
+                    url: getBaseUrl() + `/api-public/v1/user/public/config?key=${key}&user_id=${user_id}`,
+                    type: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'g-app': appName,
+                        Authorization: getConfig().config.token,
+                    },
+                }).then((res) => {
+                    this.getting_config = this.getting_config.filter((d1) => {
+                        if (d1.key === key) {
+                            d1.array.map((dd) => {
+                                return dd(res)
+                            })
+                            return false
+                        } else {
+                            return true
+                        }
+                    })
+                });
+            }
+
         });
     }
 
@@ -757,7 +800,15 @@ export class ApiUser {
         return list;
     }
 
-    public static getPermission(json: { page: number; limit: number; self?: boolean; queryType?: string; query?: string; orderBy?: string; filter?: any }) {
+    public static getPermission(json: {
+        page: number;
+        limit: number;
+        self?: boolean;
+        queryType?: string;
+        query?: string;
+        orderBy?: string;
+        filter?: any
+    }) {
         return BaseApi.create({
             url:
                 getBaseUrl() +
@@ -788,10 +839,10 @@ export class ApiUser {
             title: string;
             phone: string;
             auth: any;
-            member_id:any,
-            pin:any,
-            is_manager?:boolean
-            support_shop?:string[]
+            member_id: any,
+            pin: any,
+            is_manager?: boolean
+            support_shop?: string[]
         };
         status: number;
     }) {
@@ -816,7 +867,7 @@ export class ApiUser {
                 'Content-Type': 'application/json',
                 Authorization: getConfig().config.token,
             },
-            data: JSON.stringify({ email: email || '' }),
+            data: JSON.stringify({email: email || ''}),
         });
     }
 
@@ -829,7 +880,7 @@ export class ApiUser {
                 'Content-Type': 'application/json',
                 Authorization: getConfig().config.token,
             },
-            data: JSON.stringify({ email: email }),
+            data: JSON.stringify({email: email}),
         });
     }
 }

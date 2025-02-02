@@ -16,12 +16,13 @@ import {ProductConfig} from './product-config.js';
 import {ShoppingSettingBasic} from "./shopping-setting-basic.js";
 import {ShoppingSettingAdvance} from "./shopping-setting-advance.js";
 import {ActiveSchedule, Product, ProductInitial} from "../public-models/product.js";
-import {FileItem} from "../modules/file-system.js";
+
 
 
 export class ShoppingProductSetting {
     public static select_language = (window.parent as any).store_info.language_setting.def;
     public static select_product_type: 'course' | 'commodity' = 'commodity'
+    public static select_page_index=0
 
     public static main(gvc: GVC, type: 'product' | 'addProduct' | 'giveaway' | 'hidden' = 'product') {
         const html = String.raw;
@@ -620,131 +621,142 @@ export class ShoppingProductSetting {
                                                                             return BgWidget.tableV3({
                                                                                 gvc: gvc,
                                                                                 getData: (vmi) => {
-                                                                                    ApiShop.getProduct({
-                                                                                        page: vmi.page - 1,
-                                                                                        limit: limit,
-                                                                                        search: vm.query || undefined,
-                                                                                        searchType: vm.queryType || undefined,
-                                                                                        orderBy: vm.orderString || undefined,
-                                                                                        status: (() => {
-                                                                                            if (vm.filter.status && vm.filter.status.length > 0) {
-                                                                                                return vm.filter.status.join(',');
-                                                                                            }
-                                                                                            return undefined;
-                                                                                        })(),
-                                                                                        channel: (() => {
-                                                                                            if (vm.filter.channel && vm.filter.channel.length > 0) {
-                                                                                                return vm.filter.channel.join(',');
-                                                                                            }
-                                                                                            return undefined;
-                                                                                        })(),
-                                                                                        filter_visible: `${type !== 'hidden'}`,
-                                                                                        collection: vm.filter.collection,
-                                                                                        accurate_search_collection: true,
-                                                                                        productType: type === 'hidden' ? 'product' : type,
-                                                                                    }).then((data) => {
-                                                                                        function getDatalist() {
-                                                                                            return data.response.data.map((dd: any) => {
-                                                                                                return [
-                                                                                                    {
-                                                                                                        key: '商品',
-                                                                                                        value: html`
+                                                                                    function loop(){
+                                                                                        ApiShop.getProduct({
+                                                                                            page: vmi.page - 1,
+                                                                                            limit: limit,
+                                                                                            search: vm.query || undefined,
+                                                                                            searchType: vm.queryType || undefined,
+                                                                                            orderBy: vm.orderString || undefined,
+                                                                                            status: (() => {
+                                                                                                if (vm.filter.status && vm.filter.status.length > 0) {
+                                                                                                    return vm.filter.status.join(',');
+                                                                                                }
+                                                                                                return undefined;
+                                                                                            })(),
+                                                                                            channel: (() => {
+                                                                                                if (vm.filter.channel && vm.filter.channel.length > 0) {
+                                                                                                    return vm.filter.channel.join(',');
+                                                                                                }
+                                                                                                return undefined;
+                                                                                            })(),
+                                                                                            filter_visible: `${type !== 'hidden'}`,
+                                                                                            collection: vm.filter.collection,
+                                                                                            accurate_search_collection: true,
+                                                                                            productType: type === 'hidden' ? 'product' : type,
+                                                                                        }).then((data) => {
+                                                                                            function getDatalist() {
+                                                                                                return data.response.data.map((dd: any) => {
+                                                                                                    return [
+                                                                                                        {
+                                                                                                            key: '商品',
+                                                                                                            value: html`
                                                                                                             <div class="d-flex">
                                                                                                                 ${BgWidget.validImageBox({
-                                                                                                                    gvc: gvc,
-                                                                                                                    image: dd.content.preview_image[0],
-                                                                                                                    width: 40,
-                                                                                                                    class: 'rounded border me-4',
-                                                                                                                })}${Tool.truncateString(dd.content.title)}
+                                                                                                                gvc: gvc,
+                                                                                                                image: dd.content.preview_image[0],
+                                                                                                                width: 40,
+                                                                                                                class: 'rounded border me-4',
+                                                                                                            })}${Tool.truncateString(dd.content.title)}
                                                                                                             </div>`,
-                                                                                                    },
-                                                                                                    {
-                                                                                                        key: '售價',
-                                                                                                        value: (() => {
-                                                                                                            const numArray = (dd.content.variants ?? [])
-                                                                                                                    .map((dd: any) => {
-                                                                                                                        return parseInt(`${dd.sale_price}`, 10);
-                                                                                                                    })
-                                                                                                                    .filter((dd: any) => {
-                                                                                                                        return !isNaN(dd);
-                                                                                                                    });
-                                                                                                            if (numArray.length == 0) {
-                                                                                                                return '尚未設定';
-                                                                                                            }
-                                                                                                            return `$ ${Math.min(...numArray).toLocaleString()}`;
-                                                                                                        })(),
-                                                                                                    },
-                                                                                                    {
-                                                                                                        key: '庫存',
-                                                                                                        value: (() => {
-                                                                                                            let sum = 0;
-                                                                                                            let countStock = 0;
-                                                                                                            dd.content.variants.forEach((variant: any) => {
-                                                                                                                if (variant.show_understocking == "true") {
-                                                                                                                    countStock++;
-                                                                                                                    sum += variant.stock;
+                                                                                                        },
+                                                                                                        {
+                                                                                                            key: '售價',
+                                                                                                            value: (() => {
+                                                                                                                const numArray = (dd.content.variants ?? [])
+                                                                                                                        .map((dd: any) => {
+                                                                                                                            return parseInt(`${dd.sale_price}`, 10);
+                                                                                                                        })
+                                                                                                                        .filter((dd: any) => {
+                                                                                                                            return !isNaN(dd);
+                                                                                                                        });
+                                                                                                                if (numArray.length == 0) {
+                                                                                                                    return '尚未設定';
                                                                                                                 }
-                                                                                                            })
-                                                                                                            // const sum = dd.content.variants.reduce((acc: any, curr: any) => acc + curr.stock, 0);
-                                                                                                            if (countStock == 0) {
-                                                                                                                return html`
+                                                                                                                return `$ ${Math.min(...numArray).toLocaleString()}`;
+                                                                                                            })(),
+                                                                                                        },
+                                                                                                        {
+                                                                                                            key: '庫存',
+                                                                                                            value: (() => {
+                                                                                                                let sum = 0;
+                                                                                                                let countStock = 0;
+                                                                                                                dd.content.variants.forEach((variant: any) => {
+                                                                                                                    if (variant.show_understocking == "true") {
+                                                                                                                        countStock++;
+                                                                                                                        sum += variant.stock;
+                                                                                                                    }
+                                                                                                                })
+                                                                                                                // const sum = dd.content.variants.reduce((acc: any, curr: any) => acc + curr.stock, 0);
+                                                                                                                if (countStock == 0) {
+                                                                                                                    return html`
                                                                                                                     無追蹤庫存
                                                                                                                 `
-                                                                                                            }
-                                                                                                            return html`${countStock}個子類 ${sum > 1
-                                                                                                                    ? `有${sum}件庫存`
-                                                                                                                    : html`
+                                                                                                                }
+                                                                                                                return html`${countStock}個子類 ${sum > 1
+                                                                                                                        ? `有${sum}件庫存`
+                                                                                                                        : html`
                                                                                                                         <span style="color:#8E0E2B">有${sum} 件庫存</span>`}`;
-                                                                                                        })(),
-                                                                                                    },
-                                                                                                    {
-                                                                                                        key: '已售出',
-                                                                                                        value: (dd.total_sales ?? '0').toLocaleString(),
-                                                                                                    },
-                                                                                                    {
-                                                                                                        key: '狀態',
-                                                                                                        value: gvc.bindView(() => {
-                                                                                                            const id = gvc.glitter.getUUID();
-                                                                                                            return {
-                                                                                                                bind: id,
-                                                                                                                view: () => {
-                                                                                                                    return ShoppingProductSetting.getOnboardStatus(dd.content)
-                                                                                                                },
-                                                                                                                divCreate: {
-                                                                                                                    option: [
-                                                                                                                        {
-                                                                                                                            key: 'onclick',
-                                                                                                                            value: gvc.event((e, event) => {
-                                                                                                                                event.stopPropagation();
-                                                                                                                            }),
-                                                                                                                        },
-                                                                                                                    ],
-                                                                                                                },
-                                                                                                            };
-                                                                                                        }),
-                                                                                                    },
-                                                                                                ].map((dd) => {
-                                                                                                    dd.value = html`
+                                                                                                            })(),
+                                                                                                        },
+                                                                                                        {
+                                                                                                            key: '已售出',
+                                                                                                            value: (dd.total_sales ?? '0').toLocaleString(),
+                                                                                                        },
+                                                                                                        {
+                                                                                                            key: '狀態',
+                                                                                                            value: gvc.bindView(() => {
+                                                                                                                const id = gvc.glitter.getUUID();
+                                                                                                                return {
+                                                                                                                    bind: id,
+                                                                                                                    view: () => {
+                                                                                                                        return ShoppingProductSetting.getOnboardStatus(dd.content)
+                                                                                                                    },
+                                                                                                                    divCreate: {
+                                                                                                                        option: [
+                                                                                                                            {
+                                                                                                                                key: 'onclick',
+                                                                                                                                value: gvc.event((e, event) => {
+                                                                                                                                    event.stopPropagation();
+                                                                                                                                }),
+                                                                                                                            },
+                                                                                                                        ],
+                                                                                                                    },
+                                                                                                                };
+                                                                                                            }),
+                                                                                                        },
+                                                                                                    ].map((dd) => {
+                                                                                                        dd.value = html`
                                                                                                         <div style="line-height:40px;">
                                                                                                             ${dd.value}
                                                                                                         </div>`;
-                                                                                                    return dd;
+                                                                                                        return dd;
+                                                                                                    });
                                                                                                 });
-                                                                                            });
-                                                                                        }
-
-                                                                                        vm.dataList = data.response.data;
-                                                                                        vmi.pageSize = Math.ceil(data.response.total / limit);
-                                                                                        vmi.originalData = vm.dataList;
-                                                                                        vmi.tableData = getDatalist();
-                                                                                        vmi.loading = false;
-                                                                                        vmi.callback();
-                                                                                    });
+                                                                                            }
+                                                                                            vm.dataList = data.response.data;
+                                                                                            vmi.pageSize = Math.ceil(data.response.total / limit);
+                                                                                            vmi.originalData = vm.dataList;
+                                                                                            vmi.tableData = getDatalist();
+                                                                                            vmi.loading = false;
+                                                                                            if((ShoppingProductSetting.select_page_index !== (vmi.page - 1)) && ShoppingProductSetting.select_page_index<=vmi.pageSize){
+                                                                                                vmi.page=ShoppingProductSetting.select_page_index+1
+                                                                                                loop()
+                                                                                            }else{
+                                                                                                ShoppingProductSetting.select_page_index=(vmi.page - 1)
+                                                                                                vmi.callback();   
+                                                                                            }
+                                                                                        });
+                                                                                    }
+                                                                                  loop()
                                                                                 },
                                                                                 rowClick: (data, index) => {
                                                                                     vm.replaceData = vm.dataList[index].content;
-                                                                                    ShoppingProductSetting.select_language = ((window.parent as any).store_info.language_setting.def)
+                                                                                    ShoppingProductSetting.select_language = ((window.parent as any).store_info.language_setting.def) ;
                                                                                     vm.type = 'replace';
+                                                                                },
+                                                                                tab_click:(vmi)=>{
+                                                                                    ShoppingProductSetting.select_page_index=vmi.page-1
                                                                                 },
                                                                                 filter: [
                                                                                     {
@@ -1802,8 +1814,7 @@ export class ShoppingProductSetting {
                     postMD.variants.map((variant: any) => {
                         variant.preview_image = variant[`preview_image_${ShoppingProductSetting.select_language}`] || variant.preview_image || BgWidget.noImageURL
                     })
-                    console.log("language_data.title -- ", language_data)
-                    // console.log(postMD.title)
+
                     const cat_title=(()=>{
                         switch (postMD.product_category){
                             case "commodity":

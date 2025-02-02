@@ -15,8 +15,12 @@ import { ApiPos } from "../../glitter-base/route/pos.js";
 import { GlobalUser } from "../../glitter-base/global/global-user.js";
 import { POSSetting } from "../POS-setting.js";
 import { ApiShop } from "../../glitter-base/route/shopping.js";
+import { ApiUser } from "../../glitter-base/route/user.js";
 const html = String.raw;
 export class PosSummary {
+    static in_pos() {
+        return window.parent.glitter.getUrlParameter('page') !== 'cms';
+    }
     static addSummary(gvc, refresh) {
         const dialog = new ShareDialog(gvc.glitter);
         const oGvc = gvc;
@@ -162,7 +166,9 @@ ${dd.title}
                     }
                 }));
                 check_list.map((dd) => {
-                    const fi_ = last_.check_list.find((d1) => { return d1.key === dd.key; });
+                    const fi_ = last_.check_list.find((d1) => {
+                        return d1.key === dd.key;
+                    });
                     dd.last_ = ((fi_ && fi_.real) || 0) - ((fi_ && fi_.export) || 0);
                     dd.payment = 0;
                 });
@@ -171,7 +177,9 @@ ${dd.title}
                     dialog.errorMessage({ text: '請檢查網路連線' });
                     return;
                 }
-                order.response.data.map((dd) => {
+                order.response.data.filter((dd) => {
+                    return dd.orderData.pos_info;
+                }).map((dd) => {
                     dd.orderData.pos_info.payment.map((dd) => {
                         const fi_ = check_list.find((d1) => {
                             return d1.key === dd.method;
@@ -202,31 +210,31 @@ ${dd.title}
             innerHTML: (gvc) => {
                 try {
                     return html `
-                            <div class="row m-0 p-0">
-                                <div class="col-6 d-flex flex-column" style="gap:5px;">
-                                    <div class="fs-6 fw-500" style="color:#585858;">清點區間</div>
-                                    <div class=" fw-500 fs-6">
-                                        ${gvc.glitter.ut.dateFormat(new Date(checkSummaryDir.start), 'yyyy-MM-dd')}
-                                        ${gvc.glitter.ut.dateFormat(new Date(checkSummaryDir.start), 'hh:mm')}
-                                        - ${gvc.glitter.ut.dateFormat(new Date(checkSummaryDir.end), 'hh:mm')}
-                                    </div>
+                        <div class="row m-0 p-0">
+                            <div class="col-6 d-flex flex-column" style="gap:5px;">
+                                <div class="fs-6 fw-500" style="color:#585858;">清點區間</div>
+                                <div class=" fw-500 fs-6">
+                                    ${gvc.glitter.ut.dateFormat(new Date(checkSummaryDir.start), 'yyyy-MM-dd')}
+                                    ${gvc.glitter.ut.dateFormat(new Date(checkSummaryDir.start), 'hh:mm')}
+                                    - ${gvc.glitter.ut.dateFormat(new Date(checkSummaryDir.end), 'hh:mm')}
                                 </div>
-                                <div class="col-6 d-flex flex-column" style="gap:5px;">
-                                    <div class="fs-6 fw-500" style="color:#585858;">操作人員</div>
-                                    <div class=" fw-500 fs-6">${gvc.glitter.share.member_auth_list.find((d1) => {
+                            </div>
+                            <div class="col-6 d-flex flex-column" style="gap:5px;">
+                                <div class="fs-6 fw-500" style="color:#585858;">操作人員</div>
+                                <div class=" fw-500 fs-6">${gvc.glitter.share.member_auth_list.find((d1) => {
                         return `${d1.user}` === `${POSSetting.config.who}`;
                     }).config.name}
-                                    </div>
                                 </div>
-                                <div class="col-12 border-top my-2"></div>
-                                <div class="col-12 d-flex flex-column" style="gap:5px;">
-                                    <div class="fs-6 fw-500" style="color:#585858;">付款方式</div>
-                                    <div class="text-black fw-500 fs-6">
-                                        ${BgWidget.grayNote('若清點不符合，請填寫差額原因')}
-                                    </div>
+                            </div>
+                            <div class="col-12 border-top my-2"></div>
+                            <div class="col-12 d-flex flex-column" style="gap:5px;">
+                                <div class="fs-6 fw-500" style="color:#585858;">付款方式</div>
+                                <div class="text-black fw-500 fs-6">
+                                    ${BgWidget.grayNote('若清點不符合，請填寫差額原因')}
                                 </div>
-                                <div class="col-12 border-top my-2"></div>
-                                ${checkSummaryDir.check_list.map((dd) => {
+                            </div>
+                            <div class="col-12 border-top my-2"></div>
+                            ${checkSummaryDir.check_list.map((dd) => {
                         const last_m = (dd.last_);
                         return `<div class=" col-12">
 <div class="d-flex align-items-center p-2">
@@ -265,7 +273,7 @@ ${((dd.real) - (last_m + dd.payment) === 0) ? '$0' : `<span class="text-danger">
 </div>
 </div>`;
                     }).join('  <div class="col-12 border-top my-2"></div>')}
-                            </div>`;
+                        </div>`;
                 }
                 catch (e) {
                     console.log(e);
@@ -274,11 +282,11 @@ ${((dd.real) - (last_m + dd.payment) === 0) ? '$0' : `<span class="text-danger">
             },
             footer_html: (gvc) => {
                 return html `
-                            <div class="d-flex align-items-center" style="gap:10px;">
-                                ${BgWidget.cancel(gvc.event(() => {
+                    <div class="d-flex align-items-center" style="gap:10px;">
+                        ${BgWidget.cancel(gvc.event(() => {
                     gvc.closeDialog();
                 }, '取消'))}
-                                ${BgWidget.save(gvc.event(() => __awaiter(this, void 0, void 0, function* () {
+                        ${BgWidget.save(gvc.event(() => __awaiter(this, void 0, void 0, function* () {
                     const staff = GlobalUser.parseJWT(GlobalUser.saas_token).payload.userID;
                     const dialog = new ShareDialog(gvc.glitter);
                     dialog.dataLoading({ visible: true });
@@ -303,7 +311,7 @@ ${((dd.real) - (last_m + dd.payment) === 0) ? '$0' : `<span class="text-danger">
                     localStorage.removeItem('checkSummaryDir');
                     refresh();
                 })), '完成')}
-                            </div>`;
+                    </div>`;
             }
         });
     }
@@ -312,7 +320,9 @@ ${((dd.real) - (last_m + dd.payment) === 0) ? '$0' : `<span class="text-danger">
             gvc.recreateView();
         }
         const checkSummaryDir = data.content;
-        const export_ = checkSummaryDir.check_list.find((dd) => { return dd.key === 'cash'; }).export || 0;
+        const export_ = checkSummaryDir.check_list.find((dd) => {
+            return dd.key === 'cash';
+        }).export || 0;
         BgWidget.settingDialog({
             gvc: gvc,
             d_main_style: 'padding-left:0px;padding-right:0px;',
@@ -320,30 +330,30 @@ ${((dd.real) - (last_m + dd.payment) === 0) ? '$0' : `<span class="text-danger">
             innerHTML: (gvc) => {
                 try {
                     return html `
-                            <div class="row m-0 p-0">
-                                <div class="col-6 d-flex flex-column" style="gap:5px;">
-                                    <div class="fs-6 fw-500" style="color:#585858;">清點區間</div>
-                                    <div class=" fw-500 fs-6">
-                                        ${gvc.glitter.ut.dateFormat(new Date(checkSummaryDir.start), 'yyyy-MM-dd')}
-                                        ${gvc.glitter.ut.dateFormat(new Date(checkSummaryDir.start), 'hh:mm')}
-                                        - ${gvc.glitter.ut.dateFormat(new Date(checkSummaryDir.end), 'hh:mm')}
-                                    </div>
+                        <div class="row m-0 p-0">
+                            <div class="col-6 d-flex flex-column" style="gap:5px;">
+                                <div class="fs-6 fw-500" style="color:#585858;">清點區間</div>
+                                <div class=" fw-500 fs-6">
+                                    ${gvc.glitter.ut.dateFormat(new Date(checkSummaryDir.start), 'yyyy-MM-dd')}
+                                    ${gvc.glitter.ut.dateFormat(new Date(checkSummaryDir.start), 'hh:mm')}
+                                    - ${gvc.glitter.ut.dateFormat(new Date(checkSummaryDir.end), 'hh:mm')}
                                 </div>
-                                <div class="col-6 d-flex flex-column" style="gap:5px;">
-                                    <div class="fs-6 fw-500" style="color:#585858;">操作人員</div>
-                                    <div class=" fw-500 fs-6">${gvc.glitter.share.member_auth_list.find((d1) => {
+                            </div>
+                            <div class="col-6 d-flex flex-column" style="gap:5px;">
+                                <div class="fs-6 fw-500" style="color:#585858;">操作人員</div>
+                                <div class=" fw-500 fs-6">${gvc.glitter.share.member_auth_list.find((d1) => {
                         return `${d1.user}` === `${data.staff}`;
                     }).config.name}
-                                    </div>
                                 </div>
-                                <div class="col-12 ${export_ ? `d-flex` : `d-none`} flex-column mt-2" style="gap:5px;">
-                                    <div class="fs-6 fw-500" style="color:#585858;">現金匯出</div>
-                                    <div class="text-success fw-500 fs-6 ">$${export_.toLocaleString()}
-                                    </div>
+                            </div>
+                            <div class="col-12 ${export_ ? `d-flex` : `d-none`} flex-column mt-2" style="gap:5px;">
+                                <div class="fs-6 fw-500" style="color:#585858;">現金匯出</div>
+                                <div class="text-success fw-500 fs-6 ">$${export_.toLocaleString()}
                                 </div>
-                                
-                                <div class="col-12 border-top my-2"></div>
-                                ${checkSummaryDir.check_list.map((dd) => {
+                            </div>
+
+                            <div class="col-12 border-top my-2"></div>
+                            ${checkSummaryDir.check_list.map((dd) => {
                         const last_m = (dd.last_);
                         return `<div class=" col-12">
 <div class="d-flex align-items-center p-2">
@@ -380,7 +390,7 @@ ${((dd.real) - (last_m + dd.payment) === 0) ? '$0' : `<span class="text-danger">
 </div>
 </div>`;
                     }).join('  <div class="col-12 border-top my-2"></div>')}
-                            </div>`;
+                        </div>`;
                 }
                 catch (e) {
                     console.log(e);
@@ -390,18 +400,18 @@ ${((dd.real) - (last_m + dd.payment) === 0) ? '$0' : `<span class="text-danger">
             footer_html: (gvc) => {
                 const dialog = new ShareDialog(gvc.glitter);
                 return html `
-                            <div class="d-flex align-items-center" style="gap:10px;">
-                                ${BgWidget.cancel(gvc.event(() => {
+                    <div class="d-flex align-items-center" style="gap:10px;">
+                        ${BgWidget.cancel(gvc.event(() => {
                     gvc.closeDialog();
                 }), '關閉')}
-                                ${(data.summary_type === 'daily' || !last) ? `` : BgWidget.save(gvc.event(() => __awaiter(this, void 0, void 0, function* () {
+                        ${(data.summary_type === 'daily' || !last) ? `` : BgWidget.save(gvc.event(() => __awaiter(this, void 0, void 0, function* () {
                     let money = 0;
                     let min_ = checkSummaryDir.check_list.find((dd) => {
                         return dd.key === 'cash';
                     }).real;
                     dialog.customCheck({
                         text: html `${PosWidget.fontBold('要從錢箱匯出的金額')}
-                    <input class="form-control mt-2" onclick="${gvc.event((e, event) => {
+                                <input class="form-control mt-2" onclick="${gvc.event((e, event) => {
                             PosFunction.setMoney(gvc, (response) => {
                                 if (response > min_) {
                                     dialog.errorMessage({ text: '錢箱金額不足' });
@@ -412,7 +422,7 @@ ${((dd.real) - (last_m + dd.payment) === 0) ? '$0' : `<span class="text-danger">
                                 }
                             }, '匯出金額');
                         })}" placeholder="請輸入金額">
-                    `,
+                                `,
                         callback: (response) => __awaiter(this, void 0, void 0, function* () {
                             if (response) {
                                 const staff = GlobalUser.parseJWT(GlobalUser.saas_token).payload.userID;
@@ -445,123 +455,182 @@ ${((dd.real) - (last_m + dd.payment) === 0) ? '$0' : `<span class="text-danger">
                         })
                     });
                 })), '設為日結單')}
-                            </div>`;
+                    </div>`;
             }
         });
     }
     static main(obj) {
         const gvc = obj.gvc;
         const table_id = gvc.glitter.getUUID();
-        return BgWidget.container(html `
-            <div class="title-container mb-4">
-                ${BgWidget.title('小結紀錄')}
-                <div class="flex-fill"></div>
-                ${BgWidget.darkButton('新增小結單', obj.gvc.event(() => {
-            if (localStorage.getItem('checkSummaryDir')) {
-                this.checkSummaryDir(gvc);
-            }
-            else {
-                this.addSummary(gvc, () => {
-                    gvc.notifyDataChange(table_id);
+        return gvc.bindView(() => {
+            const init_id = gvc.glitter.getUUID();
+            let store_list = [];
+            const vm = {
+                loading: PosSummary.in_pos()
+            };
+            function initialStore() {
+                var _a;
+                return __awaiter(this, void 0, void 0, function* () {
+                    if (!PosSummary.in_pos()) {
+                        const [store_d, member_auth] = yield Promise.all([
+                            ApiUser.getPublicConfig('store_manager', 'manager'),
+                            ApiUser.getPermission({
+                                page: 0,
+                                limit: 100
+                            })
+                        ]);
+                        gvc.glitter.share.member_auth_list = member_auth.response.data.filter((dd) => {
+                            return dd.invited && dd.status;
+                        });
+                        window.parent.glitter.share.member_auth_list = gvc.glitter.share.member_auth_list;
+                        const store = (_a = store_d.response.value.list) !== null && _a !== void 0 ? _a : [];
+                        console.log(`store.response.value`, store);
+                        POSSetting.config.where_store = store.find((dd) => {
+                            return dd.is_shop;
+                        }).id;
+                        store_list = store.filter((dd) => {
+                            return dd.is_shop;
+                        });
+                        vm.loading = true;
+                        gvc.notifyDataChange(init_id);
+                    }
                 });
             }
-        }))}
-            </div>
-            ${BgWidget.mainCard(gvc.bindView(() => {
-            let data = [];
+            initialStore();
             return {
-                bind: table_id,
+                bind: init_id,
                 view: () => {
-                    return BgWidget.tableV3({
-                        gvc: obj.gvc,
-                        getData: (vd) => {
-                            let vmi = vd;
-                            const limit = 10;
-                            ApiPos.getSummary(POSSetting.config.where_store).then((r) => {
-                                function getDatalist() {
-                                    return r.response.data.map((dd) => {
-                                        try {
-                                            const content = dd.content;
-                                            return [
-                                                {
-                                                    key: '建立日期',
-                                                    value: html `<span
-                                                                class="fs-7">${obj.gvc.glitter.ut.dateFormat(new Date(dd.created_time), 'yyyy-MM-dd hh:mm')}</span>`,
-                                                },
-                                                {
-                                                    key: '操作人員',
-                                                    value: html `<span class="fs-7">${gvc.glitter.share.member_auth_list.find((d1) => {
-                                                        return `${d1.user}` === `${dd.staff}`;
-                                                    }).config.name}</span>`,
-                                                },
-                                                {
-                                                    key: '應有金額',
-                                                    value: html `<span class="fs-7">
+                    if (!vm.loading) {
+                        return BgWidget.spinner();
+                    }
+                    return BgWidget.container(html `
+                        <div class="title-container ${PosSummary.in_pos() ? `mb-4` : ''}">
+                            ${BgWidget.title('小結紀錄')}
+                            <div class="flex-fill"></div>
+                            ${PosSummary.in_pos() ? BgWidget.darkButton('新增小結單', obj.gvc.event(() => {
+                        if (localStorage.getItem('checkSummaryDir')) {
+                            this.checkSummaryDir(gvc);
+                        }
+                        else {
+                            this.addSummary(gvc, () => {
+                                gvc.notifyDataChange(table_id);
+                            });
+                        }
+                    })) : ''}
+                        </div>
+                        ${(PosSummary.in_pos()) ? `` : BgWidget.tab(store_list.map((dd) => {
+                        return {
+                            title: dd.name,
+                            key: dd.id
+                        };
+                    }), gvc, POSSetting.config.where_store, (dd) => {
+                        POSSetting.config.where_store = dd;
+                        gvc.notifyDataChange(init_id);
+                    })}
+                        ${BgWidget.mainCard(gvc.bindView(() => {
+                        let data = [];
+                        return {
+                            bind: table_id,
+                            view: () => {
+                                return BgWidget.tableV3({
+                                    gvc: obj.gvc,
+                                    getData: (vd) => {
+                                        let vmi = vd;
+                                        const limit = 10;
+                                        ApiPos.getSummary(POSSetting.config.where_store).then((r) => {
+                                            function getDatalist() {
+                                                return r.response.data.map((dd) => {
+                                                    try {
+                                                        const content = dd.content;
+                                                        return [
+                                                            {
+                                                                key: '建立日期',
+                                                                value: html `<span
+                                                                            class="fs-7">${obj.gvc.glitter.ut.dateFormat(new Date(dd.created_time), 'yyyy-MM-dd hh:mm')}</span>`,
+                                                            },
+                                                            {
+                                                                key: '操作人員',
+                                                                value: html `<span class="fs-7">${gvc.glitter.share.member_auth_list.find((d1) => {
+                                                                    return `${d1.user}` === `${dd.staff}`;
+                                                                }).config.name}</span>`,
+                                                            },
+                                                            {
+                                                                key: '應有金額',
+                                                                value: html `<span class="fs-7">
                                                 ${content.need.toLocaleString()}
                                             </span>`,
-                                                },
-                                                {
-                                                    key: '實點金額',
-                                                    value: html `<span class="fs-7">
+                                                            },
+                                                            {
+                                                                key: '實點金額',
+                                                                value: html `<span class="fs-7">
                                                      ${content.real.toLocaleString()}
                                             </span>`,
-                                                },
-                                                {
-                                                    key: '小結結果',
-                                                    value: html `<span class="fs-7">${(() => {
-                                                        switch (dd.summary_type) {
-                                                            case "reserve":
-                                                                return BgWidget.infoInsignia('備用金');
-                                                            default:
-                                                                if (content.real !== content.need) {
-                                                                    return BgWidget.dangerInsignia('不符合');
-                                                                }
-                                                                else {
-                                                                    return BgWidget.successInsignia('符合');
-                                                                }
-                                                        }
-                                                    })()}</span>`,
-                                                },
-                                                {
-                                                    key: '當日最終筆',
-                                                    value: html `<div class="fs-5 ${(dd.summary_type === 'daily') ? `d-flex` : `d-none`} align-items-center justify-content-center  rounded-circle bg-success text-white rounded-circle" style="width:30px;height:30px;">
-                                                            
-                                                            <i class="fa-solid fa-check"></i>
-                                                        </div>`,
-                                                }
-                                            ];
+                                                            },
+                                                            {
+                                                                key: '小結結果',
+                                                                value: html `<span class="fs-7">${(() => {
+                                                                    switch (dd.summary_type) {
+                                                                        case "reserve":
+                                                                            return BgWidget.infoInsignia('備用金');
+                                                                        default:
+                                                                            if (content.real !== content.need) {
+                                                                                return BgWidget.dangerInsignia('不符合');
+                                                                            }
+                                                                            else {
+                                                                                return BgWidget.successInsignia('符合');
+                                                                            }
+                                                                    }
+                                                                })()}</span>`,
+                                                            },
+                                                            {
+                                                                key: '當日最終筆',
+                                                                value: html `
+                                                                        <div class="fs-5 ${(dd.summary_type === 'daily') ? `d-flex` : `d-none`} align-items-center justify-content-center  rounded-circle bg-success text-white rounded-circle"
+                                                                             style="width:30px;height:30px;">
+
+                                                                            <i class="fa-solid fa-check"></i>
+                                                                        </div>`,
+                                                            }
+                                                        ];
+                                                    }
+                                                    catch (e) {
+                                                        return [];
+                                                    }
+                                                }).filter((dd) => {
+                                                    return dd.length;
+                                                });
+                                            }
+                                            if (r.result && r.response.data) {
+                                                data = r.response.data;
+                                                vmi.pageSize = Math.ceil(r.response.total / limit);
+                                                vmi.tableData = getDatalist();
+                                            }
+                                            else {
+                                                vmi.pageSize = 0;
+                                                vmi.originalData = [];
+                                                vmi.tableData = [];
+                                            }
+                                            vmi.loading = false;
+                                            vmi.callback();
+                                        });
+                                    },
+                                    rowClick: (s, index) => {
+                                        if (data[index].summary_type !== 'reverse') {
+                                            this.showInfo(gvc, data[index], index === 0);
                                         }
-                                        catch (e) {
-                                            return [];
-                                        }
-                                    }).filter((dd) => {
-                                        return dd.length;
-                                    });
-                                }
-                                if (r.result && r.response.data) {
-                                    data = r.response.data;
-                                    vmi.pageSize = Math.ceil(r.response.total / limit);
-                                    vmi.tableData = getDatalist();
-                                }
-                                else {
-                                    vmi.pageSize = 0;
-                                    vmi.originalData = [];
-                                    vmi.tableData = [];
-                                }
-                                vmi.loading = false;
-                                vmi.callback();
-                            });
-                        },
-                        rowClick: (s, index) => {
-                            if (data[index].summary_type !== 'reverse') {
-                                this.showInfo(gvc, data[index], index === 0);
+                                    },
+                                    filter: [],
+                                });
                             }
-                        },
-                        filter: [],
-                    });
+                        };
+                    }))}
+                    `);
+                },
+                divCreate: {
+                    class: `w-100  justify-content-center d-flex`
                 }
             };
-        }))}
-        `);
+        });
     }
 }
+window.glitter.setModule(import.meta.url, PosSummary);

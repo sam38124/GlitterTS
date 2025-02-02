@@ -6,8 +6,11 @@ export class BannerSy01 {
         const pb = widget.formData.ratio.split(':').map((dd) => {
             return parseInt(dd, 10);
         });
+        if (typeof widget.formData.back_img === 'object') {
+            widget.formData.back_img = widget.formData.back_img.value;
+        }
         const colors = Color.getThemeColors(obj.gvc, widget.formData.theme_color);
-        return `<div class="w-100  position-relative" style="padding-bottom: ${(pb[1] / pb[0] * 100).toFixed(0)}%;background-image: url('${widget.formData.back_img.value}');background-position: center;background-size: cover;">
+        return `<div class="w-100  position-relative" style="padding-bottom: ${(pb[1] / pb[0] * 100).toFixed(0)}%;background-image: url('${widget.formData.back_img}');background-position: center;background-size: cover;">
 <div class="position-absolute w-100 h-100 " style="background: ${widget.formData.cover_color};"></div>
 <div class="position-absolute w-100 h-100 d-flex align-items-center" style="position: relative;z-index: 2;${document.body.clientWidth < 800 ? `padding: 20px;` : `padding-left: 150px;`}">
 <div class="d-flex flex-column position-relative" style="gap:12px;width: 623px;max-width: 100%;">

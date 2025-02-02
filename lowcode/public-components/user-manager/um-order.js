@@ -312,9 +312,9 @@ export class UMOrder {
                                 }
                                 return gvc.map(arr.map((item) => {
                                     return html `
-                                                <div class="o-title-container ${item.title === Language.text('payment_instructions') ? 'align-items-start mt-2' : ''}">
-                                                    <div class="o-title me-1">${item.title}：</div>
-                                                    <div class="o-title">${item.value}</div>
+                                                <div class="o-title-container ${item.title === Language.text('payment_instructions') ? 'align-items-start mt-2' : ''}" style="">
+                                                    <div class="o-title me-1" style="white-space: nowrap;">${item.title}：</div>
+                                                    <div class="o-title fr-view">${item.value}</div>
                                                 </div>
                                             `;
                                 }));

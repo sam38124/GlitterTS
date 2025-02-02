@@ -136,11 +136,6 @@ export class ProductDetail {
                         : prod.specs.map((spec) => {
                               return spec.option[0].title;
                           });
-                prod.variants.forEach((variant) => {
-                    if (variant.preview_image && !prod.preview_image.includes(variant.preview_image)) {
-                        prod.preview_image.push(variant.preview_image);
-                    }
-                });
 
                 const book_mark = [
                     {
@@ -291,7 +286,7 @@ export class ProductDetail {
                                         }
                                         return 'margin: 0 10%;';
                                     })() + `max-width:100%;`,
-                                class: `pd_detail_content`,
+                                class: `pd_detail_content fr-view`,
                             },
                         })}
                     </div>
@@ -450,7 +445,11 @@ export class ProductDetail {
                                         (vm.data.content.seo.domain || vm.data.content.title),
                                         (window as any).home_seo.title_suffix ?? "",
                                     ].join(''));
-
+                                    //如有原先的JSON LD
+                                    const json_ld=document.querySelector('script[type="application/ld+json"]');
+                                    if(json_ld){json_ld.remove()};
+                                    (document.querySelector('head') as any).innerHTML+=(vm.data as any).json_ld;
+                                    console.log(`(vm.data as any).json_ld=>`,(vm.data as any).json_ld)
                                 } catch (e) {
                                     (vm.data as any) = {};
                                 }

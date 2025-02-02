@@ -641,7 +641,7 @@ export class CheckoutIndex {
                                             view: () => {
                                                 return html`
                                                     <section>
-                                                        <div class="${gClass('banner-bgr')}">
+                                                        <div class="${gClass('banner-bgr')} shadow">
                                                             <span class="${gClass('banner-text')}"
                                                                 >${Language.text(ApiCart.checkoutCart === ApiCart.buyItNow ? 'buy_it_now' : 'your_shopping_cart')}</span
                                                             >
@@ -1332,7 +1332,7 @@ export class CheckoutIndex {
                                                         return ``;
                                                     }
                                                     return html`
-                                                        <div class="${gClass('banner-bgr')}">
+                                                        <div class="${gClass('banner-bgr')} shadow">
                                                             <span class="${gClass('banner-text')}">${Language.text('additional_purchase_items')}</span>
                                                         </div>
                                                         <div class="d-flex align-items-center w-100" style="overflow-x:auto;gap:10px;">
@@ -1439,7 +1439,7 @@ export class CheckoutIndex {
                                                 return !dd === isSelected;
                                             });
                                             return html`
-                                                <div class="${gClass('banner-bgr')}">
+                                                <div class="${gClass('banner-bgr')} shadow">
                                                     <span class="${gClass('banner-text')}">${dd.title}</span>
                                                 </div>
                                                 <div class="d-flex align-items-center w-100" style="overflow-x:auto;gap:10px;">
@@ -1556,7 +1556,7 @@ export class CheckoutIndex {
                                         .join('');
                                 })()}
                                 <section>
-                                    <div class="${gClass('banner-bgr')}">
+                                    <div class="${gClass('banner-bgr')} shadow">
                                         <span class="${gClass('banner-text')}">${Language.text('payment_and_shipping_methods')}</span>
                                     </div>
                                     ${vm.cartData.shipment_info ? html` <div class="pt-2 mx-2 mx-sm-3">${vm.cartData.shipment_info}</div>` : ''}
@@ -1810,7 +1810,7 @@ export class CheckoutIndex {
                                     </div>
                                 </section>
                                 <section class="${['UNIMARTC2C', 'FAMIC2C', 'HILIFEC2C', 'OKMARTC2C'].includes(vm.cartData.user_info.shipment) ? `` : `mt-4`}">
-                                    <div class="${gClass('banner-bgr')}">
+                                    <div class="${gClass('banner-bgr')} shadow">
                                         <span class="${gClass('banner-text')}">${Language.text('customer_info')}</span>
                                     </div>
                                     ${gvc.bindView(() => {
@@ -1941,7 +1941,7 @@ export class CheckoutIndex {
                                     })}
                                 </section>
                                 <section>
-                                    <div class="${gClass('banner-bgr')}">
+                                    <div class="${gClass('banner-bgr')} shadow">
                                         <span class="${gClass('banner-text')}">${Language.text('recipient_info')}</span>
                                     </div>
                                     ${gvc.bindView(() => {

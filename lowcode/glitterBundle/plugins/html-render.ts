@@ -2,6 +2,7 @@ import {init} from '../GVController.js';
 import {TriggerEvent} from "./trigger-event.js";
 import {EditorConfig} from "../../editor-config.js";
 import {GlobalUser} from "../../glitter-base/global/global-user.js";
+import {FirstBanner} from "../../public-components/banner/first-banner.js";
 
 init(import.meta.url, (gvc, glitter, gBundle) => {
     glitter.share.htmlExtension = glitter.share.htmlExtension ?? {};
@@ -70,7 +71,7 @@ init(import.meta.url, (gvc, glitter, gBundle) => {
     }
     return {
         onCreateView: () => {
-            console.log(`gBundle=>`,gBundle)
+            FirstBanner.main({gvc:gvc})
             //定義SEO TITLE
             if(gBundle.page_config.seo && (gBundle.page_config.seo.type==="custom") && gBundle.page_config.seo.title){
                 glitter.setUrlParameter('',undefined,[

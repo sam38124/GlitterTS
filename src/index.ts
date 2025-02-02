@@ -145,6 +145,7 @@ export async function createAPP(dd: any) {
                 root_path: '/' + encodeURI(dd.appName) + '/',
                 seoManager: async (req) => {
                     const og_url = req.headers['x-original-url'];
+                    const custom_heads:string[]=[];
                     try {
                         if (req.query.state === 'google_login') {
                             req.query.page = 'login';

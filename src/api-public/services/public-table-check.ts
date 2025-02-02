@@ -5,6 +5,7 @@ import tool from '../../services/tool.js';
 import { AiRobot } from './ai-robot.js';
 import { User } from './user.js';
 import { Shopping } from './shopping.js';
+import {UpdatedTableChecked} from "./updated-table-checked.js";
 
 export class ApiPublic {
     public static checkApp: { app_name: string; refer_app: string }[] = [];
@@ -524,11 +525,13 @@ export class ApiPublic {
   \`id\` INT NOT NULL AUTO_INCREMENT,
   \`staff\` VARCHAR(45) NOT NULL,
   \`execute\` VARCHAR(45) NOT NULL,
+  \`store\` VARCHAR(45) NOT NULL DEFAULT '',
   \`create_time\` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (\`id\`),
   INDEX \`index2\` (\`staff\` ASC) VISIBLE,
   INDEX \`index3\` (\`create_time\` ASC) VISIBLE,
-  INDEX \`index4\` (\`execute\` ASC) VISIBLE);
+  INDEX \`index5\` (\`store\` ASC) VISIBLE,
+  INDEX \`index4\` (\`execute\` ASC) VISIBLE) COMMENT = 'V1.1';
 `,
                 },
                 {
@@ -562,6 +565,8 @@ export class ApiPublic {
             }
             await AiRobot.syncAiRobot(appName);
             await ApiPublic.migrateVariants(appName);
+            //檢查資料庫更新
+            await UpdatedTableChecked.startCheck(appName)
         } catch (e) {
             console.error(e);
             ApiPublic.checkApp = ApiPublic.checkApp.filter((dd) => {

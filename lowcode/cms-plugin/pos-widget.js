@@ -1,5 +1,6 @@
 import { ApiPos } from "../glitter-base/route/pos.js";
 import { ShareDialog } from "../glitterBundle/dialog/ShareDialog.js";
+import { POSSetting } from "./POS-setting.js";
 const html = String.raw;
 export class PosWidget {
     static bigTitle(text, style) {
@@ -85,7 +86,8 @@ export class PosWidget {
                         const dialog = new ShareDialog(gvc.glitter);
                         dialog.dataLoading({ visible: true });
                         ApiPos.setWorkStatus({
-                            status: 'on_work'
+                            status: 'on_work',
+                            store: POSSetting.config.where_store
                         }).then((res) => {
                             dialog.dataLoading({ visible: false });
                             if (!res.result) {

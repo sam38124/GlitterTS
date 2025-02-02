@@ -42,6 +42,7 @@ export class Entry {
             window.glitter_page = page;
             location.reload();
         };
+        glitter.share.updated_form_data = {};
         glitter.share.top_inset = 0;
         glitter.share.bottom_inset = 0;
         glitter.share.reload_code_hash = function () {
@@ -88,7 +89,7 @@ export class Entry {
         }
         window.renderClock = (_b = window.renderClock) !== null && _b !== void 0 ? _b : clockF();
         console.log(`Entry-time:`, window.renderClock.stop());
-        glitter.share.editerVersion = 'V_16.9.2';
+        glitter.share.editerVersion = 'V_17.2.1';
         glitter.share.start = new Date();
         const vm = {
             appConfig: [],
@@ -463,6 +464,7 @@ export class Entry {
         callback();
     }
     static toNormalRender(glitter, vm, callback) {
+        glitter.addStyleLink([`https://cdn.jsdelivr.net/npm/froala-editor@latest/css/froala_editor.pkgd.min.css`]);
         glitter.addMtScript([
             {
                 src: `https://unpkg.com/@lottiefiles/lottie-player@latest/dist/lottie-player.js`,

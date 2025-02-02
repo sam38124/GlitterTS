@@ -892,7 +892,7 @@ export class ShoppingOrderManager {
                                     view: () => {
                                         function showTag(color, text) {
                                             return html `
-                                                                                        <div style="background:${color};display: flex;height: 22px;padding: 4px 6px;justify-content: center;align-items: center;gap: 10px;border-radius: 7px;font-size: 14px;font-style: normal;font-weight: 400;">
+                                                                                        <div style="background:${color};display: flex;height: 22px;padding: 4px 6px;justify-content: center;align-items: center;gap: 10px;border-radius: 7px;font-size: 14px;font-style: normal;font-weight: 400;white-space: nowrap;">
                                                                                             ${text}
                                                                                         </div>
                                                                                     `;
@@ -924,12 +924,17 @@ export class ShoppingOrderManager {
                                                                                         ${BgWidget.grayNote(`存貨單位 (SKU)：${dd.sku && dd.sku.length > 0 ? dd.sku : '無'}`)}
                                                                                     </div>
                                                                                     <div class="flex-fill"></div>
-                                                                                    <div class="tx_normal_16">
+                                                                                    <div class="tx_normal_16 d-none d-lg-flex">
                                                                                             $${dd.sale_price.toLocaleString()}
                                                                                         × ${dd.count}
                                                                                     </div>
-                                                                                    <div class="tx_normal"
-                                                                                         style="display: flex;justify-content: end;width: 110px;">
+                                                                                    <div class="tx_normal d-sm-none d-flex"
+                                                                                         style="display: flex;justify-content: end;${document.body.clientWidth > 800 ? `width: 110px` : ``}">
+                                                                                            $${dd.sale_price.toLocaleString()}×${dd.count}
+                                                                                    </div>
+                                                                                   
+                                                                                    <div class="tx_normal d-none d-sm-flex"
+                                                                                         style="display: flex;justify-content: end;${document.body.clientWidth > 800 ? `width: 110px` : ``}">
                                                                                             $${dd.sale_price.toLocaleString()}
                                                                                     </div>`;
                                     },
@@ -2123,10 +2128,8 @@ export class ShoppingOrderManager {
             },
             divCreate: {},
             onCreate: () => {
-                $('.pos-footer-menu').hide();
             },
             onDestroy: () => {
-                $('.pos-footer-menu').show();
             },
         });
     }

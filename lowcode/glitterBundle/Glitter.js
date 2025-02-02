@@ -488,17 +488,19 @@ export class Glitter {
                         try {
                             const funString = `${dd.value}`;
                             if (!(element.replaceAtMemory[dd.key])) {
-                                element.addEventListener(dd.key.substring(2), function () {
+                                const f_s = funString.replace(`.fun(this,event);`, '');
+                                let function_ = eval(`${f_s.replace('editorEvent', 'clickMap')}.fun`);
+                                element.addEventListener(dd.key.substring(2), function (event) {
                                     if ((glitter.htmlGenerate.isEditMode() || glitter.htmlGenerate.isIdeaMode()) && !glitter.share.EditorMode && (['htmlEditor', 'find_idea'].includes(glitter.getUrlParameter('type')))) {
                                         if (funString.indexOf('editorEvent') !== -1) {
-                                            eval(funString.replace('editorEvent', 'clickMap'));
+                                            function_(this, event);
                                         }
                                         else if (dd.key !== 'onclick') {
-                                            eval(funString);
+                                            function_(this, event);
                                         }
                                     }
                                     else {
-                                        eval(funString);
+                                        function_(this, event);
                                     }
                                 });
                             }
@@ -506,7 +508,7 @@ export class Glitter {
                             element.replaceAtMemory[dd.key] = true;
                         }
                         catch (e) {
-                            console.log(e);
+                            console.log(`this_var_not_exists=>`, dd.value);
                             glitter.deBugMessage(e);
                         }
                     }

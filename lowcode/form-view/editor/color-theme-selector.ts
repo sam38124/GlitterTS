@@ -40,7 +40,7 @@ export class ColorThemeSelector {
                                     },
                                 ]
                                     .map((dd) => {
-                                        return html` <div>
+                                        return html`<div>
                                             ${[
                                                 html`<div
                                                     class="d-flex  cursor_pointer"

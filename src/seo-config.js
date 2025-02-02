@@ -84,7 +84,7 @@ class SeoConfig {
         }
     }
     static async productSEO(cf) {
-        var _a, _b, _c, _d;
+        var _a, _b, _c, _d, _e;
         const product_domain = cf.page.split('/')[1];
         const pd = await new shopping_js_1.Shopping(cf.appName, undefined).getProduct(product_domain
             ? {
@@ -109,7 +109,46 @@ class SeoConfig {
             cf.data.page_config.seo.image = (language_data && language_data[cf.language] && language_data.preview_image && language_data.preview_image[0]) || pd.data.content.preview_image[0];
             cf.data.page_config.seo.content = productSeo.content;
             cf.data.tag = cf.page;
+            cf.data.page_config.seo.code = ((_e = cf.data.page_config.seo.code) !== null && _e !== void 0 ? _e : "") + (await this.getProductJsonLd(cf.appName, pd.data.content));
         }
+    }
+    static async getProductJsonLd(app_name, pd_content) {
+        var _a;
+        console.log(`pd.data.content=>`, pd_content);
+        const relative_product = await new shopping_js_1.Shopping(app_name, undefined).getProduct({
+            page: 0,
+            limit: 100,
+            id_list: ((_a = pd_content.relative_product) !== null && _a !== void 0 ? _a : []).join(',')
+        });
+        const variant = pd_content.variants[0];
+        let preview_image = [variant.preview_image].concat(pd_content.preview_image).filter((dd) => {
+            return dd;
+        });
+        console.log(`relative_product=>`, relative_product);
+        return html `
+                <script type="application/ld+json">
+                    ${JSON.stringify({
+            "@context": "http://schema.org/",
+            "@type": "Product",
+            "name": pd_content.title,
+            "brand": "",
+            "description": pd_content.content.replace(/<\/?[^>]+(>|$)/g, ""),
+            "offers": {
+                "@type": "Offer",
+                "price": parseFloat(variant.sale_price.toFixed(1)),
+                "priceCurrency": "TWD",
+                "availability": "http://schema.org/InStock"
+            },
+            "image": preview_image,
+            "isRelatedTo": relative_product.data.map((dd) => {
+                return {
+                    "@type": "Product",
+                    "name": dd.content.title,
+                    "offers": { "@type": "Offer", "price": parseFloat(dd.content.min_price.toFixed(1)), "priceCurrency": "TWD" }
+                };
+            })
+        })}
+                </script>`;
     }
     static async articleSeo(cf) {
         var _a, _b;

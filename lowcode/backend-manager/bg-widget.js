@@ -1564,7 +1564,7 @@ ${(_c = obj.default) !== null && _c !== void 0 ? _c : ''}</textarea
             table: false,
         };
         gvc.addStyle(`
-            .${ids.textClass} {
+            .tb_v3 {
                 text-align: left !important;
                 padding-right: 0.25rem !important;
                 padding-left: 0.25rem !important;
@@ -1719,7 +1719,7 @@ ${(_c = obj.default) !== null && _c !== void 0 ? _c : ''}</textarea
                                         return vm.tableData[0]
                                             .map((dd, index) => {
                                             return html `
-                                                                <div class="${ids.headerCell} ${ids.textClass} tx_700"
+                                                                <div class="${ids.headerCell} ${ids.textClass} tb_v3 tx_700"
                                                                      style="min-width: ${widthList[index]}px;">${dd.key}
                                                                 </div>`;
                                         })
@@ -1780,19 +1780,16 @@ ${(_c = obj.default) !== null && _c !== void 0 ? _c : ''}</textarea
                                                         ${dd
                                 .map((d3, tdIndex) => {
                                 const tdClass = Tool.randomString(5);
-                                gvc.addStyle(`
-                                                            .${tdClass} {
-                                                                border: none;
+                                const style = `  border: none;
                                                                 vertical-align: middle;
                                                                 width: ${widthList[tdIndex]}px;
                                                                 ${dd.length > 1 && tdIndex === 0 ? 'border-radius: 10px 0 0 10px;' : ''}
                                                                 ${dd.length > 1 && tdIndex === dd.length - 1 ? 'border-radius: 0 10px 10px 0;' : ''}
-                                                                ${dd.length === 1 ? 'border-radius: 10px;' : ''}
-                                                            }
-                                                        `);
+                                                                ${dd.length === 1 ? 'border-radius: 10px;' : ''}`;
                                 return html `
                                                                         <td
-                                                                                class="${ids.textClass} ${tdClass} tx_normal"
+                                                                                class="${ids.textClass} ${tdClass} tb_v3 tx_normal"
+                                                                                style="${style}"
                                                                                 ${obj.filter.length !== 0 && tdIndex === 0 ? `gvc-checkbox="checkbox${trIndex}"` : ''}
                                                                         >
                                                                             <div class="text-nowrap"
@@ -1816,6 +1813,7 @@ ${(_c = obj.default) !== null && _c !== void 0 ? _c : ''}</textarea
                                 vm.page = page;
                                 vm.loading = true;
                                 created.checkbox = false;
+                                obj.tab_click(vm);
                                 gvc.notifyDataChange(ids.container);
                             }, false)}
                             </div>`;
@@ -2122,7 +2120,7 @@ ${(_c = obj.default) !== null && _c !== void 0 ? _c : ''}</textarea
     }
     static summaryCard(htmlString) {
         return html `
-            <div class="main-card summary-card">${htmlString !== null && htmlString !== void 0 ? htmlString : ''}</div>`;
+            <div class="main-card summary-card ">${htmlString !== null && htmlString !== void 0 ? htmlString : ''}</div>`;
     }
     static tab(data, gvc, select, callback, style) {
         return html `
@@ -3778,8 +3776,8 @@ ${(_c = obj.default) !== null && _c !== void 0 ? _c : ''}</textarea
         `);
         return className;
     }
-    static getDarkDotClass(gvc, color) {
-        const className = Tool.randomString(6);
+    static getDarkDotClass(gvc) {
+        const className = `dark_dot`;
         gvc.addStyle(`
             .${className} {
                 min-width: 1rem;
@@ -3789,7 +3787,7 @@ ${(_c = obj.default) !== null && _c !== void 0 ? _c : ''}</textarea
             .${className}:checked[type='radio'] {
                 border: 2px solid #000;
                 background-color: #fff;
-                background-image: url(${this.darkDotDataImage(color !== null && color !== void 0 ? color : '#000')});
+                background-image: url(${this.darkDotDataImage('#000')});
                 background-position: center center;
             }
         `);

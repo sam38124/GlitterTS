@@ -11716,8 +11716,7 @@ export class BasicComponent {
 
     public static main(gvc: GVC) {
         return [
-            html`
-                <div class="row m-0 pt-3 w-100 border-top pb-5"
+            html`<div class="row m-0 pt-3 w-100 border-top pb-5"
                      style="max-height: calc(100vh - 125px);overflow-y: auto;">
                     <div class="fw-500 fs-6 col-12 mt-0 pt-0 pb-3" style="color:dimgray;">
                         <div class="alert bg-secondary w-100 fs-6 mb-3 p-3" style="color: dimgray;white-space: normal;">

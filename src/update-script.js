@@ -7,7 +7,14 @@ exports.UpdateScript = void 0;
 const database_1 = __importDefault(require("./modules/database"));
 class UpdateScript {
     static async run() {
-        await this.migrateArticle();
+        const migrate_template = (await database_1.default.query('SELECT * FROM glitter.app_config', [])).map((dd) => {
+            return dd.appName;
+        });
+        console.log(`migrate-start`);
+        await Promise.all(migrate_template.map((dd) => {
+            return UpdateScript.migrateAccount(dd);
+        }));
+        console.log(`migrate-finish`);
     }
     static async migrateArticle() {
         let pass = 0;
@@ -1311,9 +1318,8 @@ class UpdateScript {
     static async migrateAccount(appName) {
         const page_list = (await database_1.default.query(`SELECT *
                                            FROM glitter.page_config
-                                           where appName = 't_1719819344426'
-                                             and tag in ('account_userinfo', 'rebate', 'order_list', 'wishlist',
-                                                         'register')`, []));
+                                           where appName = 't_1725992531001'
+                                             and tag = 'advertise'`, []));
         page_list.map((d) => {
             Object.keys(d).map((dd) => {
                 if (typeof d[dd] === 'object') {
@@ -1335,6 +1341,7 @@ class UpdateScript {
                 b
             ]);
         }
+        console.log(`appName=>${appName}`);
     }
     static async migrateHeaderAndFooterAndCollection(appList) {
         const rebate_page = (await database_1.default.query(`SELECT *

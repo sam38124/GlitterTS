@@ -1839,6 +1839,7 @@ ${obj.default ?? ''}</textarea
         }[];
         itemSelect?: () => void;
         hiddenPageSplit?: boolean;
+        tab_click?:(vm: TableV3)=>void;
     }) {
         const gvc = obj.gvc;
         const glitter = gvc.glitter;
@@ -1865,7 +1866,7 @@ ${obj.default ?? ''}</textarea
         };
 
         gvc.addStyle(`
-            .${ids.textClass} {
+            .tb_v3 {
                 text-align: left !important;
                 padding-right: 0.25rem !important;
                 padding-left: 0.25rem !important;
@@ -2038,7 +2039,7 @@ ${obj.default ?? ''}</textarea
                                                 return vm.tableData[0]
                                                         .map((dd, index: number) => {
                                                             return html`
-                                                                <div class="${ids.headerCell} ${ids.textClass} tx_700"
+                                                                <div class="${ids.headerCell} ${ids.textClass} tb_v3 tx_700"
                                                                      style="min-width: ${widthList[index]}px;">${dd.key}
                                                                 </div>`;
                                                         })
@@ -2099,19 +2100,17 @@ ${obj.default ?? ''}</textarea
                                                         ${dd
                                                                 .map((d3, tdIndex: number) => {
                                                                     const tdClass = Tool.randomString(5);
-                                                                    gvc.addStyle(`
-                                                            .${tdClass} {
-                                                                border: none;
+                                                                    const style=`  border: none;
                                                                 vertical-align: middle;
                                                                 width: ${widthList[tdIndex]}px;
                                                                 ${dd.length > 1 && tdIndex === 0 ? 'border-radius: 10px 0 0 10px;' : ''}
                                                                 ${dd.length > 1 && tdIndex === dd.length - 1 ? 'border-radius: 0 10px 10px 0;' : ''}
-                                                                ${dd.length === 1 ? 'border-radius: 10px;' : ''}
-                                                            }
-                                                        `);
+                                                                ${dd.length === 1 ? 'border-radius: 10px;' : ''}`
+                                                                 
                                                                     return html`
                                                                         <td
-                                                                                class="${ids.textClass} ${tdClass} tx_normal"
+                                                                                class="${ids.textClass} ${tdClass} tb_v3 tx_normal"
+                                                                                style="${style}"
                                                                                 ${obj.filter.length !== 0 && tdIndex === 0 ? `gvc-checkbox="checkbox${trIndex}"` : ''}
                                                                         >
                                                                             <div class="text-nowrap"
@@ -2138,6 +2137,7 @@ ${obj.default ?? ''}</textarea
                                                     vm.page = page;
                                                     vm.loading = true;
                                                     created.checkbox = false;
+                                                    obj.tab_click!!(vm);
                                                     gvc.notifyDataChange(ids.container);
                                                 },
                                                 false
@@ -2298,6 +2298,7 @@ ${obj.default ?? ''}</textarea
     ) {
         const id = gvc.glitter.getUUID();
         const randomString = this.getDarkDotClass(gvc);
+
 
         return gvc.bindView({
             bind: id,
@@ -2524,7 +2525,7 @@ ${obj.default ?? ''}</textarea
 
     static summaryCard(htmlString: string) {
         return html`
-            <div class="main-card summary-card">${htmlString ?? ''}</div>`;
+            <div class="main-card summary-card ">${htmlString ?? ''}</div>`;
     }
 
     static tab(
@@ -4443,8 +4444,8 @@ ${obj.default ?? ''}</textarea
         return className;
     }
 
-    static getDarkDotClass(gvc: GVC, color?: string) {
-        const className = Tool.randomString(6);
+    static getDarkDotClass(gvc: GVC) {
+        const className = `dark_dot`;
         gvc.addStyle(`
             .${className} {
                 min-width: 1rem;
@@ -4454,7 +4455,7 @@ ${obj.default ?? ''}</textarea
             .${className}:checked[type='radio'] {
                 border: 2px solid #000;
                 background-color: #fff;
-                background-image: url(${this.darkDotDataImage(color ?? '#000')});
+                background-image: url(${this.darkDotDataImage('#000')});
                 background-position: center center;
             }
         `);
