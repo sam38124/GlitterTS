@@ -82,7 +82,6 @@ export class Page {
                 return db.escape(dd)
             }).join(',')}))`);
             query.search && sql.push(`JSON_EXTRACT(template_config, '$.name') like '%${query.search}%' or id in (SELECT bind FROM  \`${saasConfig.SAAS_NAME}\`.t_template_tag where type='page' and tag like '%${query.search}%')`);
-            console.log(`sql->`,sql)
             return await new UtDatabase(saasConfig.SAAS_NAME as string, `page_config`).querySql(sql, query as any, `
             id,userID,tag,\`group\`,name, page_type, preview_image,appName,template_type,template_config
             `)

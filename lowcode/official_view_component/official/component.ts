@@ -152,9 +152,9 @@ export const component = Plugin.createComponent(import.meta.url, (glitter: Glitt
 
                                         function updatePageConfig(formData: any, type: any, oWidget: any) {
                                             oWidget && (widget = oWidget);
-                                            const ref=(widget.data.refer_app) ? (widget.data.refer_form_data || data.page_config.formData) : data.page_config.formData
-                                            viewConfig.formData = getFormData(ref);
+                                            const ref=(widget.data.refer_app) ? (widget.data.refer_form_data || data.page_config.formData) : data.page_config.formData;
                                             (window.parent as any).glitter.share.updated_form_data[`${page_request_config.appName}_${tag}`]=ref;
+                                            viewConfig.formData = getFormData(ref);
                                             const view = getView();
                                             (window.parent as any).glitter.share.loading_dialog.dataLoading({visible: true})
                                             setTimeout(() => {
@@ -859,7 +859,6 @@ export const component = Plugin.createComponent(import.meta.url, (glitter: Glitt
                                                                                                                                         })
                                                                                                                                     });
                                                                                                                                     try {
-                                                                                                                                        console.log(`getPageData-${parent_array.tag}`, parent_array);
                                                                                                                                         (window as any).glitterInitialHelper.share[`getPageData-${(window as any).appName}-${parent_array.tag}`].data.response.result[0].config = parent_array;
                                                                                                                                     } catch (error) {
                                                                                                                                         console.log(`error->`, error)
@@ -903,6 +902,7 @@ export const component = Plugin.createComponent(import.meta.url, (glitter: Glitt
 
                                                                                                                                 }
                                                                                                                             }
+                                                                                                                          
                                                                                                                             subData.editor_updated_callback && subData.editor_updated_callback(oWidget);
                                                                                                                         }
 
@@ -1348,7 +1348,6 @@ font-weight: 700;" onclick="${gvc.event(() => {
                                                                         if (!pageData.template_config || !pageData.template_config.tag || (!pageData.template_config.tag.find((dd: any) => {
                                                                             return dd === "商品卡片"
                                                                         }))) {
-                                                                            console.log(`pageData.template_config.tag`, pageData.template_config.tag)
                                                                             if ((gvc.glitter.getUrlParameter('device') === 'mobile') && pageData.template_config.tag.includes('標頭元件')) {
 
                                                                             } else if ((gvc.glitter.getUrlParameter('device') !== 'mobile') && pageData.template_config.tag.includes('APP-Header')) {

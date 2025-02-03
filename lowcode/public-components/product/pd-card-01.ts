@@ -154,7 +154,20 @@ export class ProductCard01 {
                 letter-spacing: -0.98px;
             }
         `);
+
         const labelID = glitter.getUUID();
+        function getImgSrc(index:number){
+            const innerText = prod.preview_image[index] || prod.preview_image[0] || ProductCard01.noImageURL;
+            let rela_link = innerText;
+            if (innerText.includes('size1440_s*px$_')) {
+                [150, 600, 1200, 1440].reverse().map((dd) => {
+                    if (document.body.clientWidth < dd) {
+                        rela_link = innerText.replace('size1440_s*px$_', `size${dd}_s*px$_`);
+                    }
+                });
+            }
+            return rela_link;
+        }
         return html` <div
             class="card mb-7 card-border"
             onclick="${gvc.event(() => {
@@ -196,18 +209,17 @@ export class ProductCard01 {
                 })}
                 <img
                     class="card-image-fit-center "
-                    src="${(() => {
-                        const innerText = prod.preview_image[0] || this.noImageURL;
-                        let rela_link = innerText;
-                        if (innerText.includes('size1440_s*px$_')) {
-                            [150, 600, 1200, 1440].reverse().map((dd) => {
-                                if (document.body.clientWidth < dd) {
-                                    rela_link = innerText.replace('size1440_s*px$_', `size${dd}_s*px$_`);
-                                }
-                            });
+                    src="${getImgSrc(0)}"
+                    onmouseover="${gvc.event((e,event)=>{
+                       if(widget.formData.show_second==='true'){
+                           e.src=getImgSrc(1)
+                       }
+                    })}"
+                    onmouseleave="${gvc.event((e,event)=>{
+                        if(widget.formData.show_second==='true'){
+                            e.src=getImgSrc(0)
                         }
-                        return rela_link;
-                    })()}"
+                    })}"
                 />
                 <div class="child add-cart-child">
                     <div

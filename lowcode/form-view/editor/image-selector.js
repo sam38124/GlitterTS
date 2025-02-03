@@ -29,10 +29,14 @@ export class ImageSelector {
                             widget.bundle.form_data[widget.bundle.form_key] = urlArray[0].data;
                             widget.bundle.refresh && widget.bundle.refresh();
                             gvc.notifyDataChange(id);
-                        }, html ` <div class="d-flex flex-column" style="border-radius: 10px 10px 0px 0px;background: #F2F2F2;">圖片庫</div>`, { mul: false });
+                        }, html `
+                                <div class="d-flex flex-column"
+                                     style="border-radius: 10px 10px 0px 0px;background: #F2F2F2;">圖片庫
+                                </div>`, { mul: false });
                     }
                     return html `
-                        <div class="fw-normal mt-2 fs-6 d-flex align-items-center" style="gap:8px;">${widget.bundle.form_title}
+                        <div class="fw-normal mt-2 fs-6 d-flex align-items-center" style="gap:8px;">
+                            ${widget.bundle.form_title}
                             <button
                                     class="btn-size-sm btn-gray "
                                     style=""
@@ -55,7 +59,7 @@ background-image: url('${src || BgWidget.noImageURL}');background-size: cover;ba
                                     class="w-100 h-100 d-flex align-items-center justify-content-center rounded-3 p-hover-image position-relative"
                                     style="opacity:0;background: rgba(0,0,0,0.5);gap:20px;color:white;font-size:22px;"
                             >
-                               ${(src && (src !== BgWidget.noImageURL)) ? ` <button
+                                ${(src && (src !== BgWidget.noImageURL)) ? ` <button
                                         class="btn-size-sm btn-gray position-absolute"
                                         style="top:5px;right:5px;"
                                         type="button"

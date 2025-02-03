@@ -160,8 +160,8 @@ export const component = Plugin.createComponent(import.meta.url, (glitter, editM
                                             function updatePageConfig(formData, type, oWidget) {
                                                 oWidget && (widget = oWidget);
                                                 const ref = (widget.data.refer_app) ? (widget.data.refer_form_data || data.page_config.formData) : data.page_config.formData;
-                                                viewConfig.formData = getFormData(ref);
                                                 window.parent.glitter.share.updated_form_data[`${page_request_config.appName}_${tag}`] = ref;
+                                                viewConfig.formData = getFormData(ref);
                                                 const view = getView();
                                                 window.parent.glitter.share.loading_dialog.dataLoading({ visible: true });
                                                 setTimeout(() => {
@@ -840,7 +840,6 @@ export const component = Plugin.createComponent(import.meta.url, (glitter, editM
                                                                                                                                 }));
                                                                                                                             });
                                                                                                                             try {
-                                                                                                                                console.log(`getPageData-${parent_array.tag}`, parent_array);
                                                                                                                                 window.glitterInitialHelper.share[`getPageData-${window.appName}-${parent_array.tag}`].data.response.result[0].config = parent_array;
                                                                                                                             }
                                                                                                                             catch (error) {
@@ -1311,7 +1310,6 @@ font-weight: 700;" onclick="${gvc.event(() => {
                                                                             if (!pageData.template_config || !pageData.template_config.tag || (!pageData.template_config.tag.find((dd) => {
                                                                                 return dd === "商品卡片";
                                                                             }))) {
-                                                                                console.log(`pageData.template_config.tag`, pageData.template_config.tag);
                                                                                 if ((gvc.glitter.getUrlParameter('device') === 'mobile') && pageData.template_config.tag.includes('標頭元件')) {
                                                                                 }
                                                                                 else if ((gvc.glitter.getUrlParameter('device') !== 'mobile') && pageData.template_config.tag.includes('APP-Header')) {

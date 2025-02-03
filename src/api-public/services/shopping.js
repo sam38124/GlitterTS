@@ -282,9 +282,6 @@ class Shopping {
             query.min_price && querySql.push(`(id in (select product_id from \`${this.app}\`.t_variants where content->>'$.sale_price'>=${query.min_price})) `);
             query.max_price && querySql.push(`(id in (select product_id from \`${this.app}\`.t_variants where content->>'$.sale_price'<=${query.max_price})) `);
             const products = await this.querySql(querySql, query);
-            querySql.map((dd) => {
-                console.log(`querySql=>${dd}`);
-            });
             const productList = (Array.isArray(products.data) ? products.data : [products.data]).filter((product) => product);
             if (this.token && this.token.userID) {
                 for (const b of productList) {
@@ -384,7 +381,6 @@ class Shopping {
                    FROM \`${this.app}\`.t_manager_post
                    WHERE ${querySql.join(' and ')} ${query.order_by || `order by id desc`}
         `;
-        console.log(`query.order_by=>`, query.order_by);
         if (query.id) {
             const data = (await database_js_1.default.query(`SELECT *
                      FROM (${sql}) as subqyery

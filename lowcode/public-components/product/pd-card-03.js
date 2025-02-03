@@ -145,6 +145,18 @@ export class ProductCard03 {
             }
         `);
         const labelID = glitter.getUUID();
+        function getImgSrc(index) {
+            const innerText = prod.preview_image[index] || prod.preview_image[0] || ProductCard03.noImageURL;
+            let rela_link = innerText;
+            if (innerText.includes('size1440_s*px$_')) {
+                [150, 600, 1200, 1440].reverse().map((dd) => {
+                    if (document.body.clientWidth < dd) {
+                        rela_link = innerText.replace('size1440_s*px$_', `size${dd}_s*px$_`);
+                    }
+                });
+            }
+            return rela_link;
+        }
         return html `
             <div
                     class="card mb-7 card-border"
@@ -190,18 +202,17 @@ export class ProductCard03 {
         })}
                     <img
                             class="card-image-fit-center"
-                            src="${(() => {
-            const innerText = prod.preview_image[0] || this.noImageURL;
-            let rela_link = innerText;
-            if (innerText.includes('size1440_s*px$_')) {
-                [150, 600, 1200, 1440].reverse().map((dd) => {
-                    if (document.body.clientWidth < dd) {
-                        rela_link = innerText.replace('size1440_s*px$_', `size${dd}_s*px$_`);
-                    }
-                });
+                            src="${getImgSrc(0)}"
+                            onmouseover="${gvc.event((e, event) => {
+            if (widget.formData.show_second === 'true') {
+                e.src = getImgSrc(1);
             }
-            return rela_link;
-        })()}"
+        })}"
+                            onmouseleave="${gvc.event((e, event) => {
+            if (widget.formData.show_second === 'true') {
+                e.src = getImgSrc(0);
+            }
+        })}"
                     />
                 </div>
                 <div

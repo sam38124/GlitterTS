@@ -91,6 +91,7 @@ export class Glitter {
         }
     }
 
+
     /*Getter*/
 
     //@ts-ignore
