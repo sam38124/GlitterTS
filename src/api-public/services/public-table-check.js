@@ -11,6 +11,7 @@ const tool_js_1 = __importDefault(require("../../services/tool.js"));
 const ai_robot_js_1 = require("./ai-robot.js");
 const user_js_1 = require("./user.js");
 const shopping_js_1 = require("./shopping.js");
+const updated_table_checked_js_1 = require("./updated-table-checked.js");
 class ApiPublic {
     static async createScheme(appName) {
         if (ApiPublic.checkApp.find((dd) => {
@@ -21,8 +22,8 @@ class ApiPublic {
         ApiPublic.checkApp.push({
             app_name: appName,
             refer_app: (await database_1.default.query(`select refer_app
-                                        from \`${config_js_1.saasConfig.SAAS_NAME}\`.app_config
-                                        where appName = ?`, [appName]))[0]['refer_app'],
+                     from \`${config_js_1.saasConfig.SAAS_NAME}\`.app_config
+                     where appName = ?`, [appName]))[0]['refer_app'],
         });
         try {
             await database_1.default.execute(`CREATE SCHEMA if not exists \`${appName}\` DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;`, []);
@@ -512,6 +513,37 @@ class ApiPublic {
 )  ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
  `,
                 },
+                {
+                    scheme: appName,
+                    table: `t_check_in_pos`,
+                    sql: `(
+  \`id\` INT NOT NULL AUTO_INCREMENT,
+  \`staff\` VARCHAR(45) NOT NULL,
+  \`execute\` VARCHAR(45) NOT NULL,
+  \`store\` VARCHAR(45) NOT NULL DEFAULT '',
+  \`create_time\` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (\`id\`),
+  INDEX \`index2\` (\`staff\` ASC) VISIBLE,
+  INDEX \`index3\` (\`create_time\` ASC) VISIBLE,
+  INDEX \`index5\` (\`store\` ASC) VISIBLE,
+  INDEX \`index4\` (\`execute\` ASC) VISIBLE) COMMENT = 'V1.1';
+`,
+                },
+                {
+                    scheme: appName,
+                    table: `t_pos_summary`,
+                    sql: `(
+  \`id\` INT NOT NULL AUTO_INCREMENT,
+  \`staff\` VARCHAR(45) NOT NULL,
+  \`summary_type\` VARCHAR(45) NOT NULL,
+  \`content\` JSON NOT NULL,
+  \`created_time\` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (\`id\`),
+  INDEX \`index2\` (\`staff\` ASC) VISIBLE,
+  INDEX \`index3\` (\`summary_type\` ASC) VISIBLE,
+  INDEX \`index4\` (\`created_time\` ASC) VISIBLE);
+`,
+                }
             ];
             for (const b of chunkArray(sqlArray, groupSize)) {
                 let check = b.length;
@@ -528,6 +560,7 @@ class ApiPublic {
             }
             await ai_robot_js_1.AiRobot.syncAiRobot(appName);
             await ApiPublic.migrateVariants(appName);
+            await updated_table_checked_js_1.UpdatedTableChecked.startCheck(appName);
         }
         catch (e) {
             console.error(e);
@@ -547,14 +580,15 @@ class ApiPublic {
                 const trans = await database_1.default.Transaction.build();
                 await trans.execute(`CREATE USER '${sql_info.sql_admin}'@'%' IDENTIFIED BY '${sql_info.sql_pwd}';`, []);
                 await trans.execute(`update \`${config_js_1.saasConfig.SAAS_NAME}\`.app_config
-                                     set sql_admin=?,
-                                         sql_pwd=?
-                                     where appName = ${database_1.default.escape(appName)}`, [sql_info.sql_admin, sql_info.sql_pwd]);
+                     set sql_admin=?,
+                         sql_pwd=?
+                     where appName = ${database_1.default.escape(appName)}`, [sql_info.sql_admin, sql_info.sql_pwd]);
                 await trans.execute(`GRANT ALL PRIVILEGES ON \`${appName}\`.* TO '${sql_info.sql_admin}'@'*';`, []);
                 await trans.commit();
                 await trans.release();
             }
-            catch (e) { }
+            catch (e) {
+            }
         }
     }
     static async migrateVariants(app) {
@@ -564,8 +598,8 @@ class ApiPublic {
         });
         if (store_version.version === 'v1') {
             for (const b of await database_1.default.query(`select *
-                                            from \`${app}\`.t_manager_post
-                                            where (content ->>'$.type'='product')`, [])) {
+                 from \`${app}\`.t_manager_post
+                 where (content ->>'$.type'='product')`, [])) {
                 const stock_list = await new user_js_1.User(app).getConfigV2({
                     key: 'store_manager',
                     user_id: 'manager',

@@ -11,7 +11,6 @@ import { BgWidget } from '../backend-manager/bg-widget.js';
 import { ShareDialog } from '../glitterBundle/dialog/ShareDialog.js';
 import { ApiShop } from "../glitter-base/route/shopping.js";
 import { FilterOptions } from "./filter-options.js";
-import { Tool } from "../modules/tool.js";
 import { BgListComponent } from "../backend-manager/bg-list-component.js";
 import { ProductSetting } from "./module/product-setting.js";
 import { ApiLiveInteraction } from "../glitter-base/route/live-purchase-interactions.js";
@@ -98,105 +97,9 @@ export class LiveCapture {
                         BgWidget.tableV3({
                             gvc: gvc,
                             getData: (vmi) => {
-                                var _a;
                                 const limit = 20;
-                                ApiShop.getInvoice({
-                                    page: vmi.page - 1,
-                                    limit: limit,
-                                    search: vm.query || '',
-                                    searchType: (_a = vm.queryType) !== null && _a !== void 0 ? _a : 'order_number',
-                                    orderString: vm.orderString,
-                                    filter: vm.filter,
-                                }).then((data) => {
-                                    function getDatalist() {
-                                        return data.response.data.map((dd) => {
-                                            var _a;
-                                            return [
-                                                {
-                                                    key: '發票號碼',
-                                                    value: dd.invoice_no,
-                                                },
-                                                {
-                                                    key: '訂單編號',
-                                                    value: dd.order_id,
-                                                },
-                                                {
-                                                    key: '含稅總計',
-                                                    value: html `
-                                                                        <div style="padding-left: 5px;">$
-                                                                            ${dd.invoice_data.original_data.SalesAmount.toLocaleString()}
-                                                                        </div>`,
-                                                },
-                                                {
-                                                    key: '買受人',
-                                                    value: html `
-                                                                        <div style="padding-left: 5px;">
-                                                                            ${Tool.truncateString((_a = dd.invoice_data.original_data.CustomerName) !== null && _a !== void 0 ? _a : '', 7)}
-                                                                        </div>`,
-                                                },
-                                                {
-                                                    key: '發票日期',
-                                                    value: glitter.ut.dateFormat(new Date(dd.create_date), 'yyyy-MM-dd'),
-                                                },
-                                                {
-                                                    key: '發票種類',
-                                                    value: (() => {
-                                                        return html `
-                                                                            <div class="d-flex"
-                                                                                 style="padding-left: 10px;">
-                                                                                ${(() => {
-                                                            let no = dd.invoice_data.original_data.CustomerIdentifier;
-                                                            return no && no.length > 0 ? BgWidget.warningInsignia('B2B') : BgWidget.notifyInsignia('B2C');
-                                                        })()}
-                                                                            </div>
-                                                                        `;
-                                                    })(),
-                                                },
-                                                {
-                                                    key: '開立方式',
-                                                    value: (() => {
-                                                        var _a, _b;
-                                                        console.log('dd.invoice_data.remark --', dd.invoice_data.remark);
-                                                        switch ((_b = (_a = dd.invoice_data.remark) === null || _a === void 0 ? void 0 : _a.issueType) !== null && _b !== void 0 ? _b : 'auto') {
-                                                            case 'auto':
-                                                                return html `
-                                                                                    <div style="padding-left: 5px;">
-                                                                                        自動
-                                                                                    </div>`;
-                                                            default:
-                                                                return html `
-                                                                                    <div style="padding-left: 5px;">
-                                                                                        手動
-                                                                                    </div>`;
-                                                        }
-                                                    })(),
-                                                },
-                                                {
-                                                    key: '發票狀態',
-                                                    value: (() => {
-                                                        var _a;
-                                                        switch ((_a = dd.status) !== null && _a !== void 0 ? _a : '0') {
-                                                            case 1:
-                                                                return BgWidget.infoInsignia('已開立');
-                                                            case 2:
-                                                                return BgWidget.notifyInsignia('已作廢');
-                                                        }
-                                                    })(),
-                                                },
-                                            ].map((dd) => {
-                                                dd.value = html `
-                                                                    <div style="line-height:40px;">${dd.value}</div>`;
-                                                return dd;
-                                            });
-                                        });
-                                    }
-                                    vm.dataList = data.response.data;
-                                    vmi.pageSize = Math.ceil(data.response.total / limit);
-                                    vmi.originalData = vm.dataList;
-                                    vmi.tableData = getDatalist();
-                                    vmi.loading = false;
-                                    vmi.callback();
-                                });
+                                vmi.loading = false;
+                                vmi.callback();
                             },
                             rowClick: (data, index) => {
                                 vm.data = vm.dataList[index];

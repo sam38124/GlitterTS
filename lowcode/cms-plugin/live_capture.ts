@@ -119,106 +119,107 @@ export class LiveCapture {
                                             gvc: gvc,
                                             getData: (vmi) => {
                                                 const limit = 20;
-
-                                                ApiShop.getInvoice({
-                                                    page: vmi.page - 1,
-                                                    limit: limit,
-                                                    search: vm.query || '',
-                                                    searchType: vm.queryType ?? 'order_number',
-                                                    orderString: vm.orderString,
-                                                    filter: vm.filter,
-                                                }).then((data) => {
-                                                    function getDatalist() {
-                                                        return data.response.data.map((dd: any) => {
-                                                            return [
-                                                                {
-                                                                    key: '發票號碼',
-                                                                    value: dd.invoice_no,
-                                                                },
-                                                                {
-                                                                    key: '訂單編號',
-                                                                    value: dd.order_id,
-                                                                },
-                                                                {
-                                                                    key: '含稅總計',
-                                                                    value: html`
-                                                                        <div style="padding-left: 5px;">$
-                                                                            ${dd.invoice_data.original_data.SalesAmount.toLocaleString()}
-                                                                        </div>`,
-                                                                },
-                                                                {
-                                                                    key: '買受人',
-                                                                    value: html`
-                                                                        <div style="padding-left: 5px;">
-                                                                            ${Tool.truncateString(dd.invoice_data.original_data.CustomerName ?? '', 7)}
-                                                                        </div>`,
-                                                                },
-                                                                {
-                                                                    key: '發票日期',
-                                                                    value: glitter.ut.dateFormat(new Date(dd.create_date), 'yyyy-MM-dd'),
-                                                                },
-                                                                {
-                                                                    key: '發票種類',
-                                                                    value: (() => {
-                                                                        return html`
-                                                                            <div class="d-flex"
-                                                                                 style="padding-left: 10px;">
-                                                                                ${(() => {
-                                                                                    let no = dd.invoice_data.original_data.CustomerIdentifier;
-                                                                                    return no && no.length > 0 ? BgWidget.warningInsignia('B2B') : BgWidget.notifyInsignia('B2C');
-                                                                                })()}
-                                                                            </div>
-                                                                        `;
-                                                                    })(),
-                                                                },
-                                                                {
-                                                                    key: '開立方式',
-                                                                    value: (() => {
-                                                                        console.log('dd.invoice_data.remark --', dd.invoice_data.remark);
-                                                                        switch (dd.invoice_data.remark?.issueType ?? 'auto') {
-                                                                            case 'auto':
-                                                                                return html`
-                                                                                    <div style="padding-left: 5px;">
-                                                                                        自動
-                                                                                    </div>`;
-                                                                            default:
-                                                                                return html`
-                                                                                    <div style="padding-left: 5px;">
-                                                                                        手動
-                                                                                    </div>`;
-                                                                        }
-                                                                    })(),
-                                                                },
-                                                                {
-                                                                    key: '發票狀態',
-                                                                    value: (() => {
-                                                                        switch (dd.status ?? '0') {
-                                                                                // case -1:
-                                                                                //     return BgWidget.notifyInsignia('已作廢');
-                                                                                // case 0:
-                                                                                //     return BgWidget.warningInsignia('處理中');
-                                                                            case 1:
-                                                                                return BgWidget.infoInsignia('已開立');
-                                                                            case 2:
-                                                                                return BgWidget.notifyInsignia('已作廢');
-                                                                        }
-                                                                    })(),
-                                                                },
-                                                            ].map((dd: any) => {
-                                                                dd.value = html`
-                                                                    <div style="line-height:40px;">${dd.value}</div>`;
-                                                                return dd;
-                                                            });
-                                                        });
-                                                    }
-
-                                                    vm.dataList = data.response.data;
-                                                    vmi.pageSize = Math.ceil(data.response.total / limit);
-                                                    vmi.originalData = vm.dataList;
-                                                    vmi.tableData = getDatalist();
                                                     vmi.loading = false;
                                                     vmi.callback();
-                                                });
+                                                // ApiShop.getInvoice({
+                                                //     page: vmi.page - 1,
+                                                //     limit: limit,
+                                                //     search: vm.query || '',
+                                                //     searchType: vm.queryType ?? 'order_number',
+                                                //     orderString: vm.orderString,
+                                                //     filter: vm.filter,
+                                                // }).then((data) => {
+                                                //     function getDatalist() {
+                                                //         return data.response.data.map((dd: any) => {
+                                                //             return [
+                                                //                 {
+                                                //                     key: '發票號碼',
+                                                //                     value: dd.invoice_no,
+                                                //                 },
+                                                //                 {
+                                                //                     key: '訂單編號',
+                                                //                     value: dd.order_id,
+                                                //                 },
+                                                //                 {
+                                                //                     key: '含稅總計',
+                                                //                     value: html`
+                                                //                         <div style="padding-left: 5px;">$
+                                                //                             ${dd.invoice_data.original_data.SalesAmount.toLocaleString()}
+                                                //                         </div>`,
+                                                //                 },
+                                                //                 {
+                                                //                     key: '買受人',
+                                                //                     value: html`
+                                                //                         <div style="padding-left: 5px;">
+                                                //                             ${Tool.truncateString(dd.invoice_data.original_data.CustomerName ?? '', 7)}
+                                                //                         </div>`,
+                                                //                 },
+                                                //                 {
+                                                //                     key: '發票日期',
+                                                //                     value: glitter.ut.dateFormat(new Date(dd.create_date), 'yyyy-MM-dd'),
+                                                //                 },
+                                                //                 {
+                                                //                     key: '發票種類',
+                                                //                     value: (() => {
+                                                //                         return html`
+                                                //                             <div class="d-flex"
+                                                //                                  style="padding-left: 10px;">
+                                                //                                 ${(() => {
+                                                //                                     let no = dd.invoice_data.original_data.CustomerIdentifier;
+                                                //                                     return no && no.length > 0 ? BgWidget.warningInsignia('B2B') : BgWidget.notifyInsignia('B2C');
+                                                //                                 })()}
+                                                //                             </div>
+                                                //                         `;
+                                                //                     })(),
+                                                //                 },
+                                                //                 {
+                                                //                     key: '開立方式',
+                                                //                     value: (() => {
+                                                //                         console.log('dd.invoice_data.remark --', dd.invoice_data.remark);
+                                                //                         switch (dd.invoice_data.remark?.issueType ?? 'auto') {
+                                                //                             case 'auto':
+                                                //                                 return html`
+                                                //                                     <div style="padding-left: 5px;">
+                                                //                                         自動
+                                                //                                     </div>`;
+                                                //                             default:
+                                                //                                 return html`
+                                                //                                     <div style="padding-left: 5px;">
+                                                //                                         手動
+                                                //                                     </div>`;
+                                                //                         }
+                                                //                     })(),
+                                                //                 },
+                                                //                 {
+                                                //                     key: '發票狀態',
+                                                //                     value: (() => {
+                                                //                         switch (dd.status ?? '0') {
+                                                //                                 // case -1:
+                                                //                                 //     return BgWidget.notifyInsignia('已作廢');
+                                                //                                 // case 0:
+                                                //                                 //     return BgWidget.warningInsignia('處理中');
+                                                //                             case 1:
+                                                //                                 return BgWidget.infoInsignia('已開立');
+                                                //                             case 2:
+                                                //                                 return BgWidget.notifyInsignia('已作廢');
+                                                //                         }
+                                                //                     })(),
+                                                //                 },
+                                                //             ].map((dd: any) => {
+                                                //                 dd.value = html`
+                                                //                     <div style="line-height:40px;">${dd.value}</div>`;
+                                                //                 return dd;
+                                                //             });
+                                                //         });
+                                                //     }
+                                                //
+                                                //     vm.dataList = data.response.data;
+                                                //     vmi.pageSize = Math.ceil(data.response.total / limit);
+                                                //     vmi.originalData = vm.dataList;
+                                                //     vmi.tableData = getDatalist();
+                                                //     vmi.loading = false;
+                                                //     vmi.callback();
+                                                // });
                                             },
                                             rowClick: (data, index) => {
                                                 vm.data = vm.dataList[index];

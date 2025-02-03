@@ -20,7 +20,6 @@ class CustomerSessions {
                 stock: data.stock,
                 discount_set: data.discount_set,
             };
-            console.log("content -- ", content);
             await database_js_1.default.query(`INSERT INTO \`${this.app}\`.\`t_live_purchase_interactions\`
                            SET ?;`, [{
                     type: data.type,

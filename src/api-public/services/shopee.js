@@ -358,7 +358,6 @@ class Shopee {
                                              AND (content ->>'$.shopee_id' = ?);`, [id]);
             }
             catch (e) {
-                console.log("get t_manager_post data error");
             }
             console.log(`item==>`, item);
             let postMD;
