@@ -1,9 +1,9 @@
 import {GVC} from "../../glitterBundle/GVController.js";
-import {Variant} from "./product-excel.js";
 import {BgWidget} from "../../backend-manager/bg-widget.js";
 import {Tool} from "../../modules/tool.js";
 import {ApiUser} from "../../glitter-base/route/user.js";
 import {ShareDialog} from "../../dialog/ShareDialog.js";
+import {Variant} from "../../public-models/product.js";
 
 export class ProductSetting {
     public static showBatchEditDialog(obj: {

@@ -52,6 +52,7 @@ const app_1 = __importDefault(require("../../app"));
 const glitter_finance_js_1 = require("../models/glitter-finance.js");
 const app_js_1 = require("../../services/app.js");
 const stock_1 = require("./stock");
+const seo_config_js_1 = require("../../seo-config.js");
 class Shopping {
     constructor(app, token) {
         this.app = app;
@@ -126,6 +127,7 @@ class Shopping {
                         querySql.push(`(${[
                             `(UPPER(JSON_UNQUOTE(JSON_EXTRACT(content, '$.title'))) LIKE UPPER('%${query.search}%'))`,
                             `(UPPER(content->>'$.language_data."${query.language}".title') LIKE UPPER('%${query.search}%'))`,
+                            `UPPER(content->>'$.product_tag.language."${query.language}"') like '%${query.search}%'`,
                             `JSON_EXTRACT(content, '$.variants[*].sku') LIKE '%${query.search}%'`,
                             `JSON_EXTRACT(content, '$.variants[*].barcode') LIKE '%${query.search}%'`,
                         ].join(' or ')})`);
@@ -135,6 +137,7 @@ class Shopping {
             if (query.domain) {
                 let sql_join_search = [];
                 sql_join_search.push(`content->>'$.seo.domain'='${decodeURIComponent(query.domain)}'`);
+                sql_join_search.push(`content->>'$.title'='${decodeURIComponent(query.domain)}'`);
                 sql_join_search.push(`content->>'$.language_data."${query.language}".seo.domain'='${decodeURIComponent(query.domain)}'`);
                 querySql.push(`(${sql_join_search
                     .map((dd) => {
@@ -145,7 +148,6 @@ class Shopping {
             if (`${query.id || ''}`) {
                 if (`${query.id}`.includes(',')) {
                     querySql.push(`id in (${query.id})`);
-                    console.log('query.id -- ', query.id);
                 }
                 else {
                     querySql.push(`id = ${query.id}`);
@@ -232,16 +234,16 @@ class Shopping {
                         case 'inRange':
                             return `
                                 OR (
-                                    JSON_EXTRACT(content, '$.status') = 'active'
+                                    JSON_EXTRACT(content, '$.status') in ('active',1)
                                     AND (
                                         content->>'$.active_schedule' IS NULL OR (
                                             (
                                             CONCAT(content->>'$.active_schedule.start_ISO_Date') IS NULL OR
-                                            CONCAT(content->>'$.active_schedule.start_ISO_Date') <= NOW()
+                                            CONCAT(content->>'$.active_schedule.start_ISO_Date') <= ${database_js_1.default.escape(new Date().toISOString())}
                                             )
                                             AND (
                                                 CONCAT(content->>'$.active_schedule.end_ISO_Date') IS NULL
-                                                OR CONCAT(content->>'$.active_schedule.end_ISO_Date') >= NOW()
+                                                OR CONCAT(content->>'$.active_schedule.end_ISO_Date') >= ${database_js_1.default.escape(new Date().toISOString())}
                                             )
                                         )
                                     )
@@ -250,15 +252,15 @@ class Shopping {
                         case 'beforeStart':
                             return `
                                 OR (
-                                    JSON_EXTRACT(content, '$.status') = 'active'
-                                    AND CONCAT(content->>'$.active_schedule.start_ISO_Date') > NOW()
+                                    JSON_EXTRACT(content, '$.status') in ('active',1)
+                                    AND CONCAT(content->>'$.active_schedule.start_ISO_Date') >${database_js_1.default.escape(new Date().toISOString())}
                                 )
                             `;
                         case 'afterEnd':
                             return `
                                 OR (
-                                    JSON_EXTRACT(content, '$.status') = 'active'
-                                    AND CONCAT(content->>'$.active_schedule.end_ISO_Date') < NOW()
+                                    JSON_EXTRACT(content, '$.status') in ('active',1)
+                                    AND CONCAT(content->>'$.active_schedule.end_ISO_Date') < ${database_js_1.default.escape(new Date().toISOString())}
                                 )
                             `;
                         default:
@@ -267,6 +269,7 @@ class Shopping {
                 })
                     .join('');
                 querySql.push(`(${statusCondition} ${scheduleConditions})`);
+                console.log(`(${statusCondition} ${scheduleConditions})`);
             }
             if (query.channel) {
                 const channelSplit = query.channel.split(',').map((channel) => channel.trim());
@@ -316,6 +319,7 @@ class Shopping {
                 });
             }
             for (const dd of Array.isArray(products.data) ? products.data : [products.data]) {
+                let total_sale = 0;
                 if (query.language && dd.content.language_data && dd.content.language_data[`${query.language}`]) {
                     dd.content.seo = dd.content.language_data[`${query.language}`].seo;
                     dd.content.title = dd.content.language_data[`${query.language}`].title || dd.content.title;
@@ -325,6 +329,7 @@ class Shopping {
                     dd.content.preview_image = dd.content.language_data[`${query.language}`].preview_image || dd.content.preview_image;
                     (dd.content.variants || []).map((variant) => {
                         variant.stock = 0;
+                        variant.sold_out = variant.sold_out || 0;
                         variant.preview_image = variant[`preview_image_${query.language}`] || variant.preview_image;
                         if (variant.preview_image === 'https://d3jnmi1tfjgtti.cloudfront.net/file/234285319/1722936949034-default_image.jpg') {
                             variant.preview_image = dd.content.preview_image[0];
@@ -348,11 +353,21 @@ class Shopping {
                                 variant.stockList[d1.id] = { count: 0 };
                             }
                         });
+                        total_sale += variant.sold_out;
                     });
                 }
+                dd.total_sales = total_sale;
             }
             if (query.domain && products.data[0]) {
-                products.data = products.data[0];
+                products.data = products.data.find((dd) => {
+                    return (dd.content.language_data &&
+                        dd.content.language_data[`${query.language}`].seo &&
+                        dd.content.language_data[`${query.language}`].seo.domain === decodeURIComponent(query.domain)) || (dd.content.seo &&
+                        dd.content.seo.domain === decodeURIComponent(query.domain));
+                }) || products.data[0];
+            }
+            if ((query.domain || query.id)) {
+                products.data.json_ld = await seo_config_js_1.SeoConfig.getProductJsonLd(this.app, products.data.content);
             }
             return products;
         }
@@ -450,7 +465,7 @@ class Shopping {
             };
         }
         catch (e) {
-            throw exception_js_1.default.BadRequestError('BAD_REQUEST', 'GetProduct Error:' + e, null);
+            throw exception_js_1.default.BadRequestError('BAD_REQUEST', 'DeleteProduct Error:' + e, null);
         }
     }
     async deleteVoucher(query) {
@@ -463,7 +478,7 @@ class Shopping {
             };
         }
         catch (e) {
-            throw exception_js_1.default.BadRequestError('BAD_REQUEST', 'GetProduct Error:' + e, null);
+            throw exception_js_1.default.BadRequestError('BAD_REQUEST', 'DeleteVoucher Error:' + e, null);
         }
     }
     generateOrderID() {
@@ -489,11 +504,77 @@ class Shopping {
             axios_1.default
                 .request(config)
                 .then((response) => {
-                console.log(response);
                 resolve(response.data.returnCode === '0000');
             })
                 .catch((error) => {
                 resolve(false);
+            });
+        });
+    }
+    async getShippingMethod() {
+        var _a;
+        const shipment_setting = await new Promise(async (resolve, reject) => {
+            var _a;
+            try {
+                resolve(((_a = (await private_config_js_1.Private_config.getConfig({
+                    appName: this.app,
+                    key: 'logistics_setting',
+                }))) !== null && _a !== void 0 ? _a : [
+                    {
+                        value: {
+                            support: [],
+                        },
+                    },
+                ])[0].value);
+            }
+            catch (e) {
+                resolve([]);
+            }
+        });
+        return [
+            {
+                name: '中華郵政',
+                value: 'normal',
+            },
+            {
+                name: '黑貓到府',
+                value: 'black_cat',
+            },
+            {
+                name: '全家店到店',
+                value: 'FAMIC2C',
+            },
+            {
+                name: '萊爾富店到店',
+                value: 'HILIFEC2C',
+            },
+            {
+                name: 'OK超商店到店',
+                value: 'OKMARTC2C',
+            },
+            {
+                name: '7-ELEVEN超商交貨便',
+                value: 'UNIMARTC2C',
+            },
+            {
+                name: '實體門市取貨',
+                value: 'shop',
+            },
+            {
+                name: '國際快遞',
+                value: 'global_express',
+            },
+        ]
+            .concat(((_a = shipment_setting.custom_delivery) !== null && _a !== void 0 ? _a : []).map((dd) => {
+            return {
+                form: dd.form,
+                name: dd.name,
+                value: dd.id,
+            };
+        }))
+            .filter((d1) => {
+            return shipment_setting.support.find((d2) => {
+                return d2 === d1.value;
             });
         });
     }
@@ -514,7 +595,7 @@ class Shopping {
         }
     }
     async toCheckout(data, type = 'add', replace_order_id) {
-        var _a, _b, _c, _d, _e, _f, _g, _h, _j;
+        var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m, _o, _p, _q;
         const check_time = new Date().getTime();
         try {
             data.line_items = (_a = (data.line_items || data.lineItems)) !== null && _a !== void 0 ? _a : [];
@@ -539,10 +620,40 @@ class Shopping {
                     throw exception_js_1.default.BadRequestError('BAD_REQUEST', 'ToCheckout 1 Error:Cant find this orderID.', null);
                 }
             }
+            if (data.order_id && type === 'POS') {
+                const order = (await database_js_1.default.query(`SELECT * FROM \`${this.app}\`.t_checkout WHERE cart_token = ?`, [data.order_id]))[0];
+                if (order) {
+                    for (const b of order.orderData.lineItems) {
+                        const pdDqlData = (await this.getProduct({
+                            page: 0,
+                            limit: 50,
+                            id: b.id,
+                            status: 'inRange',
+                            channel: data.checkOutType === 'POS' ? 'pos' : undefined,
+                        })).data;
+                        const pd = pdDqlData.content;
+                        const variant = pd.variants.find((dd) => dd.spec.join('-') === b.spec.join('-'));
+                        updateStock(variant, b.deduction_log);
+                        await this.updateVariantsWithSpec(variant, b.id, b.spec);
+                        await database_js_1.default.query(`UPDATE \`${this.app}\`.\`t_manager_post\` SET content = ? WHERE id = ?
+                            `, [JSON.stringify(pd), pdDqlData.id]);
+                    }
+                }
+            }
+            async function updateStock(variant, deductionLog) {
+                Object.keys(deductionLog).forEach((key) => {
+                    try {
+                        variant.stockList[key].count += deductionLog[key];
+                    }
+                    catch (e) {
+                        console.error(`Error updating stock for variant ${variant.id}:`, e);
+                    }
+                });
+            }
             if (data.checkOutType === 'POS') {
                 this.token = undefined;
             }
-            console.log(`checkout-time-1=>`, new Date().getTime() - check_time);
+            console.log(`checkout-time-01=>`, new Date().getTime() - check_time);
             const userClass = new user_js_1.User(this.app);
             const rebateClass = new rebate_js_1.Rebate(this.app);
             if (type !== 'preview' && !(this.token && this.token.userID) && !data.email && !(data.user_info && data.user_info.email)) {
@@ -553,27 +664,27 @@ class Shopping {
                     throw exception_js_1.default.BadRequestError('BAD_REQUEST', 'ToCheckout 2 Error:No email address.', null);
                 }
             }
-            const userData = await (async () => {
-                if (type !== 'preview' || (this.token && this.token.userID)) {
-                    return this.token && this.token.userID
-                        ? await userClass.getUserData(this.token.userID, 'userID')
-                        : await userClass.getUserData(data.email || data.user_info.email, 'account');
-                }
-                else {
+            const getUserDataAsync = async (type, token, data) => {
+                if (type === 'preview' && !((token === null || token === void 0 ? void 0 : token.userID) || data.user_info.email)) {
                     return {};
                 }
-            })();
-            console.log(`checkout-time-2=>`, new Date().getTime() - check_time);
+                if (token === null || token === void 0 ? void 0 : token.userID) {
+                    return await userClass.getUserData(`${token.userID}`, 'userID');
+                }
+                const email = data.email || data.user_info.email;
+                const dataByAccount = await userClass.getUserData(email, 'account');
+                if (dataByAccount && Object.keys(dataByAccount).length > 0) {
+                    return dataByAccount;
+                }
+                return await userClass.getUserData(email, 'email_or_phone');
+            };
+            const userData = await getUserDataAsync(type, this.token, data);
+            console.log(`checkout-time-02=>`, new Date().getTime() - check_time);
             if (userData && userData.account) {
                 data.email = userData.account;
             }
             if (!data.email && type !== 'preview') {
-                if (data.user_info && data.user_info.email) {
-                    data.email = data.user_info.email;
-                }
-                else {
-                    data.email = data.email || 'no-email';
-                }
+                data.email = ((_b = data.user_info) === null || _b === void 0 ? void 0 : _b.email) || 'no-email';
             }
             if (data.use_rebate && data.use_rebate > 0) {
                 if (userData) {
@@ -587,7 +698,7 @@ class Shopping {
                     data.use_rebate = 0;
                 }
             }
-            console.log(`checkout-time-3=>`, new Date().getTime() - check_time);
+            console.log(`checkout-time-03=>`, new Date().getTime() - check_time);
             const shipment = await (async () => {
                 var _a, _b, _c;
                 data.user_info = data.user_info || {};
@@ -627,7 +738,7 @@ class Shopping {
                 }
                 return def;
             })();
-            console.log(`checkout-time-4=>`, new Date().getTime() - check_time);
+            console.log(`checkout-time-04=>`, new Date().getTime() - check_time);
             const shipment_setting = await new Promise(async (resolve, reject) => {
                 var _a;
                 try {
@@ -646,8 +757,8 @@ class Shopping {
                     resolve([]);
                 }
             });
-            console.log(`checkout-time-5=>`, new Date().getTime() - check_time);
-            shipment_setting.custom_delivery = (_b = shipment_setting.custom_delivery) !== null && _b !== void 0 ? _b : [];
+            console.log(`checkout-time-05=>`, new Date().getTime() - check_time);
+            shipment_setting.custom_delivery = (_c = shipment_setting.custom_delivery) !== null && _c !== void 0 ? _c : [];
             for (const form of shipment_setting.custom_delivery) {
                 form.form =
                     (await new user_js_1.User(this.app).getConfigV2({
@@ -655,18 +766,19 @@ class Shopping {
                         key: `form_delivery_${form.id}`,
                     })).list || [];
             }
-            shipment_setting.support = (_c = shipment_setting.support) !== null && _c !== void 0 ? _c : [];
+            shipment_setting.support = (_d = shipment_setting.support) !== null && _d !== void 0 ? _d : [];
             shipment_setting.info =
-                (_d = (shipment_setting.language_data && shipment_setting.language_data[data.language] && shipment_setting.language_data[data.language].info)) !== null && _d !== void 0 ? _d : shipment_setting.info;
-            console.log(`checkout-time-6=>`, new Date().getTime() - check_time);
+                (_e = (shipment_setting.language_data && shipment_setting.language_data[data.language] && shipment_setting.language_data[data.language].info)) !== null && _e !== void 0 ? _e : shipment_setting.info;
+            console.log(`checkout-time-06=>`, new Date().getTime() - check_time);
             const carData = {
                 customer_info: data.customer_info || {},
                 lineItems: [],
                 total: 0,
-                email: (_e = data.email) !== null && _e !== void 0 ? _e : ((data.user_info && data.user_info.email) || ''),
+                email: (_f = data.email) !== null && _f !== void 0 ? _f : ((data.user_info && data.user_info.email) || ''),
                 user_info: data.user_info,
                 shipment_fee: 0,
                 rebate: 0,
+                goodsWeight: 0,
                 use_rebate: data.use_rebate || 0,
                 orderID: data.order_id || this.generateOrderID(),
                 shipment_support: shipment_setting.support,
@@ -705,7 +817,7 @@ class Shopping {
                         value: 'global_express',
                     },
                 ]
-                    .concat(((_f = shipment_setting.custom_delivery) !== null && _f !== void 0 ? _f : []).map((dd) => {
+                    .concat(((_g = shipment_setting.custom_delivery) !== null && _g !== void 0 ? _g : []).map((dd) => {
                     return {
                         form: dd.form,
                         name: dd.name,
@@ -772,14 +884,15 @@ class Shopping {
                         const variant = pd.variants.find((dd) => {
                             return dd.spec.join('-') === b.spec.join('-');
                         });
-                        console.log(`variant1===>`, variant);
                         if ((Number.isInteger(variant.stock) || variant.show_understocking === 'false') && Number.isInteger(b.count)) {
-                            console.log(`variant2===>`, variant);
-                            if (data.checkOutType === 'POS' && variant.show_understocking !== 'false') {
-                                variant.stock = variant.stockList && variant.stockList[data.pos_store].count;
+                            const isPOS = data.checkOutType === 'POS';
+                            const isUnderstockingVisible = variant.show_understocking !== 'false';
+                            const isManualType = type === 'manual' || type === 'manual-preview';
+                            if (isPOS && isUnderstockingVisible) {
+                                variant.stock = ((_j = (_h = variant.stockList) === null || _h === void 0 ? void 0 : _h[data.pos_store]) === null || _j === void 0 ? void 0 : _j.count) || 0;
                             }
-                            if (variant.stock < b.count && variant.show_understocking !== 'false' && type !== 'manual' && type !== 'manual-preview') {
-                                if (data.checkOutType === 'POS') {
+                            if (variant.stock < b.count && isUnderstockingVisible && !isManualType) {
+                                if (isPOS) {
                                     b.pre_order = true;
                                 }
                                 else {
@@ -787,48 +900,51 @@ class Shopping {
                                 }
                             }
                             if (variant && b.count > 0) {
-                                b.specs = pd.specs;
-                                b.language_data = pd.language_data;
-                                b.preview_image = variant.preview_image || pd.preview_image[0];
-                                b.title = pd.title;
-                                b.sale_price = variant.sale_price;
-                                b.collection = pd['collection'];
-                                b.sku = variant.sku;
-                                b.stock = variant.stock;
-                                b.show_understocking = variant.show_understocking;
-                                b.stockList = variant.stockList;
+                                Object.assign(b, {
+                                    specs: pd.specs,
+                                    language_data: pd.language_data,
+                                    preview_image: variant.preview_image || pd.preview_image[0],
+                                    title: pd.title,
+                                    sale_price: variant.sale_price,
+                                    collection: pd.collection,
+                                    sku: variant.sku,
+                                    stock: variant.stock,
+                                    show_understocking: variant.show_understocking,
+                                    stockList: variant.stockList,
+                                    weight: parseInt(variant.weight || '0', 10),
+                                    designated_logistics: (_k = pd.designated_logistics) !== null && _k !== void 0 ? _k : { type: 'all', list: [] },
+                                });
+                                const shipmentValue = (() => {
+                                    if (!variant.shipment_type || variant.shipment_type === 'none')
+                                        return 0;
+                                    if (variant.shipment_type === 'volume') {
+                                        return b.count * variant.v_length * variant.v_width * variant.v_height;
+                                    }
+                                    if (variant.shipment_type === 'weight') {
+                                        return b.count * variant.weight;
+                                    }
+                                    return 0;
+                                })();
                                 b.shipment_obj = {
                                     type: variant.shipment_type,
-                                    value: (() => {
-                                        if (!variant.shipment_type || variant.shipment_type === 'none') {
-                                            return 0;
-                                        }
-                                        if (variant.shipment_type === 'volume') {
-                                            return b.count * variant.v_length * variant.v_width * variant.v_height;
-                                        }
-                                        if (variant.shipment_type === 'weight') {
-                                            return b.count * variant.weight;
-                                        }
-                                        return 0;
-                                    })(),
+                                    value: shipmentValue,
                                 };
-                                variant.shipment_weight = parseInt(variant.shipment_weight || 0);
+                                variant.shipment_weight = parseInt(variant.shipment_weight || '0', 10);
                                 carData.lineItems.push(b);
-                                if (type !== 'manual' && !pd.productType.giveaway) {
-                                    carData.total += variant.sale_price * b.count;
-                                }
-                                if (pd.productType.giveaway) {
-                                    b.sale_price = 0;
+                                if (type !== 'manual') {
+                                    if (pd.productType.giveaway) {
+                                        b.sale_price = 0;
+                                    }
+                                    else {
+                                        carData.total += variant.sale_price * b.count;
+                                    }
                                 }
                             }
-                            console.log(`type=>`, type);
                             if (type !== 'preview' && type !== 'manual' && type !== 'manual-preview' && variant.show_understocking !== 'false') {
-                                console.log(`variant資訊=>`, type);
-                                const countless = variant.stock - b.count;
-                                variant.stock = countless > 0 ? countless : 0;
+                                const remainingStock = Math.max(variant.stock - b.count, 0);
+                                variant.stock = remainingStock;
                                 if (type === 'POS') {
-                                    variant.deduction_log = {};
-                                    variant.deduction_log[data.pos_store] = b.count;
+                                    variant.deduction_log = { [data.pos_store]: b.count };
                                     variant.stockList[data.pos_store].count -= b.count;
                                     b.deduction_log = variant.deduction_log;
                                 }
@@ -839,12 +955,15 @@ class Shopping {
                                 }
                                 saveStockArray.push(() => {
                                     return new Promise(async (resolve, reject) => {
-                                        await this.updateVariantsWithSpec(variant, b.id, b.spec);
-                                        await database_js_1.default.query(`UPDATE \`${this.app}\`.\`t_manager_post\`
-                                             SET ?
-                                             WHERE 1 = 1
-                                               and id = ${pdDqlData.id}`, [{ content: JSON.stringify(pd) }]);
-                                        resolve(true);
+                                        try {
+                                            await this.updateVariantsWithSpec(variant, b.id, b.spec);
+                                            await database_js_1.default.query(`UPDATE \`${this.app}\`.\`t_manager_post\` SET ? WHERE id = ${pdDqlData.id}
+                                                `, [{ content: JSON.stringify(pd) }]);
+                                            resolve(true);
+                                        }
+                                        catch (error) {
+                                            reject(error);
+                                        }
                                     });
                                 });
                             }
@@ -864,13 +983,16 @@ class Shopping {
                         if (pd.min_qty) {
                             b.min_qty = pd.min_qty;
                         }
+                        if (pd.max_qty) {
+                            b.max_qty = pd.max_qty;
+                        }
                     }
                 }
                 catch (e) {
-                    console.log(e);
+                    console.error(e);
                 }
             }
-            console.log(`checkout-time-7=>`, new Date().getTime() - check_time);
+            console.log(`checkout-time-07=>`, new Date().getTime() - check_time);
             carData.shipment_fee = (() => {
                 if (data.user_info.shipment === 'now') {
                     return 0;
@@ -889,7 +1011,7 @@ class Shopping {
             })();
             carData.total += carData.shipment_fee;
             const f_rebate = await this.formatUseRebate(carData.total, carData.use_rebate);
-            console.log(`checkout-time-8=>`, new Date().getTime() - check_time);
+            console.log(`checkout-time-08=>`, new Date().getTime() - check_time);
             carData.useRebateInfo = f_rebate;
             carData.use_rebate = f_rebate.point;
             carData.total -= carData.use_rebate;
@@ -899,7 +1021,7 @@ class Shopping {
                 const data = await rebateClass.getOneRebate({ user_id: userData.userID });
                 carData.user_rebate_sum = (data === null || data === void 0 ? void 0 : data.point) || 0;
             }
-            console.log(`checkout-time-9=>`, new Date().getTime() - check_time);
+            console.log(`checkout-time-09=>`, new Date().getTime() - check_time);
             if (data.distribution_code) {
                 const linkList = await new recommend_js_1.Recommend(this.app, this.token).getLinkList({
                     page: 0,
@@ -924,7 +1046,7 @@ class Shopping {
                     return !gift_product.includes(dd);
                 });
                 const c_carData = await this.checkVoucher(JSON.parse(JSON.stringify(carData)));
-                console.log(`checkout-time-check-voucher=>`, new Date().getTime() - check_time);
+                console.log(`checkout-time-check-voucher-1=>`, new Date().getTime() - check_time);
                 add_on_items.map((dd) => {
                     var _a;
                     try {
@@ -940,48 +1062,29 @@ class Shopping {
                     catch (e) { }
                 });
                 await this.checkVoucher(carData);
-                console.log(`checkout-time-check-voucher2=>`, new Date().getTime() - check_time);
+                console.log(`checkout-time-check-voucher-2=>`, new Date().getTime() - check_time);
                 let can_add_gift = [];
-                carData
-                    .voucherList.filter((dd) => {
-                    return dd.reBackType === 'giveaway';
-                })
-                    .map((dd) => {
-                    can_add_gift.push(dd.add_on_products);
-                });
-                gift_product.map((dd) => {
-                    let max_count = can_add_gift.filter((d1) => {
-                        return d1.includes(dd.id);
-                    }).length;
+                (_l = carData.voucherList) === null || _l === void 0 ? void 0 : _l.filter((dd) => dd.reBackType === 'giveaway').forEach((dd) => can_add_gift.push(dd.add_on_products));
+                gift_product.forEach((dd) => {
+                    const max_count = can_add_gift.filter((d1) => d1.includes(dd.id)).length;
                     if (dd.count <= max_count) {
                         for (let a = 0; a < dd.count; a++) {
-                            let find = false;
-                            can_add_gift = can_add_gift.filter((d1) => {
-                                if (d1.includes(dd.id) || find) {
-                                    find = true;
-                                    return false;
-                                }
-                                else {
-                                    return true;
-                                }
-                            });
+                            can_add_gift = can_add_gift.filter((d1) => !d1.includes(dd.id));
                         }
                         carData.lineItems.push(dd);
                     }
                 });
-                for (const dd of carData.voucherList.filter((dd) => {
-                    return dd.reBackType === 'giveaway';
-                })) {
+                for (const dd of carData.voucherList.filter((dd) => dd.reBackType === 'giveaway')) {
                     let index = -1;
-                    for (const b of (_g = dd.add_on_products) !== null && _g !== void 0 ? _g : []) {
+                    for (const b of (_m = dd.add_on_products) !== null && _m !== void 0 ? _m : []) {
                         index++;
-                        const pdDqlData = ((_h = (await this.getProduct({
+                        const pdDqlData = ((_o = (await this.getProduct({
                             page: 0,
                             limit: 50,
                             id: `${b}`,
                             status: 'inRange',
                             channel: data.checkOutType === 'POS' ? 'pos' : undefined,
-                        })).data) !== null && _h !== void 0 ? _h : { content: {} }).content;
+                        })).data) !== null && _o !== void 0 ? _o : { content: {} }).content;
                         pdDqlData.voucher_id = dd.id;
                         dd.add_on_products[index] = pdDqlData;
                     }
@@ -1050,6 +1153,31 @@ class Shopping {
                 carData.use_rebate = 0;
                 carData.total = subtotal + carData.shipment_fee;
             }
+            carData.lineItems.map((item) => {
+                carData.goodsWeight += item.weight * item.count;
+            });
+            const excludedValuesByTotal = new Set(['UNIMARTC2C', 'FAMIC2C', 'HILIFEC2C', 'OKMARTC2C']);
+            const excludedValuesByWeight = new Set(['normal', 'black_cat']);
+            const isExcludedByTotal = (dd) => {
+                return carData.total > 20000 && excludedValuesByTotal.has(dd.value);
+            };
+            const isExcludedByWeight = (dd) => {
+                return carData.goodsWeight > 20 && excludedValuesByWeight.has(dd.value);
+            };
+            const isIncludedInDesignatedLogistics = (dd) => {
+                return carData.lineItems.every((item) => {
+                    return item.designated_logistics === undefined || item.designated_logistics.type === 'all' || item.designated_logistics.list.includes(dd.value);
+                });
+            };
+            carData.shipment_selector = carData.shipment_selector
+                .filter((dd) => {
+                return isIncludedInDesignatedLogistics(dd);
+            })
+                .map((dd) => {
+                dd.isExcludedByTotal = isExcludedByTotal(dd);
+                dd.isExcludedByWeight = isExcludedByWeight(dd);
+                return dd;
+            });
             carData.code_array = (carData.code_array || []).filter((code) => {
                 return (carData.voucherList || []).find((dd) => {
                     return dd.code === code;
@@ -1092,7 +1220,7 @@ class Shopping {
                 carData.discount = data.discount;
                 carData.voucherList = [tempVoucher];
                 carData.customer_info = data.customer_info;
-                carData.total = (_j = data.total) !== null && _j !== void 0 ? _j : 0;
+                carData.total = (_p = data.total) !== null && _p !== void 0 ? _p : 0;
                 carData.rebate = tempVoucher.rebate_total;
                 if (tempVoucher.reBackType == 'shipment_free') {
                     carData.shipment_fee = 0;
@@ -1119,8 +1247,15 @@ class Shopping {
                 };
             }
             else if (type === 'POS') {
-                console.log(`pre_order`);
                 carData.orderSource = 'POS';
+                if (data.checkOutType === 'POS' && Array.isArray(data.voucherList)) {
+                    const manualVoucher = data.voucherList.find((item) => item.id === 0);
+                    if (manualVoucher) {
+                        manualVoucher.discount = manualVoucher.discount_total;
+                        carData.total -= manualVoucher.discount;
+                        carData.voucherList.push(manualVoucher);
+                    }
+                }
                 const trans = await database_js_1.default.Transaction.build();
                 if (data.pre_order) {
                     carData.progress = 'pre_order';
@@ -1141,7 +1276,8 @@ class Shopping {
                     carData.orderStatus = '1';
                     carData.progress = 'finish';
                 }
-                await trans.execute(`INSERT INTO \`${this.app}\`.t_checkout (cart_token, status, email, orderData)
+                await trans.execute(`replace
+                    INTO \`${this.app}\`.t_checkout (cart_token, status, email, orderData)
                      values (?, ?, ?, ?)`, [carData.orderID, data.pay_status, carData.email, JSON.stringify(carData)]);
                 if (data.invoice_select !== 'nouse') {
                     carData.invoice = await new invoice_js_1.Invoice(this.app).postCheckoutInvoice(carData, carData.user_info.send_type !== 'carrier');
@@ -1151,6 +1287,7 @@ class Shopping {
                 await Promise.all(saveStockArray.map((dd) => {
                     return dd();
                 }));
+                await new Shopping(this.app).releaseCheckout((_q = data.pay_status) !== null && _q !== void 0 ? _q : 0, carData.orderID);
                 return { result: 'SUCCESS', message: 'POS訂單新增成功', data: carData };
             }
             else {
@@ -1171,9 +1308,9 @@ class Shopping {
                 }
             }
             const id = 'redirect_' + tool_js_1.default.randomString(6);
-            const return_url = new URL(data.return_url);
-            return_url.searchParams.set('cart_token', carData.orderID);
-            await redis_js_1.default.setValue(id, return_url.href);
+            const redirect_url = new URL(data.return_url);
+            redirect_url.searchParams.set('cart_token', carData.orderID);
+            await redis_js_1.default.setValue(id, redirect_url.href);
             if (carData.use_wallet === carData.total) {
                 await database_js_1.default.query(`INSERT INTO \`${this.app}\`.t_wallet (orderID, userID, money, status, note)
                      values (?, ?, ?, ?, ?);`, [
@@ -1255,7 +1392,7 @@ class Shopping {
                             await line.sendCustomerLine('auto-line-order-create', carData.orderID, carData.customer_info.lineID);
                             console.log('訂單line訊息寄送成功');
                         }
-                        await auto_send_email_js_1.AutoSendEmail.customerOrder(this.app, 'auto-email-order-create', carData.orderID, carData.email, carData.language);
+                        auto_send_email_js_1.AutoSendEmail.customerOrder(this.app, 'auto-email-order-create', carData.orderID, carData.email, carData.language);
                         await database_js_1.default.execute(`INSERT INTO \`${this.app}\`.t_checkout (cart_token, status, email, orderData)
                              values (?, ?, ?, ?)`, [carData.orderID, 0, carData.email, carData]);
                         await Promise.all(saveStockArray.map((dd) => {
@@ -1347,7 +1484,7 @@ class Shopping {
             }
         }
         catch (e) {
-            throw exception_js_1.default.BadRequestError('BAD_REQUEST', 'GetProduct Error:' + e, null);
+            throw exception_js_1.default.BadRequestError('BAD_REQUEST', 'getReturnOrder Error:' + e, null);
         }
     }
     async createReturnOrder(data) {
@@ -1772,7 +1909,7 @@ class Shopping {
                     }
                     await auto_send_email_js_1.AutoSendEmail.customerOrder(this.app, 'auto-email-order-cancel-success', data.orderData.orderID, data.orderData.email, data.orderData.language);
                 }
-                else if (origin[0].orderData.progress !== 'shipping' && updateProgress === 'shipping') {
+                if (origin[0].orderData.progress !== 'shipping' && updateProgress === 'shipping') {
                     if (data.orderData.customer_info.phone) {
                         await sns.sendCustomerSns('auto-sns-shipment', data.orderData.orderID, data.orderData.customer_info.phone);
                         console.log('出貨簡訊寄送成功');
@@ -1780,7 +1917,7 @@ class Shopping {
                     if (data.orderData.customer_info.lineID) {
                         let line = new line_message_1.LineMessage(this.app);
                         await line.sendCustomerLine('auto-line-shipment', data.orderData.orderID, data.orderData.customer_info.lineID);
-                        console.log('付款成功line訊息寄送成功');
+                        console.log('出貨line訊息寄送成功');
                     }
                     await auto_send_email_js_1.AutoSendEmail.customerOrder(this.app, 'auto-email-shipment', data.orderData.orderID, data.orderData.email, data.orderData.language);
                 }
@@ -1792,7 +1929,7 @@ class Shopping {
                     if (data.orderData.customer_info.lineID) {
                         let line = new line_message_1.LineMessage(this.app);
                         await line.sendCustomerLine('auto-line-shipment-arrival', data.orderData.orderID, data.orderData.customer_info.lineID);
-                        console.log('付款成功line訊息寄送成功');
+                        console.log('到貨line訊息寄送成功');
                     }
                     await auto_send_email_js_1.AutoSendEmail.customerOrder(this.app, 'auto-email-shipment-arrival', data.orderData.orderID, data.orderData.email, data.orderData.language);
                 }
@@ -1810,8 +1947,8 @@ class Shopping {
                         }
                     }
                 }
-                if (origin[0].status !== 1 && update.status === 1) {
-                    await this.releaseCheckout(1, data.orderData.orderID);
+                if (origin[0].status !== update.status) {
+                    await this.releaseCheckout(update.status, data.orderData.orderID);
                 }
             }
             await database_js_1.default.query(`UPDATE \`${this.app}\`.t_checkout
@@ -1966,8 +2103,8 @@ class Shopping {
                 const created_time = query.created_time.split(',');
                 if (created_time.length > 1) {
                     querySql.push(`
-                        (created_time BETWEEN ${database_js_1.default.escape(`${created_time[0]} 00:00:00`)} 
-                        AND ${database_js_1.default.escape(`${created_time[1]} 23:59:59`)})
+                        (created_time BETWEEN ${database_js_1.default.escape(`${created_time[0]}`)} 
+                        AND ${database_js_1.default.escape(`${created_time[1]}`)})
                     `);
                 }
             }
@@ -2055,24 +2192,36 @@ OR JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.orderStatus')) NOT IN (-99)) `);
             }
         }
         catch (e) {
-            throw exception_js_1.default.BadRequestError('BAD_REQUEST', 'GetProduct Error:' + e, null);
+            throw exception_js_1.default.BadRequestError('BAD_REQUEST', 'getCheckOut Error:' + e, null);
         }
     }
     async releaseCheckout(status, order_id) {
         try {
+            const order_data = (await database_js_1.default.query(`SELECT *
+                     FROM \`${this.app}\`.t_checkout
+                     WHERE cart_token = ?
+                    `, [order_id]))[0];
+            const original_status = order_data['status'];
             if (status === -1) {
+                if (original_status === -1) {
+                    return;
+                }
                 await database_js_1.default.execute(`UPDATE \`${this.app}\`.t_checkout
                      SET status = ?
                      WHERE cart_token = ?`, [-1, order_id]);
                 await this.releaseVoucherHistory(order_id, 0);
             }
+            if (original_status === 1 && status !== 1) {
+                for (const b of order_data['orderData'].lineItems) {
+                    await this.calcSoldOutStock(b.count * -1, b.id, b.spec);
+                }
+            }
             if (status === 1) {
-                const notProgress = (await database_js_1.default.query(`SELECT count(1)
-                         FROM \`${this.app}\`.t_checkout
-                         WHERE cart_token = ?
-                           AND status = 0;`, [order_id]))[0]['count(1)'];
-                if (!notProgress) {
+                if (original_status === 1) {
                     return;
+                }
+                for (const b of order_data['orderData'].lineItems) {
+                    await this.calcSoldOutStock(b.count, b.id, b.spec);
                 }
                 await database_js_1.default.execute(`UPDATE \`${this.app}\`.t_checkout
                      SET status = ?
@@ -2303,8 +2452,8 @@ OR JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.orderStatus')) NOT IN (-99)) `);
     async calcVariantsStock(calc, stock_id, product_id, spec) {
         try {
             const pd_data = (await database_js_1.default.query(`select *
-                 from \`${this.app}\`.t_manager_post
-                 where id = ?`, [product_id]))[0]['content'];
+                     from \`${this.app}\`.t_manager_post
+                     where id = ?`, [product_id]))[0]['content'];
             const store_config = await new user_js_1.User(this.app).getConfigV2({ key: 'store_manager', user_id: 'manager' });
             const variant_s = pd_data.variants.find((dd) => {
                 return dd.spec.join('-') === spec.join('-');
@@ -2322,13 +2471,34 @@ OR JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.orderStatus')) NOT IN (-99)) `);
             await this.postVariantsAndPriceValue(pd_data);
         }
         catch (e) {
-            console.log('error -- cant find variants', e);
+            console.error('error -- can not find variants', e);
+        }
+    }
+    async calcSoldOutStock(calc, product_id, spec) {
+        var _a;
+        try {
+            const pd_data = (await database_js_1.default.query(`select *
+                     from \`${this.app}\`.t_manager_post
+                     where id = ?`, [product_id]))[0]['content'];
+            const variant_s = pd_data.variants.find((dd) => {
+                return dd.spec.join('-') === spec.join('-');
+            });
+            variant_s.sold_out = (_a = variant_s.sold_out) !== null && _a !== void 0 ? _a : 0;
+            variant_s.sold_out += calc;
+            if (variant_s.sold_out < 0) {
+                variant_s.sold_out = 0;
+            }
+            await this.postVariantsAndPriceValue(pd_data);
+        }
+        catch (e) {
+            console.error('calcSoldOutStock error', e);
         }
     }
     async getDataAnalyze(tags, query) {
         try {
             console.log('AnalyzeTimer Start');
             const timer = {};
+            query = query || '{}';
             if (tags.length > 0) {
                 const result = {};
                 let pass = 0;
@@ -2372,8 +2542,8 @@ OR JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.orderStatus')) NOT IN (-99)) `);
                                     case 'orders_per_month_1_year':
                                         result[tag] = await this.getOrdersPerMonth1Year(query);
                                         break;
-                                    case 'orders_per_month_2_weak':
-                                        result[tag] = await this.getOrdersPerMonth2Weak(query);
+                                    case 'orders_per_month_2_week':
+                                        result[tag] = await this.getOrdersPerMonth2week(query);
                                         break;
                                     case 'orders_per_month':
                                         result[tag] = await this.getOrdersPerMonth(query);
@@ -2381,8 +2551,8 @@ OR JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.orderStatus')) NOT IN (-99)) `);
                                     case 'orders_per_month_custom':
                                         result[tag] = await this.getOrdersPerMonthCostom(query);
                                         break;
-                                    case 'sales_per_month_2_weak':
-                                        result[tag] = await this.getSalesPerMonth2Weak(query);
+                                    case 'sales_per_month_2_week':
+                                        result[tag] = await this.getSalesPerMonth2week(query);
                                         break;
                                     case 'sales_per_month_1_year':
                                         result[tag] = await this.getSalesPerMonth1Year(query);
@@ -2395,6 +2565,9 @@ OR JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.orderStatus')) NOT IN (-99)) `);
                                         break;
                                     case 'order_today':
                                         result[tag] = await this.getOrderToDay();
+                                        break;
+                                    case 'recent_register_today':
+                                        result[tag] = await this.getRegisterYear();
                                         break;
                                     case 'recent_register_week':
                                         result[tag] = await this.getRegisterYear();
@@ -2417,8 +2590,8 @@ OR JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.orderStatus')) NOT IN (-99)) `);
                                     case 'active_recent_year':
                                         result[tag] = await this.getActiveRecentYear();
                                         break;
-                                    case 'active_recent_2weak':
-                                        result[tag] = await this.getActiveRecentWeak();
+                                    case 'active_recent_2week':
+                                        result[tag] = await this.getActiveRecentWeek();
                                         break;
                                 }
                                 timer[tag] = (new Date().getTime() - start.getTime()) / 1000;
@@ -2510,15 +2683,16 @@ OR JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.orderStatus')) NOT IN (-99)) `);
             count_array: result.reverse(),
         };
     }
-    async getActiveRecentWeak() {
+    async getActiveRecentWeek() {
         const sql = `
-            SELECT mac_address, CONVERT_TZ(created_time, '+00:00', '+08:00') AS created_time
+            SELECT mac_address, ${convertTimeZone('created_time')} AS created_time
             FROM \`${config_js_1.saasConfig.SAAS_NAME}\`.t_monitor
             WHERE app_name = ${database_js_1.default.escape(this.app)}
               AND ip != 'ffff:127.0.0.1'
                 AND req_type = 'file'
-                AND CONVERT_TZ(created_time, '+00:00', '+08:00') BETWEEN (DATE_SUB(CONVERT_TZ(NOW(), '+00:00', '+08:00')
-                            , INTERVAL 14 DAY)) AND CONVERT_TZ(NOW(), '+00:00', '+08:00')
+                AND ${convertTimeZone('created_time')} BETWEEN (DATE_SUB(${convertTimeZone('NOW()')}
+                , INTERVAL 14 DAY))
+              AND ${convertTimeZone('NOW()')}
             GROUP BY id, mac_address
         `;
         const queryData = await database_js_1.default.query(sql, []);
@@ -2549,13 +2723,14 @@ OR JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.orderStatus')) NOT IN (-99)) `);
     }
     async getActiveRecentMonth() {
         const sql = `
-            SELECT mac_address, CONVERT_TZ(created_time, '+00:00', '+08:00') AS created_time
+            SELECT mac_address, ${convertTimeZone('created_time')} AS created_time
             FROM \`${config_js_1.saasConfig.SAAS_NAME}\`.t_monitor
             WHERE app_name = ${database_js_1.default.escape(this.app)}
               AND ip != 'ffff:127.0.0.1'
                 AND req_type = 'file'
-                AND CONVERT_TZ(created_time, '+00:00', '+08:00') BETWEEN (DATE_SUB(CONVERT_TZ(NOW(), '+00:00', '+08:00')
-                            , INTERVAL 30 DAY)) AND CONVERT_TZ(NOW(), '+00:00', '+08:00')
+                AND ${convertTimeZone('created_time')} BETWEEN (DATE_SUB(${convertTimeZone('NOW()')}
+                , INTERVAL 30 DAY))
+              AND ${convertTimeZone('NOW()')}
             GROUP BY id, mac_address
         `;
         const queryData = await database_js_1.default.query(sql, []);
@@ -2590,14 +2765,14 @@ OR JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.orderStatus')) NOT IN (-99)) `);
         const formatEndDate = `"${tool_js_1.default.replaceDatetime(qData.end)}"`;
         const days = this.diffDates(new Date(qData.start), new Date(qData.end));
         const sql = `
-            SELECT mac_address, CONVERT_TZ(created_time, '+00:00', '+08:00') AS created_time
+            SELECT mac_address, ${convertTimeZone('created_time')} AS created_time
             FROM \`${config_js_1.saasConfig.SAAS_NAME}\`.t_monitor
             WHERE app_name = ${database_js_1.default.escape(this.app)}
               AND ip != 'ffff:127.0.0.1'
                 AND req_type = 'file'
-                AND CONVERT_TZ(created_time, '+00:00', '+08:00') 
-                BETWEEN CONVERT_TZ(${formatStartDate}, '+00:00', '+08:00') 
-                AND CONVERT_TZ(${formatEndDate}, '+00:00', '+08:00')
+                AND ${convertTimeZone('created_time')}
+                BETWEEN ${convertTimeZone(formatStartDate)}
+              AND ${convertTimeZone(formatEndDate)}
             GROUP BY id, mac_address
         `;
         const queryData = await database_js_1.default.query(sql, []);
@@ -2628,10 +2803,6 @@ OR JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.orderStatus')) NOT IN (-99)) `);
     }
     async getRegisterMonth() {
         try {
-            function convertTimeZone(date) {
-                return `CONVERT_TZ(${date}, '+00:00', '+08:00')`;
-            }
-            const formatJsonData = [];
             const countArray = {};
             let pass = 0;
             await new Promise((resolve, reject) => {
@@ -2678,9 +2849,6 @@ OR JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.orderStatus')) NOT IN (-99)) `);
             const qData = JSON.parse(query);
             const days = this.diffDates(new Date(qData.start), new Date(qData.end));
             const formatEndDate = `"${tool_js_1.default.replaceDatetime(qData.end)}"`;
-            function convertTimeZone(date) {
-                return `CONVERT_TZ(${date}, '+00:00', '+08:00')`;
-            }
             const countArray = {};
             let pass = 0;
             await new Promise((resolve, reject) => {
@@ -2722,12 +2890,8 @@ OR JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.orderStatus')) NOT IN (-99)) `);
             throw exception_js_1.default.BadRequestError('BAD_REQUEST', 'getRecentActiveUser Error:' + e, null);
         }
     }
-    async getRegister2weak() {
+    async getRegister2week() {
         try {
-            function convertTimeZone(date) {
-                return `CONVERT_TZ(${date}, '+00:00', '+08:00')`;
-            }
-            const formatJsonData = [];
             const countArray = {};
             let pass = 0;
             await new Promise((resolve, reject) => {
@@ -2771,9 +2935,6 @@ OR JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.orderStatus')) NOT IN (-99)) `);
     }
     async getRegisterYear() {
         try {
-            function convertTimeZone(date) {
-                return `CONVERT_TZ(${date}, '+00:00', '+08:00')`;
-            }
             const formatJsonData = [];
             const countArray = {};
             const order = await database_js_1.default.query(`SELECT count(1)
@@ -2807,7 +2968,7 @@ OR JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.orderStatus')) NOT IN (-99)) `);
                     return countArray[dd];
                 })
                     .reverse(),
-                count_2_weak_register: (await this.getRegister2weak()).countArray,
+                count_2_week_register: (await this.getRegister2week()).countArray,
             };
         }
         catch (e) {
@@ -2906,8 +3067,61 @@ OR JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.orderStatus')) NOT IN (-99)) `);
             throw exception_js_1.default.BadRequestError('BAD_REQUEST', 'getRecentActiveUser Error:' + e, null);
         }
     }
-    async getHotProducts(duration, date) {
+    async getHotProducts(duration, query) {
         try {
+            const qData = JSON.parse(query || '{}');
+            const sqlArray = ['1=1'];
+            if (qData.filter_date === 'custom' && qData.start && qData.end) {
+                const formatStartDate = `"${tool_js_1.default.replaceDatetime(qData.start)}"`;
+                const formatEndDate = `"${tool_js_1.default.replaceDatetime(qData.end)}"`;
+                sqlArray.push(`
+                    (${convertTimeZone('created_time')} 
+                    BETWEEN ${convertTimeZone(formatStartDate)} 
+                    AND ${convertTimeZone(formatEndDate)})
+                `);
+            }
+            if (qData.come_from) {
+                switch (qData.come_from) {
+                    case 'all':
+                        break;
+                    case 'website':
+                        sqlArray.push(`
+                            (orderData->>'$.orderSource' <> 'POS')
+                        `);
+                        break;
+                    case 'store':
+                        sqlArray.push(`
+                            (orderData->>'$.orderSource' = 'POS')
+                        `);
+                        break;
+                    default:
+                        sqlArray.push(`
+                            (orderData->>'$.pos_info.where_store' = '${qData.come_from}')
+                        `);
+                        break;
+                }
+            }
+            if (qData.filter_date) {
+                const text = (() => {
+                    switch (qData.filter_date) {
+                        case 'today':
+                            return '1 DAY';
+                        case 'week':
+                            return '7 DAY';
+                        case '1m':
+                            return '30 DAY';
+                        case 'year':
+                            return '1 YEAR';
+                    }
+                })();
+                if (text) {
+                    sqlArray.push(`
+                        ${convertTimeZone('created_time')} 
+                        BETWEEN (DATE_SUB(${convertTimeZone('CURDATE()')}, INTERVAL ${text})) 
+                        AND ${convertTimeZone('CURDATE()')}
+                    `);
+                }
+            }
             const checkoutSQL = `
                 SELECT *
                 FROM \`${this.app}\`.t_checkout
@@ -2919,7 +3133,7 @@ OR JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.orderStatus')) NOT IN (-99)) `);
                     case 'month':
                         return `(created_time BETWEEN DATE_SUB(NOW(), INTERVAL 1 MONTH) AND NOW())`;
                     case 'all':
-                        return `1=1`;
+                        return sqlArray.join(' AND ');
                 }
             })()};
             `;
@@ -2992,16 +3206,13 @@ OR JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.orderStatus')) NOT IN (-99)) `);
             throw exception_js_1.default.BadRequestError('BAD_REQUEST', 'getRecentActiveUser Error:' + e, null);
         }
     }
-    async getOrdersPerMonth2Weak(query) {
+    async getOrdersPerMonth2week(query) {
         try {
             const qData = JSON.parse(query);
             const countArray = {};
             const countArrayPos = {};
             const countArrayWeb = {};
             const countArrayStore = {};
-            function convertTimeZone(date) {
-                return `CONVERT_TZ(${date}, '+00:00', '+08:00')`;
-            }
             let pass = 0;
             await new Promise((resolve, reject) => {
                 for (let index = 0; index < 14; index++) {
@@ -3079,9 +3290,6 @@ OR JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.orderStatus')) NOT IN (-99)) `);
             const countArrayPos = {};
             const countArrayWeb = {};
             const countArrayStore = {};
-            function convertTimeZone(date) {
-                return `CONVERT_TZ(${date}, '+00:00', '+08:00')`;
-            }
             let pass = 0;
             await new Promise((resolve, reject) => {
                 for (let index = 0; index < 30; index++) {
@@ -3161,9 +3369,6 @@ OR JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.orderStatus')) NOT IN (-99)) `);
             const qData = JSON.parse(query);
             const days = this.diffDates(new Date(qData.start), new Date(qData.end));
             const formatEndDate = `"${tool_js_1.default.replaceDatetime(qData.end)}"`;
-            function convertTimeZone(date) {
-                return `CONVERT_TZ(${date}, '+00:00', '+08:00')`;
-            }
             let pass = 0;
             await new Promise((resolve, reject) => {
                 for (let index = 0; index < days; index++) {
@@ -3241,9 +3446,6 @@ OR JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.orderStatus')) NOT IN (-99)) `);
             const countArrayPos = {};
             const countArrayWeb = {};
             const countArrayStore = {};
-            function convertTimeZone(date) {
-                return `CONVERT_TZ(${date}, '+00:00', '+08:00')`;
-            }
             let pass = 0;
             await new Promise((resolve, reject) => {
                 for (let index = 0; index < 12; index++) {
@@ -3327,9 +3529,6 @@ OR JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.orderStatus')) NOT IN (-99)) `);
             const countArrayPos = {};
             const countArrayWeb = {};
             const countArrayStore = {};
-            function convertTimeZone(date) {
-                return `CONVERT_TZ(${date}, '+00:00', '+08:00')`;
-            }
             let pass = 0;
             await new Promise((resolve, reject) => {
                 for (let index = 0; index < 12; index++) {
@@ -3398,16 +3597,13 @@ OR JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.orderStatus')) NOT IN (-99)) `);
             throw exception_js_1.default.BadRequestError('BAD_REQUEST', 'getRecentActiveUser Error:' + e, null);
         }
     }
-    async getSalesPerMonth2Weak(query) {
+    async getSalesPerMonth2week(query) {
         try {
             const countArray = {};
             const countArrayPos = {};
             const countArrayWeb = {};
             const countArrayStore = {};
             const qData = JSON.parse(query);
-            function convertTimeZone(date) {
-                return `CONVERT_TZ(${date}, '+00:00', '+08:00')`;
-            }
             let pass = 0;
             await new Promise((resolve, reject) => {
                 for (let index = 0; index < 14; index++) {
@@ -3485,9 +3681,6 @@ OR JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.orderStatus')) NOT IN (-99)) `);
             const countArrayWeb = {};
             const countArrayStore = {};
             const qData = JSON.parse(query);
-            function convertTimeZone(date) {
-                return `CONVERT_TZ(${date}, '+00:00', '+08:00')`;
-            }
             let pass = 0;
             await new Promise((resolve, reject) => {
                 for (let index = 0; index < 30; index++) {
@@ -3512,7 +3705,7 @@ OR JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.orderStatus')) NOT IN (-99)) `);
                         data.map((checkout) => {
                             if (checkout.orderData.orderSource === 'POS') {
                                 total_pos += parseInt(checkout.orderData.total, 10);
-                                if (qData.come_from.includes('store_') && Shopping.isComeStore(checkout.orderData, qData)) {
+                                if (qData.come_from && qData.come_from.includes('store_') && Shopping.isComeStore(checkout.orderData, qData)) {
                                     total_store += parseInt(checkout.orderData.total, 10);
                                 }
                             }
@@ -3572,9 +3765,6 @@ OR JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.orderStatus')) NOT IN (-99)) `);
             const qData = JSON.parse(query);
             const days = this.diffDates(new Date(qData.start), new Date(qData.end));
             const formatEndDate = `"${tool_js_1.default.replaceDatetime(qData.end)}"`;
-            function convertTimeZone(date) {
-                return `CONVERT_TZ(${date}, '+00:00', '+08:00')`;
-            }
             let pass = 0;
             await new Promise((resolve, reject) => {
                 for (let index = 0; index < days; index++) {
@@ -3652,9 +3842,6 @@ OR JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.orderStatus')) NOT IN (-99)) `);
             const countArrayPos = {};
             const countArrayWeb = {};
             const countArrayStore = {};
-            function convertTimeZone(date) {
-                return `CONVERT_TZ(${date}, '+00:00', '+08:00')`;
-            }
             let pass = 0;
             await new Promise((resolve, reject) => {
                 for (let index = 0; index < 12; index++) {
@@ -3736,9 +3923,6 @@ OR JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.orderStatus')) NOT IN (-99)) `);
             const countArrayPos = {};
             const countArrayWeb = {};
             const countArrayStore = {};
-            function convertTimeZone(date) {
-                return `CONVERT_TZ(${date}, '+00:00', '+08:00')`;
-            }
             let pass = 0;
             await new Promise((resolve, reject) => {
                 for (let index = 0; index < 14; index++) {
@@ -3822,9 +4006,6 @@ OR JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.orderStatus')) NOT IN (-99)) `);
             const countArrayPos = {};
             const countArrayWeb = {};
             const countArrayStore = {};
-            function convertTimeZone(date) {
-                return `CONVERT_TZ(${date}, '+00:00', '+08:00')`;
-            }
             let pass = 0;
             await new Promise((resolve, reject) => {
                 for (let index = 0; index < 30; index++) {
@@ -3910,9 +4091,6 @@ OR JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.orderStatus')) NOT IN (-99)) `);
             const qData = JSON.parse(query);
             const days = this.diffDates(new Date(qData.start), new Date(qData.end));
             const formatEndDate = `"${tool_js_1.default.replaceDatetime(qData.end)}"`;
-            function convertTimeZone(date) {
-                return `CONVERT_TZ(${date}, '+00:00', '+08:00')`;
-            }
             let pass = 0;
             await new Promise((resolve, reject) => {
                 for (let index = 0; index < days; index++) {
@@ -4392,7 +4570,16 @@ OR JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.orderStatus')) NOT IN (-99)) `);
                 });
             }));
             let max_id = (await database_js_1.default.query(`select max(id)
-                                          from \`${this.app}\`.t_manager_post`, []))[0]['max(id)'] || 0;
+                         from \`${this.app}\`.t_manager_post`, []))[0]['max(id)'] || 0;
+            console.log(`insert=>`, productArray.map((product) => {
+                var _a;
+                if (!product.id) {
+                    product.id = max_id++;
+                }
+                product.type = 'product';
+                this.checkVariantDataType(product.variants);
+                return [product.id || null, (_a = this.token) === null || _a === void 0 ? void 0 : _a.userID, JSON.stringify(product)];
+            }));
             const data = await database_js_1.default.query(`replace
                 INTO \`${this.app}\`.\`t_manager_post\` (id,userID,content) values ?`, [
                 productArray.map((product) => {
@@ -4545,12 +4732,12 @@ OR JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.orderStatus')) NOT IN (-99)) `);
     }
     checkDuring(jsonData) {
         const now = new Date().getTime();
-        const startDateTime = new Date(`${jsonData.startDate}T${jsonData.startTime}`).getTime();
+        const startDateTime = new Date(moment_1.default.tz(`${jsonData.startDate} ${jsonData.startTime}:00`, 'YYYY-MM-DD HH:mm:ss', 'Asia/Taipei').toISOString()).getTime();
         if (isNaN(startDateTime))
             return false;
         if (!jsonData.endDate || !jsonData.endTime)
             return true;
-        const endDateTime = new Date(`${jsonData.endDate}T${jsonData.endTime}`).getTime();
+        const endDateTime = new Date(moment_1.default.tz(`${jsonData.endDate} ${jsonData.endTime}:00`, 'YYYY-MM-DD HH:mm:ss', 'Asia/Taipei').toISOString()).getTime();
         if (isNaN(endDateTime))
             return false;
         return now >= startDateTime && now <= endDateTime;
@@ -4807,4 +4994,7 @@ OR JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.orderStatus')) NOT IN (-99)) `);
     }
 }
 exports.Shopping = Shopping;
+function convertTimeZone(date) {
+    return `CONVERT_TZ(${date}, '+00:00', '+08:00')`;
+}
 //# sourceMappingURL=shopping.js.map

@@ -715,13 +715,7 @@ export class SaasViewModel {
                                                                             </div>
                                                                             ${(() => {
                                                         const config = dd;
-                                                        let planText = '免費試用方案';
-                                                        if (config.plan === 'basic') {
-                                                            planText = '基本開店方案';
-                                                        }
-                                                        else if (config.plan === 'web+app') {
-                                                            planText = 'Web+App方案';
-                                                        }
+                                                        let planText = (gvc.glitter).share.plan_text();
                                                         return html `
                                                                                     <div class="d-flex flex-column tx_normal_14">
                                                                                         當前方案 : ${planText}
@@ -935,7 +929,7 @@ export class SaasViewModel {
                                                                 <div class="mb-1">免費商店網址</div>
                                                                 <div class="d-flex flex-column" style="">
                                                                     ${BgWidget.grayNote('建議輸入與品牌相關的英文名稱')}
-                                                                    ${BgWidget.greenNote(`https://${postMD.sub_domain || '尚未輸入'}.shopnex.cc`, '', 'margin-top: 0.5rem')}
+                                                                    ${BgWidget.greenNote(`https://${postMD.sub_domain || '尚未輸入'}.shopnex.tw`, '', 'margin-top: 0.5rem')}
                                                                 </div>
                                                             </div>
                                                         `,

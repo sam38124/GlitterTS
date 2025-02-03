@@ -151,10 +151,22 @@ export class Language {
                 en: `_p_ Minimum purchase quantity is _c_ pieces.`
             },
             {
+                key: 'max_p_count_d',
+                tw: '_p_ 最多購買數量為_c_件',
+                cn: '_p_ 最多购买数量为_c_件',
+                en: `_p_ Maximum purchase quantity is _c_ pieces.`
+            },
+            {
                 key: 'min_p_count',
                 tw: '此商品最少購買數量為_c_件',
                 cn: '此商品最少购买数量为_c_件',
                 en: `Minimum purchase quantity is _c_ pieces.`
+            },
+            {
+                key: 'max_p_count',
+                tw: '此商品最多購買數量為_c_件',
+                cn: '此商品最多购买数量为_c_件',
+                en: `Maximum purchase quantity is _c_ pieces.`
             },
             {key: 'ship_global_express', tw: '國際快遞', cn: '国际快递', en: `International express`},
             {key: 'ship_HILIFEC2C', tw: '萊爾富店到店', cn: '莱尔富店到店', en: `Hi-Life Store-to-Store Delivery`},
@@ -802,6 +814,11 @@ export class Language {
             {key: 'form_email', tw: '信箱 / 帳號', cn: '邮箱 / 账号', en: 'Email'},
             {key: 'form_phone', tw: '手機', cn: '手机', en: 'Phone'},
             {key: 'form_birth', tw: '生日', cn: '生日', en: 'Birthdate'},
+            {key: 'privacy', tw: '隱私權政策', cn: '隐私权政策', en: 'Privacy policy'},
+            {key: 'term', tw: '服務條款', cn: '服务条款', en: 'Terms of Service'},
+            {key: 'refund', tw: '退換貨政策', cn: '退換貨政策', en: 'Refund policy'},
+            {key: 'delivery', tw: '購買與配送須知', cn: '配送须知', en: 'Shipping instructions'},
+            {key: 'pieces', tw: '件', cn: '件', en: 'Pieces'}
         ];
     }
 

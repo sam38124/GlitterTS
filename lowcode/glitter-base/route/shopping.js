@@ -324,6 +324,17 @@ export class ApiShop {
             },
         });
     }
+    static getShippingMethod() {
+        return BaseApi.create({
+            url: getBaseUrl() + `/api-public/v1/ec/shippingMethod`,
+            type: 'get',
+            headers: {
+                'Content-Type': 'application/json',
+                'g-app': getConfig().config.appName,
+                Authorization: GlobalUser.token,
+            },
+        });
+    }
     static getProduct(json) {
         return BaseApi.create({
             url: getBaseUrl() +
@@ -388,19 +399,19 @@ export class ApiShop {
             return [];
         let list = [];
         if (obj) {
-            if (obj.created_time.length > 1 && (obj === null || obj === void 0 ? void 0 : obj.created_time[0].length) > 0 && (obj === null || obj === void 0 ? void 0 : obj.created_time[1].length) > 0) {
+            if (obj.created_time && obj.created_time.length > 1 && (obj === null || obj === void 0 ? void 0 : obj.created_time[0].length) > 0 && (obj === null || obj === void 0 ? void 0 : obj.created_time[1].length) > 0) {
                 list.push(`created_time=${obj.created_time[0]},${obj.created_time[1]}`);
             }
-            if (obj.shipment.length > 0) {
+            if (obj.shipment && obj.shipment.length > 0) {
                 list.push(`shipment=${obj.shipment.join(',')}`);
             }
-            if (obj.progress.length > 0) {
+            if (obj.progress && obj.progress.length > 0) {
                 list.push(`progress=${obj.progress.join(',')}`);
             }
-            if (obj.payload.length > 0) {
+            if (obj.payload && obj.payload.length > 0) {
                 list.push(`status=${obj.payload.join(',')}`);
             }
-            if (obj.orderStatus.length > 0) {
+            if (obj.orderStatus && obj.orderStatus.length > 0) {
                 list.push(`orderStatus=${obj.orderStatus.join(',')}`);
             }
         }
@@ -530,6 +541,8 @@ export class ApiShop {
                     let par = [`limit=${json.limit}`, `page=${json.page}`];
                     json.search && par.push(`search=${json.search}`);
                     json.id && par.push(`id=${json.id}`);
+                    json.date_confirm && par.push(`date_confirm=${json.date_confirm}`);
+                    json.user_email && par.push(`user_email=${json.user_email}`);
                     json.voucher_type && par.push(`voucher_type=${json.voucher_type}`);
                     return par.join('&');
                 })()}`,

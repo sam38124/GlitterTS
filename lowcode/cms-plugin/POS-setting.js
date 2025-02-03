@@ -24,10 +24,14 @@ import { ConnectionMode } from "./pos-pages/connection-mode.js";
 import { PosFunction } from "./pos-pages/pos-function.js";
 import { UserList } from "./user-list.js";
 import { TempOrder } from "./pos-pages/temp-order.js";
+import { PosSummary } from "./pos-pages/pos-summary.js";
+import { ApiPos } from "../glitter-base/route/pos.js";
+import { PosWidget } from "./pos-widget.js";
 function getConfig() {
     const saasConfig = window.parent.saasConfig;
     return saasConfig;
 }
+const css = String.raw;
 export class POSSetting {
     static loginManager(gvc, mode, result) {
         const dialog = new ShareDialog(gvc.glitter);
@@ -279,7 +283,6 @@ height: 51px;
                         const member_auth_ = member_auth.find((dd) => {
                             return `${dd.user}` === `${POSSetting.config.who}`;
                         });
-                        console.log(`member_auth_=>`, member_auth_);
                         member_auth_.config.support_shop = member_auth_.config.support_shop.filter((dd) => {
                             return store_list.find((d1) => {
                                 return dd === d1.id;
@@ -307,6 +310,7 @@ height: 51px;
                                 if (!member_auth_.config.support_shop.includes(POSSetting.config.where_store)) {
                                     POSSetting.config.where_store = member_auth_.config.support_shop[0];
                                 }
+                                glitter.share.work_status = (yield ApiPos.getWorkStatus(POSSetting.config.who, POSSetting.config.where_store)).response.status;
                                 return POSSetting.posView(gvc);
                             }
                         }
@@ -455,8 +459,7 @@ height: 51px;
                     value: '全部商品',
                     select: true,
                 },
-            ],
-            paySelect: [],
+            ]
         };
         const html = String.raw;
         glitter.share.reloadPosPage = () => {
@@ -481,15 +484,54 @@ height: 51px;
             }
         }
         gvc.addStyle(`
-                        .product-show{
-                        -ms-overflow-style: none;
-                        scrollbar-width: none;
-                        
-                        }
-                        .product-show::-webkit-scrollbar {
-                            display: none;  /* Chrome, Safari, Opera */
-                        }
-                    `);
+            .product-show{
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+
+            }
+            .product-show::-webkit-scrollbar {
+            display: none;  /* Chrome, Safari, Opera */
+            }
+            .hoverHidden div {
+            display: none;
+            }
+
+            .hoverHidden:hover div {
+            display: flex;
+            }
+
+            .tooltip {
+            z-index: 99999 !important;
+            }
+
+            .scroll-in {
+            animation: slideInFromLeft 0.3s ease-out forwards;
+            }
+
+            .scroll-out {
+            left: 0%; /* 將元素移到畫面外 */
+            animation: slideOutFromLeft 0.3s ease-out forwards;
+            }
+
+            /* @keyframes 定義動畫 */
+            @keyframes slideInFromLeft {
+            0% {
+            left: -120%; /* 起始位置在畫面外 */
+            }
+            100% {
+            left: 0; /* 結束位置在畫面內 */
+            }
+            }
+            /* @keyframes 定義動畫 */
+            @keyframes slideOutFromLeft {
+            0% {
+            left: 0; /* 起始位置在畫面外 */
+            }
+            100% {
+            left: -120%; /* 結束位置在畫面內 */
+            }
+            }
+        `);
         const apConfig = (ApiUser.getPublicConfig('store-information', 'manager')).then((res) => {
             PayConfig.pos_config = res.response.value;
             vm.loading = false;
@@ -503,9 +545,10 @@ height: 51px;
                 bind: vm.id,
                 view: () => {
                     if (vm.loading) {
-                        return `<div class="d-flex align-items-center justify-content-center p-3">
-<div class="spinner-border"></div>
-</div>`;
+                        return html `
+                                <div class="d-flex align-items-center justify-content-center p-3">
+                                    <div class="spinner-border"></div>
+                                </div>`;
                     }
                     try {
                         loadOrderData();
@@ -550,23 +593,90 @@ cursor: pointer;
                                 },
                             };
                         });
+                        const nav_slide = gvc.bindView({
+                            bind: 'nav-slide',
+                            view: () => {
+                                let page = [
+                                    {
+                                        icon: `fa-regular fa-tag`,
+                                        title: PayConfig.pos_config.pos_type === 'eat' ? `點餐` : `商品`,
+                                        type: `menu`,
+                                    },
+                                    {
+                                        icon: `fa-regular fa-credit-card`,
+                                        title: `結帳`,
+                                        type: `payment`,
+                                    },
+                                    {
+                                        icon: `fa-sharp fa-regular fa-clipboard-list`,
+                                        title: `訂單`,
+                                        type: `order`,
+                                    },
+                                    {
+                                        icon: `fa-sharp fa-regular fa-user-group-crown`,
+                                        title: `會員`,
+                                        type: `member`,
+                                    },
+                                    {
+                                        icon: `fa-sharp-duotone fa-solid fa-list-check`,
+                                        title: `小結`,
+                                        type: `summary`,
+                                    }
+                                ];
+                                return page
+                                    .map((data) => {
+                                    return html `
+                                                        <div
+                                                                class="d-flex flex-column justify-content-center align-items-center ${document.body.offsetWidth < 800 ? `py-2` : ``}"
+                                                                style="gap: 6px;font-weight: 500;letter-spacing: 0.8px;${vm.type == data.type
+                                        ? `color:#393939;${document.body.offsetWidth < 800 ? `border-bottom: 3px solid #393939;font-size: 16px;` : `border-right: 3px solid #393939;font-size: 18px;padding-top: 16px;padding-bottom: 16px;`}`
+                                        : 'color:#949494;'}flex:1;cursor:pointer;${glitter.ut.frSize({
+                                        sm: `padding-right:32px;padding-left:32px;`
+                                    }, ``)}"
+                                                                onclick="${gvc.event(() => {
+                                        vm.type = data.type;
+                                    })}"
+                                                        >
+                                                            <i class="${data.icon} fs-2 d-flex align-items-center justify-content-center" style="${vm.type == data.type ? `color:#393939;` : ''};width: 24px;height: 24px;"></i>
+                                                            
+                                                            ${data.title}
+                                                        </div>
+                                                    `;
+                                })
+                                    .join('');
+                            },
+                            divCreate: () => {
+                                if (document.body.offsetWidth < 800) {
+                                    return {
+                                        class: ` flex-row pos-footer-menu border-top`,
+                                        style: `width: 100%;gap:24px;background: #FFF; justify-content: space-around;display:flex;`,
+                                    };
+                                }
+                                else {
+                                    return {
+                                        class: `d-flex nav-left flex-column`,
+                                        style: `height: 100%;gap:24px;padding-top:114px;position:fixed;left:0px;top:0px;background: #FFF;box-shadow: 1px 0px 10px 0px rgba(0, 0, 0, 0.05);z-index:10;`,
+                                    };
+                                }
+                            },
+                        });
                         return html `
-                            <div
-                                    class="d-flex nav-top"
-                                    style="z-index:20;padding-top:${glitter.share.top_inset}px;width: 100%;background: #FFF;box-shadow: 0 1px 10px 0 rgba(0, 0, 0, 0.10);position: fixed;left: 0;top: 0;"
-                            >
                                 <div
-                                        class="POS-logo  d-flex align-items-center ${document.body.offsetWidth < 800 ? `justify-content-center` : ``} mx-2 w-100"
-                                        style="${document.body.offsetWidth < 800 ? `gap: 0px;` : `gap: 10px;padding-left: 24px;`}height: ${(() => {
+                                        class="d-flex nav-top flex-column"
+                                        style="z-index:20;padding-top:${glitter.share.top_inset}px;width: 100%;background: #FFF;box-shadow: 0 1px 10px 0 rgba(0, 0, 0, 0.10);position: fixed;left: 0;top: 0;"
+                                >
+                                    <div
+                                            class="POS-logo  d-flex align-items-center ${document.body.offsetWidth < 800 ? `justify-content-center` : ` `} mx-2 "
+                                            style="${document.body.offsetWidth < 800 ? `gap: 0px;` : `gap: 10px;padding-left: 24px;`}height: ${(() => {
                             if (document.body.offsetWidth > 800) {
                                 return `86px`;
                             }
                             else {
-                                return `66px`;
+                                return `76px`;
                             }
                         })()};"
-                                >
-                                    ${document.body.offsetWidth < 800
+                                    >
+                                        ${document.body.offsetWidth < 800
                             ? ` `
                             : `<div class=" d-flex align-items-center h-100 border-end pe-4" style="gap:10px;"><svg width="157" height="28" viewBox="0 0 157 28" fill="none"
                                      xmlns="http://www.w3.org/2000/svg">
@@ -582,49 +692,49 @@ cursor: pointer;
                                 </svg>
                                 <div style="text-align: center; color: #8D8D8D; font-size: 38px; font-family: Lilita One; font-weight: 400; word-wrap: break-word">POS</div>
                                 </div>`}
-                                    ${(document.body.clientWidth > 800) ? cartBtn : ``}
-                                    <div class="searchBar ms-sm-2 me-2 ${vm.type !== 'menu' ? `d-none` : ``} ${document.body.offsetWidth < 800 ? `d-none` : ``}"
-                                         style="position: relative;max-width:calc(100% - 60px);
+                                        ${(document.body.clientWidth > 800) ? cartBtn : ``}
+                                        <div class="searchBar ms-sm-2 me-2 ${vm.type !== 'menu' ? `d-none` : ``} ${document.body.offsetWidth < 800 ? `d-none` : ``}"
+                                             style="position: relative;max-width:calc(100% - 60px);
 ${document.body.clientWidth < 800 ? `` : `position: absolute;left: 50%;top:50%;transform:translate(-50%,-50%);`}
 ">
-                                        <input
-                                                class="border-0 "
-                                                placeholder="搜尋商品名稱或貨號"
-                                                style="display: flex;${document.body.offsetWidth < 800
+                                            <input
+                                                    class="border-0 "
+                                                    placeholder="搜尋商品名稱或貨號"
+                                                    style="display: flex;${document.body.offsetWidth < 800
                             ? `width:100%;font-size: 15px;height: 50px;padding: 17px 12px;`
                             : `width: 357px;max-width:calc(100%);font-size: 18px;height: 56px;padding: 17px 24px;`}justify-content: center;gap: 10px;border-radius: 10px;background: #F7F7F7;"
-                                                onchange="${gvc.event((e) => {
+                                                    onchange="${gvc.event((e) => {
                             glitter.share.search_interval = setTimeout(() => {
                                 vm.query = e.value;
                                 vm.searchable = true;
                                 gvc.notifyDataChange('mainView');
                             }, 500);
                         })}"
-                                        />
-                                        <svg
-                                                xmlns="http://www.w3.org/2000/svg"
-                                                width="24"
-                                                height="25"
-                                                viewBox="0 0 24 25"
-                                                fill="none"
-                                                style="width: 24px;height: 24px;flex-shrink: 0;position:absolute; ${document.body.offsetWidth < 800 ? `top:13px;right: 12px;` : `top:17px;right: 24px;`};"
-                                        >
-                                            <g clip-path="url(#clip0_12216_123850)">
-                                                <path
-                                                        d="M19.5 9.92139C19.5 12.0729 18.8016 14.0604 17.625 15.6729L23.5594 21.612C24.1453 22.1979 24.1453 23.1495 23.5594 23.7355C22.9734 24.3214 22.0219 24.3214 21.4359 23.7355L15.5016 17.7964C13.8891 18.9776 11.9016 19.6714 9.75 19.6714C4.36406 19.6714 0 15.3073 0 9.92139C0 4.53545 4.36406 0.171387 9.75 0.171387C15.1359 0.171387 19.5 4.53545 19.5 9.92139ZM9.75 16.6714C10.6364 16.6714 11.5142 16.4968 12.3331 16.1576C13.1521 15.8184 13.8962 15.3212 14.523 14.6944C15.1498 14.0676 15.647 13.3234 15.9862 12.5045C16.3254 11.6856 16.5 10.8078 16.5 9.92139C16.5 9.03496 16.3254 8.15722 15.9862 7.33827C15.647 6.51933 15.1498 5.77521 14.523 5.14842C13.8962 4.52162 13.1521 4.02442 12.3331 3.6852C11.5142 3.34598 10.6364 3.17139 9.75 3.17139C8.86358 3.17139 7.98583 3.34598 7.16689 3.6852C6.34794 4.02442 5.60382 4.52162 4.97703 5.14842C4.35023 5.77521 3.85303 6.51933 3.51381 7.33827C3.17459 8.15722 3 9.03496 3 9.92139C3 10.8078 3.17459 11.6856 3.51381 12.5045C3.85303 13.3234 4.35023 14.0676 4.97703 14.6944C5.60382 15.3212 6.34794 15.8184 7.16689 16.1576C7.98583 16.4968 8.86358 16.6714 9.75 16.6714Z"
-                                                        fill="#8D8D8D"
-                                                />
-                                            </g>
-                                            <defs>
-                                                <clipPath id="clip0_12216_123850">
-                                                    <rect width="24" height="24" fill="white"
-                                                          transform="translate(0 0.171387)"/>
-                                                </clipPath>
-                                            </defs>
-                                        </svg>
-                                    </div>
-                                    ${((document.body.clientWidth > 800)) ? `<div class="flex-fill"></div>` : ``}
-                                    ${gvc.bindView(() => {
+                                            />
+                                            <svg
+                                                    xmlns="http://www.w3.org/2000/svg"
+                                                    width="24"
+                                                    height="25"
+                                                    viewBox="0 0 24 25"
+                                                    fill="none"
+                                                    style="width: 24px;height: 24px;flex-shrink: 0;position:absolute; ${document.body.offsetWidth < 800 ? `top:13px;right: 12px;` : `top:17px;right: 24px;`};"
+                                            >
+                                                <g clip-path="url(#clip0_12216_123850)">
+                                                    <path
+                                                            d="M19.5 9.92139C19.5 12.0729 18.8016 14.0604 17.625 15.6729L23.5594 21.612C24.1453 22.1979 24.1453 23.1495 23.5594 23.7355C22.9734 24.3214 22.0219 24.3214 21.4359 23.7355L15.5016 17.7964C13.8891 18.9776 11.9016 19.6714 9.75 19.6714C4.36406 19.6714 0 15.3073 0 9.92139C0 4.53545 4.36406 0.171387 9.75 0.171387C15.1359 0.171387 19.5 4.53545 19.5 9.92139ZM9.75 16.6714C10.6364 16.6714 11.5142 16.4968 12.3331 16.1576C13.1521 15.8184 13.8962 15.3212 14.523 14.6944C15.1498 14.0676 15.647 13.3234 15.9862 12.5045C16.3254 11.6856 16.5 10.8078 16.5 9.92139C16.5 9.03496 16.3254 8.15722 15.9862 7.33827C15.647 6.51933 15.1498 5.77521 14.523 5.14842C13.8962 4.52162 13.1521 4.02442 12.3331 3.6852C11.5142 3.34598 10.6364 3.17139 9.75 3.17139C8.86358 3.17139 7.98583 3.34598 7.16689 3.6852C6.34794 4.02442 5.60382 4.52162 4.97703 5.14842C4.35023 5.77521 3.85303 6.51933 3.51381 7.33827C3.17459 8.15722 3 9.03496 3 9.92139C3 10.8078 3.17459 11.6856 3.51381 12.5045C3.85303 13.3234 4.35023 14.0676 4.97703 14.6944C5.60382 15.3212 6.34794 15.8184 7.16689 16.1576C7.98583 16.4968 8.86358 16.6714 9.75 16.6714Z"
+                                                            fill="#8D8D8D"
+                                                    />
+                                                </g>
+                                                <defs>
+                                                    <clipPath id="clip0_12216_123850">
+                                                        <rect width="24" height="24" fill="white"
+                                                              transform="translate(0 0.171387)"/>
+                                                    </clipPath>
+                                                </defs>
+                                            </svg>
+                                        </div>
+                                        ${((document.body.clientWidth > 800)) ? `<div class="flex-fill"></div>` : ``}
+                                        ${gvc.bindView(() => {
                             const id = 'right_top_info';
                             function refreshUserBar() {
                                 gvc.notifyDataChange([id, 'nav-slide']);
@@ -641,45 +751,64 @@ ${document.body.clientWidth < 800 ? `` : `position: absolute;left: 50%;top:50%;t
                                         glitter.share.select_member = select_member;
                                         glitter.share.staff_title = select_member.config.name === 'manager' ? `BOSS` : POSSetting.config.who;
                                         resolve(html `
-                                                        <div class="h-100 group dropdown  ps-1 pe-1 d-flex align-items-center"
-                                                             style="">
-                                                            <div class=" btn btn-outline-secondary  border-0 p-1 position-relative"
-                                                                 data-bs-toggle="dropdown" aria-haspopup="true"
-                                                                 aria-expanded="false">
-                                                                <div class="d-flex align-items-center px-sm-2"
-                                                                     style="gap:10px;">
-                                                                    <div class="ps-2 text-start">
+                                                            <div class="h-100 group dropdown  ps-1 pe-1 d-flex align-items-center"
+                                                                 style="">
+                                                                <div class=" btn btn-outline-secondary  border-0 p-1 position-relative"
+                                                                     data-bs-toggle="dropdown" aria-haspopup="true"
+                                                                     aria-expanded="false">
+                                                                    <div class="d-flex align-items-center px-sm-2"
+                                                                         style="gap:10px;">
+                                                                        <div class="ps-2 text-start">
 
-                                                                        <div class="" style="color: #393939;
+                                                                            <div class="d-flex align-items-center"
+                                                                                 style="color: #393939;
                                                                         font-size: 18px;
                                                                         font-style: normal;
                                                                         font-weight: 400;
                                                                         line-height: normal;">
-                                                                            ${select_member.config.name}
-                                                                        </div>
-                                                                        <div class="fs-xs lh-1 opacity-60 fw-500 d-flex align-items-center fw-500 mt-1"
-                                                                             style="color: #8D8D8D;
+                                                                                ${select_member.config.name}
+                                                                            </div>
+                                                                            <div class="fs-xs lh-1 opacity-60 fw-500 d-flex align-items-center fw-500 mt-1"
+                                                                                 style="color: #8D8D8D;
                                                                         font-size: 14px;
                                                                         font-style: normal;
                                                                         gap:5px;
                                                                         font-weight: 400;
                                                                         line-height: normal;">
-                                                                            ${select_member.config.title}
-                                                                            <div>/</div>
-                                                                            <div class="text-info fw-bold">
-                                                                                ${glitter.share.store_list.find((dd) => {
+                                                                                ${select_member.config.title}
+                                                                                <div>/</div>
+                                                                                <div class="text-info fw-bold">
+                                                                                    ${glitter.share.store_list.find((dd) => {
                                             return dd.id === POSSetting.config.where_store;
                                         }).name}
+                                                                                </div>
+                                                                            </div>
+                                                                            <div class="d-flex align-items-center mt-1">
+                                                                                ${(glitter.share.work_status === 'off_work') ? html `
+                                                                                            <div class="rounded-circle "
+                                                                                                 style="width:8px;height: 8px;background: #fe5541;">
+                                                                                            </div>
+                                                                                            <div class="fw-500 ms-1"
+                                                                                                 style="font-size: 12px;">
+                                                                                                已下班
+                                                                                            </div>
+                                                                                        ` : html `
+                                                                                            <div class="rounded-circle "
+                                                                                                 style="width:8px;height: 8px;background: #33a252;">
+                                                                                            </div>
+                                                                                            <div class="fw-500 ms-1"
+                                                                                                 style="font-size: 12px;">
+                                                                                                上班中
+                                                                                            </div>
+                                                                                        `}
                                                                             </div>
                                                                         </div>
-
+                                                                        <i class="fa-regular fa-angle-down fs-6"></i>
                                                                     </div>
-                                                                    <i class="fa-regular fa-angle-down fs-6"></i>
                                                                 </div>
-                                                            </div>
-                                                            <div class="dropdown-menu position-absolute"
-                                                                 style="top:50px; right: 0;">
-                                                                ${[
+                                                                <div class="dropdown-menu position-absolute"
+                                                                     style="top:50px; right: 0;">
+                                                                    ${[
                                             ...(() => {
                                                 const mem_ = member_auth.filter((dd) => {
                                                     return `${dd.user}` !== `${POSSetting.config.who}`;
@@ -699,21 +828,58 @@ ${document.body.clientWidth < 800 ? `` : `position: absolute;left: 50%;top:50%;t
                                             })(),
                                             ...(() => {
                                                 if (glitter.share.select_member.config.support_shop.length > 1) {
-                                                    return [`<a
-                                                                                    class="dropdown-item cursor_pointer d-flex align-items-center" style="gap:5px;"
-                                                                                    onclick="${gvc.event(() => {
+                                                    return [html `<a
+                                                                                        class="dropdown-item cursor_pointer d-flex align-items-center"
+                                                                                        style="gap:5px;"
+                                                                                        onclick="${gvc.event(() => {
                                                             PosFunction.selectStoreSwitch(gvc);
                                                         })}">
-                                                                               <i class="fa-solid fa-store me-1"></i>切換門市
-                                                                            </a>`];
+                                                                                    <i class="fa-solid fa-store me-1"></i>切換門市
+                                                                                </a>`];
+                                                }
+                                                else {
+                                                    return [];
+                                                }
+                                            })(),
+                                            ...(() => {
+                                                if (glitter.share.work_status === 'on_work') {
+                                                    return [html `<a
+                                                                                        class="dropdown-item cursor_pointer d-flex align-items-center"
+                                                                                        style="gap:5px;"
+                                                                                        onclick="${gvc.event(() => {
+                                                            const dialog = new ShareDialog(gvc.glitter);
+                                                            dialog.checkYesOrNot({
+                                                                text: html `是否確認打卡下班?
+                                                                                                <br><span style="font-size:13px;color:gray;">*打卡下班前請記得填寫小結單*</span>`,
+                                                                callback: (response) => {
+                                                                    if (response) {
+                                                                        dialog.dataLoading({ visible: true });
+                                                                        ApiPos.setWorkStatus({
+                                                                            store: POSSetting.config.where_store,
+                                                                            status: 'off_work'
+                                                                        }).then((res) => {
+                                                                            dialog.dataLoading({ visible: false });
+                                                                            if (!res.result) {
+                                                                                dialog.errorMessage({ text: '打卡異常' });
+                                                                            }
+                                                                            else {
+                                                                                gvc.recreateView();
+                                                                            }
+                                                                        });
+                                                                    }
+                                                                }
+                                                            });
+                                                        })}">
+                                                                                    <i class="fa-sharp fa-solid fa-right-from-bracket me-1  fs-6"></i>打卡下班
+                                                                                </a>`];
                                                 }
                                                 else {
                                                     return [];
                                                 }
                                             })()
                                         ].join('<div class="dropdown-divider"></div>')}
-                                                            </div>
-                                                        </div>`);
+                                                                </div>
+                                                            </div>`);
                                     });
                                 },
                                 divCreate: {
@@ -721,16 +887,16 @@ ${document.body.clientWidth < 800 ? `` : `position: absolute;left: 50%;top:50%;t
                                 }
                             };
                         })}
-                                    ${(document.body.clientWidth < 800) ? `<div class="flex-fill"></div>` : ``}
-                                    <div class="h-100 d-flex align-items-center border-start ps-1">
-                                        <div style="width:50px;height: 100%;cursor: pointer;"
-                                             class="d-flex align-items-center justify-content-center"
-                                             onclick="${gvc.event(() => {
+                                        ${(document.body.clientWidth < 800) ? `<div class="flex-fill"></div>` : ``}
+                                        <div class="h-100 d-flex align-items-center border-start ps-1">
+                                            <div style="width:50px;height: 100%;cursor: pointer;"
+                                                 class="d-flex align-items-center justify-content-center"
+                                                 onclick="${gvc.event(() => {
                             PosFunction.selectTempOrder(gvc);
                         })}">
-                                            <div class=" btn btn-outline-secondary border-0 p-1 position-relative">
-                                                <i class="fa-regular fa-box fs-4"></i>
-                                                ${TempOrder.getTempOrders().length ? `<span style="position: absolute;top:-28px;right: -8px;"><span style="display: inline-block;
+                                                <div class=" btn btn-outline-secondary border-0 p-1 position-relative">
+                                                    <i class="fa-regular fa-box fs-4"></i>
+                                                    ${TempOrder.getTempOrders().length ? `<span style="position: absolute;top:-28px;right: -8px;"><span style="display: inline-block;
     background-color:#fe5541;
     height: 18px;
     width: 18px;
@@ -743,39 +909,39 @@ ${document.body.clientWidth < 800 ? `` : `position: absolute;left: 50%;top:50%;t
     position: absolute;
     top: 25px;
     right: 0px;">${TempOrder.getTempOrders().length}</span></span>` : ``}
+                                                </div>
                                             </div>
-                                        </div>
-                                        ${(document.body.clientWidth > 800 || vm.type !== 'menu') ? `` : `<div style="width:50px;" class="d-flex align-items-center justify-content-center">${cartBtn}</div>`}
-                                        ${gvc.bindView(() => {
+                                            ${(document.body.clientWidth > 800 || vm.type !== 'menu') ? `` : `<div style="width:50px;" class="d-flex align-items-center justify-content-center">${cartBtn}</div>`}
+                                            ${gvc.bindView(() => {
                             const id = gvc.glitter.getUUID();
                             return {
                                 bind: id,
                                 view: () => {
                                     return html `
-                                                        <div class="h-100 group dropdown  ps-1 d-flex align-items-center"
-                                                             style="">
-                                                            <div class="btn btn-outline-secondary  border-0 p-1 position-relative "
-                                                                 style="cursor: pointer;"
-                                                                 data-bs-toggle="dropdown" aria-haspopup="true"
-                                                                 aria-expanded="false">
-                                                                <div class="d-flex align-items-center px-sm-2"
-                                                                     style="gap:10px;">
-                                                                    <i class="fa-solid fa-bars fs-4"></i>
+                                                            <div class="h-100 group dropdown  ps-1 d-flex align-items-center"
+                                                                 style="">
+                                                                <div class="btn btn-outline-secondary  border-0 p-1 position-relative "
+                                                                     style="cursor: pointer;"
+                                                                     data-bs-toggle="dropdown" aria-haspopup="true"
+                                                                     aria-expanded="false">
+                                                                    <div class="d-flex align-items-center px-sm-2"
+                                                                         style="gap:10px;">
+                                                                        <i class="fa-solid fa-bars fs-4"></i>
+                                                                    </div>
                                                                 </div>
-                                                            </div>
-                                                            <div class="dropdown-menu position-absolute"
-                                                                 style="top:50px; right: 0;">
-                                                                ${[
+                                                                <div class="dropdown-menu position-absolute"
+                                                                     style="top:50px; right: 0;">
+                                                                    ${[
                                         ...[
                                             ...((PayConfig.deviceType === 'pos') ? [
                                                 html `
-                                                                                <a class="dropdown-item cursor_pointer d-flex align-items-center"
-                                                                                   style="gap:10px;"
-                                                                                   onclick="${gvc.event(() => {
+                                                                                    <a class="dropdown-item cursor_pointer d-flex align-items-center"
+                                                                                       style="gap:10px;"
+                                                                                       onclick="${gvc.event(() => {
                                                     ConnectionMode.main(gvc);
                                                 })}"><i
-                                                                                        class="fa-solid fa-plug d-flex align-items-center justify-content-center"
-                                                                                        style="width:20px;"></i>連線模式</a>`,
+                                                                                            class="fa-solid fa-plug d-flex align-items-center justify-content-center"
+                                                                                            style="width:20px;"></i>連線模式</a>`,
                                             ] : []),
                                             ...((ConnectionMode.on_connected_device) ? [
                                                 `<a class="dropdown-item cursor_pointer d-flex align-items-center"
@@ -797,13 +963,14 @@ ${document.body.clientWidth < 800 ? `` : `position: absolute;left: 50%;top:50%;t
                                             ] : [])
                                         ].concat(PayConfig.deviceType === 'pos' ? [] : ConnectionMode.device_list.map((dd) => {
                                             return html `<a
-                                                                                class="dropdown-item cursor_pointer d-flex align-items-center"
-                                                                                style="gap:10px;"
-                                                                                onclick="${gvc.event(() => {
+                                                                                    class="dropdown-item cursor_pointer d-flex align-items-center"
+                                                                                    style="gap:10px;"
+                                                                                    onclick="${gvc.event(() => {
                                                 ConnectionMode.connect(dd);
                                             })}"><i
-                                                                                class="fa-solid fa-plug d-flex align-items-center justify-content-center"
-                                                                                style="width:20px;"></i>連線至『 ${dd} 』</a>`;
+                                                                                    class="fa-solid fa-plug d-flex align-items-center justify-content-center"
+                                                                                    style="width:20px;"></i>連線至『
+                                                                                ${dd} 』</a>`;
                                         })),
                                         ` <a class="dropdown-item cursor_pointer  d-flex align-items-center"
                                                                    style="gap:5px;" onclick="${gvc.event(() => {
@@ -815,8 +982,8 @@ ${document.body.clientWidth < 800 ? `` : `position: absolute;left: 50%;top:50%;t
                                         })}"><i class="fa-solid fa-angle-left d-flex align-items-center justify-content-center"
                                                                         style="width:20px;"></i>返回後台管理</a>`
                                     ].join('<div class="dropdown-divider"></div>')}
-                                                            </div>
-                                                        </div>`;
+                                                                </div>
+                                                            </div>`;
                                 },
                                 divCreate: {
                                     class: `d-flex align-items-center justify-content-center`,
@@ -824,14 +991,19 @@ ${document.body.clientWidth < 800 ? `` : `position: absolute;left: 50%;top:50%;t
                                 }
                             };
                         })}
+                                        </div>
                                     </div>
+                                    ${document.body.clientWidth < 800 ? nav_slide : ''}
                                 </div>
-                            </div>
-                            ${gvc.bindView({
+                                ${document.body.clientWidth > 800 ? nav_slide : ''}
+                                ${gvc.bindView({
                             bind: 'mainView',
                             view: () => __awaiter(this, void 0, void 0, function* () {
                                 let view = (() => {
                                     try {
+                                        if (glitter.share.work_status === 'off_work') {
+                                            return PosWidget.checkInView(gvc);
+                                        }
                                         OrderDetail.singleInstance = orderDetail;
                                         orderDetail.user_info.shipment = orderDetail.user_info.shipment || 'now';
                                         if (vm.type == 'payment') {
@@ -849,6 +1021,11 @@ ${document.body.clientWidth < 800 ? `` : `position: absolute;left: 50%;top:50%;t
                                         }
                                         else if (vm.type === 'setting') {
                                             return PosSetting.main({ gvc: gvc, vm: vm });
+                                        }
+                                        else if (vm.type === 'summary') {
+                                            return PosSummary.main({
+                                                gvc: gvc
+                                            });
                                         }
                                         vm.searchable = true;
                                         return ProductsPage.main({ gvc: gvc, vm: vm, orderDetail: orderDetail });
@@ -868,155 +1045,11 @@ ${document.body.clientWidth < 800 ? `` : `position: absolute;left: 50%;top:50%;t
                                 style: `background: #F7F7F7;padding-top:${glitter.share.top_inset}px;`,
                             },
                         })}
-                            ${gvc.bindView({
-                            bind: 'nav-slide',
-                            view: () => {
-                                let page = [
-                                    {
-                                        selectIcon: html `
-                                                <svg xmlns="http://www.w3.org/2000/svg" width="26" height="26"
-                                                     viewBox="0 0 26 26" fill="none">
-                                                    <g clip-path="url(#clip0_12400_257115)">
-                                                        <path
-                                                                d="M17.5195 1.98572C17.0473 1.50837 16.2754 1.50329 15.798 1.97556C15.3207 2.44783 15.3156 3.2197 15.7879 3.69704L22.2727 10.2631C23.9941 12.0049 23.9941 14.8029 22.2727 16.5447L16.5902 22.2982C16.118 22.7756 16.123 23.5474 16.6004 24.0197C17.0777 24.492 17.8496 24.4869 18.3219 24.0095L24.0094 18.2611C26.6703 15.5697 26.6703 11.2431 24.0094 8.55173L17.5195 1.98572ZM12.3246 2.57478C11.7152 1.9654 10.8875 1.62517 10.0242 1.62517L2.4375 1.62517C1.0918 1.62517 0 2.71697 0 4.06267L0 11.6545C0 12.5177 0.340234 13.3455 0.949609 13.9549L9.48086 22.4861C10.7504 23.7556 12.807 23.7556 14.0766 22.4861L20.8559 15.7068C22.1254 14.4373 22.1254 12.3806 20.8559 11.1111L12.3246 2.57986V2.57478ZM2.4375 4.06267L10.0293 4.06267C10.2426 4.06267 10.4508 4.149 10.6031 4.30134L19.1344 12.8326C19.4492 13.1474 19.4492 13.6654 19.1344 13.9802L12.3551 20.7595C12.0402 21.0744 11.5223 21.0744 11.2074 20.7595L2.67617 12.2283C2.52383 12.076 2.4375 11.8677 2.4375 11.6545L2.4375 4.06267ZM7.3125 7.31267C7.3125 6.88169 7.14129 6.46837 6.83655 6.16362C6.5318 5.85887 6.11848 5.68767 5.6875 5.68767C5.25652 5.68767 4.8432 5.85887 4.53845 6.16362C4.2337 6.46837 4.0625 6.88169 4.0625 7.31267C4.0625 7.74365 4.2337 8.15697 4.53845 8.46172C4.8432 8.76646 5.25652 8.93767 5.6875 8.93767C6.11848 8.93767 6.5318 8.76646 6.83655 8.46172C7.14129 8.15697 7.3125 7.74365 7.3125 7.31267Z"
-                                                                fill="#393939"
-                                                        />
-                                                    </g>
-                                                    <defs>
-                                                        <clipPath id="clip0_12400_257115">
-                                                            <rect width="26" height="26" fill="white"/>
-                                                        </clipPath>
-                                                    </defs>
-                                                </svg>`,
-                                        unselectIcon: html `
-                                                <svg xmlns="http://www.w3.org/2000/svg" width="29" height="28"
-                                                     viewBox="0 0 29 28" fill="none">
-                                                    <g clip-path="url(#clip0_12462_92)">
-                                                        <path
-                                                                d="M19.3672 2.13827C18.8586 1.62421 18.0273 1.61874 17.5133 2.12733C16.9992 2.63593 16.9937 3.46718 17.5023 3.98124L24.4859 11.0523C26.3398 12.9281 26.3398 15.9414 24.4859 17.8172L18.3664 24.0133C17.8578 24.5273 17.8633 25.3586 18.3773 25.8672C18.8914 26.3758 19.7227 26.3703 20.2312 25.8562L26.3562 19.6656C29.2219 16.7672 29.2219 12.1078 26.3562 9.20937L19.3672 2.13827ZM13.7727 2.77265C13.1164 2.1164 12.225 1.74999 11.2953 1.74999H3.125C1.67578 1.74999 0.5 2.92577 0.5 4.37499V12.5508C0.5 13.4805 0.866406 14.3719 1.52266 15.0281L10.7102 24.2156C12.0773 25.5828 14.2922 25.5828 15.6594 24.2156L22.9602 16.9148C24.3273 15.5476 24.3273 13.3328 22.9602 11.9656L13.7727 2.77812V2.77265ZM3.125 4.37499H11.3008C11.5305 4.37499 11.7547 4.46796 11.9187 4.63202L21.1062 13.8195C21.4453 14.1586 21.4453 14.7164 21.1062 15.0555L13.8055 22.3562C13.4664 22.6953 12.9086 22.6953 12.5695 22.3562L3.38203 13.1687C3.21797 13.0047 3.125 12.7805 3.125 12.5508V4.37499ZM8.375 7.87499C8.375 7.41086 8.19063 6.96574 7.86244 6.63755C7.53425 6.30937 7.08913 6.12499 6.625 6.12499C6.16087 6.12499 5.71575 6.30937 5.38756 6.63755C5.05937 6.96574 4.875 7.41086 4.875 7.87499C4.875 8.33912 5.05937 8.78424 5.38756 9.11243C5.71575 9.44062 6.16087 9.62499 6.625 9.62499C7.08913 9.62499 7.53425 9.44062 7.86244 9.11243C8.19063 8.78424 8.375 8.33912 8.375 7.87499Z"
-                                                                fill="#949494"
-                                                        />
-                                                    </g>
-                                                    <defs>
-                                                        <clipPath id="clip0_12462_92">
-                                                            <rect width="28" height="28" fill="white"
-                                                                  transform="translate(0.5)"/>
-                                                        </clipPath>
-                                                    </defs>
-                                                </svg>`,
-                                        title: PayConfig.pos_config.pos_type === 'eat' ? `點餐` : `商品`,
-                                        type: `menu`,
-                                    },
-                                    {
-                                        selectIcon: html `
-                                                <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28"
-                                                     viewBox="0 0 28 28" fill="none">
-                                                    <path
-                                                            d="M24.8889 4.375C25.3167 4.375 25.6667 4.76875 25.6667 5.25V7H2.33333V5.25C2.33333 4.76875 2.68333 4.375 3.11111 4.375H24.8889ZM25.6667 12.25V22.75C25.6667 23.2313 25.3167 23.625 24.8889 23.625H3.11111C2.68333 23.625 2.33333 23.2313 2.33333 22.75V12.25H25.6667ZM3.11111 1.75C1.39514 1.75 0 3.31953 0 5.25V22.75C0 24.6805 1.39514 26.25 3.11111 26.25H24.8889C26.6049 26.25 28 24.6805 28 22.75V5.25C28 3.31953 26.6049 1.75 24.8889 1.75H3.11111ZM5.83333 18.375C5.18681 18.375 4.66667 18.9602 4.66667 19.6875C4.66667 20.4148 5.18681 21 5.83333 21H8.16667C8.81319 21 9.33333 20.4148 9.33333 19.6875C9.33333 18.9602 8.81319 18.375 8.16667 18.375H5.83333ZM12.0556 18.375C11.409 18.375 10.8889 18.9602 10.8889 19.6875C10.8889 20.4148 11.409 21 12.0556 21H17.5C18.1465 21 18.6667 20.4148 18.6667 19.6875C18.6667 18.9602 18.1465 18.375 17.5 18.375H12.0556Z"
-                                                            fill="#393939"
-                                                    />
-                                                </svg>`,
-                                        unselectIcon: html `
-                                                <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28"
-                                                     viewBox="0 0 28 28" fill="none">
-                                                    <path
-                                                            d="M24.8889 4.375C25.3167 4.375 25.6667 4.76875 25.6667 5.25V7H2.33333V5.25C2.33333 4.76875 2.68333 4.375 3.11111 4.375H24.8889ZM25.6667 12.25V22.75C25.6667 23.2313 25.3167 23.625 24.8889 23.625H3.11111C2.68333 23.625 2.33333 23.2313 2.33333 22.75V12.25H25.6667ZM3.11111 1.75C1.39514 1.75 0 3.31953 0 5.25V22.75C0 24.6805 1.39514 26.25 3.11111 26.25H24.8889C26.6049 26.25 28 24.6805 28 22.75V5.25C28 3.31953 26.6049 1.75 24.8889 1.75H3.11111ZM5.83333 18.375C5.18681 18.375 4.66667 18.9602 4.66667 19.6875C4.66667 20.4148 5.18681 21 5.83333 21H8.16667C8.81319 21 9.33333 20.4148 9.33333 19.6875C9.33333 18.9602 8.81319 18.375 8.16667 18.375H5.83333ZM12.0556 18.375C11.409 18.375 10.8889 18.9602 10.8889 19.6875C10.8889 20.4148 11.409 21 12.0556 21H17.5C18.1465 21 18.6667 20.4148 18.6667 19.6875C18.6667 18.9602 18.1465 18.375 17.5 18.375H12.0556Z"
-                                                            fill="#8D8D8D"
-                                                    />
-                                                </svg>`,
-                                        title: `結帳`,
-                                        type: `payment`,
-                                    },
-                                    {
-                                        selectIcon: html `
-                                                <svg xmlns="http://www.w3.org/2000/svg" width="29" height="29"
-                                                     viewBox="0 0 29 29" fill="none">
-                                                    <g clip-path="url(#clip0_12544_35571)">
-                                                        <path
-                                                                d="M21.75 4H19.5625H19.0375C18.6328 2.00391 16.8664 0.5 14.75 0.5C12.6336 0.5 10.8672 2.00391 10.4625 4H9.9375H7.75C5.81953 4 4.25 5.56953 4.25 7.5V25C4.25 26.9305 5.81953 28.5 7.75 28.5H21.75C23.6805 28.5 25.25 26.9305 25.25 25V7.5C25.25 5.56953 23.6805 4 21.75 4ZM8.625 6.625V7.9375C8.625 8.66484 9.21016 9.25 9.9375 9.25H14.75H19.5625C20.2898 9.25 20.875 8.66484 20.875 7.9375V6.625H21.75C22.2313 6.625 22.625 7.01875 22.625 7.5V25C22.625 25.4813 22.2313 25.875 21.75 25.875H7.75C7.26875 25.875 6.875 25.4813 6.875 25V7.5C6.875 7.01875 7.26875 6.625 7.75 6.625H8.625ZM13.4375 4.875C13.4375 4.5269 13.5758 4.19306 13.8219 3.94692C14.0681 3.70078 14.4019 3.5625 14.75 3.5625C15.0981 3.5625 15.4319 3.70078 15.6781 3.94692C15.9242 4.19306 16.0625 4.5269 16.0625 4.875C16.0625 5.2231 15.9242 5.55694 15.6781 5.80308C15.4319 6.04922 15.0981 6.1875 14.75 6.1875C14.4019 6.1875 14.0681 6.04922 13.8219 5.80308C13.5758 5.55694 13.4375 5.2231 13.4375 4.875ZM11.6875 15.375C11.6875 15.2026 11.6536 15.032 11.5876 14.8727C11.5216 14.7135 11.425 14.5688 11.3031 14.4469C11.1812 14.325 11.0365 14.2284 10.8773 14.1624C10.718 14.0964 10.5474 14.0625 10.375 14.0625C10.2026 14.0625 10.032 14.0964 9.87273 14.1624C9.71349 14.2284 9.5688 14.325 9.44692 14.4469C9.32505 14.5688 9.22837 14.7135 9.16241 14.8727C9.09645 15.032 9.0625 15.2026 9.0625 15.375C9.0625 15.5474 9.09645 15.718 9.16241 15.8773C9.22837 16.0365 9.32505 16.1812 9.44692 16.3031C9.5688 16.425 9.71349 16.5216 9.87273 16.5876C10.032 16.6536 10.2026 16.6875 10.375 16.6875C10.5474 16.6875 10.718 16.6536 10.8773 16.5876C11.0365 16.5216 11.1812 16.425 11.3031 16.3031C11.425 16.1812 11.5216 16.0365 11.5876 15.8773C11.6536 15.718 11.6875 15.5474 11.6875 15.375ZM13.875 14.5C13.3938 14.5 13 14.8938 13 15.375C13 15.8562 13.3938 16.25 13.875 16.25H19.125C19.6062 16.25 20 15.8562 20 15.375C20 14.8938 19.6062 14.5 19.125 14.5H13.875ZM13.875 19.75C13.3938 19.75 13 20.1437 13 20.625C13 21.1063 13.3938 21.5 13.875 21.5H19.125C19.6062 21.5 20 21.1063 20 20.625C20 20.1437 19.6062 19.75 19.125 19.75H13.875ZM10.375 21.9375C10.7231 21.9375 11.0569 21.7992 11.3031 21.5531C11.5492 21.3069 11.6875 20.9731 11.6875 20.625C11.6875 20.2769 11.5492 19.9431 11.3031 19.6969C11.0569 19.4508 10.7231 19.3125 10.375 19.3125C10.0269 19.3125 9.69306 19.4508 9.44692 19.6969C9.20078 19.9431 9.0625 20.2769 9.0625 20.625C9.0625 20.9731 9.20078 21.3069 9.44692 21.5531C9.69306 21.7992 10.0269 21.9375 10.375 21.9375Z"
-                                                                fill="#393939"
-                                                        />
-                                                    </g>
-                                                    <defs>
-                                                        <clipPath id="clip0_12544_35571">
-                                                            <rect width="28" height="28" fill="white"
-                                                                  transform="translate(0.75 0.5)"/>
-                                                        </clipPath>
-                                                    </defs>
-                                                </svg>`,
-                                        unselectIcon: html `
-                                                <svg xmlns="http://www.w3.org/2000/svg" width="29" height="29"
-                                                     viewBox="0 0 29 29" fill="none">
-                                                    <g clip-path="url(#clip0_12544_35571)">
-                                                        <path
-                                                                d="M21.75 4H19.5625H19.0375C18.6328 2.00391 16.8664 0.5 14.75 0.5C12.6336 0.5 10.8672 2.00391 10.4625 4H9.9375H7.75C5.81953 4 4.25 5.56953 4.25 7.5V25C4.25 26.9305 5.81953 28.5 7.75 28.5H21.75C23.6805 28.5 25.25 26.9305 25.25 25V7.5C25.25 5.56953 23.6805 4 21.75 4ZM8.625 6.625V7.9375C8.625 8.66484 9.21016 9.25 9.9375 9.25H14.75H19.5625C20.2898 9.25 20.875 8.66484 20.875 7.9375V6.625H21.75C22.2313 6.625 22.625 7.01875 22.625 7.5V25C22.625 25.4813 22.2313 25.875 21.75 25.875H7.75C7.26875 25.875 6.875 25.4813 6.875 25V7.5C6.875 7.01875 7.26875 6.625 7.75 6.625H8.625ZM13.4375 4.875C13.4375 4.5269 13.5758 4.19306 13.8219 3.94692C14.0681 3.70078 14.4019 3.5625 14.75 3.5625C15.0981 3.5625 15.4319 3.70078 15.6781 3.94692C15.9242 4.19306 16.0625 4.5269 16.0625 4.875C16.0625 5.2231 15.9242 5.55694 15.6781 5.80308C15.4319 6.04922 15.0981 6.1875 14.75 6.1875C14.4019 6.1875 14.0681 6.04922 13.8219 5.80308C13.5758 5.55694 13.4375 5.2231 13.4375 4.875ZM11.6875 15.375C11.6875 15.2026 11.6536 15.032 11.5876 14.8727C11.5216 14.7135 11.425 14.5688 11.3031 14.4469C11.1812 14.325 11.0365 14.2284 10.8773 14.1624C10.718 14.0964 10.5474 14.0625 10.375 14.0625C10.2026 14.0625 10.032 14.0964 9.87273 14.1624C9.71349 14.2284 9.5688 14.325 9.44692 14.4469C9.32505 14.5688 9.22837 14.7135 9.16241 14.8727C9.09645 15.032 9.0625 15.2026 9.0625 15.375C9.0625 15.5474 9.09645 15.718 9.16241 15.8773C9.22837 16.0365 9.32505 16.1812 9.44692 16.3031C9.5688 16.425 9.71349 16.5216 9.87273 16.5876C10.032 16.6536 10.2026 16.6875 10.375 16.6875C10.5474 16.6875 10.718 16.6536 10.8773 16.5876C11.0365 16.5216 11.1812 16.425 11.3031 16.3031C11.425 16.1812 11.5216 16.0365 11.5876 15.8773C11.6536 15.718 11.6875 15.5474 11.6875 15.375ZM13.875 14.5C13.3938 14.5 13 14.8938 13 15.375C13 15.8562 13.3938 16.25 13.875 16.25H19.125C19.6062 16.25 20 15.8562 20 15.375C20 14.8938 19.6062 14.5 19.125 14.5H13.875ZM13.875 19.75C13.3938 19.75 13 20.1437 13 20.625C13 21.1063 13.3938 21.5 13.875 21.5H19.125C19.6062 21.5 20 21.1063 20 20.625C20 20.1437 19.6062 19.75 19.125 19.75H13.875ZM10.375 21.9375C10.7231 21.9375 11.0569 21.7992 11.3031 21.5531C11.5492 21.3069 11.6875 20.9731 11.6875 20.625C11.6875 20.2769 11.5492 19.9431 11.3031 19.6969C11.0569 19.4508 10.7231 19.3125 10.375 19.3125C10.0269 19.3125 9.69306 19.4508 9.44692 19.6969C9.20078 19.9431 9.0625 20.2769 9.0625 20.625C9.0625 20.9731 9.20078 21.3069 9.44692 21.5531C9.69306 21.7992 10.0269 21.9375 10.375 21.9375Z"
-                                                                fill="#8D8D8D"
-                                                        />
-                                                    </g>
-                                                    <defs>
-                                                        <clipPath id="clip0_12544_35571">
-                                                            <rect width="28" height="28" fill="white"
-                                                                  transform="translate(0.75 0.5)"/>
-                                                        </clipPath>
-                                                    </defs>
-                                                </svg>`,
-                                        title: `訂單`,
-                                        type: `order`,
-                                    },
-                                    {
-                                        selectIcon: html `
-                                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 512" width="29"
-                                                     height="29" fill="#393939">
-                                                    <path d="M144 144c0 44.2 35.8 80 80 80s80-35.8 80-80l0-16-160 0 0 16zm-.1-124.9l.1 .1c10.2 7.5 23.8 8.3 34.9 2L209.1 4c4.6-2.6 9.7-4 14.9-4s10.4 1.4 14.9 4l30.2 17.2c11 6.3 24.7 5.5 34.9-2l.1-.1c.3-.2 .6-.4 .8-.6l3-2.4L323.6 3.5c2.8-2.3 6.4-3.5 10-3.5L336 0c8.8 0 16 7.2 16 16l0 23 0 3.2c0 0 0 .1 0 .1L352 144c0 70.7-57.3 128-128 128s-128-57.3-128-128L96 42.3c0 0 0-.1 0-.1L96 39l0-23c0-8.8 7.2-16 16-16l2.4 0c3.6 0 7.2 1.2 10 3.5L140 16l3 2.4c.3 .2 .6 .4 .8 .6zM48.3 464l351.5 0c-4.1-62.5-56.2-112-119.7-112l-112 0c-63.6 0-115.6 49.5-119.7 112zM0 472c0-92.8 75.2-168 168-168l112 0c92.8 0 168 75.2 168 168l0 8c0 17.7-14.3 32-32 32L32 512c-17.7 0-32-14.3-32-32l0-8zM432 256c-27.7 0-53-10.1-72.6-26.7c.5-.8 1-1.5 1.4-2.3c12.1-19.9 20-42.6 22.4-67c.5-5.3 .8-10.6 .8-16l0-101.2C398.5 35.9 414.8 32 432 32c61.9 0 112 50.1 112 112s-50.1 112-112 112zM609.3 512l-137.8 0c5.4-9.4 8.6-20.3 8.6-32l0-8c0-60.7-27.1-115.2-69.8-151.8c2.4-.1 4.7-.2 7.1-.2l61.4 0C567.8 320 640 392.2 640 481.3c0 17-13.8 30.7-30.7 30.7z"/>
-                                                </svg>`,
-                                        unselectIcon: html `
-                                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 512" width="29"
-                                                     height="29" fill="#8D8D8D">
-                                                    <path d="M144 144c0 44.2 35.8 80 80 80s80-35.8 80-80l0-16-160 0 0 16zm-.1-124.9l.1 .1c10.2 7.5 23.8 8.3 34.9 2L209.1 4c4.6-2.6 9.7-4 14.9-4s10.4 1.4 14.9 4l30.2 17.2c11 6.3 24.7 5.5 34.9-2l.1-.1c.3-.2 .6-.4 .8-.6l3-2.4L323.6 3.5c2.8-2.3 6.4-3.5 10-3.5L336 0c8.8 0 16 7.2 16 16l0 23 0 3.2c0 0 0 .1 0 .1L352 144c0 70.7-57.3 128-128 128s-128-57.3-128-128L96 42.3c0 0 0-.1 0-.1L96 39l0-23c0-8.8 7.2-16 16-16l2.4 0c3.6 0 7.2 1.2 10 3.5L140 16l3 2.4c.3 .2 .6 .4 .8 .6zM48.3 464l351.5 0c-4.1-62.5-56.2-112-119.7-112l-112 0c-63.6 0-115.6 49.5-119.7 112zM0 472c0-92.8 75.2-168 168-168l112 0c92.8 0 168 75.2 168 168l0 8c0 17.7-14.3 32-32 32L32 512c-17.7 0-32-14.3-32-32l0-8zM432 256c-27.7 0-53-10.1-72.6-26.7c.5-.8 1-1.5 1.4-2.3c12.1-19.9 20-42.6 22.4-67c.5-5.3 .8-10.6 .8-16l0-101.2C398.5 35.9 414.8 32 432 32c61.9 0 112 50.1 112 112s-50.1 112-112 112zM609.3 512l-137.8 0c5.4-9.4 8.6-20.3 8.6-32l0-8c0-60.7-27.1-115.2-69.8-151.8c2.4-.1 4.7-.2 7.1-.2l61.4 0C567.8 320 640 392.2 640 481.3c0 17-13.8 30.7-30.7 30.7z"/>
-                                                </svg>`,
-                                        title: `會員`,
-                                        type: `member`,
-                                    }
-                                ];
-                                return page
-                                    .map((data) => {
-                                    return html `
-                                                    <div
-                                                            class="d-flex flex-column justify-content-center align-items-center"
-                                                            style="padding-top: 16px;padding-bottom: 16px;gap: 6px;font-weight: 500;letter-spacing: 0.8px;${vm.type == data.type
-                                        ? `color:#393939;${document.body.offsetWidth < 800 ? `border-top: 3px solid #393939;font-size: 16px;` : `border-right: 3px solid #393939;font-size: 18px;`}`
-                                        : 'color:#949494;'}flex:1;cursor:pointer;${glitter.ut.frSize({
-                                        sm: `padding-right:32px;padding-left:32px;`
-                                    }, ``)}"
-                                                            onclick="${gvc.event(() => {
-                                        vm.type = data.type;
-                                    })}"
-                                                    >
-                                                        ${vm.type == data.type ? data.selectIcon : data.unselectIcon}
-                                                        ${data.title}
-                                                    </div>
-                                                `;
-                                })
-                                    .join('');
-                            },
-                            divCreate: () => {
-                                if (document.body.offsetWidth < 800) {
-                                    return {
-                                        class: ` flex-row pos-footer-menu`,
-                                        style: `width: 100%;gap:24px;height:100px;position:fixed;bottom:0px;left:0px;background: #FFF;box-shadow: 1px 0px 10px 0px rgba(0, 0, 0, 0.05); justify-content: space-around;display:flex;`,
-                                    };
-                                }
-                                else {
-                                    return {
-                                        class: `d-flex nav-left flex-column`,
-                                        style: `height: 100%;gap:24px;padding-top:114px;position:fixed;left:0px;top:0px;background: #FFF;box-shadow: 1px 0px 10px 0px rgba(0, 0, 0, 0.05);z-index:10;`,
-                                    };
-                                }
-                            },
-                        })}
-                        `;
+                            `;
                     }
                     catch (e) {
+                        localStorage.removeItem('pos_order_detail');
+                        gvc.recreateView();
                         console.log(e);
                         return `${e}`;
                     }
@@ -1026,11 +1059,11 @@ ${document.body.clientWidth < 800 ? `` : `position: absolute;left: 50%;top:50%;t
                         return { style: `padding: 86px 0 0 103px;height:100vh;width:100vw;color:#393939;` };
                     }
                     else {
-                        return { style: `padding-top:66px;padding-bottom:0px;height:100vh;width:100vw;color:#393939;overflow-y:auto;` };
+                        return { style: `padding-top:150px;padding-bottom:0px;height:100vh;width:100vw;color:#393939;overflow-y:auto;` };
                     }
                 },
             };
-        }));
+        }) + NormalPageEditor.leftNav(gvc));
     }
     static initialStyle(gvc) {
         const css = String.raw;

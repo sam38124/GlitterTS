@@ -10,6 +10,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 import { init } from '../GVController.js';
 import { TriggerEvent } from "./trigger-event.js";
 import { GlobalUser } from "../../glitter-base/global/global-user.js";
+import { FirstBanner } from "../../public-components/banner/first-banner.js";
 init(import.meta.url, (gvc, glitter, gBundle) => {
     var _a, _b, _c, _d;
     glitter.share.htmlExtension = (_a = glitter.share.htmlExtension) !== null && _a !== void 0 ? _a : {};
@@ -88,7 +89,22 @@ init(import.meta.url, (gvc, glitter, gBundle) => {
     }
     return {
         onCreateView: () => {
-            var _a, _b;
+            var _a, _b, _c, _d, _e, _f, _g, _h;
+            FirstBanner.main({ gvc: gvc });
+            if (gBundle.page_config.seo && (gBundle.page_config.seo.type === "custom") && gBundle.page_config.seo.title) {
+                glitter.setUrlParameter('', undefined, [
+                    (_a = gBundle.page_config.seo.title_prefix) !== null && _a !== void 0 ? _a : "",
+                    (_b = gBundle.page_config.seo.title) !== null && _b !== void 0 ? _b : '',
+                    (_c = gBundle.page_config.seo.title_suffix) !== null && _c !== void 0 ? _c : "",
+                ].join(''));
+            }
+            else {
+                glitter.setUrlParameter('', undefined, [
+                    (_d = window.home_seo.title_prefix) !== null && _d !== void 0 ? _d : "",
+                    (_e = window.home_seo.title) !== null && _e !== void 0 ? _e : '',
+                    (_f = window.home_seo.title_suffix) !== null && _f !== void 0 ? _f : "",
+                ].join(''));
+            }
             if (gvc.glitter.getUrlParameter('page') === 'account_userinfo' && !GlobalUser.token) {
                 gvc.glitter.href = '/login';
                 return ``;
@@ -98,7 +114,7 @@ init(import.meta.url, (gvc, glitter, gBundle) => {
             const mainId = glitter.getUUID();
             let map = [];
             if (gBundle.page_config.resource_from !== 'own') {
-                map.push(new glitter.htmlGenerate((_a = gBundle.app_config.globalScript) !== null && _a !== void 0 ? _a : [], [], gBundle.data, true).render(gvc, {
+                map.push(new glitter.htmlGenerate((_g = gBundle.app_config.globalScript) !== null && _g !== void 0 ? _g : [], [], gBundle.data, true).render(gvc, {
                     class: ``,
                     style: ``,
                     jsFinish: () => {
@@ -112,7 +128,7 @@ init(import.meta.url, (gvc, glitter, gBundle) => {
                         });
                     }
                 }));
-                let globalStyleLink = ((_b = gBundle.app_config.globalStyle) !== null && _b !== void 0 ? _b : []).filter((dd) => {
+                let globalStyleLink = ((_h = gBundle.app_config.globalStyle) !== null && _h !== void 0 ? _h : []).filter((dd) => {
                     return dd.data.elem === 'link';
                 });
                 let check = globalStyleLink.length;

@@ -159,7 +159,7 @@ export class ThirdPartyLine {
                                                         ${BgWidget.blueNote(
                                                             `『 教學步驟 』`,
                                                             gvc.event(() => {
-                                                                (window.parent as any).glitter.openNewTab('https://shopnex.cc/blogs/lineapiconnect');
+                                                                (window.parent as any).glitter.openNewTab('https://shopnex.tw/blogs/lineapiconnect');
                                                             })
                                                         )}
                                                         查看串接設定流程

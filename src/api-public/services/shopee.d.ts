@@ -1,4 +1,3 @@
-/// <reference types="node" />
 import { IToken } from '../models/Auth.js';
 export interface LanguageData {
     title: string;
@@ -19,7 +18,7 @@ export declare class Shopee {
     private cryptoSign;
     generateAuth(redirectUrl: string): string;
     getToken(code: string, shop_id: string): Promise<void>;
-    getItemList(start: string, end: string): Promise<{
+    getItemList(start: string, end: string, index?: number): Promise<{
         type: string;
         message: any;
         data?: undefined;

@@ -1,6 +1,7 @@
 import { User } from '../services/user.js';
 import { Mail } from '../services/mail.js';
 import {App} from "../../services/app.js";
+import db from '../../modules/database.js';
 
 export class AutoSendEmail {
     public static async getDefCompare(app: string, tag: string,language:string) {
@@ -454,21 +455,21 @@ export class AutoSendEmail {
                                                                         >
                                                                             <p style="box-sizing: border-box; margin-top: 0px; margin-bottom: 1.25rem; -webkit-font-smoothing: antialiased;">
                                                                                 <a
-                                                                                    href="https://shopnex.cc/?article=termsofservice&page=blog_detail"
+                                                                                    href="https://shopnex.tw/?article=termsofservice&page=blog_detail"
                                                                                     target="_blank"
                                                                                     rel="noopener"
                                                                                     style="box-sizing: border-box; color: rgb(28, 28, 28); text-decoration: underline; -webkit-font-smoothing: antialiased; transition: color 0.2s ease-in-out 0s; user-select: auto;"
                                                                                     >服務條款</a
                                                                                 >&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;
                                                                                 <a
-                                                                                    href="https://shopnex.cc/?article=privacyterms&page=blog_detail"
+                                                                                    href="https://shopnex.tw/?article=privacyterms&page=blog_detail"
                                                                                     target="_blank"
                                                                                     rel="noopener"
                                                                                     style="box-sizing: border-box; color: rgb(28, 28, 28); text-decoration: underline; -webkit-font-smoothing: antialiased; transition: color 0.2s ease-in-out 0s; user-select: auto;"
                                                                                     >隱私條款</a
                                                                                 >&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;
                                                                                 <a
-                                                                                    href="https://shopnex.cc/?article=privacyterms&page=e-commerce-blog"
+                                                                                    href="https://shopnex.tw/?article=privacyterms&page=e-commerce-blog"
                                                                                     target="_blank"
                                                                                     rel="noopener"
                                                                                     style="box-sizing: border-box; color: rgb(28, 28, 28); text-decoration: underline; -webkit-font-smoothing: antialiased; transition: color 0.2s ease-in-out 0s; user-select: auto;"
@@ -497,14 +498,35 @@ export class AutoSendEmail {
     public static async customerOrder(app: string, tag: string, order_id: string, email: string,language:string) {
         const customerMail = await this.getDefCompare(app, tag,language);
         const brandAndMemberType = await App.checkBrandAndMemberType(app);
+        //訂單資料
+        const order_data = (
+            await db.query(
+                `SELECT *
+                     FROM \`${app}\`.t_checkout
+                     WHERE cart_token = ?
+                    `,
+                [order_id]
+            )
+        )[0]['orderData']
         if (customerMail.toggle) {
-            await new Mail(app).postMail({
-                name: customerMail.name,
-                title: customerMail.title.replace(/@\{\{訂單號碼\}\}/g, order_id),
-                content: customerMail.content.replace(/@\{\{訂單號碼\}\}/g, `<a href="https://${brandAndMemberType.domain}/order_detail?cart_token=${order_id}">${order_id}</a>`),
-                email: [email],
-                type: tag,
-            });
+            try {
+                await new Mail(app).postMail({
+                    name: customerMail.name,
+                    title: customerMail.title.replace(/@\{\{訂單號碼\}\}/g, order_id),
+                    content: customerMail.content.replace(/@\{\{訂單號碼\}\}/g, `<a href="https://${brandAndMemberType.domain}/order_detail?cart_token=${order_id}">${order_id}</a>`)
+                        .replace(/@\{\{訂單金額\}\}/g,order_data.total)
+                        .replace(/@\{\{姓名\}\}/g,order_data.customer_info.name ?? '')
+                        .replace(/@\{\{電話\}\}/g,order_data.customer_info.phone ?? '')
+                        .replace(/@\{\{地址\}\}/g,order_data.user_info.address ?? '')
+                        .replace(/@\{\{信箱\}\}/g,order_data.customer_info.email ?? '')
+                    ,
+                    email: [email],
+                    type: tag,
+                });
+            }catch (e) {
+
+            }
+
         }
     }
 }

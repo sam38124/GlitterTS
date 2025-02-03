@@ -1,7 +1,7 @@
 import { GVC } from '../../glitterBundle/GVController.js';
 import { ApiShop } from '../../glitter-base/route/shopping.js';
 import { ApiUser } from '../../glitter-base/route/user.js';
-import { PdClass, Product, FileList } from './pd-class.js';
+import { PdClass, Product_l, FileList } from './pd-class.js';
 import { Language } from '../../glitter-base/global/language.js';
 
 /*
@@ -84,7 +84,7 @@ export class ProductDetail {
         const isPhone = document.body.clientWidth < 768;
 
         const vm = {
-            data: {} as Product,
+            data: {} as Product_l,
             content_manager: [] as FileList,
             content_tag: 'default' as string,
             specs: [] as string[],
@@ -136,11 +136,6 @@ export class ProductDetail {
                         : prod.specs.map((spec) => {
                               return spec.option[0].title;
                           });
-                prod.variants.forEach((variant) => {
-                    if (variant.preview_image && !prod.preview_image.includes(variant.preview_image)) {
-                        prod.preview_image.push(variant.preview_image);
-                    }
-                });
 
                 const book_mark = [
                     {
@@ -291,7 +286,7 @@ export class ProductDetail {
                                         }
                                         return 'margin: 0 10%;';
                                     })() + `max-width:100%;`,
-                                class: `pd_detail_content`,
+                                class: `pd_detail_content fr-view`,
                             },
                         })}
                     </div>
@@ -442,17 +437,25 @@ export class ProductDetail {
                                 try {
                                     if (Array.isArray(dataArray[1].response.data)) {
                                         vm.data = dataArray[1].response.data[0];
-                                        glitter.setUrlParameter('page', 'products/' + encodeURIComponent(vm.data.content.seo.domain));
                                     } else {
                                         vm.data = dataArray[1].response.data;
-                                        glitter.setUrlParameter('page', 'products/' + encodeURIComponent(vm.data.content.seo.domain));
                                     }
+                                    glitter.setUrlParameter('page', 'products/' + encodeURIComponent(vm.data.content.seo.domain || vm.data.content.title), [
+                                        (window as any).home_seo.title_prefix ?? "",
+                                        (vm.data.content.seo.domain || vm.data.content.title),
+                                        (window as any).home_seo.title_suffix ?? "",
+                                    ].join(''));
+                                    //如有原先的JSON LD
+                                    const json_ld=document.querySelector('script[type="application/ld+json"]');
+                                    if(json_ld){json_ld.remove()};
+                                    (document.querySelector('head') as any).innerHTML+=(vm.data as any).json_ld;
+                                    console.log(`(vm.data as any).json_ld=>`,(vm.data as any).json_ld)
                                 } catch (e) {
                                     (vm.data as any) = {};
                                 }
                             }
                             if (dataArray[2].result && dataArray[2].response.data) {
-                                vm.wishStatus = dataArray[2].response.data.some((item: Product) => item.id === vm.data.id);
+                                vm.wishStatus = dataArray[2].response.data.some((item: Product_l) => item.id === vm.data.id);
                             }
                             loadings.page = false;
                             gvc.notifyDataChange(ids.page);

@@ -3,7 +3,8 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.compare_sql_table = exports.SaasScheme = void 0;
+exports.SaasScheme = void 0;
+exports.compare_sql_table = compare_sql_table;
 const database_1 = __importDefault(require("../modules/database"));
 const config_1 = require("../config");
 exports.SaasScheme = {
@@ -258,24 +259,6 @@ async function compare_sql_table(scheme, table, sql) {
         await trans.execute(`DROP TABLE if exists \`${scheme}\`.\`${tempKey}\`;`, []);
         await trans.execute(`CREATE TABLE if not exists \`${scheme}\`.\`${table}\` ${sql}`, []);
         await trans.execute(`CREATE TABLE if not exists \`${scheme}\`.\`${tempKey}\` ${sql}`, []);
-        const compareStruct = `SELECT COLUMN_NAME,
-                                  DATA_TYPE,
-                                  CHARACTER_MAXIMUM_LENGTH
-                           FROM INFORMATION_SCHEMA.COLUMNS
-                           WHERE TABLE_NAME = ?
-                             AND TABLE_SCHEMA = ?`;
-        const compareStruct2 = `SELECT INDEX_NAME,
-                                   COLUMN_NAME
-                            FROM INFORMATION_SCHEMA.STATISTICS
-                            WHERE TABLE_NAME = ?
-                              AND TABLE_SCHEMA = ?;    `;
-        let older = await database_1.default.query(compareStruct, [table, scheme]);
-        const newest = await database_1.default.query(compareStruct, [tempKey, scheme]);
-        const older2 = await database_1.default.query(compareStruct2, [table, scheme]);
-        const newest2 = await database_1.default.query(compareStruct2, [tempKey, scheme]);
-        if (newest2.length === 0 || newest.length === 0) {
-            return await compare_sql_table(scheme, table, sql);
-        }
         await trans.commit();
         await trans.release();
         return true;
@@ -285,5 +268,4 @@ async function compare_sql_table(scheme, table, sql) {
         return false;
     }
 }
-exports.compare_sql_table = compare_sql_table;
 //# sourceMappingURL=saas-table-check.js.map

@@ -2,11 +2,12 @@ export class OrderDetail {
     subtotal: number;
     shipment: number;
     discount: number;
+    use_rebate: number;
     rebate: number;
-    orderID?:string;
+    orderID?: string;
     cart_token: string;
-    line_prefix?:number;
-    code_array?:string[]
+    line_prefix?: number;
+    code_array?: string[];
     voucher?: VoucherData;
     lineItems: {
         id: number;
@@ -15,7 +16,7 @@ export class OrderDetail {
         spec: string[];
         count: number;
         sale_price: number;
-        sku: string
+        sku: string;
     }[];
     reserve_date?: string;
     customer_info: {
@@ -26,6 +27,7 @@ export class OrderDetail {
     };
     pos_info?: any;
     user_info: {
+        id: number;
         name: string;
         email: string;
         phone: string;
@@ -39,44 +41,48 @@ export class OrderDetail {
         note: string;
     };
     pay_status: any;
+    voucherList: any;
 
     constructor(subtotal: number, shipment: number) {
         this.subtotal = subtotal;
         this.discount = 0;
         this.rebate = 0;
         this.shipment = shipment;
-        this.cart_token = "";
+        this.cart_token = '';
         this.lineItems = [];
         this.user_info = {
-            CVSAddress: "",
-            CVSStoreID: "",
-            CVSStoreName: "",
-            CVSTelephone: "",
-            MerchantTradeNo: "",
-            address: "",
-            email: "",
-            name: "",
-            note: "",
-            phone: "",
+            CVSAddress: '',
+            CVSStoreID: '',
+            CVSStoreName: '',
+            CVSTelephone: '',
+            MerchantTradeNo: '',
+            id: 0,
+            address: '',
+            email: '',
+            name: '',
+            note: '',
+            phone: '',
             shipment: 'normal',
         };
         this.customer_info = {
-            payment_select: "POS",
-            name: "",
-            phone: "",
-            email: ""
+            payment_select: 'POS',
+            name: '',
+            phone: '',
+            email: '',
         };
-        this.pay_status = 1
+        this.pay_status = 1;
+        this.use_rebate = 0;
+        this.voucherList = [];
     }
 
     get total(): number {
         return this.subtotal + this.shipment - this.discount;
     }
 
-    public static singleInstance:OrderDetail=new OrderDetail(0,0)
+    public static singleInstance: OrderDetail = new OrderDetail(0, 0);
 }
 
-export interface  VoucherData {
+export interface VoucherData {
     id: number;
     title: string;
     method: 'percent' | 'fixed';
@@ -113,7 +119,7 @@ export interface  VoucherData {
     targetList: string[];
 }
 
-export  type ViewModel = {
+export type ViewModel = {
     id: string;
     filterID: string;
     type: string;
@@ -123,11 +129,5 @@ export  type ViewModel = {
     searchable: boolean;
     categorySearch: boolean;
     categories: any[];
-    paySelect: {
-        method:'cash'|'creditCard'|'line',
-        total:number,
-        paied?:boolean
-    }[];
-    loading:boolean
+    loading: boolean;
 };
-

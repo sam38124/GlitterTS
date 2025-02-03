@@ -17,6 +17,7 @@ const post_js_1 = require("../services/post.js");
 const shopping_1 = require("../services/shopping");
 const rebate_1 = require("../services/rebate");
 const axios_1 = __importDefault(require("axios"));
+const pos_js_1 = require("../services/pos.js");
 const router = express_1.default.Router();
 router.post('/worker', async (req, resp) => {
     try {
@@ -459,48 +460,57 @@ router.post('/returnOrder', async (req, resp) => {
     }
 });
 router.get('/voucher', async (req, resp) => {
-    var _a, _b;
     try {
         let query = [`(content->>'$.type'='voucher')`];
-        req.query.search && query.push(`(UPPER(JSON_UNQUOTE(JSON_EXTRACT(content, '$.title'))) LIKE UPPER('%${req.query.search}%'))`);
+        if (req.query.search) {
+            query.push(`(UPPER(JSON_UNQUOTE(JSON_EXTRACT(content, '$.title'))) LIKE UPPER('%${req.query.search}%'))`);
+        }
         if (req.query.voucher_type) {
             query.push(`(content->>'$.reBackType'='${req.query.voucher_type}')`);
         }
-        const vouchers = await new shopping_1.Shopping(req.get('g-app'), req.body.token).querySql(query, {
-            page: ((_a = req.query.page) !== null && _a !== void 0 ? _a : 0),
-            limit: ((_b = req.query.limit) !== null && _b !== void 0 ? _b : 50),
+        const shopping = new shopping_1.Shopping(req.get('g-app'), req.body.token);
+        const vouchers = await shopping.querySql(query, {
+            page: Number(req.query.page) || 0,
+            limit: Number(req.query.limit) || 50,
             id: req.query.id,
         });
-        if (!(await ut_permission_1.UtPermission.isManager(req))) {
-            const userClass = new user_js_1.User(req.get('g-app'));
-            const userLevels = await userClass.getUserLevel([{ userId: req.body.token.userID }]);
-            const groupList = await userClass.getUserGroups();
-            vouchers.data = vouchers.data.filter((d) => {
-                const dd = d.content;
-                if (dd.target === 'customer') {
-                    return dd.targetList.includes(req.body.token.userID);
-                }
-                if (dd.target === 'levels') {
-                    if (userLevels[0]) {
-                        return dd.targetList.includes(userLevels[0].data.id);
-                    }
-                    return false;
-                }
-                if (dd.target === 'group') {
-                    if (!groupList.result) {
-                        return false;
-                    }
-                    let pass = false;
-                    for (const group of groupList.data.filter((item) => dd.targetList.includes(item.type))) {
-                        if (!pass && group.users.some((item) => item.userID === req.body.token.userID)) {
-                            pass = true;
-                        }
-                    }
-                    return pass;
-                }
-                return true;
+        const isManager = await ut_permission_1.UtPermission.isManager(req);
+        if (isManager && !req.query.user_email) {
+            return response_1.default.succ(resp, vouchers);
+        }
+        if (req.query.date_confirm === 'true') {
+            vouchers.data = vouchers.data.filter((voucher) => {
+                const { start_ISO_Date, end_ISO_Date } = voucher.content;
+                const now = new Date().getTime();
+                return new Date(start_ISO_Date).getTime() < now && (!end_ISO_Date || new Date(end_ISO_Date).getTime() > now);
             });
         }
+        const userClass = new user_js_1.User(req.get('g-app'));
+        const groupList = await userClass.getUserGroups();
+        const userID = await (async () => {
+            if (!isManager)
+                return req.body.token.userID;
+            if (req.query.user_email === 'guest')
+                return -1;
+            const userData = await userClass.getUserData(req.query.user_email, 'email_or_phone');
+            return userData.userID;
+        })();
+        const userLevels = await userClass.getUserLevel([{ userId: userID }]);
+        vouchers.data = vouchers.data.filter((voucher) => {
+            const { target, targetList } = voucher.content;
+            switch (target) {
+                case 'customer':
+                    return targetList.includes(userID);
+                case 'levels':
+                    return userLevels[0] ? targetList.includes(userLevels[0].data.id) : false;
+                case 'group':
+                    if (!groupList.result)
+                        return false;
+                    return groupList.data.some((group) => targetList.includes(group.type) && group.users.some((user) => user.userID === userID));
+                default:
+                    return true;
+            }
+        });
         return response_1.default.succ(resp, vouchers);
     }
     catch (err) {
@@ -554,28 +564,28 @@ async function redirect_link(req, resp) {
         }
         const html = String.raw;
         return resp.send(html `<!DOCTYPE html>
-            <html lang="en">
-                <head>
-                    <meta charset="UTF-8" />
-                    <title>Title</title>
-                </head>
-                <body>
-                    <script>
-                        try {
-                            window.webkit.messageHandlers.addJsInterFace.postMessage(
-                                JSON.stringify({
-                                    functionName: 'check_out_finish',
-                                    callBackId: 0,
-                                    data: {
-                                        redirect: '${return_url.href}',
-                                    },
-                                })
-                            );
-                        } catch (e) {}
-                        location.href = '${return_url.href}';
-                    </script>
-                </body>
-            </html> `);
+                <html lang="en">
+                    <head>
+                        <meta charset="UTF-8" />
+                        <title>Title</title>
+                    </head>
+                    <body>
+                        <script>
+                            try {
+                                window.webkit.messageHandlers.addJsInterFace.postMessage(
+                                    JSON.stringify({
+                                        functionName: 'check_out_finish',
+                                        callBackId: 0,
+                                        data: {
+                                            redirect: '${return_url.href}',
+                                        },
+                                    })
+                                );
+                            } catch (e) {}
+                            location.href = '${return_url.href}';
+                        </script>
+                    </body>
+                </html> `);
     }
     catch (err) {
         return response_1.default.fail(resp, err);
@@ -722,6 +732,14 @@ router.get('/dataAnalyze', async (req, resp) => {
         else {
             throw exception_1.default.BadRequestError('BAD_REQUEST', 'No permission.', null);
         }
+    }
+    catch (err) {
+        return response_1.default.fail(resp, err);
+    }
+});
+router.get('/shippingMethod', async (req, resp) => {
+    try {
+        return response_1.default.succ(resp, await new shopping_1.Shopping(req.get('g-app'), req.body.token).getShippingMethod());
     }
     catch (err) {
         return response_1.default.fail(resp, err);
@@ -990,12 +1008,14 @@ router.post('/pos/checkout', async (req, resp) => {
             customer_info: req.body.customer_info,
             discount: req.body.discount,
             total: req.body.total,
+            use_rebate: req.body.use_rebate,
             pay_status: req.body.pay_status,
             code_array: req.body.code_array,
             pos_info: req.body.pos_info,
             pos_store: req.body.pos_store,
             invoice_select: req.body.invoice_select,
-            pre_order: req.body.pre_order
+            pre_order: req.body.pre_order,
+            voucherList: req.body.voucherList,
         }, 'POS'));
     }
     try {
@@ -1221,6 +1241,55 @@ router.post('/allowance_invoice', async (req, resp) => {
             invoiceDate: req.body.invoiceDate,
         };
         return response_1.default.succ(resp, await new shopping_1.Shopping(req.get('g-app'), req.body.token).allowanceInvoice(passData));
+    }
+    catch (err) {
+        return response_1.default.fail(resp, err);
+    }
+});
+router.post('/pos/summary', async (req, resp) => {
+    try {
+        await new pos_js_1.Pos(req.get('g-app'), req.body.token).setSummary(req.body);
+        return response_1.default.succ(resp, {
+            result: true,
+        });
+    }
+    catch (err) {
+        return response_1.default.fail(resp, err);
+    }
+});
+router.get('/pos/summary', async (req, resp) => {
+    try {
+        return response_1.default.succ(resp, {
+            data: await new pos_js_1.Pos(req.get('g-app'), req.body.token).getSummary(req.query.shop),
+        });
+    }
+    catch (err) {
+        return response_1.default.fail(resp, err);
+    }
+});
+router.get('/pos/work-status', async (req, resp) => {
+    try {
+        return response_1.default.succ(resp, {
+            status: await new pos_js_1.Pos(req.get('g-app'), req.body.token).getWorkStatus(req.query),
+        });
+    }
+    catch (err) {
+        return response_1.default.fail(resp, err);
+    }
+});
+router.get('/pos/work-status-list', async (req, resp) => {
+    try {
+        return response_1.default.succ(resp, await new pos_js_1.Pos(req.get('g-app'), req.body.token).getWorkStatusList(req.query));
+    }
+    catch (err) {
+        return response_1.default.fail(resp, err);
+    }
+});
+router.post('/pos/work-status', async (req, resp) => {
+    try {
+        return response_1.default.succ(resp, {
+            status: await new pos_js_1.Pos(req.get('g-app'), req.body.token).setWorkStatus(req.body),
+        });
     }
     catch (err) {
         return response_1.default.fail(resp, err);

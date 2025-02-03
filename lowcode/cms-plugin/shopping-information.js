@@ -13,6 +13,7 @@ import { ApiUser } from '../glitter-base/route/user.js';
 import { BaseApi } from "../glitterBundle/api/base.js";
 import { config } from "../config.js";
 import { Currency } from "../glitter-base/global/currency.js";
+import { LanguageBackend } from "./language-backend.js";
 export class ShoppingInformation {
     static main(gvc) {
         const glitter = gvc.glitter;
@@ -196,6 +197,7 @@ export class ShoppingInformation {
                                     user_id: 'manager'
                                 }).then(r => {
                                     resolve(true);
+                                    window.parent.store_info.web_type = vm.data.web_type;
                                 });
                             });
                         };
@@ -536,9 +538,9 @@ export class ShoppingInformation {
                 })}
                     <div style="margin-top: 24px;"></div>
                     ${gvc.bindView(() => {
-                    const origin_select = window.parent.glitter.share.editorViewModel.domain.includes('shopnex.cc') ? `free` : `custom`;
-                    let domain_from = window.parent.glitter.share.editorViewModel.domain.includes('shopnex.cc') ? `free` : `custom`;
-                    let domain_text = window.parent.glitter.share.editorViewModel.domain.replace('.shopnex.cc', '');
+                    const origin_select = window.parent.glitter.share.editorViewModel.domain.includes('shopnex.tw') ? `free` : `custom`;
+                    let domain_from = window.parent.glitter.share.editorViewModel.domain.includes('shopnex.tw') ? `free` : `custom`;
+                    let domain_text = window.parent.glitter.share.editorViewModel.domain.replace('.shopnex.tw', '');
                     return {
                         bind: `domain`,
                         view: () => {
@@ -564,7 +566,7 @@ export class ShoppingInformation {
                                 callback: (text) => {
                                     domain_from = text;
                                     if (origin_select === domain_from) {
-                                        domain_text = window.parent.glitter.share.editorViewModel.domain.replace('.shopnex.cc', '');
+                                        domain_text = window.parent.glitter.share.editorViewModel.domain.replace('.shopnex.tw', '');
                                     }
                                     else {
                                         domain_text = '';
@@ -654,7 +656,7 @@ ${BgWidget.title('GoDaddy DNS 設定指南')}
                             })}" value="${domain_text}">
                                                 <div class="${domain_from === 'custom' ? `d-none` : ``}"
                                                      style="padding: 9px 10px;border-radius: 0px 10px 10px 0px;background: #EAEAEA;">
-                                                    .shopnex.cc
+                                                    .shopnex.tw
                                                 </div>
                                             </div>
                                         </div>
@@ -697,7 +699,7 @@ ${BgWidget.title('GoDaddy DNS 設定指南')}
                                         dialog.dataLoading({ visible: false });
                                         if (res.result) {
                                             dialog.successMessage({ text: '網域部署成功!' });
-                                            glitter.share.editorViewModel.domain = `${domain_text}.shopnex.cc`;
+                                            glitter.share.editorViewModel.domain = `${domain_text}.shopnex.tw`;
                                         }
                                         else {
                                             dialog.errorMessage({ text: '網域部署失敗!' });
@@ -718,6 +720,10 @@ ${BgWidget.title('GoDaddy DNS 設定指南')}
                     const dialog = new ShareDialog(gvc.glitter);
                     dialog.dataLoading({ visible: true });
                     yield vm.save_info();
+                    yield Promise.all(ShoppingInformation.saveArray.map((dd) => {
+                        return dd();
+                    }));
+                    ShoppingInformation.saveArray = [];
                     dialog.dataLoading({ visible: false });
                     dialog.successMessage({ text: '儲存成功' });
                 })), '儲存', 'guide3-5')}
@@ -726,6 +732,128 @@ ${BgWidget.title('GoDaddy DNS 設定指南')}
             }, divCreate: { style: `color:#393939;font-size: 14px;` }
         });
     }
+    static policy(gvc) {
+        const id = gvc.glitter.getUUID();
+        const html = String.raw;
+        const vm2 = {
+            language: window.parent.store_info.language_setting.def
+        };
+        return BgWidget.container(gvc.bindView(() => {
+            return {
+                bind: id,
+                view: () => {
+                    return [
+                        html `
+                            <div class="title-container mb-4">
+                                ${BgWidget.title(`商店條款`)}
+                                <div class="flex-fill"></div>
+                                ${LanguageBackend.switchBtn({
+                            gvc: gvc,
+                            language: vm2.language,
+                            callback: (language) => {
+                                vm2.language = language;
+                                gvc.notifyDataChange(id);
+                            }
+                        })}
+                            </div>`,
+                        gvc.bindView(() => {
+                            return {
+                                bind: gvc.glitter.getUUID(),
+                                view: () => {
+                                    return BgWidget.mainCard(`<div class="d-flex flex-column" style="">${[
+                                        ...[{
+                                                key: 'privacy',
+                                                title: '隱私權政策'
+                                            }, {
+                                                key: 'term',
+                                                title: '服務條款'
+                                            }, {
+                                                key: 'refund',
+                                                title: '退換貨政策'
+                                            }, {
+                                                key: 'delivery',
+                                                title: '購買與配送須知'
+                                            }].map((dd) => {
+                                            return html `
+                                                    <div style="color: #393939;font-size: 16px;">${dd.title}</div>
+                                                    <div style="color: #36B;font-size:13px;cursor:pointer;"
+                                                         onclick="${gvc.event(() => {
+                                                window.parent.glitter.openNewTab(`https://${window.parent.glitter.share.editorViewModel.domain}/${dd.key}`);
+                                            })}">
+                                                            https://${window.parent.glitter.share.editorViewModel.domain}/${dd.key}
+                                                    </div>
+                                                    ${gvc.bindView(() => {
+                                                const key = dd.key;
+                                                const vm = {
+                                                    id: gvc.glitter.getUUID(),
+                                                    loading: true,
+                                                    data: {}
+                                                };
+                                                ApiUser.getPublicConfig(`terms-related-${key}-${vm2.language}`, 'manager').then((dd) => {
+                                                    dd.response.value && (vm.data = dd.response.value);
+                                                    vm.loading = false;
+                                                    gvc.notifyDataChange(vm.id);
+                                                });
+                                                return {
+                                                    bind: vm.id,
+                                                    view: () => {
+                                                        if (vm.loading) {
+                                                            return `<div class="w-100 d-flex align-items-center justify-content-center">${BgWidget.spinner()}</div>`;
+                                                        }
+                                                        return BgWidget.richTextEditor({
+                                                            gvc: gvc,
+                                                            content: vm.data.text || '',
+                                                            callback: (content) => {
+                                                                vm.data.text = content;
+                                                                ShoppingInformation.saveArray.push(() => {
+                                                                    return new Promise((resolve, reject) => __awaiter(this, void 0, void 0, function* () {
+                                                                        yield ApiUser.setPublicConfig({
+                                                                            key: `terms-related-${key}-${vm2.language}`,
+                                                                            user_id: 'manager',
+                                                                            value: vm.data
+                                                                        });
+                                                                        resolve(true);
+                                                                    }));
+                                                                });
+                                                            },
+                                                            title: dd.title
+                                                        });
+                                                    },
+                                                    divCreate: {
+                                                        class: `w-100 mt-2`
+                                                    }
+                                                };
+                                            })}
+                                                `;
+                                        })
+                                    ].join('<div class="my-1"></div>')}
+                    <div class="shadow"
+                         style="width: 100%;padding: 14px 16px;background: #FFF; display: flex;justify-content: end;position: fixed;bottom: 0;right: 0;z-index:1;gap:14px;">
+                        ${BgWidget.save(gvc.event(() => __awaiter(this, void 0, void 0, function* () {
+                                        const dialog = new ShareDialog(gvc.glitter);
+                                        dialog.dataLoading({ visible: true });
+                                        yield Promise.all(ShoppingInformation.saveArray.map((dd) => {
+                                            return dd();
+                                        }));
+                                        ShoppingInformation.saveArray = [];
+                                        dialog.dataLoading({ visible: false });
+                                        dialog.successMessage({ text: '儲存成功' });
+                                    })), '儲存')}
+                    </div>
+</div>`);
+                                },
+                                divCreate: {
+                                    class: `mt-3`, style: ``
+                                }
+                            };
+                        }),
+                        `<div style="margin-top: 300px;"></div>`
+                    ].join('');
+                }
+            };
+        }));
+    }
 }
+ShoppingInformation.saveArray = [];
 ShoppingInformation.question = {};
 window.glitter.setModule(import.meta.url, ShoppingInformation);

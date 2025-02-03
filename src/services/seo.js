@@ -10,6 +10,9 @@ const template_js_1 = require("./template.js");
 class Seo {
     static async getPageInfo(appName, query_page, language) {
         let page = await template_js_1.Template.getRealPage(query_page, appName);
+        if (page === 'official-router') {
+            appName = 'cms_system';
+        }
         const page_db = (() => {
             switch (language) {
                 case 'zh-TW':

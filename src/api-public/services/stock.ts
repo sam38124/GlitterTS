@@ -663,7 +663,8 @@ export class Stock {
 
                 if (item) {
                     const originVariant = originList.find((origin) => item.variant_id === origin.variant_id);
-                    const count = originVariant ? (item.recent_count ?? 0) - (originVariant.recent_count ?? 0) : (item.recent_count ?? 0);
+                    const recent_count = item.recent_count ?? 0;
+                    const count = originVariant ? recent_count - (originVariant.recent_count ?? 0) : recent_count;
                     const { type, content } = json;
                     const { store_in, store_out } = content;
 
@@ -673,7 +674,7 @@ export class Stock {
                         dataList.push(createStockEntry('plus', store_in, count, variant));
                         dataList.push(createStockEntry('minus', store_out, count, variant));
                     } else if (type === 'checking' && (json.status === 0 || json.status === 1)) {
-                        dataList.push(createStockEntry('equal', store_out, count, variant));
+                        dataList.push(createStockEntry('equal', store_out, recent_count, variant));
                     }
                 }
             }
@@ -717,14 +718,12 @@ export class Stock {
                 if (stockList[store].count) {
                     stockList[store].count -= count;
                 } else {
-                    stockList[store].count = 0;
+                    stockList[store].count = -count;
                 }
             } else {
                 stockList[store].count = count;
             }
         }
-
-        stockList[store].count = stockList[store].count > 0 ? stockList[store].count : 0;
 
         // 修改 variant stock
         variant_content.stock = Object.keys(stockList).reduce((sum: number, key: string) => {
@@ -734,13 +733,13 @@ export class Stock {
             return sum;
         }, 0);
 
-        // 修改 producr variant 的 stock, stockList
-        const producrVariant = product_content.variants.find((item: any) => {
-            return item.spec.sort().join(',') === variant_content.spec.sort().join(',');
+        // 修改 product variant 的 stock, stockList
+        const productVariant = product_content.variants.find((item: any) => {
+            return item.spec.join(',') === variant_content.spec.join(',');
         });
-        if (producrVariant) {
-            producrVariant.stockList = variant_content.stockList;
-            producrVariant.stock = variant_content.stock;
+        if (productVariant) {
+            productVariant.stockList = variant_content.stockList;
+            productVariant.stock = variant_content.stock;
         }
 
         return {

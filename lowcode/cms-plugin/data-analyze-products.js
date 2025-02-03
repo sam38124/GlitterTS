@@ -1,6 +1,6 @@
 import { ApiShop } from '../glitter-base/route/shopping.js';
 import { BgWidget } from '../backend-manager/bg-widget.js';
-import { DataAnalyzeModuleCart, GlobalStyle } from "./data-analyze-module.js";
+import { DataAnalyzeModuleCart, GlobalStyle } from './data-analyze-module.js';
 const html = String.raw;
 export class DataAnalyze {
     static main(gvc) {
@@ -11,17 +11,17 @@ export class DataAnalyze {
                 data: {},
                 filter_date: 'week',
                 come_from: 'all',
-                switch: false
+                switch: false,
+                startDate: '',
+                endDate: '',
             };
             gvc.glitter.addMtScript([
                 {
                     src: 'https://d3jnmi1tfjgtti.cloudfront.net/file/252530754/1714105121170-apexcharts.min.js',
                 },
-            ], () => {
-            }, () => {
-            });
+            ], () => { }, () => { });
             const vm_f = {
-                filter: 'count'
+                filter: 'count',
             };
             return {
                 bind: id,
@@ -38,8 +38,7 @@ export class DataAnalyze {
                                 </div>
                                 <div class="col-12 mb-3">
                                     ${BgWidget.card([
-                            html `
-                                            <div class="d-flex flex-column" style="gap:10px;">
+                            html ` <div class="d-flex flex-column" style="gap:10px;">
                                                 <div style="${GlobalStyle.header_title}">排行分析</div>
                                                 <div class="d-flex align-items-center" style="gap:10px;">
                                                     <div class="" style="white-space: nowrap;">排序方式</div>
@@ -52,12 +51,14 @@ export class DataAnalyze {
                                 default: vm_f.filter,
                                 options: [
                                     {
-                                        key: 'count', value: '依據銷量'
+                                        key: 'count',
+                                        value: '依據銷量',
                                     },
                                     {
-                                        key: 'price', value: '依據銷售額'
-                                    }
-                                ]
+                                        key: 'price',
+                                        value: '依據銷售額',
+                                    },
+                                ],
                             })}
                                                 </div>
                                             </div>`,
@@ -65,16 +66,26 @@ export class DataAnalyze {
                                 gvc: gvc,
                                 getData: (vmi) => {
                                     const limit = 20;
-                                    ApiShop.ecDataAnalyze('hot_products_all'.split(','), vm.filter_date).then((data) => {
+                                    const queryJsonString = () => {
+                                        return JSON.stringify({
+                                            come_from: vm.come_from,
+                                            filter_date: vm.filter_date,
+                                            start: vm.startDate ? new Date(vm.startDate).toISOString() : '',
+                                            end: vm.startDate ? new Date(vm.endDate).toISOString() : '',
+                                        });
+                                    };
+                                    ApiShop.ecDataAnalyze('hot_products_all'.split(','), queryJsonString()).then((data) => {
                                         function getDatalist() {
-                                            return data.response.hot_products_all.product_list.sort((a, b) => {
+                                            return data.response.hot_products_all.product_list
+                                                .sort((a, b) => {
                                                 if (vm_f.filter === 'count') {
-                                                    return (a.count < b.count ? 1 : -1);
+                                                    return a.count < b.count ? 1 : -1;
                                                 }
                                                 else {
-                                                    return (a.sale_price < b.sale_price ? 1 : -1);
+                                                    return a.sale_price < b.sale_price ? 1 : -1;
                                                 }
-                                            }).filter((dd) => {
+                                            })
+                                                .filter((dd) => {
                                                 if (vm.come_from === 'store') {
                                                     return dd.pos_info;
                                                 }
@@ -84,18 +95,19 @@ export class DataAnalyze {
                                                 else {
                                                     return true;
                                                 }
-                                            }).map((dd, index) => {
+                                            })
+                                                .map((dd, index) => {
                                                 return [
                                                     {
                                                         key: 'No.',
-                                                        value: html `<span class="fs-7">${index + 1}
-                                                                        .</span>`,
+                                                        value: html `<span class="fs-7">${index + 1} .</span>`,
                                                     },
                                                     {
                                                         key: '商品',
-                                                        value: `<div class="d-flex align-items-center" style="gap:10px;">
-<img src="${dd.preview_image}" style="width:35px;height: 35px;" class="rounded-3">
-${dd.title}</div>`,
+                                                        value: html `<div class="d-flex align-items-center" style="gap:10px;">
+                                                                                <img src="${dd.preview_image}" style="width:35px;height: 35px;" class="rounded-3" />
+                                                                                ${dd.title}
+                                                                            </div>`,
                                                     },
                                                     {
                                                         key: '銷售額',
@@ -114,17 +126,16 @@ ${dd.title}</div>`,
                                         vmi.callback();
                                     });
                                 },
-                                rowClick: (data, index) => {
-                                },
+                                rowClick: (data, index) => { },
                                 filter: [],
-                            })
+                            }),
                         ].join('<div class="my-3 w-100 border-top"></div>'))}
                                 </div>
                             </div>
                         `;
                     }
                     catch (e) {
-                        console.log(e);
+                        console.error(e);
                         return `${e}`;
                     }
                 },

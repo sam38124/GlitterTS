@@ -1,5 +1,3 @@
-import {ApiShop} from './shopping.js';
-
 type Product = {
     id: number;
     spec: string[];
@@ -22,23 +20,24 @@ export interface CartItem {
 
 export class ApiCart {
     //全部的購物車
-    static globalCart: string = 'lemnoasew'
+    static globalCart: string = 'lemnoasew';
     //立即結帳購物車
-    static buyItNow: string = 'lemnoasewbuyqwji'
+    static buyItNow: string = 'lemnoasewbuyqwji';
+    //不同物流購物車前綴
+    static cartPrefix: string = 'lemnoasewdvk';
 
-    static get checkoutCart(){
-
-        return localStorage.getItem('checkoutCart') || ApiCart.globalCart
+    static get checkoutCart() {
+        return localStorage.getItem('checkoutCart') || ApiCart.globalCart;
     }
     //前往購物車
-    static toCheckOutPage(cartID: string = ApiCart.globalCart){
-        localStorage.setItem('checkoutCart',cartID);
+    static toCheckOutPage(cartID: string = ApiCart.globalCart) {
+        localStorage.setItem('checkoutCart', cartID);
         (window as any).glitter.href = '/checkout';
     }
     //當下選擇購物車
     cartID: string;
     constructor(cartID: string = ApiCart.globalCart) {
-        this.cartID = cartID
+        this.cartID = cartID;
     }
 
     get cart(): CartItem {
@@ -108,7 +107,7 @@ export class ApiCart {
             }
         });
         if ((window.parent as any).glitter.share.reloadCartData) {
-            (window.parent as any).glitter.share.reloadCartData()
+            (window.parent as any).glitter.share.reloadCartData();
         }
     }
 

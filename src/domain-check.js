@@ -11,7 +11,7 @@ const fs_1 = __importDefault(require("fs"));
 class DomainCheck {
     static async initial() {
         try {
-            const app_list = await database_1.default.query(`SELECT \`domain\`,appName FROM glitter.app_config where domain like '%shopnex.cc%' order by id desc;`, []);
+            const app_list = await database_1.default.query(`SELECT \`domain\`,appName FROM glitter.app_config where domain like '%shopnex.tw%' order by id desc;`, []);
             let data = fs_1.default.readFileSync(`/Users/jianzhi.wang/Desktop/square_studio/APP檔案/Glitter星澄基地/test.conf`).toString();
             for (const b of app_list.reverse()) {
                 let result = await new Promise((resolve, reject) => {

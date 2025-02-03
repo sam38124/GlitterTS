@@ -52,16 +52,16 @@ export class SeoConfig {
             )[0] ?? {};
         const colJson = extractCols(cols);
         const urlCode = decodeURI((cf.page as string).split('/')[1]);
-        console.log(`urlCode===>`,urlCode)
+        console.log(`urlCode===>`, urlCode)
         const colData = colJson.find((item: any) => {
-            console.log(`item==>`,item)
+            console.log(`item==>`, item)
             if (item.language_data && item.language_data[cf.language]) {
                 return item.language_data[cf.language].seo.domain === urlCode || item.title === urlCode
             } else {
                 return (item.code === urlCode) || item.title === urlCode;
             }
         });
-        console.log(`colData===>`,colData)
+        console.log(`colData===>`, colData)
         if (colData) {
             if (colData.language_data && colData.language_data[cf.language]) {
                 cf.data.page_config.seo.title = colData.language_data[cf.language].seo.title || urlCode;
@@ -153,13 +153,56 @@ export class SeoConfig {
             const language_data = pd.data.content.language_data
             cf.data.page_config = cf.data.page_config ?? {};
             cf.data.page_config.seo = cf.data.page_config.seo ?? {};
-            cf.data.page_config.seo.title = productSeo.title;
+            cf.data.page_config.seo.title = productSeo.title || pd.data.content.title;
             cf.data.page_config.seo.image = (language_data && language_data[cf.language] && language_data.preview_image && language_data.preview_image[0]) || pd.data.content.preview_image[0];
             cf.data.page_config.seo.content = productSeo.content;
             cf.data.tag = cf.page;
+
+            cf.data.page_config.seo.code = (cf.data.page_config.seo.code ?? "") + (await this.getProductJsonLd(cf.appName,pd.data.content))
+
         }
     }
 
+    public static async getProductJsonLd(app_name:string,pd_content:any){
+        console.log(`pd.data.content=>`,pd_content)
+        const relative_product=await new Shopping(app_name,undefined).getProduct({
+            page:0,
+            limit:100,
+            id_list:(pd_content.relative_product ?? []).join(',')
+        });
+        const variant=pd_content.variants[0]
+        let preview_image=[variant.preview_image].concat(pd_content.preview_image).filter((dd)=>{
+            return dd
+        });
+
+        console.log(`relative_product=>`,relative_product)
+        return html`
+                <script type="application/ld+json">
+                    ${JSON.stringify(
+            {
+                "@context": "http://schema.org/",
+                "@type": "Product",
+                "name": pd_content.title,
+                "brand": "",
+                "description": pd_content.content.replace(/<\/?[^>]+(>|$)/g, ""),
+                "offers": {
+                    "@type": "Offer",
+                    "price": parseFloat(variant.sale_price.toFixed(1)),
+                    "priceCurrency": "TWD",
+                    "availability": "http://schema.org/InStock"
+                },
+                "image": preview_image,
+                "isRelatedTo": relative_product.data.map((dd:any)=>{
+                    return {
+                        "@type": "Product",
+                        "name": dd.content.title,
+                        "offers": {"@type": "Offer", "price": parseFloat(dd.content.min_price.toFixed(1)), "priceCurrency": "TWD"}
+                    }
+                })
+            }
+        )}
+                </script>`
+    }
     //網誌頁面SEO
     public static async articleSeo(cf: {
         article: any,

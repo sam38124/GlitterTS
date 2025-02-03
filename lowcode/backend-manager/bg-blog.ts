@@ -21,6 +21,7 @@ interface MenuItem {
     title: string;
     items: MenuItem[];
 }
+
 export interface LanguageData {
     title: string,
     seo: {
@@ -310,6 +311,7 @@ export class BgBlog {
         let vm = {
             search: '',
         };
+
         gvc.addStyle(`
             .hoverHidden div {
                 display: none;
@@ -683,6 +685,35 @@ function editor(cf: { gvc: GVC; vm: any; is_page: boolean; widget: any; page_tab
     );
 }
 
+function initialData(content:any){
+    if (!content.language_data) {
+        function empty() {
+            return {
+                name: '',
+                seo: {
+                    domain: '',
+                    title: '',
+                    content: '',
+                    keywords: '',
+                },
+                text: '',
+                config: ''
+            }
+        }
+
+        content.language_data = {
+            'en-US': empty(),
+            'zh-CN': empty(),
+            'zh-TW': {
+                name: content.name,
+                seo: content.seo,
+                text: content.text,
+                config: content.config
+            }
+        }
+    }
+}
+let language = (window.parent as any).store_info.language_setting.def;
 //頁面編輯畫面
 function detail(gvc: GVC, cf: any, vm: any, cVm: any, page_tab: 'page' | 'hidden' | 'shopping') {
     vm.data.content.tag = vm.data.content.tag || `${new Date().getTime()}`;
@@ -695,32 +726,8 @@ function detail(gvc: GVC, cf: any, vm: any, cVm: any, page_tab: 'page' | 'hidden
         return ``;
     }
 
-    if(!vm.data.content.language_data){
-        function empty(){
-            return {
-                name: '',
-                seo: {
-                    domain: '',
-                    title: '',
-                    content: '',
-                    keywords: '',
-                },
-                text:'',
-                config:''
-            }
-        }
-        vm.data.content.language_data={
-            'en-US': empty(),
-            'zh-CN': empty(),
-            'zh-TW': {
-                name: vm.data.content.name,
-                seo:vm.data.content.seo,
-                text:vm.data.content.text,
-                    config:vm.data.content.config
-            }
-        }
-    }
-    let language = (window.parent as any).store_info.language_setting.def;
+
+    initialData(vm.data.content)
 
     const domainPrefix = `${
         cf.is_page
@@ -746,41 +753,46 @@ function detail(gvc: GVC, cf: any, vm: any, cVm: any, page_tab: 'page' | 'hidden
             gvc.notifyDataChange(id)
         }
 
-        let origin=(JSON.stringify(vm.data))
-        setTimeout(()=>{
-            origin=(JSON.stringify(vm.data))
-        },400)
-        function checkSwitchToUiEditor(){
-            function next(){
+        let origin = (JSON.stringify(vm.data))
+        setTimeout(() => {
+            origin = (JSON.stringify(vm.data))
+        }, 400)
+
+        function checkSwitchToUiEditor() {
+            function next() {
                 localStorage.setItem('preview_data', JSON.stringify(vm.data.content));
                 (window.parent as any).glitter.setUrlParameter('page-id', vm.data.id);
                 (window.parent as any).glitter.setUrlParameter('language', language);
                 (window.parent as any).glitter.share.switch_to_web_builder(`${domainPrefix}/${vm.data.content.tag}`);
             }
-            if(origin!==JSON.stringify(vm.data)){
-                const dialog=new ShareDialog(gvc.glitter)
+
+            if (origin !== JSON.stringify(vm.data)) {
+                const dialog = new ShareDialog(gvc.glitter)
                 dialog.checkYesOrNot({
-                    text:'偵測到內容變更，是否保留更改?',
-                    callback:(response)=>{
-                        if(response){
-                            saveData(gvc, cf, vm, cVm, false).then((res)=>{
-                                if(res){
+                    text: '偵測到內容變更，是否保留更改?',
+                    callback: (response) => {
+                        if (response) {
+                            saveData(gvc, cf, vm, cVm, false).then((res) => {
+                                if (res) {
                                     next()
+                                }else{
+                                    gvc.notifyDataChange(id)
                                 }
                             });
-                        }else{
+                        } else {
                             next()
                         }
                     }
                 })
-            }else{
+            } else {
                 next()
             }
         }
+
         return {
             bind: id,
             view: () => {
-                const language_data=vm.data.content.language_data[language]
+                const language_data = vm.data.content.language_data[language]
                 return html`
                     <div class="title-container d-flex flex-column flex-sm-row w-100 align-items-start align-items-sm-center">
                         <div class="d-flex align-items-center w-100">
@@ -805,16 +817,17 @@ function detail(gvc: GVC, cf: any, vm: any, cVm: any, page_tab: 'page' | 'hidden
                                             : '編輯網誌'
                             )}
                             <div class="flex-fill"></div>
-                          <div class="${cf.is_page ? `d-none` : ``}">  ${
-                                  LanguageBackend.switchBtn({
-                                      gvc: gvc,
-                                      language: language,
-                                      callback: (lan) => {
-                                          language = lan
-                                          refreshProductPage()
-                                      }
-                                  })
-                          }</div>
+                            <div class="${cf.is_page ? `d-none` : ``}"> ${
+                                    LanguageBackend.switchBtn({
+                                        gvc: gvc,
+                                        language: language,
+                                        callback: (lan) => {
+                                            language = lan
+                                            refreshProductPage()
+                                        }
+                                    })
+                            }
+                            </div>
                         </div>
                         <div class="flex-fill my-2 ${cf.is_page ? `` : `d-none`}"></div>
                         <div class="d-flex ${cf.is_page ? `` : `d-none`}  ${(document.body.clientWidth < 800) ? `w-100` : ``}">
@@ -857,7 +870,7 @@ function detail(gvc: GVC, cf: any, vm: any, cVm: any, page_tab: 'page' | 'hidden
                                                 return [
                                                     BgWidget.mainCard(
                                                             (() => {
-                                                                const prefixURL = `https://${(window.parent as any).glitter.share.editorViewModel.domain}/${Language.getLanguageLinkPrefix(true,language,window.parent)}${
+                                                                const prefixURL = `https://${(window.parent as any).glitter.share.editorViewModel.domain}/${Language.getLanguageLinkPrefix(true, language, window.parent)}${
                                                                         cf.is_page
                                                                                 ? (() => {
                                                                                     switch (page_tab) {
@@ -895,7 +908,7 @@ function detail(gvc: GVC, cf: any, vm: any, cVm: any, page_tab: 'page' | 'hidden
                                                                     html`
                                                                         <div>
                                                                             <div class="tx_normal fw-normal mb-2">
-                                                                                    自訂網址
+                                                                                自訂網址
                                                                             </div>
                                                                             <div
                                                                                     style="justify-content: flex-start; align-items: center; display: inline-flex;border:1px solid #EAEAEA;border-radius: 10px;overflow: hidden; ${document
@@ -986,7 +999,7 @@ function detail(gvc: GVC, cf: any, vm: any, cVm: any, page_tab: 'page' | 'hidden
                                                                                     html`
                                                                                         <div class="d-flex w-100 align-items-center justify-content-between p-0 my-2">
                                                                                             <div class="tx_normal fw-normal">
-                                                                                                網誌內文${BgWidget.languageInsignia(language, 'margin-left:5px;')}
+                                                                                                    網誌內文${BgWidget.languageInsignia(language, 'margin-left:5px;')}
                                                                                             </div>
                                                                                         </div>`,
                                                                                     gvc.bindView(
@@ -995,129 +1008,129 @@ function detail(gvc: GVC, cf: any, vm: any, cVm: any, page_tab: 'page' | 'hidden
                                                                                                 return {
                                                                                                     bind: id,
                                                                                                     view: () => {
-                                                                                                      
-                                                                                                      try {
-                                                                                                          return html`
-                                                                                                            <div
-                                                                                                                    class="d-flex justify-content-between align-items-center gap-3 mb-1"
-                                                                                                                    style="cursor: pointer;"
-                                                                                                                    onclick="${gvc.event(() => {
 
-                                                                                                              const originContent = `${language_data.text}`;
-                                                                                                              BgWidget.fullDialog({
-                                                                                                                  gvc: gvc,
-                                                                                                                  title: (gvc2) => {
-                                                                                                                      return `<div class="d-flex align-items-center" style="gap:10px;">${'網誌內文' + BgWidget.aiChatButton({
-                                                                                                                          gvc: gvc2,
-                                                                                                                          select: 'writer',
-                                                                                                                          click: () => {
-                                                                                                                              ProductAi.generateRichText(gvc, (text) => {
-                                                                                                                                  language_data.text += text;
-                                                                                                                                  gvc.notifyDataChange(vm.id)
-                                                                                                                                  gvc2.recreateView()
-                                                                                                                              })
-                                                                                                                          }
-                                                                                                                      })}</div>`
-                                                                                                                  },
-                                                                                                                  innerHTML: (gvc2) => {
-                                                                                                                      return html`
-                                                                                                                                    <div>
-                                                                                                                                        ${EditorElem.richText({
-                                                                                                                          gvc: gvc2,
-                                                                                                                          def: language_data.text,
-                                                                                                                          setHeight: '100vh',
-                                                                                                                          hiddenBorder: true,
-                                                                                                                          insertImageEvent: (editor) => {
-                                                                                                                              const mark = `{{${Tool.randomString(8)}}}`;
-                                                                                                                              editor.selection.setAtEnd(editor.$el.get(0));
-                                                                                                                              editor.html.insert(mark);
-                                                                                                                              editor.undo.saveStep();
-                                                                                                                              imageLibrary.selectImageLibrary(
-                                                                                                                                      gvc,
-                                                                                                                                      (urlArray) => {
-                                                                                                                                          if (urlArray.length > 0) {
-                                                                                                                                              const imgHTML = urlArray
-                                                                                                                                                      .map((url) => {
-                                                                                                                                                          return html`
-                                                                                                                                                                                <img src="${url.data}"/>`;
-                                                                                                                                                      })
-                                                                                                                                                      .join('');
-                                                                                                                                              editor.html.set(
-                                                                                                                                                      editor.html
-                                                                                                                                                              .get(0)
-                                                                                                                                                              .replace(
-                                                                                                                                                                      mark,
-                                                                                                                                                                      html`
-                                                                                                                                                                                            <div class="d-flex flex-column">
-                                                                                                                                                                                                ${imgHTML}
-                                                                                                                                                                                            </div>`
-                                                                                                                                                              )
-                                                                                                                                              );
-                                                                                                                                              editor.undo.saveStep();
-                                                                                                                                          } else {
-                                                                                                                                              const dialog = new ShareDialog(gvc.glitter);
-                                                                                                                                              dialog.errorMessage({text: '請選擇至少一張圖片'});
-                                                                                                                                          }
-                                                                                                                                      },
-                                                                                                                                      html`
-                                                                                                                                                            <div
-                                                                                                                                                                    class="d-flex flex-column"
-                                                                                                                                                                    style="border-radius: 10px 10px 0px 0px;background: #F2F2F2;"
-                                                                                                                                                            >
-                                                                                                                                                                圖片庫
-                                                                                                                                                            </div>`,
-                                                                                                                                      {
-                                                                                                                                          mul: true,
-                                                                                                                                          cancelEvent: () => {
-                                                                                                                                              editor.html.set(editor.html.get(0).replace(mark, ''));
-                                                                                                                                              editor.undo.saveStep();
-                                                                                                                                          },
-                                                                                                                                      }
-                                                                                                                              );
-                                                                                                                          },
-                                                                                                                          callback: (text) => {
-                                                                                                                              language_data.text = text;
-                                                                                                                          },
-                                                                                                                          rich_height: `calc(${
-                                                                                                                                  (window.parent as any).innerHeight
-                                                                                                                          }px - 70px - 58px - 49px - 64px - 40px + ${
-                                                                                                                                  document.body.clientWidth < 800 ? `70` : `0`
-                                                                                                                          }px)`,
-                                                                                                                      })}
-                                                                                                                                    </div>`;
-                                                                                                                  },
-                                                                                                                  footer_html: (gvc2: GVC) => {
-                                                                                                                      return [
-                                                                                                                          BgWidget.cancel(
-                                                                                                                                  gvc2.event(() => {
-                                                                                                                                      language_data.text = originContent;
-                                                                                                                                      gvc2.closeDialog();
-                                                                                                                                  })
-                                                                                                                          ),
-                                                                                                                          BgWidget.save(
-                                                                                                                                  gvc2.event(() => {
-                                                                                                                                      gvc2.closeDialog();
-                                                                                                                                      gvc.notifyDataChange(id);
-                                                                                                                                  })
-                                                                                                                          ),
-                                                                                                                      ].join('');
-                                                                                                                  },
-                                                                                                                  closeCallback: () => {
-                                                                                                                      language_data.text = originContent;
-                                                                                                                  },
-                                                                                                              });
-                                                                                                          })}"
-                                                                                                            >
-                                                                                                                ${(() => {
-                                                                                                                    language_data.text=language_data.text||''
-                                                                                                              const text = gvc.glitter.utText.removeTag(language_data.text);
-                                                                                                              return BgWidget.richTextView(Tool.truncateString(text, 100));
-                                                                                                          })()}
-                                                                                                            </div>`;
-                                                                                                      }catch (e) {
-                                                                                                          console.log(`error=>`,e)
-                                                                                                          return  ``
-                                                                                                      }
+                                                                                                        try {
+                                                                                                            return html`
+                                                                                                                <div
+                                                                                                                        class="d-flex justify-content-between align-items-center gap-3 mb-1"
+                                                                                                                        style="cursor: pointer;"
+                                                                                                                        onclick="${gvc.event(() => {
+
+                                                                                                                            const originContent = `${language_data.text}`;
+                                                                                                                            BgWidget.fullDialog({
+                                                                                                                                gvc: gvc,
+                                                                                                                                title: (gvc2) => {
+                                                                                                                                    return `<div class="d-flex align-items-center" style="gap:10px;">${'網誌內文' + BgWidget.aiChatButton({
+                                                                                                                                        gvc: gvc2,
+                                                                                                                                        select: 'writer',
+                                                                                                                                        click: () => {
+                                                                                                                                            ProductAi.generateRichText(gvc, (text) => {
+                                                                                                                                                language_data.text += text;
+                                                                                                                                                gvc.notifyDataChange(vm.id)
+                                                                                                                                                gvc2.recreateView()
+                                                                                                                                            })
+                                                                                                                                        }
+                                                                                                                                    })}</div>`
+                                                                                                                                },
+                                                                                                                                innerHTML: (gvc2) => {
+                                                                                                                                    return html`
+                                                                                                                                        <div>
+                                                                                                                                            ${EditorElem.richText({
+                                                                                                                                                gvc: gvc2,
+                                                                                                                                                def: language_data.text,
+                                                                                                                                                setHeight: '100vh',
+                                                                                                                                                hiddenBorder: true,
+                                                                                                                                                insertImageEvent: (editor) => {
+                                                                                                                                                    const mark = `{{${Tool.randomString(8)}}}`;
+                                                                                                                                                    editor.selection.setAtEnd(editor.$el.get(0));
+                                                                                                                                                    editor.html.insert(mark);
+                                                                                                                                                    editor.undo.saveStep();
+                                                                                                                                                    imageLibrary.selectImageLibrary(
+                                                                                                                                                            gvc,
+                                                                                                                                                            (urlArray) => {
+                                                                                                                                                                if (urlArray.length > 0) {
+                                                                                                                                                                    const imgHTML = urlArray
+                                                                                                                                                                            .map((url) => {
+                                                                                                                                                                                return html`
+                                                                                                                                                                                    <img src="${url.data}"/>`;
+                                                                                                                                                                            })
+                                                                                                                                                                            .join('');
+                                                                                                                                                                    editor.html.set(
+                                                                                                                                                                            editor.html
+                                                                                                                                                                                    .get(0)
+                                                                                                                                                                                    .replace(
+                                                                                                                                                                                            mark,
+                                                                                                                                                                                            html`
+                                                                                                                                                                                                <div class="d-flex flex-column">
+                                                                                                                                                                                                    ${imgHTML}
+                                                                                                                                                                                                </div>`
+                                                                                                                                                                                    )
+                                                                                                                                                                    );
+                                                                                                                                                                    editor.undo.saveStep();
+                                                                                                                                                                } else {
+                                                                                                                                                                    const dialog = new ShareDialog(gvc.glitter);
+                                                                                                                                                                    dialog.errorMessage({text: '請選擇至少一張圖片'});
+                                                                                                                                                                }
+                                                                                                                                                            },
+                                                                                                                                                            html`
+                                                                                                                                                                <div
+                                                                                                                                                                        class="d-flex flex-column"
+                                                                                                                                                                        style="border-radius: 10px 10px 0px 0px;background: #F2F2F2;"
+                                                                                                                                                                >
+                                                                                                                                                                    圖片庫
+                                                                                                                                                                </div>`,
+                                                                                                                                                            {
+                                                                                                                                                                mul: true,
+                                                                                                                                                                cancelEvent: () => {
+                                                                                                                                                                    editor.html.set(editor.html.get(0).replace(mark, ''));
+                                                                                                                                                                    editor.undo.saveStep();
+                                                                                                                                                                },
+                                                                                                                                                            }
+                                                                                                                                                    );
+                                                                                                                                                },
+                                                                                                                                                callback: (text) => {
+                                                                                                                                                    language_data.text = text;
+                                                                                                                                                },
+                                                                                                                                                rich_height: `calc(${
+                                                                                                                                                        (window.parent as any).innerHeight
+                                                                                                                                                }px - 70px - 58px - 49px - 64px - 40px + ${
+                                                                                                                                                        document.body.clientWidth < 800 ? `70` : `0`
+                                                                                                                                                }px)`,
+                                                                                                                                            })}
+                                                                                                                                        </div>`;
+                                                                                                                                },
+                                                                                                                                footer_html: (gvc2: GVC) => {
+                                                                                                                                    return [
+                                                                                                                                        BgWidget.cancel(
+                                                                                                                                                gvc2.event(() => {
+                                                                                                                                                    language_data.text = originContent;
+                                                                                                                                                    gvc2.closeDialog();
+                                                                                                                                                })
+                                                                                                                                        ),
+                                                                                                                                        BgWidget.save(
+                                                                                                                                                gvc2.event(() => {
+                                                                                                                                                    gvc2.closeDialog();
+                                                                                                                                                    gvc.notifyDataChange(id);
+                                                                                                                                                })
+                                                                                                                                        ),
+                                                                                                                                    ].join('');
+                                                                                                                                },
+                                                                                                                                closeCallback: () => {
+                                                                                                                                    language_data.text = originContent;
+                                                                                                                                },
+                                                                                                                            });
+                                                                                                                        })}"
+                                                                                                                >
+                                                                                                                    ${(() => {
+                                                                                                                        language_data.text = language_data.text || ''
+                                                                                                                        const text = gvc.glitter.utText.removeTag(language_data.text);
+                                                                                                                        return BgWidget.richTextView(Tool.truncateString(text, 100));
+                                                                                                                    })()}
+                                                                                                                </div>`;
+                                                                                                        } catch (e) {
+                                                                                                            console.log(`error=>`, e)
+                                                                                                            return ``
+                                                                                                        }
                                                                                                     },
                                                                                                     divCreate: {},
                                                                                                 };
@@ -1153,7 +1166,7 @@ function detail(gvc: GVC, cf: any, vm: any, cVm: any, page_tab: 'page' | 'hidden
                                                 bind: id,
                                                 view: () => {
                                                     try {
-                                                       
+
                                                         // 顯示套用的賣場商品列表
                                                         if (vm.data.content.page_type === 'hidden' || vm.data.content.page_type === 'shopping') {
                                                             const product_list = loopFindProducts(language_data.config || []);
@@ -1165,7 +1178,7 @@ function detail(gvc: GVC, cf: any, vm: any, cVm: any, page_tab: 'page' | 'hidden
                                                                                     [
                                                                                         BgWidget.title(html`商品顯示區塊 ${index + 1}`, 'font-size: 16px;'),
                                                                                         html`
-                                                                                        <div class="my-2"></div>`,
+                                                                                            <div class="my-2"></div>`,
                                                                                         [
                                                                                             html`${(() => {
                                                                                                 return gvc.bindView(() => {
@@ -1191,43 +1204,43 @@ function detail(gvc: GVC, cf: any, vm: any, cVm: any, page_tab: 'page' | 'hidden
                                                                                                                 return BgWidget.spinner();
                                                                                                             }
                                                                                                             return html`
-                                                                                                            <div class="d-flex flex-column p-2"
-                                                                                                                 style="gap: 18px;">
-                                                                                                                <div class="d-flex align-items-center gray-bottom-line-18 "
-                                                                                                                     style="gap: 24px; justify-content: space-between;">
-                                                                                                                    <div class="form-check-label c_updown_label">
-                                                                                                                        <div class="tx_normal">
-                                                                                                                            產品列表
+                                                                                                                <div class="d-flex flex-column p-2"
+                                                                                                                     style="gap: 18px;">
+                                                                                                                    <div class="d-flex align-items-center gray-bottom-line-18 "
+                                                                                                                         style="gap: 24px; justify-content: space-between;">
+                                                                                                                        <div class="form-check-label c_updown_label">
+                                                                                                                            <div class="tx_normal">
+                                                                                                                                產品列表
+                                                                                                                            </div>
                                                                                                                         </div>
+                                                                                                                        ${BgWidget.grayButton(
+                                                                                                                                '搜尋商品',
+                                                                                                                                gvc.event(() => {
+                                                                                                                                    BgProduct.productsDialog({
+                                                                                                                                        default: d1.value,
+                                                                                                                                        gvc: gvc,
+                                                                                                                                        callback: async (value) => {
+                                                                                                                                            d1.value = value;
+                                                                                                                                            loadData();
+                                                                                                                                        },
+                                                                                                                                        filter_visible: page_tab === 'hidden' ? 'false' : 'true',
+                                                                                                                                    });
+                                                                                                                                }),
+                                                                                                                                {textStyle: 'font-weight: 400;'}
+                                                                                                                        )}
                                                                                                                     </div>
-                                                                                                                    ${BgWidget.grayButton(
-                                                                                                                    '搜尋商品',
-                                                                                                                    gvc.event(() => {
-                                                                                                                        BgProduct.productsDialog({
-                                                                                                                            default: d1.value,
-                                                                                                                            gvc: gvc,
-                                                                                                                            callback: async (value) => {
-                                                                                                                                d1.value = value;
-                                                                                                                                loadData();
-                                                                                                                            },
-                                                                                                                            filter_visible: page_tab === 'hidden' ? 'false' : 'true',
-                                                                                                                        });
-                                                                                                                    }),
-                                                                                                                    {textStyle: 'font-weight: 400;'}
-                                                                                                            )}
-                                                                                                                </div>
-                                                                                                                ${dataList
-                                                                                                                    .map((opt, index) => {
-                                                                                                                        return `<div class="d-flex align-items-center form-check-label c_updown_label px-1"
+                                                                                                                    ${dataList
+                                                                                                                            .map((opt, index) => {
+                                                                                                                                return `<div class="d-flex align-items-center form-check-label c_updown_label px-1"
                                                                  style="justify-content: space-between"
                                                                  data-index="${opt.key}">
                                                                 <div class="d-flex align-items-center gap-3 cursor_move">
                                                                     <i class="fa-solid fa-grip-dots-vertical dragItem"></i>
                                                                     ${BgWidget.validImageBox({
-                                                                                                                            gvc,
-                                                                                                                            image: opt.image,
-                                                                                                                            width: 40,
-                                                                                                                        })}
+                                                                                                                                    gvc,
+                                                                                                                                    image: opt.image,
+                                                                                                                                    width: 40,
+                                                                                                                                })}
                                                                     <div class="tx_normal ${opt.note ? 'mb-1' : ''}">
                                                                         ${opt.value}
                                                                     </div>
@@ -1235,18 +1248,18 @@ function detail(gvc: GVC, cf: any, vm: any, cVm: any, page_tab: 'page' | 'hidden
                                                                 <i
                                                                         class="fa-regular fa-trash cursor_pointer"
                                                                         onclick="${gvc.event(() => {
-                                                                                                                            d1.value = d1.value.filter((id: number) => {
-                                                                                                                                return id !== opt.key;
-                                                                                                                            });
-                                                                                                                            dataList.splice(index, 1);
-                                                                                                                            gvc.notifyDataChange(subVM.id);
-                                                                                                                        })}"
+                                                                                                                                    d1.value = d1.value.filter((id: number) => {
+                                                                                                                                        return id !== opt.key;
+                                                                                                                                    });
+                                                                                                                                    dataList.splice(index, 1);
+                                                                                                                                    gvc.notifyDataChange(subVM.id);
+                                                                                                                                })}"
                                                                 ></i>
                                                             </div>`;
-                                                                                                                    })
-                                                                                                                    .join('')}
-                                                                                                            </div>
-                                                                                                        `;
+                                                                                                                            })
+                                                                                                                            .join('')}
+                                                                                                                </div>
+                                                                                                            `;
                                                                                                         },
                                                                                                         onCreate: () => {
                                                                                                         },
@@ -1263,14 +1276,14 @@ function detail(gvc: GVC, cf: any, vm: any, cVm: any, page_tab: 'page' | 'hidden
                                                                         [
                                                                             BgWidget.title(
                                                                                     html`預設加入購物車
-                                                                                <div class="badge ms-2"
-                                                                                     style="background:#eaeaea;color:#393939;">
-                                                                                    以下設定的商品與規格會自動加入購物車
-                                                                                </div>`,
+                                                                                    <div class="badge ms-2"
+                                                                                         style="background:#eaeaea;color:#393939;">
+                                                                                        以下設定的商品與規格會自動加入購物車
+                                                                                    </div>`,
                                                                                     'font-size: 16px;'
                                                                             ),
                                                                             html`
-                                                                            <div class="my-2"></div>`,
+                                                                                <div class="my-2"></div>`,
                                                                             [
                                                                                 html`${(() => {
                                                                                     return gvc.bindView(() => {
@@ -1286,75 +1299,75 @@ function detail(gvc: GVC, cf: any, vm: any, cVm: any, page_tab: 'page' | 'hidden
                                                                                                     return BgWidget.spinner();
                                                                                                 }
                                                                                                 return html`
-                                                                                                <div class="d-flex flex-column p-2"
-                                                                                                     style="gap: 18px;">
-                                                                                                    <div class="d-flex align-items-center gray-bottom-line-18 "
-                                                                                                         style="gap: 24px; justify-content: space-between;">
-                                                                                                        <div class="form-check-label c_updown_label">
-                                                                                                            <div class="tx_normal">
-                                                                                                                產品列表
+                                                                                                    <div class="d-flex flex-column p-2"
+                                                                                                         style="gap: 18px;">
+                                                                                                        <div class="d-flex align-items-center gray-bottom-line-18 "
+                                                                                                             style="gap: 24px; justify-content: space-between;">
+                                                                                                            <div class="form-check-label c_updown_label">
+                                                                                                                <div class="tx_normal">
+                                                                                                                    產品列表
+                                                                                                                </div>
                                                                                                             </div>
+                                                                                                            ${BgWidget.grayButton(
+                                                                                                                    '搜尋商品',
+                                                                                                                    gvc.event(() => {
+                                                                                                                        BgProduct.variantsSelector({
+                                                                                                                            gvc: gvc,
+                                                                                                                            filter_variants: vm.data.content.relative_data.map((dd: any) => {
+                                                                                                                                return [dd.product_id].concat(dd.variant.spec).join('-');
+                                                                                                                            }),
+                                                                                                                            callback: async (value) => {
+                                                                                                                                vm.data.content.relative_data = vm.data.content.relative_data ?? [];
+                                                                                                                                vm.data.content.relative_data = vm.data.content.relative_data.concat(
+                                                                                                                                        value.map((dd: any) => {
+                                                                                                                                            return {
+                                                                                                                                                variant: dd.variant,
+                                                                                                                                                product_id: dd.product_id,
+                                                                                                                                            };
+                                                                                                                                        })
+                                                                                                                                );
+                                                                                                                                subVM.loading = true;
+                                                                                                                                gvc.notifyDataChange(subVM.id);
+                                                                                                                            },
+                                                                                                                            show_mode: 'all',
+                                                                                                                        });
+                                                                                                                    }),
+                                                                                                                    {textStyle: 'font-weight: 400;'}
+                                                                                                            )}
                                                                                                         </div>
-                                                                                                        ${BgWidget.grayButton(
-                                                                                                        '搜尋商品',
-                                                                                                        gvc.event(() => {
-                                                                                                            BgProduct.variantsSelector({
-                                                                                                                gvc: gvc,
-                                                                                                                filter_variants: vm.data.content.relative_data.map((dd: any) => {
-                                                                                                                    return [dd.product_id].concat(dd.variant.spec).join('-');
-                                                                                                                }),
-                                                                                                                callback: async (value) => {
-                                                                                                                    vm.data.content.relative_data = vm.data.content.relative_data ?? [];
-                                                                                                                    vm.data.content.relative_data = vm.data.content.relative_data.concat(
-                                                                                                                            value.map((dd: any) => {
-                                                                                                                                return {
-                                                                                                                                    variant: dd.variant,
-                                                                                                                                    product_id: dd.product_id,
-                                                                                                                                };
-                                                                                                                            })
-                                                                                                                    );
-                                                                                                                    subVM.loading = true;
-                                                                                                                    gvc.notifyDataChange(subVM.id);
-                                                                                                                },
-                                                                                                                show_mode: 'all',
-                                                                                                            });
-                                                                                                        }),
-                                                                                                        {textStyle: 'font-weight: 400;'}
-                                                                                                )}
-                                                                                                    </div>
-                                                                                                    ${subVM.dataList
-                                                                                                        .map((opt: OptionsItem, index) => {
-                                                                                                            return html`
-                                                                                                                    <div class="d-flex align-items-center form-check-label c_updown_label gap-3">
+                                                                                                        ${subVM.dataList
+                                                                                                                .map((opt: OptionsItem, index) => {
+                                                                                                                    return html`
+                                                                                                                        <div class="d-flex align-items-center form-check-label c_updown_label gap-3">
                                                                                                                         <span class="tx_normal"
                                                                                                                               style="min-width: 20px;">${index + 1} .</span>
-                                                                                                                        ${BgWidget.validImageBox({
-                                                                                                                gvc: gvc,
-                                                                                                                image: opt.image,
-                                                                                                                width: 40,
-                                                                                                            })}
-                                                                                                                        <div class="tx_normal ${opt.note ? 'mb-1' : ''} d-flex flex-column">
-                                                                                                                            ${opt.value}
-                                                                                                                            ${opt.note ? html`
-                                                                                                                                <div class="tx_gray_12">
-                                                                                                                                    ${opt.note}
-                                                                                                                                </div> ` : ''}
+                                                                                                                            ${BgWidget.validImageBox({
+                                                                                                                                gvc: gvc,
+                                                                                                                                image: opt.image,
+                                                                                                                                width: 40,
+                                                                                                                            })}
+                                                                                                                            <div class="tx_normal ${opt.note ? 'mb-1' : ''} d-flex flex-column">
+                                                                                                                                ${opt.value}
+                                                                                                                                ${opt.note ? html`
+                                                                                                                                    <div class="tx_gray_12">
+                                                                                                                                        ${opt.note}
+                                                                                                                                    </div> ` : ''}
+                                                                                                                            </div>
+                                                                                                                            <div class="flex-fill"></div>
+                                                                                                                            ${BgWidget.cancel(
+                                                                                                                                    gvc.event(() => {
+                                                                                                                                        vm.data.content.relative_data.splice(index, 1);
+                                                                                                                                        subVM.dataList.splice(index, 1);
+                                                                                                                                        gvc.notifyDataChange(subVM.id);
+                                                                                                                                    }),
+                                                                                                                                    '移除'
+                                                                                                                            )}
                                                                                                                         </div>
-                                                                                                                        <div class="flex-fill"></div>
-                                                                                                                        ${BgWidget.cancel(
-                                                                                                                    gvc.event(() => {
-                                                                                                                        vm.data.content.relative_data.splice(index, 1);
-                                                                                                                        subVM.dataList.splice(index, 1);
-                                                                                                                        gvc.notifyDataChange(subVM.id);
-                                                                                                                    }),
-                                                                                                                    '移除'
-                                                                                                            )}
-                                                                                                                    </div>
-                                                                                                                `;
-                                                                                                        })
-                                                                                                        .join('') || `<div class="w-100 d-flex align-content-center justify-content-center">尚未加入任何賣場商品</div>`}
-                                                                                                </div>
-                                                                                            `;
+                                                                                                                    `;
+                                                                                                                })
+                                                                                                                .join('') || `<div class="w-100 d-flex align-content-center justify-content-center">尚未加入任何賣場商品</div>`}
+                                                                                                    </div>
+                                                                                                `;
                                                                                             },
                                                                                             onCreate: () => {
                                                                                                 if (subVM.loading) {
@@ -1406,11 +1419,11 @@ function detail(gvc: GVC, cf: any, vm: any, cVm: any, page_tab: 'page' | 'hidden
                                                         } else {
                                                             return [].join('');
                                                         }
-                                                    }catch (e) {
+                                                    } catch (e) {
                                                         console.log(e)
-                                                        return  `${e}`
+                                                        return `${e}`
                                                     }
-                                                  
+
                                                 },
                                             };
                                         });
@@ -1769,7 +1782,11 @@ function detail(gvc: GVC, cf: any, vm: any, cVm: any, page_tab: 'page' | 'hidden
                         )}
                         ${BgWidget.save(
                                 gvc.event(async () => {
-                                    saveData(gvc, cf, vm, cVm, false);
+                                    saveData(gvc, cf, vm, cVm, false).then((res)=>{
+                                        if(!res){
+                                            gvc.notifyDataChange(id)
+                                        }
+                                    });
                                 })
                         )}
                     </div>
@@ -1780,72 +1797,79 @@ function detail(gvc: GVC, cf: any, vm: any, cVm: any, page_tab: 'page' | 'hidden
     });
 }
 
- function saveData(gvc: GVC, cf: any, vm: any, cVm: any, silence: boolean) {
-   return new Promise(async (res_,reject)=>{
-       if (!vm.data.content.tag) {
-           await cf.widget.event('error', {
-               title: '請設定連結',
-           });
-           res_(false)
-       } else if (!vm.data.content.name) {
-           await cf.widget.event('error', {
-               title: '請設定名稱',
-           });
-           res_(false)
-       } else {
-           if (!silence) {
-               await cf.widget.event('loading', {
-                   title: '儲存中...',
-               });
-           }
+function saveData(gvc: GVC, cf: any, vm: any, cVm: any, silence: boolean) {
+    return new Promise(async (res_, reject) => {
 
-           if (vm.data.id) {
-               Article.put(vm.data).then(async (res) => {
-                   await cf.widget.event('loading', {
-                       title: '儲存中...',
-                       visible: false,
-                   });
-                   if (res.result) {
-                       await cf.widget.event('success', {
-                           title: '設定成功',
-                       });
-                       res_(true)
-                   } else {
-                       await cf.widget.event('error', {
-                           title: '此連結已被使用',
-                       });
-                       res_(false)
-                   }
-               });
-           } else {
-               await cf.widget.event('loading', {
-                   title: '儲存中...',
-               });
-               Article.post(vm.data.content, vm.data.status).then(async (res) => {
-                   await cf.widget.event('loading', {
-                       title: '儲存中...',
-                       visible: false,
-                   });
-                   if (res.result) {
-                       vm.data.id = res.response.result;
-                       if (!silence) {
-                           await cf.widget.event('success', {
-                               title: '新增成功',
-                           });
-                       }
-                       cVm.type = 'detail';
-                       gvc.notifyDataChange(cVm.id);
-                       res_(true)
-                   } else {
-                       await cf.widget.event('error', {
-                           title: '此連結已被使用',
-                       });
-                       res_(false)
-                   }
-               });
-           }
-       }
-   })
+
+        if (!vm.data.content.tag) {
+            await cf.widget.event('error', {
+                title: '請設定連結',
+            });
+            res_(false)
+        } else if ((window.parent as any).store_info.language_setting.support.find((d1: any) => {
+            return !(vm.data.content.language_data[d1].name)
+        })) {
+            language=(window.parent as any).store_info.language_setting.support.find((d1: any) => {
+                return !(vm.data.content.language_data[d1].name)
+            })
+            await cf.widget.event('error', {
+                title: '請設定名稱',
+            });
+            res_(false)
+        } else {
+            if (!silence) {
+                await cf.widget.event('loading', {
+                    title: '儲存中...',
+                });
+            }
+
+            if (vm.data.id) {
+                Article.put(vm.data).then(async (res) => {
+                    await cf.widget.event('loading', {
+                        title: '儲存中...',
+                        visible: false,
+                    });
+                    if (res.result) {
+                        await cf.widget.event('success', {
+                            title: '設定成功',
+                        });
+                        res_(true)
+                    } else {
+                        await cf.widget.event('error', {
+                            title: '此連結已被使用',
+                        });
+                        res_(false)
+                    }
+                });
+            } else {
+                await cf.widget.event('loading', {
+                    title: '儲存中...',
+                });
+                Article.post(vm.data.content, vm.data.status).then(async (res) => {
+                    await cf.widget.event('loading', {
+                        title: '儲存中...',
+                        visible: false,
+                    });
+                    if (res.result) {
+                        vm.data.id = res.response.result;
+                        if (!silence) {
+                            await cf.widget.event('success', {
+                                title: '新增成功',
+                            });
+                        }
+                        cVm.type = 'detail';
+                        gvc.notifyDataChange(cVm.id);
+                        res_(true)
+                    } else {
+                        await cf.widget.event('error', {
+                            title: '此連結已被使用',
+                        });
+                        res_(false)
+                    }
+                });
+            }
+        }
+    })
 }
 
 //分類選擇頁面
@@ -2353,6 +2377,7 @@ function template_select(gvc: GVC, cf: any, vm: any, cVm: any, page_type: any) {
             if (c2) {
                 vm.data.content.config = c2;
                 vm.data.content.name = c2.name;
+                initialData(vm.data.content)
                 saveData(gvc, cf, vm, cVm, false).then(() => {
                     cVm.type = 'detail';
                 });

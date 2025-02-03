@@ -14,9 +14,10 @@ export class ProductCard03 {
     static noImageURL = 'https://jmva.or.jp/wp-content/uploads/2018/07/noimage.png';
 
     static main(gvc: GVC, widget: any, subData: any) {
+        console.log(`widget==>`,widget)
         const glitter = gvc.glitter;
         const wishId = glitter.getUUID();
-        const prod = subData.content;
+        const prod = (typeof subData.content!=="object") ? subData:subData.content;
         let label: any = {};
         let loading = false;
         const titleFontColor = glitter.share.globalValue['theme_color.0.title'] ?? '#333333';
@@ -63,8 +64,6 @@ export class ProductCard03 {
                 background: none !important;
             }
             .card-image {
-                border-radius: ${radius.map((dd: string) => `${dd}px`).join(' ')};
-                padding-bottom: ${((rsp[1] / rsp[0]) * 100).toFixed(0)}%;
                 cursor: pointer;
                 background-repeat: no-repeat;
                 background-size: cover;
@@ -93,8 +92,6 @@ export class ProductCard03 {
                 align-items: center;
                 justify-content: center;
                 background: #fff;
-                color: ${borderButtonText};
-                border: 1px solid ${borderButtonBgr};
                 border-radius: 10px;
             }
             .add-cart-text:hover {
@@ -153,6 +150,19 @@ export class ProductCard03 {
         `);
 
         const labelID = glitter.getUUID();
+
+        function getImgSrc(index:number){
+            const innerText = prod.preview_image[index] || prod.preview_image[0] || ProductCard03.noImageURL;
+            let rela_link = innerText;
+            if (innerText.includes('size1440_s*px$_')) {
+                [150, 600, 1200, 1440].reverse().map((dd) => {
+                    if (document.body.clientWidth < dd) {
+                        rela_link = innerText.replace('size1440_s*px$_', `size${dd}_s*px$_`);
+                    }
+                });
+            }
+            return rela_link;
+        }
         return html`
             <div
                     class="card mb-7 card-border"
@@ -161,7 +171,8 @@ export class ProductCard03 {
                         PdClass.changePage(prod, gvc)
                     })}"
             >
-                <div class="card-img-top parent card-image position-relative">
+                <div class="card-img-top parent card-image position-relative" style="  border-radius: ${radius.map((dd: string) => `${dd}px`).join(' ')};
+                padding-bottom: ${((rsp[1] / rsp[0]) * 100).toFixed(0)}%;">
                     ${gvc.bindView({
                         bind: labelID,
                         view: () => {
@@ -199,18 +210,17 @@ export class ProductCard03 {
                     })}
                     <img
                             class="card-image-fit-center"
-                            src="${(() => {
-                                const innerText = prod.preview_image[0] || this.noImageURL;
-                                let rela_link = innerText;
-                                if (innerText.includes('size1440_s*px$_')) {
-                                    [150, 600, 1200, 1440].reverse().map((dd) => {
-                                        if (document.body.clientWidth < dd) {
-                                            rela_link = innerText.replace('size1440_s*px$_', `size${dd}_s*px$_`);
-                                        }
-                                    });
+                            src="${getImgSrc(0)}"
+                            onmouseover="${gvc.event((e,event)=>{
+                                if(widget.formData.show_second==='true'){
+                                    e.src=getImgSrc(1)
                                 }
-                                return rela_link;
-                            })()}"
+                            })}"
+                            onmouseleave="${gvc.event((e,event)=>{
+                                if(widget.formData.show_second==='true'){
+                                    e.src=getImgSrc(0)
+                                }
+                            })}"
                     />
                 </div>
                 <div
@@ -303,7 +313,8 @@ export class ProductCard03 {
                         </div>
                         <div class="add-cart-child">
                             <div
-                                    class="w-100 h-100 p-3 add-cart-text"
+                                    class="w-100 h-100 p-3 add-cart-text" style="  color: ${borderButtonText};
+                border: 1px solid ${borderButtonBgr};"
                                     onclick="${gvc.event((e, event) => {
                                         event.stopPropagation();
                                         PdClass.addCartAction({

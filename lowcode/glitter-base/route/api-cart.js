@@ -110,6 +110,7 @@ export class ApiCart {
 }
 ApiCart.globalCart = 'lemnoasew';
 ApiCart.buyItNow = 'lemnoasewbuyqwji';
+ApiCart.cartPrefix = 'lemnoasewdvk';
 const interVal = setInterval(() => {
     if (window.glitter) {
         clearInterval(interVal);

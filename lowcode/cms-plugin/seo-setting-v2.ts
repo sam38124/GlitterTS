@@ -138,7 +138,9 @@ export class SeoSettingV2 {
                         "logo": data.logo ?? "",
                         "title": data.title ?? "",
                         "content": data.content ?? "",
-                        "keywords": data.keywords ?? ""
+                        "keywords": data.keywords ?? "",
+                        "title_prefix":data.title_prefix ?? '',
+                        'title_suffix':data.title_suffix ?? ''
                     },
                     "list": [],
                     "version": "v2",
@@ -198,6 +200,30 @@ export class SeoSettingV2 {
                                             divStyle: "width:100%;",
                                             titleStyle: "font-weight:700!important;"
                                         })}
+<div class="d-flex align-items-center" style="gap:10px;">
+    <div class="" style="flex: 1;">${BgWidget.editeInput({
+        gvc: gvc,
+        title: '統一標題前綴'+BgWidget.languageInsignia(vm.language as any,'margin-left:5px;'),
+        default: vm.SEOData.seo.title_prefix,
+        callback: (text) => {
+            vm.SEOData.seo.title_prefix = text;
+        },
+        placeHolder: '請輸入SEO標題前綴',
+        divStyle: "width:100%;",
+        titleStyle: "font-weight:700!important;"
+    })}</div>
+    <div  style="flex: 1;">${BgWidget.editeInput({
+        gvc: gvc,
+        title: '統一標題後綴'+BgWidget.languageInsignia(vm.language as any,'margin-left:5px;'),
+        default: vm.SEOData.seo.title_suffix,
+        callback: (text) => {
+            vm.SEOData.seo.title_suffix = text;
+        },
+        placeHolder: '請輸入SEO標題後綴',
+        divStyle: "width:100%;",
+        titleStyle: "font-weight:700!important;"
+    })}</div>
+</div>
                                         <div class="d-flex flex-column" style="gap:18px ">
                                             <div class="d-flex flex-column w-100" style="gap: 8px;">
                                                 <div class="d-flex align-items-center  "

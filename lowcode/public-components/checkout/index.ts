@@ -11,7 +11,6 @@ import { FormWidget } from '../../official_view_component/official/form.js';
 import { ShareDialog } from '../../glitterBundle/dialog/ShareDialog.js';
 import { Voucher as OriginVoucher, VoucherContent } from '../user-manager/um-voucher.js';
 import { PdClass } from '../product/pd-class.js';
-import * as vm from 'node:vm';
 import { Ad } from '../public/ad.js';
 import { Language } from '../../glitter-base/global/language.js';
 import { FakeOrder } from './fake-order.js';
@@ -52,7 +51,6 @@ export class CheckoutIndex {
             rebateConfig: {
                 title: '購物金',
             } as any,
-            goodsWeight: 0,
         };
         const classPrefix = Tool.randomString(6);
         PdClass.addSpecStyle(gvc);
@@ -202,6 +200,7 @@ export class CheckoutIndex {
                     background: #dddddd;
                     padding: 0 24px;
                     margin: 18px 0;
+                    cursor: not-allowed !important;
                 }
 
                 .${classPrefix}-button-text {
@@ -642,9 +641,9 @@ export class CheckoutIndex {
                                             view: () => {
                                                 return html`
                                                     <section>
-                                                        <div class="${gClass('banner-bgr')}">
+                                                        <div class="${gClass('banner-bgr')} shadow">
                                                             <span class="${gClass('banner-text')}"
-                                                                >${Language.text(ApiCart.checkoutCart === ApiCart.globalCart ? 'your_shopping_cart' : 'buy_it_now')}</span
+                                                                >${Language.text(ApiCart.checkoutCart === ApiCart.buyItNow ? 'buy_it_now' : 'your_shopping_cart')}</span
                                                             >
                                                         </div>
                                                         <div class="d-none d-sm-flex align-items-center p-3 border-bottom">
@@ -658,7 +657,6 @@ export class CheckoutIndex {
                                                             bind: glitter.getUUID(),
                                                             view: () => {
                                                                 try {
-                                                                    vm.goodsWeight = 0;
                                                                     return vm.cartData.lineItems
                                                                         .map((item: any, index: number) => {
                                                                             // min_qty
@@ -692,9 +690,6 @@ export class CheckoutIndex {
                                                                                     return ``;
                                                                                 }
                                                                             })();
-                                                                            if (item.shipment_obj.type === 'weight') {
-                                                                                vm.goodsWeight += item.count * item.shipment_obj.value;
-                                                                            }
                                                                             if (vm.cartData.lineItems.length === index + 1) {
                                                                                 gvc.notifyDataChange(ids.shipping);
                                                                             }
@@ -832,6 +827,20 @@ export class CheckoutIndex {
                                                                                             }
                                                                                             if (count < min) {
                                                                                                 return `<div class="text-danger">${Language.text('min_p_count').replace('_c_', min)}</div>`;
+                                                                                            } else {
+                                                                                                return ``;
+                                                                                            }
+                                                                                        })()}
+                                                                                        ${(() => {
+                                                                                            let max_qty = (item.max_qty && parseInt(item.max_qty, 10)) || Infinity;
+                                                                                            let count = 0;
+                                                                                            for (const b of vm.cartData.lineItems) {
+                                                                                                if (b.id === item.id) {
+                                                                                                    count += b.count;
+                                                                                                }
+                                                                                            }
+                                                                                            if (count > max_qty) {
+                                                                                                return `<div class="text-danger">${Language.text('max_p_count').replace('_c_', max_qty)}</div>`;
                                                                                             } else {
                                                                                                 return ``;
                                                                                             }
@@ -1323,7 +1332,7 @@ export class CheckoutIndex {
                                                         return ``;
                                                     }
                                                     return html`
-                                                        <div class="${gClass('banner-bgr')}">
+                                                        <div class="${gClass('banner-bgr')} shadow">
                                                             <span class="${gClass('banner-text')}">${Language.text('additional_purchase_items')}</span>
                                                         </div>
                                                         <div class="d-flex align-items-center w-100" style="overflow-x:auto;gap:10px;">
@@ -1430,7 +1439,7 @@ export class CheckoutIndex {
                                                 return !dd === isSelected;
                                             });
                                             return html`
-                                                <div class="${gClass('banner-bgr')}">
+                                                <div class="${gClass('banner-bgr')} shadow">
                                                     <span class="${gClass('banner-text')}">${dd.title}</span>
                                                 </div>
                                                 <div class="d-flex align-items-center w-100" style="overflow-x:auto;gap:10px;">
@@ -1547,7 +1556,7 @@ export class CheckoutIndex {
                                         .join('');
                                 })()}
                                 <section>
-                                    <div class="${gClass('banner-bgr')}">
+                                    <div class="${gClass('banner-bgr')} shadow">
                                         <span class="${gClass('banner-text')}">${Language.text('payment_and_shipping_methods')}</span>
                                     </div>
                                     ${vm.cartData.shipment_info ? html` <div class="pt-2 mx-2 mx-sm-3">${vm.cartData.shipment_info}</div>` : ''}
@@ -1581,50 +1590,38 @@ export class CheckoutIndex {
                                                 bind: ids.shipping,
                                                 view: () => {
                                                     return html` <div>
-                                                            <select
-                                                                class="w-100 ${gClass('select')}"
-                                                                onchange="${gvc.event((e) => {
-                                                                    [
-                                                                        'CVSStoreName',
-                                                                        'MerchantTradeNo',
-                                                                        'LogisticsSubType',
-                                                                        'CVSStoreID',
-                                                                        'CVSStoreName',
-                                                                        'CVSTelephone',
-                                                                        'CVSOutSide',
-                                                                        'ExtraData',
-                                                                        'CVSAddress',
-                                                                    ].map((dd) => {
-                                                                        gvc.glitter.setUrlParameter(dd);
-                                                                    });
-                                                                    vm.cartData.user_info.shipment = e.value;
-                                                                    this.storeLocalData(vm.cartData);
-                                                                    refreshCartData();
-                                                                })}"
-                                                            >
-                                                                ${(() => {
-                                                                    return this.getShipmentMethod(vm.cartData)
-                                                                        .filter((dd: any) => {
-                                                                            if (vm.cartData.total > 20000 && ['UNIMARTC2C', 'FAMIC2C', 'HILIFEC2C', 'OKMARTC2C'].includes(dd.value)) {
-                                                                                return false;
-                                                                            }
-                                                                            if (vm.goodsWeight > 20 && ['normal', 'black_cat'].includes(dd.value)) {
-                                                                                return false;
-                                                                            }
-                                                                            return true;
-                                                                        })
-                                                                        .map((dd: { name: string; value: string }) => {
-                                                                            return html` <option value="${dd.value}" ${vm.cartData.user_info.shipment === dd.value ? `selected` : ``}>
-                                                                                ${Language.text(`ship_${dd.value}`) || Language.getLanguageCustomText(dd.name)}
-                                                                            </option>`;
-                                                                        })
-                                                                        .join('');
-                                                                })()}
-                                                            </select>
-                                                        </div>
-
-                                                        ${vm.cartData.total > 20000 ? html`<p class="${gClass('shipping-hint')} d-none">若總金額超過20,000元，無法提供四大超商配送</p>` : ''}
-                                                        ${vm.goodsWeight > 20 ? html`<p class="${gClass('shipping-hint')} d-none">若訂單總重超過20公斤，無法提供中華郵政/黑貓宅配服務</p>` : ''}`;
+                                                        <select
+                                                            class="w-100 ${gClass('select')}"
+                                                            onchange="${gvc.event((e) => {
+                                                                [
+                                                                    'CVSStoreName',
+                                                                    'MerchantTradeNo',
+                                                                    'LogisticsSubType',
+                                                                    'CVSStoreID',
+                                                                    'CVSStoreName',
+                                                                    'CVSTelephone',
+                                                                    'CVSOutSide',
+                                                                    'ExtraData',
+                                                                    'CVSAddress',
+                                                                ].map((dd) => {
+                                                                    gvc.glitter.setUrlParameter(dd);
+                                                                });
+                                                                vm.cartData.user_info.shipment = e.value;
+                                                                this.storeLocalData(vm.cartData);
+                                                                refreshCartData();
+                                                            })}"
+                                                        >
+                                                            ${(() => {
+                                                                return this.getShipmentMethod(vm.cartData)
+                                                                    .map((dd: { name: string; value: string }) => {
+                                                                        return html` <option value="${dd.value}" ${vm.cartData.user_info.shipment === dd.value ? `selected` : ``}>
+                                                                            ${Language.text(`ship_${dd.value}`) || Language.getLanguageCustomText(dd.name)}
+                                                                        </option>`;
+                                                                    })
+                                                                    .join('');
+                                                            })()}
+                                                        </select>
+                                                    </div>`;
                                                 },
                                             })}
                                         </div>
@@ -1674,107 +1671,108 @@ export class CheckoutIndex {
                                             : ''}
                                         ${['global_express'].includes(vm.cartData.user_info.shipment)
                                             ? [
-                                                  `<label class="${gClass('label')}">${Language.text('country')}</label>
-     ${gvc.bindView(() => {
-         const id = gvc.glitter.getUUID();
-         return {
-             bind: id,
-             view: async () => {
-                 let country_select: any = [];
-                 const support_country = (await ApiUser.getPublicConfig('global_express_country', 'manager')).response.value.country;
-                 await new Promise((resolve, reject) => {
-                     glitter.getModule(
-                         (() => {
-                             switch (Language.getLanguage()) {
-                                 case 'en-US':
-                                     return `${gvc.glitter.root_path}/modules/country-language/country-en.js`;
-                                 case 'zh-CN':
-                                     return `${gvc.glitter.root_path}/modules/country-language/country-zh.js`;
-                                 default:
-                                     return `${gvc.glitter.root_path}/modules/country-language/country-tw.js`;
-                             }
-                         })(),
-                         (response) => {
-                             country_select = response.filter((dd: any) => {
-                                 return support_country.includes(dd.countryCode);
-                             });
-                             resolve(true);
-                         }
-                     );
-                 });
-                 return `<select
-                                                    class="w-100 ${gClass('select')}"
-                                                    onchange="${gvc.event((e, event) => {
-                                                        vm.cartData.user_info.country = e.value;
-                                                        this.storeLocalData(vm.cartData);
-                                                        refreshCartData();
-                                                    })}"
-                                                >
-                                                    ${(() => {
-                                                        let map = country_select.map((dd: { countryCode: string; countryName: string }) => {
-                                                            return html`
-                                                                <option value="${dd.countryCode}" ${vm.cartData.user_info.country === dd.countryCode ? `selected` : ``}>${dd.countryName}</option>
-                                                            `;
-                                                        });
-                                                        if (
-                                                            !country_select.find((dd: any) => {
-                                                                return dd.countryCode === vm.cartData.user_info.country;
-                                                            })
-                                                        ) {
-                                                            delete vm.cartData.user_info.country;
-                                                            map.push(`<option class="d-none" selected>${Language.text('select_country')}</option>`);
-                                                        }
-                                                        return map.join('');
-                                                    })()}
-                                                </select>`;
-             },
-             divCreate: {},
-         };
-     })}`,
-                                                  ` <label class="${gClass('label')}">${Language.text('shipping_address')}</label>
-                                                            <input
-                                                                    class="${gClass('input')}"
-                                                                    type="address"
-                                                                    placeholder="${Language.text('please_enter_delivery_address')}"
-                                                                    value="${vm.cartData.user_info.address || ''}"
-                                                                    onchange="${gvc.event((e) => {
-                                                                        vm.cartData.user_info.address = e.value;
-                                                                        this.storeLocalData(vm.cartData);
-                                                                    })}"
-                                                            />`,
-                                                  ` <label class="${gClass('label')}">${Language.text('city')}</label>
-                                                            <input
-                                                                    class="${gClass('input')}"
-                                                                    type="city"
-                                                                    placeholder="${Language.text('city')}"
-                                                                    value="${vm.cartData.user_info.city || ''}"
-                                                                    onchange="${gvc.event((e) => {
-                                                                        vm.cartData.user_info.city = e.value;
-                                                                        this.storeLocalData(vm.cartData);
-                                                                    })}"
-                                                            />`,
-                                                  ` <label class="${gClass('label')}">${Language.text('state')}</label>
-                                                            <input
-                                                                    class="${gClass('input')}"
-                                                                    type="state"
-                                                                    placeholder="${Language.text('state')}"
-                                                                    value="${vm.cartData.user_info.state || ''}"
-                                                                    onchange="${gvc.event((e) => {
-                                                                        vm.cartData.user_info.state = e.value;
-                                                                        this.storeLocalData(vm.cartData);
-                                                                    })}"
-                                                            />`,
-                                                  ` <label class="${gClass('label')}">${Language.text('postal_code')}</label>
-                                                            <input
-                                                                    class="${gClass('input')}"
-                                                                    type=""
-                                                                    placeholder="${Language.text('postal_code')}"
-                                                                    value="${vm.cartData.user_info.postal_code || ''}"
-                                                                    onchange="${gvc.event((e) => {
-                                                                        vm.cartData.user_info.postal_code = e.value;
-                                                                        this.storeLocalData(vm.cartData);
-                                                                    })}"
-                                                            />`,
+                                                  html`<label class="${gClass('label')}">${Language.text('country')}</label> ${gvc.bindView(() => {
+                                                          const id = gvc.glitter.getUUID();
+                                                          return {
+                                                              bind: id,
+                                                              view: async () => {
+                                                                  let country_select: any = [];
+                                                                  const support_country = (await ApiUser.getPublicConfig('global_express_country', 'manager')).response.value.country;
+                                                                  await new Promise((resolve, reject) => {
+                                                                      glitter.getModule(
+                                                                          (() => {
+                                                                              switch (Language.getLanguage()) {
+                                                                                  case 'en-US':
+                                                                                      return `${gvc.glitter.root_path}/modules/country-language/country-en.js`;
+                                                                                  case 'zh-CN':
+                                                                                      return `${gvc.glitter.root_path}/modules/country-language/country-zh.js`;
+                                                                                  default:
+                                                                                      return `${gvc.glitter.root_path}/modules/country-language/country-tw.js`;
+                                                                              }
+                                                                          })(),
+                                                                          (response) => {
+                                                                              country_select = response.filter((dd: any) => {
+                                                                                  return support_country.includes(dd.countryCode);
+                                                                              });
+                                                                              resolve(true);
+                                                                          }
+                                                                      );
+                                                                  });
+                                                                  return html`<select
+                                                                      class="w-100 ${gClass('select')}"
+                                                                      onchange="${gvc.event((e, event) => {
+                                                                          vm.cartData.user_info.country = e.value;
+                                                                          this.storeLocalData(vm.cartData);
+                                                                          refreshCartData();
+                                                                      })}"
+                                                                  >
+                                                                      ${(() => {
+                                                                          let map = country_select.map((dd: { countryCode: string; countryName: string }) => {
+                                                                              return html`
+                                                                                  <option value="${dd.countryCode}" ${vm.cartData.user_info.country === dd.countryCode ? `selected` : ``}>
+                                                                                      ${dd.countryName}
+                                                                                  </option>
+                                                                              `;
+                                                                          });
+                                                                          if (
+                                                                              !country_select.find((dd: any) => {
+                                                                                  return dd.countryCode === vm.cartData.user_info.country;
+                                                                              })
+                                                                          ) {
+                                                                              delete vm.cartData.user_info.country;
+                                                                              map.push(html`<option class="d-none" selected>${Language.text('select_country')}</option>`);
+                                                                          }
+                                                                          return map.join('');
+                                                                      })()}
+                                                                  </select>`;
+                                                              },
+                                                              divCreate: {},
+                                                          };
+                                                      })}`,
+                                                  html` <label class="${gClass('label')}">${Language.text('shipping_address')}</label>
+                                                      <input
+                                                          class="${gClass('input')}"
+                                                          type="address"
+                                                          placeholder="${Language.text('please_enter_delivery_address')}"
+                                                          value="${vm.cartData.user_info.address || ''}"
+                                                          onchange="${gvc.event((e) => {
+                                                              vm.cartData.user_info.address = e.value;
+                                                              this.storeLocalData(vm.cartData);
+                                                          })}"
+                                                      />`,
+                                                  html` <label class="${gClass('label')}">${Language.text('city')}</label>
+                                                      <input
+                                                          class="${gClass('input')}"
+                                                          type="city"
+                                                          placeholder="${Language.text('city')}"
+                                                          value="${vm.cartData.user_info.city || ''}"
+                                                          onchange="${gvc.event((e) => {
+                                                              vm.cartData.user_info.city = e.value;
+                                                              this.storeLocalData(vm.cartData);
+                                                          })}"
+                                                      />`,
+                                                  html` <label class="${gClass('label')}">${Language.text('state')}</label>
+                                                      <input
+                                                          class="${gClass('input')}"
+                                                          type="state"
+                                                          placeholder="${Language.text('state')}"
+                                                          value="${vm.cartData.user_info.state || ''}"
+                                                          onchange="${gvc.event((e) => {
+                                                              vm.cartData.user_info.state = e.value;
+                                                              this.storeLocalData(vm.cartData);
+                                                          })}"
+                                                      />`,
+                                                  html` <label class="${gClass('label')}">${Language.text('postal_code')}</label>
+                                                      <input
+                                                          class="${gClass('input')}"
+                                                          type=""
+                                                          placeholder="${Language.text('postal_code')}"
+                                                          value="${vm.cartData.user_info.postal_code || ''}"
+                                                          onchange="${gvc.event((e) => {
+                                                              vm.cartData.user_info.postal_code = e.value;
+                                                              this.storeLocalData(vm.cartData);
+                                                          })}"
+                                                      />`,
                                               ]
                                                   .map((dd) => {
                                                       return html` <div class="col-12 col-md-6 mb-2">${dd}</div>`;
@@ -1812,7 +1810,7 @@ export class CheckoutIndex {
                                     </div>
                                 </section>
                                 <section class="${['UNIMARTC2C', 'FAMIC2C', 'HILIFEC2C', 'OKMARTC2C'].includes(vm.cartData.user_info.shipment) ? `` : `mt-4`}">
-                                    <div class="${gClass('banner-bgr')}">
+                                    <div class="${gClass('banner-bgr')} shadow">
                                         <span class="${gClass('banner-text')}">${Language.text('customer_info')}</span>
                                     </div>
                                     ${gvc.bindView(() => {
@@ -1943,7 +1941,7 @@ export class CheckoutIndex {
                                     })}
                                 </section>
                                 <section>
-                                    <div class="${gClass('banner-bgr')}">
+                                    <div class="${gClass('banner-bgr')} shadow">
                                         <span class="${gClass('banner-text')}">${Language.text('recipient_info')}</span>
                                     </div>
                                     ${gvc.bindView(() => {
@@ -2425,111 +2423,151 @@ export class CheckoutIndex {
                                             },
                                         };
                                     })}
-                                    <div class="w-100 d-flex align-items-center justify-content-end px-2 mt-3">
-                                        <button
-                                            class="${gClass('button-bgr')}"
-                                            onclick="${gvc.event(() => {
-                                                // glitter.innerDialog((gvc:GVC)=>{
-                                                //     return gvc.bindView({
-                                                //         bind:`paynow`,
-                                                //         view:()=>{
-                                                //             return html`<div class="w-100 h-100">
-                                                //                 <div id="paynow-container"></div>
-                                                //             </div>`
-                                                //         },divCreate:{
-                                                //
-                                                //         },onCreate:()=>{}
-                                                //     })
-                                                //
-                                                // },`paynow`)
-                                                const dialog = new ShareDialog(gvc.glitter);
-                                                if (!this.checkFormData(gvc, vm.cartData, widget)) {
-                                                    return;
-                                                }
-                                                for (const item of vm.cartData.lineItems) {
-                                                    const title = (item.language_data && item.language_data[Language.getLanguage()].title) || item.title;
-                                                    let min = (item.min_qty && parseInt(item.min_qty, 10)) || 1;
-                                                    let count = 0;
-                                                    for (const b of vm.cartData.lineItems) {
-                                                        if (b.id === item.id) {
-                                                            count += b.count;
-                                                        }
-                                                    }
-                                                    if (count < min) {
-                                                        dialog.errorMessage({ text: Language.text('min_p_count_d').replace('_c_', min).replace('_p_', `『${title}』`) });
-                                                        return;
-                                                    }
-                                                }
-                                                if (vm.cartData.user_info_same) {
-                                                    vm.cartData.user_info.name = vm.cartData.customer_info.name;
-                                                    vm.cartData.user_info.phone = vm.cartData.customer_info.phone;
-                                                    vm.cartData.user_info.email = vm.cartData.customer_info.email;
-                                                }
-                                                ['MerchantTradeNo', 'LogisticsSubType', 'CVSStoreID', 'CVSStoreName', 'CVSTelephone', 'CVSOutSide', 'ExtraData', 'CVSAddress'].map((dd) => {
-                                                    if (gvc.glitter.getUrlParameter(dd)) {
-                                                        vm.cartData.user_info[dd] = decodeURI(glitter.getUrlParameter(dd));
-                                                    }
-                                                });
+                                    ${(() => {
+                                        const verify = [];
+                                        const shipment = vm.cartData.shipment_selector.find((item: any) => item.value === vm.cartData.user_info.shipment);
+                                        if (shipment.isExcludedByTotal) {
+                                            verify.push('提示：若總金額超過20,000元，結帳系統無法提供四大超商配送，請調整購買項目');
+                                        }
+                                        if (shipment.isExcludedByWeight) {
+                                            verify.push('提示：若訂單總重超過20公斤，無法提供中華郵政/黑貓宅配服務，請調整購買項目');
+                                        }
+                                        return html`<div class="w-100 d-flex flex-column align-items-end justify-content-cneter px-2 mt-3">
+                                            ${[
+                                                verify
+                                                    .map((text) => {
+                                                        return html`<p class="${gClass('shipping-hint')}">${text}</p>`;
+                                                    })
+                                                    .join(''),
+                                                html`
+                                                    <button
+                                                        class="${gClass(verify.length > 0 ? 'button-bgr-disable' : 'button-bgr')}"
+                                                        onclick="${gvc.event(() => {
+                                                            if (verify.length > 0) {
+                                                                return;
+                                                            }
+                                                            // glitter.innerDialog((gvc:GVC)=>{
+                                                            //     return gvc.bindView({
+                                                            //         bind:`paynow`,
+                                                            //         view:()=>{
+                                                            //             return html`<div class="w-100 h-100">
+                                                            //                 <div id="paynow-container"></div>
+                                                            //             </div>`
+                                                            //         },divCreate:{
+                                                            //
+                                                            //         },onCreate:()=>{}
+                                                            //     })
+                                                            //
+                                                            // },`paynow`)
+                                                            const dialog = new ShareDialog(gvc.glitter);
+                                                            if (!this.checkFormData(gvc, vm.cartData, widget)) {
+                                                                return;
+                                                            }
+                                                            for (const item of vm.cartData.lineItems) {
+                                                                const title = (item.language_data && item.language_data[Language.getLanguage()].title) || item.title;
+                                                                let min = (item.min_qty && parseInt(item.min_qty, 10)) || 1;
+                                                                let max_qty = (item.max_qty && parseInt(item.max_qty, 10)) || Infinity;
+                                                                let count = 0;
+                                                                for (const b of vm.cartData.lineItems) {
+                                                                    if (b.id === item.id) {
+                                                                        count += b.count;
+                                                                    }
+                                                                }
+                                                                if (count < min) {
+                                                                    dialog.errorMessage({ text: Language.text('min_p_count_d').replace('_c_', min).replace('_p_', `『${title}』`) });
+                                                                    return;
+                                                                }
+                                                                if (count > max_qty) {
+                                                                    dialog.errorMessage({ text: Language.text('max_p_count_d').replace('_c_', min).replace('_p_', `『${title}』`) });
+                                                                    return;
+                                                                }
+                                                            }
+                                                            if (vm.cartData.user_info_same) {
+                                                                vm.cartData.user_info.name = vm.cartData.customer_info.name;
+                                                                vm.cartData.user_info.phone = vm.cartData.customer_info.phone;
+                                                                vm.cartData.user_info.email = vm.cartData.customer_info.email;
+                                                            }
+                                                            ['MerchantTradeNo', 'LogisticsSubType', 'CVSStoreID', 'CVSStoreName', 'CVSTelephone', 'CVSOutSide', 'ExtraData', 'CVSAddress'].map((dd) => {
+                                                                if (gvc.glitter.getUrlParameter(dd)) {
+                                                                    vm.cartData.user_info[dd] = decodeURI(glitter.getUrlParameter(dd));
+                                                                }
+                                                            });
 
-                                                dialog.dataLoading({ visible: true });
+                                                            dialog.dataLoading({ visible: true });
+                                                            ApiShop.toCheckout({
+                                                                line_items: vm.cartData.lineItems.map((dd: any) => {
+                                                                    return {
+                                                                        id: dd.id,
+                                                                        spec: dd.spec,
+                                                                        count: dd.count,
+                                                                    };
+                                                                }),
+                                                                customer_info: vm.cartData.customer_info,
+                                                                return_url: (() => {
+                                                                    const originalUrl = glitter.root_path + 'order_detail' + location.search;
+                                                                    const urlObject = new URL(originalUrl);
+                                                                    urlObject.searchParams.set('EndCheckout', '1');
+                                                                    const newUrl = urlObject.toString();
+                                                                    return newUrl;
+                                                                })(),
+                                                                user_info: vm.cartData.user_info,
+                                                                code: apiCart.cart.code,
+                                                                use_rebate: apiCart.cart.use_rebate,
+                                                                custom_form_format: vm.cartData.custom_form_format,
+                                                                custom_form_data: vm.cartData.custom_form_data,
+                                                                custom_receipt_form: vm.cartData.receipt_form,
+                                                                distribution_code: localStorage.getItem('distributionCode') ?? '',
+                                                                give_away: apiCart.cart.give_away,
+                                                            }).then((res) => {
+                                                                dialog.dataLoading({ visible: false });
 
-                                                ApiShop.toCheckout({
-                                                    line_items: vm.cartData.lineItems.map((dd: any) => {
-                                                        return {
-                                                            id: dd.id,
-                                                            spec: dd.spec,
-                                                            count: dd.count,
-                                                        };
-                                                    }),
-                                                    customer_info: vm.cartData.customer_info,
-                                                    return_url: (() => {
-                                                        const originalUrl = glitter.root_path + 'order_detail' + location.search;
-                                                        const urlObject = new URL(originalUrl);
-                                                        urlObject.searchParams.set('EndCheckout', '1');
-                                                        const newUrl = urlObject.toString();
-                                                        return newUrl;
-                                                    })(),
-                                                    user_info: vm.cartData.user_info,
-                                                    code: apiCart.cart.code,
-                                                    use_rebate: apiCart.cart.use_rebate,
-                                                    custom_form_format: vm.cartData.custom_form_format,
-                                                    custom_form_data: vm.cartData.custom_form_data,
-                                                    custom_receipt_form: vm.cartData.receipt_form,
-                                                    distribution_code: apiCart.cart.distribution_code,
-                                                    give_away: apiCart.cart.give_away,
-                                                }).then((res) => {
-                                                    dialog.dataLoading({ visible: false });
+                                                                const lineItemIds = vm.cartData.lineItems.map((item: any) => item.id);
+                                                                const cartKeys = [ApiCart.cartPrefix, ApiCart.buyItNow, ApiCart.globalCart];
 
-                                                    if (res.response.off_line || res.response.is_free) {
-                                                        apiCart.clearCart();
-                                                        location.href = res.response.return_url;
-                                                    } else {
-                                                        apiCart.clearCart();
-                                                        // todo if 他是paypal的key值 上面應該有select之類的
-                                                        if (res.response.returnCode == '0000' && vm.cartData.customer_info.payment_select == 'line_pay') {
-                                                            console.log('res.response.form.info.paymentUrl.web -- ', res.response.info.paymentUrl.web);
-                                                            location.href = res.response.info.paymentUrl.web;
-                                                            // todo 手機跳轉用這個
-                                                            //     location.href = res.response.form.info.paymentUrl.app;
-                                                        } else if (res.response.approveLink) {
-                                                            location.href = res.response.approveLink;
-                                                        } else {
-                                                            const id = gvc.glitter.getUUID();
-                                                            $('body').append(html` <div id="${id}" style="display: none;">${res.response.form}</div>`);
-                                                            (document.querySelector(`#${id} #submit`) as any).click();
-                                                        }
-                                                        // todo if 他是paypal的key值 上面應該有select之類的值傳進來 然後做轉址
-                                                        //     if (res.response.form.approveLink || 付款方式是PayPal){
-                                                        //         location.href = res.response.form.approveLink;
-                                                        //     }else{
-                                                    }
-                                                });
-                                            })}"
-                                            style="width:200px;"
-                                        >
-                                            <span class="${gClass('button-text')}">${Language.text('next')}</span>
-                                        </button>
-                                    </div>
+                                                                for (let i = 0; i < localStorage.length; i++) {
+                                                                    const key = localStorage.key(i);
+                                                                    if (key && cartKeys.some((cartKey) => key.includes(cartKey))) {
+                                                                        const formatKey = key.replace((window as any).appName, '');
+                                                                        const cart = new ApiCart(formatKey);
+                                                                        cart.setCart((cartItem) => {
+                                                                            cartItem.line_items = cartItem.line_items.filter((item) => !lineItemIds.includes(item.id));
+                                                                        });
+                                                                    }
+                                                                }
+
+                                                                apiCart.clearCart();
+
+                                                                if (res.response.off_line || res.response.is_free) {
+                                                                    location.href = res.response.return_url;
+                                                                } else {
+                                                                    // todo if 他是paypal的key值 上面應該有select之類的
+                                                                    if (res.response.returnCode == '0000' && vm.cartData.customer_info.payment_select == 'line_pay') {
+                                                                        console.log('res.response.form.info.paymentUrl.web -- ', res.response.info.paymentUrl.web);
+                                                                        location.href = res.response.info.paymentUrl.web;
+                                                                        // todo 手機跳轉用這個
+                                                                        //     location.href = res.response.form.info.paymentUrl.app;
+                                                                    } else if (res.response.approveLink) {
+                                                                        location.href = res.response.approveLink;
+                                                                    } else {
+                                                                        const id = gvc.glitter.getUUID();
+                                                                        $('body').append(html` <div id="${id}" style="display: none;">${res.response.form}</div>`);
+                                                                        (document.querySelector(`#${id} #submit`) as any).click();
+                                                                    }
+                                                                    // todo if 他是paypal的key值 上面應該有select之類的值傳進來 然後做轉址
+                                                                    //     if (res.response.form.approveLink || 付款方式是PayPal){
+                                                                    //         location.href = res.response.form.approveLink;
+                                                                    //     }else{
+                                                                }
+                                                            });
+                                                        })}"
+                                                        style="width:200px;"
+                                                    >
+                                                        <span class="${gClass('button-text')}">${Language.text('next')}</span>
+                                                    </button>
+                                                `,
+                                            ].join('')}
+                                        </div>`;
+                                    })()}
                                 </section>
                             </div>`;
                         } catch (e) {
@@ -2710,8 +2748,6 @@ export class CheckoutIndex {
             ...userData,
             ...cartData.custom_form_data,
         });
-        console.log(`leakData_customer===>`, leakData_customer);
-        console.log(`leakData_user===>`, userData);
         if (leakData_customer) {
             dialog.errorMessage({
                 text: (() => {

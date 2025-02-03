@@ -120,7 +120,7 @@ export class SeoSettingV2 {
             vm.mainLoading = true;
             gvc.notifyDataChange(vm.id);
             getSEOData().then((r) => __awaiter(this, void 0, void 0, function* () {
-                var _a, _b, _c, _d, _e, _f, _g;
+                var _a, _b, _c, _d, _e, _f, _g, _h, _j;
                 const data = r.response.result[0].page_config.seo;
                 vm.SEOData = {
                     "seo": {
@@ -130,7 +130,9 @@ export class SeoSettingV2 {
                         "logo": (_d = data.logo) !== null && _d !== void 0 ? _d : "",
                         "title": (_e = data.title) !== null && _e !== void 0 ? _e : "",
                         "content": (_f = data.content) !== null && _f !== void 0 ? _f : "",
-                        "keywords": (_g = data.keywords) !== null && _g !== void 0 ? _g : ""
+                        "keywords": (_g = data.keywords) !== null && _g !== void 0 ? _g : "",
+                        "title_prefix": (_h = data.title_prefix) !== null && _h !== void 0 ? _h : '',
+                        'title_suffix': (_j = data.title_suffix) !== null && _j !== void 0 ? _j : ''
                     },
                     "list": [],
                     "version": "v2",
@@ -189,6 +191,30 @@ export class SeoSettingV2 {
                                 divStyle: "width:100%;",
                                 titleStyle: "font-weight:700!important;"
                             })}
+<div class="d-flex align-items-center" style="gap:10px;">
+    <div class="" style="flex: 1;">${BgWidget.editeInput({
+                                gvc: gvc,
+                                title: '統一標題前綴' + BgWidget.languageInsignia(vm.language, 'margin-left:5px;'),
+                                default: vm.SEOData.seo.title_prefix,
+                                callback: (text) => {
+                                    vm.SEOData.seo.title_prefix = text;
+                                },
+                                placeHolder: '請輸入SEO標題前綴',
+                                divStyle: "width:100%;",
+                                titleStyle: "font-weight:700!important;"
+                            })}</div>
+    <div  style="flex: 1;">${BgWidget.editeInput({
+                                gvc: gvc,
+                                title: '統一標題後綴' + BgWidget.languageInsignia(vm.language, 'margin-left:5px;'),
+                                default: vm.SEOData.seo.title_suffix,
+                                callback: (text) => {
+                                    vm.SEOData.seo.title_suffix = text;
+                                },
+                                placeHolder: '請輸入SEO標題後綴',
+                                divStyle: "width:100%;",
+                                titleStyle: "font-weight:700!important;"
+                            })}</div>
+</div>
                                         <div class="d-flex flex-column" style="gap:18px ">
                                             <div class="d-flex flex-column w-100" style="gap: 8px;">
                                                 <div class="d-flex align-items-center  "

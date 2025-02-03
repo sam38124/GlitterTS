@@ -152,6 +152,13 @@ export class StockList {
                                 class="fs-7">${dd.variant_content.sku && dd.variant_content.sku.length > 0 ? dd.variant_content.sku : '沒有庫存單位'}</span>`,
                     },
                     {
+                        key: '已售出',
+                        value: html`
+                            <div class="fs-7" style="min-width: 100px;">
+                                ${dd.variant_content.sold_out || 0}
+                            </div>`,
+                    },
+                    {
                         key: '成本',
                         value: html`
                             <div class="fs-7" style="min-width: 100px;">

@@ -19,7 +19,6 @@ export class Sy02 {
             changePage = cl.changePage;
         });
         const colors = Color.getTheme(gvc, widget.formData);
-
         return html`
             <div style="height: 76px;"></div>
             <nav
@@ -217,7 +216,7 @@ background: ${colors.bgr ?? '#000'};overflow-x: hidden;`,
                           ${widget.formData.logo.value}
                       </div>
                   `
-                : html` <div class="d-flex align-items-center justify-content-center h-100 py-2"><img src="${widget.formData.logo.value}" style="max-height: 100%;max-width:150px;" /></div> `
+                : html` <div class="d-flex align-items-center justify-content-center h-100 py-2"><img src="${widget.formData.logo.value}" style="max-height: 100%;max-width:200px;" /></div> `
         }
                         </div>
                         <!--選單列表顯示區塊-->
@@ -234,6 +233,7 @@ background: ${colors.bgr ?? '#000'};overflow-x: hidden;`,
                                 return {
                                     bind: id,
                                     view: () => {
+                                       
                                         function loopItems(data: any) {
                                             return data
                                                 .map((dd: any) => {

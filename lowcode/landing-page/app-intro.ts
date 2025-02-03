@@ -30,7 +30,7 @@ font-family: 'Noto Sans';
                         gvc.glitter.openNewTab(' https://apps.apple.com/us/app/shopnex-%E5%85%A8%E9%80%9A%E8%B7%AF%E6%95%B4%E5%90%88%E9%96%8B%E5%BA%97%E5%B9%B3%E5%8F%B0/id6736935325')
                     })}" src="https://d3jnmi1tfjgtti.cloudfront.net/file/252530754/1720335027962-c7732fe761f745b2382cbce1fa4239ba.png" style="width:151px;cursor: pointer;"></img>
                     <img src="https://d3jnmi1tfjgtti.cloudfront.net/file/252530754/1720335033287-cc2571282c541a15df727d64cd88a57f.png" style="width:151px;cursor: pointer;" onclick="${gvc.event(()=>{
-                        gvc.glitter.openNewTab('https://play.google.com/store/apps/details?id=shopnex.cc')  
+                        gvc.glitter.openNewTab('https://play.google.com/store/apps/details?id=shopnex.tw')  
                     })}"></img>
                 </div>
                 </div>

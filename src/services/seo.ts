@@ -6,6 +6,9 @@ import {Template} from "./template.js";
 export class Seo {
     public static async getPageInfo(appName: string, query_page: string,language:any):Promise<any> {
         let page = await Template.getRealPage(query_page, appName);
+        if(page==='official-router'){
+            appName='cms_system'
+        }
         const page_db=(()=>{
             switch (language){
                 case 'zh-TW':

@@ -9,7 +9,6 @@ import {NormalPageEditor} from "../../editor/normal-page-editor.js";
 import {RenderValue} from "../../glitterBundle/html-component/render-value.js";
 
 
-
 export const component = Plugin.createComponent(import.meta.url, (glitter: Glitter, editMode: boolean) => {
     return {
         render: (gvc: GVC, widget: any, setting: HtmlJson[], hoverID: string[], subData, htmlGenerate, doc) => {
@@ -112,6 +111,8 @@ export const component = Plugin.createComponent(import.meta.url, (glitter: Glitt
                                         })
 
                                         function getFormData(ref: any) {
+                                            //判斷是否有上次的更新資料
+                                            ref= (window.parent as any).glitter.share.updated_form_data[`${page_request_config.appName}_${tag}`] || ref;
                                             let formData = JSON.parse(JSON.stringify(ref || {}))
                                             if ((widget.data.refer_app)) {
                                                 GlobalWidget.initialShowCaseData({
@@ -150,15 +151,16 @@ export const component = Plugin.createComponent(import.meta.url, (glitter: Glitt
                                         const id = gvc.glitter.getUUID()
 
                                         function updatePageConfig(formData: any, type: any, oWidget: any) {
-
                                             oWidget && (widget = oWidget);
-                                            viewConfig.formData = getFormData((widget.data.refer_app) ? (widget.data.refer_form_data || data.page_config.formData) : data.page_config.formData);
+                                            const ref=(widget.data.refer_app) ? (widget.data.refer_form_data || data.page_config.formData) : data.page_config.formData;
+                                            (window.parent as any).glitter.share.updated_form_data[`${page_request_config.appName}_${tag}`]=ref;
+                                            viewConfig.formData = getFormData(ref);
                                             const view = getView();
                                             (window.parent as any).glitter.share.loading_dialog.dataLoading({visible: true})
                                             setTimeout(() => {
                                                 document.querySelector(`[gvc-id="${gvc.id(id)}"]`).outerHTML = view;
                                                 (window.parent as any).glitter.share.loading_dialog.dataLoading({visible: false})
-                                            }, 10)
+                                            }, 50);
 
                                         }
 
@@ -177,7 +179,7 @@ export const component = Plugin.createComponent(import.meta.url, (glitter: Glitt
                                                 createOption.option = createOption.option ?? []
                                                 createOption.class = createOption.class || ``
                                                 createOption.childContainer = true
-                                                createOption.class += ` ${(glitter.htmlGenerate.isEditMode()) ? `${page_request_config.appName}_${page_request_config.tag} ${widget.id}` : ``}`;
+                                                createOption.class += ` ${(glitter.htmlGenerate.isEditMode()) ? `${page_request_config.appName}_${page_request_config.tag} ${widget.id} ` : ``}`;
                                                 createOption.style = createOption.style ?? ''
                                                 createOption.style += RenderValue.custom_style.container_style(gvc, widget);
                                                 createOption.style += (() => {
@@ -609,12 +611,12 @@ export const component = Plugin.createComponent(import.meta.url, (glitter: Glitt
 
                                                             function appendHtml(pageData: any, widget: any, initial: boolean, p_id: string, parent_array: any) {
                                                                 const oWidget = widget
-                                                                oWidget.data.refer_form_data=oWidget.data.refer_form_data ?? {}
+                                                                oWidget.data.refer_form_data = oWidget.data.refer_form_data ?? {}
                                                                 initialReferData(widget)
                                                                 const page_config = pageData.page_config;
 
                                                                 function getReferForm(widget: any, type: string) {
-                                                                    widget.data.refer_form_data=widget.data.refer_form_data??{}
+                                                                    widget.data.refer_form_data = widget.data.refer_form_data ?? {}
                                                                     if ((widget.data.refer_app)) {
                                                                         widget.data.refer_form_data = widget.data.refer_form_data || (oWidget.data.refer_form_data && JSON.parse(JSON.stringify(oWidget.data.refer_form_data))) || JSON.parse(JSON.stringify(page_config.formData))
                                                                         if (type !== 'def') {
@@ -735,7 +737,7 @@ export const component = Plugin.createComponent(import.meta.url, (glitter: Glitt
                                                                                                                                                 event.stopPropagation();
                                                                                                                                                 vm.type = 'preview';
                                                                                                                                                 widget.label = name;
-                                                                                                                                                gvc.notifyDataChange([vm.id,'item-editor-select'])
+                                                                                                                                                gvc.notifyDataChange([vm.id, 'item-editor-select'])
                                                                                                                                             })}">
                                                                                                                                         <span style="font-size: 14px; color: #393939; font-weight: 400;">確認</span>
                                                                                                                                     </button>`
@@ -790,7 +792,7 @@ export const component = Plugin.createComponent(import.meta.url, (glitter: Glitt
                                                                                                     }
                                                                                                 })()}</div>`,
                                                                                                 GlobalWidget.showCaseEditor({
-                                                                                                    hide_ai:vm.page==='setting',
+                                                                                                    hide_ai: vm.page === 'setting',
                                                                                                     gvc: gvc,
                                                                                                     widget: oWidget,
                                                                                                     view: (widget, type) => {
@@ -838,8 +840,10 @@ export const component = Plugin.createComponent(import.meta.url, (glitter: Glitt
                                                                                                                     bind: vm.id,
                                                                                                                     view: async () => {
                                                                                                                         let refer_form: any = getReferForm(widget, type);
+
                                                                                                                         //刷新資料
                                                                                                                         function refresh(widget: any, device: 'mobile' | 'desktop' | 'def') {
+
                                                                                                                             if (widget.data.refer_app) {
                                                                                                                                 widget.data.refer_form_data = refer_form;
                                                                                                                                 if (pageData.id !== p_id) {
@@ -855,7 +859,6 @@ export const component = Plugin.createComponent(import.meta.url, (glitter: Glitt
                                                                                                                                         })
                                                                                                                                     });
                                                                                                                                     try {
-                                                                                                                                        console.log(`getPageData-${parent_array.tag}`, parent_array);
                                                                                                                                         (window as any).glitterInitialHelper.share[`getPageData-${(window as any).appName}-${parent_array.tag}`].data.response.result[0].config = parent_array;
                                                                                                                                     } catch (error) {
                                                                                                                                         console.log(`error->`, error)
@@ -888,43 +891,57 @@ export const component = Plugin.createComponent(import.meta.url, (glitter: Glitt
 
                                                                                                                                 }
                                                                                                                             }
-                                                                                                                            widget.storage && widget.storage.updatePageConfig && widget.storage.updatePageConfig(refer_form, device, oWidget);
+                                                                                                                            if (widget.storage && widget.storage.updatePageConfig) {
+                                                                                                                                widget.storage && widget.storage.updatePageConfig && widget.storage.updatePageConfig(refer_form, device, oWidget);
+                                                                                                                            } else {
+                                                                                                                                try {
+                                                                                                                                    for (const b of (window.parent as any).document.querySelector('.iframe_view').contentWindow.document.querySelectorAll(`.${widget.data.refer_app || (window as any).appName}_${pageData.tag}`)) {
+                                                                                                                                        b.updatePageConfig(refer_form, device, oWidget);
+                                                                                                                                    }
+                                                                                                                                } catch (e) {
+
+                                                                                                                                }
+                                                                                                                            }
+                                                                                                                          
+                                                                                                                            subData.editor_updated_callback && subData.editor_updated_callback(oWidget);
                                                                                                                         }
+
                                                                                                                         //設定顯示編輯與否
-                                                                                                                        function getItemsVisibility(dd:any){
-                                                                                                                            const descriptor=Object.getOwnPropertyDescriptor(refer_form, dd.key)
-                                                                                                                            const custom=oWidget[`${type}_editable`].find((d1: any) => {
+                                                                                                                        function getItemsVisibility(dd: any) {
+                                                                                                                            const descriptor = Object.getOwnPropertyDescriptor(refer_form, dd.key)
+                                                                                                                            const custom = oWidget[`${type}_editable`].find((d1: any) => {
                                                                                                                                 return d1 === dd.key
                                                                                                                             });
                                                                                                                             //先統一刪除賦予值
-                                                                                                                            if(descriptor && (typeof descriptor.get === 'function' || typeof descriptor.set === 'function')){
+                                                                                                                            if (descriptor && (typeof descriptor.get === 'function' || typeof descriptor.set === 'function')) {
                                                                                                                                 delete refer_form[dd.key];
                                                                                                                             }
                                                                                                                             //判斷為勾選自訂義則參照主表單
-                                                                                                                            if(!custom){
+                                                                                                                            if (!custom) {
                                                                                                                                 Object.defineProperty(refer_form, dd.key, {
                                                                                                                                     get: function () {
                                                                                                                                         return oWidget.data.refer_form_data[dd.key];
                                                                                                                                     },
 
                                                                                                                                     set(v) {
-                                                                                                                                        if(v!==undefined){
-                                                                                                                                            oWidget.data.refer_form_data[dd.key]=v
+                                                                                                                                        if (v !== undefined) {
+                                                                                                                                            oWidget.data.refer_form_data[dd.key] = v
                                                                                                                                         }
                                                                                                                                     },
                                                                                                                                     configurable: true
                                                                                                                                 })
                                                                                                                             }
-                                                                                                                            return  (!glitter.share.only_show_cuatomize || custom)
+                                                                                                                            return (!glitter.share.only_show_cuatomize || custom)
                                                                                                                         }
-                                                                                                                        const color_array:any=await filterFormat((dd) => {
+
+                                                                                                                        const color_array: any = await filterFormat((dd) => {
                                                                                                                             if (dd.page === 'color_theme') {
                                                                                                                                 return getItemsVisibility(dd)
                                                                                                                             } else {
                                                                                                                                 return false
                                                                                                                             }
                                                                                                                         })
-                                                                                                                        const style_array:any=await filterFormat((dd) => {
+                                                                                                                        const style_array: any = await filterFormat((dd) => {
                                                                                                                             if (dd.page !== 'color_theme' && dd.category === 'style') {
                                                                                                                                 return getItemsVisibility(dd)
                                                                                                                             } else {
@@ -932,28 +949,28 @@ export const component = Plugin.createComponent(import.meta.url, (glitter: Glitt
                                                                                                                             }
                                                                                                                         })
                                                                                                                         const setting_option = [
-                                                                                                                            ...(()=>{
-                                                                                                                                if(style_array.length){
-                                                                                                                                    return [  {
+                                                                                                                            ...(() => {
+                                                                                                                                if (style_array.length) {
+                                                                                                                                    return [{
                                                                                                                                         title: "樣式設定",
                                                                                                                                         key: 'style',
                                                                                                                                         array: style_array
                                                                                                                                     }]
-                                                                                                                                }else{
+                                                                                                                                } else {
                                                                                                                                     return []
                                                                                                                                 }
                                                                                                                             })(),
-                                                                                                                                ...(()=>{
-                                                                                                                                    if(color_array.length){
-                                                                                                                                        return [  {
-                                                                                                                                            title: "顏色設定",
-                                                                                                                                            key: 'color',
-                                                                                                                                            array: color_array
-                                                                                                                                        }]
-                                                                                                                                    }else{
-                                                                                                                                        return []
-                                                                                                                                    }
-                                                                                                                                })(),
+                                                                                                                            ...(() => {
+                                                                                                                                if (color_array.length) {
+                                                                                                                                    return [{
+                                                                                                                                        title: "顏色設定",
+                                                                                                                                        key: 'color',
+                                                                                                                                        array: color_array
+                                                                                                                                    }]
+                                                                                                                                } else {
+                                                                                                                                    return []
+                                                                                                                                }
+                                                                                                                            })(),
                                                                                                                             {
                                                                                                                                 title: "字型設定",
                                                                                                                                 key: 'fonts',
@@ -998,7 +1015,7 @@ export const component = Plugin.createComponent(import.meta.url, (glitter: Glitt
                                                                                                                             return true
                                                                                                                         })
                                                                                                                         try {
-                                                                                                                           
+
                                                                                                                             const global_setting_view = [
                                                                                                                                 `<div class="mx-3 guide-user-editor-6 "
                                                                                                                                              style=" height: 40px; padding: 6px 18px;background: #393939; border-radius: 10px; overflow: hidden;width: calc(100% - 30px);justify-content: center; align-items: center; gap: 8px; display: inline-flex;cursor: pointer;"
@@ -1080,11 +1097,11 @@ export const component = Plugin.createComponent(import.meta.url, (glitter: Glitt
                                                                                                                                 })
                                                                                                                                 return [
                                                                                                                                     type === 'def' ? `` : global_setting_view,
-                                                                                                                                    (()=>{
-                                                                                                                                        if(array_items.length===0){
-                                                                                                                                            return  `<div class="mb-n3" style="text-align: center; padding: 12px; font-size: 18px; font-weight: 700;">尚未設定自定義項目</div>`
-                                                                                                                                        }else{
-                                                                                                                                            return   FormWidget.editorView({
+                                                                                                                                    (() => {
+                                                                                                                                        if (array_items.length === 0) {
+                                                                                                                                            return `<div class="mb-n3" style="text-align: center; padding: 12px; font-size: 18px; font-weight: 700;">尚未設定自定義項目</div>`
+                                                                                                                                        } else {
+                                                                                                                                            return FormWidget.editorView({
                                                                                                                                                 gvc: gvc,
                                                                                                                                                 array: array_items,
                                                                                                                                                 refresh: () => {
@@ -1106,10 +1123,10 @@ font-weight: 700;" onclick="${gvc.event(() => {
                                                                                                                                             vm.page = 'setting'
                                                                                                                                             gvc.notifyDataChange(id)
                                                                                                                                         })}">
-                                                                                                                                            設定
+                                                                                                                                            樣式設定
                                                                                                                                             <i class="fa-solid fa-angle-right"></i>
                                                                                                                                         </div>`
-                                                                                                                                ].join('') 
+                                                                                                                                ].join('')
                                                                                                                             } else if (vm.page === 'setting') {
                                                                                                                                 return global_setting_view + [setting_option.map((dd: any, index: any) => {
                                                                                                                                     return gvc.bindView(() => {
@@ -1121,7 +1138,7 @@ font-weight: 700;" onclick="${gvc.event(() => {
                                                                                                                                             toggle: false
                                                                                                                                         };
                                                                                                                                         (setting_option[index] as any).vm_c = vm_c;
-                                                                                                                                        const _f_wd=widget
+                                                                                                                                        const _f_wd = widget
                                                                                                                                         return {
                                                                                                                                             bind: vm_c.id,
                                                                                                                                             view: () => {
@@ -1148,7 +1165,7 @@ font-weight: 700;" onclick="${gvc.event(() => {
                                                                                                                                                         ${vm_c.toggle ? ` <i class="fa-solid fa-chevron-down"></i>` : ` <i class="fa-solid fa-chevron-right"></i>`}
 
                                                                                                                                                     </div>`]
-                                                                                                                                                const refer_result= (() => {
+                                                                                                                                                const refer_result = (() => {
                                                                                                                                                     switch (dd.key) {
                                                                                                                                                         case 'style':
                                                                                                                                                         case 'color':
@@ -1188,8 +1205,8 @@ font-weight: 700;" onclick="${gvc.event(() => {
                                                                                                                                                             })}</div>`)
                                                                                                                                                             break
                                                                                                                                                         case 'fonts':
-                                                                                                                                                            (()=>{
-                                                                                                                                                                const widget=refer_result  ? _f_wd:oWidget
+                                                                                                                                                            (() => {
+                                                                                                                                                                const widget = refer_result ? _f_wd : oWidget
                                                                                                                                                                 array_string.push(`<div class="px-3 pb-2 ">${
                                                                                                                                                                         EditorElem.select({
                                                                                                                                                                             title: '',
@@ -1231,31 +1248,31 @@ font-weight: 700;" onclick="${gvc.event(() => {
                                             </div>
 </div>`)
                                                                                                                                                             })()
-                                                                                                                                                         
+
                                                                                                                                                             break
                                                                                                                                                         case 'margin':
-                                                                                                                                                            (()=>{
-                                                                                                                                                                array_string.push(`<div class="px-3 pb-2">${CustomStyle.editorMargin(gvc, refer_result  ? widget:oWidget, () => {
+                                                                                                                                                            (() => {
+                                                                                                                                                                array_string.push(`<div class="px-3 pb-2">${CustomStyle.editorMargin(gvc, refer_result ? widget : oWidget, () => {
                                                                                                                                                                     refresh(widget, type)
                                                                                                                                                                 })}</div>`)
                                                                                                                                                             })()
-                                                                                                                                                       
+
                                                                                                                                                             break
                                                                                                                                                         case 'background':
-                                                                                                                                                            (()=>{
-                                                                                                                                                                array_string.push(`<div class="px-3 pb-2">${CustomStyle.editorBackground(gvc, refer_result  ? widget:oWidget, () => {
+                                                                                                                                                            (() => {
+                                                                                                                                                                array_string.push(`<div class="px-3 pb-2">${CustomStyle.editorBackground(gvc, refer_result ? widget : oWidget, () => {
                                                                                                                                                                     refresh(widget, type)
                                                                                                                                                                 })}</div>`)
                                                                                                                                                             })()
-                                                                                                                                                         
+
                                                                                                                                                             break
                                                                                                                                                         case 'develop':
-                                                                                                                                                            (()=>{
-                                                                                                                                                                array_string.push(`<div class="px-3">${CustomStyle.editor(gvc, refer_result  ? widget:oWidget, () => {
+                                                                                                                                                            (() => {
+                                                                                                                                                                array_string.push(`<div class="px-3">${CustomStyle.editor(gvc, refer_result ? widget : oWidget, () => {
                                                                                                                                                                     refresh(widget, type)
                                                                                                                                                                 })}</div>`)
                                                                                                                                                             })()
-                                                                                                                                                            
+
                                                                                                                                                             break
                                                                                                                                                     }
                                                                                                                                                 }
@@ -1331,7 +1348,6 @@ font-weight: 700;" onclick="${gvc.event(() => {
                                                                         if (!pageData.template_config || !pageData.template_config.tag || (!pageData.template_config.tag.find((dd: any) => {
                                                                             return dd === "商品卡片"
                                                                         }))) {
-                                                                            console.log(`pageData.template_config.tag`, pageData.template_config.tag)
                                                                             if ((gvc.glitter.getUrlParameter('device') === 'mobile') && pageData.template_config.tag.includes('標頭元件')) {
 
                                                                             } else if ((gvc.glitter.getUrlParameter('device') !== 'mobile') && pageData.template_config.tag.includes('APP-Header')) {
@@ -1365,11 +1381,11 @@ font-weight: 700;" onclick="${gvc.event(() => {
                                         <h3 class="text-dark fs-6 mt-n3 px-2 mb-3 "
                                             style="line-height: 200%;text-align: center;">
                                             此模塊無可編輯內容</h3>
-                                            ${BgWidget.save(gvc.event(()=>{
+                                            ${BgWidget.save(gvc.event(() => {
                                                                     Storage.lastSelect = '';
                                                                     gvc.glitter.share.editorViewModel.selectItem = undefined;
                                                                     gvc.glitter.share.selectEditorItem();
-                                                                }),'返回上層')}
+                                                                }), '返回上層')}
                                     </div>`)
                                                             } else {
                                                                 resolve(html)

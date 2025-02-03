@@ -13,6 +13,7 @@ import { Language } from '../../glitter-base/global/language.js';
 import { Tool } from '../../modules/tool.js';
 import { GlobalUser } from '../../glitter-base/global/global-user.js';
 import { ApiUser } from '../../glitter-base/route/user.js';
+import { FormCheck } from "../../cms-plugin/module/form-check.js";
 const html = String.raw;
 const css = String.raw;
 export class UMLogin {
@@ -41,11 +42,12 @@ export class UMLogin {
             bind: ids.view,
             dataList: [{ obj: vm, key: 'viewType' }],
             view: () => {
-                if (loadings.view) {
-                    return UmClass.spinner();
-                }
-                if (vm.viewType === 'send_forget_pwd_email') {
-                    return html `<section class="${gClass('container')}">
+                try {
+                    if (loadings.view) {
+                        return UmClass.spinner();
+                    }
+                    if (vm.viewType === 'send_forget_pwd_email') {
+                        return html `<section class="${gClass('container')}">
                         <div class="${gClass('box')}">
                             <div class="${gClass('login-title')}">${Language.text('forgot_password')}</div>
                             <div class="w-100 d-flex flex-column gap-3">
@@ -56,8 +58,8 @@ export class UMLogin {
                                 <div
                                     class="${gClass('button')} my-2"
                                     onclick="${gvc.event(() => {
-                        this.sendResetEmail(widget, vm);
-                    })}"
+                            this.sendResetEmail(widget, vm);
+                        })}"
                                 >
                                     <span class="${gClass('button-text')}">${Language.text('get_verification_code')}</span>
                                 </div>
@@ -65,9 +67,9 @@ export class UMLogin {
                             ${this.backToLogin(gvc, vm)}
                         </div>
                     </section>`;
-                }
-                if (vm.viewType === 'validation_code') {
-                    return html `<section class="${gClass('container')}">
+                    }
+                    if (vm.viewType === 'validation_code') {
+                        return html `<section class="${gClass('container')}">
                         <div class="${gClass('box')}">
                             <div class="${gClass('login-title')}">${Language.text('enter_verification_code')}</div>
                             <div class="w-100 d-flex flex-column gap-3">
@@ -76,13 +78,13 @@ export class UMLogin {
                                     <input class="bgw-input" type="text" id="vm-code" placeholder="${Language.text('please_enter_verification_code')}" />
                                 </div>
                                 ${this.sendCodeAgain(gvc, vm.prefix, () => {
-                        this.sendResetEmail(widget, vm);
-                    })}
+                            this.sendResetEmail(widget, vm);
+                        })}
                                 <div
                                     class="${gClass('button')} my-2"
                                     onclick="${gvc.event(() => {
-                        this.verifySubmitCode(widget, vm);
-                    })}"
+                            this.verifySubmitCode(widget, vm);
+                        })}"
                                 >
                                     <span class="${gClass('button-text')}">${Language.text('submit')}</span>
                                 </div>
@@ -90,9 +92,9 @@ export class UMLogin {
                             ${this.backToLogin(gvc, vm)}
                         </div>
                     </section>`;
-                }
-                if (vm.viewType === 'reset_password') {
-                    return html `<section class="${gClass('container')}">
+                    }
+                    if (vm.viewType === 'reset_password') {
+                        return html `<section class="${gClass('container')}">
                         <div class="${gClass('box')}">
                             <div class="${gClass('login-title')}">${Language.text('reset_password')}</div>
                             <div class="w-100 d-flex flex-column gap-3">
@@ -107,8 +109,8 @@ export class UMLogin {
                                 <div
                                     class="${gClass('button')} my-2"
                                     onclick="${gvc.event(() => {
-                        this.resetNewPassword(widget, vm);
-                    })}"
+                            this.resetNewPassword(widget, vm);
+                        })}"
                                 >
                                     <span class="${gClass('button-text')}">${Language.text('submit')}</span>
                                 </div>
@@ -116,19 +118,19 @@ export class UMLogin {
                             ${this.backToLogin(gvc, vm)}
                         </div>
                     </section>`;
-                }
-                if (vm.viewType === 'register') {
-                    return html `<section class="${gClass('container')}">
+                    }
+                    if (vm.viewType === 'register') {
+                        return html `<section class="${gClass('container')}">
                         <div class="${gClass('box')}">
                             <div class="${gClass('login-title')}">${Language.text('member_register')}</div>
                             <div class="w-100 d-flex flex-column gap-3">
                                 ${vm.registerConfig
-                        .map((item) => {
-                        if (item.hidden)
-                            return '';
-                        const title = ['name', 'email', 'phone', 'birth'].includes(item.key) ? Language.text(`form_${item.key}`) : item.title;
-                        const placeholder = Language.text(`please_enter_${item.key}`) || item.form_config.place_holder || '';
-                        const cell = html `<div class="position-relative">
+                            .map((item) => {
+                            if (item.hidden)
+                                return '';
+                            const title = ['name', 'email', 'phone', 'birth'].includes(item.key) ? Language.text(`form_${item.key}`) : item.title;
+                            const placeholder = Language.text(`please_enter_${item.key}`) || item.form_config.place_holder || '';
+                            const cell = html `<div class="position-relative">
                                             <label class="${gClass('label')}">${title}</label>
                                             <input
                                                 class="bgw-input"
@@ -137,40 +139,40 @@ export class UMLogin {
                                                 placeholder="${placeholder}"
                                                 data-placeholder="${placeholder}"
                                                 onchange="${gvc.event((e) => {
-                            if (CheckInput.isEmpty(e.value)) {
-                                e.style.color = 'rgba(0,0,0,0)';
-                                e.dataset.placeholder = placeholder;
-                            }
-                            else {
-                                e.style.color = '#393939';
-                                e.dataset.placeholder = '';
-                            }
-                        })}"
+                                if (CheckInput.isEmpty(e.value)) {
+                                    e.style.color = 'rgba(0,0,0,0)';
+                                    e.dataset.placeholder = placeholder;
+                                }
+                                else {
+                                    e.style.color = '#393939';
+                                    e.dataset.placeholder = '';
+                                }
+                            })}"
                                             />
                                         </div>`;
-                        if (item.key === 'email' && vm.loginConfig.email_verify) {
-                            return html `${cell}
+                            if (item.key === 'email' && vm.loginConfig.email_verify) {
+                                return html `${cell}
                                                 <div>
                                                     <label class="${gClass('label')}">${Language.text('email_verification_code')}</label>
                                                     <input class="bgw-input" type="text" id="reg-${item.key}-verify" placeholder="${Language.text('please_enter_verification_code')}" />
                                                 </div>
                                                 ${this.sendCodeAgain(gvc, vm.prefix, () => {
-                                this.sendVerifyEmailCode(widget, `reg-${item.key}`);
-                            })}`;
-                        }
-                        if (item.key === 'phone' && vm.loginConfig.phone_verify) {
-                            return html `${cell}
+                                    this.sendVerifyEmailCode(widget, `reg-${item.key}`);
+                                })}`;
+                            }
+                            if (item.key === 'phone' && vm.loginConfig.phone_verify) {
+                                return html `${cell}
                                                 <div>
                                                     <label class="${gClass('label')}">${Language.text('sms_verification_code')}</label>
                                                     <input class="bgw-input" type="text" id="reg-${item.key}-verify" placeholder="${Language.text('please_enter_verification_code')}" />
                                                 </div>
                                                 ${this.sendCodeAgain(gvc, vm.prefix, () => {
-                                this.sendVerifyPhoneCode(widget, `reg-${item.key}`);
-                            })}`;
-                        }
-                        return cell;
-                    })
-                        .join('')}
+                                    this.sendVerifyPhoneCode(widget, `reg-${item.key}`);
+                                })}`;
+                            }
+                            return cell;
+                        })
+                            .join('')}
                                 <div>
                                     <label class="${gClass('label')}">${Language.text('password')}</label>
                                     <input class="bgw-input" type="password" id="vm-password" placeholder="${Language.text('please_enter_password')}" />
@@ -182,8 +184,8 @@ export class UMLogin {
                                 <div
                                     class="${gClass('button')} my-2"
                                     onclick="${gvc.event(() => {
-                        this.registerByNormal(gvc, widget, vm);
-                    })}"
+                            this.registerByNormal(gvc, widget, vm);
+                        })}"
                                 >
                                     <span class="${gClass('button-text')}">${Language.text('register')}</span>
                                 </div>
@@ -193,20 +195,20 @@ export class UMLogin {
                                         ${Language.text('member_exists_prompt')}<span
                                             class="${gClass('blue-note')}"
                                             onclick="${gvc.event(() => {
-                        this.viewCallback(vm, '');
-                    })}"
+                            this.viewCallback(vm, '');
+                        })}"
                                             >${Language.text('login')}</span
                                         >
                                     </div>
                                     <div class="${gClass('font-14')}">
-                                        ${Language.text('registration_terms_agreement')}<a class="${gClass('blue-note')}" href="/pages/privacy">${Language.text('terms_of_service')}</a>${Language.text('and')}<a class="${gClass('blue-note')}" href="/pages/terms">${Language.text('privacy_policy')}</a>
+                                        ${Language.text('registration_terms_agreement')}<a class="${gClass('blue-note')}" href="/privacy">${Language.text('terms_of_service')}</a>${Language.text('and')}<a class="${gClass('blue-note')}" href="/term">${Language.text('privacy_policy')}</a>
                                     </div>
                                 </div>
                             </div>
                         </div>
                     </section>`;
-                }
-                return html `<section class="${gClass('container')}">
+                    }
+                    return html `<section class="${gClass('container')}">
                     <div class="${gClass('box')}">
                         <div class="${gClass('login-title')}">${Language.text('member_login')}</div>
                         <div class="w-100 d-flex flex-column gap-3">
@@ -222,16 +224,16 @@ export class UMLogin {
                                 <span
                                     class="${gClass('blue-note')}"
                                     onclick="${gvc.event(() => {
-                    vm.viewType = 'send_forget_pwd_email';
-                })}"
+                        vm.viewType = 'send_forget_pwd_email';
+                    })}"
                                     >${Language.text('forgot_password')}</span
                                 >
                             </div>
                             <div
                                 class="${gClass('button')} my-2"
                                 onclick="${gvc.event(() => {
-                    this.loginByNormal(gvc, widget);
-                })}"
+                        this.loginByNormal(gvc, widget);
+                    })}"
                             >
                                 <span class="${gClass('button-text')}">${Language.text('login')}</span>
                             </div>
@@ -241,15 +243,15 @@ export class UMLogin {
                                     ${Language.text('member_not_exists_prompt')}<span
                                         class="${gClass('blue-note')}"
                                         onclick="${gvc.event(() => {
-                    this.viewCallback(vm, 'register');
-                })}"
+                        this.viewCallback(vm, 'register');
+                    })}"
                                         >${Language.text('register')}</span
                                     >
                                 </div>
                                 <div class="${gClass('font-14')}">
-                                    ${Language.text('login_terms_agreement')}<a class="${gClass('blue-note')}" href="/pages/privacy">${Language.text('terms_of_service')}</a>${Language.text('and')}<a
+                                    ${Language.text('login_terms_agreement')}<a class="${gClass('blue-note')}" href="/privacy">${Language.text('terms_of_service')}</a>${Language.text('and')}<a
                                         class="${gClass('blue-note')}"
-                                        href="/pages/terms"
+                                        href="/term"
                                         >${Language.text('privacy_policy')}</a
                                     >
                                 </div>
@@ -257,6 +259,11 @@ export class UMLogin {
                         </div>
                     </div>
                 </section>`;
+                }
+                catch (e) {
+                    console.log(`error==>`, e);
+                    return ``;
+                }
             },
             divCreate: {},
             onCreate: () => {
@@ -275,7 +282,7 @@ export class UMLogin {
                         new Promise((resolve, reject) => {
                             ApiUser.getPublicConfig('custom_form_register', 'manager').then((dd) => {
                                 try {
-                                    resolve(dd.response.value.list);
+                                    resolve(dd.response.value.list || []);
                                 }
                                 catch (e) {
                                     resolve([]);
@@ -284,7 +291,7 @@ export class UMLogin {
                         }),
                     ]).then((dataArray) => {
                         vm.loginConfig = dataArray[0];
-                        vm.registerConfig = dataArray[1];
+                        vm.registerConfig = FormCheck.initialRegisterForm(dataArray[1]);
                         setTimeout(() => {
                             loadings.view = false;
                             gvc.notifyDataChange(ids.view);
@@ -303,11 +310,11 @@ export class UMLogin {
                 align-items: center;
                 justify-content: center;
                 padding-top: ${isPhone ? 0 : '100px'};
-                padding-bottom: ${isPhone ? '40px' : '230px'};
+                padding-bottom: ${isPhone ? '0px' : '230px'};
                 overflow: hidden;
             }
             .${prefix}-box {
-                border-radius: 30px;
+                border-radius: ${isPhone ? '0px' : '30px'};
                 background: #fff;
                 ${isPhone ? '' : 'box-shadow: 5px 5px 20px 0px rgba(0, 0, 0, 0.15)'};
                 display: flex;
@@ -727,7 +734,7 @@ export class UMLogin {
                     AppleID.auth.init({
                         clientId: widget.share.apple.id,
                         scope: 'name email',
-                        redirectURI: 'https://shopnex.cc/login',
+                        redirectURI: 'https://shopnex.tw/login',
                         usePopup: false,
                     });
                     AppleID.auth.signIn();

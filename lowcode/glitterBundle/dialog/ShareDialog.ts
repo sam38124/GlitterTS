@@ -8,7 +8,7 @@ export class ShareDialog {
     public warningMessage: (obj: { callback: (response: boolean) => void; text: string }) => void;
     public checkYesOrNot: (obj: { callback: (response: boolean) => void; text: string; icon?: string }) => void;
     public policy: () => void;
-
+    public customCheck: (obj: { callback:(response:boolean)=>void, text: string }) => void;
     constructor(glitter: Glitter) {
         if (glitter.getUrlParameter('cms') === 'true' || glitter.getUrlParameter('type')==='htmlEditor') {
             glitter = (window.parent as any).glitter;
@@ -67,5 +67,13 @@ export class ShareDialog {
                 type: 'policy',
             });
         };
+        this.customCheck = (obj:{text:string,callback:(response:boolean)=>void})=>{
+            glitter.openDiaLog('glitterBundle/dialog/dialog.js', 'input_text', {
+                type: 'input_text', callback: (response: boolean) => {
+                    glitter.closeDiaLog('input_text')
+                    obj.callback(response)
+                },title:obj.text
+            })
+        }
     }
 }

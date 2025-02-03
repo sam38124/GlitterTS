@@ -144,7 +144,7 @@ export class EditorConfig {
                         if (isAppleDevice()) {
                             gvc.glitter.openNewTab(`https://apps.apple.com/us/app/shopnex-%E5%85%A8%E9%80%9A%E8%B7%AF%E6%95%B4%E5%90%88%E9%96%8B%E5%BA%97%E5%B9%B3%E5%8F%B0/id6736935325`)
                         } else if (isAndroidDevice()) {
-                            gvc.glitter.openNewTab(`https://play.google.com/store/apps/details?id=shopnex.cc`)
+                            gvc.glitter.openNewTab(`https://play.google.com/store/apps/details?id=shopnex.tw`)
                         }
                     })}">
             <span class="tx_700_white">前往下載</span>

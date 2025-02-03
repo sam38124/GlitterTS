@@ -813,9 +813,6 @@ export class Main_editor {
                                         } catch (e) {
                                         }
                                     });
-                                    if (`${vm.index}` === '0') {
-                                        (document.querySelector('#editerCenter iframe') as any).contentWindow.document.querySelector('body')!.style.background = gvc.glitter.share.globalValue[`theme_color.0.background`];
-                                    }
                                     for (const b of (document.querySelector('#editerCenter  iframe') as any).contentWindow.document.querySelectorAll('._builder_color_refresh')) {
                                         b.recreateView()
                                     }

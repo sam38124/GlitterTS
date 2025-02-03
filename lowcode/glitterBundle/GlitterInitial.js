@@ -1,4 +1,13 @@
 'use strict';
+var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+};
 import { Entry } from '../Entry.js';
 import { Glitter } from './Glitter.js';
 import { GVCType } from './module/PageManager.js';
@@ -25,6 +34,9 @@ function listenElementChange(query) {
     });
     observer.observe(targetElement, { childList: true, subtree: true });
 }
+let alt_wait = [];
+let alt_get_ed = [];
+let alt_getter_timer = 0;
 function traverseHTML(element, document) {
     var _a, _b;
     try {
@@ -80,17 +92,40 @@ function traverseHTML(element, document) {
         if (src) {
             try {
                 const tag = glitter.generateCheckSum(src, 9);
-                setTimeout(() => {
-                    if (element) {
-                        ApiUser.getPublicConfig(`alt_` + tag, 'manager').then((res) => {
-                            if (res && res.response.value) {
-                                setTimeout(() => {
-                                    element.setAttribute('alt', res.response.value.alt);
-                                }, 10);
+                alt_wait.push({
+                    key: `alt_` + tag,
+                    callback: (v) => {
+                        try {
+                            element.setAttribute('alt', v || '');
+                        }
+                        catch (e) {
+                        }
+                    }
+                });
+                clearInterval(alt_getter_timer);
+                alt_getter_timer = setTimeout(() => __awaiter(this, void 0, void 0, function* () {
+                    const wait_get_key = alt_wait.map((dd) => {
+                        return dd.key;
+                    }).filter((dd) => {
+                        return !alt_get_ed.find((d1) => { return d1.key === dd; });
+                    });
+                    ApiUser.getPublicConfig(wait_get_key.concat('alt_00000').join(','), 'manager').then((res) => {
+                        alt_get_ed = alt_get_ed.concat(res.response.value);
+                        alt_wait = alt_wait.filter((d2) => {
+                            var _a;
+                            const get = alt_get_ed.find((d3) => {
+                                return d3.key === d2.key;
+                            });
+                            if (get) {
+                                d2.callback((_a = get.value.alt) !== null && _a !== void 0 ? _a : '');
+                                return false;
+                            }
+                            else {
+                                return true;
                             }
                         });
-                    }
-                }, 10);
+                    });
+                }), 10);
             }
             catch (e) {
             }

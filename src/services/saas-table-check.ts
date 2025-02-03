@@ -253,24 +253,24 @@ export async function compare_sql_table(scheme: string, table: string, sql: stri
         await trans.execute(`DROP TABLE if exists \`${scheme}\`.\`${tempKey}\`;`, []);
         await trans.execute(`CREATE TABLE if not exists \`${scheme}\`.\`${table}\` ${sql}`, []);
         await trans.execute(`CREATE TABLE if not exists \`${scheme}\`.\`${tempKey}\` ${sql}`, []);
-        const compareStruct = `SELECT COLUMN_NAME,
-                                  DATA_TYPE,
-                                  CHARACTER_MAXIMUM_LENGTH
-                           FROM INFORMATION_SCHEMA.COLUMNS
-                           WHERE TABLE_NAME = ?
-                             AND TABLE_SCHEMA = ?`;
-        const compareStruct2 = `SELECT INDEX_NAME,
-                                   COLUMN_NAME
-                            FROM INFORMATION_SCHEMA.STATISTICS
-                            WHERE TABLE_NAME = ?
-                              AND TABLE_SCHEMA = ?;    `;
-        let older = await db.query(compareStruct, [table, scheme]);
-        const newest = await db.query(compareStruct, [tempKey, scheme]);
-        const older2 = await db.query(compareStruct2, [table, scheme]);
-        const newest2 = await db.query(compareStruct2, [tempKey, scheme]);
-        if (newest2.length === 0 || newest.length === 0) {
-            return await compare_sql_table(scheme, table, sql);
-        }
+        // const compareStruct = `SELECT COLUMN_NAME,
+        //                           DATA_TYPE,
+        //                           CHARACTER_MAXIMUM_LENGTH
+        //                    FROM INFORMATION_SCHEMA.COLUMNS
+        //                    WHERE TABLE_NAME = ?
+        //                      AND TABLE_SCHEMA = ?`;
+        // const compareStruct2 = `SELECT INDEX_NAME,
+        //                            COLUMN_NAME
+        //                     FROM INFORMATION_SCHEMA.STATISTICS
+        //                     WHERE TABLE_NAME = ?
+        //                       AND TABLE_SCHEMA = ?;    `;
+        // let older = await db.query(compareStruct, [table, scheme]);
+        // const newest = await db.query(compareStruct, [tempKey, scheme]);
+        // const older2 = await db.query(compareStruct2, [table, scheme]);
+        // const newest2 = await db.query(compareStruct2, [tempKey, scheme]);
+        // if (newest2.length === 0 || newest.length === 0) {
+        //     return await compare_sql_table(scheme, table, sql);
+        // }
         // if (!(JSON.stringify(older) == JSON.stringify(newest)) || !(JSON.stringify(older2) == JSON.stringify(newest2))) {
         //     console.log(`update-table`)
         //     older = older.filter((dd: any) => {

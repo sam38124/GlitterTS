@@ -173,7 +173,7 @@ export class ManagerNotify {
                                                                                 <br /><span
                                                                                     style="color: rgb(16, 17, 18); font-family: Arial, Helvetica, sans-serif; font-size: 16px; font-style: normal; font-variant-ligatures: normal; font-variant-caps: normal; font-weight: 400; letter-spacing: normal; orphans: 2; text-align: left; text-indent: 0px; text-transform: none; widows: 2; word-spacing: 0px; -webkit-text-stroke-width: 0px; white-space: normal; background-color: rgb(255, 255, 255); text-decoration-thickness: initial; text-decoration-style: initial; text-decoration-color: initial; display: inline !important; float: none;"
                                                                                     ><a
-                                                                                        href="${new URL(href, 'https://shopnex.cc')}"
+                                                                                        href="${new URL(href, 'https://shopnex.tw')}"
                                                                                         target="_blank"
                                                                                         style="box-sizing: border-box; color: rgb(255, 255, 255); text-decoration: none; -webkit-font-smoothing: antialiased; transition: color 0.2s ease-in-out 0s; user-select: auto; font-style: normal; font-variant-ligatures: normal; font-variant-caps: normal; font-weight: 400; letter-spacing: normal; orphans: 2; text-indent: 0px; text-transform: none; widows: 2; word-spacing: 0px; -webkit-text-stroke-width: 0px; white-space: normal; background-color: rgb(255, 148, 2); border-width: 0px; border-style: solid; border-color: transparent; border-radius: 5px; display: inline-block; font-family: Arial, Helvetica, sans-serif; font-size: 24px; padding-bottom: 15px; padding-top: 15px; text-align: center; width: auto; word-break: keep-all;"
                                                                                         id="isPasted"
@@ -251,21 +251,21 @@ export class ManagerNotify {
                                                                                 >
                                                                                     <p style="box-sizing: border-box; margin-top: 0px; margin-bottom: 1.25rem; -webkit-font-smoothing: antialiased;">
                                                                                         <a
-                                                                                            href="https://shopnex.cc/?article=termsofservice&page=blog_detail"
+                                                                                            href="https://shopnex.tw/?article=termsofservice&page=blog_detail"
                                                                                             target="_blank"
                                                                                             rel="noopener"
                                                                                             style="box-sizing: border-box; color: rgb(28, 28, 28); text-decoration: underline; -webkit-font-smoothing: antialiased; transition: color 0.2s ease-in-out 0s; user-select: auto;"
                                                                                             >服務條款</a
-                                                                                        >&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;
+                                                                                        >
                                                                                         <a
-                                                                                            href="https://shopnex.cc/?article=privacyterms&page=blog_detail"
+                                                                                            href="https://shopnex.tw/?article=privacyterms&page=blog_detail"
                                                                                             target="_blank"
                                                                                             rel="noopener"
                                                                                             style="box-sizing: border-box; color: rgb(28, 28, 28); text-decoration: underline; -webkit-font-smoothing: antialiased; transition: color 0.2s ease-in-out 0s; user-select: auto;"
                                                                                             >隱私條款</a
                                                                                         >&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;
                                                                                         <a
-                                                                                            href="https://shopnex.cc/?article=privacyterms&page=e-commerce-blog"
+                                                                                            href="https://shopnex.tw/?article=privacyterms&page=e-commerce-blog"
                                                                                             target="_blank"
                                                                                             rel="noopener"
                                                                                             style="box-sizing: border-box; color: rgb(28, 28, 28); text-decoration: underline; -webkit-font-smoothing: antialiased; transition: color 0.2s ease-in-out 0s; user-select: auto;"
@@ -304,7 +304,7 @@ export class ManagerNotify {
 
     // SHOPNEX 註冊通知事項
     public async saasRegister(cf: { user_id: string }) {
-        const link = `https://shopnex.cc/contact-us`;
+        const link = `https://shopnex.tw/contact-us`;
         new Firebase(this.app_name).sendMessage({
             title: `歡迎使用 SHOPNEX`,
             userID: cf.user_id,

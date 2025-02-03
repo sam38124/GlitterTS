@@ -15,6 +15,7 @@ import { Rebate, IRebateSearch } from '../services/rebate';
 import axios from 'axios';
 import { saasConfig } from '../../config.js';
 import { Stock } from '../services/stock.js';
+import { Pos } from '../services/pos.js';
 
 const router: express.Router = express.Router();
 export = router;
@@ -200,7 +201,7 @@ router.post('/checkout/preview', async (req: express.Request, resp: express.Resp
                     distribution_code: req.body.distribution_code,
                     code_array: req.body.code_array,
                     give_away: req.body.give_away,
-                    pos_store:req.body.pos_store,
+                    pos_store: req.body.pos_store,
                     language: req.headers['language'] as any,
                 },
                 'preview'
@@ -515,51 +516,68 @@ router.post('/returnOrder', async (req: express.Request, resp: express.Response)
 router.get('/voucher', async (req: express.Request, resp: express.Response) => {
     try {
         let query = [`(content->>'$.type'='voucher')`];
-        req.query.search && query.push(`(UPPER(JSON_UNQUOTE(JSON_EXTRACT(content, '$.title'))) LIKE UPPER('%${req.query.search}%'))`);
+
+        if (req.query.search) {
+            query.push(`(UPPER(JSON_UNQUOTE(JSON_EXTRACT(content, '$.title'))) LIKE UPPER('%${req.query.search}%'))`);
+        }
+
         if (req.query.voucher_type) {
             query.push(`(content->>'$.reBackType'='${req.query.voucher_type}')`);
         }
 
-        // 取得優惠券
-        const vouchers = await new Shopping(req.get('g-app') as string, req.body.token).querySql(query, {
-            page: (req.query.page ?? 0) as number,
-            limit: (req.query.limit ?? 50) as number,
+        // 獲取優惠券
+        const shopping = new Shopping(req.get('g-app') as string, req.body.token);
+        const vouchers = await shopping.querySql(query, {
+            page: Number(req.query.page) || 0,
+            limit: Number(req.query.limit) || 50,
             id: req.query.id as string,
         });
 
-        if (!(await UtPermission.isManager(req))) {
-            // 顧客查詢
-            const userClass = new User(req.get('g-app') as string);
-            const userLevels = await userClass.getUserLevel([{ userId: req.body.token.userID }]);
-            const groupList = await userClass.getUserGroups();
+        const isManager = await UtPermission.isManager(req);
 
-            vouchers.data = vouchers.data.filter((d: { content: VoucherData }) => {
-                // 判斷用戶是否為指定客群
-                const dd = d.content;
-                if (dd.target === 'customer') {
-                    return dd.targetList.includes(req.body.token.userID);
-                }
-                if (dd.target === 'levels') {
-                    if (userLevels[0]) {
-                        return dd.targetList.includes(userLevels[0].data.id);
-                    }
-                    return false;
-                }
-                if (dd.target === 'group') {
-                    if (!groupList.result) {
-                        return false;
-                    }
-                    let pass = false;
-                    for (const group of groupList.data.filter((item) => dd.targetList.includes(item.type))) {
-                        if (!pass && group.users.some((item) => item.userID === req.body.token.userID)) {
-                            pass = true;
-                        }
-                    }
-                    return pass;
-                }
-                return true; // 所有顧客皆可使用
+        // 後台列表直接回傳
+        if (isManager && !req.query.user_email) {
+            return response.succ(resp, vouchers);
+        }
+
+        // 篩選過期優惠券
+        if (req.query.date_confirm === 'true') {
+            vouchers.data = vouchers.data.filter((voucher: { content: VoucherData }) => {
+                const { start_ISO_Date, end_ISO_Date } = voucher.content;
+                const now = new Date().getTime();
+                return new Date(start_ISO_Date).getTime() < now && (!end_ISO_Date || new Date(end_ISO_Date).getTime() > now);
             });
         }
+
+        // 獲取用戶資料
+        const userClass = new User(req.get('g-app') as string);
+        const groupList = await userClass.getUserGroups();
+        const userID = await (async () => {
+            if (!isManager) return req.body.token.userID;
+            if (req.query.user_email === 'guest') return -1;
+
+            const userData = await userClass.getUserData(req.query.user_email as string, 'email_or_phone');
+            return userData.userID;
+        })();
+        const userLevels = await userClass.getUserLevel([{ userId: userID }]);
+
+        // 篩選用戶適用的優惠券
+        vouchers.data = vouchers.data.filter((voucher: { content: VoucherData }) => {
+            const { target, targetList } = voucher.content;
+
+            switch (target) {
+                case 'customer':
+                    return targetList.includes(userID);
+                case 'levels':
+                    return userLevels[0] ? targetList.includes(userLevels[0].data.id) : false;
+                case 'group':
+                    if (!groupList.result) return false;
+                    return groupList.data.some((group) => targetList.includes(group.type) && group.users.some((user) => user.userID === userID));
+                default:
+                    return true; // 所有顧客皆可使用
+            }
+        });
+
         return response.succ(resp, vouchers);
     } catch (err) {
         return response.fail(resp, err);
@@ -617,29 +635,31 @@ async function redirect_link(req: express.Request, resp: express.Response) {
         if (req.query.paynow === 'true') {
         }
         const html = String.raw;
-        return resp.send(html`<!DOCTYPE html>
-            <html lang="en">
-                <head>
-                    <meta charset="UTF-8" />
-                    <title>Title</title>
-                </head>
-                <body>
-                    <script>
-                        try {
-                            window.webkit.messageHandlers.addJsInterFace.postMessage(
-                                JSON.stringify({
-                                    functionName: 'check_out_finish',
-                                    callBackId: 0,
-                                    data: {
-                                        redirect: '${return_url.href}',
-                                    },
-                                })
-                            );
-                        } catch (e) {}
-                        location.href = '${return_url.href}';
-                    </script>
-                </body>
-            </html> `);
+        return resp.send(
+            html`<!DOCTYPE html>
+                <html lang="en">
+                    <head>
+                        <meta charset="UTF-8" />
+                        <title>Title</title>
+                    </head>
+                    <body>
+                        <script>
+                            try {
+                                window.webkit.messageHandlers.addJsInterFace.postMessage(
+                                    JSON.stringify({
+                                        functionName: 'check_out_finish',
+                                        callBackId: 0,
+                                        data: {
+                                            redirect: '${return_url.href}',
+                                        },
+                                    })
+                                );
+                            } catch (e) {}
+                            location.href = '${return_url.href}';
+                        </script>
+                    </body>
+                </html> `
+        );
     } catch (err) {
         return response.fail(resp, err);
     }
@@ -814,6 +834,15 @@ router.get('/dataAnalyze', async (req: express.Request, resp: express.Response) 
         } else {
             throw exception.BadRequestError('BAD_REQUEST', 'No permission.', null);
         }
+    } catch (err) {
+        return response.fail(resp, err);
+    }
+});
+
+// 資料分析
+router.get('/shippingMethod', async (req: express.Request, resp: express.Response) => {
+    try {
+        return response.succ(resp, await new Shopping(req.get('g-app') as string, req.body.token).getShippingMethod());
     } catch (err) {
         return response.fail(resp, err);
     }
@@ -1068,7 +1097,7 @@ router.post('/pos/checkout', async (req: express.Request, resp: express.Response
             resp,
             await new Shopping(req.get('g-app') as string, req.body.token).toCheckout(
                 {
-                    order_id:req.body.orderID,
+                    order_id: req.body.orderID,
                     line_items: req.body.lineItems as any,
                     email: req.body.customer_info.email,
                     return_url: req.body.return_url,
@@ -1078,12 +1107,14 @@ router.post('/pos/checkout', async (req: express.Request, resp: express.Response
                     customer_info: req.body.customer_info,
                     discount: req.body.discount,
                     total: req.body.total,
+                    use_rebate: req.body.use_rebate,
                     pay_status: req.body.pay_status,
                     code_array: req.body.code_array,
                     pos_info: req.body.pos_info,
-                    pos_store:req.body.pos_store,
-                    invoice_select:req.body.invoice_select,
-                    pre_order:req.body.pre_order
+                    pos_store: req.body.pos_store,
+                    invoice_select: req.body.invoice_select,
+                    pre_order: req.body.pre_order,
+                    voucherList: req.body.voucherList,
                 },
                 'POS'
             )
@@ -1352,6 +1383,58 @@ router.post('/allowance_invoice', async (req: express.Request, resp: express.Res
             invoiceDate: req.body.invoiceDate,
         };
         return response.succ(resp, await new Shopping(req.get('g-app') as string, req.body.token).allowanceInvoice(passData));
+    } catch (err) {
+        return response.fail(resp, err);
+    }
+});
+
+//新增小結單
+router.post('/pos/summary', async (req: express.Request, resp: express.Response) => {
+    try {
+        await new Pos(req.get('g-app') as string, req.body.token).setSummary(req.body);
+        return response.succ(resp, {
+            result: true,
+        });
+    } catch (err) {
+        return response.fail(resp, err);
+    }
+});
+
+//取得小結單
+router.get('/pos/summary', async (req: express.Request, resp: express.Response) => {
+    try {
+        return response.succ(resp, {
+            data: await new Pos(req.get('g-app') as string, req.body.token).getSummary(req.query.shop as string),
+        });
+    } catch (err) {
+        return response.fail(resp, err);
+    }
+});
+
+//取得上班狀態
+router.get('/pos/work-status', async (req: express.Request, resp: express.Response) => {
+    try {
+        return response.succ(resp, {
+            status: await new Pos(req.get('g-app') as string, req.body.token).getWorkStatus(req.query as any),
+        });
+    } catch (err) {
+        return response.fail(resp, err);
+    }
+});
+//取得上班狀態
+router.get('/pos/work-status-list', async (req: express.Request, resp: express.Response) => {
+    try {
+        return response.succ(resp, await new Pos(req.get('g-app') as string, req.body.token).getWorkStatusList(req.query as any));
+    } catch (err) {
+        return response.fail(resp, err);
+    }
+});
+//取得上班狀態
+router.post('/pos/work-status', async (req: express.Request, resp: express.Response) => {
+    try {
+        return response.succ(resp, {
+            status: await new Pos(req.get('g-app') as string, req.body.token).setWorkStatus(req.body),
+        });
     } catch (err) {
         return response.fail(resp, err);
     }

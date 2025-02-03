@@ -1034,49 +1034,47 @@ function initialEditor(gvc: GVC, viewModel: any) {
         }
         const sku = (() => {
             switch (title) {
-                case '輕便電商方案':
+                case '輕便方案':
                     return 'light-year'
-                case '標準電商方案':
+                case '標準方案':
                     return 'basic-year'
-                case '通路電商方案':
+                case '企業方案':
                     return 'omo-year'
-                case '行動電商方案':
+                case '行動方案':
                     return 'app-year'
-                case '旗艦電商方案':
-                    return 'flagship-year'
             }
             return ``
         })()
-        if (gvc.glitter.deviceType === gvc.glitter.deviceTypeEnum.Ios) {
-            dialog.dataLoading({visible: true});
-            gvc.glitter.runJsInterFace("in_app_product", {
-                total: `${sku.replace('-', '_')}_apple`,
-                qty: (() => {
-                    switch (title) {
-                        case '輕便電商方案':
-                            return 1
-                        case '標準電商方案':
-                            return 2
-                        case '通路電商方案':
-                            return 4
-                        case '行動電商方案':
-                            return 4
-                        case '旗艦電商方案':
-                            return 2
-                    }
-                })()
-            }, async (res) => {
-                console.log(`res.receipt_data=>`, res.receipt_data);
-                if (res.receipt_data) {
-                    await ApiShop.app_subscription(res.receipt_data, (window as any).appName);
-                    window.parent.location.reload();
-                } else {
-                    dialog.dataLoading({visible: false});
-                    dialog.errorMessage({text: '儲值失敗'})
-                }
-            })
-            return
-        }
+        // if (gvc.glitter.deviceType === gvc.glitter.deviceTypeEnum.Ios) {
+        //     dialog.dataLoading({visible: true});
+        //     gvc.glitter.runJsInterFace("in_app_product", {
+        //         total: `${sku.replace('-', '_')}_apple`,
+        //         qty: (() => {
+        //             switch (title) {
+        //                 case '輕便電商方案':
+        //                     return 1
+        //                 case '標準電商方案':
+        //                     return 2
+        //                 case '通路電商方案':
+        //                     return 4
+        //                 case '行動電商方案':
+        //                     return 4
+        //                 case '旗艦電商方案':
+        //                     return 2
+        //             }
+        //         })()
+        //     }, async (res) => {
+        //         console.log(`res.receipt_data=>`, res.receipt_data);
+        //         if (res.receipt_data) {
+        //             await ApiShop.app_subscription(res.receipt_data, (window as any).appName);
+        //             window.parent.location.reload();
+        //         } else {
+        //             dialog.dataLoading({visible: false});
+        //             dialog.errorMessage({text: '儲值失敗'})
+        //         }
+        //     })
+        //     return
+        // }
         const product = await ApiShop.getProduct({
             limit: 1,
             page: 0,

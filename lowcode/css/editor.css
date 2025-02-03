@@ -109,9 +109,11 @@ h6 {
     color: var(--item-primary);
     background: var(--background-1);
 }
+
 .active_F2F2F2 {
     background: #f2f2f2;
 }
+
 .editor_item .primary {
     color: var(--item-primary);
 }
@@ -435,6 +437,7 @@ h6 {
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
 }
+
 .bt_orange_lin {
     cursor: pointer;
     height: 36px;
@@ -461,6 +464,7 @@ h6 {
     -webkit-background-clip: unset;
     -webkit-text-fill-color: unset;
 }
+
 .bt_orange_lin_mb {
     cursor: pointer;
     height: 36px;
@@ -487,6 +491,7 @@ h6 {
     -webkit-background-clip: unset;
     -webkit-text-fill-color: unset;
 }
+
 .bt_c39 {
     border-radius: 10px;
     background: var(--main-black);
@@ -1140,6 +1145,7 @@ h6 {
     background-color: #393939 !important;
     border-color: #393939 !important;
 }
+
 h6,
 .h6,
 h5,
@@ -1154,6 +1160,7 @@ h1,
 .h1 {
     color: #393939;
 }
+
 .select-label-ai-message_ {
     gap: 10px;
     cursor: pointer;
@@ -1171,4 +1178,13 @@ h1,
     background-clip: text;
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
+}
+
+.editor-label {
+    width: 100%;
+    color: #393939;
+    font-size: 15px;
+    font-weight: 400;
+    white-space: normal !important;
+    word-break: break-all !important;
 }

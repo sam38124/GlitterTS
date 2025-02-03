@@ -1,9 +1,13 @@
 "use strict";
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.AutoSendEmail = void 0;
 const user_js_1 = require("../services/user.js");
 const mail_js_1 = require("../services/mail.js");
 const app_js_1 = require("../../services/app.js");
+const database_js_1 = __importDefault(require("../../modules/database.js"));
 class AutoSendEmail {
     static async getDefCompare(app, tag, language) {
         var _a;
@@ -455,21 +459,21 @@ class AutoSendEmail {
                                                                         >
                                                                             <p style="box-sizing: border-box; margin-top: 0px; margin-bottom: 1.25rem; -webkit-font-smoothing: antialiased;">
                                                                                 <a
-                                                                                    href="https://shopnex.cc/?article=termsofservice&page=blog_detail"
+                                                                                    href="https://shopnex.tw/?article=termsofservice&page=blog_detail"
                                                                                     target="_blank"
                                                                                     rel="noopener"
                                                                                     style="box-sizing: border-box; color: rgb(28, 28, 28); text-decoration: underline; -webkit-font-smoothing: antialiased; transition: color 0.2s ease-in-out 0s; user-select: auto;"
                                                                                     >服務條款</a
                                                                                 >&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;
                                                                                 <a
-                                                                                    href="https://shopnex.cc/?article=privacyterms&page=blog_detail"
+                                                                                    href="https://shopnex.tw/?article=privacyterms&page=blog_detail"
                                                                                     target="_blank"
                                                                                     rel="noopener"
                                                                                     style="box-sizing: border-box; color: rgb(28, 28, 28); text-decoration: underline; -webkit-font-smoothing: antialiased; transition: color 0.2s ease-in-out 0s; user-select: auto;"
                                                                                     >隱私條款</a
                                                                                 >&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;
                                                                                 <a
-                                                                                    href="https://shopnex.cc/?article=privacyterms&page=e-commerce-blog"
+                                                                                    href="https://shopnex.tw/?article=privacyterms&page=e-commerce-blog"
                                                                                     target="_blank"
                                                                                     rel="noopener"
                                                                                     style="box-sizing: border-box; color: rgb(28, 28, 28); text-decoration: underline; -webkit-font-smoothing: antialiased; transition: color 0.2s ease-in-out 0s; user-select: auto;"
@@ -495,16 +499,30 @@ class AutoSendEmail {
         </table>`;
     }
     static async customerOrder(app, tag, order_id, email, language) {
+        var _a, _b, _c, _d;
         const customerMail = await this.getDefCompare(app, tag, language);
         const brandAndMemberType = await app_js_1.App.checkBrandAndMemberType(app);
+        const order_data = (await database_js_1.default.query(`SELECT *
+                     FROM \`${app}\`.t_checkout
+                     WHERE cart_token = ?
+                    `, [order_id]))[0]['orderData'];
         if (customerMail.toggle) {
-            await new mail_js_1.Mail(app).postMail({
-                name: customerMail.name,
-                title: customerMail.title.replace(/@\{\{訂單號碼\}\}/g, order_id),
-                content: customerMail.content.replace(/@\{\{訂單號碼\}\}/g, `<a href="https://${brandAndMemberType.domain}/order_detail?cart_token=${order_id}">${order_id}</a>`),
-                email: [email],
-                type: tag,
-            });
+            try {
+                await new mail_js_1.Mail(app).postMail({
+                    name: customerMail.name,
+                    title: customerMail.title.replace(/@\{\{訂單號碼\}\}/g, order_id),
+                    content: customerMail.content.replace(/@\{\{訂單號碼\}\}/g, `<a href="https://${brandAndMemberType.domain}/order_detail?cart_token=${order_id}">${order_id}</a>`)
+                        .replace(/@\{\{訂單金額\}\}/g, order_data.total)
+                        .replace(/@\{\{姓名\}\}/g, (_a = order_data.customer_info.name) !== null && _a !== void 0 ? _a : '')
+                        .replace(/@\{\{電話\}\}/g, (_b = order_data.customer_info.phone) !== null && _b !== void 0 ? _b : '')
+                        .replace(/@\{\{地址\}\}/g, (_c = order_data.user_info.address) !== null && _c !== void 0 ? _c : '')
+                        .replace(/@\{\{信箱\}\}/g, (_d = order_data.customer_info.email) !== null && _d !== void 0 ? _d : ''),
+                    email: [email],
+                    type: tag,
+                });
+            }
+            catch (e) {
+            }
         }
     }
 }

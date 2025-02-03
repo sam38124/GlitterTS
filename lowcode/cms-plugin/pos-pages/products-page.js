@@ -450,7 +450,7 @@ export class ProductsPage {
                     },
                     divCreate: {
                         class: `d-flex flex-column`,
-                        style: `height:50px; margin-bottom:24px;`
+                        style: `height:50px; margin-bottom:24px;margin-top:${gvc.glitter.share.top_inset}px;`
                     }
                 };
             })}

@@ -52,6 +52,7 @@ const sms_js_1 = require("./sms.js");
 const form_check_js_1 = require("./form-check.js");
 const ut_permission_js_1 = require("../utils/ut-permission.js");
 const share_permission_js_1 = require("./share-permission.js");
+const terms_check_js_1 = require("./terms-check.js");
 class User {
     static generateUserID() {
         let userID = '';
@@ -1736,81 +1737,109 @@ class User {
     }
     async getConfigV2(config) {
         try {
-            const data = await database_1.default.execute(`select *
+            const data_ = await database_1.default.execute(`select *
                  from \`${this.app}\`.t_user_public_config
-                 where \`key\` = ${database_1.default.escape(config.key)}
+                 where ${(config.key.includes(',')) ? `\`key\` in (${config.key.split(',').map((dd) => {
+                return database_1.default.escape(dd);
+            }).join(',')})` : `\`key\` = ${database_1.default.escape(config.key)}`}
                    and user_id = ${database_1.default.escape(config.user_id)}
                 `, []);
-            if (!data[0] && config.user_id === 'manager') {
-                switch (config.key) {
-                    case 'global_express_country':
-                        await this.setConfig({
-                            key: config.key,
-                            user_id: config.user_id,
-                            value: {
-                                country: []
-                            }
-                        });
-                        return await this.getConfigV2(config);
-                    case 'store_version':
-                        await this.setConfig({
-                            key: config.key,
-                            user_id: config.user_id,
-                            value: {
-                                version: 'v1'
-                            }
-                        });
-                        return await this.getConfigV2(config);
-                    case 'store_manager':
-                        await this.setConfig({
-                            key: config.key,
-                            user_id: config.user_id,
-                            value: {
-                                list: [
-                                    {
-                                        "id": "store_default",
-                                        "name": "庫存點1(預設)",
-                                        "note": "",
-                                        "address": "",
-                                        "manager_name": "",
-                                        "manager_phone": ""
-                                    }
-                                ]
-                            }
-                        });
-                        return await this.getConfigV2(config);
-                    case 'member_level_config':
-                        await this.setConfig({
-                            key: config.key,
-                            user_id: config.user_id,
-                            value: {
-                                levels: [],
-                            },
-                        });
-                        return await this.getConfigV2(config);
-                    case 'language-label':
-                        await this.setConfig({
-                            key: config.key,
-                            user_id: config.user_id,
-                            value: {
-                                "label": []
-                            },
-                        });
-                        return await this.getConfigV2(config);
+            const that = this;
+            async function loop(data) {
+                if (!data && config.user_id === 'manager') {
+                    switch (config.key) {
+                        case 'global_express_country':
+                            await that.setConfig({
+                                key: config.key,
+                                user_id: config.user_id,
+                                value: {
+                                    country: []
+                                }
+                            });
+                            return await that.getConfigV2(config);
+                        case 'store_version':
+                            await that.setConfig({
+                                key: config.key,
+                                user_id: config.user_id,
+                                value: {
+                                    version: 'v1'
+                                }
+                            });
+                            return await that.getConfigV2(config);
+                        case 'store_manager':
+                            await that.setConfig({
+                                key: config.key,
+                                user_id: config.user_id,
+                                value: {
+                                    list: [
+                                        {
+                                            "id": "store_default",
+                                            "name": "庫存點1(預設)",
+                                            "note": "",
+                                            "address": "",
+                                            "manager_name": "",
+                                            "manager_phone": ""
+                                        }
+                                    ]
+                                }
+                            });
+                            return await that.getConfigV2(config);
+                        case 'member_level_config':
+                            await that.setConfig({
+                                key: config.key,
+                                user_id: config.user_id,
+                                value: {
+                                    levels: [],
+                                },
+                            });
+                            return await that.getConfigV2(config);
+                        case 'language-label':
+                            await that.setConfig({
+                                key: config.key,
+                                user_id: config.user_id,
+                                value: {
+                                    "label": []
+                                },
+                            });
+                            return await that.getConfigV2(config);
+                        case 'terms-related-refund-zh-TW':
+                        case 'terms-related-delivery-zh-TW':
+                        case 'terms-related-privacy-zh-TW':
+                        case 'terms-related-term-zh-TW':
+                            await that.setConfig({
+                                key: config.key,
+                                user_id: config.user_id,
+                                value: terms_check_js_1.TermsCheck.check(config.key),
+                            });
+                            return await that.getConfigV2(config);
+                    }
                 }
+                if (data && data.value) {
+                    data.value = that.checkLeakData(config.key, data.value) || data.value;
+                }
+                else if (config.key === 'store-information') {
+                    return {
+                        language_setting: {
+                            def: 'zh-TW',
+                            support: ['zh-TW'],
+                        },
+                    };
+                }
+                return (data && data.value) || {};
             }
-            if (data[0] && data[0].value) {
-                data[0].value = this.checkLeakData(config.key, data[0].value) || data[0].value;
+            if (config.key.includes(',')) {
+                return (await Promise.all(config.key.split(',').map(async (dd) => {
+                    return {
+                        key: dd,
+                        value: await loop(data_.find((d1) => {
+                            return d1.key === dd;
+                        }))
+                    };
+                })));
             }
-            else if (config.key === 'store-information') {
-                return {
-                    language_setting: {
-                        def: 'zh-TW',
-                        support: ['zh-TW'],
-                    },
-                };
+            else {
+                return await loop(data_[0]);
             }
-            return (data[0] && data[0].value) || {};
         }
         catch (e) {
             console.error(e);

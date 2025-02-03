@@ -1,8 +1,8 @@
 import {ShareDialog} from "../glitterBundle/dialog/ShareDialog.js";
-import {LanguageData, ShoppingProductSetting} from "./shopping-product-setting.js";
-import {Language} from "../glitter-base/global/language.js";
+import {ShoppingProductSetting} from "./shopping-product-setting.js";
+import {LanguageData} from "../public-models/product.js";
 
-    export class ProductService{
+export class ProductService{
     public static checkData(postMD:any,obj:any,vm:any,refresh:()=>void){
         const gvc=obj.gvc
         const dialog = new ShareDialog(gvc.glitter);
@@ -23,6 +23,9 @@ import {Language} from "../glitter-base/global/language.js";
 
             for (const index in postMD['variants']) {
                 const variant: any = postMD['variants'][index];
+                if(postMD.product_category==='course'){
+                    variant['shipment_type']='none'
+                }
                 if (variant['shipment_type'] == 'volume') {
                     if (
                         variant['v_height'] == undefined ||

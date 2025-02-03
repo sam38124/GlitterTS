@@ -1,5 +1,4 @@
 import {GVC} from "../../glitterBundle/GVController.js";
-import {Variant} from "./product-excel.js";
 import {BgWidget} from "../../backend-manager/bg-widget.js";
 import {Tool} from "../../modules/tool.js";
 import {ApiUser} from "../../glitter-base/route/user.js";

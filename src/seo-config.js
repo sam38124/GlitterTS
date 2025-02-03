@@ -3,7 +3,9 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.extractProds = exports.extractCols = exports.SeoConfig = void 0;
+exports.SeoConfig = void 0;
+exports.extractCols = extractCols;
+exports.extractProds = extractProds;
 const manager_js_1 = require("./api-public/services/manager.js");
 const database_js_1 = __importDefault(require("./modules/database.js"));
 const ut_database_js_1 = require("./api-public/utils/ut-database.js");
@@ -82,7 +84,7 @@ class SeoConfig {
         }
     }
     static async productSEO(cf) {
-        var _a, _b, _c, _d;
+        var _a, _b, _c, _d, _e;
         const product_domain = cf.page.split('/')[1];
         const pd = await new shopping_js_1.Shopping(cf.appName, undefined).getProduct(product_domain
             ? {
@@ -103,11 +105,50 @@ class SeoConfig {
             const language_data = pd.data.content.language_data;
             cf.data.page_config = (_c = cf.data.page_config) !== null && _c !== void 0 ? _c : {};
             cf.data.page_config.seo = (_d = cf.data.page_config.seo) !== null && _d !== void 0 ? _d : {};
-            cf.data.page_config.seo.title = productSeo.title;
+            cf.data.page_config.seo.title = productSeo.title || pd.data.content.title;
             cf.data.page_config.seo.image = (language_data && language_data[cf.language] && language_data.preview_image && language_data.preview_image[0]) || pd.data.content.preview_image[0];
             cf.data.page_config.seo.content = productSeo.content;
             cf.data.tag = cf.page;
+            cf.data.page_config.seo.code = ((_e = cf.data.page_config.seo.code) !== null && _e !== void 0 ? _e : "") + (await this.getProductJsonLd(cf.appName, pd.data.content));
         }
+    }
+    static async getProductJsonLd(app_name, pd_content) {
+        var _a;
+        console.log(`pd.data.content=>`, pd_content);
+        const relative_product = await new shopping_js_1.Shopping(app_name, undefined).getProduct({
+            page: 0,
+            limit: 100,
+            id_list: ((_a = pd_content.relative_product) !== null && _a !== void 0 ? _a : []).join(',')
+        });
+        const variant = pd_content.variants[0];
+        let preview_image = [variant.preview_image].concat(pd_content.preview_image).filter((dd) => {
+            return dd;
+        });
+        console.log(`relative_product=>`, relative_product);
+        return html `
+                <script type="application/ld+json">
+                    ${JSON.stringify({
+            "@context": "http://schema.org/",
+            "@type": "Product",
+            "name": pd_content.title,
+            "brand": "",
+            "description": pd_content.content.replace(/<\/?[^>]+(>|$)/g, ""),
+            "offers": {
+                "@type": "Offer",
+                "price": parseFloat(variant.sale_price.toFixed(1)),
+                "priceCurrency": "TWD",
+                "availability": "http://schema.org/InStock"
+            },
+            "image": preview_image,
+            "isRelatedTo": relative_product.data.map((dd) => {
+                return {
+                    "@type": "Product",
+                    "name": dd.content.title,
+                    "offers": { "@type": "Offer", "price": parseFloat(dd.content.min_price.toFixed(1)), "priceCurrency": "TWD" }
+                };
+            })
+        })}
+                </script>`;
     }
     static async articleSeo(cf) {
         var _a, _b;
@@ -279,7 +320,6 @@ function extractCols(data) {
     });
     return items;
 }
-exports.extractCols = extractCols;
 function extractProds(data) {
     const items = [];
     data.map((item) => {
@@ -288,7 +328,6 @@ function extractProds(data) {
     });
     return items;
 }
-exports.extractProds = extractProds;
 function isCurrentTimeWithinRange(data) {
     const now = new Date();
     now.setTime(now.getTime() + 8 * 3600 * 1000);

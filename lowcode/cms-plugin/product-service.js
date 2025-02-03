@@ -16,6 +16,9 @@ export class ProductService {
             }
             for (const index in postMD['variants']) {
                 const variant = postMD['variants'][index];
+                if (postMD.product_category === 'course') {
+                    variant['shipment_type'] = 'none';
+                }
                 if (variant['shipment_type'] == 'volume') {
                     if (variant['v_height'] == undefined ||
                         Number(variant['v_height']) == 0 ||

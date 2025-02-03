@@ -13,14 +13,24 @@ export class ColorSelector {
         const globalValue = cf.gvc.glitter.share.editorViewModel.appConfig;
         globalValue.color_theme = globalValue.color_theme ?? [];
         return [`<div class="my-2"></div>`,
-            EditorElem.colorSelect({
-                gvc: cf.gvc,
-                title: cf.widget.bundle.form_title,
-                def: cf.widget.bundle.form_data[cf.widget.bundle.form_key],
-                callback: (text) => {
-                    cf.widget.bundle.form_data[cf.widget.bundle.form_key] = text;
-                    cf.widget.bundle.refresh && cf.widget.bundle.refresh();
-                },
+            cf.gvc.bindView(()=>{
+                const id = cf.gvc.glitter.getUUID();
+                return {
+                    bind:id,
+                    view:()=>{
+                        return EditorElem.colorSelect({
+                            gvc: cf.gvc,
+                            title: cf.widget.bundle.form_title,
+                            def: cf.widget.bundle.form_data[cf.widget.bundle.form_key],
+                            callback: (text) => {
+                                cf.widget.bundle.form_data[cf.widget.bundle.form_key] = text;
+                                cf.widget.bundle.refresh && cf.widget.bundle.refresh();
+                                cf.gvc.notifyDataChange(id)
+                            },
+                        })
+                    },
+                    divCreate:{}
+                }
             })
         ].join('')
     }

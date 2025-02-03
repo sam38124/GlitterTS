@@ -124,11 +124,6 @@ export class ProductDetail {
                         : prod.specs.map((spec) => {
                             return spec.option[0].title;
                         });
-                prod.variants.forEach((variant) => {
-                    if (variant.preview_image && !prod.preview_image.includes(variant.preview_image)) {
-                        prod.preview_image.push(variant.preview_image);
-                    }
-                });
                 const book_mark = [
                     {
                         title: Language.text('all_products'),
@@ -262,7 +257,7 @@ export class ProductDetail {
                             }
                             return 'margin: 0 10%;';
                         })() + `max-width:100%;`,
-                        class: `pd_detail_content`,
+                        class: `pd_detail_content fr-view`,
                     },
                 })}
                     </div>
@@ -383,6 +378,7 @@ export class ProductDetail {
                                 });
                             }),
                         ]).then((dataArray) => {
+                            var _a, _b;
                             if (dataArray[0].result && dataArray[0].response.value) {
                                 vm.content_manager = dataArray[0].response.value;
                             }
@@ -390,12 +386,22 @@ export class ProductDetail {
                                 try {
                                     if (Array.isArray(dataArray[1].response.data)) {
                                         vm.data = dataArray[1].response.data[0];
-                                        glitter.setUrlParameter('page', 'products/' + encodeURIComponent(vm.data.content.seo.domain));
                                     }
                                     else {
                                         vm.data = dataArray[1].response.data;
-                                        glitter.setUrlParameter('page', 'products/' + encodeURIComponent(vm.data.content.seo.domain));
                                     }
+                                    glitter.setUrlParameter('page', 'products/' + encodeURIComponent(vm.data.content.seo.domain || vm.data.content.title), [
+                                        (_a = window.home_seo.title_prefix) !== null && _a !== void 0 ? _a : "",
+                                        (vm.data.content.seo.domain || vm.data.content.title),
+                                        (_b = window.home_seo.title_suffix) !== null && _b !== void 0 ? _b : "",
+                                    ].join(''));
+                                    const json_ld = document.querySelector('script[type="application/ld+json"]');
+                                    if (json_ld) {
+                                        json_ld.remove();
+                                    }
+                                    ;
+                                    document.querySelector('head').innerHTML += vm.data.json_ld;
+                                    console.log(`(vm.data as any).json_ld=>`, vm.data.json_ld);
                                 }
                                 catch (e) {
                                     vm.data = {};

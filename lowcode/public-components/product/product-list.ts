@@ -117,7 +117,7 @@ export class ProductList {
                 }
             }
         `);
-        return html` <div class="box-tag-${obj.tag} box-container-${text}">
+        return html` <div class="box-tag-${obj.tag} box-container-${text} ${obj.openOnInit ? `open-box`:''}">
             <div
                 class="box-navbar-${text} ${obj.guideClass ?? ''}"
                 onclick="${obj.gvc.event((e) => {
@@ -134,11 +134,9 @@ export class ProductList {
                             }
                         });
                     }
-
                     setTimeout(() => {
                         e.parentElement.classList.toggle('open-box');
                         e.parentElement.querySelector(`.arrow-icon-${text}`).classList.toggle('open-box');
-
                         const container = window.document.querySelector(`.box-container-${text}`) as any;
                         if (e.parentElement.classList.contains('open-box')) {
                             const si = setInterval(() => {
@@ -174,7 +172,7 @@ export class ProductList {
                     <button class="box-tag-${obj.tag} arrow-icon-${text}"></button>
                 </div>
             </div>
-            <div class="box-inside-${text} ${obj.guideClass ? `box-inside-${obj.guideClass}` : ''}">${obj.insideHTML}</div>
+            <div class="box-inside-${text} ${obj.guideClass ? `box-inside-${obj.guideClass}` : ''} " >${obj.insideHTML}</div>
         </div>`;
     }
 
@@ -560,17 +558,17 @@ export class ProductList {
                                         .map((item: any, index: number) => {
                                             let subHTML = '';
                                             if (item.subCollections.length > 0) {
+                                               
                                                 for (const col of vm.collections) {
                                                     if (item.subCollections.includes(col.title) && col.parentTitles[0] === item.title) {
-                                                        subHTML += html`<ul class="mt-1 pt-2 mx-n4 px-4 mb-n2 pb-2 box-item">
+                                                        subHTML += html`<ul class="mt-1 pt-2 mx-n4 px-4 mb-n2 pb-2 box-item" style="${(decodeURIComponent((glitter.getUrlParameter('page') || '').split('/').reverse()[0])===(col.code || col.title)) ? `background:#f5f5f5;`:``}" onclick="${gvc.event(() => {
+                                                            changePage(`collections/${col.code || col.title}` , 'page', {});
+                                                            gvc.glitter.closeDrawer();
+                                                        })}">
                                                             <li style="font-weight: 500; line-height: 40px;">
                                                                 <div
                                                                     class="d-flex tx_700"
                                                                     style="color: ${fontColor};"
-                                                                    onclick="${gvc.event(() => {
-                                                                        changePage(`collections/${col.cod || col.title}` , 'page', {});
-                                                                        gvc.glitter.closeDrawer();
-                                                                    })}"
                                                                 >
                                                                     ${col.title}
                                                                 </div>
@@ -579,6 +577,10 @@ export class ProductList {
                                                     }
                                                 }
                                             }
+                                            console.log(`in--->`,[item.code].concat( vm.collections.filter((col:any)=>{
+                                                return item.subCollections.includes(col.title) && col.parentTitles[0] === item.title
+                                            })))
+                                            console.log(`in--->cludes->`,decodeURIComponent((glitter.getUrlParameter('page') || '').split('/').reverse()[0]))
                                             return html` <li
                                                 class="${index + 1 === cols.length ? '' : 'border-bottom'}"
                                                 style="${item.subCollections.length > 0 ? '' : 'padding: 16px;'} cursor: pointer;"
@@ -593,11 +595,17 @@ export class ProductList {
                                                           length: item.subCollections.length,
                                                           changePage,
                                                           fontColor,
+                                                            openOnInit:[item.code].concat( vm.collections.filter((col:any)=>{
+                                                                return item.subCollections.includes(col.title) && col.parentTitles[0] === item.title
+                                                            }).map((dd:any)=>{
+                                                                return dd.code || dd.title
+                                                            })).includes(decodeURIComponent((glitter.getUrlParameter('page') || '').split('/').reverse()[0]))
                                                       })
                                                     : html`<div
                                                           class="d-flex tx_700"
                                                           style="color: ${fontColor};"
                                                           onclick="${gvc.event(() => {
+                                                              
                                                               changePage('collections/' + item.code, 'page', {});
                                                               gvc.glitter.closeDrawer();
                                                           })}"
@@ -831,6 +839,7 @@ export class ProductList {
                                                 vm.pageIndex = p;
                                                 loadings.product = true;
                                                 gvc.notifyDataChange(ids.product);
+                                                (document.querySelector('html') as any).scrollTo(0,0);
                                             })}
                                             <div style="margin-top: 240px;"></div>`;
                                     }

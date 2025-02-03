@@ -7,84 +7,81 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
-import { ShareDialog } from "../../glitterBundle/dialog/ShareDialog.js";
-import { PayConfig } from "./pay-config.js";
-import { ConnectionMode } from "./connection-mode.js";
-import { ApiShop } from "../../glitter-base/route/shopping.js";
+import { ShareDialog } from '../../glitterBundle/dialog/ShareDialog.js';
+import { PayConfig } from './pay-config.js';
+import { ConnectionMode } from './connection-mode.js';
+import { ApiShop } from '../../glitter-base/route/shopping.js';
 const html = String.raw;
 export class PaymentFunction {
     static cashFinish(gvc, total, callback) {
         gvc.addStyle(`
-                .dialog-box {
-                    width: 100vw;
-                    height: 100vh;
-                    display: flex;
-                    align-items: center;
-                    justify-content: center;
-                    background-color: rgba(0, 0, 0, 0.5);
-                    z-index: 10000;
-                }
+            .dialog-box {
+                width: 100vw;
+                height: 100vh;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                background-color: rgba(0, 0, 0, 0.5);
+                z-index: 10000;
+            }
 
-                .dialog-absolute {
-                    width: 100%;
-                    border-top: 1px solid #e2e5f1;
-                    position: absolute;
-                    left: 0px;
-                    bottom: 0px;
-                    height: 40px;
-                    display: flex;
-                    align-items: center;
-                    justify-content: center;
-                    cursor: pointer;
-                }
+            .dialog-absolute {
+                width: 100%;
+                border-top: 1px solid #e2e5f1;
+                position: absolute;
+                left: 0px;
+                bottom: 0px;
+                height: 40px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                cursor: pointer;
+            }
 
-                .hover-cancel {
-                    background-color: #fff;
-                    border-radius: 0 0 0 0.5rem;
-                }
+            .hover-cancel {
+                background-color: #fff;
+                border-radius: 0 0 0 0.5rem;
+            }
 
-                .hover-cancel:hover {
-                    background-color: #e6e6e6;
-                }
+            .hover-cancel:hover {
+                background-color: #e6e6e6;
+            }
 
-                .hover-save {
-                    background-color: #393939;
-                    border-radius: 0 0 0.5rem;
-                }
+            .hover-save {
+                background-color: #393939;
+                border-radius: 0 0 0.5rem;
+            }
 
-                .hover-save:hover {
-                    background-color: #646464;
-                }
-            `);
+            .hover-save:hover {
+                background-color: #646464;
+            }
+        `);
         const dialog = new ShareDialog(gvc.glitter);
         gvc.glitter.innerDialog((gvc) => {
             return html `
                     <div class="dialog-box">
-                        <div class="dialog-content position-relative pb-5"
-                             style="width: 452px;max-width: calc(100% - 20px);">
+                        <div class="dialog-content position-relative pb-5" style="width: 452px;max-width: calc(100% - 20px);">
                             <div
-                                    class="my-3 fs-6 fw-500 text-center"
-                                    style="white-space: normal; overflow-wrap: anywhere;font-size: 28px;font-style: normal;font-weight: 700;line-height: normal;letter-spacing: 2.8px;"
+                                class="my-3 fs-6 fw-500 text-center"
+                                style="white-space: normal; overflow-wrap: anywhere;font-size: 28px;font-style: normal;font-weight: 700;line-height: normal;letter-spacing: 2.8px;"
                             >
                                 請先收取現金後進行結帳
                             </div>
                             <div style="font-size: 18px;font-style: normal;font-weight: 400;line-height: 160%;letter-spacing: 0.72px;">
-                                本次結帳金額為 <span
-                                    style="font-size: 28px;font-style: normal;font-weight: 700;line-height: 160%;">$${total.toLocaleString()}</span>
+                                本次結帳金額為 <span style="font-size: 28px;font-style: normal;font-weight: 700;line-height: 160%;">$${total.toLocaleString()}</span>
                             </div>
-                            <div class="d-flex align-items-center justify-content-center"
-                                 style="margin-top: 24px;font-size: 16px;font-weight: 700;letter-spacing: 0.64px;">
+                            <div class="d-flex align-items-center justify-content-center" style="margin-top: 24px;font-size: 16px;font-weight: 700;letter-spacing: 0.64px;">
                                 <div
-                                        style="border-radius: 10px;border: 1px solid #DDD;background: #FFF;padding: 12px 24px;color: #393939;width:120px;text-align:center;"
-                                        onclick="${gvc.event(() => {
+                                    style="border-radius: 10px;border: 1px solid #DDD;background: #FFF;padding: 12px 24px;color: #393939;width:120px;text-align:center;"
+                                    onclick="${gvc.event(() => {
                 gvc.glitter.closeDiaLog();
             })}"
                                 >
                                     取消
                                 </div>
                                 <div
-                                        style="border-radius: 10px;background: #393939;padding: 12px 24px;color: #FFF;margin-left: 24px;width:120px;text-align:center;"
-                                        onclick="${gvc.event(() => {
+                                    style="border-radius: 10px;background: #393939;padding: 12px 24px;color: #FFF;margin-left: 24px;width:120px;text-align:center;"
+                                    onclick="${gvc.event(() => {
                 gvc.closeDialog();
                 callback(true);
             })}"
@@ -110,7 +107,7 @@ export class PaymentFunction {
                 gvc.glitter.runJsInterFace('credit_card', {
                     amount: `${total}`,
                     memo: `訂單ID:${orderDetail.orderID}`,
-                    pwd: pwd
+                    pwd: pwd,
                 }, (res) => {
                     if (res.result) {
                         gvc.closeDialog();
@@ -139,7 +136,7 @@ export class PaymentFunction {
                     cmd: 'credit_card',
                     amount: `${total}`,
                     memo: `訂單ID:${orderDetail.orderID}`,
-                    pwd: pwd
+                    pwd: pwd,
                 });
             }
             else {
@@ -175,7 +172,7 @@ export class PaymentFunction {
             },
         });
     }
-    static lineFinish(gvc, total, orderDetail, callback) {
+    static lineFinish(gvc, total, prefix, orderDetail, callback) {
         const dialog = new ShareDialog(gvc.glitter);
         gvc.glitter.innerDialog((gvc) => {
             let block = false;
@@ -187,7 +184,7 @@ export class PaymentFunction {
                 ApiShop.toPOSLinePay({
                     amount: total,
                     currency: 'TWD',
-                    orderId: `${orderDetail.orderID}-${(orderDetail.line_prefix || 0)}`,
+                    orderId: `${orderDetail.orderID}-${orderDetail.line_prefix || 0}`,
                     productName: orderDetail.lineItems
                         .map((data) => {
                         return `${data.title} * ${data.count}`;
@@ -281,8 +278,7 @@ export class PaymentFunction {
                 `;
         }, 'orderFinish', {
             dismiss: () => {
-                gvc.glitter.share.scan_back = () => {
-                };
+                gvc.glitter.share.scan_back = () => { };
             },
         });
     }

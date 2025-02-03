@@ -389,7 +389,7 @@ ${dd.title}</a></li>`;
                                                 class="me-auto t_39_normal border-end px-4 d-none d-sm-flex align-items-center justify-content-center"
                                                 style="height: 56px;cursor: pointer;"
                                                 onclick="${gvc.event(() => {
-                        gvc.glitter.openNewTab('https://shopnex.cc/blog-home-page');
+                        gvc.glitter.openNewTab('https://shopnex.tw/blog-home-page');
                     })}"
                                         >
                                             教學文章

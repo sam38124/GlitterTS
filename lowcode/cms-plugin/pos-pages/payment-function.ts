@@ -1,91 +1,86 @@
-import {GVC} from "../../glitterBundle/GVController.js";
-import {ShareDialog} from "../../glitterBundle/dialog/ShareDialog.js";
-import {PayConfig} from "./pay-config.js";
-import {ConnectionMode} from "./connection-mode.js";
-import {PaymentPage} from "./payment-page.js";
-import {ApiShop} from "../../glitter-base/route/shopping.js";
-import {OrderDetail} from "./models.js";
+import { GVC } from '../../glitterBundle/GVController.js';
+import { ShareDialog } from '../../glitterBundle/dialog/ShareDialog.js';
+import { PayConfig } from './pay-config.js';
+import { ConnectionMode } from './connection-mode.js';
+import { ApiShop } from '../../glitter-base/route/shopping.js';
+import { OrderDetail } from './models.js';
 
-const html = String.raw
+const html = String.raw;
 
 export class PaymentFunction {
-
     public static cashFinish(gvc: GVC, total: number, callback: (result: boolean) => void) {
         gvc.addStyle(`
-                .dialog-box {
-                    width: 100vw;
-                    height: 100vh;
-                    display: flex;
-                    align-items: center;
-                    justify-content: center;
-                    background-color: rgba(0, 0, 0, 0.5);
-                    z-index: 10000;
-                }
+            .dialog-box {
+                width: 100vw;
+                height: 100vh;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                background-color: rgba(0, 0, 0, 0.5);
+                z-index: 10000;
+            }
 
-                .dialog-absolute {
-                    width: 100%;
-                    border-top: 1px solid #e2e5f1;
-                    position: absolute;
-                    left: 0px;
-                    bottom: 0px;
-                    height: 40px;
-                    display: flex;
-                    align-items: center;
-                    justify-content: center;
-                    cursor: pointer;
-                }
+            .dialog-absolute {
+                width: 100%;
+                border-top: 1px solid #e2e5f1;
+                position: absolute;
+                left: 0px;
+                bottom: 0px;
+                height: 40px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                cursor: pointer;
+            }
 
-                .hover-cancel {
-                    background-color: #fff;
-                    border-radius: 0 0 0 0.5rem;
-                }
+            .hover-cancel {
+                background-color: #fff;
+                border-radius: 0 0 0 0.5rem;
+            }
 
-                .hover-cancel:hover {
-                    background-color: #e6e6e6;
-                }
+            .hover-cancel:hover {
+                background-color: #e6e6e6;
+            }
 
-                .hover-save {
-                    background-color: #393939;
-                    border-radius: 0 0 0.5rem;
-                }
+            .hover-save {
+                background-color: #393939;
+                border-radius: 0 0 0.5rem;
+            }
 
-                .hover-save:hover {
-                    background-color: #646464;
-                }
-            `);
+            .hover-save:hover {
+                background-color: #646464;
+            }
+        `);
         const dialog = new ShareDialog(gvc.glitter);
         gvc.glitter.innerDialog(
             (gvc: GVC) => {
                 return html`
                     <div class="dialog-box">
-                        <div class="dialog-content position-relative pb-5"
-                             style="width: 452px;max-width: calc(100% - 20px);">
+                        <div class="dialog-content position-relative pb-5" style="width: 452px;max-width: calc(100% - 20px);">
                             <div
-                                    class="my-3 fs-6 fw-500 text-center"
-                                    style="white-space: normal; overflow-wrap: anywhere;font-size: 28px;font-style: normal;font-weight: 700;line-height: normal;letter-spacing: 2.8px;"
+                                class="my-3 fs-6 fw-500 text-center"
+                                style="white-space: normal; overflow-wrap: anywhere;font-size: 28px;font-style: normal;font-weight: 700;line-height: normal;letter-spacing: 2.8px;"
                             >
                                 請先收取現金後進行結帳
                             </div>
                             <div style="font-size: 18px;font-style: normal;font-weight: 400;line-height: 160%;letter-spacing: 0.72px;">
-                                本次結帳金額為 <span
-                                    style="font-size: 28px;font-style: normal;font-weight: 700;line-height: 160%;">$${total.toLocaleString()}</span>
+                                本次結帳金額為 <span style="font-size: 28px;font-style: normal;font-weight: 700;line-height: 160%;">$${total.toLocaleString()}</span>
                             </div>
-                            <div class="d-flex align-items-center justify-content-center"
-                                 style="margin-top: 24px;font-size: 16px;font-weight: 700;letter-spacing: 0.64px;">
+                            <div class="d-flex align-items-center justify-content-center" style="margin-top: 24px;font-size: 16px;font-weight: 700;letter-spacing: 0.64px;">
                                 <div
-                                        style="border-radius: 10px;border: 1px solid #DDD;background: #FFF;padding: 12px 24px;color: #393939;width:120px;text-align:center;"
-                                        onclick="${gvc.event(() => {
-                                            gvc.glitter.closeDiaLog();
-                                        })}"
+                                    style="border-radius: 10px;border: 1px solid #DDD;background: #FFF;padding: 12px 24px;color: #393939;width:120px;text-align:center;"
+                                    onclick="${gvc.event(() => {
+                                        gvc.glitter.closeDiaLog();
+                                    })}"
                                 >
                                     取消
                                 </div>
                                 <div
-                                        style="border-radius: 10px;background: #393939;padding: 12px 24px;color: #FFF;margin-left: 24px;width:120px;text-align:center;"
-                                        onclick="${gvc.event(() => {
-                                            gvc.closeDialog();
-                                            callback(true)
-                                        })}"
+                                    style="border-radius: 10px;background: #393939;padding: 12px 24px;color: #FFF;margin-left: 24px;width:120px;text-align:center;"
+                                    onclick="${gvc.event(() => {
+                                        gvc.closeDialog();
+                                        callback(true);
+                                    })}"
                                 >
                                     確認
                                 </div>
@@ -103,13 +98,12 @@ export class PaymentFunction {
         );
     }
 
-    public static creditFinish(gvc: GVC, total:number,orderDetail: any, callback: (result: boolean) => void) {
+    public static creditFinish(gvc: GVC, total: number, orderDetail: any, callback: (result: boolean) => void) {
         const dialog = new ShareDialog(gvc.glitter);
 
-
         const pwd = orderDetail.payment_setting.find((dd: any) => {
-            return dd.key === 'ut_credit_card'
-        }).pwd
+            return dd.key === 'ut_credit_card';
+        }).pwd;
         gvc.glitter.innerDialog(
             (gvc: GVC) => {
                 if (PayConfig.deviceType === 'pos') {
@@ -118,16 +112,16 @@ export class PaymentFunction {
                         {
                             amount: `${total}`,
                             memo: `訂單ID:${orderDetail.orderID}`,
-                            pwd: pwd
+                            pwd: pwd,
                         },
                         (res: any) => {
                             if (res.result) {
                                 gvc.closeDialog();
-                                callback(true)
+                                callback(true);
                             } else {
                                 gvc.closeDialog();
-                                callback(false)
-                                dialog.errorMessage({text: '交易失敗'});
+                                callback(false);
+                                dialog.errorMessage({ text: '交易失敗' });
                             }
                         }
                     );
@@ -135,26 +129,25 @@ export class PaymentFunction {
                     gvc.glitter.share.credit_card_callback = (res: any) => {
                         if (res.result) {
                             gvc.closeDialog();
-                            callback(true)
+                            callback(true);
                         } else {
                             gvc.closeDialog();
-                            callback(false)
-                            dialog.errorMessage({text: '交易失敗'});
+                            callback(false);
+                            dialog.errorMessage({ text: '交易失敗' });
                         }
-                    }
+                    };
                     ConnectionMode.sendCommand({
                         cmd: 'credit_card',
                         amount: `${total}`,
                         memo: `訂單ID:${orderDetail.orderID}`,
-                        pwd: pwd
-                    })
+                        pwd: pwd,
+                    });
                 } else {
                     setTimeout(() => {
                         gvc.closeDialog();
-                        dialog.errorMessage({text: '尚未連線至刷卡機'});
-                    }, 100)
+                        dialog.errorMessage({ text: '尚未連線至刷卡機' });
+                    }, 100);
                 }
-
 
                 return html`
                     <div class="dialog-box">
@@ -189,23 +182,20 @@ export class PaymentFunction {
         );
     }
 
-    public static lineFinish(gvc: GVC, total:number,orderDetail: OrderDetail, callback: (result: boolean) => void) {
+    public static lineFinish(gvc: GVC, total: number, prefix: number, orderDetail: OrderDetail, callback: (result: boolean) => void) {
         const dialog = new ShareDialog(gvc.glitter);
-
-
         gvc.glitter.innerDialog(
             (gvc: GVC) => {
-
-                let block = false
+                let block = false;
                 PayConfig.onPayment = (scanText) => {
                     if (block) {
-                        return
+                        return;
                     }
-                    dialog.dataLoading({visible: true});
+                    dialog.dataLoading({ visible: true });
                     ApiShop.toPOSLinePay({
                         amount: total,
                         currency: 'TWD',
-                        orderId: `${orderDetail.orderID}-${(orderDetail.line_prefix || 0)}`,
+                        orderId: `${orderDetail.orderID}-${orderDetail.line_prefix || 0}`,
                         productName: orderDetail.lineItems
                             .map((data: any) => {
                                 return `${data.title} * ${data.count}`;
@@ -213,18 +203,18 @@ export class PaymentFunction {
                             .join(','),
                         oneTimeKey: scanText,
                     }).then((res) => {
-                        dialog.dataLoading({visible: false});
+                        dialog.dataLoading({ visible: false });
                         if (!res.result || !res.response.result) {
-                            dialog.errorMessage({text: '交易失敗'});
+                            dialog.errorMessage({ text: '交易失敗' });
                             callback(false);
                         } else {
                             gvc.closeDialog();
-                            PayConfig.onPayment = undefined
+                            PayConfig.onPayment = undefined;
                             callback(true);
                         }
                     });
-                }
-                let m_text = ''
+                };
+                let m_text = '';
                 return html`
                     <div class="dialog-box">
                         <div class="dialog-content position-relative "
@@ -242,14 +232,14 @@ export class PaymentFunction {
                                         style="border: none;"
                                         placeholder="請輸入或掃描付款代碼"
                                         onchange="${gvc.event((e, event) => {
-                                            m_text = e.value
+                                            m_text = e.value;
                                         })}"
                                         value="${m_text || ''}"
                                         onfocus="${gvc.event(() => {
-                                            block = true
+                                            block = true;
                                         })}"
                                         onblur="${gvc.event(() => {
-                                            block = false
+                                            block = false;
                                         })}"
                                 />
                                 <div class="flex-fill"></div>
@@ -271,7 +261,7 @@ export class PaymentFunction {
                                         class="flex-fill"
                                         style="border-radius: 10px;border: 1px solid #DDD;background: #FFF;padding: 12px 24px;color: #393939;text-align:center;"
                                         onclick="${gvc.event(() => {
-                                            PayConfig.onPayment = undefined
+                                            PayConfig.onPayment = undefined;
                                             gvc.glitter.closeDiaLog();
                                         })}"
                                 >
@@ -283,11 +273,11 @@ export class PaymentFunction {
                                         style="border-radius: 10px;background: #393939;padding: 12px 24px;color: #FFF;text-align:center;"
                                         onclick="${gvc.event(async () => {
                                             if (!m_text) {
-                                                dialog.errorMessage({text: '請輸入交易條碼'})
-                                                return
+                                                dialog.errorMessage({ text: '請輸入交易條碼' });
+                                                return;
                                             }
-                                            block = false
-                                            PayConfig.onPayment!(m_text)
+                                            block = false;
+                                            PayConfig.onPayment!(m_text);
                                         })}"
                                 >
                                     確定
@@ -301,8 +291,7 @@ export class PaymentFunction {
             {
                 dismiss: () => {
                     // vm.type = "list";
-                    gvc.glitter.share.scan_back = () => {
-                    };
+                    gvc.glitter.share.scan_back = () => {};
                 },
             }
         );

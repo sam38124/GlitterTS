@@ -2,6 +2,7 @@ import {init} from '../GVController.js';
 import {TriggerEvent} from "./trigger-event.js";
 import {EditorConfig} from "../../editor-config.js";
 import {GlobalUser} from "../../glitter-base/global/global-user.js";
+import {FirstBanner} from "../../public-components/banner/first-banner.js";
 
 init(import.meta.url, (gvc, glitter, gBundle) => {
     glitter.share.htmlExtension = glitter.share.htmlExtension ?? {};
@@ -70,6 +71,21 @@ init(import.meta.url, (gvc, glitter, gBundle) => {
     }
     return {
         onCreateView: () => {
+            FirstBanner.main({gvc:gvc})
+            //定義SEO TITLE
+            if(gBundle.page_config.seo && (gBundle.page_config.seo.type==="custom") && gBundle.page_config.seo.title){
+                glitter.setUrlParameter('',undefined,[
+                    gBundle.page_config.seo.title_prefix ?? "",
+                    gBundle.page_config.seo.title ?? '',
+                    gBundle.page_config.seo.title_suffix ?? "",
+                ].join(''))
+            }else{
+                glitter.setUrlParameter('',undefined,[
+                    (window as any).home_seo.title_prefix ?? "",
+                    (window as any).home_seo.title ?? '',
+                    (window as any).home_seo.title_suffix ?? "",
+                ].join(''))
+            }
             //判斷如果是帳號頁面，且未登入則重新導向
             if(gvc.glitter.getUrlParameter('page')==='account_userinfo' && !GlobalUser.token){
                 gvc.glitter.href='/login'

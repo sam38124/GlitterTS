@@ -63,12 +63,14 @@ export class PaymentPage {
         }));
     }
     static main(obj) {
+        var _a;
         if (!obj.ogOrderData.lineItems || obj.ogOrderData.lineItems.length === 0) {
             return POSSetting.emptyView('購物車是空的，請先選擇商品');
         }
         const gvc = obj.gvc;
         const vm = obj.vm;
         const dialog = new ShareDialog(gvc.glitter);
+        console.log(`obj.ogOrderData.pos_info=>`, obj.ogOrderData.pos_info);
         PaymentPage.storeHistory(obj.ogOrderData);
         obj.ogOrderData.pos_info = obj.ogOrderData.pos_info || {
             payment: [{
@@ -77,7 +79,12 @@ export class PaymentPage {
                 }]
         };
         obj.ogOrderData.orderID = obj.ogOrderData.orderID || `${(new Date().getTime())}`;
-        vm.paySelect = obj.ogOrderData.pos_info.payment;
+        obj.ogOrderData.pos_info.payment = (_a = obj.ogOrderData.pos_info.payment) !== null && _a !== void 0 ? _a : [];
+        obj.ogOrderData.pos_info.payment.map((dd) => {
+            if (!dd.total) {
+                dd.paied = false;
+            }
+        });
         return gvc.bindView(() => {
             const id = 'checkout-page';
             let last_to = 0;
@@ -159,29 +166,36 @@ export class PaymentPage {
                                     .map((data) => {
                                     return html `
                                                                 <div class="d-flex" style="">
-                                                                    <div class="col-8 col-sm-6 d-flex align-items-center">
-                                                                        <div class="d-flex flex-column align-items-center justify-content-center" style="gap:5px;width:75px;">
+                                                                    <div class="col-9 col-sm-6 d-flex align-items-center">
+                                                                        <div class="d-flex flex-column align-items-center justify-content-center"
+                                                                             style="gap:5px;width:75px;">
                                                                             <div style="height: 20px;"></div>
                                                                             <div style="width: 54px;height: 54px;border-radius: 5px;background: 50%/cover url('${data.preview_image || 'https://d3jnmi1tfjgtti.cloudfront.net/file/234285319/1722936949034-default_image.jpg'}')"></div>
-                                                                            <div style="font-size: 14px;height: 20px;" class="fw-500 ${(data.pre_order) ? `text-danger` : ``}">庫存:${(() => {
+                                                                            <div style="font-size: 14px;height: 20px;"
+                                                                                 class="fw-500 ${(data.pre_order) ? `text-danger` : ``}">
+                                                                                    庫存:${(() => {
                                         if (`${data.show_understocking}` === 'false') {
                                             return `不追蹤`;
                                         }
                                         else {
                                             return (data.stockList[POSSetting.config.where_store] && data.stockList[POSSetting.config.where_store].count) || 0;
                                         }
-                                    })()}</div>
+                                    })()}
+                                                                            </div>
                                                                         </div>
                                                                         <div class="d-flex flex-column"
                                                                              style="font-size: 16px;font-style: normal;font-weight: 500;letter-spacing: 0.64px;margin-left: 12px;">
-                                                                            <div class="d-flex align-items-center" style="gap:10px;">${data.title}${(() => {
+                                                                            <div class="d-flex align-items-center"
+                                                                                 style="gap:10px;">
+                                                                                ${data.title}${(() => {
                                         if (!data.pre_order) {
                                             return ``;
                                         }
                                         else {
                                             return BgWidget.dangerInsignia('需預購');
                                         }
-                                    })()}</div>
+                                    })()}
+                                                                            </div>
                                                                             <span
                                                                                     style="color: #949494;
                                                                                 font-size: 16px;
@@ -201,6 +215,7 @@ export class PaymentPage {
                                             : html ``;
                                     })()}
                                                                     </span>
+                                                                         
                                                                             ${document.body.clientWidth < 800
                                         ? `<div style="color: #393939;
 font-size: 16px;
@@ -208,17 +223,14 @@ font-style: normal;
 font-weight: 400;
 line-height: normal;
 letter-spacing: 0.64px;
-text-transform: uppercase;">NT.${parseInt(data.sale_price, 10).toLocaleString()}</div>`
+text-transform: uppercase;">NT.${parseInt(data.sale_price, 10).toLocaleString()}    ${document.body.clientWidth < 800 ? `x` : ``} ${data.count}</div>`
                                         : ``}
                                                                         </div>
                                                                     </div>
                                                                     <div class="col-2 d-none d-sm-flex align-items-center justify-content-start">
                                                                             $${parseInt(data.sale_price, 10).toLocaleString()}
                                                                     </div>
-                                                                    <div class="col-2 d-flex align-items-center justify-content-center">
-                                                                        ${document.body.clientWidth < 800 ? `x` : ``}${data.count}
-                                                                    </div>
-                                                                    <div class="col-2 d-flex align-items-center justify-content-center">
+                                                                    <div class="col-3 col-lg-2 d-flex align-items-center justify-content-center">
                                                                             $${parseInt((data.sale_price * data.count), 10).toLocaleString()}
                                                                     </div>
                                                                 </div>
@@ -239,6 +251,11 @@ text-transform: uppercase;">NT.${parseInt(data.sale_price, 10).toLocaleString()}
                                 </div>
                                 ${PosWidget.bigTitle('會員', 'margin-top:32px;margin-bottom:18px;')}
                                 ${gvc.bindView(() => {
+                            var _a;
+                            orderDetail.user_info = (_a = orderDetail.user_info) !== null && _a !== void 0 ? _a : {};
+                            if (obj.ogOrderData.user_info.email === 'no-email') {
+                                obj.ogOrderData.user_info.email = '';
+                            }
                             const vm = {
                                 id: gvc.glitter.getUUID(),
                                 type: `old`,
@@ -272,9 +289,7 @@ background: #FFF;`
                                     ];
                                     if (vm.type === 'old') {
                                         view.push(gvc.bindView(() => {
-                                            var _a;
                                             const id = gvc.glitter.getUUID();
-                                            orderDetail.user_info = (_a = orderDetail.user_info) !== null && _a !== void 0 ? _a : {};
                                             return {
                                                 bind: id,
                                                 view: () => {
@@ -957,9 +972,9 @@ ${dd.reBackType === 'rebate' ? `+${dd.discount_total.toLocaleString()}回饋金`
                                         html `${PosWidget.bigTitle('付款方式')}
                                                 ${gvc.bindView({
                                             bind: 'payment',
-                                            dataList: [{ obj: vm, key: 'paySelect' }],
+                                            dataList: [{ obj: obj.ogOrderData.pos_info, key: 'payment' }],
                                             view: () => {
-                                                if (vm.paySelect.length === 1) {
+                                                if (obj.ogOrderData.pos_info.payment.length === 1 && !obj.ogOrderData.pos_info.payment[0].paied) {
                                                     function drawIcon(black, type) {
                                                         switch (type) {
                                                             case 'cash':
@@ -1002,7 +1017,7 @@ ${dd.reBackType === 'rebate' ? `+${dd.discount_total.toLocaleString()}回饋金`
                                                             value: 'cash',
                                                             key: 'cash',
                                                             event: () => {
-                                                                vm.paySelect = [
+                                                                obj.ogOrderData.pos_info.payment = [
                                                                     {
                                                                         method: 'cash',
                                                                         total: 0
@@ -1015,7 +1030,7 @@ ${dd.reBackType === 'rebate' ? `+${dd.discount_total.toLocaleString()}回饋金`
                                                             value: 'creditCard',
                                                             key: 'ut_credit_card',
                                                             event: () => {
-                                                                vm.paySelect = [
+                                                                obj.ogOrderData.pos_info.payment = [
                                                                     {
                                                                         method: 'creditCard',
                                                                         total: 0
@@ -1028,7 +1043,7 @@ ${dd.reBackType === 'rebate' ? `+${dd.discount_total.toLocaleString()}回饋金`
                                                             value: 'line',
                                                             key: 'line_pay_scan',
                                                             event: () => {
-                                                                vm.paySelect = [
+                                                                obj.ogOrderData.pos_info.payment = [
                                                                     {
                                                                         method: 'line',
                                                                         total: 0
@@ -1045,18 +1060,18 @@ ${dd.reBackType === 'rebate' ? `+${dd.discount_total.toLocaleString()}回饋金`
                                                         .map((btn) => {
                                                         return html `
                                                                             <div
-                                                                                    style="flex:1;display: flex;flex-direction: column;justify-content: center;align-items: center;padding: 15px 15px;border-radius: 10px;background: #F6F6F6;${vm.paySelect.find((dd) => {
+                                                                                    style="flex:1;display: flex;flex-direction: column;justify-content: center;align-items: center;padding: 15px 15px;border-radius: 10px;background: #F6F6F6;${obj.ogOrderData.pos_info.payment.find((dd) => {
                                                             return dd.method === btn.value;
                                                         })
                                                             ? `color:#393939;border-radius: 10px;border: 3px solid #393939;box-shadow: 2px 2px 15px 0px rgba(0, 0, 0, 0.20);`
                                                             : 'color:#8D8D8D;'}"
                                                                                     onclick="${gvc.event(() => {
                                                             btn.event();
-                                                            console.log(vm.paySelect);
+                                                            console.log(obj.ogOrderData.pos_info.payment);
                                                         })}"
                                                                             >
                                                                                 <div style="width: 28px;height: 28px;">
-                                                                                    ${drawIcon(vm.paySelect.find((dd) => {
+                                                                                    ${drawIcon(obj.ogOrderData.pos_info.payment.find((dd) => {
                                                             return dd.method === btn.value;
                                                         }) !== undefined, btn.value)}
                                                                                 </div>
@@ -1084,7 +1099,7 @@ ${PosWidget.fontLight('狀態')}
 
 </div>
 </div>
-${vm.paySelect.map((dd, index) => {
+${obj.ogOrderData.pos_info.payment.map((dd, index) => {
                                                         return html `
                                                                             <div class="d-flex align-items-center justify-content-center w-100 mt-lg-4 mt-2"
                                                                                  style="height:50px;">
@@ -1140,11 +1155,11 @@ ${vm.paySelect.map((dd, index) => {
                                                                     });
                                                                     break;
                                                                 case 'line':
-                                                                    obj.ogOrderData.line_prefix = obj.ogOrderData.line_prefix || 0;
-                                                                    PaymentFunction.lineFinish(gvc, dd.total, obj.ogOrderData, (result) => {
+                                                                    dd.line_prefix = dd.line_prefix || 0;
+                                                                    dd.line_prefix++;
+                                                                    PaymentFunction.lineFinish(gvc, dd.total, dd.line_prefix, orderDetail, (result) => {
                                                                         if (result) {
                                                                             dd.paied = true;
-                                                                            obj.ogOrderData.line_prefix++;
                                                                             refreshOrderView();
                                                                         }
                                                                     });
@@ -1172,20 +1187,19 @@ ${vm.paySelect.map((dd, index) => {
                                             },
                                         })}`,
                                         `<div style="height:24px;"></div>`,
-                                        PosWidget.buttonSnow(`多種付款方式`, gvc.event(() => {
+                                        PosWidget.buttonSnow(`新增付款方式`, gvc.event(() => {
                                             PosFunction.selectPaymentMethod({
                                                 gvc: gvc,
                                                 orderData: orderDetail,
                                                 callback: (data) => {
                                                     obj.ogOrderData.pos_info.payment = data;
-                                                    vm.paySelect = data;
                                                     refreshOrderView();
                                                 }
                                             });
                                         })),
                                         `<div style="height:24px;"></div>`,
                                     ];
-                                    if ((vm.paySelect.length === 1)) {
+                                    if ((obj.ogOrderData.pos_info.payment.length === 1) && !obj.ogOrderData.pos_info.payment[0].paied) {
                                         view.push(html `
                                                     <div class="d-flex"
                                                          style="font-size: 16px;font-weight: 400;margin-bottom: 12px;">
@@ -1194,10 +1208,11 @@ ${vm.paySelect.map((dd, index) => {
                                                             實際收款金額
                                                         </div>
                                                         <input style="display: flex;width: 143px;padding: 9px 18px;border-radius: 10px;border: 1px solid #DDD;text-align: right;"
-                                                               class="ms-auto" value="${vm.paySelect[0].total}"
+                                                               class="ms-auto"
+                                                               value="${obj.ogOrderData.pos_info.payment[0].total}"
                                                                onclick="${gvc.event(() => {
                                             PosFunction.setMoney(gvc, (money) => {
-                                                vm.paySelect[0].total = (money || 0);
+                                                obj.ogOrderData.pos_info.payment[0].total = (money || 0);
                                                 PaymentPage.storeHistory(obj.ogOrderData);
                                                 gvc.notifyDataChange(vm_id);
                                             });
@@ -1206,7 +1221,7 @@ ${vm.paySelect.map((dd, index) => {
                                                 `);
                                     }
                                     view.push(PaymentPage.spaceView());
-                                    const total = vm.paySelect.map((dd) => {
+                                    const total = obj.ogOrderData.pos_info.payment.map((dd) => {
                                         return dd.total;
                                     }).reduce((accumulator, currentValue) => accumulator + currentValue, 0);
                                     view.push(html `
@@ -1252,45 +1267,55 @@ ${vm.paySelect.map((dd, index) => {
                                             who: gvc.glitter.share.select_member,
                                             where_store: POSSetting.config.where_store
                                         };
-                                        orderDetail.pos_info.payment = vm.paySelect;
                                         orderDetail.user_info = obj.ogOrderData.user_info;
                                         let passData = JSON.parse(JSON.stringify(orderDetail));
+                                        orderDetail.pos_info.payment = obj.ogOrderData.pos_info.payment;
+                                        passData.pos_info.payment = obj.ogOrderData.pos_info.payment;
                                         passData.total = orderDetail.total;
                                         passData.orderStatus = 1;
                                         passData.pay_status = 1;
                                         passData.pre_order = pre_order;
-                                        vm.paySelect.map((dd) => {
-                                            dd.paied = true;
-                                        });
-                                        if (vm.paySelect.length === 1) {
-                                            if (vm.paySelect.find((dd) => {
+                                        if (obj.ogOrderData.pos_info.payment.length === 1 && obj.ogOrderData.pos_info.payment.find((dd) => {
+                                            return !dd.paied;
+                                        })) {
+                                            if (obj.ogOrderData.pos_info.payment.find((dd) => {
                                                 return dd.method === 'cash';
                                             })) {
-                                                PaymentFunction.cashFinish(gvc, orderDetail.total, (result) => {
+                                                PaymentFunction.cashFinish(gvc, obj.ogOrderData.pos_info.payment[0].total, (result) => {
                                                     if (result) {
+                                                        obj.ogOrderData.pos_info.payment[0].paied = true;
+                                                        PaymentPage.storeHistory(obj.ogOrderData);
                                                         PaymentPage.selectInvoice(gvc, orderDetail, vm, passData);
                                                     }
                                                 });
                                             }
-                                            else if (vm.paySelect.find((dd) => {
+                                            else if (obj.ogOrderData.pos_info.payment.find((dd) => {
                                                 return dd.method === 'creditCard';
                                             })) {
                                                 PaymentFunction.creditFinish(gvc, orderDetail.total, orderDetail, (result) => {
                                                     if (result) {
+                                                        obj.ogOrderData.pos_info.payment[0].paied = true;
+                                                        PaymentPage.storeHistory(obj.ogOrderData);
                                                         PaymentPage.selectInvoice(gvc, orderDetail, vm, passData);
                                                     }
                                                 });
                                             }
-                                            else if (vm.paySelect.find((dd) => {
+                                            else if (obj.ogOrderData.pos_info.payment.find((dd) => {
                                                 return dd.method === 'line';
                                             })) {
-                                                PaymentFunction.lineFinish(gvc, orderDetail.total, orderDetail, (result) => {
+                                                obj.ogOrderData.pos_info.payment[0].line_prefix = obj.ogOrderData.pos_info.payment[0].line_prefix || 0;
+                                                obj.ogOrderData.pos_info.payment[0].line_prefix++;
+                                                PaymentFunction.lineFinish(gvc, orderDetail.total, obj.ogOrderData.pos_info.payment[0].line_prefix, orderDetail, (result) => {
                                                     if (result) {
+                                                        obj.ogOrderData.pos_info.payment[0].paied = true;
+                                                        PaymentPage.storeHistory(obj.ogOrderData);
                                                         PaymentPage.selectInvoice(gvc, orderDetail, vm, passData);
                                                     }
                                                 });
                                             }
                                             else {
+                                                obj.ogOrderData.pos_info.payment[0].paied = true;
+                                                PaymentPage.storeHistory(obj.ogOrderData);
                                                 PaymentPage.selectInvoice(gvc, orderDetail, vm, passData);
                                             }
                                         }
@@ -1299,7 +1324,7 @@ ${vm.paySelect.map((dd, index) => {
                                         }
                                     }
                                     view.push(html `
-                                                <div style="margin-top: 32px;gap:15px;"
+                                                <div style="margin-top: 32px;gap:10px;"
                                                      class="d-flex align-items-center">
                                                     <div style="width:49px;height: 49px;border-radius: 10px;background: #F6F6F6;cursor: pointer;"
                                                          class="d-flex align-items-center justify-content-center"
@@ -1315,9 +1340,9 @@ ${vm.paySelect.map((dd, index) => {
                                                     </div>
                                                     <div
                                                             class=""
-                                                            style="flex:1;display: flex;padding: 12px 24px;justify-content: center;align-items: center;border-radius: 10px;background: #FF6C02;color: #FFF;font-size: 18px;font-style: normal;font-weight: 500;line-height: normal;letter-spacing: 0.72px;"
+                                                            style="flex:1;display: flex;padding: 10px;justify-content: center;align-items: center;border-radius: 10px;background: #FF6C02;color: #FFF;font-size: 18px;font-style: normal;font-weight: 500;line-height: normal;letter-spacing: 0.72px;"
                                                             onclick="${gvc.event(() => {
-                                        if ((vm.paySelect.length > 1) && (vm.paySelect.find((dd) => {
+                                        if ((obj.ogOrderData.pos_info.payment.length > 1) && (obj.ogOrderData.pos_info.payment.find((dd) => {
                                             return !dd.paied;
                                         }))) {
                                             dialog.errorMessage({
@@ -1339,13 +1364,13 @@ ${vm.paySelect.map((dd, index) => {
                                                     </div>
                                                     <div
                                                             class=""
-                                                            style="flex:1;display: flex;padding: 12px 24px;justify-content: center;align-items: center;border-radius: 10px;background: #393939;color: #FFF;font-size: 18px;font-style: normal;font-weight: 500;line-height: normal;letter-spacing: 0.72px;"
+                                                            style="flex:1;display: flex;padding: 10px;justify-content: center;align-items: center;border-radius: 10px;background: #393939;color: #FFF;font-size: 18px;font-style: normal;font-weight: 500;line-height: normal;letter-spacing: 0.72px;"
                                                             onclick="${gvc.event(() => {
                                         if ((total - parseInt(orderDetail.total, 10)) < 0) {
                                             dialog.errorMessage({ text: `收款金額尚需要『 ${((total - parseInt(orderDetail.total, 10)) * -1).toLocaleString()} 』` });
                                             return;
                                         }
-                                        else if ((vm.paySelect.length > 1) && (vm.paySelect.find((dd) => {
+                                        else if ((obj.ogOrderData.pos_info.payment.length > 1) && (obj.ogOrderData.pos_info.payment.find((dd) => {
                                             return !dd.paied;
                                         }))) {
                                             dialog.errorMessage({
@@ -1770,9 +1795,11 @@ ${vm.paySelect.map((dd, index) => {
                     }
                 }));
             }
-            if ((yield ApiShop.getInvoiceType()).response.method === 'nouse') {
-                c_vm
-                    .invoice_select = 'nouse';
+            if ((yield ApiShop.getInvoiceType()).response.method === 'nouse'
+                || (orderDetail.pos_info.payment.map((dd) => {
+                    return dd.total;
+                }).reduce((accumulator, currentValue) => accumulator + currentValue, 0) < orderDetail.total)) {
+                c_vm.invoice_select = 'nouse';
                 next();
             }
             else {

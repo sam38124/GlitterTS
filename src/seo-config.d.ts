@@ -21,6 +21,7 @@ export declare class SeoConfig {
         product_id: string;
         page: string;
     }): Promise<void>;
+    static getProductJsonLd(app_name: string, pd_content: any): Promise<string>;
     static articleSeo(cf: {
         article: any;
         page: string;

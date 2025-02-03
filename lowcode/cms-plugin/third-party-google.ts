@@ -247,7 +247,7 @@ export class ThirdPartyGoggle {
                                                         ${BgWidget.blueNote(
                                                             `『 教學步驟 』`,
                                                             gvc.event(() => {
-                                                                (window.parent as any).glitter.openNewTab('https://shopnex.cc/blogs/googleapiconnect');
+                                                                (window.parent as any).glitter.openNewTab('https://shopnex.tw/blogs/googleapiconnect');
                                                             })
                                                         )}
                                                         查看串接設定流程

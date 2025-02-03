@@ -11,7 +11,7 @@ import { ApiShop } from '../../glitter-base/route/shopping.js';
 import { ApiCart } from '../../glitter-base/route/api-cart.js';
 import { Tool } from '../../modules/tool.js';
 import { Language } from '../../glitter-base/global/language.js';
-import { Currency } from "../../glitter-base/global/currency.js";
+import { Currency } from '../../glitter-base/global/currency.js';
 const html = String.raw;
 export class HeaderClass {
     static hideShopperBtn() {
@@ -54,10 +54,11 @@ export class HeaderClass {
     }
     static rightCartMenu(gvc, widget) {
         gvc.glitter.setDrawer(gvc.bindView((() => {
-            var _a, _b;
+            var _a, _b, _c;
             const vm = {
                 id: gvc.glitter.getUUID(),
                 imageId: gvc.glitter.getUUID(),
+                shippings: [],
                 dataList: [],
                 loading: true,
             };
@@ -112,6 +113,11 @@ export class HeaderClass {
                             font-weight: 700;
                         }
 
+                        .${classPrefix}-shipping-title {
+                            font-size: 18px;
+                            font-weight: 600;
+                        }
+
                         .${classPrefix}-title {
                             font-size: 16px;
                         }
@@ -121,18 +127,26 @@ export class HeaderClass {
                             color: #8d8d8d;
                         }
 
+                        .${classPrefix}-card {
+                            border-radius: 10px;
+                            padding: 20px 8px;
+                            background: #fff;
+                            box-shadow: 0px 0px 10px 0px rgba(0, 0, 0, 0.12);
+                            margin: 0 12px;
+                        }
+
                         .${classPrefix}-button {
                             display: flex;
-                            padding: 8px 14px;
-                            max-height: 36px;
+                            padding: 6px 14px;
+                            max-height: 30px;
                             justify-content: center;
                             align-items: center;
                             gap: 8px;
-                            border: 0;
+                            border: 1px solid ${(_a = widget.formData.theme_color['solid-button-text']) !== null && _a !== void 0 ? _a : '#fff'};
                             border-radius: 10px;
-                            background: ${(_a = widget.formData.theme_color['solid-button-bg']) !== null && _a !== void 0 ? _a : '#000'};
+                            background: ${(_b = widget.formData.theme_color['solid-button-bg']) !== null && _b !== void 0 ? _b : '#000'};
                             cursor: pointer;
-                            color: ${(_b = widget.formData.theme_color['solid-button-text']) !== null && _b !== void 0 ? _b : '#fff'};
+                            color: ${(_c = widget.formData.theme_color['solid-button-text']) !== null && _c !== void 0 ? _c : '#fff'};
                         }
                     `);
             function refreshView() {
@@ -142,6 +156,18 @@ export class HeaderClass {
                     gvc.glitter.recreateView('.shopping-cart');
                     gvc.notifyDataChange(vm.id);
                 }, 200);
+            }
+            function goToCheckoutButton(id) {
+                return html `<button
+                            class="${classPrefix}-button"
+                            type="button"
+                            onclick="${gvc.event(() => {
+                    window.drawer.close();
+                    ApiCart.toCheckOutPage(id);
+                })}"
+                        >
+                            ${Language.text('proceed_to_checkout')}
+                        </button>`;
             }
             return {
                 bind: vm.id,
@@ -164,16 +190,7 @@ export class HeaderClass {
                                             </div>
                                             <div class="${classPrefix}-cart-title">${Language.text('cart')}</div>
                                             <div class="flex-fill"></div>
-                                            <button
-                                                class="${classPrefix}-button"
-                                                type="button"
-                                                onclick="${gvc.event(() => {
-                                window.drawer.close();
-                                ApiCart.toCheckOutPage(ApiCart.globalCart);
-                            })}"
-                                            >
-                                                ${Language.text('proceed_to_checkout')}
-                                            </button>
+                                            ${vm.dataList.length === 1 ? goToCheckoutButton(ApiCart.globalCart) : ''}
                                         </div>
                                         ${(() => {
                                 if (vm.dataList.length === 0) {
@@ -191,148 +208,205 @@ export class HeaderClass {
                                 }
                                 else {
                                     return vm.dataList
-                                        .map((item, index) => {
-                                        return html ` <div class="d-flex align-items-center  px-3 position-relative" style="gap:12px;">
-                                                            <div
-                                                                class="position-absolute"
-                                                                style="right:13px;top:0px;cursor:pointer;"
-                                                                onclick="${gvc.event(() => {
-                                            new ApiCart().setCart((cartItem) => {
-                                                cartItem.line_items = cartItem.line_items.filter((dd) => {
-                                                    return !(dd.id === item.id && item.spec.join('') === dd.spec.join(''));
-                                                });
-                                                refreshView();
-                                            });
-                                        })}"
-                                                            >
-                                                                <i class="fa-regular fa-trash-can"></i>
-                                                            </div>
-                                                            <div class="d-none" style="width: 10%">
-                                                                <i
-                                                                    class="fa-solid fa-xmark-large"
-                                                                    style="cursor: pointer;"
-                                                                    onclick="${gvc.event(() => {
-                                            new ApiCart().setCart((cartItem) => {
-                                                cartItem.line_items = cartItem.line_items.filter((dd) => {
-                                                    return !(dd.id === item.id && item.spec.join('') === dd.spec.join(''));
-                                                });
-                                                refreshView();
-                                            });
-                                        })}"
-                                                                ></i>
-                                                            </div>
-                                                            <div class="d-flex" style="">
-                                                                <img src="${item.image}" class="${classPrefix}-wh rounded-3" />
-                                                            </div>
-                                                            <div class="d-flex flex-column gap-1 flex-fill">
-                                                                <div class="${classPrefix}-title">${item.title}</div>
-                                                                <div class="${classPrefix}-spec ">${(() => {
-                                            console.log(`item.spec=>`, item);
-                                            const spec = (() => {
-                                                if (item.spec) {
-                                                    return item.spec.map((dd, index) => {
-                                                        try {
-                                                            return (item.specs[index].option.find((d1) => {
-                                                                return d1.title === dd;
-                                                            }).language_title[Language.getLanguage()] || dd);
-                                                        }
-                                                        catch (e) {
-                                                            return dd;
-                                                        }
+                                        .map((data) => {
+                                        const logistic = vm.shippings.find((item) => item.value === data.logistic);
+                                        const logiCartID = `${ApiCart.cartPrefix}_${logistic === null || logistic === void 0 ? void 0 : logistic.value}`;
+                                        const logiCart = new ApiCart(logiCartID);
+                                        logiCart.clearCart();
+                                        return html `
+                                                            <div class="${classPrefix}-card">
+                                                                ${vm.dataList.length !== 1
+                                            ? html `
+                                                                          <div class="d-flex justify-content-between align-items-center px-3 mb-2">
+                                                                              <div class="${classPrefix}-shipping-title">${logistic === null || logistic === void 0 ? void 0 : logistic.name}</div>
+                                                                              ${goToCheckoutButton(logiCartID)}
+                                                                          </div>
+                                                                      `
+                                            : ''}
+                                                                ${data.cart
+                                            .map((item) => {
+                                            logiCart.addToCart(`${item.id}`, item.spec, item.count);
+                                            return html ` <div class="d-flex align-items-center px-3 position-relative" style="gap: 12px;">
+                                                                            <div
+                                                                                class="position-absolute"
+                                                                                style="right:13px;top:0px;cursor:pointer;"
+                                                                                onclick="${gvc.event(() => {
+                                                new ApiCart().setCart((cartItem) => {
+                                                    cartItem.line_items = cartItem.line_items.filter((dd) => {
+                                                        return !(dd.id === item.id && item.spec.join('') === dd.spec.join(''));
                                                     });
-                                                }
-                                                else {
-                                                    return [];
-                                                }
-                                            })();
-                                            return spec.join(' / ');
-                                        })()}</div>
-                                                                <div class="d-flex align-items-center justify-content-between">
-                                                                    <div class="d-flex align-items-center gap-1" style="font-size:14px;">
-                                                                        ${Language.text('quantity')}：<select
-                                                                            class="${classPrefix}-select"
-                                                                            style="width: 100px;"
-                                                                            onchange="${gvc.event((e) => {
-                                            new ApiCart().setCart((cartItem) => {
-                                                cartItem.line_items.find((dd) => {
-                                                    return `${dd.id}` === `${item.id}` && item.spec.join('') === dd.spec.join('');
-                                                }).count = parseInt(e.value, 10);
-                                                refreshView();
-                                            });
-                                        })}"
-                                                                        >
-                                                                            ${[...new Array(99)]
-                                            .map((_, index) => {
-                                            return html ` <option value="${index + 1}" ${index + 1 === item.count ? `selected` : ``}>${index + 1}</option>`;
+                                                    refreshView();
+                                                });
+                                            })}"
+                                                                            >
+                                                                                <i class="fa-regular fa-trash-can"></i>
+                                                                            </div>
+                                                                            <div class="d-none" style="width: 10%">
+                                                                                <i
+                                                                                    class="fa-solid fa-xmark-large"
+                                                                                    style="cursor: pointer;"
+                                                                                    onclick="${gvc.event(() => {
+                                                new ApiCart().setCart((cartItem) => {
+                                                    cartItem.line_items = cartItem.line_items.filter((dd) => {
+                                                        return !(dd.id === item.id && item.spec.join('') === dd.spec.join(''));
+                                                    });
+                                                    refreshView();
+                                                });
+                                            })}"
+                                                                                ></i>
+                                                                            </div>
+                                                                            <div class="d-flex" style="">
+                                                                                <img src="${item.image}" class="${classPrefix}-wh rounded-3" />
+                                                                            </div>
+                                                                            <div class="d-flex flex-column gap-1 flex-fill">
+                                                                                <div class="${classPrefix}-title">${item.title}</div>
+                                                                                <div class="${classPrefix}-spec ">
+                                                                                    ${(() => {
+                                                const spec = (() => {
+                                                    if (item.spec) {
+                                                        return item.spec.map((dd, index) => {
+                                                            try {
+                                                                return (item.specs[index].option.find((d1) => {
+                                                                    return d1.title === dd;
+                                                                }).language_title[Language.getLanguage()] || dd);
+                                                            }
+                                                            catch (e) {
+                                                                return dd;
+                                                            }
+                                                        });
+                                                    }
+                                                    else {
+                                                        return [];
+                                                    }
+                                                })();
+                                                return spec.join(' / ');
+                                            })()}
+                                                                                </div>
+                                                                                <div class="d-flex align-items-center justify-content-between">
+                                                                                    <div class="d-flex align-items-center gap-1" style="font-size:14px;">
+                                                                                        ${Language.text('quantity')}：<select
+                                                                                            class="${classPrefix}-select"
+                                                                                            style="width: 100px;"
+                                                                                            onchange="${gvc.event((e) => {
+                                                new ApiCart().setCart((cartItem) => {
+                                                    cartItem.line_items.find((dd) => {
+                                                        return `${dd.id}` === `${item.id}` && item.spec.join('') === dd.spec.join('');
+                                                    }).count = parseInt(e.value, 10);
+                                                    refreshView();
+                                                });
+                                            })}"
+                                                                                        >
+                                                                                            ${[...new Array(99)]
+                                                .map((_, index) => {
+                                                return html ` <option value="${index + 1}" ${index + 1 === item.count ? `selected` : ``}>
+                                                                                                        ${index + 1}
+                                                                                                    </option>`;
+                                            })
+                                                .join('')}
+                                                                                        </select>
+                                                                                    </div>
+                                                                                    ${Currency.convertCurrencyText(item.price * item.count)}
+                                                                                </div>
+                                                                            </div>
+                                                                        </div>`;
                                         })
-                                            .join('')}
-                                                                        </select>
-                                                                    </div>
-${Currency.convertCurrencyText((item.price * item.count))}
-                                                                </div>
+                                            .join(html `<div class="w-100 border-top my-3"></div>`)}
                                                             </div>
-                                                        </div>`;
+                                                        `;
                                     })
-                                        .join(html `<div class="w-100 border-top my-3"></div>`);
+                                        .join(html `<div class="w-100 my-3"></div>`);
                                 }
                             })()}
                                     </div>`;
                         }
                     }
                     catch (e) {
-                        console.log(e);
+                        console.error(e);
                         return `${e}`;
                     }
                 },
                 divCreate: {},
                 onCreate: () => {
                     if (vm.loading) {
-                        vm.dataList = [];
                         const cart = new ApiCart().cart;
-                        new Promise((resolve, reject) => {
-                            ApiShop.getProduct({
-                                page: 0,
-                                limit: 10000,
-                                status: 'inRange',
-                                show_hidden: true,
-                                id_list: [...new Set(cart.line_items.map((item) => item.id))].join(','),
-                            })
-                                .then((data) => __awaiter(this, void 0, void 0, function* () {
-                                if (data.result && data.response) {
-                                    const products = data.response.data;
-                                    for (const item of cart.line_items) {
-                                        const product = products.find((p) => `${p.id}` === `${item.id}`);
-                                        if (product) {
-                                            const variant = product.content.variants.find((v) => {
-                                                return v.spec.join(',') === item.spec.join(',');
-                                            });
-                                            vm.dataList.push({
-                                                id: item.id,
-                                                title: product.content.title,
-                                                count: item.count,
-                                                spec: item.spec,
-                                                specs: product.content.specs,
-                                                price: variant ? variant.sale_price : 0,
-                                                image: yield (() => __awaiter(this, void 0, void 0, function* () {
-                                                    if (!variant) {
-                                                        return this.noImageURL;
-                                                    }
-                                                    const img = yield this.isImageUrlValid(variant.preview_image).then((isValid) => {
-                                                        return isValid ? variant.preview_image : product.content.preview_image[0] || this.noImageURL;
-                                                    });
-                                                    return img;
-                                                }))(),
-                                            });
+                        Promise.all([
+                            new Promise((resolve) => {
+                                ApiShop.getShippingMethod().then((d) => {
+                                    resolve(d);
+                                });
+                            }),
+                            new Promise((resolve) => {
+                                ApiShop.getProduct({
+                                    page: 0,
+                                    limit: 10000,
+                                    status: 'inRange',
+                                    show_hidden: true,
+                                    id_list: [...new Set(cart.line_items.map((item) => item.id))].join(','),
+                                }).then((d) => {
+                                    resolve(d);
+                                });
+                            }),
+                        ])
+                            .then((dataArray) => __awaiter(this, void 0, void 0, function* () {
+                            const shippings = dataArray[0];
+                            if (shippings.result && shippings.response) {
+                                vm.shippings = shippings.response;
+                            }
+                            vm.dataList = [
+                                ...vm.shippings.map((item) => {
+                                    return {
+                                        logistic: item.value,
+                                        cart: [],
+                                    };
+                                }),
+                            ];
+                            const data = dataArray[1];
+                            if (data.result && data.response) {
+                                const products = data.response.data;
+                                for (const item of cart.line_items) {
+                                    const product = products.find((p) => `${p.id}` === `${item.id}`);
+                                    if (product) {
+                                        const variant = product.content.variants.find((v) => {
+                                            return v.spec.join(',') === item.spec.join(',');
+                                        });
+                                        const lineItem = {
+                                            id: item.id,
+                                            title: product.content.title,
+                                            count: item.count,
+                                            spec: item.spec,
+                                            specs: product.content.specs,
+                                            price: variant ? variant.sale_price : 0,
+                                            image: yield (() => __awaiter(this, void 0, void 0, function* () {
+                                                if (!variant) {
+                                                    return this.noImageURL;
+                                                }
+                                                const img = yield this.isImageUrlValid(variant.preview_image).then((isValid) => {
+                                                    return isValid ? variant.preview_image : product.content.preview_image[0] || this.noImageURL;
+                                                });
+                                                return img;
+                                            }))(),
+                                        };
+                                        const logistics = product.content.designated_logistics;
+                                        for (const data of vm.dataList) {
+                                            if (!logistics || logistics.type === 'all' || logistics.list.includes(data.logistic)) {
+                                                data.cart.push(lineItem);
+                                            }
                                         }
                                     }
-                                    resolve();
                                 }
-                            }))
-                                .then(() => {
-                                document.querySelector('.hy-drawer-content').style.background = '#ffffff';
-                                vm.loading = false;
-                                gvc.notifyDataChange(vm.id);
-                            });
+                                vm.dataList = vm.dataList.filter((item) => item.cart.length > 0);
+                                const hasFullShipping = vm.dataList.find((item) => {
+                                    return item.cart.length === cart.line_items.length;
+                                });
+                                if (hasFullShipping) {
+                                    vm.dataList = [hasFullShipping];
+                                }
+                            }
+                        }))
+                            .then(() => {
+                            document.querySelector('.hy-drawer-content').style.background = '#ffffff';
+                            vm.loading = false;
+                            gvc.notifyDataChange(vm.id);
                         });
                     }
                 },

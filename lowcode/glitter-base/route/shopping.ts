@@ -336,6 +336,18 @@ export class ApiShop {
         });
     }
 
+    static getShippingMethod() {
+        return BaseApi.create({
+            url: getBaseUrl() + `/api-public/v1/ec/shippingMethod`,
+            type: 'get',
+            headers: {
+                'Content-Type': 'application/json',
+                'g-app': getConfig().config.appName,
+                Authorization: GlobalUser.token,
+            },
+        });
+    }
+
     static getProduct(json: {
         limit: number;
         page: number;
@@ -424,19 +436,19 @@ export class ApiShop {
         if (!obj) return [];
         let list = [] as string[];
         if (obj) {
-            if (obj.created_time.length > 1 && obj?.created_time[0].length > 0 && obj?.created_time[1].length > 0) {
+            if (obj.created_time && obj.created_time.length > 1 && obj?.created_time[0].length > 0 && obj?.created_time[1].length > 0) {
                 list.push(`created_time=${obj.created_time[0]},${obj.created_time[1]}`);
             }
-            if (obj.shipment.length > 0) {
+            if (obj.shipment && obj.shipment.length > 0) {
                 list.push(`shipment=${obj.shipment.join(',')}`);
             }
-            if (obj.progress.length > 0) {
+            if (obj.progress && obj.progress.length > 0) {
                 list.push(`progress=${obj.progress.join(',')}`);
             }
-            if (obj.payload.length > 0) {
+            if (obj.payload && obj.payload.length > 0) {
                 list.push(`status=${obj.payload.join(',')}`);
             }
-            if (obj.orderStatus.length > 0) {
+            if (obj.orderStatus && obj.orderStatus.length > 0) {
                 list.push(`orderStatus=${obj.orderStatus.join(',')}`);
             }
         }
@@ -600,6 +612,8 @@ export class ApiShop {
         page: number;
         search?: string;
         id?: string;
+        date_confirm?: boolean;
+        user_email?: string;
         data_from?: 'user' | 'manager';
         voucher_type?: 'rebate' | 'discount' | 'shipment_free' | 'add_on_items' | 'giveaway';
     }) {
@@ -610,6 +624,8 @@ export class ApiShop {
                     let par = [`limit=${json.limit}`, `page=${json.page}`];
                     json.search && par.push(`search=${json.search}`);
                     json.id && par.push(`id=${json.id}`);
+                    json.date_confirm && par.push(`date_confirm=${json.date_confirm}`);
+                    json.user_email && par.push(`user_email=${json.user_email}`);
                     json.voucher_type && par.push(`voucher_type=${json.voucher_type}`);
                     return par.join('&');
                 })()}`,
@@ -865,10 +881,8 @@ export class ApiShop {
             count: number;
         }[];
         code?: string;
-        //結帳類型
-        checkOutType?: 'manual' | 'auto' | 'POS';
-        //POS的門市
-        pos_store?:string;
+        checkOutType?: 'manual' | 'auto' | 'POS'; //結帳類型
+        pos_store?: string; //POS的門市
         use_rebate?: number;
         distribution_code?: string;
         user_info?: any;

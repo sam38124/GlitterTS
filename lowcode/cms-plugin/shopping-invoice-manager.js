@@ -1275,10 +1275,8 @@ ${reason}</textarea
             },
             divCreate: {},
             onCreate: () => {
-                $('.pos-footer-menu').hide();
             },
             onDestroy: () => {
-                $('.pos-footer-menu').show();
             },
         });
     }

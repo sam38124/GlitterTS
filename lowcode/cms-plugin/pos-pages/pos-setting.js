@@ -25,7 +25,6 @@ export class PosSetting {
                 bind: vm.id,
                 view: () => {
                     if (vm.page === 'list') {
-                        $('.pos-footer-menu').removeClass('d-none');
                         return (() => __awaiter(this, void 0, void 0, function* () {
                             var _a;
                             const appData = (_a = ((yield ApiUser.getPublicConfig('store-information', 'manager')).response.value)) !== null && _a !== void 0 ? _a : {};
@@ -241,7 +240,6 @@ cursor: pointer;" onclick="${gvc.event(() => {
                     }
                     else {
                         if (document.body.clientWidth < 800) {
-                            $('.pos-footer-menu').addClass('d-none');
                             document.querySelector('.POS-logo').innerHTML = html `
                         <div class="d-flex align-items-center w-100 fw-500 fs-5 ps-3" style="gap:10px;" onclick="${gvc.event(() => {
                                 obj.vm.type = 'setting';

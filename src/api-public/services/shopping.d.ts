@@ -93,7 +93,12 @@ type CartItem = {
         value: number;
     };
     discount_price?: number;
+    weight: number;
     rebate: number;
+    designated_logistics: {
+        type: 'all' | 'designated';
+        list: string[];
+    };
 };
 type Cart = {
     customer_info: any;
@@ -111,6 +116,8 @@ type Cart = {
     shipment_selector: {
         name: string;
         value: string;
+        isExcludedByWeight?: boolean;
+        isExcludedByTotal?: boolean;
     }[];
     shipment_info: any;
     use_wallet: number;
@@ -134,6 +141,7 @@ type Cart = {
     give_away: CartItem[];
     language?: string;
     pos_info?: any;
+    goodsWeight: number;
 };
 export declare class Shopping {
     app: string;
@@ -240,6 +248,10 @@ export declare class Shopping {
     }>;
     private generateOrderID;
     linePay(data: any): Promise<unknown>;
+    getShippingMethod(): Promise<{
+        name: string;
+        value: string;
+    }[]>;
     getPostAddressData(address: string): Promise<any>;
     toCheckout(data: {
         line_items: {
@@ -251,6 +263,7 @@ export declare class Shopping {
             count: number;
             sale_price: number;
             min_qty?: number;
+            max_qty?: number;
             collection?: string[];
             title?: string;
             preview_image?: string;
@@ -259,9 +272,14 @@ export declare class Shopping {
                 type: string;
                 value: number;
             };
+            weight: number;
             is_gift?: boolean;
             stock: number;
             show_understocking: 'true' | 'false';
+            designated_logistics: {
+                type: 'all' | 'designated';
+                list: string[];
+            };
         }[];
         customer_info?: any;
         email?: string;
@@ -292,6 +310,7 @@ export declare class Shopping {
         pos_info?: any;
         invoice_select?: string;
         pre_order?: boolean;
+        voucherList?: any;
     }, type?: 'add' | 'preview' | 'manual' | 'manual-preview' | 'POS', replace_order_id?: string): Promise<any>;
     getReturnOrder(query: {
         page: number;
@@ -380,6 +399,7 @@ export declare class Shopping {
     postVariantsAndPriceValue(content: any): Promise<void>;
     updateVariantsWithSpec(data: any, product_id: string, spec: string[]): Promise<void>;
     calcVariantsStock(calc: number, stock_id: string, product_id: string, spec: string[]): Promise<void>;
+    calcSoldOutStock(calc: number, product_id: string, spec: string[]): Promise<void>;
     getDataAnalyze(tags: string[], query?: any): Promise<any>;
     generateTimeRange(index: number): {
         startISO: string;
@@ -389,7 +409,7 @@ export declare class Shopping {
     getActiveRecentYear(): Promise<{
         count_array: number[];
     }>;
-    getActiveRecentWeak(): Promise<{
+    getActiveRecentWeek(): Promise<{
         count_array: number[];
     }>;
     getActiveRecentMonth(): Promise<{
@@ -404,13 +424,13 @@ export declare class Shopping {
     getRegisterCustom(query: string): Promise<{
         countArray: any[];
     }>;
-    getRegister2weak(): Promise<{
+    getRegister2week(): Promise<{
         countArray: any[];
     }>;
     getRegisterYear(): Promise<{
         today: any;
         count_register: any[];
-        count_2_weak_register: any[];
+        count_2_week_register: any[];
     }>;
     getOrderToDay(): Promise<{
         total_count: any;
@@ -427,7 +447,7 @@ export declare class Shopping {
         previous_month_total: number;
         gap: number;
     }>;
-    getHotProducts(duration: 'month' | 'day' | 'all', date?: string): Promise<{
+    getHotProducts(duration: 'month' | 'day' | 'all', query?: string): Promise<{
         series: number[];
         categories: string[];
         product_list: {
@@ -443,7 +463,7 @@ export declare class Shopping {
         previous_month_total: any;
         gap: number;
     }>;
-    getOrdersPerMonth2Weak(query: string): Promise<{
+    getOrdersPerMonth2week(query: string): Promise<{
         countArray: any[];
         countArrayPos: any[];
         countArrayStore: any[];
@@ -474,7 +494,7 @@ export declare class Shopping {
         countArrayStore: any[];
         countArrayWeb: any[];
     }>;
-    getSalesPerMonth2Weak(query: string): Promise<{
+    getSalesPerMonth2week(query: string): Promise<{
         countArray: any[];
         countArrayPos: any[];
         countArrayStore: any[];

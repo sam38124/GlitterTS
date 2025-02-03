@@ -193,14 +193,16 @@ SELECT * FROM  \`${config_1.saasConfig.SAAS_NAME}\`.page_config where  1=1 ${whe
     }
     static async getRealPage(query_page, appName) {
         query_page = query_page || 'index';
-        console.log(`query_page=>${query_page}`);
         let page = query_page;
-        if (query_page.split('/')[0] === 'blogs' && query_page.split('/')[1]) {
+        if (['privacy', 'term', 'refund', 'delivery'].includes(query_page)) {
+            return 'official-router';
+        }
+        if ((query_page.split('/')[0] === 'blogs' && query_page.split('/')[1])) {
             page = (await database_1.default.query(`SELECT *
                                    from \`${appName}\`.t_manager_post
                                    where content->>'$.tag'=${database_1.default.escape(query_page.split('/')[1])} and content->>'$.type'='article' and content->>'$.for_index'='true';`, []))[0].content.template;
         }
-        if (query_page.split('/')[0] === 'pages' && query_page.split('/')[1]) {
+        if ((query_page.split('/')[0] === 'pages' && query_page.split('/')[1])) {
             page = (await database_1.default.query(`SELECT *
                                    from \`${appName}\`.t_manager_post
                                    where content->>'$.tag'=${database_1.default.escape(query_page.split('/')[1])} and content->>'$.type'='article' and content->>'$.for_index'='false' and (content->>'$.page_type'='page');`, []))[0].content.template;
@@ -243,6 +245,13 @@ SELECT * FROM  \`${config_1.saasConfig.SAAS_NAME}\`.page_config where  1=1 ${whe
     async getPage(config) {
         if (config.tag) {
             config.tag = await Template.getRealPage(config.tag, config.appName);
+            if (config.tag === 'official-router') {
+                config.appName = 'cms_system';
+            }
+            else if (config.tag === 'all-product') {
+                config.tag = 'official-router';
+                config.appName = 'cms_system';
+            }
         }
         try {
             const page_db = (() => {
