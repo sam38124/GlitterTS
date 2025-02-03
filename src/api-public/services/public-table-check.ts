@@ -517,6 +517,23 @@ export class ApiPublic {
   UNIQUE KEY \`order_id_UNIQUE\` (\`order_id\`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci`,
                 },
+                {
+                    scheme: appName,
+                    table: `t_live_purchase_interactions`,
+                    sql: `(
+  \`id\` int NOT NULL AUTO_INCREMENT,
+  \`type\` varchar(50) COLLATE utf8mb4_unicode_ci NOT NULL,
+  \`stream_name\` varchar(200) NOT NULL,
+  \`streamer\` varchar(200) NOT NULL,
+  \`status\` int NOT NULL DEFAULT 1,
+  \`content\` json DEFAULT NULL,
+  \`created_time\` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (\`id\`),
+  KEY \`index2\` (\`stream_name\`),
+  KEY \`index3\` (\`streamer\`)
+)  ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+ `,
+                },
             ];
             for (const b of chunkArray(sqlArray, groupSize)) {
                 let check = b.length;

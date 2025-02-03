@@ -191,7 +191,6 @@ export class Shopee {
             },
             paramsSerializer: (params: any) => qs.stringify(params, {arrayFormat: 'repeat'}),
         };
-        // access_token:data[0].value.access_token,
         try {
 
             const response = await axios(config);
@@ -314,44 +313,6 @@ export class Shopee {
             try {
                 const response = await axios(config);
                 let tempVariants: Variant[] = [];
-                // "specs": [
-                //     {
-                //         "title": "size",
-                //         "option": [
-                //             {
-                //                 "title": "s",
-                //                 "expand": true,
-                //                 "language_title": {}
-                //             },
-                //             {
-                //                 "title": "l",
-                //                 "expand": true,
-                //                 "language_title": {}
-                //             }
-                //         ],
-                //         "language_title": {}
-                //     }
-                // ],
-                //插入variant
-                // let tempVariant:Variant={
-                //     sale_price= number;
-                //     compare_price: number;
-                //     cost: number;
-                //     spec: string[];
-                //     profit: number;
-                //     v_length: number;
-                //     v_width: number;
-                //     v_height: number;
-                //     weight: number;
-                //     shipment_type: 'weight' | 'none' | 'volume';
-                //     sku: string;
-                //     barcode: string;
-                //     stock: number;
-                //     stockList:{};
-                //     preview_image: string;
-                //     show_understocking: string;
-                //     type: string;
-                // }
 
                 const tier_variation = response.data.response.tier_variation;
                 const model = response.data.response.model;
@@ -477,7 +438,7 @@ export class Shopee {
             try {
                 origData = await db.query(`SELECT * FROM \`${this.app}\`.t_manager_post WHERE (content->>'$.type'='product') AND (content->>'$.shopee_id' = ?);`,[id])
             }catch (e:any){
-
+                console.log("get t_manager_post data error")
             }
             let postMD: {
                 template: string;
@@ -543,7 +504,6 @@ export class Shopee {
                 const html = String.raw;
                 await Promise.all(promises);
                 item.description_info.extended_description.field_list.map((item:any)=>{
-
                     if (item.field_type == 'image') {
                         temp += html`<div style="white-space: pre-wrap;"><img src="${item.image_info.s3}" alt='${item.image_info.image_id}'></div>`
                     }else if (item.field_type == 'text') {

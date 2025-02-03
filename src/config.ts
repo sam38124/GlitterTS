@@ -133,7 +133,8 @@ export const config = {
         ai_points: '/ai/points',
         sms_points: '/sms/points',
         stock: '/stock',
-        shopee:'/shopee'
+        shopee:'/shopee',
+        customer_sessions:'/customer_sessions'
     },
     route: {
         shopee:'/shopee',

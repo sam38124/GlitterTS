@@ -1080,6 +1080,15 @@ Setting_editor.menuItems = () => {
         },
         {
             icon: '',
+            page: 'live_list',
+            group: '社群平台',
+            title: '直播列表',
+            appName: 'cms_system',
+            groupIcon: 'https://d3jnmi1tfjgtti.cloudfront.net/file/252530754/1713375442916-Component 56 (4).svg',
+            moduleName: '社群平台',
+        },
+        {
+            icon: '',
             page: 'auto_send',
             group: '信件群發',
             title: '自動發送',

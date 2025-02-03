@@ -103,6 +103,10 @@ FilterOptions.allowanceFilterFrame = {
     status: [],
     created_time: ['', ''],
 };
+FilterOptions.fbLiveFilterFrame = {
+    status: [],
+    created_time: ['', ''],
+};
 FilterOptions.orderFunnel = [
     {
         key: 'orderStatus',
@@ -309,6 +313,9 @@ FilterOptions.allowanceSelect = [
     { key: 'allowance_no', value: '折讓單編號' },
     { key: 'invoice_no', value: '原發票編號' },
     { key: 'order_id', value: '原訂單編號' },
+];
+FilterOptions.fbLiveSelect = [
+    { key: 'fb_live_name', value: '直播名稱' },
 ];
 FilterOptions.productFilterFrame = {
     status: [],

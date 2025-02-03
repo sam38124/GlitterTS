@@ -110,6 +110,11 @@ export class FilterOptions {
         created_time: ['', ''],
     };
 
+    static fbLiveFilterFrame = {
+        status: [],
+        created_time: ['', ''],
+    };
+
     static orderFunnel = [
         {
             key: 'orderStatus',
@@ -327,6 +332,10 @@ export class FilterOptions {
         { key: 'allowance_no', value: '折讓單編號' },
         { key: 'invoice_no', value: '原發票編號' },
         { key: 'order_id', value: '原訂單編號' },
+    ];
+
+    static fbLiveSelect = [
+        { key: 'fb_live_name', value: '直播名稱' },
     ];
 
     static productFilterFrame = {

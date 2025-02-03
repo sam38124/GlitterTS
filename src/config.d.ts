@@ -66,6 +66,7 @@ export declare const config: {
         sms_points: string;
         stock: string;
         shopee: string;
+        customer_sessions: string;
     };
     route: {
         shopee: string;
