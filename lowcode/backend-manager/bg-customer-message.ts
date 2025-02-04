@@ -47,6 +47,7 @@ export class BgCustomerMessage {
             const html = String.raw;
             const vm = BgCustomerMessage.vm;
             gvc.addStyle(`
+            
                             .btn-white-primary {
                                 border: 2px solid #ffb400;;
                                 justify-content: space-between;
@@ -88,11 +89,11 @@ export class BgCustomerMessage {
                 bind: BgCustomerMessage.id,
                 view: () => {
 
-
                     if (!BgCustomerMessage.visible) {
+
                         return html`
                             <div class="d-flex align-items-center justify-content-center w-100 flex-column pt-3">
-                                <div class="spinner-border" role="status">
+                                <div class="spinner-border" role="status" >
                                     <span class="sr-only"></span>
                                 </div>
                                 <span class="mt-2">載入中...</span>

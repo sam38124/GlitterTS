@@ -435,7 +435,7 @@ export class ShoppingInformation {
                                                                         footer_html: (gvc) => {
                                                                             return ``
                                                                         },
-                                                                        width: 200
+                                                                        width: 400
                                                                     })
                                                                 })}">${dd.value}
 <div class="position-absolute  text-white rounded-2 px-2 d-flex align-items-center rounded-3 ${dd.key !== vm.data.language_setting.def ? `d-none` : ``}" style="top: -12px;right: -10px; height:20px;font-size: 11px;background: #ff6c02;">預設</div>

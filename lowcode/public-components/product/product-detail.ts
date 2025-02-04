@@ -337,37 +337,17 @@ export class ProductDetail {
                                                       <div style="align-self: stretch; height: 0px; border: 1px ${ProductDetail.titleFontColor} solid"></div>
                                                   </div>
                                               </div>
-                                              <div class="w-100 d-flex align-items-center justify-content-center py-3 py-sm-4">
-                                                  <div
-                                                      class=""
-                                                      style="${product.length <
-                                                      glitter.ut.frSize(
-                                                          {
-                                                              sm: 4,
-                                                              lg: 6,
-                                                          },
-                                                          2
-                                                      )
-                                                          ? `width:${200 * product.length}px;`
-                                                          : `width:100%;`}"
-                                                  >
-                                                      <div class="swiper w-100" id="${swipID}">
-                                                          <div class="swiper-wrapper">
-                                                              ${product
-                                                                  .map((dd: any, index: number) => {
-                                                                      return html` <div class="swiper-slide" style="width:100%;height: 350px;">
-                                                                          ${glitter.htmlGenerate.renderComponent({
-                                                                              appName: (window as any).appName,
-                                                                              tag: 'product_widget',
-                                                                              gvc: gvc,
-                                                                              subData: dd,
-                                                                          })}
-                                                                      </div>`;
-                                                                  })
-                                                                  .join('')}
-                                                          </div>
-                                                      </div>
-                                                  </div>
+                                              <div class="w-100 row p-0 align-items-center justify-content-center mt-4 mt-lg-4 mx-0">
+                                                  ${product
+                                                          .map((dd: any, index: number) => {
+                                                              return `<div class="col-6 col-sm-4 col-lg-3">${glitter.htmlGenerate.renderComponent({
+                                                                  appName: (window as any).appName,
+                                                                  tag: 'product_widget',
+                                                                  gvc: gvc,
+                                                                  subData: dd,
+                                                              })}</div>`
+                                                          })
+                                                          .join('')}
                                               </div>
                                           `);
                                       });

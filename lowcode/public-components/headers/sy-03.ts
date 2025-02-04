@@ -203,20 +203,20 @@ background: ${colors.bgr ?? '#000'};overflow-x: hidden;`,
                                 })}"
                             >
                                 <img
-                                    src="${widget.formData.logo}"
-                                    style="${document.body.clientWidth < 800
-                                        ? `max-height: 100%;max-width:200px;`
-                                        : `height: ${(() => {
-                                              try {
-                                                  const h = widget.formData.height;
-                                                  if (h && !isNaN(parseInt(`${h}`, 10))) {
-                                                      return parseInt(`${h}`, 10);
-                                                  }
-                                                  return 150;
-                                              } catch (error) {
-                                                  return 150;
-                                              }
-                                          })()}px;`}"
+                                        src="${widget.formData.logo}"
+                                        style="${document.body.clientWidth < 800
+                                                ? `max-height: 100%;max-width:200px;`
+                                                : `height: ${(() => {
+                                                    try {
+                                                        const h = widget.formData.height;
+                                                        if (h && !isNaN(parseInt(`${h}`, 10))) {
+                                                            return parseInt(`${h}`, 10);
+                                                        }
+                                                        return 150;
+                                                    } catch (error) {
+                                                        return 150;
+                                                    }
+                                                })()}px;`}"
                                 />
                             </div>
                         </div>
@@ -269,7 +269,7 @@ background: ${colors.bgr ?? '#000'};overflow-x: hidden;`,
                             })}
                         </ul>
                     </div>
-                    <div class="d-flex align-items-center position-relative position-lg-absolute" style="${document.body.clientWidth > 800 ? `top:10px;right:30px;` : ``}">
+                    <div class="d-flex align-items-center ${document.body.clientWidth>=800 ? `position-lg-absolute`:`position-relative`} " style="${document.body.clientWidth > 800 ? `top:10px;right:30px;` : ``}">
                         <!--固定按鈕顯示區塊-->
                         <ul class="navbar-nav flex-row ms-auto">
                             ${gvc.bindView(() => {

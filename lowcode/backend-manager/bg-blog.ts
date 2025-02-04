@@ -1797,18 +1797,18 @@ function detail(gvc: GVC, cf: any, vm: any, cVm: any, page_tab: 'page' | 'hidden
     });
 }
 
-function saveData(gvc: GVC, cf: any, vm: any, cVm: any, silence: boolean) {
+function saveData(gvc: GVC, cf: any, vm: any, cVm: any, silence: boolean,pass_check:boolean=false) {
     return new Promise(async (res_, reject) => {
 
 
-        if (!vm.data.content.tag) {
+        if (!vm.data.content.tag ) {
             await cf.widget.event('error', {
                 title: '請設定連結',
             });
             res_(false)
         } else if ((window.parent as any).store_info.language_setting.support.find((d1: any) => {
             return !(vm.data.content.language_data[d1].name)
-        })) {
+        }) && !pass_check) {
             language=(window.parent as any).store_info.language_setting.support.find((d1: any) => {
                 return !(vm.data.content.language_data[d1].name)
             })
@@ -2378,7 +2378,7 @@ function template_select(gvc: GVC, cf: any, vm: any, cVm: any, page_type: any) {
                 vm.data.content.config = c2;
                 vm.data.content.name = c2.name;
                 initialData(vm.data.content)
-                saveData(gvc, cf, vm, cVm, false).then(() => {
+                saveData(gvc, cf, vm, cVm, false,true).then(() => {
                     cVm.type = 'detail';
                 });
             } else if (!vm.data.id) {

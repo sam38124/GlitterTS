@@ -1449,7 +1449,7 @@ color:white;
             footer_html: (gvc: GVC) => {
                 return ``
             },
-            width: 200
+            width: 300
         })
     }
 }

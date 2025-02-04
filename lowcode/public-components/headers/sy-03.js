@@ -199,8 +199,8 @@ background: ${(_a = colors.bgr) !== null && _a !== void 0 ? _a : '#000'};overflo
         })}"
                             >
                                 <img
-                                    src="${widget.formData.logo}"
-                                    style="${document.body.clientWidth < 800
+                                        src="${widget.formData.logo}"
+                                        style="${document.body.clientWidth < 800
             ? `max-height: 100%;max-width:200px;`
             : `height: ${(() => {
                 try {
@@ -266,7 +266,7 @@ background: ${(_a = colors.bgr) !== null && _a !== void 0 ? _a : '#000'};overflo
         })}
                         </ul>
                     </div>
-                    <div class="d-flex align-items-center position-relative position-lg-absolute" style="${document.body.clientWidth > 800 ? `top:10px;right:30px;` : ``}">
+                    <div class="d-flex align-items-center ${document.body.clientWidth >= 800 ? `position-lg-absolute` : `position-relative`} " style="${document.body.clientWidth > 800 ? `top:10px;right:30px;` : ``}">
                         <!--固定按鈕顯示區塊-->
                         <ul class="navbar-nav flex-row ms-auto">
                             ${gvc.bindView(() => {
