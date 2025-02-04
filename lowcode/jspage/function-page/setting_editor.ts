@@ -415,7 +415,7 @@ export class Setting_editor {
                 group: '社群電商',
                 title: 'FB直播',
                 appName: 'cms_system',
-                groupIcon: 'https://d3jnmi1tfjgtti.cloudfront.net/file/252530754/1713375442916-Component 56 (4).svg',
+                groupIcon: 'https://d3jnmi1tfjgtti.cloudfront.net/file/122538856/webhook-sharp-regular.svg',
                 moduleName: '社群電商',
             },
             {
@@ -424,7 +424,7 @@ export class Setting_editor {
                 group: '社群電商',
                 title: 'LINE團購',
                 appName: 'cms_system',
-                groupIcon: 'https://d3jnmi1tfjgtti.cloudfront.net/file/252530754/1713375442916-Component 56 (4).svg',
+                groupIcon: 'https://d3jnmi1tfjgtti.cloudfront.net/file/122538856/webhook-sharp-regular.svg',
                 moduleName: '社群電商',
             },
             {
