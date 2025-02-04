@@ -53,6 +53,7 @@ const glitter_finance_js_1 = require("../models/glitter-finance.js");
 const app_js_1 = require("../../services/app.js");
 const stock_1 = require("./stock");
 const seo_config_js_1 = require("../../seo-config.js");
+const ses_js_1 = require("../../services/ses.js");
 class Shopping {
     constructor(app, token) {
         this.app = app;
@@ -269,7 +270,6 @@ class Shopping {
                 })
                     .join('');
                 querySql.push(`(${statusCondition} ${scheduleConditions})`);
-                console.log(`(${statusCondition} ${scheduleConditions})`);
             }
             if (query.channel) {
                 const channelSplit = query.channel.split(',').map((channel) => channel.trim());
@@ -359,14 +359,15 @@ class Shopping {
                 dd.total_sales = total_sale;
             }
             if (query.domain && products.data[0]) {
-                products.data = products.data.find((dd) => {
-                    return (dd.content.language_data &&
-                        dd.content.language_data[`${query.language}`].seo &&
-                        dd.content.language_data[`${query.language}`].seo.domain === decodeURIComponent(query.domain)) || (dd.content.seo &&
-                        dd.content.seo.domain === decodeURIComponent(query.domain));
-                }) || products.data[0];
+                products.data =
+                    products.data.find((dd) => {
+                        return ((dd.content.language_data &&
+                            dd.content.language_data[`${query.language}`].seo &&
+                            dd.content.language_data[`${query.language}`].seo.domain === decodeURIComponent(query.domain)) ||
+                            (dd.content.seo && dd.content.seo.domain === decodeURIComponent(query.domain)));
+                    }) || products.data[0];
             }
-            if ((query.domain || query.id)) {
+            if (query.domain || query.id) {
                 products.data.json_ld = await seo_config_js_1.SeoConfig.getProductJsonLd(this.app, products.data.content);
             }
             return products;
@@ -1608,7 +1609,6 @@ class Shopping {
             }
             return [];
         }
-        console.log(`cart.email==>`, cart.email);
         const userData = (_a = (await userClass.getUserData(cart.email, 'email_or_phone'))) !== null && _a !== void 0 ? _a : { userID: -1 };
         const allVoucher = (await this.querySql([`(content->>'$.type'='voucher')`], {
             page: 0,
@@ -1898,7 +1898,6 @@ class Shopping {
                         }
                     }
                 }
-                console.log(`update.orderData=>`, update.orderData);
                 migrateOrder(data.orderData.lineItems);
                 migrateOrder(origin[0].orderData.lineItems);
                 if (origin[0].orderData.orderStatus !== '-1' && data.orderData.orderStatus === '-1') {
@@ -2220,15 +2219,23 @@ OR JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.orderStatus')) NOT IN (-99)) `);
                 if (original_status === 1) {
                     return;
                 }
-                for (const b of order_data['orderData'].lineItems) {
-                    await this.calcSoldOutStock(b.count, b.id, b.spec);
-                }
                 await database_js_1.default.execute(`UPDATE \`${this.app}\`.t_checkout
                      SET status = ?
                      WHERE cart_token = ?`, [1, order_id]);
                 const cartData = (await database_js_1.default.query(`SELECT *
                          FROM \`${this.app}\`.t_checkout
                          WHERE cart_token = ?;`, [order_id]))[0];
+                const brandAndMemberType = await app_js_1.App.checkBrandAndMemberType(this.app);
+                const store_info = await new user_js_1.User(this.app).getConfigV2({ key: 'store-information', user_id: 'manager' });
+                for (const b of order_data['orderData'].lineItems) {
+                    this.calcSoldOutStock(b.count, b.id, b.spec);
+                    this.soldMailNotice({
+                        brand_domain: brandAndMemberType.domain,
+                        shop_name: store_info.shop_name,
+                        product_id: b.id,
+                        order_data: cartData.orderData,
+                    });
+                }
                 new notify_js_1.ManagerNotify(this.app).checkout({
                     orderData: cartData.orderData,
                     status: status,
@@ -2381,10 +2388,12 @@ OR JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.orderStatus')) NOT IN (-99)) `);
                     `, []);
             }
             const store_config = await new user_js_1.User(this.app).getConfigV2({ key: 'store_manager', user_id: 'manager' });
+            content.total_sales = 0;
             await Promise.all(content.variants.map((a) => {
-                var _a, _b;
-                content.min_price = (_a = content.min_price) !== null && _a !== void 0 ? _a : a.sale_price;
-                content.max_price = (_b = content.max_price) !== null && _b !== void 0 ? _b : a.sale_price;
+                var _a, _b, _c;
+                content.total_sales += (_a = a.sold_out) !== null && _a !== void 0 ? _a : 0;
+                content.min_price = (_b = content.min_price) !== null && _b !== void 0 ? _b : a.sale_price;
+                content.max_price = (_c = content.max_price) !== null && _c !== void 0 ? _c : a.sale_price;
                 if (a.sale_price < content.min_price) {
                     content.min_price = a.sale_price;
                 }
@@ -2492,6 +2501,31 @@ OR JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.orderStatus')) NOT IN (-99)) `);
         }
         catch (e) {
             console.error('calcSoldOutStock error', e);
+        }
+    }
+    async soldMailNotice(json) {
+        var _a, _b, _c, _d, _e;
+        try {
+            const order_data = json.order_data;
+            const order_id = order_data.orderID;
+            const pd_data = (await database_js_1.default.query(`select *
+                     from \`${this.app}\`.t_manager_post
+                     where id = ?`, [json.product_id]))[0]['content'];
+            if (pd_data.email_notice && pd_data.email_notice.length > 0 && order_data.user_info.email) {
+                const notice = pd_data.email_notice
+                    .replace(/@\{\{訂單號碼\}\}/g, `<a href="https://${json.brand_domain}/order_detail?cart_token=${order_id}">${order_id}</a>`)
+                    .replace(/@\{\{訂單金額\}\}/g, order_data.total)
+                    .replace(/@\{\{app_name\}\}/g, json.shop_name)
+                    .replace(/@\{\{user_name\}\}/g, (_a = order_data.user_info.name) !== null && _a !== void 0 ? _a : '')
+                    .replace(/@\{\{姓名\}\}/g, (_b = order_data.customer_info.name) !== null && _b !== void 0 ? _b : '')
+                    .replace(/@\{\{電話\}\}/g, (_c = order_data.user_info.phone) !== null && _c !== void 0 ? _c : '')
+                    .replace(/@\{\{地址\}\}/g, (_d = order_data.user_info.address) !== null && _d !== void 0 ? _d : '')
+                    .replace(/@\{\{信箱\}\}/g, (_e = order_data.user_info.email) !== null && _e !== void 0 ? _e : '');
+                (0, ses_js_1.sendmail)(`${json.shop_name} <${process.env.smtp}>`, order_data.user_info.email, `${pd_data.title} 購買通知信`, notice, () => { });
+            }
+        }
+        catch (e) {
+            console.error('soldMailNotice error', e);
         }
     }
     async getDataAnalyze(tags, query) {
@@ -2611,12 +2645,6 @@ OR JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.orderStatus')) NOT IN (-99)) `);
                         resolve(true);
                     }
                 });
-                function wasteTimeRank(obj, n) {
-                    const sortedEntries = Object.entries(obj)
-                        .map(([key, value]) => ({ key, value }))
-                        .sort((a, b) => b.value - a.value);
-                    return sortedEntries.slice(0, n);
-                }
                 console.log('AnalyzeTimer ==>', timer);
                 return result;
             }
@@ -4571,7 +4599,7 @@ OR JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.orderStatus')) NOT IN (-99)) `);
             }));
             let max_id = (await database_js_1.default.query(`select max(id)
                          from \`${this.app}\`.t_manager_post`, []))[0]['max(id)'] || 0;
-            console.log(`insert=>`, productArray.map((product) => {
+            productArray.map((product) => {
                 var _a;
                 if (!product.id) {
                     product.id = max_id++;
@@ -4579,7 +4607,7 @@ OR JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.orderStatus')) NOT IN (-99)) `);
                 product.type = 'product';
                 this.checkVariantDataType(product.variants);
                 return [product.id || null, (_a = this.token) === null || _a === void 0 ? void 0 : _a.userID, JSON.stringify(product)];
-            }));
+            });
             const data = await database_js_1.default.query(`replace
                 INTO \`${this.app}\`.\`t_manager_post\` (id,userID,content) values ?`, [
                 productArray.map((product) => {

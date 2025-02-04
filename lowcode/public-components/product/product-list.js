@@ -11,7 +11,7 @@ import { ApiShop } from '../../glitter-base/route/shopping.js';
 import { Tool } from '../../modules/tool.js';
 import { PdClass } from './pd-class.js';
 import { Ad } from '../public/ad.js';
-import { Language } from "../../glitter-base/global/language.js";
+import { Language } from '../../glitter-base/global/language.js';
 const html = String.raw;
 export class ProductList {
     static arrowDownDataImage(color) {
@@ -127,14 +127,13 @@ export class ProductList {
             obj.gvc.glitter.closeDrawer();
         })}"
                 >
-                    
                     ${obj.title}
                 </div>
                 <div class="d-flex">
                     <button class="box-tag-${obj.tag} arrow-icon-${text}"></button>
                 </div>
             </div>
-            <div class="box-inside-${text} ${obj.guideClass ? `box-inside-${obj.guideClass}` : ''} " >${obj.insideHTML}</div>
+            <div class="box-inside-${text} ${obj.guideClass ? `box-inside-${obj.guideClass}` : ''} ">${obj.insideHTML}</div>
         </div>`;
     }
     static spinner() {
@@ -245,7 +244,7 @@ export class ProductList {
                                 return code;
                             }
                         })(),
-                        language_data: language_data
+                        language_data: language_data,
                     };
                     if (flattenedCol.title.includes(vm.query) ||
                         flattenedCol.parentTitles.find((title) => {
@@ -257,14 +256,17 @@ export class ProductList {
                         flattened.push(flattenedCol);
                     }
                     if (array.length) {
-                        flattened = flattened.concat(flattenCollections(array, [...parentTitles, (() => {
+                        flattened = flattened.concat(flattenCollections(array, [
+                            ...parentTitles,
+                            (() => {
                                 if (language_data && language_data[Language.getLanguage()] && language_data[Language.getLanguage()].title) {
                                     return language_data[Language.getLanguage()].title;
                                 }
                                 else {
                                     return title;
                                 }
-                            })()], topLevelCollections));
+                            })(),
+                        ], topLevelCollections));
                     }
                 });
                 return flattened;
@@ -389,17 +391,18 @@ export class ProductList {
                                 if (item.subCollections.length > 0) {
                                     for (const col of vm.collections) {
                                         if (item.subCollections.includes(col.title) && col.parentTitles[0] === item.title) {
-                                            subHTML += html `<ul class="mt-1 pt-2 mx-n4 px-4 mb-n2 pb-2 box-item" style="${(decodeURIComponent((glitter.getUrlParameter('page') || '').split('/').reverse()[0]) === (col.code || col.title)) ? `background:#f5f5f5;` : ``}" onclick="${gvc.event(() => {
+                                            subHTML += html `<ul
+                                                            class="mt-1 pt-2 mx-n4 px-4 mb-n2 pb-2 box-item"
+                                                            style="${decodeURIComponent((glitter.getUrlParameter('page') || '').split('/').reverse()[0]) === (col.code || col.title)
+                                                ? `background:#f5f5f5;`
+                                                : ``}"
+                                                            onclick="${gvc.event(() => {
                                                 changePage(`collections/${col.code || col.title}`, 'page', {});
                                                 gvc.glitter.closeDrawer();
-                                            })}">
+                                            })}"
+                                                        >
                                                             <li style="font-weight: 500; line-height: 40px;">
-                                                                <div
-                                                                    class="d-flex tx_700"
-                                                                    style="color: ${fontColor};"
-                                                                >
-                                                                    ${col.title}
-                                                                </div>
+                                                                <div class="d-flex tx_700" style="color: ${fontColor};">${col.title}</div>
                                                             </li>
                                                         </ul>`;
                                         }
@@ -423,11 +426,15 @@ export class ProductList {
                                         length: item.subCollections.length,
                                         changePage,
                                         fontColor,
-                                        openOnInit: [item.code].concat(vm.collections.filter((col) => {
+                                        openOnInit: [item.code]
+                                            .concat(vm.collections
+                                            .filter((col) => {
                                             return item.subCollections.includes(col.title) && col.parentTitles[0] === item.title;
-                                        }).map((dd) => {
+                                        })
+                                            .map((dd) => {
                                             return dd.code || dd.title;
-                                        })).includes(decodeURIComponent((glitter.getUrlParameter('page') || '').split('/').reverse()[0]))
+                                        }))
+                                            .includes(decodeURIComponent((glitter.getUrlParameter('page') || '').split('/').reverse()[0])),
                                     })
                                     : html `<div
                                                           class="d-flex tx_700"
@@ -486,8 +493,8 @@ export class ProductList {
             else {
                 let collectionObj = vm.collections.find((item) => {
                     const language_data = item.language_data && item.language_data[Language.getLanguage()];
-                    const code = ((language_data && language_data.seo && language_data.seo.domain) || item.code) || (language_data && language_data.title) || item.title;
-                    return (code) === decodeURIComponent(extractCategoryTitleFromUrl(location.href));
+                    const code = (language_data && language_data.seo && language_data.seo.domain) || item.code || (language_data && language_data.title) || item.title;
+                    return code === decodeURIComponent(extractCategoryTitleFromUrl(location.href));
                 });
                 try {
                     if (!collectionObj) {
@@ -499,7 +506,7 @@ export class ProductList {
                 catch (e) { }
                 if (collectionObj) {
                     const language_data = collectionObj.language_data;
-                    vm.title = (language_data && (language_data[Language.getLanguage()] && language_data[Language.getLanguage()].title)) || collectionObj.title;
+                    vm.title = (language_data && language_data[Language.getLanguage()] && language_data[Language.getLanguage()].title) || collectionObj.title;
                 }
                 else {
                     vm.title = all_text;
@@ -621,6 +628,7 @@ export class ProductList {
         })}"
                         >
                             <option value="time">${Language.text('sort_by_date')}</option>
+                            <option value="sales_desc">${Language.text('sort_by_sales_desc')}</option>
                             <option value="min_price">${Language.text('sort_by_price_asc')}</option>
                             <option value="max_price">${Language.text('sort_by_price_desc')}</option>
                         </select>

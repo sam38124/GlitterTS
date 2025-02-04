@@ -3,7 +3,7 @@ import { ApiShop } from '../../glitter-base/route/shopping.js';
 import { Tool } from '../../modules/tool.js';
 import { PdClass } from './pd-class.js';
 import { Ad } from '../public/ad.js';
-import {Language} from "../../glitter-base/global/language.js";
+import { Language } from '../../glitter-base/global/language.js';
 
 /*
  * Page: sy01_pd_collection
@@ -18,12 +18,12 @@ type Product = {
     };
 };
 interface LanguageData {
-    title: string,
+    title: string;
     seo: {
         domain: string;
         title: string;
         content: string;
-    }
+    };
 }
 type Collection = {
     title: string;
@@ -37,7 +37,7 @@ type Collection = {
     seo_content: string;
     seo_image: string;
     checked: boolean;
-    language_data:LanguageData
+    language_data: LanguageData;
 };
 
 export class ProductList {
@@ -117,7 +117,7 @@ export class ProductList {
                 }
             }
         `);
-        return html` <div class="box-tag-${obj.tag} box-container-${text} ${obj.openOnInit ? `open-box`:''}">
+        return html` <div class="box-tag-${obj.tag} box-container-${text} ${obj.openOnInit ? `open-box` : ''}">
             <div
                 class="box-navbar-${text} ${obj.guideClass ?? ''}"
                 onclick="${obj.gvc.event((e) => {
@@ -165,14 +165,13 @@ export class ProductList {
                         obj.gvc.glitter.closeDrawer();
                     })}"
                 >
-                    
                     ${obj.title}
                 </div>
                 <div class="d-flex">
                     <button class="box-tag-${obj.tag} arrow-icon-${text}"></button>
                 </div>
             </div>
-            <div class="box-inside-${text} ${obj.guideClass ? `box-inside-${obj.guideClass}` : ''} " >${obj.insideHTML}</div>
+            <div class="box-inside-${text} ${obj.guideClass ? `box-inside-${obj.guideClass}` : ''} ">${obj.insideHTML}</div>
         </div>`;
     }
 
@@ -384,13 +383,13 @@ export class ProductList {
             const flattenCollections = (collections: Collection[], parentTitles: string[] = [], topLevelCollections: string[] = []): Collection[] => {
                 let flattened: Collection[] = [];
                 collections.forEach((col) => {
-                    const { title, array, product_id, seo_title, seo_content, seo_image, code,language_data } = col;
+                    const { title, array, product_id, seo_title, seo_content, seo_image, code, language_data } = col;
                     const flattenedCol: Collection = {
-                        title:(()=>{
-                            if(language_data && (language_data as any)[Language.getLanguage()] &&  (language_data as any)[Language.getLanguage()].title){
-                                return  (language_data as any)[Language.getLanguage()].title
-                            }else{
-                                return title
+                        title: (() => {
+                            if (language_data && (language_data as any)[Language.getLanguage()] && (language_data as any)[Language.getLanguage()].title) {
+                                return (language_data as any)[Language.getLanguage()].title;
+                            } else {
+                                return title;
                             }
                         })(),
                         array: [],
@@ -398,25 +397,27 @@ export class ProductList {
                         checked: false,
                         parentTitles: parentTitles.length ? [...parentTitles] : [],
                         allCollections: parentTitles.length ? [...topLevelCollections] : [],
-                        subCollections: array.map((subCol) => (()=>{
-                            const language_data=subCol.language_data
-                            if(language_data && (language_data as any)[Language.getLanguage()] &&  (language_data as any)[Language.getLanguage()].title){
-                                return  (language_data as any)[Language.getLanguage()].title
-                            }else{
-                                return subCol.title
-                            }
-                        })()),
+                        subCollections: array.map((subCol) =>
+                            (() => {
+                                const language_data = subCol.language_data;
+                                if (language_data && (language_data as any)[Language.getLanguage()] && (language_data as any)[Language.getLanguage()].title) {
+                                    return (language_data as any)[Language.getLanguage()].title;
+                                } else {
+                                    return subCol.title;
+                                }
+                            })()
+                        ),
                         seo_title: seo_title,
                         seo_content: seo_content,
                         seo_image: seo_image,
-                        code: (()=>{
-                            if(language_data && (language_data as any)[Language.getLanguage()] &&  (language_data as any)[Language.getLanguage()].title){
-                                return  (language_data as any)[Language.getLanguage()].seo.domain
-                            }else{
-                                return code
+                        code: (() => {
+                            if (language_data && (language_data as any)[Language.getLanguage()] && (language_data as any)[Language.getLanguage()].title) {
+                                return (language_data as any)[Language.getLanguage()].seo.domain;
+                            } else {
+                                return code;
                             }
                         })(),
-                        language_data:language_data
+                        language_data: language_data,
                     };
                     if (
                         flattenedCol.title.includes(vm.query) ||
@@ -430,13 +431,22 @@ export class ProductList {
                         flattened.push(flattenedCol);
                     }
                     if (array.length) {
-                        flattened = flattened.concat(flattenCollections(array, [...parentTitles, (()=>{
-                            if(language_data && (language_data as any)[Language.getLanguage()] &&  (language_data as any)[Language.getLanguage()].title){
-                                return  (language_data as any)[Language.getLanguage()].title
-                            }else{
-                                return title
-                            }
-                        })()], topLevelCollections));
+                        flattened = flattened.concat(
+                            flattenCollections(
+                                array,
+                                [
+                                    ...parentTitles,
+                                    (() => {
+                                        if (language_data && (language_data as any)[Language.getLanguage()] && (language_data as any)[Language.getLanguage()].title) {
+                                            return (language_data as any)[Language.getLanguage()].title;
+                                        } else {
+                                            return title;
+                                        }
+                                    })(),
+                                ],
+                                topLevelCollections
+                            )
+                        );
                     }
                 });
                 return flattened;
@@ -457,14 +467,16 @@ export class ProductList {
                 });
             });
 
-            const topLevelCollections = data.collections.map((col) => (()=>{
-                const language_data=col.language_data
-                if(language_data && (language_data as any)[Language.getLanguage()] &&  (language_data as any)[Language.getLanguage()].title){
-                    return  (language_data as any)[Language.getLanguage()].title
-                }else{
-                    return col.title
-                }
-            })());
+            const topLevelCollections = data.collections.map((col) =>
+                (() => {
+                    const language_data = col.language_data;
+                    if (language_data && (language_data as any)[Language.getLanguage()] && (language_data as any)[Language.getLanguage()].title) {
+                        return (language_data as any)[Language.getLanguage()].title;
+                    } else {
+                        return col.title;
+                    }
+                })()
+            );
             return flattenCollections(data.collections, [], topLevelCollections);
         }
 
@@ -558,29 +570,34 @@ export class ProductList {
                                         .map((item: any, index: number) => {
                                             let subHTML = '';
                                             if (item.subCollections.length > 0) {
-                                               
                                                 for (const col of vm.collections) {
                                                     if (item.subCollections.includes(col.title) && col.parentTitles[0] === item.title) {
-                                                        subHTML += html`<ul class="mt-1 pt-2 mx-n4 px-4 mb-n2 pb-2 box-item" style="${(decodeURIComponent((glitter.getUrlParameter('page') || '').split('/').reverse()[0])===(col.code || col.title)) ? `background:#f5f5f5;`:``}" onclick="${gvc.event(() => {
-                                                            changePage(`collections/${col.code || col.title}` , 'page', {});
-                                                            gvc.glitter.closeDrawer();
-                                                        })}">
+                                                        subHTML += html`<ul
+                                                            class="mt-1 pt-2 mx-n4 px-4 mb-n2 pb-2 box-item"
+                                                            style="${decodeURIComponent((glitter.getUrlParameter('page') || '').split('/').reverse()[0]) === (col.code || col.title)
+                                                                ? `background:#f5f5f5;`
+                                                                : ``}"
+                                                            onclick="${gvc.event(() => {
+                                                                changePage(`collections/${col.code || col.title}`, 'page', {});
+                                                                gvc.glitter.closeDrawer();
+                                                            })}"
+                                                        >
                                                             <li style="font-weight: 500; line-height: 40px;">
-                                                                <div
-                                                                    class="d-flex tx_700"
-                                                                    style="color: ${fontColor};"
-                                                                >
-                                                                    ${col.title}
-                                                                </div>
+                                                                <div class="d-flex tx_700" style="color: ${fontColor};">${col.title}</div>
                                                             </li>
                                                         </ul>`;
                                                     }
                                                 }
                                             }
-                                            console.log(`in--->`,[item.code].concat( vm.collections.filter((col:any)=>{
-                                                return item.subCollections.includes(col.title) && col.parentTitles[0] === item.title
-                                            })))
-                                            console.log(`in--->cludes->`,decodeURIComponent((glitter.getUrlParameter('page') || '').split('/').reverse()[0]))
+                                            console.log(
+                                                `in--->`,
+                                                [item.code].concat(
+                                                    vm.collections.filter((col: any) => {
+                                                        return item.subCollections.includes(col.title) && col.parentTitles[0] === item.title;
+                                                    })
+                                                )
+                                            );
+                                            console.log(`in--->cludes->`, decodeURIComponent((glitter.getUrlParameter('page') || '').split('/').reverse()[0]));
                                             return html` <li
                                                 class="${index + 1 === cols.length ? '' : 'border-bottom'}"
                                                 style="${item.subCollections.length > 0 ? '' : 'padding: 16px;'} cursor: pointer;"
@@ -595,17 +612,22 @@ export class ProductList {
                                                           length: item.subCollections.length,
                                                           changePage,
                                                           fontColor,
-                                                            openOnInit:[item.code].concat( vm.collections.filter((col:any)=>{
-                                                                return item.subCollections.includes(col.title) && col.parentTitles[0] === item.title
-                                                            }).map((dd:any)=>{
-                                                                return dd.code || dd.title
-                                                            })).includes(decodeURIComponent((glitter.getUrlParameter('page') || '').split('/').reverse()[0]))
+                                                          openOnInit: [item.code]
+                                                              .concat(
+                                                                  vm.collections
+                                                                      .filter((col: any) => {
+                                                                          return item.subCollections.includes(col.title) && col.parentTitles[0] === item.title;
+                                                                      })
+                                                                      .map((dd: any) => {
+                                                                          return dd.code || dd.title;
+                                                                      })
+                                                              )
+                                                              .includes(decodeURIComponent((glitter.getUrlParameter('page') || '').split('/').reverse()[0])),
                                                       })
                                                     : html`<div
                                                           class="d-flex tx_700"
                                                           style="color: ${fontColor};"
                                                           onclick="${gvc.event(() => {
-                                                              
                                                               changePage('collections/' + item.code, 'page', {});
                                                               gvc.glitter.closeDrawer();
                                                           })}"
@@ -656,23 +678,23 @@ export class ProductList {
             if (!vm.collections || vm.collections.length === 0) {
                 vm.title = all_text;
             } else {
-                let collectionObj = vm.collections.find((item:any) => {
-                    const language_data=item.language_data && item.language_data[Language.getLanguage()]
-                    const code=((language_data && language_data.seo && language_data.seo.domain) || item.code) || (language_data && language_data.title) || item.title;
-                    return (code) === decodeURIComponent(extractCategoryTitleFromUrl(location.href)) ;
+                let collectionObj = vm.collections.find((item: any) => {
+                    const language_data = item.language_data && item.language_data[Language.getLanguage()];
+                    const code = (language_data && language_data.seo && language_data.seo.domain) || item.code || (language_data && language_data.title) || item.title;
+                    return code === decodeURIComponent(extractCategoryTitleFromUrl(location.href));
                 });
                 try {
-                    if(!collectionObj){
-                        collectionObj = vm.collections.find((item: { code: string,title:string }) => {
-                            return item.title === decodeURIComponent(extractCategoryTitleFromUrl(location.href)) ;
+                    if (!collectionObj) {
+                        collectionObj = vm.collections.find((item: { code: string; title: string }) => {
+                            return item.title === decodeURIComponent(extractCategoryTitleFromUrl(location.href));
                         });
                     }
-                }catch (e){}
-                if(collectionObj){
-                    const language_data=collectionObj.language_data
-                    vm.title=(language_data && (language_data[Language.getLanguage()] && language_data[Language.getLanguage()].title)) || collectionObj.title;
-                }else{
-                    vm.title=all_text
+                } catch (e) {}
+                if (collectionObj) {
+                    const language_data = collectionObj.language_data;
+                    vm.title = (language_data && language_data[Language.getLanguage()] && language_data[Language.getLanguage()].title) || collectionObj.title;
+                } else {
+                    vm.title = all_text;
                 }
             }
             gvc.notifyDataChange(ids.pageTitle);
@@ -689,8 +711,9 @@ export class ProductList {
 
                 function findObjectByValue(arr: any, value: string): any {
                     for (const item of arr) {
-                        const language_data=item.language_data
-                        const code=(language_data && language_data[Language.getLanguage()] && language_data[Language.getLanguage()].seo && language_data[Language.getLanguage()].seo.domain) || item.code
+                        const language_data = item.language_data;
+                        const code =
+                            (language_data && language_data[Language.getLanguage()] && language_data[Language.getLanguage()].seo && language_data[Language.getLanguage()].seo.domain) || item.code;
                         if (code === value) {
                             return item;
                         }
@@ -733,8 +756,8 @@ export class ProductList {
                         });
                     }
                 }
-            }catch (e) {
-                console.log(e)
+            } catch (e) {
+                console.log(e);
             }
         }
 
@@ -796,6 +819,7 @@ export class ProductList {
                             })}"
                         >
                             <option value="time">${Language.text('sort_by_date')}</option>
+                            <option value="sales_desc">${Language.text('sort_by_sales_desc')}</option>
                             <option value="min_price">${Language.text('sort_by_price_asc')}</option>
                             <option value="max_price">${Language.text('sort_by_price_desc')}</option>
                         </select>
@@ -839,7 +863,7 @@ export class ProductList {
                                                 vm.pageIndex = p;
                                                 loadings.product = true;
                                                 gvc.notifyDataChange(ids.product);
-                                                (document.querySelector('html') as any).scrollTo(0,0);
+                                                (document.querySelector('html') as any).scrollTo(0, 0);
                                             })}
                                             <div style="margin-top: 240px;"></div>`;
                                     }
