@@ -15,6 +15,8 @@ export class Sy03 {
             changePage = cl.changePage;
         });
         const colors = Color.getTheme(gvc, widget.formData);
+        console.log('vvlvlvlvlvlvlvllv');
+        console.log(widget.formData);
         return html ` <div class="d-sm-none" style="height: 76px;"></div>
             <nav
                 class="navbar navbar-expand-lg vw-100 header header-place shadow   top-0 left-0  py-0 position-fixed position-sm-relative"
@@ -196,7 +198,23 @@ background: ${(_a = colors.bgr) !== null && _a !== void 0 ? _a : '#000'};overflo
             changePage('index', 'home', {});
         })}"
                             >
-                                <img src="${widget.formData.logo}" style="${document.body.clientWidth < 800 ? `max-height: 100%;max-width:200px;` : `height: 150px;`}" />
+                                <img
+                                    src="${widget.formData.logo}"
+                                    style="${document.body.clientWidth < 800
+            ? `max-height: 100%;max-width:200px;`
+            : `height: ${(() => {
+                try {
+                    const h = widget.formData.height;
+                    if (h && !isNaN(parseInt(`${h}`, 10))) {
+                        return parseInt(`${h}`, 10);
+                    }
+                    return 150;
+                }
+                catch (error) {
+                    return 150;
+                }
+            })()}px;`}"
+                                />
                             </div>
                         </div>
                         <!--選單列表顯示區塊-->
@@ -291,35 +309,37 @@ padding-bottom: 2px;
                 },
             };
         })}
-                           ${HeaderClass.hideShopperBtn() ? `` : `<li class="nav-item d-none d-sm-flex align-items-center justify-content-center" style="min-width:45px !important;">
+                            ${HeaderClass.hideShopperBtn()
+            ? ``
+            : `<li class="nav-item d-none d-sm-flex align-items-center justify-content-center" style="min-width:45px !important;">
                                 ${gvc.bindView(() => {
-            const vm = {
-                id: gvc.glitter.getUUID(),
-                toggle: false,
-            };
-            return {
-                bind: vm.id,
-                view: () => {
-                    var _a, _b;
-                    if (!vm.toggle) {
-                        return html `<i
+                const vm = {
+                    id: gvc.glitter.getUUID(),
+                    toggle: false,
+                };
+                return {
+                    bind: vm.id,
+                    view: () => {
+                        var _a, _b;
+                        if (!vm.toggle) {
+                            return html `<i
                                                     class="fa-regular fa-magnifying-glass"
                                                     style="color: ${(_a = widget.formData.theme_color['title']) !== null && _a !== void 0 ? _a : '#000'};cursor: pointer;font-size:20px;"
                                                     onclick="${gvc.event(() => {
-                            vm.toggle = !vm.toggle;
-                            gvc.notifyDataChange(vm.id);
-                        })}"
+                                vm.toggle = !vm.toggle;
+                                gvc.notifyDataChange(vm.id);
+                            })}"
                                                 ></i>`;
-                    }
-                    else {
-                        return html `<a class="search-container d-flex align-items-center"
+                        }
+                        else {
+                            return html `<a class="search-container d-flex align-items-center"
                                                     ><i
                                                         class="fa-regular fa-circle-xmark"
                                                         style="color: ${(_b = widget.formData.theme_color['title']) !== null && _b !== void 0 ? _b : '#000'};cursor: pointer;font-size:20px;"
                                                         onclick="${gvc.event(() => {
-                            vm.toggle = !vm.toggle;
-                            gvc.notifyDataChange(vm.id);
-                        })}"
+                                vm.toggle = !vm.toggle;
+                                gvc.notifyDataChange(vm.id);
+                            })}"
                                                     ></i
                                                     ><input
                                                         class="ms-3 form-control"
@@ -327,22 +347,22 @@ padding-bottom: 2px;
                                                         placeholder="${Language.text('input_product_keyword')}"
                                                         autocomplete="off"
                                                         onchange="${gvc.event((e, event) => {
-                            gvc.glitter.href = `/all-product?search=${e.value}`;
-                            vm.toggle = !vm.toggle;
-                            gvc.notifyDataChange(vm.id);
-                        })}"
+                                gvc.glitter.href = `/all-product?search=${e.value}`;
+                                vm.toggle = !vm.toggle;
+                                gvc.notifyDataChange(vm.id);
+                            })}"
                                                     />
                                                 </a>`;
-                    }
-                },
-                divCreate: {
-                    class: `nav-link search-container`,
-                    elem: `a`,
-                },
-            };
-        })}
+                        }
+                    },
+                    divCreate: {
+                        class: `nav-link search-container`,
+                        elem: `a`,
+                    },
+                };
+            })}
                             </li>`}
-                            <li class="nav-item  ${(HeaderClass.hideShopperBtn()) ? `d-none` : `d-flex`} align-items-center justify-content-center" style="width:45px !important;">
+                            <li class="nav-item  ${HeaderClass.hideShopperBtn() ? `d-none` : `d-flex`} align-items-center justify-content-center" style="width:45px !important;">
                                 ${gvc.bindView(() => {
             const vm = {
                 id: gvc.glitter.getUUID(),
@@ -389,7 +409,7 @@ padding-bottom: 2px;
             };
         })}
                             </li>
-                            <li class="nav-item d-flex align-items-center justify-content-center ${(HeaderClass.hideShopperBtn()) ? `d-none` : `d-flex`}" style="width:45px !important;">
+                            <li class="nav-item d-flex align-items-center justify-content-center ${HeaderClass.hideShopperBtn() ? `d-none` : `d-flex`}" style="width:45px !important;">
                                 <a class="nav-link search-container">
                                     <i
                                         class="fw-500  fa-regular fa-user "
