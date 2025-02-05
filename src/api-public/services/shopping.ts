@@ -1,7 +1,7 @@
 import { IToken } from '../models/Auth.js';
 import exception from '../../modules/exception.js';
 import db from '../../modules/database.js';
-import FinancialService, { LinePay, PayPal } from './financial-service.js';
+import FinancialService, {LinePay, PayNow, PayPal} from './financial-service.js';
 import { Private_config } from '../../services/private_config.js';
 import redis from '../../modules/redis.js';
 import { User } from './user.js';
@@ -451,7 +451,6 @@ export class Shopping {
                 // 組合 SQL 條件
                 querySql.push(`(${statusCondition} ${scheduleConditions})`);
                 //
-                console.log(`(${statusCondition} ${scheduleConditions})`)
             }
             if (query.channel) {
                 const channelSplit = query.channel.split(',').map((channel) => channel.trim());
@@ -1843,13 +1842,17 @@ export class Shopping {
                     return_url: `${process.env.DOMAIN}/api-public/v1/ec/redirect?g-app=${this.app}&return=${id}`,
                 };
             } else {
+
                 const keyData = (
                     await Private_config.getConfig({
                         appName: this.app,
                         key: 'glitter_finance',
                     })
                 )[0].value;
-                let kd = keyData[carData.customer_info.payment_select];
+                let kd = keyData[carData.customer_info.payment_select] ??{
+                    ReturnURL : "",
+                    NotifyURL : ""
+                };
                 // 線下付款
                 switch (carData.customer_info.payment_select) {
                     case 'ecPay':
@@ -1872,6 +1875,7 @@ export class Shopping {
                             form: subMitData,
                         };
                     case 'paypal':
+
                         kd.ReturnURL = `${process.env.DOMAIN}/api-public/v1/ec/redirect?g-app=${this.app}&return=${id}`;
                         kd.NotifyURL = `${process.env.DOMAIN}/api-public/v1/ec/notify?g-app=${this.app}`;
                         await Promise.all(
@@ -1889,7 +1893,16 @@ export class Shopping {
                             })
                         );
                         return await new LinePay(this.app, kd).createOrder(carData);
-                    case 'paynow':
+                    case 'paynow':{
+                        kd.ReturnURL = `${process.env.DOMAIN}/api-public/v1/ec/redirect?g-app=${this.app}&return=${id}&paynow=true`;
+                        kd.NotifyURL = `${process.env.DOMAIN}/api-public/v1/ec/notify?g-app=${this.app}&paynow=true`;
+                        await Promise.all(
+                            saveStockArray.map((dd) => {
+                                return dd();
+                            })
+                        );
+                        return await new PayNow(this.app, kd).createOrder(carData);
+                    }
                     default:
                         carData.method = 'off_line';
                         // 訂單成立信件通知

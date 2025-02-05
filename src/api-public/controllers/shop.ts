@@ -6,7 +6,7 @@ import db from '../../modules/database.js';
 import redis from '../../modules/redis.js';
 import { UtDatabase } from '../utils/ut-database.js';
 import { UtPermission } from '../utils/ut-permission';
-import { EcPay, EzPay, LinePay, PayPal } from '../services/financial-service.js';
+import {EcPay, EzPay, LinePay, PayNow, PayPal} from '../services/financial-service.js';
 import { Private_config } from '../../services/private_config.js';
 import { User } from '../services/user.js';
 import { Post } from '../services/post.js';
@@ -632,7 +632,20 @@ async function redirect_link(req: express.Request, resp: express.Response) {
                 await new Shopping(req.query.appName as string).releaseCheckout(1, req.query.orderID as string);
             }
         }
-        if (req.query.paynow === 'true') {
+        if (req.query.paynow && req.query.paynow === 'true') {
+            const check_id = await redis.getValue(`paynow` + req.query.orderID);
+            let kd = {
+                ReturnURL : "",
+                NotifyURL : ""
+            }
+
+            const payNow = new PayNow(req.query.appName as string, kd);
+            const data:any = payNow.confirmAndCaptureOrder(check_id as string)
+
+            if (data.type == 'success') {
+                await new Shopping(req.query.appName as string).releaseCheckout(1, req.query.orderID as string);
+            }
+
         }
         const html = String.raw;
         return resp.send(

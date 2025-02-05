@@ -182,12 +182,12 @@ export declare class LinePay {
         method: string;
     }): Promise<any>;
 }
-export declare class PayNow金流 {
+export declare class PayNow {
     keyData: {
         ReturnURL?: string;
         NotifyURL?: string;
-        LinePay_CLIENT_ID: string;
-        LinePay_SECRET: string;
+        public_key: string;
+        private_key: string;
         BETA: string;
     };
     appName: string;
@@ -195,7 +195,7 @@ export declare class PayNow金流 {
     PrivateKey: string;
     BASE_URL: string;
     constructor(appName: string, keyData: any);
-    confirmAndCaptureOrder(transactionId: string): Promise<axios.AxiosResponse<any, any>>;
+    confirmAndCaptureOrder(transactionId?: string): Promise<any>;
     createOrder(orderData: {
         lineItems: {
             id: string;
@@ -211,6 +211,10 @@ export declare class PayNow金流 {
         use_wallet: number;
         user_email: string;
         method: string;
-    }): Promise<any>;
+    }): Promise<{
+        data: any;
+        publicKey: string;
+        BETA: string;
+    }>;
 }
 export {};

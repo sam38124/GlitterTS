@@ -15,6 +15,12 @@ import {GlobalExpress} from "./shipment/global-express.js";
 const html = String.raw;
 
 interface paymentInterface {
+    paynow: {
+        private_key: string;
+        public_key: string;
+        BETA: boolean;
+        toggle: boolean;
+    };
     paypal: {
         PAYPAL_CLIENT_ID: string;
         PAYPAL_SECRET: string;
@@ -101,6 +107,7 @@ export class ShoppingFinanceSetting {
             {key: 'ecPay', name: '綠界金流'},
             {key: 'paypal', name: 'PayPal'},
             {key: 'line_pay', name: 'Line Pay'},
+            {key: 'paynow', name: 'PayNow 立吉富'},
             {key: 'line_pay_scan', name: 'Line Pay', type: 'pos'},
             {key: 'ut_credit_card', name: '聯合信用卡', type: 'pos'},
         ];
@@ -291,6 +298,7 @@ export class ShoppingFinanceSetting {
                                                             keyData.ecPay.toggle && array.push('ecPay');
                                                             keyData.paypal.toggle && array.push('paypal');
                                                             keyData.line_pay.toggle && array.push('line_pay');
+                                                            keyData.paynow.toggle && array.push('paynow');
                                                             return array;
                                                         })(),
                                                         (data) => {
@@ -518,6 +526,50 @@ export class ShoppingFinanceSetting {
                                                                                             placeHolder: '請輸入SECRET',
                                                                                         }),
                                                                                     ].join(''),
+                                                                                })}`;
+                                                                            case 'paynow':
+                                                                                return html` ${BgWidget.openBoxContainer({
+                                                                                    gvc,
+                                                                                    tag: 'detail',
+                                                                                    title: payData.name + redDot,
+                                                                                    openOnInit: false,
+                                                                                    insideHTML: [
+                                                                                        BgWidget.inlineCheckBox({
+                                                                                            title: '串接路徑',
+                                                                                            gvc: gvc,
+                                                                                            def: `${keyData.paynow.BETA}`,
+                                                                                            array: [
+                                                                                                {
+                                                                                                    title: '正式站',
+                                                                                                    value: `false`,
+                                                                                                },
+                                                                                                {
+                                                                                                    title: '測試站',
+                                                                                                    value: `true`,
+                                                                                                },
+                                                                                            ],
+                                                                                            callback: (text: any) => {
+                                                                                                keyData.paynow.BETA = text;
+                                                                                            },
+                                                                                        }),
+                                                                                        BgWidget.editeInput({
+                                                                                gvc: gvc,
+                                                                                title: 'public key',
+                                                                                default: keyData.paynow.public_key,
+                                                                                callback: (text) => {
+                                                                                    keyData.paynow.public_key = text;
+                                                                                },
+                                                                                        placeHolder: '請輸入public key',
+                                                                                }),
+                                                                                BgWidget.editeInput({
+                                                                                    gvc: gvc,
+                                                                                    title: 'private key',
+                                                                                    default: keyData.paynow.private_key,
+                                                                                    callback: (text) => {
+                                                                                        keyData.paynow.private_key = text;
+                                                                                    },
+                                                                                    placeHolder: '請輸入private key',
+                                                                                })].join(''),
                                                                                 })}`;
                                                                         }
                                                                     })
@@ -815,6 +867,8 @@ export class ShoppingFinanceSetting {
                                     response: any;
                                     result: boolean
                                 }) => {
+                                    
+                                    
                                     setTimeout(() => {
                                         dialog.dataLoading({visible: false});
                                         if (r.response) {

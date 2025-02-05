@@ -3,7 +3,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.PayNow金流 = exports.LinePay = exports.PayPal = exports.EcPay = exports.EzPay = void 0;
+exports.PayNow = exports.LinePay = exports.PayPal = exports.EcPay = exports.EzPay = void 0;
 const crypto_1 = __importDefault(require("crypto"));
 const database_js_1 = __importDefault(require("../../modules/database.js"));
 const moment_timezone_1 = __importDefault(require("moment-timezone"));
@@ -577,7 +577,6 @@ class LinePay {
         };
         try {
             const response = await axios_1.default.request(config);
-            console.log("response -- ", response);
             return response;
         }
         catch (error) {
@@ -657,12 +656,13 @@ class LinePay {
     }
 }
 exports.LinePay = LinePay;
-class PayNow金流 {
+class PayNow {
     constructor(appName, keyData) {
+        var _a, _b;
         this.keyData = keyData;
         this.appName = appName;
-        this.PublicKey = keyData.CLIENT_ID;
-        this.PrivateKey = keyData.SECRET;
+        this.PublicKey = (_a = keyData.public_key) !== null && _a !== void 0 ? _a : "";
+        this.PrivateKey = (_b = keyData.private_key) !== null && _b !== void 0 ? _b : "";
         this.BASE_URL = (keyData.BETA == 'true') ? "https://sandboxapi.paynow.com.tw" : "https://api.paynow.com.tw";
     }
     async confirmAndCaptureOrder(transactionId) {
@@ -670,55 +670,57 @@ class PayNow金流 {
         let config = {
             method: 'get',
             maxBodyLength: Infinity,
-            url: `https://sandboxapi.paynow.com.tw/api/v1/payment-intents/${transactionId}`,
+            url: `${this.BASE_URL}api/v1/payment-intents/${transactionId}`,
             headers: {
                 'Accept': 'application/json',
-                'Authorization': this.PrivateKey
+                'Authorization': `Bearer ` + this.PrivateKey
             }
         };
         try {
             const response = await axios_1.default.request(config);
-            console.log("response -- ", response);
-            return response;
+            return response.data;
         }
         catch (error) {
-            console.error("Error linePay:", ((_a = error.response) === null || _a === void 0 ? void 0 : _a.data.data) || error.message);
+            console.error("Error paynow:", ((_a = error.response) === null || _a === void 0 ? void 0 : _a.data.data) || error.message);
             throw error;
         }
     }
     async createOrder(orderData) {
         var _a;
+        console.log(orderData.lineItems);
         const data = JSON.stringify({
-            "paymentNo": "string",
-            "amount": 0,
-            "currency": "string",
-            "description": "string",
-            "resultUrl": "string",
-            "webhookUrl": "string",
+            "amount": orderData.total,
+            "currency": "TWD",
+            "description": orderData.orderID,
+            "resultUrl": this.keyData.ReturnURL + `&orderID=${orderData.orderID}`,
+            "webhookUrl": this.keyData.NotifyURL + `&orderID=${orderData.orderID}`,
             "allowedPaymentMethods": [
-                "string"
+                "CreditCard",
             ],
-            "allowInstallments": [
-                0
-            ],
-            "expireDays": 0
+            "expireDays": 3,
         });
+        const url = `${this.BASE_URL}/api/v1/payment-intents`;
         const config = {
             method: 'post',
             maxBodyLength: Infinity,
-            url: 'https://sandboxapi.paynow.com.tw/api/v1/payment-intents',
+            url: url,
             headers: {
                 'Content-Type': 'application/json',
-                'Accept': 'application/json',
-                'Authorization': this.PrivateKey
+                'Authorization': `Bearer ` + this.PrivateKey
             },
             data: data
         };
         try {
             const response = await axios_1.default.request(config);
+            orderData.paynow_id = response.data.result.id;
             await database_js_1.default.execute(`INSERT INTO \`${this.appName}\`.t_checkout (cart_token, status, email, orderData) VALUES (?, ?, ?, ?)
             `, [orderData.orderID, 0, orderData.user_email, orderData]);
-            return response.data;
+            await redis_1.default.setValue('paynow' + orderData.orderID, response.data.result.id);
+            return {
+                data: response.data,
+                publicKey: this.keyData.public_key,
+                BETA: this.keyData.BETA
+            };
         }
         catch (error) {
             console.error("Error payNow:", ((_a = error.response) === null || _a === void 0 ? void 0 : _a.data) || error.message);
@@ -726,5 +728,5 @@ class PayNow金流 {
         }
     }
 }
-exports.PayNow金流 = PayNow金流;
+exports.PayNow = PayNow;
 //# sourceMappingURL=financial-service.js.map

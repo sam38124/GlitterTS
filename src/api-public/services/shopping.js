@@ -269,7 +269,6 @@ class Shopping {
                 })
                     .join('');
                 querySql.push(`(${statusCondition} ${scheduleConditions})`);
-                console.log(`(${statusCondition} ${scheduleConditions})`);
             }
             if (query.channel) {
                 const channelSplit = query.channel.split(',').map((channel) => channel.trim());
@@ -595,7 +594,7 @@ class Shopping {
         }
     }
     async toCheckout(data, type = 'add', replace_order_id) {
-        var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m, _o, _p, _q;
+        var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m, _o, _p, _q, _r;
         const check_time = new Date().getTime();
         try {
             data.line_items = (_a = (data.line_items || data.lineItems)) !== null && _a !== void 0 ? _a : [];
@@ -1342,7 +1341,10 @@ class Shopping {
                     appName: this.app,
                     key: 'glitter_finance',
                 }))[0].value;
-                let kd = keyData[carData.customer_info.payment_select];
+                let kd = (_r = keyData[carData.customer_info.payment_select]) !== null && _r !== void 0 ? _r : {
+                    ReturnURL: "",
+                    NotifyURL: ""
+                };
                 switch (carData.customer_info.payment_select) {
                     case 'ecPay':
                     case 'newWebPay':
@@ -1375,7 +1377,14 @@ class Shopping {
                             return dd();
                         }));
                         return await new financial_service_js_1.LinePay(this.app, kd).createOrder(carData);
-                    case 'paynow':
+                    case 'paynow': {
+                        kd.ReturnURL = `${process.env.DOMAIN}/api-public/v1/ec/redirect?g-app=${this.app}&return=${id}&paynow=true`;
+                        kd.NotifyURL = `${process.env.DOMAIN}/api-public/v1/ec/notify?g-app=${this.app}&paynow=true`;
+                        await Promise.all(saveStockArray.map((dd) => {
+                            return dd();
+                        }));
+                        return await new financial_service_js_1.PayNow(this.app, kd).createOrder(carData);
+                    }
                     default:
                         carData.method = 'off_line';
                         new notify_js_1.ManagerNotify(this.app).checkout({

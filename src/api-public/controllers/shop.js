@@ -560,7 +560,17 @@ async function redirect_link(req, resp) {
                 await new shopping_1.Shopping(req.query.appName).releaseCheckout(1, req.query.orderID);
             }
         }
-        if (req.query.paynow === 'true') {
+        if (req.query.paynow && req.query.paynow === 'true') {
+            const check_id = await redis_js_1.default.getValue(`paynow` + req.query.orderID);
+            let kd = {
+                ReturnURL: "",
+                NotifyURL: ""
+            };
+            const payNow = new financial_service_js_1.PayNow(req.query.appName, kd);
+            const data = payNow.confirmAndCaptureOrder(check_id);
+            if (data.type == 'success') {
+                await new shopping_1.Shopping(req.query.appName).releaseCheckout(1, req.query.orderID);
+            }
         }
         const html = String.raw;
         return resp.send(html `<!DOCTYPE html>

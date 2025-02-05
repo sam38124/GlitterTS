@@ -398,6 +398,7 @@ export class CheckoutIndex {
                             const cart = res;
                             ApiShop.getCheckout(cart).then((res) => {
                                 if (res.result) {
+                                    console.log("vm.cartData -- ", JSON.parse(JSON.stringify(res.response.data)));
                                     resolve(res.response.data);
                                 }
                                 else {
@@ -454,6 +455,9 @@ export class CheckoutIndex {
                             {
                                 src: `https://unpkg.com/@lottiefiles/lottie-player@latest/dist/lottie-player.js`,
                             },
+                            {
+                                src: `https://js.paynow.com.tw/sdk/v2/index.js`
+                            }
                         ], () => { }, () => { });
                         loadings.page = false;
                         dialog.dataLoading({ visible: false });
@@ -2390,6 +2394,61 @@ export class CheckoutIndex {
                                         give_away: apiCart.cart.give_away,
                                     }).then((res) => {
                                         dialog.dataLoading({ visible: false });
+                                        glitter.innerDialog((gvc) => {
+                                            return gvc.bindView({
+                                                bind: `paynow`,
+                                                view: () => {
+                                                    return html `<div class="w-100 h-100 d-flex align-items-center justify-content-center">
+                                                                            <div class="p-3 bg-white position-relative">
+                                                                                <div style="position: absolute; right: 15px;top:15px;z-index:1;" onclick="${gvc.event(() => {
+                                                        gvc.closeDialog();
+                                                    })}">
+                                                                                    <i class="fa-regular fa-circle-xmark fs-5 text-dark cursor_pointer"></i>
+                                                                                </div>
+                                                                                <div id="paynow-container">
+                                                                                    <div style="width:200px;height:200px;">loading...</div>
+                                                                                    
+                                                                                </div>
+                                                                                <div class="w-100 btn btn-primary" id="checkoutButton" onclick="${gvc.event(() => {
+                                                        const PayNow = window.PayNow;
+                                                        PayNow.checkout().then((response) => {
+                                                            console.log("response -- ", response);
+                                                            if (response.error) {
+                                                            }
+                                                        });
+                                                    })}">送出</div>
+                                                                            </div>
+                                                                        </div>`;
+                                                }, divCreate: {
+                                                    class: `w-100 h-100 d-flex align-items-center justify-content-center`
+                                                }, onCreate: () => {
+                                                    const publicKey = res.response.publicKey;
+                                                    const secret = res.response.data.result.secret;
+                                                    const env = (res.response.BETA == 'true') ? 'sandbox' : 'production';
+                                                    console.log("env -- ", env);
+                                                    const PayNow = window.PayNow;
+                                                    PayNow.createPayment({
+                                                        publicKey: publicKey,
+                                                        secret: secret,
+                                                        env: env
+                                                    });
+                                                    PayNow.mount('#paynow-container', {
+                                                        locale: 'zh_tw',
+                                                        appearance: {
+                                                            variables: {
+                                                                fontFamily: 'monospace',
+                                                                colorPrimary: '#0078ab',
+                                                                colorDefault: '#0a0a0a',
+                                                                colorBorder: '#cccccc',
+                                                                colorPlaceholder: '#eeeeee',
+                                                                borderRadius: '.3rem',
+                                                                colorDanger: '#ff3d3d',
+                                                            }
+                                                        }
+                                                    });
+                                                }
+                                            });
+                                        }, `paynow`);
                                         const lineItemIds = vm.cartData.lineItems.map((item) => item.id);
                                         const cartKeys = [ApiCart.cartPrefix, ApiCart.buyItNow, ApiCart.globalCart];
                                         for (let i = 0; i < localStorage.length; i++) {
@@ -2701,6 +2760,12 @@ export class CheckoutIndex {
                     array.push({
                         name: 'Line Pay',
                         value: 'line_pay',
+                    });
+                    break;
+                case 'paynow':
+                    array.push({
+                        name: 'PayNow 立吉富',
+                        value: 'paynow',
                     });
                     break;
             }

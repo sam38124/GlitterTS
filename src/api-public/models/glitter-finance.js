@@ -6,6 +6,7 @@ exports.onlinePayArray = [
     { key: 'ecPay', name: '綠界金流' },
     { key: 'paypal', name: 'PayPal' },
     { key: 'line_pay', name: 'Line Pay' },
+    { key: 'paynow', name: 'PayNow 立吉富' },
     { key: 'line_pay_scan', name: 'Line Pay', type: 'pos' },
     { key: 'ut_credit_card', name: '聯合信用卡', type: 'pos' },
 ];

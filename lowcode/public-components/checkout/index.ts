@@ -29,6 +29,7 @@ interface Voucher extends OriginVoucher {
 
 export class CheckoutIndex {
     static main(gvc: GVC, widget: any, subData: any) {
+
         const glitter = gvc.glitter;
         //取得要顯示的購物車
         const apiCart = (() => {
@@ -402,6 +403,7 @@ export class CheckoutIndex {
             const beta = false;
 
             if (!beta) {
+
                 new Promise(async (resolve, reject) => {
                     new Promise((resolve, reject) => {
                         setTimeout(() => {
@@ -439,6 +441,7 @@ export class CheckoutIndex {
                             const cart = res as CartItem;
                             ApiShop.getCheckout(cart).then((res) => {
                                 if (res.result) {
+                                    console.log("vm.cartData -- " , JSON.parse(JSON.stringify(res.response.data)))
                                     resolve(res.response.data);
                                 } else {
                                     resolve([]);
@@ -474,6 +477,7 @@ export class CheckoutIndex {
                                 },
                             }).then((res) => {
                                 if (res.result) {
+
                                     resolve(res.response.data);
                                 } else {
                                     resolve([]);
@@ -482,7 +486,9 @@ export class CheckoutIndex {
                         }
                     });
                 }).then((data) => {
+
                     vm.cartData = data;
+
                     ApiWallet.getRebateConfig({ type: 'me' }).then(async (res) => {
                         if (res.result && res.response.data) {
                             vm.rebateConfig = res.response.data;
@@ -493,6 +499,9 @@ export class CheckoutIndex {
                                 {
                                     src: `https://unpkg.com/@lottiefiles/lottie-player@latest/dist/lottie-player.js`,
                                 },
+                                {
+                                    src: `https://js.paynow.com.tw/sdk/v2/index.js`
+                                }
                             ],
                             () => {},
                             () => {}
@@ -2446,19 +2455,7 @@ export class CheckoutIndex {
                                                             if (verify.length > 0) {
                                                                 return;
                                                             }
-                                                            // glitter.innerDialog((gvc:GVC)=>{
-                                                            //     return gvc.bindView({
-                                                            //         bind:`paynow`,
-                                                            //         view:()=>{
-                                                            //             return html`<div class="w-100 h-100">
-                                                            //                 <div id="paynow-container"></div>
-                                                            //             </div>`
-                                                            //         },divCreate:{
-                                                            //
-                                                            //         },onCreate:()=>{}
-                                                            //     })
-                                                            //
-                                                            // },`paynow`)
+                                                            
                                                             const dialog = new ShareDialog(gvc.glitter);
                                                             if (!this.checkFormData(gvc, vm.cartData, widget)) {
                                                                 return;
@@ -2520,6 +2517,68 @@ export class CheckoutIndex {
                                                                 give_away: apiCart.cart.give_away,
                                                             }).then((res) => {
                                                                 dialog.dataLoading({ visible: false });
+                                                                glitter.innerDialog((gvc:GVC)=>{
+                                                                    return gvc.bindView({
+                                                                        bind:`paynow`,
+                                                                        view:()=>{
+                                                                            return html`<div class="w-100 h-100 d-flex align-items-center justify-content-center">
+                                                                            <div class="p-3 bg-white position-relative">
+                                                                                <div style="position: absolute; right: 15px;top:15px;z-index:1;" onclick="${gvc.event(()=>{
+                                                                                gvc.closeDialog();
+                                                                            })}">
+                                                                                    <i class="fa-regular fa-circle-xmark fs-5 text-dark cursor_pointer"></i>
+                                                                                </div>
+                                                                                <div id="paynow-container">
+                                                                                    <div style="width:200px;height:200px;">loading...</div>
+                                                                                    
+                                                                                </div>
+                                                                                <div class="w-100 btn btn-primary" id="checkoutButton" onclick="${gvc.event(()=>{
+                                                                                    // const inputGroup = document.querySelector('#paynow-container');
+                                                                                    // console.log("inputGroup -- " , inputGroup)
+                                                                                    const PayNow = (window as any).PayNow;
+                                                                                    PayNow.checkout().then((response:any) => {
+                                                                                        console.log("response -- " , response);
+                                                                                        if (response.error) {
+                                                                                            // handle error
+                                                                                        }
+                                                                                        // handle success
+                                                                                    })
+                                                                                    
+                                                                                })}">送出</div>
+                                                                            </div>
+                                                                        </div>`
+                                                                        },divCreate:{
+                                                                            class:`w-100 h-100 d-flex align-items-center justify-content-center`
+                                                                        },onCreate:()=>{
+                                                                            const publicKey = res.response.publicKey;
+                                                                            const secret = res.response.data.result.secret;
+                                                                            const env = (res.response.BETA == 'true')?'sandbox':'production'
+                                                                            // res.response.result.secret
+                                                                            console.log("env -- " , env)
+                                                                            const PayNow = (window as any).PayNow;
+                                                                            PayNow.createPayment({
+                                                                                publicKey: publicKey,
+                                                                                secret: secret,
+                                                                                env: env
+                                                                            })
+                                                                            PayNow.mount('#paynow-container', {
+                                                                                locale: 'zh_tw',
+                                                                                appearance: {
+                                                                                    variables: {
+                                                                                        fontFamily: 'monospace',
+                                                                                        colorPrimary: '#0078ab',
+                                                                                        colorDefault: '#0a0a0a',
+                                                                                        colorBorder: '#cccccc',
+                                                                                        colorPlaceholder: '#eeeeee',
+                                                                                        borderRadius: '.3rem',
+                                                                                        colorDanger: '#ff3d3d',
+                                                                                    }
+                                                                                }
+                                                                            })
+                                                                        }
+                                                                    })
+
+                                                                },`paynow`)
 
                                                                 const lineItemIds = vm.cartData.lineItems.map((item: any) => item.id);
                                                                 const cartKeys = [ApiCart.cartPrefix, ApiCart.buyItNow, ApiCart.globalCart];
@@ -2871,6 +2930,12 @@ export class CheckoutIndex {
                     array.push({
                         name: 'Line Pay',
                         value: 'line_pay',
+                    });
+                    break;
+                case 'paynow':
+                    array.push({
+                        name: 'PayNow 立吉富',
+                        value: 'paynow',
                     });
                     break;
             }
