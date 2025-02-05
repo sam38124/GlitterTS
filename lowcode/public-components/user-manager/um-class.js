@@ -9,7 +9,6 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 };
 import { ApiUser } from '../../glitter-base/route/user.js';
 import { GlobalUser } from '../../glitter-base/global/global-user.js';
-import { Tool } from '../../modules/tool.js';
 import { BgWidget } from '../../backend-manager/bg-widget.js';
 import { ShareDialog } from '../../glitterBundle/dialog/ShareDialog.js';
 import { ApiWallet } from '../../glitter-base/route/wallet.js';
@@ -694,7 +693,7 @@ export class UmClass {
     }
     static jumpAlert(obj) {
         var _a, _b;
-        const className = Tool.randomString(5);
+        const className = 'um-class';
         const fixedStyle = (() => {
             let style = '';
             if (obj.justify === 'top') {

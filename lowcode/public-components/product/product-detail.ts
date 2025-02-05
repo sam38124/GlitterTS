@@ -81,7 +81,6 @@ export class ProductDetail {
             }
         }
         const glitter = gvc.glitter;
-        const isPhone = document.body.clientWidth < 768;
 
         const vm = {
             data: {} as Product_l,
@@ -128,6 +127,7 @@ export class ProductDetail {
                         <span class="mb-5 fs-5">這個商品目前尚未上架喔！</span>
                     </div>`;
                 }
+
                 const prod = vm.data.content;
                 PdClass.addSpecStyle(gvc);
                 vm.specs =
@@ -183,8 +183,9 @@ export class ProductDetail {
                         book_mark.push(getCollectionLink(dd));
                     });
                 }
-                return html` <div class="container mx-auto " style="max-width:1100px;">
-                    <div class="breadcrumb mb-0   d-flex align-items-center py-3" style="cursor:pointer;gap:10px;">
+
+                return html` <div class="container mx-auto" style="max-width:1100px;">
+                    <div class="breadcrumb mb-0 d-flex align-items-center py-3" style="cursor:pointer; gap:10px;">
                         ${book_mark
                             .map((dd) => {
                                 return html` <li
@@ -339,15 +340,15 @@ export class ProductDetail {
                                               </div>
                                               <div class="w-100 row p-0 align-items-center justify-content-center mt-4 mt-lg-4 mx-0">
                                                   ${product
-                                                          .map((dd: any, index: number) => {
-                                                              return `<div class="col-6 col-sm-4 col-lg-3">${glitter.htmlGenerate.renderComponent({
-                                                                  appName: (window as any).appName,
-                                                                  tag: 'product_widget',
-                                                                  gvc: gvc,
-                                                                  subData: dd,
-                                                              })}</div>`
-                                                          })
-                                                          .join('')}
+                                                      .map((dd: any, index: number) => {
+                                                          return `<div class="col-6 col-sm-4 col-lg-3">${glitter.htmlGenerate.renderComponent({
+                                                              appName: (window as any).appName,
+                                                              tag: 'product_widget',
+                                                              gvc: gvc,
+                                                              subData: dd,
+                                                          })}</div>`;
+                                                      })
+                                                      .join('')}
                                               </div>
                                           `);
                                       });
@@ -377,13 +378,9 @@ export class ProductDetail {
                             minPrice: '',
                             ...(() => {
                                 if (product_id) {
-                                    return {
-                                        id: product_id,
-                                    };
+                                    return { id: product_id };
                                 } else {
-                                    return {
-                                        domain: decodeURIComponent(title),
-                                    };
+                                    return { domain: decodeURIComponent(title) };
                                 }
                             })(),
                             status: 'inRange',
@@ -391,51 +388,47 @@ export class ProductDetail {
                             orderBy: '',
                             with_hide_index: 'true',
                             show_hidden: true,
+                            view_source: 'normal',
+                            distribution_code: localStorage.getItem('distributionCode') ?? '',
                         };
 
                         Promise.all([
-                            new Promise<{ result: boolean; response: any }>((resolve, reject) => {
-                                ApiUser.getPublicConfig('text-manager', 'manager', (window as any).appName).then((data) => {
-                                    resolve(data);
-                                });
-                            }),
-                            new Promise<{ result: boolean; response: any }>((resolve, reject) => {
-                                ApiShop.getProduct(inputObj).then((data) => {
-                                    resolve(data);
-                                });
-                            }),
-                            new Promise<{ result: boolean; response: any }>((resolve, reject) => {
-                                ApiShop.getWishList().then((data) => {
-                                    resolve(data);
-                                });
-                            }),
-                        ]).then((dataArray) => {
-                            if (dataArray[0].result && dataArray[0].response.value) {
-                                vm.content_manager = dataArray[0].response.value;
+                            // 商品描述
+                            ApiUser.getPublicConfig('text-manager', 'manager', (window as any).appName),
+                            // 商品詳細資料
+                            ApiShop.getProduct(inputObj),
+                            // 心願單
+                            ApiShop.getWishList(),
+                        ]).then((results) => {
+                            const [publicConfig, productData, wishListData] = results;
+
+                            if (publicConfig.result && publicConfig.response.value) {
+                                vm.content_manager = publicConfig.response.value;
                             }
-                            if (dataArray[1].result && dataArray[1].response.data) {
+                            if (productData.result && productData.response.data) {
                                 try {
-                                    if (Array.isArray(dataArray[1].response.data)) {
-                                        vm.data = dataArray[1].response.data[0];
+                                    if (Array.isArray(productData.response.data)) {
+                                        vm.data = productData.response.data[0];
                                     } else {
-                                        vm.data = dataArray[1].response.data;
+                                        vm.data = productData.response.data;
                                     }
-                                    glitter.setUrlParameter('page', 'products/' + encodeURIComponent(vm.data.content.seo.domain || vm.data.content.title), [
-                                        (window as any).home_seo.title_prefix ?? "",
-                                        (vm.data.content.seo.domain || vm.data.content.title),
-                                        (window as any).home_seo.title_suffix ?? "",
-                                    ].join(''));
+                                    glitter.setUrlParameter(
+                                        'page',
+                                        'products/' + encodeURIComponent(vm.data.content.seo.domain || vm.data.content.title),
+                                        [(window as any).home_seo.title_prefix ?? '', vm.data.content.seo.domain || vm.data.content.title, (window as any).home_seo.title_suffix ?? ''].join('')
+                                    );
                                     //如有原先的JSON LD
-                                    const json_ld=document.querySelector('script[type="application/ld+json"]');
-                                    if(json_ld){json_ld.remove()};
-                                    (document.querySelector('head') as any).innerHTML+=(vm.data as any).json_ld;
-                                    console.log(`(vm.data as any).json_ld=>`,(vm.data as any).json_ld)
+                                    const json_ld = document.querySelector('script[type="application/ld+json"]');
+                                    if (json_ld) {
+                                        json_ld.remove();
+                                    }
+                                    (document.querySelector('head') as any).innerHTML += (vm.data as any).json_ld;
                                 } catch (e) {
                                     (vm.data as any) = {};
                                 }
                             }
-                            if (dataArray[2].result && dataArray[2].response.data) {
-                                vm.wishStatus = dataArray[2].response.data.some((item: Product_l) => item.id === vm.data.id);
+                            if (wishListData.result && wishListData.response.data) {
+                                vm.wishStatus = wishListData.response.data.some((item: Product_l) => item.id === vm.data.id);
                             }
                             loadings.page = false;
                             gvc.notifyDataChange(ids.page);

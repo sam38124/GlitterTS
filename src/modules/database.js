@@ -103,7 +103,7 @@ const queryLambada = async (cf, fun) => {
     const sp = promise_1.default.createPool(cs);
     const connection = await sp.getConnection();
     if (connection) {
-        await connection.release();
+        connection.release();
         config_1.default.DB_SHOW_INFO && logger.info(TAG, 'Pool has been created. (function: queryLambada)');
     }
     try {

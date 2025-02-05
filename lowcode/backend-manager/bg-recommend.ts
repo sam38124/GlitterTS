@@ -33,8 +33,10 @@ type RecommendLink = {
     voucher: number;
     startDate: string;
     startTime: string;
+    start_ISO_Date: string;
     endDate: string | undefined;
     endTime: string | undefined;
+    end_ISO_Date: string | undefined;
     recommend_medium: string[];
     relative_data: string[] | string;
     recommend_user: {
@@ -90,33 +92,31 @@ export class BgRecommend {
                         return BgWidget.spinner();
                     }
                     if (vm.type === 'list') {
-                        return BgWidget.container(
-                            html`
-                                <div class="title-container">
-                                    ${BgWidget.title('分銷連結')}
-                                    <div class="flex-fill"></div>
-                                    ${BgWidget.darkButton(
-                                        '新增',
-                                        gvc.event(() => {
-                                            vm.type = 'add';
-                                            gvc.notifyDataChange(vm.id);
-                                        })
-                                    )}
-                                </div>
-                                ${BgWidget.container(
-                                    BgWidget.mainCard(
-                                        this.linkTable({
-                                            gvc,
-                                            vm,
-                                            rowCallback: (data, index: number) => {
-                                                vm.editData = vm.dataList[index];
-                                                vm.type = 'replace';
-                                            },
-                                        })
-                                    )
+                        return BgWidget.container(html`
+                            <div class="title-container">
+                                ${BgWidget.title('分銷連結')}
+                                <div class="flex-fill"></div>
+                                ${BgWidget.darkButton(
+                                    '新增',
+                                    gvc.event(() => {
+                                        vm.type = 'add';
+                                        gvc.notifyDataChange(vm.id);
+                                    })
                                 )}
-                            `
-                        );
+                            </div>
+                            ${BgWidget.container(
+                                BgWidget.mainCard(
+                                    this.linkTable({
+                                        gvc,
+                                        vm,
+                                        rowCallback: (data, index: number) => {
+                                            vm.editData = vm.dataList[index];
+                                            vm.type = 'replace';
+                                        },
+                                    })
+                                )
+                            )}
+                        `);
                     } else if (vm.type === 'add') {
                         return this.editorLink({
                             gvc: gvc,
@@ -396,148 +396,144 @@ export class BgRecommend {
                 dataList: [{ obj: vm, key: 'type' }],
                 view: () => {
                     if (vm.type === 'list') {
-                        return BgWidget.container(
-                            html`
-                                <div class="title-container">
-                                    ${BgWidget.title('推薦人列表')}
-                                    <div class="flex-fill"></div>
-                                    ${BgWidget.darkButton(
-                                        '新增',
-                                        gvc.event(() => {
-                                            vm.type = 'add';
-                                            gvc.notifyDataChange(vm.id);
-                                        })
-                                    )}
-                                </div>
-                                ${BgWidget.container(
-                                    BgWidget.mainCard(
-                                        [
-                                            (() => {
-                                                const fvm = {
-                                                    id: gvc.glitter.getUUID(),
-                                                    loading: true,
-                                                    levelList: [] as any,
-                                                };
-                                                return gvc.bindView({
-                                                    bind: fvm.id,
-                                                    view: () => {
-                                                        if (fvm.loading) {
-                                                            return '';
-                                                        }
-                                                        const filterList = [
-                                                            BgWidget.selectFilter({
-                                                                gvc,
-                                                                callback: (value: any) => {
-                                                                    vm.queryType = value;
-                                                                    gvc.notifyDataChange(vm.tableId);
-                                                                    gvc.notifyDataChange(fvm.id);
-                                                                },
-                                                                default: vm.queryType || 'name',
-                                                                options: FilterOptions.recommendUserSelect,
-                                                            }),
-                                                            BgWidget.searchFilter(
-                                                                gvc.event((e) => {
-                                                                    vm.query = `${e.value}`.trim();
-                                                                    gvc.notifyDataChange(vm.tableId);
-                                                                    gvc.notifyDataChange(fvm.id);
-                                                                }),
-                                                                vm.query || '',
-                                                                '搜尋推薦人'
-                                                            ),
-                                                            // BgWidget.funnelFilter({
-                                                            //     gvc,
-                                                            //     callback: () => ListComp.showRightMenu(FilterOptions.userFunnel),
-                                                            // }),
-                                                            BgWidget.updownFilter({
-                                                                gvc,
-                                                                callback: (value: any) => {
-                                                                    vm.orderString = value;
-                                                                    gvc.notifyDataChange(vm.tableId);
-                                                                    gvc.notifyDataChange(fvm.id);
-                                                                },
-                                                                default: vm.orderString || 'default',
-                                                                options: FilterOptions.recommendUserOrderBy,
-                                                            }),
-                                                        ];
-
-                                                        if (document.body.clientWidth < 768) {
-                                                            // 手機版
-                                                            return html` <div style="display: flex; align-items: center; gap: 10px; width: 100%; justify-content: space-between">
-                                                                    <div>${filterList[0]}</div>
-                                                                    <div style="display: flex;">
-                                                                        ${filterList[2] ? `<div class="me-2">${filterList[2]}</div>` : ''}
-                                                                    </div>
-                                                                </div>
-                                                                <div style="display: flex; margin-top: 8px;">${filterList[1]}</div>`;
-                                                        } else {
-                                                            // 電腦版
-                                                            return html` <div style="display: flex; align-items: center; gap: 10px;">${filterList.join('')}</div>`;
-                                                        }
-                                                    },
-                                                    divCreate: {
-                                                        class: 'mb-3',
-                                                    },
-                                                    onCreate: () => {
-                                                        if (fvm.loading) {
-                                                            setTimeout(() => {
-                                                                fvm.loading = false;
-                                                                gvc.notifyDataChange(fvm.id);
-                                                            }, 100);
-                                                        }
-                                                    },
-                                                });
-                                            })(),
-                                            gvc.bindView({
-                                                bind: vm.tableId,
-                                                view: () => {
-                                                    return BgWidget.tableV3({
-                                                        gvc: gvc,
-                                                        getData: async (vd) => {
-                                                            vmi = vd;
-                                                            const limit = 15;
-                                                            ApiRecommend.getUsers({
-                                                                data: {},
-                                                                limit: limit,
-                                                                page: vmi.page - 1,
-                                                                token: (window.parent as any).config.token,
-                                                                search: vm.query,
-                                                                searchType: vm.queryType,
-                                                                orderBy: vm.orderString,
-                                                            }).then((data) => {
-                                                                vm.dataList = data.response.data;
-                                                                vmi.pageSize = Math.ceil(data.response.total / limit);
-                                                                vmi.originalData = vm.dataList;
-                                                                vmi.tableData = getDatalist();
-                                                                vmi.loading = false;
-                                                                vmi.callback();
-                                                            });
-                                                        },
-                                                        rowClick: (data, index) => {
-                                                            vm.editData = vm.dataList[index];
-                                                            vm.type = 'replace';
-                                                        },
-                                                        filter: [
-                                                            {
-                                                                name: '批量移除',
-                                                                event: (checkedData) => {
-                                                                    this.deleteUser({
-                                                                        gvc: gvc,
-                                                                        ids: checkedData.map((dd: any) => dd.id),
-                                                                        callback: () => {
-                                                                            gvc.notifyDataChange(vm.id);
-                                                                        },
-                                                                    });
-                                                                },
-                                                            },
-                                                        ],
-                                                    });
-                                                },
-                                            }),
-                                        ].join('')
-                                    )
+                        return BgWidget.container(html`
+                            <div class="title-container">
+                                ${BgWidget.title('推薦人列表')}
+                                <div class="flex-fill"></div>
+                                ${BgWidget.darkButton(
+                                    '新增',
+                                    gvc.event(() => {
+                                        vm.type = 'add';
+                                        gvc.notifyDataChange(vm.id);
+                                    })
                                 )}
-                            `
-                        );
+                            </div>
+                            ${BgWidget.container(
+                                BgWidget.mainCard(
+                                    [
+                                        (() => {
+                                            const fvm = {
+                                                id: gvc.glitter.getUUID(),
+                                                loading: true,
+                                                levelList: [] as any,
+                                            };
+                                            return gvc.bindView({
+                                                bind: fvm.id,
+                                                view: () => {
+                                                    if (fvm.loading) {
+                                                        return '';
+                                                    }
+                                                    const filterList = [
+                                                        BgWidget.selectFilter({
+                                                            gvc,
+                                                            callback: (value: any) => {
+                                                                vm.queryType = value;
+                                                                gvc.notifyDataChange(vm.tableId);
+                                                                gvc.notifyDataChange(fvm.id);
+                                                            },
+                                                            default: vm.queryType || 'name',
+                                                            options: FilterOptions.recommendUserSelect,
+                                                        }),
+                                                        BgWidget.searchFilter(
+                                                            gvc.event((e) => {
+                                                                vm.query = `${e.value}`.trim();
+                                                                gvc.notifyDataChange(vm.tableId);
+                                                                gvc.notifyDataChange(fvm.id);
+                                                            }),
+                                                            vm.query || '',
+                                                            '搜尋推薦人'
+                                                        ),
+                                                        // BgWidget.funnelFilter({
+                                                        //     gvc,
+                                                        //     callback: () => ListComp.showRightMenu(FilterOptions.userFunnel),
+                                                        // }),
+                                                        BgWidget.updownFilter({
+                                                            gvc,
+                                                            callback: (value: any) => {
+                                                                vm.orderString = value;
+                                                                gvc.notifyDataChange(vm.tableId);
+                                                                gvc.notifyDataChange(fvm.id);
+                                                            },
+                                                            default: vm.orderString || 'default',
+                                                            options: FilterOptions.recommendUserOrderBy,
+                                                        }),
+                                                    ];
+
+                                                    if (document.body.clientWidth < 768) {
+                                                        // 手機版
+                                                        return html` <div style="display: flex; align-items: center; gap: 10px; width: 100%; justify-content: space-between">
+                                                                <div>${filterList[0]}</div>
+                                                                <div style="display: flex;">${filterList[2] ? `<div class="me-2">${filterList[2]}</div>` : ''}</div>
+                                                            </div>
+                                                            <div style="display: flex; margin-top: 8px;">${filterList[1]}</div>`;
+                                                    } else {
+                                                        // 電腦版
+                                                        return html` <div style="display: flex; align-items: center; gap: 10px;">${filterList.join('')}</div>`;
+                                                    }
+                                                },
+                                                divCreate: {
+                                                    class: 'mb-3',
+                                                },
+                                                onCreate: () => {
+                                                    if (fvm.loading) {
+                                                        setTimeout(() => {
+                                                            fvm.loading = false;
+                                                            gvc.notifyDataChange(fvm.id);
+                                                        }, 100);
+                                                    }
+                                                },
+                                            });
+                                        })(),
+                                        gvc.bindView({
+                                            bind: vm.tableId,
+                                            view: () => {
+                                                return BgWidget.tableV3({
+                                                    gvc: gvc,
+                                                    getData: async (vd) => {
+                                                        vmi = vd;
+                                                        const limit = 15;
+                                                        ApiRecommend.getUsers({
+                                                            data: {},
+                                                            limit: limit,
+                                                            page: vmi.page - 1,
+                                                            token: (window.parent as any).config.token,
+                                                            search: vm.query,
+                                                            searchType: vm.queryType,
+                                                            orderBy: vm.orderString,
+                                                        }).then((data) => {
+                                                            vm.dataList = data.response.data;
+                                                            vmi.pageSize = Math.ceil(data.response.total / limit);
+                                                            vmi.originalData = vm.dataList;
+                                                            vmi.tableData = getDatalist();
+                                                            vmi.loading = false;
+                                                            vmi.callback();
+                                                        });
+                                                    },
+                                                    rowClick: (data, index) => {
+                                                        vm.editData = vm.dataList[index];
+                                                        vm.type = 'replace';
+                                                    },
+                                                    filter: [
+                                                        {
+                                                            name: '批量移除',
+                                                            event: (checkedData) => {
+                                                                this.deleteUser({
+                                                                    gvc: gvc,
+                                                                    ids: checkedData.map((dd: any) => dd.id),
+                                                                    callback: () => {
+                                                                        gvc.notifyDataChange(vm.id);
+                                                                    },
+                                                                });
+                                                            },
+                                                        },
+                                                    ],
+                                                });
+                                            },
+                                        }),
+                                    ].join('')
+                                )
+                            )}
+                        `);
                     } else if (vm.type === 'add') {
                         return this.editorUser({
                             gvc: gvc,
@@ -884,70 +880,72 @@ export class BgRecommend {
                                                                         if (newOrder.productCheck.length) {
                                                                             newOrder.productCheck.map((product: any, index: number) => {
                                                                                 let selectVariant = product.content.variants[parseInt(product.selectIndex ?? 0)];
-                                                                                selectVariant.preview_image=selectVariant.preview_image ?? ''
+                                                                                selectVariant.preview_image = selectVariant.preview_image ?? '';
                                                                                 let productIMG =
                                                                                     typeof selectVariant.preview_image == 'string' ? selectVariant.preview_image : selectVariant.preview_image[0];
                                                                                 productIMG = productIMG
                                                                                     ? productIMG
                                                                                     : product.content.preview_image[0]
-                                                                                        ? product.content.preview_image[0]
-                                                                                        : BgWidget.noImageURL;
+                                                                                      ? product.content.preview_image[0]
+                                                                                      : BgWidget.noImageURL;
                                                                                 selectVariant.qty = selectVariant.qty || 1;
                                                                                 returnHTML += html`
-                                                                                <div style="width: 100%;display: flex;align-items: center;position: relative;padding-right: 20px;">
-                                                                                    <div class="flex-fill d-flex align-items-center col-5" style="font-size: 16px;font-weight: 700;gap: 12px;">
-                                                                                        <div style="width: 54px;height: 54px; background: url('${productIMG}') lightgray 50% / cover no-repeat;"></div>
+                                                                                    <div style="width: 100%;display: flex;align-items: center;position: relative;padding-right: 20px;">
+                                                                                        <div class="flex-fill d-flex align-items-center col-5" style="font-size: 16px;font-weight: 700;gap: 12px;">
+                                                                                            <div
+                                                                                                style="width: 54px;height: 54px; background: url('${productIMG}') lightgray 50% / cover no-repeat;"
+                                                                                            ></div>
+                                                                                            <div
+                                                                                                style="display: flex;flex-direction: column;align-items: flex-start;gap: 4px;width: calc(100% - 54px);padding-right: 15px;"
+                                                                                            >
+                                                                                                <div style="text-overflow: ellipsis;white-space: nowrap;overflow: hidden;width: 100%;">
+                                                                                                    ${product.content.title}
+                                                                                                </div>
+                                                                                            </div>
+                                                                                        </div>
                                                                                         <div
-                                                                                            style="display: flex;flex-direction: column;align-items: flex-start;gap: 4px;width: calc(100% - 54px);padding-right: 15px;"
+                                                                                            class="col-3"
+                                                                                            style="display: flex;padding-right: 40px;align-items: flex-start;font-size: 16px;font-weight: 400;"
                                                                                         >
-                                                                                            <div style="text-overflow: ellipsis;white-space: nowrap;overflow: hidden;width: 100%;">
-                                                                                                ${product.content.title}
+                                                                                            $${(() => {
+                                                                                                const price = parseInt(`${selectVariant.sale_price}`, 10);
+                                                                                                return isNaN(price) ? 0 : price.toLocaleString();
+                                                                                            })()}
+                                                                                        </div>
+                                                                                        <div style="min-width: 6%;font-size: 16px;font-weight: 400;width: 100px;text-align: right;">
+                                                                                            <span>$${(selectVariant.sale_price * selectVariant.qty).toLocaleString()}</span>
+                                                                                            <div
+                                                                                                class="d-flex align-items-center cursor_pointer"
+                                                                                                style="position: absolute;right:0;top:50%;transform: translateY(-50%)"
+                                                                                                onclick="${gvc.event(() => {
+                                                                                                    newOrder.productCheck.splice(index, 1);
+                                                                                                    gvc.notifyDataChange('listProduct');
+                                                                                                })}"
+                                                                                            >
+                                                                                                <svg xmlns="http://www.w3.org/2000/svg" width="11" height="10" viewBox="0 0 11 10" fill="none">
+                                                                                                    <path
+                                                                                                        d="M1.51367 9.24219L9.99895 0.756906"
+                                                                                                        stroke="#DDDDDD"
+                                                                                                        stroke-width="1.3"
+                                                                                                        stroke-linecap="round"
+                                                                                                    />
+                                                                                                    <path
+                                                                                                        d="M9.99805 9.24219L1.51276 0.756907"
+                                                                                                        stroke="#DDDDDD"
+                                                                                                        stroke-width="1.3"
+                                                                                                        stroke-linecap="round"
+                                                                                                    />
+                                                                                                </svg>
                                                                                             </div>
                                                                                         </div>
                                                                                     </div>
-                                                                                    <div
-                                                                                        class="col-3"
-                                                                                        style="display: flex;padding-right: 40px;align-items: flex-start;font-size: 16px;font-weight: 400;"
-                                                                                    >
-                                                                                        $${(() => {
-                                                                                    const price = parseInt(`${selectVariant.sale_price}`, 10);
-                                                                                    return isNaN(price) ? 0 : price.toLocaleString();
-                                                                                })()}
-                                                                                    </div>
-                                                                                    <div style="min-width: 6%;font-size: 16px;font-weight: 400;width: 100px;text-align: right;">
-                                                                                        <span>$${(selectVariant.sale_price * selectVariant.qty).toLocaleString()}</span>
-                                                                                        <div
-                                                                                            class="d-flex align-items-center cursor_pointer"
-                                                                                            style="position: absolute;right:0;top:50%;transform: translateY(-50%)"
-                                                                                            onclick="${gvc.event(() => {
-                                                                                    newOrder.productCheck.splice(index, 1);
-                                                                                    gvc.notifyDataChange('listProduct');
-                                                                                })}"
-                                                                                        >
-                                                                                            <svg xmlns="http://www.w3.org/2000/svg" width="11" height="10" viewBox="0 0 11 10" fill="none">
-                                                                                                <path
-                                                                                                    d="M1.51367 9.24219L9.99895 0.756906"
-                                                                                                    stroke="#DDDDDD"
-                                                                                                    stroke-width="1.3"
-                                                                                                    stroke-linecap="round"
-                                                                                                />
-                                                                                                <path
-                                                                                                    d="M9.99805 9.24219L1.51276 0.756907"
-                                                                                                    stroke="#DDDDDD"
-                                                                                                    stroke-width="1.3"
-                                                                                                    stroke-linecap="round"
-                                                                                                />
-                                                                                            </svg>
-                                                                                        </div>
-                                                                                    </div>
-                                                                                </div>
-                                                                            `;
+                                                                                `;
                                                                             });
                                                                         }
                                                                         return returnHTML;
-                                                                    }catch (e) {
-                                                                        console.log(e)
-                                                                        return  `error`
+                                                                    } catch (e) {
+                                                                        console.log(e);
+                                                                        return `error`;
                                                                     }
                                                                 },
                                                                 divCreate: {
@@ -967,20 +965,20 @@ export class BgRecommend {
                                                                                 // productData.content
                                                                                 BgProduct.productsDialog({
                                                                                     gvc: gvc,
-                                                                                    default: newOrder.productCheck.map((dd:any)=>{
-                                                                                        return dd.id
+                                                                                    default: newOrder.productCheck.map((dd: any) => {
+                                                                                        return dd.id;
                                                                                     }),
                                                                                     callback: async (value) => {
-                                                                                        const dialog=new ShareDialog(glitter)
-                                                                                        dialog.dataLoading({visible:true})
-                                                                                        const pd=await ApiShop.getProduct({limit:1000,page:0,id_list:value.join(',')});
-                                                                                        newOrder.productCheck=pd.response.data;
-                                                                                        dialog.dataLoading({visible:false})
+                                                                                        const dialog = new ShareDialog(glitter);
+                                                                                        dialog.dataLoading({ visible: true });
+                                                                                        const pd = await ApiShop.getProduct({ limit: 1000, page: 0, id_list: value.join(',') });
+                                                                                        newOrder.productCheck = pd.response.data;
+                                                                                        dialog.dataLoading({ visible: false });
                                                                                         gvc.notifyDataChange(id);
                                                                                     },
                                                                                     filter: (d1) => {
-                                                                                        return !newOrder.productCheck.find((dd:any)=>{
-                                                                                            return dd.id===d1
+                                                                                        return !newOrder.productCheck.find((dd: any) => {
+                                                                                            return dd.id === d1;
                                                                                         });
                                                                                     },
                                                                                 });
@@ -1503,7 +1501,7 @@ export class BgRecommend {
                                                                                         BgWidget.editeInput({
                                                                                             gvc: gvc,
                                                                                             title: '',
-                                                                                            default: user ? user.content.name : vm.data.recommend_user.name ?? '',
+                                                                                            default: user ? user.content.name : (vm.data.recommend_user.name ?? ''),
                                                                                             placeHolder: '請輸入名字',
                                                                                             callback: (text) => {
                                                                                                 vm.data.recommend_user.name = text;
@@ -1522,7 +1520,7 @@ export class BgRecommend {
                                                                                                         return BgWidget.editeInput({
                                                                                                             gvc: gvc,
                                                                                                             title: '',
-                                                                                                            default: user ? user.content.email : vm.data.recommend_user.email ?? '',
+                                                                                                            default: user ? user.content.email : (vm.data.recommend_user.email ?? ''),
                                                                                                             placeHolder: '請輸入電子信箱',
                                                                                                             callback: (text) => {
                                                                                                                 if (vm.users.find((user) => user.email === text)) {
@@ -1542,7 +1540,7 @@ export class BgRecommend {
                                                                                         BgWidget.editeInput({
                                                                                             gvc: gvc,
                                                                                             title: '',
-                                                                                            default: user ? user.content.phone : vm.data.recommend_user.phone ?? '',
+                                                                                            default: user ? user.content.phone : (vm.data.recommend_user.phone ?? ''),
                                                                                             placeHolder: '請輸入電話',
                                                                                             callback: (text) => {
                                                                                                 vm.data.recommend_user.phone = text;
@@ -1709,8 +1707,8 @@ export class BgRecommend {
                                                                 vm.data.recommend_user.id
                                                                     ? getRecommender(vm.users, vm.data.recommend_user)
                                                                     : vm.data.recommend_user.name.length > 0
-                                                                    ? vm.data.recommend_user.name
-                                                                    : '尚未選擇推薦人'
+                                                                      ? vm.data.recommend_user.name
+                                                                      : '尚未選擇推薦人'
                                                             }`,
                                                             `推薦媒介: ${
                                                                 vm.data.recommend_medium.length > 0
@@ -1800,9 +1798,13 @@ export class BgRecommend {
                                             }
                                         }
 
-                                        let lineItems: any = [];
-
                                         vm.data.lineItems = newOrder.productCheck;
+                                        vm.data.start_ISO_Date = new Date(`${vm.data.startDate} ${vm.data.startTime}`).toISOString();
+                                        if (vm.data.endDate && vm.data.endTime) {
+                                            vm.data.end_ISO_Date = new Date(`${vm.data.endDate} ${vm.data.endTime}`).toISOString();
+                                        } else {
+                                            vm.data.end_ISO_Date = '';
+                                        }
 
                                         dialog.dataLoading({ visible: true });
                                         if (vm.readonly) {

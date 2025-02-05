@@ -15,30 +15,31 @@ import { CheckInput } from '../../modules/checkInput.js';
 import { Ad } from '../public/ad.js';
 import { Language } from '../../glitter-base/global/language.js';
 import { Currency } from '../../glitter-base/global/currency.js';
-import { ProductInitial } from "../../public-models/product.js";
+import { ProductInitial } from '../../public-models/product.js';
 const html = String.raw;
+const css = String.raw;
 export class PdClass {
     static jumpAlert(obj) {
         var _a, _b;
-        const className = Tool.randomString(5);
+        const className = 'pd-class';
         const fixedStyle = (() => {
-            let style = '';
+            const styles = [];
             if (obj.justify === 'top') {
-                style += `top: 90px;`;
+                styles.push('top: 90px;');
             }
             else if (obj.justify === 'bottom') {
-                style += `bottom: 24px;`;
+                styles.push('bottom: 24px;');
             }
             if (obj.align === 'left') {
-                style += `left: 12px;`;
+                styles.push('left: 12px;');
             }
             else if (obj.align === 'center') {
-                style += `left: 50%; right: 50%;`;
+                styles.push('left: 50%; right: 50%;');
             }
             else if (obj.align === 'right') {
-                style += `right: 12px;`;
+                styles.push('right: 12px;');
             }
-            return style;
+            return styles.join(' ');
         })();
         const transX = obj.align === 'center' ? '-50%' : '0';
         obj.gvc.addStyle(`
@@ -67,8 +68,7 @@ export class PdClass {
                 }
             }
         `);
-        const htmlString = html `
-            <div class="bounce-effect-${className}">${obj.text}</div>`;
+        const htmlString = html ` <div class="bounce-effect-${className}">${obj.text}</div>`;
         obj.gvc.glitter.document.body.insertAdjacentHTML('beforeend', htmlString);
         setTimeout(() => {
             const element = document.querySelector(`.bounce-effect-${className}`);
@@ -106,7 +106,6 @@ export class PdClass {
         const borderButtonText = (_c = glitter.share.globalValue['theme_color.0.border-button-text']) !== null && _c !== void 0 ? _c : '#333333';
         const solidButtonBgr = (_d = glitter.share.globalValue['theme_color.0.solid-button-bg']) !== null && _d !== void 0 ? _d : '#dddddd';
         const solidButtonText = (_e = glitter.share.globalValue['theme_color.0.solid-button-text']) !== null && _e !== void 0 ? _e : '#000000';
-        const css = String.raw;
         gvc.glitter.addStyle(css `
             .add-wish-container {
                 align-items: center;
@@ -214,51 +213,49 @@ export class PdClass {
     }
     static addCartAction(obj) {
         obj.gvc.glitter.innerDialog((gvc) => {
-            return html `
-                <div class="bg-white shadow rounded-3"
-                     style="overflow-y: auto; ${document.body.clientWidth > 768 ? `min-width: 400px; width: 1000px;` : 'width:calc(100vw - 20px);'}">
-                    <div class="bg-white shadow rounded-3" style="width: 100%; overflow-y: auto; position: relative;">
-                        <div class="w-100 d-flex align-items-center p-3 border-bottom"
-                             style="position: sticky; top: 0; background: #fff;z-index:12;">
-                            <div class="fw-bold fs-5"
-                                 style="color:${obj.titleFontColor}; white-space: nowrap;text-overflow: ellipsis;max-width: calc(100% - 40px); overflow: hidden;">
-                                ${obj.prod.title}
-                            </div>
-                            <div class="flex-fill"></div>
-                            <i
-                                    class="fa-regular fa-circle-xmark fs-5 text-dark"
-                                    style="cursor: pointer"
-                                    onclick="${gvc.event(() => {
+            return html ` <div class="bg-white shadow rounded-3" style="overflow-y: auto; ${document.body.clientWidth > 768 ? `min-width: 400px; width: 1000px;` : 'width:calc(100vw - 20px);'}">
+                <div class="bg-white shadow rounded-3" style="width: 100%; overflow-y: auto; position: relative;">
+                    <div class="w-100 d-flex align-items-center p-3 border-bottom" style="position: sticky; top: 0; background: #fff;z-index:12;">
+                        <div class="fw-bold fs-5" style="color:${obj.titleFontColor}; white-space: nowrap;text-overflow: ellipsis;max-width: calc(100% - 40px); overflow: hidden;">
+                            ${obj.prod.title}
+                        </div>
+                        <div class="flex-fill"></div>
+                        <i
+                            class="fa-regular fa-circle-xmark fs-5 text-dark"
+                            style="cursor: pointer"
+                            onclick="${gvc.event(() => {
                 gvc.closeDialog();
             })}"
-                            ></i>
-                        </div>
-                        <div class="c_dialog">
-                            <div class="c_dialog_body">
-                                <div class="c_dialog_main"
-                                     style="gap: 24px;  max-height: calc(100vh - 100px); ${document.body.clientWidth < 800 ? `padding: 12px 20px;` : `padding: 30px;`}">
-                                    ${PdClass.selectSpec({
+                        ></i>
+                    </div>
+                    <div class="c_dialog">
+                        <div class="c_dialog_body">
+                            <div class="c_dialog_main" style="gap: 24px;  max-height: calc(100vh - 100px); ${document.body.clientWidth < 800 ? `padding: 12px 20px;` : `padding: 30px;`}">
+                                ${PdClass.selectSpec({
                 gvc,
                 titleFontColor: obj.titleFontColor,
                 prod: obj.prod,
                 vm: obj.vm,
                 preview: true,
             })}
-                                </div>
                             </div>
                         </div>
                     </div>
-                </div>`;
+                </div>
+            </div>`;
         }, Tool.randomString(7));
     }
     static showSwiper(obj) {
-        const css = String.raw;
         const isPhone = document.body.clientWidth < 768;
         obj.gvc.glitter.addStyleLink(['https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css']);
-        obj.gvc.glitter.addMtScript([{ src: `https://unpkg.com/@lottiefiles/lottie-player@latest/dist/lottie-player.js` },
-            { src: `https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js` }], () => {
-        }, () => {
-        });
+        obj.gvc.glitter.addMtScript([
+            {
+                src: `https://unpkg.com/@lottiefiles/lottie-player@latest/dist/lottie-player.js`,
+            },
+            {
+                src: `https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js`,
+            },
+        ], () => { }, () => { });
         obj.prod.variants.forEach((variant) => {
             variant.preview_image = variant[`preview_image_${Language.getLanguage()}`] || variant.preview_image;
             if (variant.preview_image && !obj.prod.preview_image.includes(variant.preview_image)) {
@@ -328,14 +325,11 @@ export class PdClass {
                 object-fit: cover;
             }
         `);
-        obj.vm.specs =
-            obj.vm.specs.length > 0
-                ? obj.vm.specs
-                : obj.vm.specs.map((spec) => {
-                    return spec.option[0].title;
-                });
-        obj.prod.preview_image = obj.prod.preview_image.filter((dd) => {
-            return dd !== 'https://d3jnmi1tfjgtti.cloudfront.net/file/234285319/1722936949034-default_image.jpg';
+        if (obj.vm.specs.length === 0) {
+            obj.vm.specs = obj.vm.specs.map((spec) => spec.option[0].title);
+        }
+        obj.prod.preview_image = obj.prod.preview_image.filter((image) => {
+            return image !== 'https://d3jnmi1tfjgtti.cloudfront.net/file/234285319/1722936949034-default_image.jpg';
         });
         return obj.gvc.bindView(() => {
             const id = obj.gvc.glitter.getUUID();
@@ -343,14 +337,13 @@ export class PdClass {
                 bind: id,
                 view: () => {
                     return html `
-                        <div class="swiper${id}" id="dynamic-swiper${id}" style="position:relative;overflow: hidden;">
+                        <div class="swiper${id}" id="dynamic-swiper${id}" style="width: 500px;position:relative;overflow: hidden;">
                             <div class="swiper-wrapper">
                                 ${obj.prod.preview_image
                         .map((image, index) => {
-                        return html `
-                                                <div class="swiper-slide swiper-slide-def">
-                                                    <img src="${image}" alt="${obj.prod.title}-${index}"/>
-                                                </div>`;
+                        return html ` <div class="swiper-slide swiper-slide-def">
+                                            <img src="${image}" alt="${obj.prod.title}-${index}" />
+                                        </div>`;
                     })
                         .join('')}
                             </div>
@@ -358,26 +351,22 @@ export class PdClass {
                             <div class="swiper-button-next"></div>
                         </div>
                         ${obj.prod.preview_image.length > 1
-                        ? html `
-                                    <div class="swiper-sm${id} mt-2"
-                                         style="height: ${isPhone ? 75 : 100}px; overflow: hidden;">
-                                        <div class="swiper-wrapper">
-                                            ${obj.prod.preview_image
+                        ? html ` <div class="swiper-sm${id} mt-2" style="height: ${isPhone ? 75 : 100}px; overflow: hidden;">
+                                  <div class="swiper-wrapper">
+                                      ${obj.prod.preview_image
                             .map((image, index) => {
-                            return html `
-                                                            <div class="swiper-slide swiper-slide-sm"
-                                                                 data-image-index="${index}">
-                                                                <img src="${image}"
-                                                                     alt="${obj.prod.title}-${index}-sm"/>
-                                                            </div>`;
+                            return html ` <div class="swiper-slide swiper-slide-sm" data-image-index="${index}">
+                                                  <img src="${image}" alt="${obj.prod.title}-${index}-sm" />
+                                              </div>`;
                         })
                             .join('')}
-                                        </div>
-                                    </div>`
-                        : ``} `;
+                                  </div>
+                              </div>`
+                        : ``}
+                    `;
                 },
                 divCreate: {
-                    class: `${obj.class || 'col-12 col-md-6 px-0 px-md-3'}`,
+                    class: `w-100`,
                     option: [{ key: 'id', value: id }],
                     style: `overflow:hidden;position:relative;`,
                 },
@@ -475,7 +464,7 @@ export class PdClass {
             wishStatus: glitter.getUUID(),
             addCartButton: glitter.getUUID(),
             stock_count: glitter.getUUID(),
-            qty_count: glitter.getUUID()
+            qty_count: glitter.getUUID(),
         };
         obj.gvc.addStyle(`
             .insignia {
@@ -489,52 +478,86 @@ export class PdClass {
                 white-space: normal;
                 vertical-align: baseline;
             }
+
+            .insignia-warning {
+                background: #ffe9b2;
+                color: #393939;
+            }
         `);
-        let changePage = (index, type, subData) => {
-        };
+        let changePage = (index, type, subData) => { };
         gvc.glitter.getModule(new URL('./official_event/page/change-page.js', gvc.glitter.root_path).href, (cl) => {
             changePage = cl.changePage;
         });
         const language_data = prod.language_data && prod.language_data[Language.getLanguage()];
         ProductInitial.initial(prod);
+        function eventName(voucher_type) {
+            switch (voucher_type) {
+                case 'giveaway':
+                    return `贈品活動`;
+                case 'add_on_items':
+                    return `加價購活動`;
+                case 'discount':
+                    return `折扣活動`;
+                case 'rebate':
+                    return `回饋金活動`;
+                case 'shipment_free':
+                    return `免運費活動`;
+            }
+        }
+        const aboutVoucherHTML = vm.data && vm.data.about_vouchers && vm.data.about_vouchers.length > 0
+            ? html `<div class="d-flex flex-column gap-2 mt-3">
+                      ${vm.data.about_vouchers
+                .map((v) => {
+                return html `
+                                  <div class="d-flex gap-2 align-items-center">
+                                      <div class="insignia insignia-warning">${eventName(v.reBackType)}</div>
+                                      <div class="fw-500">${v.title}</div>
+                                  </div>
+                              `;
+            })
+                .join('')}
+                  </div>`
+            : '';
         return html `
-            <div class="d-flex flex-column flex-lg-row w-100"
-                 style="gap:${document.body.clientWidth > 800 ? 40 : 20}px;">
-                ${obj.preview
+            <div class="d-flex flex-column flex-lg-row w-100" style="gap:${this.isPhone() ? 20 : 40}px;">
+                <div class="w-100">
+                    <div class="w-100">
+                        ${obj.preview
             ? PdClass.showSwiper({
                 gvc: gvc,
                 prod: obj.prod,
                 vm: obj.vm,
-                class: `w-100`,
             })
             : ``}
+                    </div>
+                    <div class="w-100">${aboutVoucherHTML}</div>
+                </div>
                 <div class="w-100">
-                  
-                    <h1 class=""
-                        style="color: ${titleFontColor};font-size:${document.body.clientWidth > 991 ? `36` : `24`}px;">
-                        ${prod.title}</h1>
+                    <h1 style="color: ${titleFontColor};font-size:${document.body.clientWidth > 991 ? `36` : `24`}px;">${prod.title}</h1>
                     <div class="d-flex flex-wrap" style="gap:10px;">
-                        ${prod.product_tag.language[Language.getLanguage()].map((tag) => {
-            return `<div class="mb-3 rounded-1 text-white d-flex align-items-center justify-content-center px-2 " style="background: ${glitter.share.globalValue['theme_color.0.solid-button-bg']};font-size: 13px;">${tag}</div>`;
-        }).join('')}
+                        ${prod.product_tag.language[Language.getLanguage()]
+            .map((tag) => {
+            return html `<div
+                                    class="mb-3 rounded-1 text-white d-flex align-items-center justify-content-center px-2 "
+                                    style="background: ${glitter.share.globalValue['theme_color.0.solid-button-bg']};font-size: 13px;"
+                                >
+                                    ${tag}
+                                </div>`;
+        })
+            .join('')}
                     </div>
                     ${prod.min_qty && `${prod.min_qty}` > `1`
-            ? html `
-                                <div class="insignia mx-0 w-auto mt-0 mb-3 fw-500  py-2 me-1"
-                                     style="background: #ffe9b2;margin-left:5px;">
-                                    ${Language.text('min_p_count').replace('_c_', `<span class="fw-bold mx-1">${prod.min_qty}</span>`)}
-                                </div>`
+            ? html ` <div class="insignia mx-0 w-auto mt-0 mb-3 fw-500  py-2 me-1" style="background: #ffe9b2;margin-left:5px;">
+                              ${Language.text('min_p_count').replace('_c_', `<span class="fw-bold mx-1">${prod.min_qty}</span>`)}
+                          </div>`
             : ``}
                     ${prod.max_qty && `${prod.max_qty}` > `1`
-            ? html `
-                                <div class="insignia mx-0 w-auto mt-0 mb-3 fw-500  py-2"
-                                     style="background: #ffe9b2;margin-left:5px;">
-                                    ${Language.text('max_p_count').replace('_c_', `<span class="fw-bold mx-1">${prod.max_qty}</span>`)}
-                                </div>`
+            ? html ` <div class="insignia mx-0 w-auto mt-0 mb-3 fw-500  py-2" style="background: #ffe9b2;margin-left:5px;">
+                              ${Language.text('max_p_count').replace('_c_', `<span class="fw-bold mx-1">${prod.max_qty}</span>`)}
+                          </div>`
             : ``}
-                    ${language_data && language_data.sub_title ? html `
-                        <div class="mb-3">${language_data.sub_title}</div> ` : ``}
-                    <h2 class="" style="color: ${titleFontColor};font-size: 24px;">
+                    ${language_data && language_data.sub_title ? html ` <div class="mb-3">${language_data.sub_title}</div> ` : ``}
+                    <h2 style="color: ${titleFontColor};font-size: 24px;">
                         ${gvc.bindView({
             bind: ids.price,
             view: () => {
@@ -546,18 +569,16 @@ export class PdClass {
         })}
                     </h2>
                     ${gvc.map(prod.specs.map((spec, index1) => {
-            return html `
-                                    <div>
-                                        <h5 class="mb-2" style="color: ${titleFontColor};font-size:14px;">
-                                            ${(spec.language_title && spec.language_title[Language.getLanguage()]) || spec.title}
-                                        </h5>
-                                        <div class="d-flex gap-2 flex-wrap">
-                                            ${gvc.map(spec.option.map((opt) => {
-                return html `
-                                                            <div
-                                                                    gvc-option="spec-option-${index1}"
-                                                                    class="spec-option ${vm.specs[index1] === opt.title ? 'selected-option' : ''}"
-                                                                    onclick="${gvc.event((e) => {
+            return html ` <div>
+                                    <h5 class="mb-2" style="color: ${titleFontColor};font-size:14px;">
+                                        ${(spec.language_title && spec.language_title[Language.getLanguage()]) || spec.title}
+                                    </h5>
+                                    <div class="d-flex gap-2 flex-wrap">
+                                        ${gvc.map(spec.option.map((opt) => {
+                return html ` <div
+                                                    gvc-option="spec-option-${index1}"
+                                                    class="spec-option ${vm.specs[index1] === opt.title ? 'selected-option' : ''}"
+                                                    onclick="${gvc.event((e) => {
                     const allOptions = document.querySelectorAll(`div[gvc-option=spec-option-${index1}]`);
                     allOptions.forEach((option) => {
                         option.classList.remove('selected-option');
@@ -577,15 +598,15 @@ export class PdClass {
                     }
                     gvc.notifyDataChange([ids.price, ids.addCartButton, ids.stock_count, ids.qty_count]);
                 })}"
-                                                            >
+                                                >
                                                     <span style="font-size: 15px; font-weight: 500; letter-spacing: 1.76px;"
-                                                    >${(opt.language_title && opt.language_title[Language.getLanguage()]) || opt.title}</span
+                                                        >${(opt.language_title && opt.language_title[Language.getLanguage()]) || opt.title}</span
                                                     >
-                                                            </div>`;
+                                                </div>`;
             }))}
-                                        </div>
                                     </div>
-                                    <div class="mt-3"></div>`;
+                                </div>
+                                <div class="mt-3"></div>`;
         }))}
                     ${[
             gvc.bindView(() => {
@@ -599,18 +620,18 @@ export class PdClass {
                             `${variant.show_understocking}` !== 'false') {
                             return '';
                         }
-                        return html ` <h5 class="mb-0" style="color: ${titleFontColor};font-size:14px;">
-                                        ${Language.text('quantity')}</h5>
-                                    <div class="d-flex align-items-center" style="color:${titleFontColor};">
-                                        <select
+                        return html `
+                                        <h5 class="mb-0" style="color: ${titleFontColor};font-size:14px;">${Language.text('quantity')}</h5>
+                                        <div class="d-flex align-items-center" style="color:${titleFontColor};">
+                                            <select
                                                 class="form-select custom-select me-2"
                                                 style="border-radius: 5px; color: #575757; width: 100px;height:38px;"
                                                 onchange="${gvc.event((e) => {
                             vm.quantity = e.value;
                             gvc.notifyDataChange([ids.addCartButton, ids.stock_count]);
                         })}"
-                                        >
-                                            ${gvc.map([
+                                            >
+                                                ${gvc.map([
                             ...new Array((() => {
                                 const variant = prod.variants.find((item) => PdClass.ObjCompare(item.spec, vm.specs, true));
                                 if (!variant || variant.show_understocking === 'false') {
@@ -619,35 +640,34 @@ export class PdClass {
                                 return variant.stock < 50 ? variant.stock : 50;
                             })()),
                         ].map((item, index) => {
-                            return html `
-                                                            <option value="${index + 1}">${index + 1}</option>`;
+                            return html ` <option value="${index + 1}">${index + 1}</option>`;
                         }))}
-                                        </select>
-                                        ${prod.unit[Language.getLanguage()] || Language.text('pieces')}
-                                    </div> `;
+                                            </select>
+                                            ${prod.unit[Language.getLanguage()] || Language.text('pieces')}
+                                        </div>
+                                    `;
                     },
                     divCreate: {
-                        class: `flex-column gap-2  ${obj.with_qty === false ? `d-none` : `d-flex`} `
-                    }
+                        class: `flex-column gap-2  ${obj.with_qty === false ? `d-none` : `d-flex`} `,
+                    },
                 };
             }),
             gvc.bindView(() => {
                 return {
                     bind: ids.stock_count,
                     view: () => {
-                        return [(() => {
+                        return [
+                            (() => {
                                 const variant = prod.variants.find((item) => PdClass.ObjCompare(item.spec, vm.specs, true));
-                                if ((variant === null || variant === void 0 ? void 0 : variant.show_understocking) !== 'false') {
+                                if (variant && variant.show_understocking !== 'false') {
+                                    const stockClass = `${variant.stock}` === '0' ? 'text-danger' : '';
                                     return html `
-                                                <div class="${`${variant === null || variant === void 0 ? void 0 : variant.stock}` === '0' ? `text-danger` : ``} fw-500 mt-2"
-                                                     style="font-size:14px;color:${titleFontColor};">
-                                                    ${Language.text('stock_count')}：${variant === null || variant === void 0 ? void 0 : variant.stock}
-                                                </div>`;
+                                                    <div class="${stockClass} fw-500 mt-2" style="font-size: 14px; color: ${titleFontColor};">${Language.text('stock_count')}：${variant.stock}</div>
+                                                `;
                                 }
-                                else {
-                                    return ``;
-                                }
-                            })()].join('');
+                                return '';
+                            })(),
+                        ].join('');
                     },
                     divCreate: {},
                 };
@@ -662,8 +682,7 @@ export class PdClass {
                         return PdClass.ObjCompare(item.spec, vm.specs, true);
                     });
                     if (!variant) {
-                        return html `
-                                        <button class="no-stock w-100" disabled>發生錯誤</button>`;
+                        return html ` <button class="no-stock w-100" disabled>發生錯誤</button>`;
                     }
                     Ad.gtagEvent('view_item', {
                         currency: 'TWD',
@@ -691,15 +710,13 @@ export class PdClass {
                     });
                     if ((variant.stock < parseInt(vm.quantity, 10) || (cartItem && variant.stock < cartItem.count + parseInt(vm.quantity, 10))) &&
                         `${variant.show_understocking}` !== 'false') {
-                        return html `
-                                        <button class="no-stock w-100" disabled>${Language.text('out_of_stock')}
-                                        </button>`;
+                        return html ` <button class="no-stock w-100" disabled>${Language.text('out_of_stock')}</button>`;
                     }
                     return html `
                                     <div
-                                            class="add-cart-imd-btn fw-bold h-100 "
-                                            style="width:calc(50% - 5px);cursor: pointer;"
-                                            onclick="${gvc.event(() => {
+                                        class="add-cart-imd-btn fw-bold h-100 "
+                                        style="width:calc(50% - 5px);cursor: pointer;"
+                                        onclick="${gvc.event(() => {
                         const buy_it = new ApiCart(ApiCart.buyItNow);
                         buy_it.clearCart();
                         buy_it.addToCart(`${prod.id}`, vm.specs, vm.quantity);
@@ -711,9 +728,9 @@ export class PdClass {
                                     </div>
                                     <div class="flex-fill"></div>
                                     <button
-                                            class="add-cart-btn fw-bold "
-                                            style="width:calc(50% - 5px);"
-                                            onclick="${gvc.event(() => {
+                                        class="add-cart-btn fw-bold "
+                                        style="width:calc(50% - 5px);"
+                                        onclick="${gvc.event(() => {
                         if (obj.only_select) {
                             obj.only_select({ id: prod.id, specs: vm.specs });
                         }
@@ -740,12 +757,12 @@ export class PdClass {
                     style: `height: 38px;width:${document.body.clientWidth > 800 ? `400px` : `100%`};`,
                     class: `d-flex mt-3`,
                 },
-            })
+            }),
         ].join('')}
                     <div class="d-flex py-3" style="color: #554233">
                         <span
-                                class="d-flex nav-link p-0 add-wish-container"
-                                onclick="${gvc.event(() => {
+                            class="d-flex nav-link p-0 add-wish-container"
+                            onclick="${gvc.event(() => {
             if (CheckInput.isEmpty(GlobalUser.token)) {
                 changePage('login', 'page', {});
                 return;
@@ -814,11 +831,11 @@ export class PdClass {
                 else {
                     if (vm.wishStatus) {
                         return html ` <i class="fa-solid fa-heart"></i>
-                                            <span>${Language.text('remove_to_wishlist')}</span>`;
+                                                <span>${Language.text('remove_to_wishlist')}</span>`;
                     }
                     else {
                         return html ` <i class="fa-regular fa-heart"></i>
-                                            <span>${Language.text('add_to_wishlist')}</span>`;
+                                                <span>${Language.text('add_to_wishlist')}</span>`;
                     }
                 }
             },

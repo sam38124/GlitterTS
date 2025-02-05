@@ -112,7 +112,6 @@ class SeoConfig {
     }
     static async getProductJsonLd(app_name, pd_content) {
         var _a;
-        console.log(`pd.data.content=>`, pd_content);
         const relative_product = await new shopping_js_1.Shopping(app_name, undefined).getProduct({
             page: 0,
             limit: 100,
@@ -122,7 +121,6 @@ class SeoConfig {
         let preview_image = [variant.preview_image].concat(pd_content.preview_image).filter((dd) => {
             return dd;
         });
-        console.log(`relative_product=>`, relative_product);
         return html `
                 <script type="application/ld+json">
                     ${JSON.stringify({

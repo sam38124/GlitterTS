@@ -3618,7 +3618,7 @@ ${(_c = obj.default) !== null && _c !== void 0 ? _c : ''}</textarea
     }
     static jumpAlert(obj) {
         var _a, _b;
-        const className = Tool.randomString(5);
+        const className = 'bg-widget-class';
         const fixedStyle = (() => {
             let style = '';
             if (obj.justify === 'top') {

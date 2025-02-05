@@ -4270,7 +4270,7 @@ ${obj.default ?? ''}</textarea
         timeout?: number;
         width?: number
     }) {
-        const className = Tool.randomString(5);
+        const className = 'bg-widget-class';
         const fixedStyle = (() => {
             let style = '';
             if (obj.justify === 'top') {

@@ -185,6 +185,8 @@ export declare class Shopping {
         filter_visible?: string;
         language?: string;
         currency_code?: string;
+        view_source?: string;
+        distribution_code?: string;
     }): Promise<{
         data: any;
         result: boolean;
@@ -194,6 +196,12 @@ export declare class Shopping {
         total: any;
         result?: undefined;
     }>;
+    aboutProductVoucher(json: {
+        product: any;
+        userID: string;
+        view_source: string;
+        distribution_code: string;
+    }): Promise<VoucherData[]>;
     querySql(querySql: string[], query: {
         page: number;
         limit: number;

@@ -703,7 +703,7 @@ export class UmClass {
     }
 
     static jumpAlert(obj: { gvc: GVC; text: string; justify: 'top' | 'bottom'; align: 'left' | 'center' | 'right'; timeout?: number; width?: number }) {
-        const className = Tool.randomString(5);
+        const className = 'um-class';
         const fixedStyle = (() => {
             let style = '';
             if (obj.justify === 'top') {

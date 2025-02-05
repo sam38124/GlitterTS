@@ -967,6 +967,8 @@ router.get('/product', async (req: express.Request, resp: express.Response) => {
             show_hidden: `${req.query.show_hidden as any}`,
             productType: req.query.productType as any,
             filter_visible: req.query.filter_visible as any,
+            view_source: req.query.view_source as string,
+            distribution_code: req.query.distribution_code as string,
             language: req.headers['language'] as string,
             currency_code: req.headers['currency_code'] as string,
         });

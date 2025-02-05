@@ -871,6 +871,8 @@ router.get('/product', async (req, resp) => {
             show_hidden: `${req.query.show_hidden}`,
             productType: req.query.productType,
             filter_visible: req.query.filter_visible,
+            view_source: req.query.view_source,
+            distribution_code: req.query.distribution_code,
             language: req.headers['language'],
             currency_code: req.headers['currency_code'],
         });

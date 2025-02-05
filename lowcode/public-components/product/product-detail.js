@@ -71,7 +71,6 @@ export class ProductDetail {
             }
         }
         const glitter = gvc.glitter;
-        const isPhone = document.body.clientWidth < 768;
         const vm = {
             data: {},
             content_manager: [],
@@ -166,8 +165,8 @@ export class ProductDetail {
                         book_mark.push(getCollectionLink(dd));
                     });
                 }
-                return html ` <div class="container mx-auto " style="max-width:1100px;">
-                    <div class="breadcrumb mb-0   d-flex align-items-center py-3" style="cursor:pointer;gap:10px;">
+                return html ` <div class="container mx-auto" style="max-width:1100px;">
+                    <div class="breadcrumb mb-0 d-flex align-items-center py-3" style="cursor:pointer; gap:10px;">
                         ${book_mark
                     .map((dd) => {
                     return html ` <li
@@ -329,69 +328,49 @@ export class ProductDetail {
                 style: 'min-height: 1000px;',
             },
             onCreate: () => {
+                var _a;
                 if (loadings.page) {
                     const title = glitter.getUrlParameter('page').split('products/')[1];
                     if (title || product_id) {
                         const inputObj = Object.assign(Object.assign({ page: 0, limit: 1, collection: '', maxPrice: '', minPrice: '' }, (() => {
                             if (product_id) {
-                                return {
-                                    id: product_id,
-                                };
+                                return { id: product_id };
                             }
                             else {
-                                return {
-                                    domain: decodeURIComponent(title),
-                                };
+                                return { domain: decodeURIComponent(title) };
                             }
-                        })()), { status: 'inRange', channel: 'normal', orderBy: '', with_hide_index: 'true', show_hidden: true });
+                        })()), { status: 'inRange', channel: 'normal', orderBy: '', with_hide_index: 'true', show_hidden: true, view_source: 'normal', distribution_code: (_a = localStorage.getItem('distributionCode')) !== null && _a !== void 0 ? _a : '' });
                         Promise.all([
-                            new Promise((resolve, reject) => {
-                                ApiUser.getPublicConfig('text-manager', 'manager', window.appName).then((data) => {
-                                    resolve(data);
-                                });
-                            }),
-                            new Promise((resolve, reject) => {
-                                ApiShop.getProduct(inputObj).then((data) => {
-                                    resolve(data);
-                                });
-                            }),
-                            new Promise((resolve, reject) => {
-                                ApiShop.getWishList().then((data) => {
-                                    resolve(data);
-                                });
-                            }),
-                        ]).then((dataArray) => {
+                            ApiUser.getPublicConfig('text-manager', 'manager', window.appName),
+                            ApiShop.getProduct(inputObj),
+                            ApiShop.getWishList(),
+                        ]).then((results) => {
                             var _a, _b;
-                            if (dataArray[0].result && dataArray[0].response.value) {
-                                vm.content_manager = dataArray[0].response.value;
+                            const [publicConfig, productData, wishListData] = results;
+                            if (publicConfig.result && publicConfig.response.value) {
+                                vm.content_manager = publicConfig.response.value;
                             }
-                            if (dataArray[1].result && dataArray[1].response.data) {
+                            if (productData.result && productData.response.data) {
                                 try {
-                                    if (Array.isArray(dataArray[1].response.data)) {
-                                        vm.data = dataArray[1].response.data[0];
+                                    if (Array.isArray(productData.response.data)) {
+                                        vm.data = productData.response.data[0];
                                     }
                                     else {
-                                        vm.data = dataArray[1].response.data;
+                                        vm.data = productData.response.data;
                                     }
-                                    glitter.setUrlParameter('page', 'products/' + encodeURIComponent(vm.data.content.seo.domain || vm.data.content.title), [
-                                        (_a = window.home_seo.title_prefix) !== null && _a !== void 0 ? _a : "",
-                                        (vm.data.content.seo.domain || vm.data.content.title),
-                                        (_b = window.home_seo.title_suffix) !== null && _b !== void 0 ? _b : "",
-                                    ].join(''));
+                                    glitter.setUrlParameter('page', 'products/' + encodeURIComponent(vm.data.content.seo.domain || vm.data.content.title), [(_a = window.home_seo.title_prefix) !== null && _a !== void 0 ? _a : '', vm.data.content.seo.domain || vm.data.content.title, (_b = window.home_seo.title_suffix) !== null && _b !== void 0 ? _b : ''].join(''));
                                     const json_ld = document.querySelector('script[type="application/ld+json"]');
                                     if (json_ld) {
                                         json_ld.remove();
                                     }
-                                    ;
                                     document.querySelector('head').innerHTML += vm.data.json_ld;
-                                    console.log(`(vm.data as any).json_ld=>`, vm.data.json_ld);
                                 }
                                 catch (e) {
                                     vm.data = {};
                                 }
                             }
-                            if (dataArray[2].result && dataArray[2].response.data) {
-                                vm.wishStatus = dataArray[2].response.data.some((item) => item.id === vm.data.id);
+                            if (wishListData.result && wishListData.response.data) {
+                                vm.wishStatus = wishListData.response.data.some((item) => item.id === vm.data.id);
                             }
                             loadings.page = false;
                             gvc.notifyDataChange(ids.page);

@@ -95,16 +95,19 @@ class Shopping {
         }
     }
     async getProduct(query) {
-        var _a, _b;
+        var _a, _b, _c, _d, _e;
         try {
-            let store_info = await new user_js_1.User(this.app).getConfigV2({
+            const querySql = [`(content->>'$.type'='product')`];
+            const store_info = await new user_js_1.User(this.app).getConfigV2({
                 key: 'store-information',
                 user_id: 'manager',
             });
-            const store_config = await new user_js_1.User(this.app).getConfigV2({ key: 'store_manager', user_id: 'manager' });
+            const store_config = await new user_js_1.User(this.app).getConfigV2({
+                key: 'store_manager',
+                user_id: 'manager',
+            });
             query.language = (_a = query.language) !== null && _a !== void 0 ? _a : store_info.language_setting.def;
             query.show_hidden = (_b = query.show_hidden) !== null && _b !== void 0 ? _b : 'true';
-            let querySql = [`(content->>'$.type'='product')`];
             if (query.search) {
                 switch (query.searchType) {
                     case 'sku':
@@ -146,7 +149,7 @@ class Shopping {
                 })
                     .join(' or ')})`);
             }
-            if (`${query.id || ''}`) {
+            if (query.id) {
                 if (`${query.id}`.includes(',')) {
                     querySql.push(`id in (${query.id})`);
                 }
@@ -210,15 +213,16 @@ class Shopping {
                     return dd;
                 })
                     .join(',');
-            }
-            query.collection &&
                 querySql.push(`(${query.collection
                     .split(',')
                     .map((dd) => {
                     return query.accurate_search_collection ? `(JSON_CONTAINS(content->'$.collection', '"${dd}"'))` : `(JSON_EXTRACT(content, '$.collection') LIKE '%${dd}%')`;
                 })
                     .join(' or ')})`);
-            query.sku && querySql.push(`(id in ( select product_id from \`${this.app}\`.t_variants where content->>'$.sku'=${database_js_1.default.escape(query.sku)}))`);
+            }
+            if (query.sku) {
+                querySql.push(`(id in ( select product_id from \`${this.app}\`.t_variants where content->>'$.sku'=${database_js_1.default.escape(query.sku)}))`);
+            }
             if (!query.id && query.status === 'active' && query.with_hide_index !== 'true') {
                 querySql.push(`((content->>'$.hideIndex' is NULL) || (content->>'$.hideIndex'='false'))`);
             }
@@ -278,9 +282,15 @@ class Shopping {
                 });
                 querySql.push(`(content->>'$.channel' IS NULL ${channelJoin})`);
             }
-            query.id_list && querySql.push(`(id in (${query.id_list}))`);
-            query.min_price && querySql.push(`(id in (select product_id from \`${this.app}\`.t_variants where content->>'$.sale_price'>=${query.min_price})) `);
-            query.max_price && querySql.push(`(id in (select product_id from \`${this.app}\`.t_variants where content->>'$.sale_price'<=${query.max_price})) `);
+            if (query.id_list) {
+                querySql.push(`(id in (${query.id_list}))`);
+            }
+            if (query.min_price) {
+                querySql.push(`(id in (select product_id from \`${this.app}\`.t_variants where content->>'$.sale_price' >= ${query.min_price}))`);
+            }
+            if (query.max_price) {
+                querySql.push(`(id in (select product_id from \`${this.app}\`.t_variants where content->>'$.sale_price' <= ${query.max_price}))`);
+            }
             const products = await this.querySql(querySql, query);
             const productList = (Array.isArray(products.data) ? products.data : [products.data]).filter((product) => product);
             if (this.token && this.token.userID) {
@@ -318,45 +328,46 @@ class Shopping {
                     return dd;
                 });
             }
-            for (const dd of Array.isArray(products.data) ? products.data : [products.data]) {
-                let total_sale = 0;
-                if (query.language && dd.content.language_data && dd.content.language_data[`${query.language}`]) {
-                    dd.content.seo = dd.content.language_data[`${query.language}`].seo;
-                    dd.content.title = dd.content.language_data[`${query.language}`].title || dd.content.title;
-                    dd.content.content = dd.content.language_data[`${query.language}`].content || dd.content.content;
-                    dd.content.content_array = dd.content.language_data[`${query.language}`].content_array || dd.content.content_array;
-                    dd.content.content_json = dd.content.language_data[`${query.language}`].content_json || dd.content.content_json;
-                    dd.content.preview_image = dd.content.language_data[`${query.language}`].preview_image || dd.content.preview_image;
-                    (dd.content.variants || []).map((variant) => {
+            for (const product of Array.isArray(products.data) ? products.data : [products.data]) {
+                if (!product)
+                    continue;
+                let totalSale = 0;
+                const { language } = query;
+                const { content } = product;
+                if (language && ((_c = content === null || content === void 0 ? void 0 : content.language_data) === null || _c === void 0 ? void 0 : _c[language])) {
+                    const langData = content.language_data[language];
+                    Object.assign(content, {
+                        seo: langData.seo,
+                        title: langData.title || content.title,
+                        content: langData.content || content.content,
+                        content_array: langData.content_array || content.content_array,
+                        content_json: langData.content_json || content.content_json,
+                        preview_image: langData.preview_image || content.preview_image,
+                    });
+                    (content.variants || []).forEach((variant) => {
+                        var _a;
                         variant.stock = 0;
                         variant.sold_out = variant.sold_out || 0;
-                        variant.preview_image = variant[`preview_image_${query.language}`] || variant.preview_image;
+                        variant.preview_image = variant[`preview_image_${language}`] || variant.preview_image;
                         if (variant.preview_image === 'https://d3jnmi1tfjgtti.cloudfront.net/file/234285319/1722936949034-default_image.jpg') {
-                            variant.preview_image = dd.content.preview_image[0];
+                            variant.preview_image = (_a = content.preview_image) === null || _a === void 0 ? void 0 : _a[0];
                         }
-                        Object.keys(variant.stockList).map((dd) => {
-                            if (!store_config.list.find((d1) => {
-                                return d1.id === dd;
-                            })) {
-                                delete variant.stockList[dd];
-                            }
-                            else if (!variant.stockList[dd] || !variant.stockList[dd].count) {
-                                delete variant.stockList[dd];
+                        Object.entries(variant.stockList || {}).forEach(([storeId, stockData]) => {
+                            if (!store_config.list.some((store) => store.id === storeId) || !(stockData === null || stockData === void 0 ? void 0 : stockData.count)) {
+                                delete variant.stockList[storeId];
                             }
                             else {
-                                variant.stockList[dd].count = parseInt(variant.stockList[dd].count, 10);
-                                variant.stock += variant.stockList[dd].count;
+                                variant.stockList[storeId].count = parseInt(stockData.count, 10);
+                                variant.stock += variant.stockList[storeId].count;
                             }
                         });
-                        store_config.list.map((d1) => {
-                            if (!variant.stockList[d1.id]) {
-                                variant.stockList[d1.id] = { count: 0 };
-                            }
+                        store_config.list.forEach((store) => {
+                            variant.stockList[store.id] = variant.stockList[store.id] || { count: 0 };
                         });
-                        total_sale += variant.sold_out;
+                        totalSale += variant.sold_out;
                     });
                 }
-                dd.total_sales = total_sale;
+                product.total_sales = totalSale;
             }
             if (query.domain && products.data[0]) {
                 products.data =
@@ -367,8 +378,40 @@ class Shopping {
                             (dd.content.seo && dd.content.seo.domain === decodeURIComponent(query.domain)));
                     }) || products.data[0];
             }
-            if (query.domain || query.id) {
+            if ((query.domain || query.id) && products.data !== undefined) {
                 products.data.json_ld = await seo_config_js_1.SeoConfig.getProductJsonLd(this.app, products.data.content);
+            }
+            if (this.token && products.total) {
+                const userID = `${this.token.userID}`;
+                const view_source = (_d = query.view_source) !== null && _d !== void 0 ? _d : 'normal';
+                const distribution_code = (_e = query.distribution_code) !== null && _e !== void 0 ? _e : '';
+                if (products.total === 1 && !Array.isArray(products.data)) {
+                    products.data.about_vouchers = await this.aboutProductVoucher({
+                        product: products.data,
+                        userID,
+                        view_source,
+                        distribution_code,
+                    });
+                }
+                else {
+                    await new Promise((resolve) => {
+                        let n = 0;
+                        for (const product of products.data) {
+                            this.aboutProductVoucher({
+                                product,
+                                userID,
+                                view_source,
+                                distribution_code,
+                            }).then((result) => {
+                                product.about_vouchers = result;
+                                n++;
+                                if (n === products.data.length) {
+                                    resolve();
+                                }
+                            });
+                        }
+                    });
+                }
             }
             return products;
         }
@@ -376,6 +419,92 @@ class Shopping {
             console.error(e);
             throw exception_js_1.default.BadRequestError('BAD_REQUEST', 'GetProduct Error:' + e, null);
         }
+    }
+    async aboutProductVoucher(json) {
+        var _a;
+        const userClass = new user_js_1.User(this.app);
+        const userData = (_a = (await userClass.getUserData(json.userID, 'userID'))) !== null && _a !== void 0 ? _a : { userID: -1 };
+        const allVoucher = (await this.querySql([`(content->>'$.type'='voucher')`], {
+            page: 0,
+            limit: 10000,
+        })).data
+            .map((dd) => {
+            return dd.content;
+        })
+            .filter((dd) => {
+            return new Date(dd.start_ISO_Date).getTime() < new Date().getTime() && (!dd.end_ISO_Date || new Date(dd.end_ISO_Date).getTime() > new Date().getTime());
+        });
+        const pass_ids = [];
+        for (const voucher of allVoucher) {
+            const checkLimited = await this.checkVoucherLimited(userData.userID, voucher.id);
+            if (!checkLimited) {
+                continue;
+            }
+            pass_ids.push(voucher.id);
+        }
+        const recommends = await database_js_1.default.query(`SELECT * FROM \`${this.app}\`.t_recommend_links`, []);
+        const recommendData = recommends
+            .map((dd) => dd.content)
+            .filter((dd) => {
+            const isCode = dd.code === json.distribution_code;
+            const startDate = new Date(dd.start_ISO_Date || `${dd.startDate} ${dd.startTime}`);
+            const endDate = dd.end_ISO_Date ? new Date(dd.end_ISO_Date) : dd.endDate ? new Date(`${dd.endDate} ${dd.endTime}`) : null;
+            const isActive = startDate.getTime() < Date.now() && (!endDate || endDate.getTime() > Date.now());
+            return isCode && isActive;
+        });
+        const id = `${json.product.id}`;
+        const collection = json.product.content.collection || [];
+        function checkValidProduct(caseName, caseList) {
+            switch (caseName) {
+                case 'collection':
+                    return caseList.some((d1) => collection.includes(d1));
+                case 'product':
+                    return caseList.some((item) => `${item}` === `${id}`);
+                case 'all':
+                    return true;
+                default:
+                    return false;
+            }
+        }
+        const voucherList = allVoucher
+            .filter((dd) => {
+            return pass_ids.includes(dd.id) && dd.status === 1;
+        })
+            .filter((dd) => {
+            if (!dd.device) {
+                return true;
+            }
+            if (dd.device.length === 0) {
+                return false;
+            }
+            if (json.view_source === 'pos') {
+                return dd.device.includes('pos');
+            }
+            return dd.device.includes('normal');
+        })
+            .filter((dd) => {
+            if (dd.target === 'customer') {
+                return userData && userData.id && dd.targetList.includes(userData.userID);
+            }
+            if (dd.target === 'levels') {
+                if (userData && userData.member) {
+                    const find = userData.member.find((dd) => dd.trigger);
+                    return find && dd.targetList.includes(find.id);
+                }
+                return false;
+            }
+            return true;
+        })
+            .filter((dd) => {
+            if (dd.trigger !== 'distribution') {
+                return checkValidProduct(dd.for, dd.forKey);
+            }
+            if (recommendData.length === 0) {
+                return false;
+            }
+            return checkValidProduct(recommendData[0].relative, recommendData[0].relative_data);
+        });
+        return voucherList;
     }
     async querySql(querySql, query) {
         let sql = `SELECT *
@@ -1651,12 +1780,10 @@ class Shopping {
                 return false;
             }
             switch (cart.orderSource) {
-                case '':
-                case 'manual':
-                case 'normal':
-                    return dd.device.includes('normal');
                 case 'POS':
                     return dd.device.includes('pos');
+                default:
+                    return dd.device.includes('normal');
             }
         })
             .filter((dd) => {
@@ -1665,14 +1792,10 @@ class Shopping {
             }
             if (dd.target === 'levels') {
                 if (userData && userData.member) {
-                    const find = userData.member.find((dd) => {
-                        return dd.trigger;
-                    });
+                    const find = userData.member.find((dd) => dd.trigger);
                     return find && dd.targetList.includes(find.id);
                 }
-                else {
-                    return false;
-                }
+                return false;
             }
             return true;
         })
