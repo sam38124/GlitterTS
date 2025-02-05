@@ -17,7 +17,7 @@ export class Currency {
             }
             else {
                 last_select = Currency.code.find((dd) => {
-                    return dd.currency_code === window.store_info.currency_code;
+                    return dd.currency_code === (window.store_info.currency_code_f_def || window.store_info.currency_code);
                 }).country_code;
             }
         }

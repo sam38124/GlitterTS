@@ -514,6 +514,27 @@ export class ShoppingInformation {
                                                 />
                                             </div>
                                         </div>
+                                        <div class="d-flex flex-column mt-2" style="gap:8px;">
+                                            <div style="color: #393939;font-size: 16px;">預設顯示幣別</div>
+                                            <div style="color: #8D8D8D;font-size:13px;">
+                                                當查無相關幣別支援國家，前台將預設使用此幣別進行顯示
+                                            </div>
+                                            <div class="d-flex align-items-center justify-content-center">
+                                                ${BgWidget.select({
+                            gvc: gvc,
+                            callback: (text) => {
+                                vm.data.currency_code_f_def = text;
+                            },
+                            default: vm.data.currency_code_f_def,
+                            options: Currency.code.map((dd) => {
+                                return {
+                                    key: dd.currency_code,
+                                    value: dd.currency_title
+                                };
+                            })
+                        })}
+                                            </div>
+                                        </div>
                                         ${vm.data.multi_currency ? `<div class="d-flex flex-column " style="gap:8px;">
                                             <div style="color: #393939;font-size: 16px;">啟用貨幣切換</div>
                                             <div style="color: #8D8D8D;font-size:13px;">
