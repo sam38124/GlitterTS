@@ -28,15 +28,22 @@ export class TermsRelated {
                             });
                         });
                     }
+                    else if ((`${glitter.getUrlParameter('page')}`.startsWith(`blogs`))) {
+                        return yield new Promise((resolve, reject) => {
+                            glitter.getModule(new URL('./public-components/blogs/list.js', gvc.glitter.root_path).href, (res) => {
+                                resolve(res.main(obj));
+                            });
+                        });
+                    }
                     else {
                         let lan_d = (yield ApiUser.getPublicConfig(`terms-related-${page}-${Language.getLanguage()}`, 'manager')).response.value.text;
                         if (!lan_d) {
                             lan_d = (yield ApiUser.getPublicConfig(`terms-related-${page}-${window.store_info.language_setting.def}`, 'manager')).response.value.text;
                         }
                         return html `
-                        <div class="mb-5 mt-3" style="min-height: calc(100vh - 200px);">
-                            ${lan_d || ''}
-                        </div>`;
+                            <div class="mb-5 mt-3" style="min-height: calc(100vh - 200px);">
+                                ${lan_d || ''}
+                            </div>`;
                     }
                 }),
                 divCreate: {

@@ -397,6 +397,7 @@ export class Language {
             { key: 'sort_by_price_desc', tw: '價格由高至低', cn: '价格由高到低', en: 'Price High to Low' },
             { key: 'sort_by_sales_desc', tw: '依照銷售量高', cn: '按销售量高', en: 'Sales High to Low' },
             { key: 'no_related_products', tw: '查無相關商品', cn: '暂无相关商品', en: 'No Related Products' },
+            { key: 'no_related_blogs', tw: '查無相關文章', cn: '查无相关文章', en: 'No related articles found' },
             { key: 'my', tw: '我的', cn: '我的', en: 'My' },
             { key: 'my_coupons', tw: '我的優惠券', cn: '我的优惠券', en: 'Coupons' },
             { key: 'order_history', tw: '訂單記錄', cn: '订单记录', en: 'Order History' },

@@ -6,7 +6,6 @@ import {ApiCart} from "../../glitter-base/route/api-cart.js";
 
 export class Blogs01 {
     static main(gvc: GVC, subData: any) {
-
         if (subData.content.generator !== 'page_editor') {
             return subData.content.text;
         } else {

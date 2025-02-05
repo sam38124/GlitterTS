@@ -27,6 +27,12 @@ export class TermsRelated {
                                 resolve(res.main(gvc));
                             });
                         })
+                    } else if ((`${glitter.getUrlParameter('page')}`.startsWith(`blogs`))) {
+                        return await new Promise((resolve, reject) => {
+                            glitter.getModule(new URL('./public-components/blogs/list.js', gvc.glitter.root_path).href, (res) => {
+                                resolve(res.main(obj));
+                            });
+                        })
                     } else {
                         //條款頁面
                         let lan_d = (await ApiUser.getPublicConfig(`terms-related-${page}-${Language.getLanguage()}`, 'manager')).response.value.text
@@ -34,9 +40,9 @@ export class TermsRelated {
                             lan_d = (await ApiUser.getPublicConfig(`terms-related-${page}-${(window as any).store_info.language_setting.def}`, 'manager')).response.value.text
                         }
                         return html`
-                        <div class="mb-5 mt-3" style="min-height: calc(100vh - 200px);">
-                            ${lan_d || ''}
-                        </div>`
+                            <div class="mb-5 mt-3" style="min-height: calc(100vh - 200px);">
+                                ${lan_d || ''}
+                            </div>`
                     }
 
                 },

@@ -2028,6 +2028,7 @@ export class ShoppingSettingBasic {
                                                                                                               style="height: 40px;width:100%;padding: 0px 18px;border-radius: 10px;border: 1px solid #DDD;background: #FFF;font-size: 13px;"
                                                                                                               placeholder="${dd.title}"
                                                                                                               type="number"
+                                                                                                              readonly
                                                                                                               min="0"
                                                                                                               onclick="${gvc.event(() => {
                                                                                 if (index === 1) {
@@ -2212,6 +2213,7 @@ export class ShoppingSettingBasic {
                                                                                                                                   style="width: 100%;height: 40px;padding: 0px 18px;border-radius: 10px;border: 1px solid #DDD;background: #FFF;"
                                                                                                                                   value="${(_a = data[dd]) !== null && _a !== void 0 ? _a : 0}"
                                                                                                                                   min="0"
+                                                                                                                                  readonly
                                                                                                                                   onclick="${gvc.event(() => {
                                                                                             if (index === 1) {
                                                                                                 ProductSetting.showBatchEditDialog({

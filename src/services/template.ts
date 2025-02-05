@@ -226,8 +226,8 @@ SELECT * FROM  \`${saasConfig.SAAS_NAME}\`.page_config where  1=1 ${where_};
     public static async getRealPage(query_page: string, appName: string): Promise<string> {
         query_page = query_page || 'index';
         let page = query_page;
-        //判斷是條款頁面時
-        if(['privacy','term','refund','delivery'].includes(query_page)){
+        //判斷是條款頁面或部落格列表頁面時
+        if(['privacy','term','refund','delivery','blogs'].includes(query_page)){
             return  'official-router'
         }
         //當判斷是Blog時

@@ -537,7 +537,6 @@ export class ApiPublic {
                 },
                 {
                     scheme: appName,
-
                     table: `t_check_in_pos`,
                     sql: `(
   \`id\` INT NOT NULL AUTO_INCREMENT,
