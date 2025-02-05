@@ -2393,16 +2393,21 @@ export class CheckoutIndex {
                                         distribution_code: (_a = localStorage.getItem('distributionCode')) !== null && _a !== void 0 ? _a : '',
                                         give_away: apiCart.cart.give_away,
                                     }).then((res) => {
+                                        var _a, _b, _c;
                                         dialog.dataLoading({ visible: false });
-                                        glitter.innerDialog((gvc) => {
-                                            return gvc.bindView({
-                                                bind: `paynow`,
-                                                view: () => {
-                                                    return html `<div class="w-100 h-100 d-flex align-items-center justify-content-center">
+                                        if (vm.cartData.customer_info.payment_select == 'paynow') {
+                                            if (!((_c = (_b = (_a = res.response) === null || _a === void 0 ? void 0 : _a.data) === null || _b === void 0 ? void 0 : _b.result) === null || _c === void 0 ? void 0 : _c.secret)) {
+                                                return "paynow API失敗";
+                                            }
+                                            glitter.innerDialog((gvc) => {
+                                                return gvc.bindView({
+                                                    bind: `paynow`,
+                                                    view: () => {
+                                                        return html `<div class="w-100 h-100 d-flex align-items-center justify-content-center">
                                                                             <div class="p-3 bg-white position-relative">
                                                                                 <div style="position: absolute; right: 15px;top:15px;z-index:1;" onclick="${gvc.event(() => {
-                                                        gvc.closeDialog();
-                                                    })}">
+                                                            gvc.closeDialog();
+                                                        })}">
                                                                                     <i class="fa-regular fa-circle-xmark fs-5 text-dark cursor_pointer"></i>
                                                                                 </div>
                                                                                 <div id="paynow-container">
@@ -2410,45 +2415,45 @@ export class CheckoutIndex {
                                                                                     
                                                                                 </div>
                                                                                 <div class="w-100 btn btn-primary" id="checkoutButton" onclick="${gvc.event(() => {
-                                                        const PayNow = window.PayNow;
-                                                        PayNow.checkout().then((response) => {
-                                                            console.log("response -- ", response);
-                                                            if (response.error) {
-                                                            }
-                                                        });
-                                                    })}">送出</div>
+                                                            const PayNow = window.PayNow;
+                                                            PayNow.checkout().then((response) => {
+                                                                console.log("response -- ", response);
+                                                                if (response.error) {
+                                                                }
+                                                            });
+                                                        })}">送出</div>
                                                                             </div>
                                                                         </div>`;
-                                                }, divCreate: {
-                                                    class: `w-100 h-100 d-flex align-items-center justify-content-center`
-                                                }, onCreate: () => {
-                                                    const publicKey = res.response.publicKey;
-                                                    const secret = res.response.data.result.secret;
-                                                    const env = (res.response.BETA == 'true') ? 'sandbox' : 'production';
-                                                    console.log("env -- ", env);
-                                                    const PayNow = window.PayNow;
-                                                    PayNow.createPayment({
-                                                        publicKey: publicKey,
-                                                        secret: secret,
-                                                        env: env
-                                                    });
-                                                    PayNow.mount('#paynow-container', {
-                                                        locale: 'zh_tw',
-                                                        appearance: {
-                                                            variables: {
-                                                                fontFamily: 'monospace',
-                                                                colorPrimary: '#0078ab',
-                                                                colorDefault: '#0a0a0a',
-                                                                colorBorder: '#cccccc',
-                                                                colorPlaceholder: '#eeeeee',
-                                                                borderRadius: '.3rem',
-                                                                colorDanger: '#ff3d3d',
+                                                    }, divCreate: {
+                                                        class: `w-100 h-100 d-flex align-items-center justify-content-center`
+                                                    }, onCreate: () => {
+                                                        const publicKey = res.response.publicKey;
+                                                        const secret = res.response.data.result.secret;
+                                                        const env = (res.response.BETA == 'true') ? 'sandbox' : 'production';
+                                                        const PayNow = window.PayNow;
+                                                        PayNow.createPayment({
+                                                            publicKey: publicKey,
+                                                            secret: secret,
+                                                            env: env
+                                                        });
+                                                        PayNow.mount('#paynow-container', {
+                                                            locale: 'zh_tw',
+                                                            appearance: {
+                                                                variables: {
+                                                                    fontFamily: 'monospace',
+                                                                    colorPrimary: '#0078ab',
+                                                                    colorDefault: '#0a0a0a',
+                                                                    colorBorder: '#cccccc',
+                                                                    colorPlaceholder: '#eeeeee',
+                                                                    borderRadius: '.3rem',
+                                                                    colorDanger: '#ff3d3d',
+                                                                }
                                                             }
-                                                        }
-                                                    });
-                                                }
-                                            });
-                                        }, `paynow`);
+                                                        });
+                                                    }
+                                                });
+                                            }, `paynow`);
+                                        }
                                         const lineItemIds = vm.cartData.lineItems.map((item) => item.id);
                                         const cartKeys = [ApiCart.cartPrefix, ApiCart.buyItNow, ApiCart.globalCart];
                                         for (let i = 0; i < localStorage.length; i++) {
@@ -2760,6 +2765,12 @@ export class CheckoutIndex {
                     array.push({
                         name: 'Line Pay',
                         value: 'line_pay',
+                    });
+                    break;
+                case 'jkopay':
+                    array.push({
+                        name: '街口支付',
+                        value: 'jkopay',
                     });
                     break;
                 case 'paynow':

@@ -15,6 +15,12 @@ import {GlobalExpress} from "./shipment/global-express.js";
 const html = String.raw;
 
 interface paymentInterface {
+    jkopay: {
+        STORE_ID: string;
+        API_KEY: string;
+        SECRET_KEY: string;
+        toggle: boolean;
+    };
     paynow: {
         private_key: string;
         public_key: string;
@@ -107,6 +113,7 @@ export class ShoppingFinanceSetting {
             {key: 'ecPay', name: '綠界金流'},
             {key: 'paypal', name: 'PayPal'},
             {key: 'line_pay', name: 'Line Pay'},
+            {key: 'jkopay', name: '街口支付'},
             {key: 'paynow', name: 'PayNow 立吉富'},
             {key: 'line_pay_scan', name: 'Line Pay', type: 'pos'},
             {key: 'ut_credit_card', name: '聯合信用卡', type: 'pos'},
@@ -527,6 +534,42 @@ export class ShoppingFinanceSetting {
                                                                                         }),
                                                                                     ].join(''),
                                                                                 })}`;
+                                                                            case 'jkopay':
+                                                                                return html` ${BgWidget.openBoxContainer({
+                                                                                    gvc,
+                                                                                    tag: 'detail',
+                                                                                    title: payData.name + redDot,
+                                                                                    openOnInit: false,
+                                                                                    insideHTML: [
+                                                                                        BgWidget.editeInput({
+                                                                                            gvc: gvc,
+                                                                                            title: 'STORE_ID',
+                                                                                            default: keyData.jkopay.STORE_ID,
+                                                                                            callback: (text) => {
+                                                                                                keyData.jkopay.STORE_ID = text;
+                                                                                            },
+                                                                                            placeHolder: '請輸入STORE_ID',
+                                                                                        }),
+                                                                                        BgWidget.editeInput({
+                                                                                            gvc: gvc,
+                                                                                            title: 'API_KEY',
+                                                                                            default: keyData.jkopay.API_KEY,
+                                                                                            callback: (text) => {
+                                                                                                keyData.jkopay.API_KEY = text;
+                                                                                            },
+                                                                                            placeHolder: '請輸入API_KEY',
+                                                                                        }),
+                                                                                        BgWidget.editeInput({
+                                                                                            gvc: gvc,
+                                                                                            title: 'SECRET',
+                                                                                            default: keyData.jkopay.SECRET_KEY,
+                                                                                            callback: (text) => {
+                                                                                                keyData.jkopay.SECRET_KEY = text;
+                                                                                            },
+                                                                                            placeHolder: '請輸入SECRET_KEY',
+                                                                                        }),
+                                                                                    ].join(''),
+                                                                                })}`;
                                                                             case 'paynow':
                                                                                 return html` ${BgWidget.openBoxContainer({
                                                                                     gvc,
@@ -553,23 +596,23 @@ export class ShoppingFinanceSetting {
                                                                                             },
                                                                                         }),
                                                                                         BgWidget.editeInput({
-                                                                                gvc: gvc,
-                                                                                title: 'public key',
-                                                                                default: keyData.paynow.public_key,
-                                                                                callback: (text) => {
-                                                                                    keyData.paynow.public_key = text;
-                                                                                },
-                                                                                        placeHolder: '請輸入public key',
-                                                                                }),
-                                                                                BgWidget.editeInput({
-                                                                                    gvc: gvc,
-                                                                                    title: 'private key',
-                                                                                    default: keyData.paynow.private_key,
-                                                                                    callback: (text) => {
-                                                                                        keyData.paynow.private_key = text;
-                                                                                    },
-                                                                                    placeHolder: '請輸入private key',
-                                                                                })].join(''),
+                                                                                            gvc: gvc,
+                                                                                            title: 'public key',
+                                                                                            default: keyData.paynow.public_key,
+                                                                                            callback: (text) => {
+                                                                                                keyData.paynow.public_key = text;
+                                                                                            },
+                                                                                            placeHolder: '請輸入public key',
+                                                                                        }),
+                                                                                        BgWidget.editeInput({
+                                                                                            gvc: gvc,
+                                                                                            title: 'private key',
+                                                                                            default: keyData.paynow.private_key,
+                                                                                            callback: (text) => {
+                                                                                                keyData.paynow.private_key = text;
+                                                                                            },
+                                                                                            placeHolder: '請輸入private key',
+                                                                                        })].join(''),
                                                                                 })}`;
                                                                         }
                                                                     })
@@ -862,13 +905,14 @@ export class ShoppingFinanceSetting {
                 <div class="update-bar-container">
                     ${BgWidget.save(
                             gvc.event(() => {
+                                console.log("keyData -- ", keyData)
                                 dialog.dataLoading({visible: true});
                                 saasConfig.api.setPrivateConfig(saasConfig.config.appName, 'glitter_finance', keyData).then((r: {
                                     response: any;
                                     result: boolean
                                 }) => {
-                                    
-                                    
+
+
                                     setTimeout(() => {
                                         dialog.dataLoading({visible: false});
                                         if (r.response) {
@@ -1547,7 +1591,8 @@ export class ShoppingFinanceSetting {
                                                                 ${(() => {
                                                                     if ((dd as any).custom) {
                                                                         return html`
-                                                                            <div class="position-absolute d-flex" style="cursor:pointer;right:15px;top:15px;gap:5px;">
+                                                                            <div class="position-absolute d-flex"
+                                                                                 style="cursor:pointer;right:15px;top:15px;gap:5px;">
                                                                                 ${BgWidget.customButton({
                                                                                     button: {
                                                                                         color: 'gray',
@@ -1605,7 +1650,7 @@ export class ShoppingFinanceSetting {
                                                                                     })
                                                                                 })}
                                                                             </div>
-                                                                           `;
+                                                                        `;
                                                                     } else {
                                                                         return html`
                                                                             <div class="position-absolute fw-500"

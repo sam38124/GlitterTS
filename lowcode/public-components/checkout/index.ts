@@ -2489,7 +2489,7 @@ export class CheckoutIndex {
                                                                     vm.cartData.user_info[dd] = decodeURI(glitter.getUrlParameter(dd));
                                                                 }
                                                             });
-
+                                                            
                                                             dialog.dataLoading({ visible: true });
                                                             ApiShop.toCheckout({
                                                                 line_items: vm.cartData.lineItems.map((dd: any) => {
@@ -2517,15 +2517,19 @@ export class CheckoutIndex {
                                                                 give_away: apiCart.cart.give_away,
                                                             }).then((res) => {
                                                                 dialog.dataLoading({ visible: false });
-                                                                glitter.innerDialog((gvc:GVC)=>{
-                                                                    return gvc.bindView({
-                                                                        bind:`paynow`,
-                                                                        view:()=>{
-                                                                            return html`<div class="w-100 h-100 d-flex align-items-center justify-content-center">
+                                                                if (vm.cartData.customer_info.payment_select == 'paynow'){
+                                                                    if (!res.response?.data?.result?.secret){
+                                                                        return "paynow API失敗"
+                                                                    }
+                                                                    glitter.innerDialog((gvc:GVC)=>{
+                                                                        return gvc.bindView({
+                                                                            bind:`paynow`,
+                                                                            view:()=>{
+                                                                                return html`<div class="w-100 h-100 d-flex align-items-center justify-content-center">
                                                                             <div class="p-3 bg-white position-relative">
                                                                                 <div style="position: absolute; right: 15px;top:15px;z-index:1;" onclick="${gvc.event(()=>{
-                                                                                gvc.closeDialog();
-                                                                            })}">
+                                                                                    gvc.closeDialog();
+                                                                                })}">
                                                                                     <i class="fa-regular fa-circle-xmark fs-5 text-dark cursor_pointer"></i>
                                                                                 </div>
                                                                                 <div id="paynow-container">
@@ -2543,42 +2547,43 @@ export class CheckoutIndex {
                                                                                         }
                                                                                         // handle success
                                                                                     })
-                                                                                    
+
                                                                                 })}">送出</div>
                                                                             </div>
                                                                         </div>`
-                                                                        },divCreate:{
-                                                                            class:`w-100 h-100 d-flex align-items-center justify-content-center`
-                                                                        },onCreate:()=>{
-                                                                            const publicKey = res.response.publicKey;
-                                                                            const secret = res.response.data.result.secret;
-                                                                            const env = (res.response.BETA == 'true')?'sandbox':'production'
-                                                                            // res.response.result.secret
-                                                                            console.log("env -- " , env)
-                                                                            const PayNow = (window as any).PayNow;
-                                                                            PayNow.createPayment({
-                                                                                publicKey: publicKey,
-                                                                                secret: secret,
-                                                                                env: env
-                                                                            })
-                                                                            PayNow.mount('#paynow-container', {
-                                                                                locale: 'zh_tw',
-                                                                                appearance: {
-                                                                                    variables: {
-                                                                                        fontFamily: 'monospace',
-                                                                                        colorPrimary: '#0078ab',
-                                                                                        colorDefault: '#0a0a0a',
-                                                                                        colorBorder: '#cccccc',
-                                                                                        colorPlaceholder: '#eeeeee',
-                                                                                        borderRadius: '.3rem',
-                                                                                        colorDanger: '#ff3d3d',
+                                                                            },divCreate:{
+                                                                                class:`w-100 h-100 d-flex align-items-center justify-content-center`
+                                                                            },onCreate:()=>{
+                                                                                const publicKey = res.response.publicKey;
+                                                                                const secret = res.response.data.result.secret;
+                                                                                const env = (res.response.BETA == 'true')?'sandbox':'production'
+                                                                                // res.response.result.secret
+                                                                                const PayNow = (window as any).PayNow;
+                                                                                PayNow.createPayment({
+                                                                                    publicKey: publicKey,
+                                                                                    secret: secret,
+                                                                                    env: env
+                                                                                })
+                                                                                PayNow.mount('#paynow-container', {
+                                                                                    locale: 'zh_tw',
+                                                                                    appearance: {
+                                                                                        variables: {
+                                                                                            fontFamily: 'monospace',
+                                                                                            colorPrimary: '#0078ab',
+                                                                                            colorDefault: '#0a0a0a',
+                                                                                            colorBorder: '#cccccc',
+                                                                                            colorPlaceholder: '#eeeeee',
+                                                                                            borderRadius: '.3rem',
+                                                                                            colorDanger: '#ff3d3d',
+                                                                                        }
                                                                                     }
-                                                                                }
-                                                                            })
-                                                                        }
-                                                                    })
+                                                                                })
+                                                                            }
+                                                                        })
 
-                                                                },`paynow`)
+                                                                    },`paynow`)
+                                                                }
+                                                                
 
                                                                 const lineItemIds = vm.cartData.lineItems.map((item: any) => item.id);
                                                                 const cartKeys = [ApiCart.cartPrefix, ApiCart.buyItNow, ApiCart.globalCart];
@@ -2599,7 +2604,6 @@ export class CheckoutIndex {
                                                                 if (res.response.off_line || res.response.is_free) {
                                                                     location.href = res.response.return_url;
                                                                 } else {
-                                                                    // todo if 他是paypal的key值 上面應該有select之類的
                                                                     if (res.response.returnCode == '0000' && vm.cartData.customer_info.payment_select == 'line_pay') {
                                                                         console.log('res.response.form.info.paymentUrl.web -- ', res.response.info.paymentUrl.web);
                                                                         location.href = res.response.info.paymentUrl.web;
@@ -2612,10 +2616,6 @@ export class CheckoutIndex {
                                                                         $('body').append(html` <div id="${id}" style="display: none;">${res.response.form}</div>`);
                                                                         (document.querySelector(`#${id} #submit`) as any).click();
                                                                     }
-                                                                    // todo if 他是paypal的key值 上面應該有select之類的值傳進來 然後做轉址
-                                                                    //     if (res.response.form.approveLink || 付款方式是PayPal){
-                                                                    //         location.href = res.response.form.approveLink;
-                                                                    //     }else{
                                                                 }
                                                             });
                                                         })}"
@@ -2930,6 +2930,12 @@ export class CheckoutIndex {
                     array.push({
                         name: 'Line Pay',
                         value: 'line_pay',
+                    });
+                    break;
+                case 'jkopay':
+                    array.push({
+                        name: '街口支付',
+                        value: 'jkopay',
                     });
                     break;
                 case 'paynow':

@@ -687,7 +687,6 @@ class PayNow {
     }
     async createOrder(orderData) {
         var _a;
-        console.log(orderData.lineItems);
         const data = JSON.stringify({
             "amount": orderData.total,
             "currency": "TWD",
@@ -711,6 +710,7 @@ class PayNow {
             data: data
         };
         try {
+            console.log("here OK --");
             const response = await axios_1.default.request(config);
             orderData.paynow_id = response.data.result.id;
             await database_js_1.default.execute(`INSERT INTO \`${this.appName}\`.t_checkout (cart_token, status, email, orderData) VALUES (?, ?, ?, ?)
