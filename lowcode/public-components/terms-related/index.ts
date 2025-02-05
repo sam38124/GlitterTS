@@ -33,8 +33,8 @@ export class TermsRelated {
                         if (!lan_d) {
                             lan_d = (await ApiUser.getPublicConfig(`terms-related-${page}-${(window as any).store_info.language_setting.def}`, 'manager')).response.value.text
                         }
-                        return html`<h1 class="my-sm-5 my-4 fs-1" style="color:${title_color};">服務條款</h1>
-                        <div class="mb-5" style="min-height: calc(100vh - 200px);">
+                        return html`
+                        <div class="mb-5 mt-3" style="min-height: calc(100vh - 200px);">
                             ${lan_d || ''}
                         </div>`
                     }

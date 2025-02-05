@@ -1639,7 +1639,7 @@ function detail(gvc, cf, vm, cVm, page_tab) {
         };
     });
 }
-function saveData(gvc, cf, vm, cVm, silence) {
+function saveData(gvc, cf, vm, cVm, silence, pass_check = false) {
     return new Promise((res_, reject) => __awaiter(this, void 0, void 0, function* () {
         if (!vm.data.content.tag) {
             yield cf.widget.event('error', {
@@ -1649,7 +1649,7 @@ function saveData(gvc, cf, vm, cVm, silence) {
         }
         else if (window.parent.store_info.language_setting.support.find((d1) => {
             return !(vm.data.content.language_data[d1].name);
-        })) {
+        }) && !pass_check) {
             language = window.parent.store_info.language_setting.support.find((d1) => {
                 return !(vm.data.content.language_data[d1].name);
             });
@@ -2165,7 +2165,7 @@ function template_select(gvc, cf, vm, cVm, page_type) {
             vm.data.content.config = c2;
             vm.data.content.name = c2.name;
             initialData(vm.data.content);
-            saveData(gvc, cf, vm, cVm, false).then(() => {
+            saveData(gvc, cf, vm, cVm, false, true).then(() => {
                 cVm.type = 'detail';
             });
         }

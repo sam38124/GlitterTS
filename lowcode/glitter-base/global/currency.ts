@@ -61,7 +61,6 @@ export class Currency{
 
 public static getCurrency(){
     (window as any).store_info.currency_code=(window as any).store_info.currency_code||'TWD';
-
     if(!(window as any).store_info.multi_currency){
         return Currency.code.find((dd)=>{
             return dd.currency_code=== (window as any).store_info.currency_code
@@ -79,7 +78,7 @@ public static getCurrency(){
             last_select=(window as any).ip_country
         }else{
             last_select=Currency.code.find((dd)=>{
-                return dd.currency_code===(window as any).store_info.currency_code
+                return dd.currency_code===((window as any).store_info.currency_code_f_def || (window as any).store_info.currency_code)
             })!.country_code
         }
     }

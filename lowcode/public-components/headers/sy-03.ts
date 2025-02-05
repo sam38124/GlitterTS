@@ -17,6 +17,8 @@ export class Sy03 {
             changePage = cl.changePage;
         });
         const colors = Color.getTheme(gvc, widget.formData);
+        console.log('vvlvlvlvlvlvlvllv');
+        console.log(widget.formData);
 
         return html` <div class="d-sm-none" style="height: 76px;"></div>
             <nav
@@ -64,7 +66,7 @@ export class Sy03 {
                                                                 </div>
                                                             </div>
                                                             <div class="mb-3">${LanguageView.selectLanguage(gvc, colors)}</div>
-                                                            <div class="position-relative ${HeaderClass.hideShopperBtn() ? `d-none`:``}">
+                                                            <div class="position-relative ${HeaderClass.hideShopperBtn() ? `d-none` : ``}">
                                                                 <input
                                                                     class="form-control fw-500 "
                                                                     placeholder="${Language.text('find_product')}"
@@ -200,7 +202,22 @@ background: ${colors.bgr ?? '#000'};overflow-x: hidden;`,
                                     changePage('index', 'home', {});
                                 })}"
                             >
-                                <img src="${widget.formData.logo}" style="${document.body.clientWidth < 800 ? `max-height: 100%;max-width:200px;` : `height: 150px;`}" />
+                                <img
+                                        src="${widget.formData.logo}"
+                                        style="${document.body.clientWidth < 800
+                                                ? `max-height: 100%;max-width:200px;`
+                                                : `height: ${(() => {
+                                                    try {
+                                                        const h = widget.formData.height;
+                                                        if (h && !isNaN(parseInt(`${h}`, 10))) {
+                                                            return parseInt(`${h}`, 10);
+                                                        }
+                                                        return 150;
+                                                    } catch (error) {
+                                                        return 150;
+                                                    }
+                                                })()}px;`}"
+                                />
                             </div>
                         </div>
                         <!--選單列表顯示區塊-->
@@ -252,7 +269,7 @@ background: ${colors.bgr ?? '#000'};overflow-x: hidden;`,
                             })}
                         </ul>
                     </div>
-                    <div class="d-flex align-items-center position-relative position-lg-absolute" style="${document.body.clientWidth > 800 ? `top:10px;right:30px;` : ``}">
+                    <div class="d-flex align-items-center ${document.body.clientWidth>=800 ? `position-lg-absolute`:`position-relative`} " style="${document.body.clientWidth > 800 ? `top:10px;right:30px;` : ``}">
                         <!--固定按鈕顯示區塊-->
                         <ul class="navbar-nav flex-row ms-auto">
                             ${gvc.bindView(() => {
@@ -294,33 +311,35 @@ padding-bottom: 2px;
                                     },
                                 };
                             })}
-                           ${HeaderClass.hideShopperBtn() ? ``:`<li class="nav-item d-none d-sm-flex align-items-center justify-content-center" style="min-width:45px !important;">
+                            ${HeaderClass.hideShopperBtn()
+                                ? ``
+                                : `<li class="nav-item d-none d-sm-flex align-items-center justify-content-center" style="min-width:45px !important;">
                                 ${gvc.bindView(() => {
-                               const vm = {
-                                   id: gvc.glitter.getUUID(),
-                                   toggle: false,
-                               };
-                               return {
-                                   bind: vm.id,
-                                   view: () => {
-                                       if (!vm.toggle) {
-                                           return html`<i
+                                    const vm = {
+                                        id: gvc.glitter.getUUID(),
+                                        toggle: false,
+                                    };
+                                    return {
+                                        bind: vm.id,
+                                        view: () => {
+                                            if (!vm.toggle) {
+                                                return html`<i
                                                     class="fa-regular fa-magnifying-glass"
                                                     style="color: ${widget.formData.theme_color['title'] ?? '#000'};cursor: pointer;font-size:20px;"
                                                     onclick="${gvc.event(() => {
-                                               vm.toggle = !vm.toggle;
-                                               gvc.notifyDataChange(vm.id);
-                                           })}"
+                                                        vm.toggle = !vm.toggle;
+                                                        gvc.notifyDataChange(vm.id);
+                                                    })}"
                                                 ></i>`;
-                                       } else {
-                                           return html`<a class="search-container d-flex align-items-center"
+                                            } else {
+                                                return html`<a class="search-container d-flex align-items-center"
                                                     ><i
                                                         class="fa-regular fa-circle-xmark"
                                                         style="color: ${widget.formData.theme_color['title'] ?? '#000'};cursor: pointer;font-size:20px;"
                                                         onclick="${gvc.event(() => {
-                                               vm.toggle = !vm.toggle;
-                                               gvc.notifyDataChange(vm.id);
-                                           })}"
+                                                            vm.toggle = !vm.toggle;
+                                                            gvc.notifyDataChange(vm.id);
+                                                        })}"
                                                     ></i
                                                     ><input
                                                         class="ms-3 form-control"
@@ -328,22 +347,22 @@ padding-bottom: 2px;
                                                         placeholder="${Language.text('input_product_keyword')}"
                                                         autocomplete="off"
                                                         onchange="${gvc.event((e, event) => {
-                                               gvc.glitter.href = `/all-product?search=${e.value}`;
-                                               vm.toggle = !vm.toggle;
-                                               gvc.notifyDataChange(vm.id);
-                                           })}"
+                                                            gvc.glitter.href = `/all-product?search=${e.value}`;
+                                                            vm.toggle = !vm.toggle;
+                                                            gvc.notifyDataChange(vm.id);
+                                                        })}"
                                                     />
                                                 </a>`;
-                                       }
-                                   },
-                                   divCreate: {
-                                       class: `nav-link search-container`,
-                                       elem: `a`,
-                                   },
-                               };
-                           })}
+                                            }
+                                        },
+                                        divCreate: {
+                                            class: `nav-link search-container`,
+                                            elem: `a`,
+                                        },
+                                    };
+                                })}
                             </li>`}
-                            <li class="nav-item  ${(HeaderClass.hideShopperBtn()) ? `d-none`:`d-flex`} align-items-center justify-content-center" style="width:45px !important;">
+                            <li class="nav-item  ${HeaderClass.hideShopperBtn() ? `d-none` : `d-flex`} align-items-center justify-content-center" style="width:45px !important;">
                                 ${gvc.bindView(() => {
                                     const vm = {
                                         id: gvc.glitter.getUUID(),
@@ -391,7 +410,7 @@ padding-bottom: 2px;
                                     };
                                 })}
                             </li>
-                            <li class="nav-item d-flex align-items-center justify-content-center ${(HeaderClass.hideShopperBtn()) ? `d-none`:`d-flex`}" style="width:45px !important;">
+                            <li class="nav-item d-flex align-items-center justify-content-center ${HeaderClass.hideShopperBtn() ? `d-none` : `d-flex`}" style="width:45px !important;">
                                 <a class="nav-link search-container">
                                     <i
                                         class="fw-500  fa-regular fa-user "

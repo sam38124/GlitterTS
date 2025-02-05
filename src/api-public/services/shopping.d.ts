@@ -400,6 +400,12 @@ export declare class Shopping {
     updateVariantsWithSpec(data: any, product_id: string, spec: string[]): Promise<void>;
     calcVariantsStock(calc: number, stock_id: string, product_id: string, spec: string[]): Promise<void>;
     calcSoldOutStock(calc: number, product_id: string, spec: string[]): Promise<void>;
+    soldMailNotice(json: {
+        brand_domain: string;
+        shop_name: string;
+        product_id: string;
+        order_data: any;
+    }): Promise<void>;
     getDataAnalyze(tags: string[], query?: any): Promise<any>;
     generateTimeRange(index: number): {
         startISO: string;

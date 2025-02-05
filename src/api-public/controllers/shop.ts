@@ -13,8 +13,6 @@ import { Post } from '../services/post.js';
 import { Shopping, VoucherData } from '../services/shopping';
 import { Rebate, IRebateSearch } from '../services/rebate';
 import axios from 'axios';
-import { saasConfig } from '../../config.js';
-import { Stock } from '../services/stock.js';
 import { Pos } from '../services/pos.js';
 
 const router: express.Router = express.Router();
@@ -957,6 +955,8 @@ router.get('/product', async (req: express.Request, resp: express.Response) => {
                         return ``;
                     case 'stock_asc':
                         return ``;
+                    case 'sales_desc':
+                        return `order by (content->>'$.total_sales') desc`;
                     case 'default':
                     default:
                         return `order by id desc`;

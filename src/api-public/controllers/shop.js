@@ -859,6 +859,8 @@ router.get('/product', async (req, resp) => {
                         return ``;
                     case 'stock_asc':
                         return ``;
+                    case 'sales_desc':
+                        return `order by (content->>'$.total_sales') desc`;
                     case 'default':
                     default:
                         return `order by id desc`;
