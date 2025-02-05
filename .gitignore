@@ -1,10 +1,12 @@
-.idea/
-.vscode/
-dist/
+# Node.js dependencies
 node_modules/
-src/node_modules/
 backend_default/node_modules/
 lambda/node_modules/
 lowcode/node_modules/
-lowcode/tsconfig.tsbuildinfo
-tsconfig.tsbuildinfo
+
+# Build output
+*.tsbuildinfo
+
+# IDE and editor settings
+.idea/
+.vscode/
