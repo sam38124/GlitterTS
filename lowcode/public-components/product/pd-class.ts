@@ -622,7 +622,7 @@ export class PdClass {
             .insignia {
                 border-radius: 0.5rem;
                 padding: 6px 8px;
-                font-size: 14px;
+                font-size: 0.875rem;
                 display: inline-block;
                 font-weight: 500;
                 line-height: 1.5;
@@ -631,8 +631,8 @@ export class PdClass {
                 vertical-align: baseline;
             }
 
-            .insignia-warning {
-                background: #ffe9b2;
+            .insignia-gray {
+                background: #dddddd;
                 color: #393939;
             }
         `);
@@ -660,13 +660,13 @@ export class PdClass {
 
         const aboutVoucherHTML =
             vm.data && vm.data.about_vouchers && vm.data.about_vouchers.length > 0
-                ? html`<div class="d-flex flex-column gap-2 mt-3">
+                ? html`<div class="d-flex flex-column gap-1 mt-3">
                       ${vm.data.about_vouchers
                           .map((v) => {
                               return html`
                                   <div class="d-flex gap-2 align-items-center">
-                                      <div class="insignia insignia-warning">${eventName(v.reBackType)}</div>
-                                      <div class="fw-500">${v.title}</div>
+                                      <div class="insignia insignia-gray">${eventName(v.reBackType)}</div>
+                                      <div style="font-size: 12px; font-weight: 500;">${v.title}</div>
                                   </div>
                               `;
                           })

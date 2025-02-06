@@ -1,7 +1,7 @@
 import { IToken } from '../models/Auth.js';
 import exception from '../../modules/exception.js';
 import db from '../../modules/database.js';
-import FinancialService, {LinePay, PayNow, PayPal} from './financial-service.js';
+import FinancialService, { LinePay, PayNow, PayPal } from './financial-service.js';
 import { Private_config } from '../../services/private_config.js';
 import redis from '../../modules/redis.js';
 import { User } from './user.js';
@@ -603,37 +603,28 @@ export class Shopping {
             }
 
             // 產品可使用的優惠券
-            if (this.token && products.total) {
-                const userID = `${this.token.userID}`;
-                const view_source = query.view_source ?? 'normal';
-                const distribution_code = query.distribution_code ?? '';
+            const userID = this.token ? `${this.token.userID}` : '';
+            const view_source = query.view_source ?? 'normal';
+            const distribution_code = query.distribution_code ?? '';
 
-                if (products.total === 1 && !Array.isArray(products.data)) {
-                    products.data.about_vouchers = await this.aboutProductVoucher({
-                        product: products.data,
-                        userID,
-                        view_source,
-                        distribution_code,
-                    });
-                } else {
-                    await new Promise<void>((resolve) => {
-                        let n = 0;
-                        for (const product of products.data) {
-                            this.aboutProductVoucher({
-                                product,
-                                userID,
-                                view_source,
-                                distribution_code,
-                            }).then((result) => {
-                                product.about_vouchers = result;
-                                n++;
-                                if (n === products.data.length) {
-                                    resolve();
-                                }
-                            });
-                        }
-                    });
-                }
+            if (products.total === 1 && !Array.isArray(products.data)) {
+                products.data.about_vouchers = await this.aboutProductVoucher({
+                    product: products.data,
+                    userID,
+                    view_source,
+                    distribution_code,
+                });
+            } else {
+                await Promise.all(
+                    products.data.map(async (product: any) => {
+                        product.about_vouchers = await this.aboutProductVoucher({
+                            product,
+                            userID,
+                            view_source,
+                            distribution_code,
+                        });
+                    })
+                );
             }
 
             return products;
@@ -2012,16 +2003,15 @@ export class Shopping {
                     return_url: `${process.env.DOMAIN}/api-public/v1/ec/redirect?g-app=${this.app}&return=${id}`,
                 };
             } else {
-
                 const keyData = (
                     await Private_config.getConfig({
                         appName: this.app,
                         key: 'glitter_finance',
                     })
                 )[0].value;
-                let kd = keyData[carData.customer_info.payment_select] ??{
-                    ReturnURL : "",
-                    NotifyURL : ""
+                let kd = keyData[carData.customer_info.payment_select] ?? {
+                    ReturnURL: '',
+                    NotifyURL: '',
                 };
                 // 線下付款
                 switch (carData.customer_info.payment_select) {
@@ -2062,7 +2052,7 @@ export class Shopping {
                             })
                         );
                         return await new LinePay(this.app, kd).createOrder(carData);
-                    case 'paynow':{
+                    case 'paynow': {
                         kd.ReturnURL = `${process.env.DOMAIN}/api-public/v1/ec/redirect?g-app=${this.app}&return=${id}&paynow=true`;
                         kd.NotifyURL = `${process.env.DOMAIN}/api-public/v1/ec/notify?g-app=${this.app}&paynow=true`;
                         await Promise.all(

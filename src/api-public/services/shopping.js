@@ -381,37 +381,29 @@ class Shopping {
             if ((query.domain || query.id) && products.data !== undefined) {
                 products.data.json_ld = await seo_config_js_1.SeoConfig.getProductJsonLd(this.app, products.data.content);
             }
-            if (this.token && products.total) {
-                const userID = `${this.token.userID}`;
-                const view_source = (_d = query.view_source) !== null && _d !== void 0 ? _d : 'normal';
-                const distribution_code = (_e = query.distribution_code) !== null && _e !== void 0 ? _e : '';
-                if (products.total === 1 && !Array.isArray(products.data)) {
-                    products.data.about_vouchers = await this.aboutProductVoucher({
-                        product: products.data,
+            const userID = this.token ? `${this.token.userID}` : '';
+            const view_source = (_d = query.view_source) !== null && _d !== void 0 ? _d : 'normal';
+            const distribution_code = (_e = query.distribution_code) !== null && _e !== void 0 ? _e : '';
+            if (products.total === 1 && !Array.isArray(products.data)) {
+                products.data.about_vouchers = await this.aboutProductVoucher({
+                    product: products.data,
+                    userID,
+                    view_source,
+                    distribution_code,
+                });
+            }
+            else {
+                console.log(0);
+                await Promise.all(products.data.map(async (product) => {
+                    console.log(1);
+                    product.about_vouchers = await this.aboutProductVoucher({
+                        product,
                         userID,
                         view_source,
                         distribution_code,
                     });
-                }
-                else {
-                    await new Promise((resolve) => {
-                        let n = 0;
-                        for (const product of products.data) {
-                            this.aboutProductVoucher({
-                                product,
-                                userID,
-                                view_source,
-                                distribution_code,
-                            }).then((result) => {
-                                product.about_vouchers = result;
-                                n++;
-                                if (n === products.data.length) {
-                                    resolve();
-                                }
-                            });
-                        }
-                    });
-                }
+                }));
+                console.log(2);
             }
             return products;
         }
@@ -1473,8 +1465,8 @@ class Shopping {
                     key: 'glitter_finance',
                 }))[0].value;
                 let kd = (_r = keyData[carData.customer_info.payment_select]) !== null && _r !== void 0 ? _r : {
-                    ReturnURL: "",
-                    NotifyURL: ""
+                    ReturnURL: '',
+                    NotifyURL: '',
                 };
                 switch (carData.customer_info.payment_select) {
                     case 'ecPay':
