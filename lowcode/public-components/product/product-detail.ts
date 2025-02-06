@@ -381,7 +381,7 @@ export class ProductDetail {
                                     };
                                     const commentList = () => {
                                         if (!vm.data.content.comments || vm.data.content.comments.length === 0) {
-                                            return html`<h3 style="margin-top: 60px;">尚無顧客評論</h3>`;
+                                            return html`<h3 style="margin: 60px 0;">尚無顧客評論</h3>`;
                                         }
                                         return vm.data.content.comments
                                             .sort((a, b) => {
@@ -414,7 +414,7 @@ export class ProductDetail {
                                                             <!-- Title -->
                                                             <p class="mb-2 fs-lg fw-bold">${item.title}</p>
                                                             <!-- Text -->
-                                                            <p class="text-gray-500">${item.comment}</p>
+                                                            <p class="text-gray-500">${item.comment.replace(/\n/g, '<br/>')}</p>
                                                         </div>
                                                     </div>
                                                 </div>`;
