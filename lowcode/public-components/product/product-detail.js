@@ -193,6 +193,7 @@ export class ProductDetail {
                     <div class="d-flex flex-column align-items-center mt-2" style="width:100%;">
                         ${gvc.bindView((() => {
                     const id = glitter.getUUID();
+                    const commentLength = vm.data.content.comments.length;
                     return {
                         bind: id,
                         view: () => {
@@ -202,7 +203,7 @@ export class ProductDetail {
                                     key: 'default',
                                 },
                                 {
-                                    title: Language.text('customer_reviews'),
+                                    title: `${Language.text('customer_reviews')} (${commentLength > 15 ? 15 : commentLength})`,
                                     key: 'comment',
                                 },
                             ].concat(vm.content_manager
@@ -349,7 +350,7 @@ export class ProductDetail {
                             };
                             const commentList = () => {
                                 if (!vm.data.content.comments || vm.data.content.comments.length === 0) {
-                                    return html `<h2>目前尚無顧客評論</h2>`;
+                                    return html `<h3 style="margin-top: 60px;">尚無顧客評論</h3>`;
                                 }
                                 return vm.data.content.comments
                                     .sort((a, b) => {
