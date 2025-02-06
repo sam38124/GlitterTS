@@ -110,6 +110,20 @@ class Shopping {
             const querySql = [`(content->>'$.type'='product')`];
             query.language = (_a = query.language) !== null && _a !== void 0 ? _a : store_info.language_setting.def;
             query.show_hidden = (_b = query.show_hidden) !== null && _b !== void 0 ? _b : 'true';
+            const orderMapping = {
+                title: `ORDER BY JSON_EXTRACT(content, '$.title')`,
+                max_price: `ORDER BY CAST(JSON_UNQUOTE(JSON_EXTRACT(content, '$.max_price')) AS SIGNED) DESC`,
+                min_price: `ORDER BY CAST(JSON_UNQUOTE(JSON_EXTRACT(content, '$.min_price')) AS SIGNED) ASC`,
+                created_time_desc: `ORDER BY created_time DESC`,
+                created_time_asc: `ORDER BY created_time ASC`,
+                updated_time_desc: `ORDER BY updated_time DESC`,
+                updated_time_asc: `ORDER BY updated_time ASC`,
+                sales_desc: `ORDER BY content->>'$.total_sales' DESC`,
+                default: `ORDER BY id DESC`,
+                stock_desc: '',
+                stock_asc: '',
+            };
+            query.order_by = orderMapping[query.order_by] || orderMapping.default;
             if (query.search) {
                 switch (query.searchType) {
                     case 'sku':
@@ -391,7 +405,7 @@ class Shopping {
             const recommendData = await this.getDistributionRecommend(distributionCode);
             if (products.total && products.data) {
                 const processProduct = async (product) => {
-                    product.about_vouchers = await this.aboutProductVoucher({
+                    product.content.about_vouchers = await this.aboutProductVoucher({
                         product,
                         userID,
                         viewSource,
@@ -399,6 +413,9 @@ class Shopping {
                         recommendData,
                         userData,
                     });
+                    if (products.total === 1) {
+                        product.content.comments = await this.getProductComment(product.id);
+                    }
                 };
                 if (products.total === 1 && !Array.isArray(products.data)) {
                     await processProduct(products.data);
@@ -5125,6 +5142,82 @@ OR JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.orderStatus')) NOT IN (-99)) `);
             data[dd] = data[dd] / base_m;
         });
         return data;
+    }
+    async getProductComment(product_id) {
+        try {
+            const comments = await database_js_1.default.query(`SELECT * FROM \`${this.app}\`.t_product_comment WHERE product_id = ?;
+                    `, [product_id]);
+            if (comments.length === 0) {
+                return [];
+            }
+            return comments.map((item) => item.content);
+        }
+        catch (error) {
+            console.error(error);
+            throw exception_js_1.default.BadRequestError('BAD_REQUEST', 'getProductComment Error:' + express_1.default, null);
+        }
+    }
+    async postProductComment(data) {
+        try {
+            if (!this.token) {
+                return false;
+            }
+            const { product_id, rate, title, comment } = data;
+            const today = new Date();
+            const year = today.getFullYear();
+            const month = String(today.getMonth() + 1).padStart(2, '0');
+            const day = String(today.getDate()).padStart(2, '0');
+            const userClass = new user_js_1.User(this.app);
+            const userData = await userClass.getUserData(`${this.token.userID}`, 'userID');
+            const getComment = await database_js_1.default.query(`SELECT * FROM \`${this.app}\`.t_product_comment 
+                    WHERE product_id = ? 
+                    AND JSON_EXTRACT(content, '$.userID') = ?;
+                    `, [product_id, this.token.userID]);
+            const content = {
+                userID: this.token.userID,
+                userName: userData.userData.name,
+                date: `${year}-${month}-${day}`,
+                rate,
+                title,
+                comment,
+            };
+            if (getComment[0]) {
+                await database_js_1.default.execute(`UPDATE \`${this.app}\`.t_product_comment SET content = ? WHERE id = ?
+                    `, [JSON.stringify(content), getComment[0].id]);
+            }
+            else {
+                await database_js_1.default.execute(`INSERT INTO \`${this.app}\`.t_product_comment (product_id, content) values (?, ?)
+                    `, [product_id, content]);
+            }
+            const av = await this.updateProductAvgRate(product_id);
+            console.log(av);
+            return true;
+        }
+        catch (error) {
+            console.error(error);
+            throw exception_js_1.default.BadRequestError('BAD_REQUEST', 'postProductComment Error:' + express_1.default, null);
+        }
+    }
+    async updateProductAvgRate(product_id) {
+        var _a;
+        try {
+            const [result] = await database_js_1.default.query(`SELECT 
+                    COALESCE(ROUND(AVG(JSON_EXTRACT(content, '$.rate')), 1), 0) AS avgRate 
+                 FROM \`${this.app}\`.t_product_comment 
+                 WHERE product_id = ?`, [product_id]);
+            const avg_rate = (_a = result === null || result === void 0 ? void 0 : result.avgRate) !== null && _a !== void 0 ? _a : 0;
+            const updateResult = await database_js_1.default.execute(`UPDATE \`${this.app}\`.t_manager_post 
+                 SET content = JSON_SET(content, '$.avg_rate', ?) 
+                 WHERE id = ?`, [avg_rate, product_id]);
+            if (updateResult.affectedRows === 0) {
+                throw new Error(`Product with ID ${product_id} not found.`);
+            }
+            return { product_id, avg_rate };
+        }
+        catch (error) {
+            console.error(`Error updating average rate for product ID ${product_id}:`, error);
+            throw exception_js_1.default.BadRequestError('BAD_REQUEST', `updateProductAvgRate Error: ${error}`, null);
+        }
     }
 }
 exports.Shopping = Shopping;

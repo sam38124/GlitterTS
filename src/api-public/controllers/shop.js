@@ -563,8 +563,8 @@ async function redirect_link(req, resp) {
         if (req.query.paynow && req.query.paynow === 'true') {
             const check_id = await redis_js_1.default.getValue(`paynow` + req.query.orderID);
             let kd = {
-                ReturnURL: "",
-                NotifyURL: ""
+                ReturnURL: '',
+                NotifyURL: '',
             };
             const payNow = new financial_service_js_1.PayNow(req.query.appName, kd);
             const data = payNow.confirmAndCaptureOrder(check_id);
@@ -839,33 +839,7 @@ router.get('/product', async (req, resp) => {
             status: req.query.status,
             channel: req.query.channel,
             id_list: req.query.id_list,
-            order_by: (() => {
-                switch (req.query.order_by) {
-                    case 'title':
-                        return `order by JSON_EXTRACT(content, '$.title')`;
-                    case 'max_price':
-                        return `order by (CAST(JSON_UNQUOTE(JSON_EXTRACT(content, '$.max_price')) AS SIGNED)) desc`;
-                    case 'min_price':
-                        return `order by (CAST(JSON_UNQUOTE(JSON_EXTRACT(content, '$.min_price')) AS SIGNED)) asc`;
-                    case 'created_time_desc':
-                        return `order by created_time desc`;
-                    case 'created_time_asc':
-                        return `order by created_time`;
-                    case 'updated_time_desc':
-                        return `order by updated_time desc`;
-                    case 'updated_time_asc':
-                        return `order by updated_time`;
-                    case 'stock_desc':
-                        return ``;
-                    case 'stock_asc':
-                        return ``;
-                    case 'sales_desc':
-                        return `order by (content->>'$.total_sales') desc`;
-                    case 'default':
-                    default:
-                        return `order by id desc`;
-                }
-            })(),
+            order_by: req.query.order_by,
             with_hide_index: req.query.with_hide_index,
             is_manger: (await ut_permission_1.UtPermission.isManager(req)),
             show_hidden: `${req.query.show_hidden}`,
@@ -974,6 +948,25 @@ router.put('/product/variants', async (req, resp) => {
         else {
             throw exception_1.default.BadRequestError('BAD_REQUEST', 'No permission.', null);
         }
+    }
+    catch (err) {
+        return response_1.default.fail(resp, err);
+    }
+});
+router.get('/product/comment', async (req, resp) => {
+    try {
+        const id = Math.max(0, parseInt(`${req.query.id}`, 10) || 0);
+        const comment = await new shopping_1.Shopping(req.get('g-app'), req.body.token).getProductComment(id);
+        return response_1.default.succ(resp, comment);
+    }
+    catch (err) {
+        return response_1.default.fail(resp, err);
+    }
+});
+router.post('/product/comment', async (req, resp) => {
+    try {
+        await new shopping_1.Shopping(req.get('g-app'), req.body.token).postProductComment(req.body);
+        return response_1.default.succ(resp, { result: true });
     }
     catch (err) {
         return response_1.default.fail(resp, err);

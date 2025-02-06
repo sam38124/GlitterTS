@@ -275,6 +275,21 @@ export class Shopping {
             query.language = query.language ?? store_info.language_setting.def;
             query.show_hidden = query.show_hidden ?? 'true';
 
+            const orderMapping: Record<string, string> = {
+                title: `ORDER BY JSON_EXTRACT(content, '$.title')`,
+                max_price: `ORDER BY CAST(JSON_UNQUOTE(JSON_EXTRACT(content, '$.max_price')) AS SIGNED) DESC`,
+                min_price: `ORDER BY CAST(JSON_UNQUOTE(JSON_EXTRACT(content, '$.min_price')) AS SIGNED) ASC`,
+                created_time_desc: `ORDER BY created_time DESC`,
+                created_time_asc: `ORDER BY created_time ASC`,
+                updated_time_desc: `ORDER BY updated_time DESC`,
+                updated_time_asc: `ORDER BY updated_time ASC`,
+                sales_desc: `ORDER BY content->>'$.total_sales' DESC`,
+                default: `ORDER BY id DESC`,
+                stock_desc: '',
+                stock_asc: '',
+            };
+            query.order_by = orderMapping[query.order_by as keyof typeof orderMapping] || orderMapping.default;
+
             if (query.search) {
                 switch (query.searchType) {
                     case 'sku':
@@ -616,7 +631,7 @@ export class Shopping {
 
             if (products.total && products.data) {
                 const processProduct = async (product: any) => {
-                    product.about_vouchers = await this.aboutProductVoucher({
+                    product.content.about_vouchers = await this.aboutProductVoucher({
                         product,
                         userID,
                         viewSource,
@@ -624,6 +639,9 @@ export class Shopping {
                         recommendData,
                         userData,
                     });
+                    if (products.total === 1) {
+                        product.content.comments = await this.getProductComment(product.id);
+                    }
                 };
 
                 if (products.total === 1 && !Array.isArray(products.data)) {
@@ -6261,6 +6279,101 @@ OR JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.orderStatus')) NOT IN (-99)) `);
             data[dd] = data[dd] / base_m;
         });
         return data;
+    }
+
+    async getProductComment(product_id: number) {
+        try {
+            const comments = await db.query(
+                `SELECT * FROM \`${this.app}\`.t_product_comment WHERE product_id = ?;
+                    `,
+                [product_id]
+            );
+            if (comments.length === 0) {
+                return [];
+            }
+            return comments.map((item: any) => item.content);
+        } catch (error) {
+            console.error(error);
+            throw exception.BadRequestError('BAD_REQUEST', 'getProductComment Error:' + error, null);
+        }
+    }
+
+    async postProductComment(data: { product_id: number; rate: number; title: string; comment: string }) {
+        try {
+            if (!this.token) {
+                throw new Error('User not authenticated.');
+            }
+
+            const { product_id, rate, title, comment } = data;
+            const today = new Date().toISOString().split('T')[0]; // 直接使用 ISO 格式 (yyyy-mm-dd)
+
+            const userClass = new User(this.app);
+            const userData = await userClass.getUserData(`${this.token.userID}`, 'userID');
+
+            const content = {
+                userID: this.token.userID,
+                userName: userData.userData.name,
+                date: today,
+                rate,
+                title,
+                comment,
+            };
+
+            // 嘗試更新評論，若無評論則插入
+            const [updateResult] = await db.execute(
+                `UPDATE \`${this.app}\`.t_product_comment 
+                 SET content = ? 
+                 WHERE product_id = ? AND JSON_EXTRACT(content, '$.userID') = ?`,
+                [JSON.stringify(content), product_id, this.token.userID]
+            );
+
+            if (updateResult.affectedRows === 0) {
+                await db.execute(
+                    `INSERT INTO \`${this.app}\`.t_product_comment (product_id, content) 
+                     VALUES (?, ?)`,
+                    [product_id, JSON.stringify(content)]
+                );
+            }
+
+            await this.updateProductAvgRate(product_id);
+
+            return true;
+        } catch (error) {
+            console.error(`Error posting product comment:`, error);
+            throw exception.BadRequestError('BAD_REQUEST', `postProductComment Error: ${error}`, null);
+        }
+    }
+
+    async updateProductAvgRate(product_id: number) {
+        try {
+            // 直接更新產品平均評分，減少 DB 查詢次數
+            const [result] = await db.query(
+                `SELECT 
+                    COALESCE(ROUND(AVG(JSON_EXTRACT(content, '$.rate')), 1), 0) AS avgRate 
+                 FROM \`${this.app}\`.t_product_comment 
+                 WHERE product_id = ?`,
+                [product_id]
+            );
+
+            const avg_rate = result?.avgRate ?? 0;
+
+            // 直接更新 avg_rate，避免讀取整個 product.content 再寫回
+            const updateResult = await db.execute(
+                `UPDATE \`${this.app}\`.t_manager_post 
+                 SET content = JSON_SET(content, '$.avg_rate', ?) 
+                 WHERE id = ?`,
+                [avg_rate, product_id]
+            );
+
+            if (updateResult.affectedRows === 0) {
+                throw new Error(`Product with ID ${product_id} not found.`);
+            }
+
+            return { product_id, avg_rate };
+        } catch (error) {
+            console.error(`Error updating average rate for product ID ${product_id}:`, error);
+            throw exception.BadRequestError('BAD_REQUEST', `updateProductAvgRate Error: ${error}`, null);
+        }
     }
 }
 

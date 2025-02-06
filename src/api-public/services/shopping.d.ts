@@ -661,5 +661,16 @@ export declare class Shopping {
         voidReason: string;
     }): Promise<void>;
     static currencyCovert(base: string): Promise<any>;
+    getProductComment(product_id: number): Promise<any>;
+    postProductComment(data: {
+        product_id: number;
+        rate: number;
+        title: string;
+        comment: string;
+    }): Promise<boolean>;
+    updateProductAvgRate(product_id: number): Promise<{
+        product_id: number;
+        avg_rate: any;
+    }>;
 }
 export {};

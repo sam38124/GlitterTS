@@ -94,7 +94,6 @@ export type Product_l = {
     updated_time: string;
     status: number;
     total_sales?: number;
-    about_vouchers: VoucherContent[];
 };
 
 export type ContentTag = {
@@ -498,7 +497,7 @@ export class PdClass {
                 divCreate: {
                     class: ``,
                     option: [{ key: 'id', value: id }],
-                    style: `overflow:hidden;position:relative;${document.body.clientWidth>800 ? `width:500px;`:`width:100%:`}`,
+                    style: `overflow:hidden;position:relative;${document.body.clientWidth > 800 ? `width:500px;` : `width:100%:`}`,
                 },
                 onCreate: () => {
                     const si = setInterval(() => {
@@ -659,9 +658,9 @@ export class PdClass {
         }
 
         const aboutVoucherHTML =
-            vm.data && vm.data.about_vouchers && vm.data.about_vouchers.length > 0
+            vm.data && vm.data.content.about_vouchers && vm.data.content.about_vouchers.length > 0
                 ? html`<div class="d-flex flex-column gap-1 mt-3">
-                      ${vm.data.about_vouchers
+                      ${vm.data.content.about_vouchers
                           .map((v) => {
                               return html`
                                   <div class="d-flex gap-2 align-items-center">

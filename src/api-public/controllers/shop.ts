@@ -6,7 +6,7 @@ import db from '../../modules/database.js';
 import redis from '../../modules/redis.js';
 import { UtDatabase } from '../utils/ut-database.js';
 import { UtPermission } from '../utils/ut-permission';
-import {EcPay, EzPay, LinePay, PayNow, PayPal} from '../services/financial-service.js';
+import { EcPay, EzPay, LinePay, PayNow, PayPal } from '../services/financial-service.js';
 import { Private_config } from '../../services/private_config.js';
 import { User } from '../services/user.js';
 import { Post } from '../services/post.js';
@@ -32,7 +32,8 @@ router.post('/worker', async (req: express.Request, resp: express.Response) => {
         return response.fail(resp, err);
     }
 });
-//多國貨幣
+
+// 多國貨幣
 router.get('/currency-covert', async (req: express.Request, resp: express.Response) => {
     try {
         return response.succ(resp, { data: await Shopping.currencyCovert((req.query.base || 'TWD') as string) });
@@ -40,6 +41,7 @@ router.get('/currency-covert', async (req: express.Request, resp: express.Respon
         return response.fail(resp, err);
     }
 });
+
 // 購物金
 router.get('/rebate', async (req: express.Request, resp: express.Response) => {
     try {
@@ -633,17 +635,16 @@ async function redirect_link(req: express.Request, resp: express.Response) {
         if (req.query.paynow && req.query.paynow === 'true') {
             const check_id = await redis.getValue(`paynow` + req.query.orderID);
             let kd = {
-                ReturnURL : "",
-                NotifyURL : ""
-            }
+                ReturnURL: '',
+                NotifyURL: '',
+            };
 
             const payNow = new PayNow(req.query.appName as string, kd);
-            const data:any = payNow.confirmAndCaptureOrder(check_id as string)
+            const data: any = payNow.confirmAndCaptureOrder(check_id as string);
 
             if (data.type == 'success') {
                 await new Shopping(req.query.appName as string).releaseCheckout(1, req.query.orderID as string);
             }
-
         }
         const html = String.raw;
         return resp.send(
@@ -935,33 +936,7 @@ router.get('/product', async (req: express.Request, resp: express.Response) => {
             status: req.query.status as string,
             channel: req.query.channel as string,
             id_list: req.query.id_list as string,
-            order_by: (() => {
-                switch (req.query.order_by) {
-                    case 'title':
-                        return `order by JSON_EXTRACT(content, '$.title')`;
-                    case 'max_price':
-                        return `order by (CAST(JSON_UNQUOTE(JSON_EXTRACT(content, '$.max_price')) AS SIGNED)) desc`;
-                    case 'min_price':
-                        return `order by (CAST(JSON_UNQUOTE(JSON_EXTRACT(content, '$.min_price')) AS SIGNED)) asc`;
-                    case 'created_time_desc':
-                        return `order by created_time desc`;
-                    case 'created_time_asc':
-                        return `order by created_time`;
-                    case 'updated_time_desc':
-                        return `order by updated_time desc`;
-                    case 'updated_time_asc':
-                        return `order by updated_time`;
-                    case 'stock_desc':
-                        return ``;
-                    case 'stock_asc':
-                        return ``;
-                    case 'sales_desc':
-                        return `order by (content->>'$.total_sales') desc`;
-                    case 'default':
-                    default:
-                        return `order by id desc`;
-                }
-            })(),
+            order_by: req.query.order_by as string,
             with_hide_index: req.query.with_hide_index as string,
             is_manger: (await UtPermission.isManager(req)) as any,
             show_hidden: `${req.query.show_hidden as any}`,
@@ -1063,6 +1038,26 @@ router.put('/product/variants', async (req: express.Request, resp: express.Respo
         return response.fail(resp, err);
     }
 });
+
+// 產品評論
+router.get('/product/comment', async (req: express.Request, resp: express.Response) => {
+    try {
+        const id = Math.max(0, parseInt(`${req.query.id}`, 10) || 0);
+        const comment = await new Shopping(req.get('g-app') as string, req.body.token).getProductComment(id);
+        return response.succ(resp, comment);
+    } catch (err) {
+        return response.fail(resp, err);
+    }
+});
+router.post('/product/comment', async (req: express.Request, resp: express.Response) => {
+    try {
+        await new Shopping(req.get('g-app') as string, req.body.token).postProductComment(req.body);
+        return response.succ(resp, { result: true });
+    } catch (err) {
+        return response.fail(resp, err);
+    }
+});
+
 // router.put('/product/variants/recoverStock', async (req: express.Request, resp: express.Response) => {
 //     try {
 //         if (await UtPermission.isManager(req)) {
@@ -1074,6 +1069,7 @@ router.put('/product/variants', async (req: express.Request, resp: express.Respo
 //         return response.fail(resp, err);
 //     }
 // });
+
 router.delete('/product', async (req: express.Request, resp: express.Response) => {
     try {
         if (await UtPermission.isManager(req)) {
@@ -1151,7 +1147,7 @@ router.post('/pos/linePay', async (req: express.Request, resp: express.Response)
         return response.fail(resp, err);
     }
 });
-//點數續費
+// 點數續費
 router.post('/apple-webhook', async (req: express.Request, resp: express.Response) => {
     try {
         let config = {
@@ -1343,7 +1339,7 @@ router.post('/apple-webhook', async (req: express.Request, resp: express.Respons
     }
 });
 
-//手動開立發票
+// 手動開立發票
 router.post('/customer_invoice', async (req: express.Request, resp: express.Response) => {
     try {
         return response.succ(
@@ -1358,7 +1354,8 @@ router.post('/customer_invoice', async (req: express.Request, resp: express.Resp
         return response.fail(resp, err);
     }
 });
-//發票作廢
+
+// 發票作廢
 router.post('/void_invoice', async (req: express.Request, resp: express.Response) => {
     try {
         return response.succ(
@@ -1385,7 +1382,8 @@ router.post('/void_allowance', async (req: express.Request, resp: express.Respon
         return response.fail(resp, err);
     }
 });
-//折讓發票
+
+// 折讓發票
 router.post('/allowance_invoice', async (req: express.Request, resp: express.Response) => {
     try {
         let passData = {
@@ -1403,7 +1401,7 @@ router.post('/allowance_invoice', async (req: express.Request, resp: express.Res
     }
 });
 
-//新增小結單
+// 新增小結單
 router.post('/pos/summary', async (req: express.Request, resp: express.Response) => {
     try {
         await new Pos(req.get('g-app') as string, req.body.token).setSummary(req.body);
@@ -1415,7 +1413,7 @@ router.post('/pos/summary', async (req: express.Request, resp: express.Response)
     }
 });
 
-//取得小結單
+// 取得小結單
 router.get('/pos/summary', async (req: express.Request, resp: express.Response) => {
     try {
         return response.succ(resp, {
@@ -1426,7 +1424,7 @@ router.get('/pos/summary', async (req: express.Request, resp: express.Response) 
     }
 });
 
-//取得上班狀態
+// 取得上班狀態
 router.get('/pos/work-status', async (req: express.Request, resp: express.Response) => {
     try {
         return response.succ(resp, {
@@ -1436,7 +1434,6 @@ router.get('/pos/work-status', async (req: express.Request, resp: express.Respon
         return response.fail(resp, err);
     }
 });
-//取得上班狀態
 router.get('/pos/work-status-list', async (req: express.Request, resp: express.Response) => {
     try {
         return response.succ(resp, await new Pos(req.get('g-app') as string, req.body.token).getWorkStatusList(req.query as any));
@@ -1444,7 +1441,6 @@ router.get('/pos/work-status-list', async (req: express.Request, resp: express.R
         return response.fail(resp, err);
     }
 });
-//取得上班狀態
 router.post('/pos/work-status', async (req: express.Request, resp: express.Response) => {
     try {
         return response.succ(resp, {

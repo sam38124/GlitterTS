@@ -11,6 +11,8 @@ import { ApiShop } from '../../glitter-base/route/shopping.js';
 import { ApiUser } from '../../glitter-base/route/user.js';
 import { PdClass } from './pd-class.js';
 import { Language } from '../../glitter-base/global/language.js';
+import { UmClass } from '../user-manager/um-class.js';
+import { ShareDialog } from '../../glitterBundle/dialog/ShareDialog.js';
 const html = String.raw;
 export class ProductDetail {
     static tab(data, gvc, select, callback, style) {
@@ -199,6 +201,10 @@ export class ProductDetail {
                                     title: Language.text('product_description'),
                                     key: 'default',
                                 },
+                                {
+                                    title: Language.text('customer_reviews'),
+                                    key: 'comment',
+                                },
                             ].concat(vm.content_manager
                                 .filter((cont) => {
                                 return prod.content_array.includes(cont.id);
@@ -212,10 +218,10 @@ export class ProductDetail {
                                 vm.content_tag = text;
                                 gvc.notifyDataChange(id);
                                 gvc.notifyDataChange(ids.content);
-                            });
+                            }, `overflow: auto; ${document.body.clientWidth > 768 ? '' : 'justify-content: flex-start;'}`);
                         },
                         divCreate: {
-                            class: `pt-3`,
+                            class: `pt-3 w-100`,
                         },
                     };
                 })())}
@@ -225,26 +231,194 @@ export class ProductDetail {
                         if (vm.content_tag === 'default') {
                             return prod.content;
                         }
-                        else {
-                            const template = vm.content_manager.find((cont) => cont.id === vm.content_tag);
-                            const jsonData = prod.content_json.find((data) => data.id === vm.content_tag);
-                            if (!template) {
-                                return '';
-                            }
-                            let htmlString = template.data.content;
-                            if (jsonData) {
-                                jsonData.list.map((data) => {
-                                    var _a, _b, _c;
-                                    const cssStyle = template.data.tags.find((item) => item.key === data.key);
-                                    const regex = new RegExp(`@{{${data.key}}}`, 'g');
-                                    htmlString = htmlString.replace(regex, html `<span
-                                                    style="font-size: ${(_a = cssStyle === null || cssStyle === void 0 ? void 0 : cssStyle.font_size) !== null && _a !== void 0 ? _a : 16}px; color: ${(_b = cssStyle === null || cssStyle === void 0 ? void 0 : cssStyle.font_color) !== null && _b !== void 0 ? _b : '${titleFontColor}'}; background: ${(_c = cssStyle === null || cssStyle === void 0 ? void 0 : cssStyle.font_bgr) !== null && _c !== void 0 ? _c : '#fff'};"
-                                                    >${data.value}</span
-                                                >`);
+                        if (vm.content_tag === 'comment') {
+                            UmClass.addStyle(gvc);
+                            const addCommentDialog = () => {
+                                if (!glitter.share.GlobalUser.token) {
+                                    PdClass.jumpAlert({
+                                        gvc,
+                                        text: Language.text('login_required'),
+                                        justify: 'top',
+                                        align: 'center',
+                                        width: 200,
+                                    });
+                                    return;
+                                }
+                                return UmClass.dialog({
+                                    gvc,
+                                    tag: '',
+                                    title: '撰寫評論',
+                                    innerHTML: (gvcd) => {
+                                        const postData = {
+                                            product_id: vm.data.id,
+                                            rate: 5,
+                                            title: '',
+                                            comment: '',
+                                        };
+                                        return html `
+                                                    <div class="mt-1">
+                                                        <div class="tx_normal fw-normal mb-1">${Language.text('rating')}</div>
+                                                        ${gvcd.bindView((() => {
+                                            const id = glitter.getUUID();
+                                            function setRate(rate) {
+                                                postData.rate = rate;
+                                                gvcd.notifyDataChange(id);
+                                            }
+                                            return {
+                                                bind: id,
+                                                view: () => {
+                                                    return [...new Array(5)]
+                                                        .fill('')
+                                                        .map((_, index) => {
+                                                        return html ` <div class="rating-item">
+                                                                                    ${postData.rate > index
+                                                            ? html `<i
+                                                                                              class="fa-solid fa-star fs-4"
+                                                                                              style="cursor: pointer"
+                                                                                              onclick="${gvcd.event(() => {
+                                                                setRate(index + 1);
+                                                            })}"
+                                                                                          ></i>`
+                                                            : html `<i
+                                                                                              class="fa-regular fa-star fs-4"
+                                                                                              style="cursor: pointer"
+                                                                                              onclick="${gvcd.event(() => {
+                                                                setRate(index + 1);
+                                                            })}"
+                                                                                          ></i>`}
+                                                                                </div>`;
+                                                    })
+                                                        .join('');
+                                                },
+                                                divCreate: {
+                                                    class: 'd-flex mt-1',
+                                                },
+                                            };
+                                        })())}
+                                                    </div>
+                                                    <div class="mt-2">
+                                                        <div class="tx_normal fw-normal mb-1">${Language.text('title')}</div>
+                                                        <input
+                                                            class="bgw-input"
+                                                            type="text"
+                                                            oninput="${gvcd.event((e) => {
+                                            postData.title = e.value;
+                                        })}"
+                                                        />
+                                                    </div>
+                                                    <div class="mt-2">
+                                                        <div class="tx_normal fw-normal mb-1">${Language.text('comment')}</div>
+                                                        <textarea
+                                                            class="bgw-input"
+                                                            rows="3"
+                                                            oninput="${gvcd.event((e) => {
+                                            postData.comment = e.value;
+                                        })}"
+                                                        ></textarea>
+                                                    </div>
+                                                    <div class="d-flex justify-content-end mt-2 mb-1">
+                                                        <div
+                                                            class="um-solid-btn"
+                                                            onclick="${gvcd.event(() => {
+                                            if (postData.title === '' || postData.comment === '') {
+                                                PdClass.jumpAlert({
+                                                    gvc,
+                                                    text: Language.text('complete_form'),
+                                                    justify: 'top',
+                                                    align: 'center',
+                                                    width: 200,
+                                                });
+                                                return;
+                                            }
+                                            const dialog = new ShareDialog(gvc.glitter);
+                                            dialog.dataLoading({ visible: true });
+                                            ApiShop.postComment(postData).then(() => {
+                                                gvcd.closeDialog();
+                                                dialog.dataLoading({ visible: false });
+                                                loadings.page = true;
+                                                gvc.notifyDataChange(ids.page);
+                                            });
+                                        })}"
+                                                        >
+                                                            ${Language.text('submit')}
+                                                        </div>
+                                                    </div>
+                                                `;
+                                    },
                                 });
-                            }
-                            return htmlString.replace(/@{{[^}]+}}/g, '');
+                            };
+                            const commentList = () => {
+                                if (!vm.data.content.comments || vm.data.content.comments.length === 0) {
+                                    return html `<h2>目前尚無顧客評論</h2>`;
+                                }
+                                return vm.data.content.comments
+                                    .sort((a, b) => {
+                                    return a.date > b.date ? -1 : 1;
+                                })
+                                    .slice(0, 15)
+                                    .map((item) => {
+                                    return html `<div style="padding: 20px; min-width: ${document.body.clientWidth > 768 ? '780px' : `calc(${document.body.clientWidth}px - 1.5rem)`};">
+                                                    <div class="row">
+                                                        <div class="col-12 col-md">
+                                                            <div class="row mb-6">
+                                                                <div class="col-12">
+                                                                    <!-- Rating -->
+                                                                    <div class="rating fs-sm text-dark d-flex">
+                                                                        ${[...new Array(5)]
+                                        .fill('')
+                                        .map((_, index) => {
+                                        return html ` <div class="rating-item">
+                                                                                    ${item.rate > index ? html `<i class="fa-solid fa-star"></i>` : html `<i class="fa-regular fa-star"></i>`}
+                                                                                </div>`;
+                                    })
+                                        .join('')}
+                                                                    </div>
+                                                                </div>
+                                                                <div class="col-12">
+                                                                    <!-- Time -->
+                                                                    <span class="fs-xs text-muted"> ${item.userName}, <time datetime="${item.date}">${item.date}</time> </span>
+                                                                </div>
+                                                            </div>
+                                                            <!-- Title -->
+                                                            <p class="mb-2 fs-lg fw-bold">${item.title}</p>
+                                                            <!-- Text -->
+                                                            <p class="text-gray-500">${item.comment}</p>
+                                                        </div>
+                                                    </div>
+                                                </div>`;
+                                })
+                                    .join('');
+                            };
+                            return html ` <div class="d-flex justify-content-center">
+                                            <div
+                                                class="um-solid-btn"
+                                                onclick="${gvc.event(() => {
+                                addCommentDialog();
+                            })}"
+                                            >
+                                                ${Language.text('write_comment')}
+                                            </div>
+                                        </div>
+                                        <div class="d-flex flex-column gap-2">${commentList()}</div>`;
                         }
+                        const template = vm.content_manager.find((cont) => cont.id === vm.content_tag);
+                        const jsonData = prod.content_json.find((data) => data.id === vm.content_tag);
+                        if (!template) {
+                            return '';
+                        }
+                        let htmlString = template.data.content;
+                        if (jsonData) {
+                            jsonData.list.map((data) => {
+                                var _a, _b, _c;
+                                const cssStyle = template.data.tags.find((item) => item.key === data.key);
+                                const regex = new RegExp(`@{{${data.key}}}`, 'g');
+                                htmlString = htmlString.replace(regex, html `<span
+                                                style="font-size: ${(_a = cssStyle === null || cssStyle === void 0 ? void 0 : cssStyle.font_size) !== null && _a !== void 0 ? _a : 16}px; color: ${(_b = cssStyle === null || cssStyle === void 0 ? void 0 : cssStyle.font_color) !== null && _b !== void 0 ? _b : '${titleFontColor}'}; background: ${(_c = cssStyle === null || cssStyle === void 0 ? void 0 : cssStyle.font_bgr) !== null && _c !== void 0 ? _c : '#fff'};"
+                                                >${data.value}</span
+                                            >`);
+                            });
+                        }
+                        return htmlString.replace(/@{{[^}]+}}/g, '');
                     },
                     divCreate: {
                         style: (() => {
@@ -301,13 +475,15 @@ export class ProductDetail {
                                               </div>
                                               <div class="w-100 row p-0 align-items-center justify-content-center mt-4 mt-lg-4 mx-0">
                                                   ${product
-                                        .map((dd, index) => {
-                                        return `<div class="col-6 col-sm-4 col-lg-3">${glitter.htmlGenerate.renderComponent({
+                                        .map((dd) => {
+                                        return html `<div class="col-6 col-sm-4 col-lg-3">
+                                                              ${glitter.htmlGenerate.renderComponent({
                                             appName: window.appName,
                                             tag: 'product_widget',
                                             gvc: gvc,
                                             subData: dd,
-                                        })}</div>`;
+                                        })}
+                                                          </div>`;
                                     })
                                         .join('')}
                                               </div>

@@ -494,9 +494,9 @@ export class PdClass {
                     return `免運費活動`;
             }
         }
-        const aboutVoucherHTML = vm.data && vm.data.about_vouchers && vm.data.about_vouchers.length > 0
+        const aboutVoucherHTML = vm.data && vm.data.content.about_vouchers && vm.data.content.about_vouchers.length > 0
             ? html `<div class="d-flex flex-column gap-1 mt-3">
-                      ${vm.data.about_vouchers
+                      ${vm.data.content.about_vouchers
                 .map((v) => {
                 return html `
                                   <div class="d-flex gap-2 align-items-center">

@@ -390,6 +390,19 @@ export class UmClass {
                 align-items: center;
             }
 
+            .um-solid-btn {
+                background: ${solidButtonBgr};
+                color: ${solidButtonText};
+                cursor: pointer;
+                display: flex;
+                width: 100px;
+                padding: 7px;
+                justify-content: center;
+                align-items: center;
+                gap: 10px;
+                border-radius: 5px;
+            }
+
             .um-info-title {
                 color: ${titleFontColor};
                 font-size: 28px;
@@ -486,18 +499,18 @@ export class UmClass {
                 min-height: 44px;
             }
 
-            .bgw-input[type=date]{
-                color: rgba(0,0,0,0);
+            .bgw-input[type='date'] {
+                color: rgba(0, 0, 0, 0);
             }
 
-            .bgw-input[type=date]::before {
+            .bgw-input[type='date']::before {
                 content: attr(data-placeholder);
                 position: absolute;
                 color: #8d8d8d;
                 pointer-events: none;
                 font-size: 15px;
             }
-    
+
             .bgw-input:focus {
                 outline: 0;
             }
@@ -643,7 +656,6 @@ export class UmClass {
                 background: #8d8d8d;
                 color: #ffffff;
             }
-            
 
             @media (min-width: 576px) {
                 .um-container {

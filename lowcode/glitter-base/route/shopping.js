@@ -750,6 +750,18 @@ export class ApiShop {
             data: JSON.stringify(json),
         });
     }
+    static postComment(json) {
+        return BaseApi.create({
+            url: getBaseUrl() + `/api-public/v1/ec/product/comment`,
+            type: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'g-app': getConfig().config.appName,
+                Authorization: GlobalUser.token,
+            },
+            data: JSON.stringify(json),
+        });
+    }
     static getCheckout(json) {
         return BaseApi.create({
             url: getBaseUrl() + `/api-public/v1/ec/checkout/preview`,
