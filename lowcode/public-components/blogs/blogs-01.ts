@@ -1,38 +1,44 @@
-import { ShareDialog } from '../../glitterBundle/dialog/ShareDialog.js';
-import { GVC } from '../../glitterBundle/GVController.js';
-import { UmClass } from '../user-manager/um-class.js';
-import { Language } from '../../glitter-base/global/language.js';
+import {ShareDialog} from '../../glitterBundle/dialog/ShareDialog.js';
+import {GVC} from '../../glitterBundle/GVController.js';
+import {UmClass} from '../user-manager/um-class.js';
+import {Language} from '../../glitter-base/global/language.js';
 import {ApiCart} from "../../glitter-base/route/api-cart.js";
+import {Article} from "../../glitter-base/route/article.js";
 
 export class Blogs01 {
     static main(gvc: GVC, subData: any) {
         if (subData.content.generator !== 'page_editor') {
-            return subData.content.text;
+            const dd=subData.content;
+            return `<div class="container mx-auto fr-view mb-5" style="max-width: 1100px;font-family: 'Source Sans Pro', 'Open Sans', 'Helvetica Neue', Helvetica, Arial, 'Hiragino Sans GB', 'Microsoft YaHei', '微软雅黑', 'STHeiti', 'WenQuanYi Micro Hei', SimSun, sans-serif;">
+ <h1 class="my-5 w-100 text-center p-0" style="color:${subData.content.title};font-size:${document.body.clientWidth>800 ? `32px`:`24px`};font-weight: 600;">
+ ${(dd.language_data && dd.language_data[Language.getLanguage()].title) || dd.title}
+</h1>
+${(dd.language_data && dd.language_data[Language.getLanguage()].text) || dd.text}</div>`;
         } else {
             function startRender() {
                 // 隱形賣場和一頁商店，預設加入購物車
                 if (subData.content.relative_data && ['shopping', 'hidden'].includes(subData.content.page_type) && localStorage.getItem('block-refresh-cart') !== 'true') {
-                  const clock=gvc.glitter.ut.clock()
-                    const interVal=setInterval(()=>{
-                      if(clock.stop()<2000){
-                          (new ApiCart(ApiCart.globalCart)).setCart((cart)=>{
-                              subData.content.relative_data.map((dd: any) => {
-                                  const line_item = cart.line_items.find((d1: any) => {
-                                      return `${d1.id}-${d1.spec.join('-')}` === `${dd.product_id}-${dd.variant.spec.join('-')}`;
-                                  });
-                                  if (!line_item) {
-                                      cart.line_items.push({
-                                          id: dd.product_id,
-                                          spec: dd.variant.spec,
-                                          count: 1,
-                                      });
-                                  }
-                              })
-                          });
-                      }else{
-                          clearInterval(interVal)
-                      }
-                  },300)
+                    const clock = gvc.glitter.ut.clock()
+                    const interVal = setInterval(() => {
+                        if (clock.stop() < 2000) {
+                            (new ApiCart(ApiCart.globalCart)).setCart((cart) => {
+                                subData.content.relative_data.map((dd: any) => {
+                                    const line_item = cart.line_items.find((d1: any) => {
+                                        return `${d1.id}-${d1.spec.join('-')}` === `${dd.product_id}-${dd.variant.spec.join('-')}`;
+                                    });
+                                    if (!line_item) {
+                                        cart.line_items.push({
+                                            id: dd.product_id,
+                                            spec: dd.variant.spec,
+                                            count: 1,
+                                        });
+                                    }
+                                })
+                            });
+                        } else {
+                            clearInterval(interVal)
+                        }
+                    }, 300)
                 } else {
                     localStorage.setItem('block-refresh-cart', 'false');
                 }
@@ -44,8 +50,10 @@ export class Blogs01 {
                         style: `position:relative;`,
                         containerID: gvc.glitter.getUUID(),
                         tag: gvc.glitter.getUUID(),
-                        jsFinish: () => {},
-                        onCreate: () => {},
+                        jsFinish: () => {
+                        },
+                        onCreate: () => {
+                        },
                         document: document,
                     },
                     {}
@@ -68,7 +76,7 @@ export class Blogs01 {
                                 return ``;
                             },
                             divCreate: {
-                                option: [{ key: 'id', value: rid }],
+                                option: [{key: 'id', value: rid}],
                             },
                             onCreate: () => {
                                 function checkPwd() {
@@ -87,6 +95,7 @@ export class Blogs01 {
                                         });
                                     }
                                 }
+
                                 checkPwd();
                             },
                         };
@@ -100,7 +109,7 @@ export class Blogs01 {
                                 return ``;
                             },
                             divCreate: {
-                                option: [{ key: 'id', value: rid }],
+                                option: [{key: 'id', value: rid}],
                             },
                             onCreate: () => {
                                 const dialog = new ShareDialog(gvc.glitter);
@@ -112,11 +121,11 @@ export class Blogs01 {
                                         if (subData.content.show_auth.value.includes(mem.id)) {
                                             document.querySelector(`#${rid}`)!.outerHTML = startRender();
                                         } else {
-                                            dialog.errorMessage({ text: Language.text('no_access_permission') });
+                                            dialog.errorMessage({text: Language.text('no_access_permission')});
                                             gvc.glitter.href = '/index';
                                         }
                                     } catch (e) {
-                                        dialog.errorMessage({ text: Language.text('no_access_permission') });
+                                        dialog.errorMessage({text: Language.text('no_access_permission')});
                                         gvc.glitter.href = '/index';
                                     }
                                 });
@@ -130,6 +139,20 @@ export class Blogs01 {
                 return startRender();
             }
         }
+    }
+
+    static async getMain(gvc: GVC) {
+        const page = gvc.glitter.getUrlParameter('page');
+        return new Promise<string>((resolve, reject) => {
+            Article.get({
+                limit: 15,
+                page: 0,
+                tag: page.substring(page.indexOf('/')+1, page.length)
+            }).then((res) => {
+                resolve(Blogs01.main(gvc,res.response.data[0]))
+            })
+
+        })
     }
 }
 

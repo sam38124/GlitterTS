@@ -1,11 +1,26 @@
+var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+};
 import { ShareDialog } from '../../glitterBundle/dialog/ShareDialog.js';
 import { UmClass } from '../user-manager/um-class.js';
 import { Language } from '../../glitter-base/global/language.js';
 import { ApiCart } from "../../glitter-base/route/api-cart.js";
+import { Article } from "../../glitter-base/route/article.js";
 export class Blogs01 {
     static main(gvc, subData) {
         if (subData.content.generator !== 'page_editor') {
-            return subData.content.text;
+            const dd = subData.content;
+            return `<div class="container mx-auto fr-view mb-5" style="max-width: 1100px;font-family: 'Source Sans Pro', 'Open Sans', 'Helvetica Neue', Helvetica, Arial, 'Hiragino Sans GB', 'Microsoft YaHei', '微软雅黑', 'STHeiti', 'WenQuanYi Micro Hei', SimSun, sans-serif;">
+ <h1 class="my-5 w-100 text-center p-0" style="color:${subData.content.title};font-size:${document.body.clientWidth > 800 ? `32px` : `24px`};font-weight: 600;">
+ ${(dd.language_data && dd.language_data[Language.getLanguage()].title) || dd.title}
+</h1>
+${(dd.language_data && dd.language_data[Language.getLanguage()].text) || dd.text}</div>`;
         }
         else {
             function startRender() {
@@ -41,8 +56,10 @@ export class Blogs01 {
                     style: `position:relative;`,
                     containerID: gvc.glitter.getUUID(),
                     tag: gvc.glitter.getUUID(),
-                    jsFinish: () => { },
-                    onCreate: () => { },
+                    jsFinish: () => {
+                    },
+                    onCreate: () => {
+                    },
                     document: document,
                 }, {});
             }
@@ -130,6 +147,20 @@ export class Blogs01 {
                 return startRender();
             }
         }
+    }
+    static getMain(gvc) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const page = gvc.glitter.getUrlParameter('page');
+            return new Promise((resolve, reject) => {
+                Article.get({
+                    limit: 15,
+                    page: 0,
+                    tag: page.substring(page.indexOf('/') + 1, page.length)
+                }).then((res) => {
+                    resolve(Blogs01.main(gvc, res.response.data[0]));
+                });
+            });
+        });
     }
 }
 window.glitter.setModule(import.meta.url, Blogs01);

@@ -814,6 +814,9 @@ export class Language {
             { key: 'refund', tw: '退換貨政策', cn: '退換貨政策', en: 'Refund policy' },
             { key: 'delivery', tw: '購買與配送須知', cn: '配送须知', en: 'Shipping instructions' },
             { key: 'pieces', tw: '件', cn: '件', en: 'Pieces' },
+            { key: 'search_article', tw: '搜尋文章', cn: '搜寻文章', en: 'Search articles' },
+            { key: 'blog_list', tw: '網誌列表', cn: '网志列表', en: 'Blog list' },
+            { key: 'all_article', tw: '所有文章', cn: '所有文章', en: 'All articles' },
         ];
     }
     static getLanguageCustomText(text) {

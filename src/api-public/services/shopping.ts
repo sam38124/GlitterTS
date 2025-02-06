@@ -1202,7 +1202,7 @@ export class Shopping {
                 }
             ) => {
                 // 檢查預覽模式下的條件
-                if (type === 'preview' && !(token?.userID || data.user_info.email)) {
+                if (type === 'preview' && !(token?.userID || data.user_info && data.user_info.email)) {
                     return {};
                 }
 
@@ -2045,7 +2045,6 @@ export class Shopping {
                             form: subMitData,
                         };
                     case 'paypal':
-
                         kd.ReturnURL = `${process.env.DOMAIN}/api-public/v1/ec/redirect?g-app=${this.app}&return=${id}`;
                         kd.NotifyURL = `${process.env.DOMAIN}/api-public/v1/ec/notify?g-app=${this.app}`;
                         await Promise.all(

@@ -191,6 +191,7 @@ export class ShoppingFinanceSetting {
                                 keyData.paypal.toggle && array.push('paypal');
                                 keyData.line_pay.toggle && array.push('line_pay');
                                 keyData.paynow.toggle && array.push('paynow');
+                                keyData.jkopay.toggle && array.push('jkopay');
                                 return array;
                             })(), (data) => {
                                 onlinePayArray.filter((dd) => {

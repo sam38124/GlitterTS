@@ -663,7 +663,7 @@ class PayNow {
         this.appName = appName;
         this.PublicKey = (_a = keyData.public_key) !== null && _a !== void 0 ? _a : "";
         this.PrivateKey = (_b = keyData.private_key) !== null && _b !== void 0 ? _b : "";
-        this.BASE_URL = (keyData.BETA == 'true') ? "https://sandboxapi.paynow.com.tw" : "https://api.paynow.com.tw";
+        this.BASE_URL = (keyData.BETA == 'true') ? "https://sandbox/api.paynow.com.tw" : "https://api.paynow.com.tw";
     }
     async confirmAndCaptureOrder(transactionId) {
         var _a;

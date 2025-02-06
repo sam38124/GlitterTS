@@ -795,7 +795,7 @@ class Shopping {
                 }
             }
             const getUserDataAsync = async (type, token, data) => {
-                if (type === 'preview' && !((token === null || token === void 0 ? void 0 : token.userID) || data.user_info.email)) {
+                if (type === 'preview' && !((token === null || token === void 0 ? void 0 : token.userID) || data.user_info && data.user_info.email)) {
                     return {};
                 }
                 if (token === null || token === void 0 ? void 0 : token.userID) {

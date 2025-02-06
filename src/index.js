@@ -223,6 +223,17 @@ async function createAPP(dd) {
                                 page: req.query.page,
                             });
                         }
+                        else if (`${req.query.page}`.startsWith('blogs')) {
+                            const seo = await new user_js_1.User(req.get('g-app'), req.body.token).getConfigV2({
+                                key: 'article_seo_data_' + language,
+                                user_id: 'manager',
+                            });
+                            data.page_config.seo.title = seo.title || data.page_config.seo.title;
+                            data.page_config.seo.content = seo.content || data.page_config.seo.content;
+                            data.page_config.seo.keywords = seo.keywords || data.page_config.seo.keywords;
+                            data.page_config.seo.image = seo.image || data.page_config.seo.image;
+                            data.page_config.seo.logo = seo.logo || data.page_config.seo.logo;
+                        }
                         else if (`${req.query.page}`.startsWith('blogs/')) {
                             await seo_config_js_1.SeoConfig.articleSeo({
                                 article: req.query.article,
@@ -567,7 +578,11 @@ async function createAPP(dd) {
                         });
                         return array;
                     })(),
-                ]).pipe(stream)).then((data) => data.toString());
+                ].filter((dd) => {
+                    return dd.url !== `https://${domain}/blogs`;
+                }).concat([
+                    { url: `https://${domain}/blogs`, changefreq: 'weekly' }
+                ])).pipe(stream)).then((data) => data.toString());
                 return xml;
             },
             sitemap_list: async (req, resp) => {

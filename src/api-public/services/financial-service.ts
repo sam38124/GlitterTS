@@ -885,7 +885,7 @@ export class PayNow {
         this.appName = appName;
         this.PublicKey = keyData.public_key??"";
         this.PrivateKey =  keyData.private_key??"";
-        this.BASE_URL = (keyData.BETA == 'true') ? "https://sandboxapi.paynow.com.tw":"https://api.paynow.com.tw"; // 沙箱環境
+        this.BASE_URL = (keyData.BETA == 'true') ? "https://sandbox/api.paynow.com.tw":"https://api.paynow.com.tw"; // 沙箱環境
     }
 
     async confirmAndCaptureOrder(transactionId?:string){

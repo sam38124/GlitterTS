@@ -15,10 +15,11 @@ export class TermsRelated {
         const gvc = obj.gvc;
         const glitter = gvc.glitter;
         const title_color = glitter.share.globalValue['theme_color.0.title'];
+        const id = glitter.getUUID();
         const page = glitter.getUrlParameter('page');
         return gvc.bindView(() => {
             return {
-                bind: glitter.getUUID(),
+                bind: id,
                 view: () => __awaiter(this, void 0, void 0, function* () {
                     if ((`${glitter.getUrlParameter('page')}`.startsWith(`collections`)) ||
                         (`${glitter.getUrlParameter('page')}`.startsWith(`all-product`))) {
@@ -28,10 +29,26 @@ export class TermsRelated {
                             });
                         });
                     }
+                    else if (['blogs', 'pages', 'shop', 'hidden'].find((dd) => {
+                        return (`${glitter.getUrlParameter('page')}`.startsWith(dd));
+                    }) && (`${glitter.getUrlParameter('page')}`.split('/')[1])) {
+                        return yield new Promise((resolve, reject) => {
+                            glitter.getModule(new URL('./public-components/blogs/blogs-01.js', gvc.glitter.root_path).href, (res) => {
+                                resolve(res.getMain(obj.gvc));
+                            });
+                        });
+                    }
                     else if ((`${glitter.getUrlParameter('page')}`.startsWith(`blogs`))) {
                         return yield new Promise((resolve, reject) => {
                             glitter.getModule(new URL('./public-components/blogs/list.js', gvc.glitter.root_path).href, (res) => {
                                 resolve(res.main(obj));
+                            });
+                        });
+                    }
+                    else if (['blog_tag_setting', 'blog_global_setting'].includes(glitter.getUrlParameter('page'))) {
+                        return yield new Promise((resolve, reject) => {
+                            glitter.getModule(new URL('./cms-plugin/cms-router.js', gvc.glitter.root_path).href, (res) => {
+                                document.querySelector(`.${id}`).outerHTML = res.main(gvc);
                             });
                         });
                     }
@@ -47,7 +64,7 @@ export class TermsRelated {
                     }
                 }),
                 divCreate: {
-                    class: `container text-center`
+                    class: `container text-center ${id}`
                 }
             };
         });

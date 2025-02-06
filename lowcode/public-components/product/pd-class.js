@@ -196,6 +196,9 @@ export class PdClass {
 
             .swiper-slide.swiper-slide-sm {
                 opacity: 0.5;
+                background: none !important;
+                padding: 0 !important;
+                width: auto !important;
             }
 
             .swiper-slide.swiper-slide-sm.swiper-slide-thumb-active {
@@ -337,7 +340,7 @@ export class PdClass {
                 bind: id,
                 view: () => {
                     return html `
-                        <div class="swiper${id}" id="dynamic-swiper${id}" style="width: 500px;position:relative;overflow: hidden;">
+                        <div class="swiper${id}" id="dynamic-swiper${id}" style="width: 500px;position:relative;overflow: hidden;max-width: 100%;">
                             <div class="swiper-wrapper">
                                 ${obj.prod.preview_image
                         .map((image, index) => {
@@ -356,7 +359,7 @@ export class PdClass {
                                       ${obj.prod.preview_image
                             .map((image, index) => {
                             return html ` <div class="swiper-slide swiper-slide-sm" data-image-index="${index}">
-                                                  <img src="${image}" alt="${obj.prod.title}-${index}-sm" />
+                                                  <img src="${image}" alt="${obj.prod.title}-${index}-sm" style="height: ${isPhone ? 75 : 100}px;width: auto !important;" />
                                               </div>`;
                         })
                             .join('')}
@@ -366,9 +369,9 @@ export class PdClass {
                     `;
                 },
                 divCreate: {
-                    class: `w-100`,
+                    class: ``,
                     option: [{ key: 'id', value: id }],
-                    style: `overflow:hidden;position:relative;`,
+                    style: `overflow:hidden;position:relative;${document.body.clientWidth > 800 ? `width:500px;` : `width:100%:`}`,
                 },
                 onCreate: () => {
                     const si = setInterval(() => {
@@ -416,19 +419,6 @@ export class PdClass {
                             clearInterval(si);
                         }
                     }, 200);
-                    function updateSwiperHeight() {
-                        const size = setTimeout(() => {
-                            const container = document.getElementById(id);
-                            const swiper = document.getElementById('dynamic-swiper' + id);
-                            if (swiper && container) {
-                                const rem = document.body.clientWidth > 768 ? '2rem' : '0rem';
-                                swiper.style.height = `calc(${container.clientWidth}px - ${rem})`;
-                                clearInterval(size);
-                            }
-                        }, 200);
-                    }
-                    updateSwiperHeight();
-                    window.addEventListener('resize', updateSwiperHeight);
                 },
             };
         });
