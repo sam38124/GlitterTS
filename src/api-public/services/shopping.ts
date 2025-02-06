@@ -178,16 +178,16 @@ type Cart = {
 };
 
 export class Shopping {
-    public app: string;
+    app: string;
 
-    public token?: IToken;
+    token?: IToken;
 
     constructor(app: string, token?: IToken) {
         this.app = app;
         this.token = token;
     }
 
-    public async workerExample(data: { type: 0 | 1; divisor: number }) {
+    async workerExample(data: { type: 0 | 1; divisor: number }) {
         try {
             // 以 t_voucher_history 更新資料舉例
             const jsonData = await db.query(
@@ -233,7 +233,7 @@ export class Shopping {
         }
     }
 
-    public async getProduct(query: {
+    async getProduct(query: {
         page: number;
         limit: number;
         sku?: string;
@@ -261,15 +261,17 @@ export class Shopping {
         distribution_code?: string;
     }) {
         try {
-            const querySql = [`(content->>'$.type'='product')`];
-            const store_info = await new User(this.app).getConfigV2({
+            const userClass = new User(this.app);
+            const userID = this.token ? `${this.token.userID}` : '';
+            const store_info = await userClass.getConfigV2({
                 key: 'store-information',
                 user_id: 'manager',
             });
-            const store_config = await new User(this.app).getConfigV2({
+            const store_config = await userClass.getConfigV2({
                 key: 'store_manager',
                 user_id: 'manager',
             });
+            const querySql = [`(content->>'$.type'='product')`];
             query.language = query.language ?? store_info.language_setting.def;
             query.show_hidden = query.show_hidden ?? 'true';
 
@@ -305,26 +307,27 @@ export class Shopping {
             }
 
             if (query.domain) {
-                let sql_join_search = [];
-                // querySql.push();
-                sql_join_search.push(`content->>'$.seo.domain'='${decodeURIComponent(query.domain)}'`);
+                const decodedDomain = decodeURIComponent(query.domain);
+                const sqlJoinSearch = [
+                    `content->>'$.seo.domain' = '${decodedDomain}'`,
+                    `content->>'$.title' = '${decodedDomain}'`,
+                    `content->>'$.language_data."${query.language}".seo.domain' = '${decodedDomain}'`,
+                ];
 
-                sql_join_search.push(`content->>'$.title'='${decodeURIComponent(query.domain)}'`);
-                sql_join_search.push(`content->>'$.language_data."${query.language}".seo.domain'='${decodeURIComponent(query.domain)}'`);
-                querySql.push(
-                    `(${sql_join_search
-                        .map((dd) => {
-                            return `(${dd})`;
-                        })
-                        .join(' or ')})`
-                );
+                if (sqlJoinSearch.length) {
+                    querySql.push(`(${sqlJoinSearch.map((condition) => `(${condition})`).join(' OR ')})`);
+                }
             }
 
             if (query.id) {
-                if (`${query.id}`.includes(',')) {
-                    querySql.push(`id in (${query.id})`);
+                const ids = `${query.id}`
+                    .split(',')
+                    .map((id) => id.trim())
+                    .filter((id) => id);
+                if (ids.length > 1) {
+                    querySql.push(`id IN (${ids.map((id) => `'${id}'`).join(',')})`);
                 } else {
-                    querySql.push(`id = ${query.id}`);
+                    querySql.push(`id = '${ids[0]}'`);
                 }
             }
 
@@ -405,7 +408,7 @@ export class Shopping {
             }
 
             if (!query.id && query.status === 'active' && query.with_hide_index !== 'true') {
-                querySql.push(`((content->>'$.hideIndex' is NULL) || (content->>'$.hideIndex'='false'))`);
+                querySql.push(`(content->>'$.hideIndex' IS NULL OR content->>'$.hideIndex' = 'false')`);
             }
 
             if (query.id_list) {
@@ -419,43 +422,41 @@ export class Shopping {
                 // 基本條件
                 const statusCondition = `JSON_EXTRACT(content, '$.status') IN (${statusJoin})`;
 
-                //2024-12-11
                 // 時間條件
+                const currentDate = db.escape(new Date().toISOString());
+
                 const scheduleConditions = statusSplit
                     .map((status) => {
                         switch (status) {
                             case 'inRange':
                                 return `
                                 OR (
-                                    JSON_EXTRACT(content, '$.status') in ('active',1)
+                                    JSON_EXTRACT(content, '$.status') IN ('active', 1)
                                     AND (
                                         content->>'$.active_schedule' IS NULL OR (
                                             (
-                                            CONCAT(content->>'$.active_schedule.start_ISO_Date') IS NULL OR
-                                            CONCAT(content->>'$.active_schedule.start_ISO_Date') <= ${db.escape(new Date().toISOString())}
+                                                CONCAT(content->>'$.active_schedule.start_ISO_Date') IS NULL OR
+                                                CONCAT(content->>'$.active_schedule.start_ISO_Date') <= ${currentDate}
                                             )
                                             AND (
-                                                CONCAT(content->>'$.active_schedule.end_ISO_Date') IS NULL
-                                                OR CONCAT(content->>'$.active_schedule.end_ISO_Date') >= ${db.escape(new Date().toISOString())}
+                                                CONCAT(content->>'$.active_schedule.end_ISO_Date') IS NULL OR
+                                                CONCAT(content->>'$.active_schedule.end_ISO_Date') >= ${currentDate}
                                             )
                                         )
                                     )
-                                )
-                            `;
+                                )`;
                             case 'beforeStart':
                                 return `
                                 OR (
-                                    JSON_EXTRACT(content, '$.status') in ('active',1)
-                                    AND CONCAT(content->>'$.active_schedule.start_ISO_Date') >${db.escape(new Date().toISOString())}
-                                )
-                            `;
+                                    JSON_EXTRACT(content, '$.status') IN ('active', 1)
+                                    AND CONCAT(content->>'$.active_schedule.start_ISO_Date') > ${currentDate}
+                                )`;
                             case 'afterEnd':
                                 return `
                                 OR (
-                                    JSON_EXTRACT(content, '$.status') in ('active',1)
-                                    AND CONCAT(content->>'$.active_schedule.end_ISO_Date') < ${db.escape(new Date().toISOString())}
-                                )
-                            `;
+                                    JSON_EXTRACT(content, '$.status') IN ('active', 1)
+                                    AND CONCAT(content->>'$.active_schedule.end_ISO_Date') < ${currentDate}
+                                )`;
                             default:
                                 return '';
                         }
@@ -486,13 +487,14 @@ export class Shopping {
                 querySql.push(`(id in (select product_id from \`${this.app}\`.t_variants where content->>'$.sale_price' <= ${query.max_price}))`);
             }
 
+            // 取得產品查詢結果
             const products = await this.querySql(querySql, query);
 
             // 產品清單
             const productList = (Array.isArray(products.data) ? products.data : [products.data]).filter((product) => product);
 
             // 許願清單判斷
-            if (this.token && this.token.userID) {
+            if (userID !== '') {
                 for (const b of productList) {
                     b.content.in_wish_list =
                         (
@@ -500,7 +502,7 @@ export class Shopping {
                                 `SELECT count(1)
                                  FROM \`${this.app}\`.t_post
                                  WHERE (content ->>'$.type'='wishlist')
-                                   and userID = ${this.token.userID}
+                                   and userID = ${userID}
                                    and (content ->>'$.product_id'=${b.id})`,
                                 []
                             )
@@ -510,16 +512,13 @@ export class Shopping {
             }
 
             if (query.id_list) {
-                let tempData: any = [];
-                query.id_list.split(',').map((id) => {
-                    const find = products.data.find((product: { id: number }) => {
-                        return `${product.id}` === `${id}`;
-                    });
-                    if (find) {
-                        tempData.push(find);
-                    }
-                });
-                products.data = tempData;
+                const idSet = new Set(
+                    query.id_list
+                        .split(',')
+                        .map((id) => id.trim())
+                        .filter(Boolean)
+                );
+                products.data = products.data.filter((product: { id: number }) => idSet.has(`${product.id}`));
             }
 
             if (query.id_list && query.order_by === 'order by id desc') {
@@ -586,16 +585,20 @@ export class Shopping {
                 product.total_sales = totalSale;
             }
 
-            if (query.domain && products.data[0]) {
-                products.data =
-                    products.data.find((dd: any) => {
-                        return (
-                            (dd.content.language_data &&
-                                dd.content.language_data[`${query.language}`].seo &&
-                                dd.content.language_data[`${query.language}`].seo.domain === decodeURIComponent(query.domain!!)) ||
-                            (dd.content.seo && dd.content.seo.domain === decodeURIComponent(query.domain!!))
-                        );
-                    }) || products.data[0];
+            if (query.domain && products.data.length > 0) {
+                const decodedDomain = decodeURIComponent(query.domain);
+
+                const foundProduct = products.data.find((dd: any) => {
+                    if (!query.language) {
+                        return false;
+                    }
+                    const languageData = dd.content.language_data?.[query.language]?.seo;
+                    const seoData = dd.content.seo;
+
+                    return (languageData && languageData.domain === decodedDomain) || (seoData && seoData.domain === decodedDomain);
+                });
+
+                products.data = foundProduct || products.data[0];
             }
 
             if ((query.domain || query.id) && products.data !== undefined) {
@@ -603,28 +606,31 @@ export class Shopping {
             }
 
             // 產品可使用的優惠券
-            const userID = this.token ? `${this.token.userID}` : '';
-            const view_source = query.view_source ?? 'normal';
-            const distribution_code = query.distribution_code ?? '';
+            const viewSource = query.view_source ?? 'normal';
+            const distributionCode = query.distribution_code ?? '';
 
-            if (products.total === 1 && !Array.isArray(products.data)) {
-                products.data.about_vouchers = await this.aboutProductVoucher({
-                    product: products.data,
-                    userID,
-                    view_source,
-                    distribution_code,
-                });
-            } else {
-                await Promise.all(
-                    products.data.map(async (product: any) => {
-                        product.about_vouchers = await this.aboutProductVoucher({
-                            product,
-                            userID,
-                            view_source,
-                            distribution_code,
-                        });
-                    })
-                );
+            // 取得所有優惠券與適配的分銷連結
+            const userData = (await userClass.getUserData(userID, 'userID')) ?? { userID: -1 };
+            const allVoucher = await this.getAllUseVoucher(userData.userID);
+            const recommendData = await this.getDistributionRecommend(distributionCode);
+
+            if (products.total && products.data) {
+                const processProduct = async (product: any) => {
+                    product.about_vouchers = await this.aboutProductVoucher({
+                        product,
+                        userID,
+                        viewSource,
+                        allVoucher,
+                        recommendData,
+                        userData,
+                    });
+                };
+
+                if (products.total === 1 && !Array.isArray(products.data)) {
+                    await processProduct(products.data);
+                } else {
+                    await Promise.all(products.data.map(processProduct));
+                }
             }
 
             return products;
@@ -634,49 +640,55 @@ export class Shopping {
         }
     }
 
-    public async aboutProductVoucher(json: { product: any; userID: string; view_source: string; distribution_code: string }) {
-        const userClass = new User(this.app);
-        const userData = (await userClass.getUserData(json.userID, 'userID')) ?? { userID: -1 };
+    async getAllUseVoucher(userID: any): Promise<VoucherData[]> {
+        const now = Date.now();
 
-        // 所有優惠券
-        const allVoucher: VoucherData[] = (
+        // 查詢所有優惠券，過濾有效期限
+        const allVoucher = (
             await this.querySql([`(content->>'$.type'='voucher')`], {
                 page: 0,
                 limit: 10000,
             })
         ).data
-            .map((dd: { content: VoucherData }) => {
-                return dd.content;
-            })
-            .filter((dd: VoucherData) => {
-                // 判斷有效期限
-                return new Date(dd.start_ISO_Date).getTime() < new Date().getTime() && (!dd.end_ISO_Date || new Date(dd.end_ISO_Date).getTime() > new Date().getTime());
+            .map((dd: { content: VoucherData }) => dd.content)
+            .filter((voucher: VoucherData) => {
+                const startDate = new Date(voucher.start_ISO_Date).getTime();
+                const endDate = voucher.end_ISO_Date ? new Date(voucher.end_ISO_Date).getTime() : Infinity;
+                return startDate < now && now < endDate;
             });
 
-        // 需 async and await 的驗證
-        const pass_ids: number[] = [];
-        for (const voucher of allVoucher) {
-            const checkLimited = await this.checkVoucherLimited(userData.userID, voucher.id);
-            if (!checkLimited) {
-                continue;
-            }
-            pass_ids.push(voucher.id);
-        }
+        // 處理需 async and await 的驗證
+        const validVouchers = await Promise.all(
+            allVoucher.map(async (voucher: VoucherData) => {
+                const isLimited = await this.checkVoucherLimited(userID, voucher.id);
+                return isLimited && voucher.status === 1 ? voucher : null;
+            })
+        );
 
+        // 過濾出有效的優惠券
+        return validVouchers.filter(Boolean);
+    }
+
+    async getDistributionRecommend(distribution_code: string) {
         // 分銷連結
         const recommends = await db.query(`SELECT * FROM \`${this.app}\`.t_recommend_links`, []);
         const recommendData = recommends
             .map((dd: { content: any }) => dd.content) // 解構獲取 content
             .filter((dd: any) => {
-                const isCode = dd.code === json.distribution_code;
+                const isCode = dd.code === distribution_code;
                 const startDate = new Date(dd.start_ISO_Date || `${dd.startDate} ${dd.startTime}`);
                 const endDate = dd.end_ISO_Date ? new Date(dd.end_ISO_Date) : dd.endDate ? new Date(`${dd.endDate} ${dd.endTime}`) : null;
                 const isActive = startDate.getTime() < Date.now() && (!endDate || endDate.getTime() > Date.now());
                 return isCode && isActive;
             });
+        return recommendData;
+    }
 
+    async aboutProductVoucher(json: { allVoucher: VoucherData[]; userData: any; recommendData: any; product: any; userID: string; viewSource: string }) {
         const id = `${json.product.id}`;
         const collection = json.product.content.collection || [];
+        const userData = json.userData;
+        const recommendData = json.recommendData;
 
         function checkValidProduct(caseName: string, caseList: any[]): boolean {
             switch (caseName) {
@@ -692,11 +704,7 @@ export class Shopping {
         }
 
         // 過濾可使用優惠券
-        const voucherList = allVoucher
-            .filter((dd) => {
-                // 是否啟用與通過 await 的判斷
-                return pass_ids.includes(dd.id) && dd.status === 1;
-            })
+        const voucherList = json.allVoucher
             .filter((dd) => {
                 // 訂單來源判斷
                 if (!dd.device) {
@@ -705,7 +713,7 @@ export class Shopping {
                 if (dd.device.length === 0) {
                     return false;
                 }
-                if (json.view_source === 'pos') {
+                if (json.viewSource === 'pos') {
                     return dd.device.includes('pos');
                 }
                 return dd.device.includes('normal');
@@ -737,7 +745,7 @@ export class Shopping {
         return voucherList;
     }
 
-    public async querySql(querySql: string[], query: { page: number; limit: number; id?: string; order_by?: string }) {
+    async querySql(querySql: string[], query: { page: number; limit: number; id?: string; order_by?: string }) {
         let sql = `SELECT *
                    FROM \`${this.app}\`.t_manager_post
                    WHERE ${querySql.join(' and ')} ${query.order_by || `order by id desc`}
@@ -778,7 +786,7 @@ export class Shopping {
         }
     }
 
-    public async querySqlBySEO(
+    async querySqlBySEO(
         querySql: string[],
         query: {
             page: number;
@@ -822,7 +830,7 @@ export class Shopping {
         }
     }
 
-    public async querySqlByVariants(
+    async querySqlByVariants(
         querySql: string[],
         query: {
             page: number;
@@ -873,7 +881,7 @@ export class Shopping {
         }
     }
 
-    public async deleteProduct(query: { id: string }) {
+    async deleteProduct(query: { id: string }) {
         try {
             await db.query(
                 `DELETE
@@ -889,7 +897,7 @@ export class Shopping {
         }
     }
 
-    public async deleteVoucher(query: { id: string }) {
+    async deleteVoucher(query: { id: string }) {
         try {
             await db.query(
                 `DELETE
@@ -909,7 +917,7 @@ export class Shopping {
         return `${new Date().getTime()}`;
     }
 
-    public async linePay(data: any) {
+    async linePay(data: any) {
         return new Promise(async (resolve, reject) => {
             const keyData: any = (
                 await Private_config.getConfig({
@@ -1009,7 +1017,7 @@ export class Shopping {
             });
     }
 
-    public async getPostAddressData(address: string) {
+    async getPostAddressData(address: string) {
         try {
             const url = `http://zip5.5432.tw/zip5json.py?adrs=${encodeURIComponent(address)}`;
             const response = await axios.get(url);
@@ -1026,7 +1034,7 @@ export class Shopping {
         }
     }
 
-    public async toCheckout(
+    async toCheckout(
         data: {
             line_items: {
                 deduction_log?: { [p: string]: number };
@@ -1193,7 +1201,7 @@ export class Shopping {
                 }
             ) => {
                 // 檢查預覽模式下的條件
-                if (type === 'preview' && !(token?.userID || data.user_info && data.user_info.email)) {
+                if (type === 'preview' && !(token?.userID || (data.user_info && data.user_info.email))) {
                     return {};
                 }
 
@@ -2111,7 +2119,7 @@ export class Shopping {
         }
     }
 
-    public async getReturnOrder(query: {
+    async getReturnOrder(query: {
         page: number;
         limit: number;
         id?: string;
@@ -2220,7 +2228,7 @@ export class Shopping {
         }
     }
 
-    public async createReturnOrder(data: any) {
+    async createReturnOrder(data: any) {
         try {
             let returnOrderID = this.generateOrderID();
             let orderID: string = data.cart_token;
@@ -2235,7 +2243,7 @@ export class Shopping {
         }
     }
 
-    public async putReturnOrder(data: { id: string; orderData: any; status: any }) {
+    async putReturnOrder(data: { id: string; orderData: any; status: any }) {
         try {
             const getData = await db.execute(
                 `SELECT *
@@ -2276,7 +2284,7 @@ export class Shopping {
         }
     }
 
-    public async formatUseRebate(
+    async formatUseRebate(
         total: number,
         useRebate: number
     ): Promise<{
@@ -2328,8 +2336,7 @@ export class Shopping {
         }
     }
 
-    public async checkVoucher(cart: Cart) {
-        const userClass = new User(this.app);
+    async checkVoucher(cart: Cart) {
         cart.discount = 0;
         cart.lineItems.map((dd) => {
             dd.discount_price = 0;
@@ -2365,41 +2372,16 @@ export class Shopping {
         }
 
         // 確認用戶資訊
+        const userClass = new User(this.app);
         const userData = (await userClass.getUserData(cart.email, 'email_or_phone')) ?? { userID: -1 };
 
-        // 所有優惠券
-        const allVoucher: VoucherData[] = (
-            await this.querySql([`(content->>'$.type'='voucher')`], {
-                page: 0,
-                limit: 10000,
-            })
-        ).data
-            .map((dd: { content: VoucherData }) => {
-                return dd.content;
-            })
-            .filter((dd: VoucherData) => {
-                // 判斷有效期限
-                return new Date(dd.start_ISO_Date).getTime() < new Date().getTime() && (!dd.end_ISO_Date || new Date(dd.end_ISO_Date).getTime() > new Date().getTime());
-            });
+        // 取得所有可使用優惠券
+        const allVoucher = await this.getAllUseVoucher(userData.userID);
 
-        // 需 async and await 的驗證
-        const pass_ids: number[] = [];
-        for (const voucher of allVoucher) {
-            const checkLimited = await this.checkVoucherLimited(userData.userID, voucher.id);
-            if (!checkLimited) {
-                continue;
-            }
-            pass_ids.push(voucher.id);
-        }
-
-        // 過濾可使用優惠券
+        // 過濾可使用優惠券狀態
         let overlay = false;
 
         const voucherList = allVoucher
-            .filter((dd) => {
-                // 是否啟用與通過 await 的判斷
-                return pass_ids.includes(dd.id) && dd.status === 1;
-            })
             .filter((dd) => {
                 // 訂單來源判斷
                 if (!dd.device) {
@@ -2654,7 +2636,7 @@ export class Shopping {
         return cart;
     }
 
-    public async putOrder(data: { id: string; orderData: any; status: any }) {
+    async putOrder(data: { id: string; orderData: any; status: any }) {
         try {
             const update: any = {};
             if (data.status !== undefined) {
@@ -2766,7 +2748,7 @@ export class Shopping {
         }
     }
 
-    public async cancelOrder(order_id: string) {
+    async cancelOrder(order_id: string) {
         try {
             const orderList = await db.query(
                 `SELECT *
@@ -2810,7 +2792,7 @@ export class Shopping {
         }
     }
 
-    public async deleteOrder(req: { id: string }) {
+    async deleteOrder(req: { id: string }) {
         try {
             await db.query(
                 `DELETE
@@ -2826,7 +2808,7 @@ export class Shopping {
         }
     }
 
-    public async proofPurchase(order_id: string, text: string) {
+    async proofPurchase(order_id: string, text: string) {
         try {
             const orderData = (
                 await db.query(
@@ -2866,7 +2848,7 @@ export class Shopping {
         }
     }
 
-    public async getCheckOut(query: {
+    async getCheckOut(query: {
         filter_type?: string;
         page: number;
         limit: number;
@@ -3069,7 +3051,7 @@ OR JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.orderStatus')) NOT IN (-99)) `);
         }
     }
 
-    public async releaseCheckout(status: 1 | 0 | -1, order_id: string) {
+    async releaseCheckout(status: 1 | 0 | -1, order_id: string) {
         try {
             //訂單資料
             const order_data = (
@@ -3213,7 +3195,7 @@ OR JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.orderStatus')) NOT IN (-99)) `);
         }
     }
 
-    public async checkVoucherLimited(user_id: number, voucher_id: number): Promise<boolean> {
+    async checkVoucherLimited(user_id: number, voucher_id: number): Promise<boolean> {
         try {
             const vouchers = await db.query(
                 `SELECT id,
@@ -3253,7 +3235,7 @@ OR JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.orderStatus')) NOT IN (-99)) `);
         }
     }
 
-    public async insertVoucherHistory(user_id: number, order_id: string, voucher_id: number) {
+    async insertVoucherHistory(user_id: number, order_id: string, voucher_id: number) {
         try {
             await db.query(
                 `INSERT INTO \`${this.app}\`.\`t_voucher_history\`
@@ -3274,7 +3256,7 @@ OR JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.orderStatus')) NOT IN (-99)) `);
         }
     }
 
-    public async releaseVoucherHistory(order_id: string, status: 1 | 0) {
+    async releaseVoucherHistory(order_id: string, status: 1 | 0) {
         try {
             await db.query(
                 `UPDATE \`${this.app}\`.t_voucher_history
@@ -3287,7 +3269,7 @@ OR JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.orderStatus')) NOT IN (-99)) `);
         }
     }
 
-    public async resetVoucherHistory() {
+    async resetVoucherHistory() {
         try {
             const resetMins = 10;
             const now = moment().tz('Asia/Taipei').format('YYYY-MM-DD HH:mm:ss');
@@ -3304,7 +3286,7 @@ OR JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.orderStatus')) NOT IN (-99)) `);
         }
     }
 
-    public async postVariantsAndPriceValue(content: any) {
+    async postVariantsAndPriceValue(content: any) {
         try {
             content.variants = content.variants ?? [];
             content.min_price = undefined;
@@ -3375,7 +3357,7 @@ OR JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.orderStatus')) NOT IN (-99)) `);
         }
     }
 
-    public async updateVariantsWithSpec(data: any, product_id: string, spec: string[]) {
+    async updateVariantsWithSpec(data: any, product_id: string, spec: string[]) {
         const sql =
             spec.length > 0
                 ? `AND JSON_CONTAINS(content->'$.spec', JSON_ARRAY(${spec
@@ -3404,7 +3386,7 @@ OR JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.orderStatus')) NOT IN (-99)) `);
     }
 
     //更新庫存數量
-    public async calcVariantsStock(calc: number, stock_id: string, product_id: string, spec: string[]) {
+    async calcVariantsStock(calc: number, stock_id: string, product_id: string, spec: string[]) {
         try {
             const pd_data = (
                 await db.query(
@@ -3436,7 +3418,7 @@ OR JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.orderStatus')) NOT IN (-99)) `);
     }
 
     //更新販售數量
-    public async calcSoldOutStock(calc: number, product_id: string, spec: string[]) {
+    async calcSoldOutStock(calc: number, product_id: string, spec: string[]) {
         try {
             const pd_data = (
                 await db.query(
@@ -3461,7 +3443,7 @@ OR JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.orderStatus')) NOT IN (-99)) `);
     }
 
     //商品完成購買寄送信件
-    public async soldMailNotice(json: { brand_domain: string; shop_name: string; product_id: string; order_data: any }) {
+    async soldMailNotice(json: { brand_domain: string; shop_name: string; product_id: string; order_data: any }) {
         try {
             const order_data = json.order_data;
             const order_id = order_data.orderID;

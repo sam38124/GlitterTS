@@ -196,11 +196,15 @@ export declare class Shopping {
         total: any;
         result?: undefined;
     }>;
+    getAllUseVoucher(userID: any): Promise<VoucherData[]>;
+    getDistributionRecommend(distribution_code: string): Promise<any>;
     aboutProductVoucher(json: {
+        allVoucher: VoucherData[];
+        userData: any;
+        recommendData: any;
         product: any;
         userID: string;
-        view_source: string;
-        distribution_code: string;
+        viewSource: string;
     }): Promise<VoucherData[]>;
     querySql(querySql: string[], query: {
         page: number;

@@ -95,17 +95,19 @@ class Shopping {
         }
     }
     async getProduct(query) {
-        var _a, _b, _c, _d, _e;
+        var _a, _b, _c, _d, _e, _f;
         try {
-            const querySql = [`(content->>'$.type'='product')`];
-            const store_info = await new user_js_1.User(this.app).getConfigV2({
+            const userClass = new user_js_1.User(this.app);
+            const userID = this.token ? `${this.token.userID}` : '';
+            const store_info = await userClass.getConfigV2({
                 key: 'store-information',
                 user_id: 'manager',
             });
-            const store_config = await new user_js_1.User(this.app).getConfigV2({
+            const store_config = await userClass.getConfigV2({
                 key: 'store_manager',
                 user_id: 'manager',
             });
+            const querySql = [`(content->>'$.type'='product')`];
             query.language = (_a = query.language) !== null && _a !== void 0 ? _a : store_info.language_setting.def;
             query.show_hidden = (_b = query.show_hidden) !== null && _b !== void 0 ? _b : 'true';
             if (query.search) {
@@ -139,22 +141,26 @@ class Shopping {
                 }
             }
             if (query.domain) {
-                let sql_join_search = [];
-                sql_join_search.push(`content->>'$.seo.domain'='${decodeURIComponent(query.domain)}'`);
-                sql_join_search.push(`content->>'$.title'='${decodeURIComponent(query.domain)}'`);
-                sql_join_search.push(`content->>'$.language_data."${query.language}".seo.domain'='${decodeURIComponent(query.domain)}'`);
-                querySql.push(`(${sql_join_search
-                    .map((dd) => {
-                    return `(${dd})`;
-                })
-                    .join(' or ')})`);
+                const decodedDomain = decodeURIComponent(query.domain);
+                const sqlJoinSearch = [
+                    `content->>'$.seo.domain' = '${decodedDomain}'`,
+                    `content->>'$.title' = '${decodedDomain}'`,
+                    `content->>'$.language_data."${query.language}".seo.domain' = '${decodedDomain}'`,
+                ];
+                if (sqlJoinSearch.length) {
+                    querySql.push(`(${sqlJoinSearch.map((condition) => `(${condition})`).join(' OR ')})`);
+                }
             }
             if (query.id) {
-                if (`${query.id}`.includes(',')) {
-                    querySql.push(`id in (${query.id})`);
+                const ids = `${query.id}`
+                    .split(',')
+                    .map((id) => id.trim())
+                    .filter((id) => id);
+                if (ids.length > 1) {
+                    querySql.push(`id IN (${ids.map((id) => `'${id}'`).join(',')})`);
                 }
                 else {
-                    querySql.push(`id = ${query.id}`);
+                    querySql.push(`id = '${ids[0]}'`);
                 }
             }
             if (query.filter_visible) {
@@ -224,7 +230,7 @@ class Shopping {
                 querySql.push(`(id in ( select product_id from \`${this.app}\`.t_variants where content->>'$.sku'=${database_js_1.default.escape(query.sku)}))`);
             }
             if (!query.id && query.status === 'active' && query.with_hide_index !== 'true') {
-                querySql.push(`((content->>'$.hideIndex' is NULL) || (content->>'$.hideIndex'='false'))`);
+                querySql.push(`(content->>'$.hideIndex' IS NULL OR content->>'$.hideIndex' = 'false')`);
             }
             if (query.id_list) {
                 query.order_by = ` order by id in (${query.id_list})`;
@@ -233,41 +239,39 @@ class Shopping {
                 const statusSplit = query.status.split(',').map((status) => status.trim());
                 const statusJoin = statusSplit.map((status) => `"${status}"`).join(',');
                 const statusCondition = `JSON_EXTRACT(content, '$.status') IN (${statusJoin})`;
+                const currentDate = database_js_1.default.escape(new Date().toISOString());
                 const scheduleConditions = statusSplit
                     .map((status) => {
                     switch (status) {
                         case 'inRange':
                             return `
                                 OR (
-                                    JSON_EXTRACT(content, '$.status') in ('active',1)
+                                    JSON_EXTRACT(content, '$.status') IN ('active', 1)
                                     AND (
                                         content->>'$.active_schedule' IS NULL OR (
                                             (
-                                            CONCAT(content->>'$.active_schedule.start_ISO_Date') IS NULL OR
-                                            CONCAT(content->>'$.active_schedule.start_ISO_Date') <= ${database_js_1.default.escape(new Date().toISOString())}
+                                                CONCAT(content->>'$.active_schedule.start_ISO_Date') IS NULL OR
+                                                CONCAT(content->>'$.active_schedule.start_ISO_Date') <= ${currentDate}
                                             )
                                             AND (
-                                                CONCAT(content->>'$.active_schedule.end_ISO_Date') IS NULL
-                                                OR CONCAT(content->>'$.active_schedule.end_ISO_Date') >= ${database_js_1.default.escape(new Date().toISOString())}
+                                                CONCAT(content->>'$.active_schedule.end_ISO_Date') IS NULL OR
+                                                CONCAT(content->>'$.active_schedule.end_ISO_Date') >= ${currentDate}
                                             )
                                         )
                                     )
-                                )
-                            `;
+                                )`;
                         case 'beforeStart':
                             return `
                                 OR (
-                                    JSON_EXTRACT(content, '$.status') in ('active',1)
-                                    AND CONCAT(content->>'$.active_schedule.start_ISO_Date') >${database_js_1.default.escape(new Date().toISOString())}
-                                )
-                            `;
+                                    JSON_EXTRACT(content, '$.status') IN ('active', 1)
+                                    AND CONCAT(content->>'$.active_schedule.start_ISO_Date') > ${currentDate}
+                                )`;
                         case 'afterEnd':
                             return `
                                 OR (
-                                    JSON_EXTRACT(content, '$.status') in ('active',1)
-                                    AND CONCAT(content->>'$.active_schedule.end_ISO_Date') < ${database_js_1.default.escape(new Date().toISOString())}
-                                )
-                            `;
+                                    JSON_EXTRACT(content, '$.status') IN ('active', 1)
+                                    AND CONCAT(content->>'$.active_schedule.end_ISO_Date') < ${currentDate}
+                                )`;
                         default:
                             return '';
                     }
@@ -293,28 +297,23 @@ class Shopping {
             }
             const products = await this.querySql(querySql, query);
             const productList = (Array.isArray(products.data) ? products.data : [products.data]).filter((product) => product);
-            if (this.token && this.token.userID) {
+            if (userID !== '') {
                 for (const b of productList) {
                     b.content.in_wish_list =
                         (await database_js_1.default.query(`SELECT count(1)
                                  FROM \`${this.app}\`.t_post
                                  WHERE (content ->>'$.type'='wishlist')
-                                   and userID = ${this.token.userID}
+                                   and userID = ${userID}
                                    and (content ->>'$.product_id'=${b.id})`, []))[0]['count(1)'] == '1';
                     b.content.id = b.id;
                 }
             }
             if (query.id_list) {
-                let tempData = [];
-                query.id_list.split(',').map((id) => {
-                    const find = products.data.find((product) => {
-                        return `${product.id}` === `${id}`;
-                    });
-                    if (find) {
-                        tempData.push(find);
-                    }
-                });
-                products.data = tempData;
+                const idSet = new Set(query.id_list
+                    .split(',')
+                    .map((id) => id.trim())
+                    .filter(Boolean));
+                products.data = products.data.filter((product) => idSet.has(`${product.id}`));
             }
             if (query.id_list && query.order_by === 'order by id desc') {
                 products.data = query.id_list
@@ -369,41 +368,44 @@ class Shopping {
                 }
                 product.total_sales = totalSale;
             }
-            if (query.domain && products.data[0]) {
-                products.data =
-                    products.data.find((dd) => {
-                        return ((dd.content.language_data &&
-                            dd.content.language_data[`${query.language}`].seo &&
-                            dd.content.language_data[`${query.language}`].seo.domain === decodeURIComponent(query.domain)) ||
-                            (dd.content.seo && dd.content.seo.domain === decodeURIComponent(query.domain)));
-                    }) || products.data[0];
+            if (query.domain && products.data.length > 0) {
+                const decodedDomain = decodeURIComponent(query.domain);
+                const foundProduct = products.data.find((dd) => {
+                    var _a, _b;
+                    if (!query.language) {
+                        return false;
+                    }
+                    const languageData = (_b = (_a = dd.content.language_data) === null || _a === void 0 ? void 0 : _a[query.language]) === null || _b === void 0 ? void 0 : _b.seo;
+                    const seoData = dd.content.seo;
+                    return (languageData && languageData.domain === decodedDomain) || (seoData && seoData.domain === decodedDomain);
+                });
+                products.data = foundProduct || products.data[0];
             }
             if ((query.domain || query.id) && products.data !== undefined) {
                 products.data.json_ld = await seo_config_js_1.SeoConfig.getProductJsonLd(this.app, products.data.content);
             }
-            const userID = this.token ? `${this.token.userID}` : '';
-            const view_source = (_d = query.view_source) !== null && _d !== void 0 ? _d : 'normal';
-            const distribution_code = (_e = query.distribution_code) !== null && _e !== void 0 ? _e : '';
-            if (products.total === 1 && !Array.isArray(products.data)) {
-                products.data.about_vouchers = await this.aboutProductVoucher({
-                    product: products.data,
-                    userID,
-                    view_source,
-                    distribution_code,
-                });
-            }
-            else {
-                console.log(0);
-                await Promise.all(products.data.map(async (product) => {
-                    console.log(1);
+            const viewSource = (_d = query.view_source) !== null && _d !== void 0 ? _d : 'normal';
+            const distributionCode = (_e = query.distribution_code) !== null && _e !== void 0 ? _e : '';
+            const userData = (_f = (await userClass.getUserData(userID, 'userID'))) !== null && _f !== void 0 ? _f : { userID: -1 };
+            const allVoucher = await this.getAllUseVoucher(userData.userID);
+            const recommendData = await this.getDistributionRecommend(distributionCode);
+            if (products.total && products.data) {
+                const processProduct = async (product) => {
                     product.about_vouchers = await this.aboutProductVoucher({
                         product,
                         userID,
-                        view_source,
-                        distribution_code,
+                        viewSource,
+                        allVoucher,
+                        recommendData,
+                        userData,
                     });
-                }));
-                console.log(2);
+                };
+                if (products.total === 1 && !Array.isArray(products.data)) {
+                    await processProduct(products.data);
+                }
+                else {
+                    await Promise.all(products.data.map(processProduct));
+                }
             }
             return products;
         }
@@ -412,40 +414,42 @@ class Shopping {
             throw exception_js_1.default.BadRequestError('BAD_REQUEST', 'GetProduct Error:' + e, null);
         }
     }
-    async aboutProductVoucher(json) {
-        var _a;
-        const userClass = new user_js_1.User(this.app);
-        const userData = (_a = (await userClass.getUserData(json.userID, 'userID'))) !== null && _a !== void 0 ? _a : { userID: -1 };
+    async getAllUseVoucher(userID) {
+        const now = Date.now();
         const allVoucher = (await this.querySql([`(content->>'$.type'='voucher')`], {
             page: 0,
             limit: 10000,
         })).data
-            .map((dd) => {
-            return dd.content;
-        })
-            .filter((dd) => {
-            return new Date(dd.start_ISO_Date).getTime() < new Date().getTime() && (!dd.end_ISO_Date || new Date(dd.end_ISO_Date).getTime() > new Date().getTime());
+            .map((dd) => dd.content)
+            .filter((voucher) => {
+            const startDate = new Date(voucher.start_ISO_Date).getTime();
+            const endDate = voucher.end_ISO_Date ? new Date(voucher.end_ISO_Date).getTime() : Infinity;
+            return startDate < now && now < endDate;
         });
-        const pass_ids = [];
-        for (const voucher of allVoucher) {
-            const checkLimited = await this.checkVoucherLimited(userData.userID, voucher.id);
-            if (!checkLimited) {
-                continue;
-            }
-            pass_ids.push(voucher.id);
-        }
+        const validVouchers = await Promise.all(allVoucher.map(async (voucher) => {
+            const isLimited = await this.checkVoucherLimited(userID, voucher.id);
+            return isLimited && voucher.status === 1 ? voucher : null;
+        }));
+        return validVouchers.filter(Boolean);
+    }
+    async getDistributionRecommend(distribution_code) {
         const recommends = await database_js_1.default.query(`SELECT * FROM \`${this.app}\`.t_recommend_links`, []);
         const recommendData = recommends
             .map((dd) => dd.content)
             .filter((dd) => {
-            const isCode = dd.code === json.distribution_code;
+            const isCode = dd.code === distribution_code;
             const startDate = new Date(dd.start_ISO_Date || `${dd.startDate} ${dd.startTime}`);
             const endDate = dd.end_ISO_Date ? new Date(dd.end_ISO_Date) : dd.endDate ? new Date(`${dd.endDate} ${dd.endTime}`) : null;
             const isActive = startDate.getTime() < Date.now() && (!endDate || endDate.getTime() > Date.now());
             return isCode && isActive;
         });
+        return recommendData;
+    }
+    async aboutProductVoucher(json) {
         const id = `${json.product.id}`;
         const collection = json.product.content.collection || [];
+        const userData = json.userData;
+        const recommendData = json.recommendData;
         function checkValidProduct(caseName, caseList) {
             switch (caseName) {
                 case 'collection':
@@ -458,10 +462,7 @@ class Shopping {
                     return false;
             }
         }
-        const voucherList = allVoucher
-            .filter((dd) => {
-            return pass_ids.includes(dd.id) && dd.status === 1;
-        })
+        const voucherList = json.allVoucher
             .filter((dd) => {
             if (!dd.device) {
                 return true;
@@ -469,7 +470,7 @@ class Shopping {
             if (dd.device.length === 0) {
                 return false;
             }
-            if (json.view_source === 'pos') {
+            if (json.viewSource === 'pos') {
                 return dd.device.includes('pos');
             }
             return dd.device.includes('normal');
@@ -787,7 +788,7 @@ class Shopping {
                 }
             }
             const getUserDataAsync = async (type, token, data) => {
-                if (type === 'preview' && !((token === null || token === void 0 ? void 0 : token.userID) || data.user_info && data.user_info.email)) {
+                if (type === 'preview' && !((token === null || token === void 0 ? void 0 : token.userID) || (data.user_info && data.user_info.email))) {
                     return {};
                 }
                 if (token === null || token === void 0 ? void 0 : token.userID) {
@@ -1711,7 +1712,6 @@ class Shopping {
     }
     async checkVoucher(cart) {
         var _a;
-        const userClass = new user_js_1.User(this.app);
         cart.discount = 0;
         cart.lineItems.map((dd) => {
             dd.discount_price = 0;
@@ -1740,30 +1740,11 @@ class Shopping {
             }
             return [];
         }
+        const userClass = new user_js_1.User(this.app);
         const userData = (_a = (await userClass.getUserData(cart.email, 'email_or_phone'))) !== null && _a !== void 0 ? _a : { userID: -1 };
-        const allVoucher = (await this.querySql([`(content->>'$.type'='voucher')`], {
-            page: 0,
-            limit: 10000,
-        })).data
-            .map((dd) => {
-            return dd.content;
-        })
-            .filter((dd) => {
-            return new Date(dd.start_ISO_Date).getTime() < new Date().getTime() && (!dd.end_ISO_Date || new Date(dd.end_ISO_Date).getTime() > new Date().getTime());
-        });
-        const pass_ids = [];
-        for (const voucher of allVoucher) {
-            const checkLimited = await this.checkVoucherLimited(userData.userID, voucher.id);
-            if (!checkLimited) {
-                continue;
-            }
-            pass_ids.push(voucher.id);
-        }
+        const allVoucher = await this.getAllUseVoucher(userData.userID);
         let overlay = false;
         const voucherList = allVoucher
-            .filter((dd) => {
-            return pass_ids.includes(dd.id) && dd.status === 1;
-        })
             .filter((dd) => {
             if (!dd.device) {
                 return true;
