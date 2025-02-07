@@ -218,7 +218,7 @@ export class DataAnalyze {
             };
 
             if (dateRanges[qData.filter_date]) {
-                sqlConditions.push(`created_time BETWEEN DATE_SUB(CURDATE(), INTERVAL ${dateRanges[qData.filter_date]}) AND CURDATE()`);
+                sqlConditions.push(`created_time BETWEEN DATE_SUB(NOW(), INTERVAL ${dateRanges[qData.filter_date]}) AND NOW()`);
             }
 
             // SQL 查詢
@@ -226,7 +226,7 @@ export class DataAnalyze {
                 SELECT * FROM \`${this.app}\`.t_checkout
                 WHERE status = 1 AND ${
                     duration === 'day'
-                        ? `created_time BETWEEN CURDATE() AND CURDATE() + INTERVAL 1 DAY - INTERVAL 1 SECOND`
+                        ? `created_time BETWEEN NOW() AND NOW() + INTERVAL 1 DAY - INTERVAL 1 SECOND`
                         : duration === 'month'
                           ? `created_time BETWEEN DATE_SUB(NOW(), INTERVAL 1 MONTH) AND NOW()`
                           : sqlConditions.join(' AND ')
@@ -245,7 +245,7 @@ export class DataAnalyze {
                     const collections = item.collection.filter((c: string) => c.length > 0).map((c: string) => c.replace(/ /g, ''));
                     if (existing) {
                         existing.count += item.count;
-                        existing.sale_price += item.sale_price;
+                        existing.sale_price += item.sale_price * item.count;
                     } else {
                         productMap.set(item.title, {
                             title: item.title,
@@ -263,7 +263,7 @@ export class DataAnalyze {
                             collectionSales[col] = { count: 0, sale_price: 0 };
                         }
                         collectionSales[col].count += item.count;
-                        collectionSales[col].sale_price += item.sale_price;
+                        collectionSales[col].sale_price += item.sale_price * item.count;
                     });
                 });
             });
