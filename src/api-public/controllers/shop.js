@@ -8,6 +8,7 @@ const multer_1 = __importDefault(require("multer"));
 const exception_1 = __importDefault(require("../../modules/exception"));
 const database_js_1 = __importDefault(require("../../modules/database.js"));
 const redis_js_1 = __importDefault(require("../../modules/redis.js"));
+const axios_1 = __importDefault(require("axios"));
 const ut_database_js_1 = require("../utils/ut-database.js");
 const ut_permission_1 = require("../utils/ut-permission");
 const financial_service_js_1 = require("../services/financial-service.js");
@@ -15,13 +16,13 @@ const private_config_js_1 = require("../../services/private_config.js");
 const user_js_1 = require("../services/user.js");
 const post_js_1 = require("../services/post.js");
 const shopping_1 = require("../services/shopping");
+const data_analyze_1 = require("../services/data-analyze");
 const rebate_1 = require("../services/rebate");
-const axios_1 = __importDefault(require("axios"));
 const pos_js_1 = require("../services/pos.js");
 const router = express_1.default.Router();
 router.post('/worker', async (req, resp) => {
     try {
-        return response_1.default.succ(resp, await new shopping_1.Shopping(req.get('g-app'), req.body.token).workerExample({
+        return response_1.default.succ(resp, await new data_analyze_1.DataAnalyze(req.get('g-app'), req.body.token).workerExample({
             type: req.body.type,
             divisor: req.body.divisor,
         }));
@@ -737,7 +738,7 @@ router.get('/dataAnalyze', async (req, resp) => {
     try {
         const tags = `${req.query.tags}`;
         if (await ut_permission_1.UtPermission.isManager(req)) {
-            return response_1.default.succ(resp, await new shopping_1.Shopping(req.get('g-app'), req.body.token).getDataAnalyze(tags.split(','), req.query.query));
+            return response_1.default.succ(resp, await new data_analyze_1.DataAnalyze(req.get('g-app'), req.body.token).getDataAnalyze(tags.split(','), req.query.query));
         }
         else {
             throw exception_1.default.BadRequestError('BAD_REQUEST', 'No permission.', null);
@@ -1253,21 +1254,21 @@ router.post('/allowance_invoice', async (req, resp) => {
         return response_1.default.fail(resp, err);
     }
 });
-router.post('/pos/summary', async (req, resp) => {
+router.get('/pos/summary', async (req, resp) => {
     try {
-        await new pos_js_1.Pos(req.get('g-app'), req.body.token).setSummary(req.body);
         return response_1.default.succ(resp, {
-            result: true,
+            data: await new pos_js_1.Pos(req.get('g-app'), req.body.token).getSummary(req.query.shop),
         });
     }
     catch (err) {
         return response_1.default.fail(resp, err);
     }
 });
-router.get('/pos/summary', async (req, resp) => {
+router.post('/pos/summary', async (req, resp) => {
     try {
+        await new pos_js_1.Pos(req.get('g-app'), req.body.token).setSummary(req.body);
         return response_1.default.succ(resp, {
-            data: await new pos_js_1.Pos(req.get('g-app'), req.body.token).getSummary(req.query.shop),
+            result: true,
         });
     }
     catch (err) {

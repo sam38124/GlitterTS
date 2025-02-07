@@ -4,6 +4,7 @@ import multer from 'multer';
 import exception from '../../modules/exception';
 import db from '../../modules/database.js';
 import redis from '../../modules/redis.js';
+import axios from 'axios';
 import { UtDatabase } from '../utils/ut-database.js';
 import { UtPermission } from '../utils/ut-permission';
 import { EcPay, EzPay, LinePay, PayNow, PayPal } from '../services/financial-service.js';
@@ -11,8 +12,8 @@ import { Private_config } from '../../services/private_config.js';
 import { User } from '../services/user.js';
 import { Post } from '../services/post.js';
 import { Shopping, VoucherData } from '../services/shopping';
+import { DataAnalyze } from '../services/data-analyze';
 import { Rebate, IRebateSearch } from '../services/rebate';
-import axios from 'axios';
 import { Pos } from '../services/pos.js';
 
 const router: express.Router = express.Router();
@@ -23,7 +24,7 @@ router.post('/worker', async (req: express.Request, resp: express.Response) => {
     try {
         return response.succ(
             resp,
-            await new Shopping(req.get('g-app') as string, req.body.token).workerExample({
+            await new DataAnalyze(req.get('g-app') as string, req.body.token).workerExample({
                 type: req.body.type,
                 divisor: req.body.divisor,
             })
@@ -842,7 +843,7 @@ router.get('/dataAnalyze', async (req: express.Request, resp: express.Response) 
     try {
         const tags = `${req.query.tags}`;
         if (await UtPermission.isManager(req)) {
-            return response.succ(resp, await new Shopping(req.get('g-app') as string, req.body.token).getDataAnalyze(tags.split(','), req.query.query));
+            return response.succ(resp, await new DataAnalyze(req.get('g-app') as string, req.body.token).getDataAnalyze(tags.split(','), req.query.query));
         } else {
             throw exception.BadRequestError('BAD_REQUEST', 'No permission.', null);
         }
@@ -851,7 +852,7 @@ router.get('/dataAnalyze', async (req: express.Request, resp: express.Response) 
     }
 });
 
-// 資料分析
+// 取得配送方法
 router.get('/shippingMethod', async (req: express.Request, resp: express.Response) => {
     try {
         return response.succ(resp, await new Shopping(req.get('g-app') as string, req.body.token).getShippingMethod());
@@ -1401,23 +1402,21 @@ router.post('/allowance_invoice', async (req: express.Request, resp: express.Res
     }
 });
 
-// 新增小結單
-router.post('/pos/summary', async (req: express.Request, resp: express.Response) => {
+// 小結單
+router.get('/pos/summary', async (req: express.Request, resp: express.Response) => {
     try {
-        await new Pos(req.get('g-app') as string, req.body.token).setSummary(req.body);
         return response.succ(resp, {
-            result: true,
+            data: await new Pos(req.get('g-app') as string, req.body.token).getSummary(req.query.shop as string),
         });
     } catch (err) {
         return response.fail(resp, err);
     }
 });
-
-// 取得小結單
-router.get('/pos/summary', async (req: express.Request, resp: express.Response) => {
+router.post('/pos/summary', async (req: express.Request, resp: express.Response) => {
     try {
+        await new Pos(req.get('g-app') as string, req.body.token).setSummary(req.body);
         return response.succ(resp, {
-            data: await new Pos(req.get('g-app') as string, req.body.token).getSummary(req.query.shop as string),
+            result: true,
         });
     } catch (err) {
         return response.fail(resp, err);

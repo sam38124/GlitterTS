@@ -147,20 +147,6 @@ export declare class Shopping {
     app: string;
     token?: IToken;
     constructor(app: string, token?: IToken);
-    workerExample(data: {
-        type: 0 | 1;
-        divisor: number;
-    }): Promise<{
-        type: string;
-        divisor: number;
-        executionTime: string;
-        queryStatus: "success" | "error";
-        queryData: any;
-    } | {
-        type: string;
-        divisor: number;
-        executionTime: string;
-    }>;
     getProduct(query: {
         page: number;
         limit: number;
@@ -258,7 +244,6 @@ export declare class Shopping {
     }): Promise<{
         result: boolean;
     }>;
-    private generateOrderID;
     linePay(data: any): Promise<unknown>;
     getShippingMethod(): Promise<{
         name: string;
@@ -418,143 +403,7 @@ export declare class Shopping {
         product_id: string;
         order_data: any;
     }): Promise<void>;
-    getDataAnalyze(tags: string[], query?: any): Promise<any>;
-    generateTimeRange(index: number): {
-        startISO: string;
-        endISO: string;
-    };
     formatDateString(isoDate?: string): string;
-    getActiveRecentYear(): Promise<{
-        count_array: number[];
-    }>;
-    getActiveRecentWeek(): Promise<{
-        count_array: number[];
-    }>;
-    getActiveRecentMonth(): Promise<{
-        count_array: number[];
-    }>;
-    getActiveRecentCustom(query: string): Promise<{
-        count_array: number[];
-    }>;
-    getRegisterMonth(): Promise<{
-        countArray: any[];
-    }>;
-    getRegisterCustom(query: string): Promise<{
-        countArray: any[];
-    }>;
-    getRegister2week(): Promise<{
-        countArray: any[];
-    }>;
-    getRegisterYear(): Promise<{
-        today: any;
-        count_register: any[];
-        count_2_week_register: any[];
-    }>;
-    getOrderToDay(): Promise<{
-        total_count: any;
-        un_shipment: any;
-        un_pay: any;
-        total_amount: number;
-    }>;
-    getRecentActiveUser(): Promise<{
-        recent: any;
-        months: any;
-    }>;
-    getSalesInRecentMonth(): Promise<{
-        recent_month_total: number;
-        previous_month_total: number;
-        gap: number;
-    }>;
-    getHotProducts(duration: 'month' | 'day' | 'all', query?: string): Promise<{
-        series: number[];
-        categories: string[];
-        product_list: {
-            title: string;
-            count: number;
-            preview_image: string;
-            sale_price: number;
-            pos_info: any;
-        }[];
-    }>;
-    getOrdersInRecentMonth(): Promise<{
-        recent_month_total: any;
-        previous_month_total: any;
-        gap: number;
-    }>;
-    getOrdersPerMonth2week(query: string): Promise<{
-        countArray: any[];
-        countArrayPos: any[];
-        countArrayStore: any[];
-        countArrayWeb: any[];
-    }>;
-    getOrdersPerMonth(query: string): Promise<{
-        countArray: any[];
-        countArrayPos: any[];
-        countArrayStore: any[];
-        countArrayWeb: any[];
-    }>;
-    getOrdersPerMonthCostom(query: string): Promise<{
-        countArray: any[];
-        countArrayPos: any[];
-        countArrayStore: any[];
-        countArrayWeb: any[];
-    }>;
-    getOrdersPerMonth1Year(query: string): Promise<{
-        countArray: any[];
-        countArrayPos: any[];
-        countArrayStore: any[];
-        countArrayWeb: any[];
-    }>;
-    static isComeStore(checkout: any, qData: any): boolean;
-    getSalesPerMonth1Year(query: string): Promise<{
-        countArray: any[];
-        countArrayPos: any[];
-        countArrayStore: any[];
-        countArrayWeb: any[];
-    }>;
-    getSalesPerMonth2week(query: string): Promise<{
-        countArray: any[];
-        countArrayPos: any[];
-        countArrayStore: any[];
-        countArrayWeb: any[];
-    }>;
-    getSalesPerMonth(query: string): Promise<{
-        countArray: any[];
-        countArrayPos: any[];
-        countArrayStore: any[];
-        countArrayWeb: any[];
-    }>;
-    diffDates(startDateObj: Date, endDateObj: Date): number;
-    getSalesPerMonthCustom(query: string): Promise<{
-        countArray: any[];
-        countArrayPos: any[];
-        countArrayStore: any[];
-        countArrayWeb: any[];
-    }>;
-    getOrderAvgSalePriceYear(query: string): Promise<{
-        countArray: any[];
-        countArrayPos: any[];
-        countArrayStore: any[];
-        countArrayWeb: any[];
-    }>;
-    getOrderAvgSalePrice(query: string): Promise<{
-        countArray: any[];
-        countArrayPos: any[];
-        countArrayStore: any[];
-        countArrayWeb: any[];
-    }>;
-    getOrderAvgSalePriceMonth(query: string): Promise<{
-        countArray: any[];
-        countArrayPos: any[];
-        countArrayStore: any[];
-        countArrayWeb: any[];
-    }>;
-    getOrderAvgSalePriceCustomer(query: string): Promise<{
-        countArray: any[];
-        countArrayPos: any[];
-        countArrayStore: any[];
-        countArrayWeb: any[];
-    }>;
     getCollectionProducts(tags: string): Promise<any>;
     getCollectionProductVariants(tags: string): Promise<any>;
     putCollection(replace: Collection, original: Collection): Promise<{
@@ -584,6 +433,7 @@ export declare class Shopping {
         endDate?: string;
         endTime?: string;
     }): boolean;
+    static isComeStore(checkout: any, qData: any): boolean;
     updateProductCollection(content: string[], id: number): Promise<void>;
     getVariants(query: {
         page: number;
