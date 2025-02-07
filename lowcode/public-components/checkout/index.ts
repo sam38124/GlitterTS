@@ -2517,6 +2517,7 @@ export class CheckoutIndex {
                                                                 give_away: apiCart.cart.give_away,
                                                             }).then((res) => {
                                                                 dialog.dataLoading({ visible: false });
+                                                                return 
                                                                 if (vm.cartData.customer_info.payment_select == 'paynow'){
                                                                     if (!res.response?.data?.result?.secret){
                                                                         return "paynow API失敗"
@@ -2584,7 +2585,7 @@ export class CheckoutIndex {
                                                                     },`paynow`)
                                                                 }
                                                                 
-
+                                                                
                                                                 const lineItemIds = vm.cartData.lineItems.map((item: any) => item.id);
                                                                 const cartKeys = [ApiCart.cartPrefix, ApiCart.buyItNow, ApiCart.globalCart];
 

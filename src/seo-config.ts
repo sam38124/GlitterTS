@@ -164,7 +164,6 @@ export class SeoConfig {
     }
 
     public static async getProductJsonLd(app_name:string,pd_content:any){
-        console.log(`pd.data.content=>`,pd_content)
         const relative_product=await new Shopping(app_name,undefined).getProduct({
             page:0,
             limit:100,
@@ -175,7 +174,6 @@ export class SeoConfig {
             return dd
         });
 
-        console.log(`relative_product=>`,relative_product)
         return html`
                 <script type="application/ld+json">
                     ${JSON.stringify(

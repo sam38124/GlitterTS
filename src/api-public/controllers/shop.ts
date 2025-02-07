@@ -6,7 +6,7 @@ import db from '../../modules/database.js';
 import redis from '../../modules/redis.js';
 import { UtDatabase } from '../utils/ut-database.js';
 import { UtPermission } from '../utils/ut-permission';
-import {EcPay, EzPay, LinePay, PayNow, PayPal} from '../services/financial-service.js';
+import {EcPay, EzPay, JKO, LinePay, PayNow, PayPal} from '../services/financial-service.js';
 import { Private_config } from '../../services/private_config.js';
 import { User } from '../services/user.js';
 import { Post } from '../services/post.js';
@@ -643,7 +643,18 @@ async function redirect_link(req: express.Request, resp: express.Response) {
             if (data.type == 'success') {
                 await new Shopping(req.query.appName as string).releaseCheckout(1, req.query.orderID as string);
             }
+        }
+        if (req.query.jkopay && req.query.jkopay === 'true') {
+            let kd = {
+                ReturnURL : "",
+                NotifyURL : ""
+            }
 
+            const jko = new JKO(req.query.appName as string, kd)
+            const data:any = jko.confirmAndCaptureOrder(req.query.orderID as string)
+            if (data.tranactions[0].status == 'success') {
+                await new Shopping(req.query.appName as string).releaseCheckout(1, req.query.orderID as string);
+            }
         }
         const html = String.raw;
         return resp.send(

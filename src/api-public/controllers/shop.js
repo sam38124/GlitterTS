@@ -572,6 +572,17 @@ async function redirect_link(req, resp) {
                 await new shopping_1.Shopping(req.query.appName).releaseCheckout(1, req.query.orderID);
             }
         }
+        if (req.query.jkopay && req.query.jkopay === 'true') {
+            let kd = {
+                ReturnURL: "",
+                NotifyURL: ""
+            };
+            const jko = new financial_service_js_1.JKO(req.query.appName, kd);
+            const data = jko.confirmAndCaptureOrder(req.query.orderID);
+            if (data.tranactions[0].status == 'success') {
+                await new shopping_1.Shopping(req.query.appName).releaseCheckout(1, req.query.orderID);
+            }
+        }
         const html = String.raw;
         return resp.send(html `<!DOCTYPE html>
                 <html lang="en">

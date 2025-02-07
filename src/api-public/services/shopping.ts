@@ -1,7 +1,7 @@
 import { IToken } from '../models/Auth.js';
 import exception from '../../modules/exception.js';
 import db from '../../modules/database.js';
-import FinancialService, {LinePay, PayNow, PayPal} from './financial-service.js';
+import FinancialService, {JKO, LinePay, PayNow, PayPal} from './financial-service.js';
 import { Private_config } from '../../services/private_config.js';
 import redis from '../../modules/redis.js';
 import { User } from './user.js';
@@ -1875,7 +1875,6 @@ export class Shopping {
                             form: subMitData,
                         };
                     case 'paypal':
-
                         kd.ReturnURL = `${process.env.DOMAIN}/api-public/v1/ec/redirect?g-app=${this.app}&return=${id}`;
                         kd.NotifyURL = `${process.env.DOMAIN}/api-public/v1/ec/notify?g-app=${this.app}`;
                         await Promise.all(
@@ -1894,7 +1893,7 @@ export class Shopping {
                         );
                         return await new LinePay(this.app, kd).createOrder(carData);
                     case 'paynow':{
-                        kd.ReturnURL = `${process.env.DOMAIN}/api-public/v1/ec/redirect?g-app=${this.app}&return=${id}&paynow=true`;
+                        kd.ReturnURL = `${process.env.DOMAIN}/api-public/v1/ec/redirect?g-app=${this.app}&paynow=true`;
                         kd.NotifyURL = `${process.env.DOMAIN}/api-public/v1/ec/notify?g-app=${this.app}&paynow=true`;
                         await Promise.all(
                             saveStockArray.map((dd) => {
@@ -1902,6 +1901,12 @@ export class Shopping {
                             })
                         );
                         return await new PayNow(this.app, kd).createOrder(carData);
+                    }
+                    case 'jkopay':{
+                        kd.ReturnURL = `${process.env.DOMAIN}/api-public/v1/ec/redirect?g-app=${this.app}&jkopay=true&orderid=${carData.orderID}`;
+                        kd.NotifyURL = `${process.env.DOMAIN}/api-public/v1/ec/notify?g-app=${this.app}&jkopay=true`;
+                        return await new JKO(this.app, kd).createOrder(carData);
+                        break
                     }
                     default:
                         carData.method = 'off_line';

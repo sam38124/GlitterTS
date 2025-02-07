@@ -1,4 +1,4 @@
-import crypto, { Encoding } from 'crypto';
+import crypto, {Encoding} from 'crypto';
 import db from '../../modules/database.js';
 import moment from 'moment-timezone';
 import axios, {AxiosRequestConfig} from "axios";
@@ -76,7 +76,8 @@ export default class FinancialService {
             return await new EcPay(this.appName, this.keyData).createOrderPage(orderData);
         }
         return await db.execute(
-            `INSERT INTO \`${this.appName}\`.t_checkout (cart_token, status, email, orderData) VALUES (?, ?, ?, ?)
+            `INSERT INTO \`${this.appName}\`.t_checkout (cart_token, status, email, orderData)
+             VALUES (?, ?, ?, ?)
             `,
             [orderData.orderID, 0, orderData.user_email, orderData]
         );
@@ -85,7 +86,15 @@ export default class FinancialService {
         // return await new PayPal(this.appName, this.keyData).checkout(orderData);
     }
 
-    async saveWallet(orderData: { total: number; userID: number; note: any; method: string ,table:string,title:string,ratio:number}): Promise<string> {
+    async saveWallet(orderData: {
+        total: number;
+        userID: number;
+        note: any;
+        method: string,
+        table: string,
+        title: string,
+        ratio: number
+    }): Promise<string> {
         if (this.keyData.TYPE === 'newWebPay') {
             return await new EzPay(this.appName, this.keyData).saveMoney(orderData);
         } else if (this.keyData.TYPE === 'ecPay') {
@@ -192,7 +201,8 @@ export class EzPay {
         }
         const appName = this.appName;
         await db.execute(
-            `INSERT INTO \`${appName}\`.t_checkout (cart_token, status, email, orderData) VALUES (?, ?, ?, ?)
+            `INSERT INTO \`${appName}\`.t_checkout (cart_token, status, email, orderData)
+             VALUES (?, ?, ?, ?)
             `,
             [params.MerchantOrderNo, 0, orderData.user_email, orderData]
         );
@@ -208,17 +218,25 @@ export class EzPay {
         const tradeSha = crypto.createHash('sha256').update(`HashKey=${this.keyData.HASH_KEY}&${tradeInfo}&HashIV=${this.keyData.HASH_IV}`).digest('hex').toUpperCase();
 
         // 5. 回傳物件
-        return html`<form name="Newebpay" action="${this.keyData.ActionURL}" method="POST" class="payment">
-            <input type="hidden" name="MerchantID" value="${this.keyData.MERCHANT_ID}" />
-            <input type="hidden" name="TradeInfo" value="${tradeInfo}" />
-            <input type="hidden" name="TradeSha" value="${tradeSha}" />
-            <input type="hidden" name="Version" value="${params.Version}" />
-            <input type="hidden" name="MerchantOrderNo" value="${params.MerchantOrderNo}" />
-            <button type="submit" class="btn btn-secondary custom-btn beside-btn" id="submit" hidden></button>
-        </form>`;
+        return html`
+            <form name="Newebpay" action="${this.keyData.ActionURL}" method="POST" class="payment">
+                <input type="hidden" name="MerchantID" value="${this.keyData.MERCHANT_ID}"/>
+                <input type="hidden" name="TradeInfo" value="${tradeInfo}"/>
+                <input type="hidden" name="TradeSha" value="${tradeSha}"/>
+                <input type="hidden" name="Version" value="${params.Version}"/>
+                <input type="hidden" name="MerchantOrderNo" value="${params.MerchantOrderNo}"/>
+                <button type="submit" class="btn btn-secondary custom-btn beside-btn" id="submit" hidden></button>
+            </form>`;
     }
 
-    async saveMoney(orderData: { total: number; userID: number; note: string,table:string,title:string,ratio:number }) {
+    async saveMoney(orderData: {
+        total: number;
+        userID: number;
+        note: string,
+        table: string,
+        title: string,
+        ratio: number
+    }) {
         // 1. 建立請求的參數
         const params = {
             MerchantID: this.keyData.MERCHANT_ID,
@@ -234,7 +252,8 @@ export class EzPay {
 
         const appName = this.appName;
         await db.execute(
-            `INSERT INTO \`${appName}\`.${orderData.table} (orderID, userID, money, status, note) VALUES (?, ?, ?, ?, ?)
+            `INSERT INTO \`${appName}\`.${orderData.table} (orderID, userID, money, status, note)
+             VALUES (?, ?, ?, ?, ?)
             `,
             [params.MerchantOrderNo, orderData.userID, orderData.total * orderData.ratio, 0, orderData.note]
         );
@@ -258,14 +277,15 @@ export class EzPay {
         };
 
         // 5. 回傳物件
-        return html`<form name="Newebpay" action="${subMitData.actionURL}" method="POST" class="payment">
-            <input type="hidden" name="MerchantID" value="${subMitData.MerchantID}" />
-            <input type="hidden" name="TradeInfo" value="${subMitData.TradeInfo}" />
-            <input type="hidden" name="TradeSha" value="${subMitData.TradeSha}" />
-            <input type="hidden" name="Version" value="${subMitData.Version}" />
-            <input type="hidden" name="MerchantOrderNo" value="${subMitData.MerchantOrderNo}" />
-            <button type="submit" class="btn btn-secondary custom-btn beside-btn" id="submit" hidden></button>
-        </form>`;
+        return html`
+            <form name="Newebpay" action="${subMitData.actionURL}" method="POST" class="payment">
+                <input type="hidden" name="MerchantID" value="${subMitData.MerchantID}"/>
+                <input type="hidden" name="TradeInfo" value="${subMitData.TradeInfo}"/>
+                <input type="hidden" name="TradeSha" value="${subMitData.TradeSha}"/>
+                <input type="hidden" name="Version" value="${subMitData.Version}"/>
+                <input type="hidden" name="MerchantOrderNo" value="${subMitData.MerchantOrderNo}"/>
+                <button type="submit" class="btn btn-secondary custom-btn beside-btn" id="submit" hidden></button>
+            </form>`;
     }
 }
 
@@ -342,37 +362,37 @@ export class EcPay {
             ChoosePayment:
                 orderData.method && orderData.method !== 'ALL'
                     ? (() => {
-                          const find = [
-                              {
-                                  value: 'credit',
-                                  title: '信用卡',
-                                  realKey: 'Credit',
-                              },
-                              {
-                                  value: 'atm',
-                                  title: 'ATM',
-                                  realKey: 'ATM',
-                              },
-                              {
-                                  value: 'web_atm',
-                                  title: '網路ATM',
-                                  realKey: 'WebATM',
-                              },
-                              {
-                                  value: 'c_code',
-                                  title: '超商代碼',
-                                  realKey: 'CVS',
-                              },
-                              {
-                                  value: 'c_bar_code',
-                                  title: '超商條碼',
-                                  realKey: 'BARCODE',
-                              },
-                          ].find((dd) => {
-                              return dd.value === orderData.method;
-                          });
-                          return find && find!.realKey;
-                      })()
+                        const find = [
+                            {
+                                value: 'credit',
+                                title: '信用卡',
+                                realKey: 'Credit',
+                            },
+                            {
+                                value: 'atm',
+                                title: 'ATM',
+                                realKey: 'ATM',
+                            },
+                            {
+                                value: 'web_atm',
+                                title: '網路ATM',
+                                realKey: 'WebATM',
+                            },
+                            {
+                                value: 'c_code',
+                                title: '超商代碼',
+                                realKey: 'CVS',
+                            },
+                            {
+                                value: 'c_bar_code',
+                                title: '超商條碼',
+                                realKey: 'BARCODE',
+                            },
+                        ].find((dd) => {
+                            return dd.value === orderData.method;
+                        });
+                        return find && find!.realKey;
+                    })()
                     : 'ALL',
             PlatformID: '',
             MerchantID: this.keyData.MERCHANT_ID,
@@ -387,7 +407,8 @@ export class EcPay {
         const chkSum = EcPay.generateCheckMacValue(params, this.keyData.HASH_KEY, this.keyData.HASH_IV);
         orderData.CheckMacValue = chkSum;
         await db.execute(
-            `INSERT INTO \`${this.appName}\`.t_checkout (cart_token, status, email, orderData) VALUES (?, ?, ?, ?)
+            `INSERT INTO \`${this.appName}\`.t_checkout (cart_token, status, email, orderData)
+             VALUES (?, ?, ?, ?)
             `,
             [params.MerchantTradeNo, 0, orderData.user_email, orderData]
         );
@@ -395,28 +416,39 @@ export class EcPay {
         // 5. 回傳物件
         return html`
             <form id="_form_aiochk" action="${this.keyData.ActionURL}" method="post">
-                <input type="hidden" name="MerchantTradeNo" id="MerchantTradeNo" value="${params.MerchantTradeNo}" />
-                <input type="hidden" name="MerchantTradeDate" id="MerchantTradeDate" value="${params.MerchantTradeDate}" />
-                <input type="hidden" name="TotalAmount" id="TotalAmount" value="${params.TotalAmount}" />
-                <input type="hidden" name="TradeDesc" id="TradeDesc" value="${params.TradeDesc}" />
-                <input type="hidden" name="ItemName" id="ItemName" value="${params.ItemName}" />
-                <input type="hidden" name="ReturnURL" id="ReturnURL" value="${params.ReturnURL}" />
-                <input type="hidden" name="ChoosePayment" id="ChoosePayment" value="${params.ChoosePayment}" />
-                <input type="hidden" name="PlatformID" id="PlatformID" value="${params.PlatformID}" />
-                <input type="hidden" name="MerchantID" id="MerchantID" value="${params.MerchantID}" />
-                <input type="hidden" name="InvoiceMark" id="InvoiceMark" value="${params.InvoiceMark}" />
-                <input type="hidden" name="IgnorePayment" id="IgnorePayment" value="${params.IgnorePayment}" />
-                <input type="hidden" name="DeviceSource" id="DeviceSource" value="${params.DeviceSource}" />
-                <input type="hidden" name="EncryptType" id="EncryptType" value="${params.EncryptType}" />
-                <input type="hidden" name="PaymentType" id="PaymentType" value="${params.PaymentType}" />
-                <input type="hidden" name="OrderResultURL" id="OrderResultURL" value="${params.OrderResultURL}" />
-                <input type="hidden" name="CheckMacValue" id="CheckMacValue" value="${chkSum}" />
-                <button type="submit" class="btn btn-secondary custom-btn beside-btn d-none" id="submit" hidden></button>
+                <input type="hidden" name="MerchantTradeNo" id="MerchantTradeNo" value="${params.MerchantTradeNo}"/>
+                <input type="hidden" name="MerchantTradeDate" id="MerchantTradeDate"
+                       value="${params.MerchantTradeDate}"/>
+                <input type="hidden" name="TotalAmount" id="TotalAmount" value="${params.TotalAmount}"/>
+                <input type="hidden" name="TradeDesc" id="TradeDesc" value="${params.TradeDesc}"/>
+                <input type="hidden" name="ItemName" id="ItemName" value="${params.ItemName}"/>
+                <input type="hidden" name="ReturnURL" id="ReturnURL" value="${params.ReturnURL}"/>
+                <input type="hidden" name="ChoosePayment" id="ChoosePayment" value="${params.ChoosePayment}"/>
+                <input type="hidden" name="PlatformID" id="PlatformID" value="${params.PlatformID}"/>
+                <input type="hidden" name="MerchantID" id="MerchantID" value="${params.MerchantID}"/>
+                <input type="hidden" name="InvoiceMark" id="InvoiceMark" value="${params.InvoiceMark}"/>
+                <input type="hidden" name="IgnorePayment" id="IgnorePayment" value="${params.IgnorePayment}"/>
+                <input type="hidden" name="DeviceSource" id="DeviceSource" value="${params.DeviceSource}"/>
+                <input type="hidden" name="EncryptType" id="EncryptType" value="${params.EncryptType}"/>
+                <input type="hidden" name="PaymentType" id="PaymentType" value="${params.PaymentType}"/>
+                <input type="hidden" name="OrderResultURL" id="OrderResultURL" value="${params.OrderResultURL}"/>
+                <input type="hidden" name="CheckMacValue" id="CheckMacValue" value="${chkSum}"/>
+                <button type="submit" class="btn btn-secondary custom-btn beside-btn d-none" id="submit"
+                        hidden></button>
             </form>
         `;
     }
 
-    async saveMoney(orderData: { total: number; userID: number; note: string; method: string; CheckMacValue?: string,table:string,title:string ,ratio:number}) {
+    async saveMoney(orderData: {
+        total: number;
+        userID: number;
+        note: string;
+        method: string;
+        CheckMacValue?: string,
+        table: string,
+        title: string,
+        ratio: number
+    }) {
         // 1. 建立請求的參數
         const params = {
             MerchantTradeNo: new Date().getTime(),
@@ -428,37 +460,37 @@ export class EcPay {
             ChoosePayment:
                 orderData.method && orderData.method !== 'ALL'
                     ? (() => {
-                          const find = [
-                              {
-                                  value: 'credit',
-                                  title: '信用卡',
-                                  realKey: 'Credit',
-                              },
-                              {
-                                  value: 'atm',
-                                  title: 'ATM',
-                                  realKey: 'ATM',
-                              },
-                              {
-                                  value: 'web_atm',
-                                  title: '網路ATM',
-                                  realKey: 'WebATM',
-                              },
-                              {
-                                  value: 'c_code',
-                                  title: '超商代碼',
-                                  realKey: 'CVS',
-                              },
-                              {
-                                  value: 'c_bar_code',
-                                  title: '超商條碼',
-                                  realKey: 'BARCODE',
-                              },
-                          ].find((dd) => {
-                              return dd.value === orderData.method;
-                          });
-                          return find && find!.realKey;
-                      })()
+                        const find = [
+                            {
+                                value: 'credit',
+                                title: '信用卡',
+                                realKey: 'Credit',
+                            },
+                            {
+                                value: 'atm',
+                                title: 'ATM',
+                                realKey: 'ATM',
+                            },
+                            {
+                                value: 'web_atm',
+                                title: '網路ATM',
+                                realKey: 'WebATM',
+                            },
+                            {
+                                value: 'c_code',
+                                title: '超商代碼',
+                                realKey: 'CVS',
+                            },
+                            {
+                                value: 'c_bar_code',
+                                title: '超商條碼',
+                                realKey: 'BARCODE',
+                            },
+                        ].find((dd) => {
+                            return dd.value === orderData.method;
+                        });
+                        return find && find!.realKey;
+                    })()
                     : 'ALL',
             PlatformID: '',
             MerchantID: this.keyData.MERCHANT_ID,
@@ -473,7 +505,8 @@ export class EcPay {
         const chkSum = EcPay.generateCheckMacValue(params, this.keyData.HASH_KEY, this.keyData.HASH_IV);
         orderData.CheckMacValue = chkSum;
         await db.execute(
-            `INSERT INTO \`${this.appName}\`.${orderData.table} (orderID, userID, money, status, note) VALUES (?, ?, ?, ?, ?)
+            `INSERT INTO \`${this.appName}\`.${orderData.table} (orderID, userID, money, status, note)
+             VALUES (?, ?, ?, ?, ?)
             `,
             [params.MerchantTradeNo, orderData.userID, orderData.total * orderData.ratio, 0, orderData.note]
         );
@@ -481,23 +514,25 @@ export class EcPay {
         // 5. 回傳物件
         return html`
             <form id="_form_aiochk" action="${this.keyData.ActionURL}" method="post">
-                <input type="hidden" name="MerchantTradeNo" id="MerchantTradeNo" value="${params.MerchantTradeNo}" />
-                <input type="hidden" name="MerchantTradeDate" id="MerchantTradeDate" value="${params.MerchantTradeDate}" />
-                <input type="hidden" name="TotalAmount" id="TotalAmount" value="${params.TotalAmount}" />
-                <input type="hidden" name="TradeDesc" id="TradeDesc" value="${params.TradeDesc}" />
-                <input type="hidden" name="ItemName" id="ItemName" value="${params.ItemName}" />
-                <input type="hidden" name="ReturnURL" id="ReturnURL" value="${params.ReturnURL}" />
-                <input type="hidden" name="ChoosePayment" id="ChoosePayment" value="${params.ChoosePayment}" />
-                <input type="hidden" name="PlatformID" id="PlatformID" value="${params.PlatformID}" />
-                <input type="hidden" name="MerchantID" id="MerchantID" value="${params.MerchantID}" />
-                <input type="hidden" name="InvoiceMark" id="InvoiceMark" value="${params.InvoiceMark}" />
-                <input type="hidden" name="IgnorePayment" id="IgnorePayment" value="${params.IgnorePayment}" />
-                <input type="hidden" name="DeviceSource" id="DeviceSource" value="${params.DeviceSource}" />
-                <input type="hidden" name="EncryptType" id="EncryptType" value="${params.EncryptType}" />
-                <input type="hidden" name="PaymentType" id="PaymentType" value="${params.PaymentType}" />
-                <input type="hidden" name="OrderResultURL" id="OrderResultURL" value="${params.OrderResultURL}" />
-                <input type="hidden" name="CheckMacValue" id="CheckMacValue" value="${chkSum}" />
-                <button type="submit" class="btn btn-secondary custom-btn beside-btn d-none" id="submit" hidden></button>
+                <input type="hidden" name="MerchantTradeNo" id="MerchantTradeNo" value="${params.MerchantTradeNo}"/>
+                <input type="hidden" name="MerchantTradeDate" id="MerchantTradeDate"
+                       value="${params.MerchantTradeDate}"/>
+                <input type="hidden" name="TotalAmount" id="TotalAmount" value="${params.TotalAmount}"/>
+                <input type="hidden" name="TradeDesc" id="TradeDesc" value="${params.TradeDesc}"/>
+                <input type="hidden" name="ItemName" id="ItemName" value="${params.ItemName}"/>
+                <input type="hidden" name="ReturnURL" id="ReturnURL" value="${params.ReturnURL}"/>
+                <input type="hidden" name="ChoosePayment" id="ChoosePayment" value="${params.ChoosePayment}"/>
+                <input type="hidden" name="PlatformID" id="PlatformID" value="${params.PlatformID}"/>
+                <input type="hidden" name="MerchantID" id="MerchantID" value="${params.MerchantID}"/>
+                <input type="hidden" name="InvoiceMark" id="InvoiceMark" value="${params.InvoiceMark}"/>
+                <input type="hidden" name="IgnorePayment" id="IgnorePayment" value="${params.IgnorePayment}"/>
+                <input type="hidden" name="DeviceSource" id="DeviceSource" value="${params.DeviceSource}"/>
+                <input type="hidden" name="EncryptType" id="EncryptType" value="${params.EncryptType}"/>
+                <input type="hidden" name="PaymentType" id="PaymentType" value="${params.PaymentType}"/>
+                <input type="hidden" name="OrderResultURL" id="OrderResultURL" value="${params.OrderResultURL}"/>
+                <input type="hidden" name="CheckMacValue" id="CheckMacValue" value="${chkSum}"/>
+                <button type="submit" class="btn btn-secondary custom-btn beside-btn d-none" id="submit"
+                        hidden></button>
             </form>
         `;
     }
@@ -506,29 +541,30 @@ export class EcPay {
 // PayPal金流
 export class PayPal {
     keyData: {
-        ReturnURL?:string,
-        NotifyURL?:string,
-        PAYPAL_CLIENT_ID:string,
-        PAYPAL_SECRET:string,
-        BETA:string
+        ReturnURL?: string,
+        NotifyURL?: string,
+        PAYPAL_CLIENT_ID: string,
+        PAYPAL_SECRET: string,
+        BETA: string
     };
     appName: string;
-    PAYPAL_CLIENT_ID:string;
-    PAYPAL_SECRET:string;
-    PAYPAL_BASE_URL:string
+    PAYPAL_CLIENT_ID: string;
+    PAYPAL_SECRET: string;
+    PAYPAL_BASE_URL: string
+
     //todo PAYPAL_CLIENT_ID PAYPAL_SECRET 會是動態的 還有 PAYPAL_BASE_URL的沙箱環境
-    constructor(appName: string, keyData:  {
-        ReturnURL?:string,
-        NotifyURL?:string,
-        PAYPAL_CLIENT_ID:string,
-        PAYPAL_SECRET:string,
-        BETA:string
+    constructor(appName: string, keyData: {
+        ReturnURL?: string,
+        NotifyURL?: string,
+        PAYPAL_CLIENT_ID: string,
+        PAYPAL_SECRET: string,
+        BETA: string
     }) {
         this.keyData = keyData;
         this.appName = appName;
         this.PAYPAL_CLIENT_ID = keyData.PAYPAL_CLIENT_ID; // 替換為您的 Client ID
         this.PAYPAL_SECRET = keyData.PAYPAL_SECRET; // 替換為您的 Secret Key
-        this.PAYPAL_BASE_URL = (keyData.BETA == 'true') ? "https://api-m.sandbox.paypal.com":"https://api-m.paypal.com"; // 沙箱環境
+        this.PAYPAL_BASE_URL = (keyData.BETA == 'true') ? "https://api-m.sandbox.paypal.com" : "https://api-m.paypal.com"; // 沙箱環境
         // const PAYPAL_BASE_URL = "https://api-m.paypal.com"; // 正式環境
     }
 
@@ -558,21 +594,23 @@ export class PayPal {
             throw new Error("Failed to retrieve PayPal access token.");
         }
     }
-    async checkout(orderData:any){
+
+    async checkout(orderData: any) {
         const accessToken = await this.getAccessToken();
-        const order = await this.createOrderPage(accessToken , orderData);
+        const order = await this.createOrderPage(accessToken, orderData);
         return {
             orderId: order.id,
             approveLink: order.links.find((link: any) => link.rel === "approve")?.href,
         }
     }
-    async createOrderPage(accessToken: string,orderData: {
+
+    async createOrderPage(accessToken: string, orderData: {
         lineItems: {
             id: string;
             spec: string[];
             count: number;
             sale_price: number;
-            title:string
+            title: string
         }[];
         total: number;
         email: string;
@@ -585,7 +623,7 @@ export class PayPal {
         try {
             const createOrderUrl = `${this.PAYPAL_BASE_URL}/v2/checkout/orders`;
             let itemPrice = 0
-            orderData.lineItems.forEach((item)=>{
+            orderData.lineItems.forEach((item) => {
                 itemPrice += item.sale_price;
             })
             const config: AxiosRequestConfig = {
@@ -610,7 +648,7 @@ export class PayPal {
                                     },
                                 },
                             },
-                            items:orderData.lineItems.map((item)=>{
+                            items: orderData.lineItems.map((item) => {
                                 return {
                                     name: item.title, // 商品名稱
                                     unit_amount: {
@@ -618,7 +656,7 @@ export class PayPal {
                                         value: item.sale_price,
                                     },
                                     quantity: item.count, // 商品數量
-                                    description:item.spec.join(',')??""
+                                    description: item.spec.join(',') ?? ""
                                 }
                             }),
                         },
@@ -636,17 +674,19 @@ export class PayPal {
 
             const response = await axios.request(config);
             await db.execute(
-                `INSERT INTO \`${this.appName}\`.t_checkout (cart_token, status, email, orderData) VALUES (?, ?, ?, ?)
-            `,
+                `INSERT INTO \`${this.appName}\`.t_checkout (cart_token, status, email, orderData)
+                 VALUES (?, ?, ?, ?)
+                `,
                 [orderData.orderID, 0, orderData.user_email, orderData]
             );
-            await redis.setValue('paypal'+orderData.orderID,response.data.id)
+            await redis.setValue('paypal' + orderData.orderID, response.data.id)
             return response.data;
         } catch (error: any) {
             console.error("Error creating order:", error.response?.data || error.message);
             throw new Error("Failed to create PayPal order.");
         }
     }
+
     async getOrderDetails(orderId: string, accessToken: string) {
         const url = `/v2/checkout/orders/${orderId}`;
         const axiosInstance = axios.create({
@@ -673,7 +713,7 @@ export class PayPal {
             } else {
                 throw new Error(`Order status is not APPROVED. Current status: ${order.status}`);
             }
-        } catch (error:any) {
+        } catch (error: any) {
             console.error("Error fetching order details:", error.response?.data || error.message);
             throw error;
         }
@@ -698,7 +738,7 @@ export class PayPal {
         try {
             const response = await axiosInstance.request(config);
             return response.data;
-        } catch (error:any) {
+        } catch (error: any) {
             console.error("Error capturing payment:", error.response?.data || error.message);
             throw error;
         }
@@ -714,7 +754,7 @@ export class PayPal {
 
             console.log("Payment process completed successfully.");
             return captureResult;
-        } catch (error:any) {
+        } catch (error: any) {
             console.error("Error during order confirmation or payment capture:", error.message);
             throw error;
         }
@@ -726,23 +766,24 @@ export class PayPal {
 // LinePay金流
 export class LinePay {
     keyData: {
-        ReturnURL?:string,
-        NotifyURL?:string,
-        LinePay_CLIENT_ID:string,
-        LinePay_SECRET:string,
-        BETA:string
+        ReturnURL?: string,
+        NotifyURL?: string,
+        LinePay_CLIENT_ID: string,
+        LinePay_SECRET: string,
+        BETA: string
     };
     appName: string;
-    LinePay_CLIENT_ID:string;
-    LinePay_SECRET:string;
-    LinePay_BASE_URL:string
+    LinePay_CLIENT_ID: string;
+    LinePay_SECRET: string;
+    LinePay_BASE_URL: string
+
     //todo LinePay_CLIENT_ID LinePay_SECRET 會是動態的 還有 LinePay_BASE_URL的沙箱環境
-    constructor(appName: string, keyData:any) {
+    constructor(appName: string, keyData: any) {
         this.keyData = keyData;
         this.appName = appName;
         this.LinePay_CLIENT_ID = keyData.CLIENT_ID; // 替換為您的 Client ID
         this.LinePay_SECRET = keyData.SECRET; // 替換為您的 Secret Key
-        this.LinePay_BASE_URL = (keyData.BETA == 'true') ? "https://sandbox-api-pay.line.me":"https://api-pay.line.me"; // 沙箱環境
+        this.LinePay_BASE_URL = (keyData.BETA == 'true') ? "https://sandbox-api-pay.line.me" : "https://api-pay.line.me"; // 沙箱環境
         // this.LinePay_RETURN_HOST = '';
         // this.LinePay_CLIENT_ID = "2006615995"; // 替換為您的 Client ID
         // this.LinePay_CLIENT_ID = this.keyData.LinePay_CLIENT_ID;
@@ -752,8 +793,8 @@ export class LinePay {
         // const PAYPAL_BASE_URL = "https://api-pay.line.me"; // 正式環境
     }
 
-    async confirmAndCaptureOrder(transactionId:string){
-        const body:any={};
+    async confirmAndCaptureOrder(transactionId: string) {
+        const body: any = {};
         const uri = `/payments/requests/${transactionId}/check`;
         const nonce = new Date().getTime() / 1000;
         const head = `${this.LinePay_SECRET}/v3${uri}${nonce}`;
@@ -764,19 +805,20 @@ export class LinePay {
             url: url,
             headers: {
                 "Content-Type": "application/json",
-                "X-LINE-ChannelId" : this.LinePay_CLIENT_ID,
-                "X-LINE-Authorization-Nonce" : nonce,
-                "X-LINE-Authorization" : signature
+                "X-LINE-ChannelId": this.LinePay_CLIENT_ID,
+                "X-LINE-Authorization-Nonce": nonce,
+                "X-LINE-Authorization": signature
             },
         };
         try {
             const response = await axios.request(config);
             return response;
-        } catch (error:any) {
+        } catch (error: any) {
             console.error("Error linePay:", error.response?.data.data || error.message);
             throw error;
         }
     }
+
     async createOrder(orderData: {
         lineItems: {
             id: string;
@@ -799,7 +841,7 @@ export class LinePay {
             "amount": orderData.total,
             "currency": "TWD",
             "orderId": orderData.orderID,
-            "shippingFee":orderData.shipment_fee,
+            "shippingFee": orderData.shipment_fee,
             "packages": orderData.lineItems.map((data) => {
                 return {
                     "id": data.id,
@@ -845,22 +887,23 @@ export class LinePay {
             url: url,
             headers: {
                 "Content-Type": "application/json",
-                "X-LINE-ChannelId" : this.LinePay_CLIENT_ID,
-                "X-LINE-Authorization-Nonce" : nonce,
-                "X-LINE-Authorization" : signature
+                "X-LINE-ChannelId": this.LinePay_CLIENT_ID,
+                "X-LINE-Authorization-Nonce": nonce,
+                "X-LINE-Authorization": signature
             },
             data: body
         };
         try {
             const response = await axios.request(config);
             await db.execute(
-                `INSERT INTO \`${this.appName}\`.t_checkout (cart_token, status, email, orderData) VALUES (?, ?, ?, ?)
-            `,
+                `INSERT INTO \`${this.appName}\`.t_checkout (cart_token, status, email, orderData)
+                 VALUES (?, ?, ?, ?)
+                `,
                 [orderData.orderID, 0, orderData.user_email, orderData]
             );
-            await redis.setValue('linepay'+orderData.orderID,response.data.info.transactionId)
+            await redis.setValue('linepay' + orderData.orderID, response.data.info.transactionId)
             return response.data;
-        } catch (error:any) {
+        } catch (error: any) {
             console.error("Error linePay:", error.response?.data || error.message);
             throw error;
         }
@@ -870,25 +913,26 @@ export class LinePay {
 // paynow金流
 export class PayNow {
     keyData: {
-        ReturnURL?:string,
-        NotifyURL?:string,
-        public_key:string,
-        private_key:string,
-        BETA:string
+        ReturnURL?: string,
+        NotifyURL?: string,
+        public_key: string,
+        private_key: string,
+        BETA: string
     };
     appName: string;
-    PublicKey:string;
-    PrivateKey:string;
-    BASE_URL:string
-    constructor(appName: string, keyData:any) {
+    PublicKey: string;
+    PrivateKey: string;
+    BASE_URL: string
+
+    constructor(appName: string, keyData: any) {
         this.keyData = keyData;
         this.appName = appName;
-        this.PublicKey = keyData.public_key??"";
-        this.PrivateKey =  keyData.private_key??"";
-        this.BASE_URL = (keyData.BETA == 'true') ? "https://sandboxapi.paynow.com.tw":"https://api.paynow.com.tw"; // 沙箱環境
+        this.PublicKey = keyData.public_key ?? "";
+        this.PrivateKey = keyData.private_key ?? "";
+        this.BASE_URL = (keyData.BETA == 'true') ? "https://sandboxapi.paynow.com.tw" : "https://api.paynow.com.tw"; // 沙箱環境
     }
 
-    async confirmAndCaptureOrder(transactionId?:string){
+    async confirmAndCaptureOrder(transactionId?: string) {
         let config = {
             method: 'get',
             maxBodyLength: Infinity,
@@ -901,11 +945,12 @@ export class PayNow {
         try {
             const response = await axios.request(config);
             return response.data;
-        } catch (error:any) {
+        } catch (error: any) {
             console.error("Error paynow:", error.response?.data.data || error.message);
             throw error;
         }
     }
+
     async createOrder(orderData: {
         lineItems: {
             id: string;
@@ -926,8 +971,8 @@ export class PayNow {
             "amount": orderData.total,
             "currency": "TWD",
             "description": orderData.orderID,
-            "resultUrl": this.keyData.ReturnURL+`&orderID=${orderData.orderID}`,
-            "webhookUrl": this.keyData.NotifyURL+`&orderID=${orderData.orderID}`,
+            "resultUrl": this.keyData.ReturnURL + `&orderID=${orderData.orderID}`,
+            "webhookUrl": this.keyData.NotifyURL + `&orderID=${orderData.orderID}`,
             "allowedPaymentMethods": [
                 "CreditCard",
             ],
@@ -942,27 +987,199 @@ export class PayNow {
                 'Content-Type': 'application/json',
                 'Authorization': `Bearer ` + this.PrivateKey
             },
-            data : data
+            data: data
         };
 
         try {
-            console.log("here OK --")
             const response = await axios.request(config);
             (orderData as any).paynow_id = response.data.result.id;
+            await db.execute(
+                `INSERT INTO \`${this.appName}\`.t_checkout (cart_token, status, email, orderData)
+                 VALUES (?, ?, ?, ?)
+                `,
+                [orderData.orderID, 0, orderData.user_email, orderData]
+            );
+            await redis.setValue('paynow' + orderData.orderID, response.data.result.id)
+            return {
+                data: response.data,
+                publicKey: this.keyData.public_key,
+                BETA: this.keyData.BETA
+            }
+        } catch (error: any) {
+            console.error("Error payNow:", error.response?.data || error.message);
+            throw error;
+        }
+    }
+}
+
+// 街口
+export class JKO {
+    keyData: {
+        ReturnURL?: string,
+        NotifyURL?: string,
+        API_KEY: string,
+        STORE_ID: string,
+        SECRET_KEY: string,
+    };
+    appName: string;
+    PublicKey: string;
+    PrivateKey: string;
+    BASE_URL: string
+
+    constructor(appName: string, keyData: any) {
+        this.keyData = keyData;
+        this.appName = appName;
+        this.PublicKey = keyData.public_key ?? "";
+        this.PrivateKey = keyData.private_key ?? "";
+        this.BASE_URL = "https://uat-onlinepay.jkopay.app/"
+    }
+
+    async confirmAndCaptureOrder(transactionId?: string) {
+        const secret = this.keyData.SECRET_KEY;
+        const digest = this.generateDigest(`platform_order_ids=${transactionId}` , secret);
+        let config = {
+            method: 'get',
+            url: `${this.BASE_URL}/platform/inquiry?platform_order_ids=${transactionId}`,
+            headers: {
+                'Content-Type': 'application/json',
+                'DIGEST': digest,
+                'API-KEY' : this.keyData.API_KEY
+            },
+        };
+        try {
+            const response = await axios.request(config);
+            return response.data;
+        } catch (error: any) {
+            console.error("Error paynow:", error.response?.data.data || error.message);
+            throw error;
+        }
+    }
+
+    async createOrder(orderData: {
+        lineItems: {
+            id: string;
+            spec: string[];
+            count: number;
+            sale_price: number;
+            preview_image:string;
+            title: string;
+        }[];
+        total: number;
+        email: string;
+        shipment_fee: number;
+        orderID: string;
+        use_wallet: number;
+        user_email: string;
+        method: string;
+    }) {
+        function transProduct(lineItems: {
+            id: string;
+            spec: string[];
+            count: number;
+            sale_price: number;
+            preview_image:string;
+            title: string;
+        }[]){
+            return lineItems.map((item)=>{
+                return {
+                    'name' : item.title+' '+item.spec.join(','),
+                    'img' : item.preview_image,
+                    'unit_count' : item.count,
+                    'unit_price' : item.sale_price,
+                    'unit_final_price' : item.sale_price
+                }
+            })
+        }
+        // console.log(transProduct(orderData.lineItems));
+        // console.log("orderData.lineItems -- " , orderData.lineItems)
+        const payload = {
+            "currency": "TWD",
+            "final_price": 3000,
+            "platform_order_id": "1738832151154",
+            "result_url": "https://60de85c1b841.ngrok.app/api-public/v1/ec/redirect?g-app=t_1725992531001&jkopay=true&orderid=1738832151154",
+            "store_id": "8057a6ef-b2ba-11ef-94d5-005056b665e9",
+            "total_price": 3000,
+            "unredeem": 0
+        }
+
+
+        const secret = this.keyData.SECRET_KEY;
+        const digest = this.generateDigest(JSON.stringify(payload) , secret);
+        console.log("payload -- " , JSON.stringify(payload));
+        console.log("digest -- " , digest)
+        return
+        const url = `${this.BASE_URL}platform/entry`;
+        const config = {
+            method: 'post',
+            url: url,
+            headers: {
+                'Content-Type': 'application/json',
+                'DIGEST': digest,
+                'API-KEY' : this.keyData.API_KEY
+            },
+            data: payload
+        };
+        try {
+            const response = await axios.request(config);
+
             await db.execute(
                 `INSERT INTO \`${this.appName}\`.t_checkout (cart_token, status, email, orderData) VALUES (?, ?, ?, ?)
             `,
                 [orderData.orderID, 0, orderData.user_email, orderData]
             );
             await redis.setValue('paynow'+orderData.orderID, response.data.result.id)
-            return {
-                data:response.data,
-                publicKey:this.keyData.public_key,
-                BETA:this.keyData.BETA
-            }
-        } catch (error:any) {
+            return ``
+        } catch (error: any) {
             console.error("Error payNow:", error.response?.data || error.message);
             throw error;
         }
     }
+
+    private generateDigest(data: string, apiSecret: string): string {
+        // 轉換 data 和 apiSecret 為 UTF-8 Byte Array
+        const dataBytes = Buffer.from(data, 'utf8');
+        const keyBytes = Buffer.from(apiSecret, 'utf8');
+
+        // 使用 HMAC-SHA256 進行雜湊
+        const hmac = crypto.createHmac('sha256', keyBytes);
+        hmac.update(dataBytes);
+
+        // 轉換為 16 進位字串 (與 C# 的 Convert.ToHexString(hash).ToLower() 等效)
+        return hmac.digest('hex');
+    }
 }
+
+// 8057a6ef-b2ba-11ef-94d5-005056b665e9
+// const payload = {
+//     "platform_order_id": "demo-order-001",
+//     "store_id": this.keyData.STORE_ID,
+//     "currency": "TWD",
+//     "total_price": 10,
+//     "final_price": 10,
+//     "unredeem": 0,
+//     "result_display_url": "https://shopnex.tw/",
+//     "confirm_url" : "https://shopnex.tw/",
+//     "result_url": "https://shopnex.tw/",
+// }
+
+//法1 什麼都不做處理 但把payload的前後{}拿掉 或是不拿
+// const secret = "8ec78345a13e3d376452d9c89c66b543ef1516c0ef1a05f0adf654c37ac8edac";
+// const digest = this.generateDigest(JSON.stringify(payload) , secret);
+
+//法2 payload做字節處理 只做payload
+// function jsonToHex(jsonData: object): string {
+//     // 1️⃣ 轉成 JSON 字串
+//     const jsonString = JSON.stringify(jsonData);
+//
+//     // 2️⃣ 轉換為 UTF-8 編碼的 Buffer
+//     const utf8Bytes = Buffer.from(jsonString, 'utf8');
+//
+//     // 3️⃣ 轉換為 16 進位字串
+//     const hexString = utf8Bytes.toString('hex');
+//
+//     return hexString;
+// }
+// const secret = "8ec78345a13e3d376452d9c89c66b543ef1516c0ef1a05f0adf654c37ac8edac";
+// const digest = this.generateDigest( jsonToHex(payload) , secret);
+
+//法3 payload和secret做字節處理

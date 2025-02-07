@@ -217,4 +217,37 @@ export declare class PayNow {
         BETA: string;
     }>;
 }
+export declare class JKO {
+    keyData: {
+        ReturnURL?: string;
+        NotifyURL?: string;
+        API_KEY: string;
+        STORE_ID: string;
+        SECRET_KEY: string;
+    };
+    appName: string;
+    PublicKey: string;
+    PrivateKey: string;
+    BASE_URL: string;
+    constructor(appName: string, keyData: any);
+    confirmAndCaptureOrder(transactionId?: string): Promise<any>;
+    createOrder(orderData: {
+        lineItems: {
+            id: string;
+            spec: string[];
+            count: number;
+            sale_price: number;
+            preview_image: string;
+            title: string;
+        }[];
+        total: number;
+        email: string;
+        shipment_fee: number;
+        orderID: string;
+        use_wallet: number;
+        user_email: string;
+        method: string;
+    }): Promise<"" | undefined>;
+    private generateDigest;
+}
 export {};
