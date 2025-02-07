@@ -788,7 +788,7 @@ export class PosFunction {
                                         } catch (e) {
                                             TempOrder.removeTempOrders(dd.orderID!!);
                                             gvc.recreateView();
-                                            console.log(e);
+                                            console.error(e);
                                             return '';
                                         }
                                     })
@@ -796,7 +796,7 @@ export class PosFunction {
                                 html`<i class="fa-solid fa-xmark position-absolute fs-5" style="right: 20px; top: 20px; cursor: pointer;" onclick="${gvc.event(() => gvc.closeDialog())}"></i>`,
                             ].join('');
                         } catch (e) {
-                            console.log(e);
+                            console.error(e);
                             return `${e}`;
                         }
                     },
@@ -895,7 +895,7 @@ export class PosFunction {
                                 ></i>`,
                             ].join('<div class="my-2"></div>');
                         } catch (error) {
-                            console.log(1, error);
+                            console.error(error);
                             return '';
                         }
                     }

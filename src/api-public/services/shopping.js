@@ -5154,48 +5154,39 @@ OR JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.orderStatus')) NOT IN (-99)) `);
         }
         catch (error) {
             console.error(error);
-            throw exception_js_1.default.BadRequestError('BAD_REQUEST', 'getProductComment Error:' + express_1.default, null);
+            throw exception_js_1.default.BadRequestError('BAD_REQUEST', 'getProductComment Error:' + error, null);
         }
     }
     async postProductComment(data) {
         try {
             if (!this.token) {
-                return false;
+                throw new Error('User not authenticated.');
             }
             const { product_id, rate, title, comment } = data;
-            const today = new Date();
-            const year = today.getFullYear();
-            const month = String(today.getMonth() + 1).padStart(2, '0');
-            const day = String(today.getDate()).padStart(2, '0');
+            const today = new Date().toISOString().split('T')[0];
             const userClass = new user_js_1.User(this.app);
             const userData = await userClass.getUserData(`${this.token.userID}`, 'userID');
-            const getComment = await database_js_1.default.query(`SELECT * FROM \`${this.app}\`.t_product_comment 
-                    WHERE product_id = ? 
-                    AND JSON_EXTRACT(content, '$.userID') = ?;
-                    `, [product_id, this.token.userID]);
             const content = {
                 userID: this.token.userID,
                 userName: userData.userData.name,
-                date: `${year}-${month}-${day}`,
+                date: today,
                 rate,
                 title,
                 comment,
             };
-            if (getComment[0]) {
-                await database_js_1.default.execute(`UPDATE \`${this.app}\`.t_product_comment SET content = ? WHERE id = ?
-                    `, [JSON.stringify(content), getComment[0].id]);
+            const [updateResult] = await database_js_1.default.execute(`UPDATE \`${this.app}\`.t_product_comment 
+                 SET content = ? 
+                 WHERE product_id = ? AND JSON_EXTRACT(content, '$.userID') = ?`, [JSON.stringify(content), product_id, this.token.userID]);
+            if (updateResult.affectedRows === 0) {
+                await database_js_1.default.execute(`INSERT INTO \`${this.app}\`.t_product_comment (product_id, content) 
+                     VALUES (?, ?)`, [product_id, JSON.stringify(content)]);
             }
-            else {
-                await database_js_1.default.execute(`INSERT INTO \`${this.app}\`.t_product_comment (product_id, content) values (?, ?)
-                    `, [product_id, content]);
-            }
-            const av = await this.updateProductAvgRate(product_id);
-            console.log(av);
+            await this.updateProductAvgRate(product_id);
             return true;
         }
         catch (error) {
-            console.error(error);
-            throw exception_js_1.default.BadRequestError('BAD_REQUEST', 'postProductComment Error:' + express_1.default, null);
+            console.error(`Error posting product comment:`, error);
+            throw exception_js_1.default.BadRequestError('BAD_REQUEST', `postProductComment Error: ${error}`, null);
         }
     }
     async updateProductAvgRate(product_id) {
