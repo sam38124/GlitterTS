@@ -560,6 +560,14 @@ export class ShoppingOrderManager {
                                     },
                                 },
                                 {
+                                    name: '合併訂單',
+                                    option: true,
+                                    event: () => {
+                                        const checkArray = vm.dataList.filter((dd) => dd.checked);
+                                        return OrderSetting.combineOrders(gvc, checkArray);
+                                    },
+                                },
+                                {
                                     name: query.isArchived ? '解除封存' : '批量封存',
                                     event: () => {
                                         dialog.checkYesOrNot({
