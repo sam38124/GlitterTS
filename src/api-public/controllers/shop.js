@@ -8,6 +8,7 @@ const multer_1 = __importDefault(require("multer"));
 const exception_1 = __importDefault(require("../../modules/exception"));
 const database_js_1 = __importDefault(require("../../modules/database.js"));
 const redis_js_1 = __importDefault(require("../../modules/redis.js"));
+const axios_1 = __importDefault(require("axios"));
 const ut_database_js_1 = require("../utils/ut-database.js");
 const ut_permission_1 = require("../utils/ut-permission");
 const financial_service_js_1 = require("../services/financial-service.js");
@@ -15,13 +16,13 @@ const private_config_js_1 = require("../../services/private_config.js");
 const user_js_1 = require("../services/user.js");
 const post_js_1 = require("../services/post.js");
 const shopping_1 = require("../services/shopping");
+const data_analyze_1 = require("../services/data-analyze");
 const rebate_1 = require("../services/rebate");
-const axios_1 = __importDefault(require("axios"));
 const pos_js_1 = require("../services/pos.js");
 const router = express_1.default.Router();
 router.post('/worker', async (req, resp) => {
     try {
-        return response_1.default.succ(resp, await new shopping_1.Shopping(req.get('g-app'), req.body.token).workerExample({
+        return response_1.default.succ(resp, await new data_analyze_1.DataAnalyze(req.get('g-app'), req.body.token).workerExample({
             type: req.body.type,
             divisor: req.body.divisor,
         }));
@@ -563,8 +564,8 @@ async function redirect_link(req, resp) {
         if (req.query.paynow && req.query.paynow === 'true') {
             const check_id = await redis_js_1.default.getValue(`paynow` + req.query.orderID);
             let kd = {
-                ReturnURL: "",
-                NotifyURL: ""
+                ReturnURL: '',
+                NotifyURL: '',
             };
             const payNow = new financial_service_js_1.PayNow(req.query.appName, kd);
             const data = payNow.confirmAndCaptureOrder(check_id);
@@ -748,7 +749,7 @@ router.get('/dataAnalyze', async (req, resp) => {
     try {
         const tags = `${req.query.tags}`;
         if (await ut_permission_1.UtPermission.isManager(req)) {
-            return response_1.default.succ(resp, await new shopping_1.Shopping(req.get('g-app'), req.body.token).getDataAnalyze(tags.split(','), req.query.query));
+            return response_1.default.succ(resp, await new data_analyze_1.DataAnalyze(req.get('g-app'), req.body.token).getDataAnalyze(tags.split(','), req.query.query));
         }
         else {
             throw exception_1.default.BadRequestError('BAD_REQUEST', 'No permission.', null);
@@ -850,38 +851,14 @@ router.get('/product', async (req, resp) => {
             status: req.query.status,
             channel: req.query.channel,
             id_list: req.query.id_list,
-            order_by: (() => {
-                switch (req.query.order_by) {
-                    case 'title':
-                        return `order by JSON_EXTRACT(content, '$.title')`;
-                    case 'max_price':
-                        return `order by (CAST(JSON_UNQUOTE(JSON_EXTRACT(content, '$.max_price')) AS SIGNED)) desc`;
-                    case 'min_price':
-                        return `order by (CAST(JSON_UNQUOTE(JSON_EXTRACT(content, '$.min_price')) AS SIGNED)) asc`;
-                    case 'created_time_desc':
-                        return `order by created_time desc`;
-                    case 'created_time_asc':
-                        return `order by created_time`;
-                    case 'updated_time_desc':
-                        return `order by updated_time desc`;
-                    case 'updated_time_asc':
-                        return `order by updated_time`;
-                    case 'stock_desc':
-                        return ``;
-                    case 'stock_asc':
-                        return ``;
-                    case 'sales_desc':
-                        return `order by (content->>'$.total_sales') desc`;
-                    case 'default':
-                    default:
-                        return `order by id desc`;
-                }
-            })(),
+            order_by: req.query.order_by,
             with_hide_index: req.query.with_hide_index,
             is_manger: (await ut_permission_1.UtPermission.isManager(req)),
             show_hidden: `${req.query.show_hidden}`,
             productType: req.query.productType,
             filter_visible: req.query.filter_visible,
+            view_source: req.query.view_source,
+            distribution_code: req.query.distribution_code,
             language: req.headers['language'],
             currency_code: req.headers['currency_code'],
         });
@@ -983,6 +960,25 @@ router.put('/product/variants', async (req, resp) => {
         else {
             throw exception_1.default.BadRequestError('BAD_REQUEST', 'No permission.', null);
         }
+    }
+    catch (err) {
+        return response_1.default.fail(resp, err);
+    }
+});
+router.get('/product/comment', async (req, resp) => {
+    try {
+        const id = Math.max(0, parseInt(`${req.query.id}`, 10) || 0);
+        const comment = await new shopping_1.Shopping(req.get('g-app'), req.body.token).getProductComment(id);
+        return response_1.default.succ(resp, comment);
+    }
+    catch (err) {
+        return response_1.default.fail(resp, err);
+    }
+});
+router.post('/product/comment', async (req, resp) => {
+    try {
+        await new shopping_1.Shopping(req.get('g-app'), req.body.token).postProductComment(req.body);
+        return response_1.default.succ(resp, { result: true });
     }
     catch (err) {
         return response_1.default.fail(resp, err);
@@ -1269,21 +1265,21 @@ router.post('/allowance_invoice', async (req, resp) => {
         return response_1.default.fail(resp, err);
     }
 });
-router.post('/pos/summary', async (req, resp) => {
+router.get('/pos/summary', async (req, resp) => {
     try {
-        await new pos_js_1.Pos(req.get('g-app'), req.body.token).setSummary(req.body);
         return response_1.default.succ(resp, {
-            result: true,
+            data: await new pos_js_1.Pos(req.get('g-app'), req.body.token).getSummary(req.query.shop),
         });
     }
     catch (err) {
         return response_1.default.fail(resp, err);
     }
 });
-router.get('/pos/summary', async (req, resp) => {
+router.post('/pos/summary', async (req, resp) => {
     try {
+        await new pos_js_1.Pos(req.get('g-app'), req.body.token).setSummary(req.body);
         return response_1.default.succ(resp, {
-            data: await new pos_js_1.Pos(req.get('g-app'), req.body.token).getSummary(req.query.shop),
+            result: true,
         });
     }
     catch (err) {

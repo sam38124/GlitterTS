@@ -9,7 +9,6 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 };
 import { ApiUser } from '../../glitter-base/route/user.js';
 import { GlobalUser } from '../../glitter-base/global/global-user.js';
-import { Tool } from '../../modules/tool.js';
 import { BgWidget } from '../../backend-manager/bg-widget.js';
 import { ShareDialog } from '../../glitterBundle/dialog/ShareDialog.js';
 import { ApiWallet } from '../../glitter-base/route/wallet.js';
@@ -391,6 +390,19 @@ export class UmClass {
                 align-items: center;
             }
 
+            .um-solid-btn {
+                background: ${solidButtonBgr};
+                color: ${solidButtonText};
+                cursor: pointer;
+                display: flex;
+                width: 100px;
+                padding: 7px;
+                justify-content: center;
+                align-items: center;
+                gap: 10px;
+                border-radius: 5px;
+            }
+
             .um-info-title {
                 color: ${titleFontColor};
                 font-size: 28px;
@@ -487,18 +499,18 @@ export class UmClass {
                 min-height: 44px;
             }
 
-            .bgw-input[type=date]{
-                color: rgba(0,0,0,0);
+            .bgw-input[type='date'] {
+                color: rgba(0, 0, 0, 0);
             }
 
-            .bgw-input[type=date]::before {
+            .bgw-input[type='date']::before {
                 content: attr(data-placeholder);
                 position: absolute;
                 color: #8d8d8d;
                 pointer-events: none;
                 font-size: 15px;
             }
-    
+
             .bgw-input:focus {
                 outline: 0;
             }
@@ -644,7 +656,6 @@ export class UmClass {
                 background: #8d8d8d;
                 color: #ffffff;
             }
-            
 
             @media (min-width: 576px) {
                 .um-container {
@@ -694,7 +705,7 @@ export class UmClass {
     }
     static jumpAlert(obj) {
         var _a, _b;
-        const className = Tool.randomString(5);
+        const className = 'um-class';
         const fixedStyle = (() => {
             let style = '';
             if (obj.justify === 'top') {

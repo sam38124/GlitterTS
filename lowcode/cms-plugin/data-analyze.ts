@@ -157,15 +157,41 @@ export class DataAnalyze {
                             <div class="my-3"></div>
                             <div class="row">
                                 ${[
-                                    DataAnalyzeModule.salesAmount(gvc),
-                                    DataAnalyzeModule.orderAmount(gvc),
-                                    DataAnalyzeModule.orderAverage(gvc),
-                                    DataAnalyzeModule.viewPeople(gvc),
-                                    DataAnalyzeModule.registerPeople(gvc),
-                                    DataAnalyzeModule.transferRatio(gvc),
+                                    {
+                                        class: 'col-12 col-lg-4 col-md-6 mb-3',
+                                        event: DataAnalyzeModule.salesAmount(gvc),
+                                    },
+                                    {
+                                        class: 'col-12 col-lg-4 col-md-6 mb-3',
+                                        event: DataAnalyzeModule.orderAmount(gvc),
+                                    },
+                                    {
+                                        class: 'col-12 col-lg-4 col-md-6 mb-3',
+                                        event: DataAnalyzeModule.orderAverage(gvc),
+                                    },
+                                    {
+                                        class: 'col-12 col-lg-4 col-md-6 mb-3',
+                                        event: DataAnalyzeModule.viewPeople(gvc),
+                                    },
+                                    {
+                                        class: 'col-12 col-lg-4 col-md-6 mb-3',
+                                        event: DataAnalyzeModule.registerPeople(gvc),
+                                    },
+                                    {
+                                        class: 'col-12 col-lg-4 col-md-6 mb-3',
+                                        event: DataAnalyzeModule.transferRatio(gvc),
+                                    },
+                                    {
+                                        class: 'col-12 col-lg-6 mb-3',
+                                        event: DataAnalyzeModule.hotProducts(gvc),
+                                    },
+                                    {
+                                        class: 'col-12 col-lg-6 mb-3',
+                                        event: DataAnalyzeModule.hotCollection(gvc),
+                                    },
                                 ]
                                     .map((dd) => {
-                                        return `<div class="col-12 col-lg-4 col-md-6 mb-3">${dd}</div>`;
+                                        return html`<div class="${dd.class}">${dd.event}</div>`;
                                     })
                                     .join('')}
                             </div>

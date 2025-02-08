@@ -1105,8 +1105,7 @@ export class JKO {
 
         const secret = this.keyData.SECRET_KEY;
         const digest = this.generateDigest(JSON.stringify(payload) , secret);
-        console.log("payload -- " , JSON.stringify(payload));
-        console.log("digest -- " , digest)
+
         return
         const url = `${this.BASE_URL}platform/entry`;
         const config = {

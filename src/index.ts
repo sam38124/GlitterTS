@@ -219,7 +219,18 @@ export async function createAPP(dd: any) {
                                     product_id: req.query.product_id as any,
                                     page: req.query.page as any,
                                 });
-                            } else if (`${req.query.page}`.startsWith('blogs/')) {
+                            } else if (`${req.query.page}`.startsWith('blogs')) {
+                                //網誌目錄
+                                const seo=await new User(req.get('g-app') as string, req.body.token).getConfigV2({
+                                    key: 'article_seo_data_'+language,
+                                    user_id: 'manager',
+                                });
+                                data.page_config.seo.title = seo.title || data.page_config.seo.title;
+                                data.page_config.seo.content = seo.content || data.page_config.seo.content;
+                                data.page_config.seo.keywords = seo.keywords || data.page_config.seo.keywords;
+                                data.page_config.seo.image = seo.image || data.page_config.seo.image;
+                                data.page_config.seo.logo = seo.logo || data.page_config.seo.logo;
+                            }else if (`${req.query.page}`.startsWith('blogs/')) {
                                 //網誌搜索
                                 await SeoConfig.articleSeo({
                                     article: req.query.article as any,
@@ -579,7 +590,11 @@ export async function createAPP(dd: any) {
 
                                 return array;
                             })(),
-                        ]).pipe(stream)
+                        ].filter((dd)=>{
+                            return dd.url!==`https://${domain}/blogs`
+                        }).concat([
+                            { url: `https://${domain}/blogs`, changefreq: 'weekly' }
+                        ])).pipe(stream)
                     ).then((data: any) => data.toString());
 
                     return xml;

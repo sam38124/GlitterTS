@@ -728,7 +728,7 @@ export class PosFunction {
                                     catch (e) {
                                         TempOrder.removeTempOrders(dd.orderID);
                                         gvc.recreateView();
-                                        console.log(e);
+                                        console.error(e);
                                         return '';
                                     }
                                 })
@@ -737,7 +737,7 @@ export class PosFunction {
                             ].join('');
                         }
                         catch (e) {
-                            console.log(e);
+                            console.error(e);
                             return `${e}`;
                         }
                     },
@@ -829,7 +829,7 @@ export class PosFunction {
                             ].join('<div class="my-2"></div>');
                         }
                         catch (error) {
-                            console.log(1, error);
+                            console.error(error);
                             return '';
                         }
                     }

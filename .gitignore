@@ -1,11 +1,12 @@
-./node_modules/
-./backend_default/node_modules/
-./.idea/
-./.vscode/
-/node_modules/
-/lowcode/node_modules/
-/lambda/node_modules/
-/lowcode/tsconfig.tsbuildinfo
-/src/node_modules/
-node_modules
-tsconfig.tsbuildinfo
+# Node.js dependencies
+node_modules/
+backend_default/node_modules/
+lambda/node_modules/
+lowcode/node_modules/
+
+# Build output
+*.tsbuildinfo
+
+# IDE and editor settings
+.idea/
+.vscode/

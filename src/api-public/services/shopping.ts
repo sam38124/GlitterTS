@@ -1,27 +1,26 @@
 import { IToken } from '../models/Auth.js';
 import exception from '../../modules/exception.js';
 import db from '../../modules/database.js';
-import FinancialService, {JKO, LinePay, PayNow, PayPal} from './financial-service.js';
-import { Private_config } from '../../services/private_config.js';
-import redis from '../../modules/redis.js';
-import { User } from './user.js';
-import Tool from '../../modules/tool.js';
-import { Invoice } from './invoice.js';
 import e from 'express';
+import moment from 'moment';
+import axios from 'axios';
+import app from '../../app';
+import redis from '../../modules/redis.js';
+import Tool from '../../modules/tool.js';
+import FinancialService, { LinePay, PayNow, PayPal } from './financial-service.js';
+import { Private_config } from '../../services/private_config.js';
+import { User } from './user.js';
+import { Invoice } from './invoice.js';
 import { Rebate } from './rebate.js';
 import { CustomCode } from '../services/custom-code.js';
-import moment from 'moment';
 import { ManagerNotify } from './notify.js';
 import { AutoSendEmail } from './auto-send-email.js';
 import { Recommend } from './recommend.js';
-import { Workers } from './workers.js';
-import axios from 'axios';
 import { DeliveryData } from './delivery.js';
 import { saasConfig } from '../../config.js';
 import { SMS } from './sms.js';
 import { LineMessage } from './line-message';
 import { EcInvoice } from './EcInvoice';
-import app from '../../app';
 import { onlinePayArray, paymentInterface } from '../models/glitter-finance.js';
 import { App } from '../../services/app.js';
 import { Stock } from './stock';
@@ -178,62 +177,16 @@ type Cart = {
 };
 
 export class Shopping {
-    public app: string;
+    app: string;
 
-    public token?: IToken;
+    token?: IToken;
 
     constructor(app: string, token?: IToken) {
         this.app = app;
         this.token = token;
     }
 
-    public async workerExample(data: { type: 0 | 1; divisor: number }) {
-        try {
-            // 以 t_voucher_history 更新資料舉例
-            const jsonData = await db.query(
-                `SELECT *
-                 FROM \`${this.app}\`.t_voucher_history`,
-                []
-            );
-            const t0 = performance.now();
-
-            // 單線程插入資料
-            if (data.type === 0) {
-                for (const record of jsonData) {
-                    await db.query(
-                        `UPDATE \`${this.app}\`.\`t_voucher_history\`
-                         SET ?
-                         WHERE id = ?`,
-                        [record, record.id]
-                    );
-                }
-                return {
-                    type: 'single',
-                    divisor: 1,
-                    executionTime: `${(performance.now() - t0).toFixed(3)} ms`,
-                };
-            }
-
-            // 多線程插入資料
-            const formatJsonData = jsonData.map((record: any) => {
-                return {
-                    sql: `UPDATE \`${this.app}\`.\`t_voucher_history\`
-                          SET ?
-                          WHERE id = ?`,
-                    data: [record, record.id],
-                };
-            });
-            const result = Workers.query({
-                queryList: formatJsonData,
-                divisor: data.divisor,
-            });
-            return result;
-        } catch (error) {
-            throw exception.BadRequestError('INTERNAL_SERVER_ERROR', 'Worker example is Failed. ' + error, null);
-        }
-    }
-
-    public async getProduct(query: {
+    async getProduct(query: {
         page: number;
         limit: number;
         sku?: string;
@@ -257,16 +210,39 @@ export class Shopping {
         filter_visible?: string;
         language?: string;
         currency_code?: string;
+        view_source?: string;
+        distribution_code?: string;
     }) {
         try {
-            let store_info = await new User(this.app).getConfigV2({
+            const userClass = new User(this.app);
+            const userID = this.token ? `${this.token.userID}` : '';
+            const store_info = await userClass.getConfigV2({
                 key: 'store-information',
                 user_id: 'manager',
             });
-            const store_config = await new User(this.app).getConfigV2({ key: 'store_manager', user_id: 'manager' });
+            const store_config = await userClass.getConfigV2({
+                key: 'store_manager',
+                user_id: 'manager',
+            });
+            const querySql = [`(content->>'$.type'='product')`];
             query.language = query.language ?? store_info.language_setting.def;
             query.show_hidden = query.show_hidden ?? 'true';
-            let querySql = [`(content->>'$.type'='product')`];
+
+            const orderMapping: Record<string, string> = {
+                title: `ORDER BY JSON_EXTRACT(content, '$.title')`,
+                max_price: `ORDER BY CAST(JSON_UNQUOTE(JSON_EXTRACT(content, '$.max_price')) AS SIGNED) DESC`,
+                min_price: `ORDER BY CAST(JSON_UNQUOTE(JSON_EXTRACT(content, '$.min_price')) AS SIGNED) ASC`,
+                created_time_desc: `ORDER BY created_time DESC`,
+                created_time_asc: `ORDER BY created_time ASC`,
+                updated_time_desc: `ORDER BY updated_time DESC`,
+                updated_time_asc: `ORDER BY updated_time ASC`,
+                sales_desc: `ORDER BY content->>'$.total_sales' DESC`,
+                default: `ORDER BY id DESC`,
+                stock_desc: '',
+                stock_asc: '',
+            };
+            query.order_by = orderMapping[query.order_by as keyof typeof orderMapping] || orderMapping.default;
+
             if (query.search) {
                 switch (query.searchType) {
                     case 'sku':
@@ -299,30 +275,31 @@ export class Shopping {
             }
 
             if (query.domain) {
-                let sql_join_search = [];
-                // querySql.push();
-                sql_join_search.push(`content->>'$.seo.domain'='${decodeURIComponent(query.domain)}'`);
+                const decodedDomain = decodeURIComponent(query.domain);
+                const sqlJoinSearch = [
+                    `content->>'$.seo.domain' = '${decodedDomain}'`,
+                    `content->>'$.title' = '${decodedDomain}'`,
+                    `content->>'$.language_data."${query.language}".seo.domain' = '${decodedDomain}'`,
+                ];
 
-                sql_join_search.push(`content->>'$.title'='${decodeURIComponent(query.domain)}'`);
-                sql_join_search.push(`content->>'$.language_data."${query.language}".seo.domain'='${decodeURIComponent(query.domain)}'`);
-                querySql.push(
-                    `(${sql_join_search
-                        .map((dd) => {
-                            return `(${dd})`;
-                        })
-                        .join(' or ')})`
-                );
-            }
-
-            if (`${query.id || ''}`) {
-                if (`${query.id}`.includes(',')) {
-                    querySql.push(`id in (${query.id})`);
-                } else {
-                    querySql.push(`id = ${query.id}`);
+                if (sqlJoinSearch.length) {
+                    querySql.push(`(${sqlJoinSearch.map((condition) => `(${condition})`).join(' OR ')})`);
                 }
             }
 
-            //當非管理員時，檢查是否顯示隱形商品
+            if (query.id) {
+                const ids = `${query.id}`
+                    .split(',')
+                    .map((id) => id.trim())
+                    .filter((id) => id);
+                if (ids.length > 1) {
+                    querySql.push(`id IN (${ids.map((id) => `'${id}'`).join(',')})`);
+                } else {
+                    querySql.push(`id = '${ids[0]}'`);
+                }
+            }
+
+            // 當非管理員時，檢查是否顯示隱形商品
             if (query.filter_visible) {
                 if (query.filter_visible === 'true') {
                     querySql.push(`(content->>'$.visible' is null || content->>'$.visible' = 'true')`);
@@ -333,7 +310,7 @@ export class Shopping {
                 querySql.push(`(content->>'$.visible' is null || content->>'$.visible' = 'true')`);
             }
 
-            //判斷有帶入商品類型時，顯示商品類型，反之預設折是一班商品
+            // 判斷有帶入商品類型時，顯示商品類型，反之預設折是一班商品
             if (query.productType) {
                 query.productType.split(',').map((dd) => {
                     if (dd === 'hidden') {
@@ -345,7 +322,8 @@ export class Shopping {
             } else if (!query.id) {
                 querySql.push(`(content->>'$.productType.product' = "true")`);
             }
-            //如是連結帶入則轉換成Title
+
+            // 如是連結帶入則轉換成Title
             if (query.collection) {
                 const collection_cf = (
                     await db.query(
@@ -383,8 +361,6 @@ export class Shopping {
                         return dd;
                     })
                     .join(',');
-            }
-            query.collection &&
                 querySql.push(
                     `(${query.collection
                         .split(',')
@@ -393,13 +369,20 @@ export class Shopping {
                         })
                         .join(' or ')})`
                 );
-            query.sku && querySql.push(`(id in ( select product_id from \`${this.app}\`.t_variants where content->>'$.sku'=${db.escape(query.sku)}))`);
-            if (!query.id && query.status === 'active' && query.with_hide_index !== 'true') {
-                querySql.push(`((content->>'$.hideIndex' is NULL) || (content->>'$.hideIndex'='false'))`);
             }
+
+            if (query.sku) {
+                querySql.push(`(id in ( select product_id from \`${this.app}\`.t_variants where content->>'$.sku'=${db.escape(query.sku)}))`);
+            }
+
+            if (!query.id && query.status === 'active' && query.with_hide_index !== 'true') {
+                querySql.push(`(content->>'$.hideIndex' IS NULL OR content->>'$.hideIndex' = 'false')`);
+            }
+
             if (query.id_list) {
                 query.order_by = ` order by id in (${query.id_list})`;
             }
+
             if (query.status) {
                 const statusSplit = query.status.split(',').map((status) => status.trim());
                 const statusJoin = statusSplit.map((status) => `"${status}"`).join(',');
@@ -407,43 +390,41 @@ export class Shopping {
                 // 基本條件
                 const statusCondition = `JSON_EXTRACT(content, '$.status') IN (${statusJoin})`;
 
-                //2024-12-11
                 // 時間條件
+                const currentDate = db.escape(new Date().toISOString());
+
                 const scheduleConditions = statusSplit
                     .map((status) => {
                         switch (status) {
                             case 'inRange':
                                 return `
                                 OR (
-                                    JSON_EXTRACT(content, '$.status') in ('active',1)
+                                    JSON_EXTRACT(content, '$.status') IN ('active', 1)
                                     AND (
                                         content->>'$.active_schedule' IS NULL OR (
                                             (
-                                            CONCAT(content->>'$.active_schedule.start_ISO_Date') IS NULL OR
-                                            CONCAT(content->>'$.active_schedule.start_ISO_Date') <= ${db.escape(new Date().toISOString())}
+                                                CONCAT(content->>'$.active_schedule.start_ISO_Date') IS NULL OR
+                                                CONCAT(content->>'$.active_schedule.start_ISO_Date') <= ${currentDate}
                                             )
                                             AND (
-                                                CONCAT(content->>'$.active_schedule.end_ISO_Date') IS NULL
-                                                OR CONCAT(content->>'$.active_schedule.end_ISO_Date') >= ${db.escape(new Date().toISOString())}
+                                                CONCAT(content->>'$.active_schedule.end_ISO_Date') IS NULL OR
+                                                CONCAT(content->>'$.active_schedule.end_ISO_Date') >= ${currentDate}
                                             )
                                         )
                                     )
-                                )
-                            `;
+                                )`;
                             case 'beforeStart':
                                 return `
                                 OR (
-                                    JSON_EXTRACT(content, '$.status') in ('active',1)
-                                    AND CONCAT(content->>'$.active_schedule.start_ISO_Date') >${db.escape(new Date().toISOString())}
-                                )
-                            `;
+                                    JSON_EXTRACT(content, '$.status') IN ('active', 1)
+                                    AND CONCAT(content->>'$.active_schedule.start_ISO_Date') > ${currentDate}
+                                )`;
                             case 'afterEnd':
                                 return `
                                 OR (
-                                    JSON_EXTRACT(content, '$.status') in ('active',1)
-                                    AND CONCAT(content->>'$.active_schedule.end_ISO_Date') < ${db.escape(new Date().toISOString())}
-                                )
-                            `;
+                                    JSON_EXTRACT(content, '$.status') IN ('active', 1)
+                                    AND CONCAT(content->>'$.active_schedule.end_ISO_Date') < ${currentDate}
+                                )`;
                             default:
                                 return '';
                         }
@@ -453,6 +434,7 @@ export class Shopping {
                 // 組合 SQL 條件
                 querySql.push(`(${statusCondition} ${scheduleConditions})`);
             }
+
             if (query.channel) {
                 const channelSplit = query.channel.split(',').map((channel) => channel.trim());
                 const channelJoin = channelSplit.map((channel) => {
@@ -461,17 +443,26 @@ export class Shopping {
                 querySql.push(`(content->>'$.channel' IS NULL ${channelJoin})`);
             }
 
-            query.id_list && querySql.push(`(id in (${query.id_list}))`);
-            query.min_price && querySql.push(`(id in (select product_id from \`${this.app}\`.t_variants where content->>'$.sale_price'>=${query.min_price})) `);
-            query.max_price && querySql.push(`(id in (select product_id from \`${this.app}\`.t_variants where content->>'$.sale_price'<=${query.max_price})) `);
+            if (query.id_list) {
+                querySql.push(`(id in (${query.id_list}))`);
+            }
 
+            if (query.min_price) {
+                querySql.push(`(id in (select product_id from \`${this.app}\`.t_variants where content->>'$.sale_price' >= ${query.min_price}))`);
+            }
+
+            if (query.max_price) {
+                querySql.push(`(id in (select product_id from \`${this.app}\`.t_variants where content->>'$.sale_price' <= ${query.max_price}))`);
+            }
+
+            // 取得產品查詢結果
             const products = await this.querySql(querySql, query);
 
             // 產品清單
             const productList = (Array.isArray(products.data) ? products.data : [products.data]).filter((product) => product);
 
             // 許願清單判斷
-            if (this.token && this.token.userID) {
+            if (userID !== '') {
                 for (const b of productList) {
                     b.content.in_wish_list =
                         (
@@ -479,7 +470,7 @@ export class Shopping {
                                 `SELECT count(1)
                                  FROM \`${this.app}\`.t_post
                                  WHERE (content ->>'$.type'='wishlist')
-                                   and userID = ${this.token.userID}
+                                   and userID = ${userID}
                                    and (content ->>'$.product_id'=${b.id})`,
                                 []
                             )
@@ -487,18 +478,17 @@ export class Shopping {
                     b.content.id = b.id;
                 }
             }
+
             if (query.id_list) {
-                let tempData: any = [];
-                query.id_list.split(',').map((id) => {
-                    const find = products.data.find((product: { id: number }) => {
-                        return `${product.id}` === `${id}`;
-                    });
-                    if (find) {
-                        tempData.push(find);
-                    }
-                });
-                products.data = tempData;
+                const idSet = new Set(
+                    query.id_list
+                        .split(',')
+                        .map((id) => id.trim())
+                        .filter(Boolean)
+                );
+                products.data = products.data.filter((product: { id: number }) => idSet.has(`${product.id}`));
             }
+
             if (query.id_list && query.order_by === 'order by id desc') {
                 products.data = query.id_list
                     .split(',')
@@ -512,63 +502,108 @@ export class Shopping {
                     });
             }
 
-            //判斷需要多國語言
-            for (const dd of Array.isArray(products.data) ? products.data : [products.data]) {
-                let total_sale = 0;
-                if (query.language && dd.content.language_data && dd.content.language_data[`${query.language}`]) {
-                    dd.content.seo = dd.content.language_data[`${query.language}`].seo;
-                    dd.content.title = dd.content.language_data[`${query.language}`].title || dd.content.title;
-                    dd.content.content = dd.content.language_data[`${query.language}`].content || dd.content.content;
-                    dd.content.content_array = dd.content.language_data[`${query.language}`].content_array || dd.content.content_array;
-                    dd.content.content_json = dd.content.language_data[`${query.language}`].content_json || dd.content.content_json;
-                    dd.content.preview_image = dd.content.language_data[`${query.language}`].preview_image || dd.content.preview_image;
-                    (dd.content.variants || []).map((variant: any) => {
+            // 判斷需要多國語言
+            for (const product of Array.isArray(products.data) ? products.data : [products.data]) {
+                if (!product) continue; // 避免空值
+
+                let totalSale = 0;
+                const { language } = query;
+                const { content } = product;
+
+                if (language && content?.language_data?.[language]) {
+                    const langData = content.language_data[language];
+
+                    Object.assign(content, {
+                        seo: langData.seo,
+                        title: langData.title || content.title,
+                        content: langData.content || content.content,
+                        content_array: langData.content_array || content.content_array,
+                        content_json: langData.content_json || content.content_json,
+                        preview_image: langData.preview_image || content.preview_image,
+                    });
+
+                    (content.variants || []).forEach((variant: any) => {
                         variant.stock = 0;
                         variant.sold_out = variant.sold_out || 0;
-                        variant.preview_image = variant[`preview_image_${query.language}`] || variant.preview_image;
+                        variant.preview_image = variant[`preview_image_${language}`] || variant.preview_image;
+
                         if (variant.preview_image === 'https://d3jnmi1tfjgtti.cloudfront.net/file/234285319/1722936949034-default_image.jpg') {
-                            variant.preview_image = dd.content.preview_image[0];
+                            variant.preview_image = content.preview_image?.[0];
                         }
-                        Object.keys(variant.stockList).map((dd) => {
-                            if (
-                                !store_config.list.find((d1: any) => {
-                                    return d1.id === dd;
-                                })
-                            ) {
-                                delete variant.stockList[dd];
-                            } else if (!variant.stockList[dd] || !variant.stockList[dd].count) {
-                                delete variant.stockList[dd];
+
+                        // 過濾並計算庫存
+                        Object.entries(variant.stockList || {}).forEach(([storeId, stockData]: [string, any]) => {
+                            if (!store_config.list.some((store: any) => store.id === storeId) || !stockData?.count) {
+                                delete variant.stockList[storeId];
                             } else {
-                                //避免存字串導致的異常
-                                variant.stockList[dd].count = parseInt(variant.stockList[dd].count, 10);
-                                variant.stock += variant.stockList[dd].count;
+                                variant.stockList[storeId].count = parseInt(stockData.count, 10);
+                                variant.stock += variant.stockList[storeId].count;
                             }
                         });
-                        store_config.list.map((d1: any) => {
-                            if (!variant.stockList[d1.id]) {
-                                variant.stockList[d1.id] = { count: 0 };
-                            }
+
+                        // 確保所有商店 ID 都存在
+                        store_config.list.forEach((store: any) => {
+                            variant.stockList[store.id] = variant.stockList[store.id] || { count: 0 };
                         });
-                        total_sale += variant.sold_out;
+
+                        totalSale += variant.sold_out;
                     });
                 }
-                dd.total_sales = total_sale;
+
+                product.total_sales = totalSale;
             }
 
-            if (query.domain && products.data[0]) {
-                products.data =
-                    products.data.find((dd: any) => {
-                        return (
-                            (dd.content.language_data &&
-                                dd.content.language_data[`${query.language}`].seo &&
-                                dd.content.language_data[`${query.language}`].seo.domain === decodeURIComponent(query.domain!!)) ||
-                            (dd.content.seo && dd.content.seo.domain === decodeURIComponent(query.domain!!))
-                        );
-                    }) || products.data[0];
+            if (query.domain && products.data.length > 0) {
+                const decodedDomain = decodeURIComponent(query.domain);
+
+                const foundProduct = products.data.find((dd: any) => {
+                    if (!query.language) {
+                        return false;
+                    }
+                    const languageData = dd.content.language_data?.[query.language]?.seo;
+                    const seoData = dd.content.seo;
+
+                    return (languageData && languageData.domain === decodedDomain) || (seoData && seoData.domain === decodedDomain);
+                });
+
+                products.data = foundProduct || products.data[0];
             }
-            if (query.domain || query.id) {
+
+            if ((query.domain || query.id) && products.data !== undefined) {
                 products.data.json_ld = await SeoConfig.getProductJsonLd(this.app, products.data.content);
             }
+
+            // 產品可使用的優惠券
+            const viewSource = query.view_source ?? 'normal';
+            const distributionCode = query.distribution_code ?? '';
+
+            // 取得所有優惠券與適配的分銷連結
+            const userData = (await userClass.getUserData(userID, 'userID')) ?? { userID: -1 };
+            const allVoucher = await this.getAllUseVoucher(userData.userID);
+            const recommendData = await this.getDistributionRecommend(distributionCode);
+
+            if (products.total && products.data) {
+                const processProduct = async (product: any) => {
+                    product.content.about_vouchers = await this.aboutProductVoucher({
+                        product,
+                        userID,
+                        viewSource,
+                        allVoucher,
+                        recommendData,
+                        userData,
+                    });
+                    if (products.total === 1) {
+                        product.content.comments = await this.getProductComment(product.id);
+                    }
+                };
+
+                if (products.total === 1 && !Array.isArray(products.data)) {
+                    await processProduct(products.data);
+                } else {
+                    await Promise.all(products.data.map(processProduct));
+                }
+            }
+
             return products;
         } catch (e) {
             console.error(e);
@@ -576,7 +611,112 @@ export class Shopping {
         }
     }
 
-    public async querySql(querySql: string[], query: { page: number; limit: number; id?: string; order_by?: string }) {
+    async getAllUseVoucher(userID: any): Promise<VoucherData[]> {
+        const now = Date.now();
+
+        // 查詢所有優惠券，過濾有效期限
+        const allVoucher = (
+            await this.querySql([`(content->>'$.type'='voucher')`], {
+                page: 0,
+                limit: 10000,
+            })
+        ).data
+            .map((dd: { content: VoucherData }) => dd.content)
+            .filter((voucher: VoucherData) => {
+                const startDate = new Date(voucher.start_ISO_Date).getTime();
+                const endDate = voucher.end_ISO_Date ? new Date(voucher.end_ISO_Date).getTime() : Infinity;
+                return startDate < now && now < endDate;
+            });
+
+        // 處理需 async and await 的驗證
+        const validVouchers = await Promise.all(
+            allVoucher.map(async (voucher: VoucherData) => {
+                const isLimited = await this.checkVoucherLimited(userID, voucher.id);
+                return isLimited && voucher.status === 1 ? voucher : null;
+            })
+        );
+
+        // 過濾出有效的優惠券
+        return validVouchers.filter(Boolean);
+    }
+
+    async getDistributionRecommend(distribution_code: string) {
+        // 分銷連結
+        const recommends = await db.query(`SELECT * FROM \`${this.app}\`.t_recommend_links`, []);
+        const recommendData = recommends
+            .map((dd: { content: any }) => dd.content) // 解構獲取 content
+            .filter((dd: any) => {
+                const isCode = dd.code === distribution_code;
+                const startDate = new Date(dd.start_ISO_Date || `${dd.startDate} ${dd.startTime}`);
+                const endDate = dd.end_ISO_Date ? new Date(dd.end_ISO_Date) : dd.endDate ? new Date(`${dd.endDate} ${dd.endTime}`) : null;
+                const isActive = startDate.getTime() < Date.now() && (!endDate || endDate.getTime() > Date.now());
+                return isCode && isActive;
+            });
+        return recommendData;
+    }
+
+    async aboutProductVoucher(json: { allVoucher: VoucherData[]; userData: any; recommendData: any; product: any; userID: string; viewSource: string }) {
+        const id = `${json.product.id}`;
+        const collection = json.product.content.collection || [];
+        const userData = json.userData;
+        const recommendData = json.recommendData;
+
+        function checkValidProduct(caseName: string, caseList: any[]): boolean {
+            switch (caseName) {
+                case 'collection':
+                    return caseList.some((d1) => collection.includes(d1));
+                case 'product':
+                    return caseList.some((item) => `${item}` === `${id}`); // 確保 id 是字串
+                case 'all':
+                    return true;
+                default:
+                    return false; // 考慮到未處理的 caseName
+            }
+        }
+
+        // 過濾可使用優惠券
+        const voucherList = json.allVoucher
+            .filter((dd) => {
+                // 訂單來源判斷
+                if (!dd.device) {
+                    return true;
+                }
+                if (dd.device.length === 0) {
+                    return false;
+                }
+                if (json.viewSource === 'pos') {
+                    return dd.device.includes('pos');
+                }
+                return dd.device.includes('normal');
+            })
+            .filter((dd) => {
+                // 判斷用戶是否為指定客群
+                if (dd.target === 'customer') {
+                    return userData && userData.id && dd.targetList.includes(userData.userID);
+                }
+                if (dd.target === 'levels') {
+                    if (userData && userData.member) {
+                        const find = userData.member.find((dd: any) => dd.trigger);
+                        return find && dd.targetList.includes(find.id);
+                    }
+                    return false;
+                }
+                return true; // 所有顧客皆可使用
+            })
+            .filter((dd) => {
+                if (dd.trigger !== 'distribution') {
+                    return checkValidProduct(dd.for, dd.forKey);
+                }
+                if (recommendData.length === 0) {
+                    return false;
+                }
+                return checkValidProduct(recommendData[0].relative, recommendData[0].relative_data);
+            });
+
+        return voucherList;
+    }
+
+    async querySql(querySql: string[], query: { page: number; limit: number; id?: string; order_by?: string }) {
         let sql = `SELECT *
                    FROM \`${this.app}\`.t_manager_post
                    WHERE ${querySql.join(' and ')} ${query.order_by || `order by id desc`}
@@ -617,7 +757,7 @@ export class Shopping {
         }
     }
 
-    public async querySqlBySEO(
+    async querySqlBySEO(
         querySql: string[],
         query: {
             page: number;
@@ -661,7 +801,7 @@ export class Shopping {
         }
     }
 
-    public async querySqlByVariants(
+    async querySqlByVariants(
         querySql: string[],
         query: {
             page: number;
@@ -712,7 +852,7 @@ export class Shopping {
         }
     }
 
-    public async deleteProduct(query: { id: string }) {
+    async deleteProduct(query: { id: string }) {
         try {
             await db.query(
                 `DELETE
@@ -728,7 +868,7 @@ export class Shopping {
         }
     }
 
-    public async deleteVoucher(query: { id: string }) {
+    async deleteVoucher(query: { id: string }) {
         try {
             await db.query(
                 `DELETE
@@ -744,11 +884,7 @@ export class Shopping {
         }
     }
 
-    private generateOrderID() {
-        return `${new Date().getTime()}`;
-    }
-
-    public async linePay(data: any) {
+    async linePay(data: any) {
         return new Promise(async (resolve, reject) => {
             const keyData: any = (
                 await Private_config.getConfig({
@@ -848,7 +984,7 @@ export class Shopping {
             });
     }
 
-    public async getPostAddressData(address: string) {
+    async getPostAddressData(address: string) {
         try {
             const url = `http://zip5.5432.tw/zip5json.py?adrs=${encodeURIComponent(address)}`;
             const response = await axios.get(url);
@@ -865,7 +1001,7 @@ export class Shopping {
         }
     }
 
-    public async toCheckout(
+    async toCheckout(
         data: {
             line_items: {
                 deduction_log?: { [p: string]: number };
@@ -1032,7 +1168,7 @@ export class Shopping {
                 }
             ) => {
                 // 檢查預覽模式下的條件
-                if (type === 'preview' && !(token?.userID || data.user_info.email)) {
+                if (type === 'preview' && !(token?.userID || (data.user_info && data.user_info.email))) {
                     return {};
                 }
 
@@ -1183,7 +1319,7 @@ export class Shopping {
                 rebate: 0,
                 goodsWeight: 0,
                 use_rebate: data.use_rebate || 0,
-                orderID: data.order_id || this.generateOrderID(),
+                orderID: data.order_id || `${new Date().getTime()}`,
                 shipment_support: shipment_setting.support as any,
                 shipment_info: shipment_setting.info as any,
                 shipment_selector: [
@@ -1842,16 +1978,15 @@ export class Shopping {
                     return_url: `${process.env.DOMAIN}/api-public/v1/ec/redirect?g-app=${this.app}&return=${id}`,
                 };
             } else {
-
                 const keyData = (
                     await Private_config.getConfig({
                         appName: this.app,
                         key: 'glitter_finance',
                     })
                 )[0].value;
-                let kd = keyData[carData.customer_info.payment_select] ??{
-                    ReturnURL : "",
-                    NotifyURL : ""
+                let kd = keyData[carData.customer_info.payment_select] ?? {
+                    ReturnURL: '',
+                    NotifyURL: '',
                 };
                 // 線下付款
                 switch (carData.customer_info.payment_select) {
@@ -1892,8 +2027,8 @@ export class Shopping {
                             })
                         );
                         return await new LinePay(this.app, kd).createOrder(carData);
-                    case 'paynow':{
-                        kd.ReturnURL = `${process.env.DOMAIN}/api-public/v1/ec/redirect?g-app=${this.app}&paynow=true`;
+                    case 'paynow': {
+                        kd.ReturnURL = `${process.env.DOMAIN}/api-public/v1/ec/redirect?g-app=${this.app}&return=${id}&paynow=true`;
                         kd.NotifyURL = `${process.env.DOMAIN}/api-public/v1/ec/notify?g-app=${this.app}&paynow=true`;
                         await Promise.all(
                             saveStockArray.map((dd) => {
@@ -1957,7 +2092,7 @@ export class Shopping {
         }
     }
 
-    public async getReturnOrder(query: {
+    async getReturnOrder(query: {
         page: number;
         limit: number;
         id?: string;
@@ -2066,9 +2201,9 @@ export class Shopping {
         }
     }
 
-    public async createReturnOrder(data: any) {
+    async createReturnOrder(data: any) {
         try {
-            let returnOrderID = this.generateOrderID();
+            let returnOrderID = `${new Date().getTime()}`;
             let orderID: string = data.cart_token;
             let email: string = data.email;
             return await db.execute(
@@ -2081,7 +2216,7 @@ export class Shopping {
         }
     }
 
-    public async putReturnOrder(data: { id: string; orderData: any; status: any }) {
+    async putReturnOrder(data: { id: string; orderData: any; status: any }) {
         try {
             const getData = await db.execute(
                 `SELECT *
@@ -2122,7 +2257,7 @@ export class Shopping {
         }
     }
 
-    public async formatUseRebate(
+    async formatUseRebate(
         total: number,
         useRebate: number
     ): Promise<{
@@ -2174,8 +2309,7 @@ export class Shopping {
         }
     }
 
-    public async checkVoucher(cart: Cart) {
-        const userClass = new User(this.app);
+    async checkVoucher(cart: Cart) {
         cart.discount = 0;
         cart.lineItems.map((dd) => {
             dd.discount_price = 0;
@@ -2211,37 +2345,16 @@ export class Shopping {
         }
 
         // 確認用戶資訊
+        const userClass = new User(this.app);
         const userData = (await userClass.getUserData(cart.email, 'email_or_phone')) ?? { userID: -1 };
-        // 所有優惠券
-        const allVoucher: VoucherData[] = (
-            await this.querySql([`(content->>'$.type'='voucher')`], {
-                page: 0,
-                limit: 10000,
-            })
-        ).data
-            .map((dd: { content: VoucherData }) => {
-                return dd.content;
-            })
-            .filter((dd: VoucherData) => {
-                // 判斷有效期限
-                return new Date(dd.start_ISO_Date).getTime() < new Date().getTime() && (!dd.end_ISO_Date || new Date(dd.end_ISO_Date).getTime() > new Date().getTime());
-            });
-        // 需 async and await 的驗證
-        const pass_ids: number[] = [];
-        for (const voucher of allVoucher) {
-            const checkLimited = await this.checkVoucherLimited(userData.userID, voucher.id);
-            if (!checkLimited) {
-                continue;
-            }
-            pass_ids.push(voucher.id);
-        }
-        // 過濾可使用優惠券
+
+        // 取得所有可使用優惠券
+        const allVoucher = await this.getAllUseVoucher(userData.userID);
+
+        // 過濾可使用優惠券狀態
         let overlay = false;
+
         const voucherList = allVoucher
-            .filter((dd) => {
-                // 是否啟用與通過 await 的判斷
-                return pass_ids.includes(dd.id) && dd.status === 1;
-            })
             .filter((dd) => {
                 // 訂單來源判斷
                 if (!dd.device) {
@@ -2251,12 +2364,10 @@ export class Shopping {
                     return false;
                 }
                 switch (cart.orderSource) {
-                    case '':
-                    case 'manual':
-                    case 'normal':
-                        return dd.device.includes('normal');
                     case 'POS':
                         return dd.device.includes('pos');
+                    default:
+                        return dd.device.includes('normal');
                 }
             })
             .filter((dd) => {
@@ -2266,13 +2377,10 @@ export class Shopping {
                 }
                 if (dd.target === 'levels') {
                     if (userData && userData.member) {
-                        const find = userData.member.find((dd: any) => {
-                            return dd.trigger;
-                        });
+                        const find = userData.member.find((dd: any) => dd.trigger);
                         return find && dd.targetList.includes(find.id);
-                    } else {
-                        return false;
                     }
+                    return false;
                 }
                 return true; // 所有顧客皆可使用
             })
@@ -2501,7 +2609,7 @@ export class Shopping {
         return cart;
     }
 
-    public async putOrder(data: { id: string; orderData: any; status: any }) {
+    async putOrder(data: { id: string; orderData: any; status: any }) {
         try {
             const update: any = {};
             if (data.status !== undefined) {
@@ -2613,7 +2721,7 @@ export class Shopping {
         }
     }
 
-    public async cancelOrder(order_id: string) {
+    async cancelOrder(order_id: string) {
         try {
             const orderList = await db.query(
                 `SELECT *
@@ -2657,7 +2765,7 @@ export class Shopping {
         }
     }
 
-    public async deleteOrder(req: { id: string }) {
+    async deleteOrder(req: { id: string }) {
         try {
             await db.query(
                 `DELETE
@@ -2673,7 +2781,7 @@ export class Shopping {
         }
     }
 
-    public async proofPurchase(order_id: string, text: string) {
+    async proofPurchase(order_id: string, text: string) {
         try {
             const orderData = (
                 await db.query(
@@ -2713,7 +2821,7 @@ export class Shopping {
         }
     }
 
-    public async getCheckOut(query: {
+    async getCheckOut(query: {
         filter_type?: string;
         page: number;
         limit: number;
@@ -2916,7 +3024,7 @@ OR JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.orderStatus')) NOT IN (-99)) `);
         }
     }
 
-    public async releaseCheckout(status: 1 | 0 | -1, order_id: string) {
+    async releaseCheckout(status: 1 | 0 | -1, order_id: string) {
         try {
             //訂單資料
             const order_data = (
@@ -3060,7 +3168,7 @@ OR JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.orderStatus')) NOT IN (-99)) `);
         }
     }
 
-    public async checkVoucherLimited(user_id: number, voucher_id: number): Promise<boolean> {
+    async checkVoucherLimited(user_id: number, voucher_id: number): Promise<boolean> {
         try {
             const vouchers = await db.query(
                 `SELECT id,
@@ -3100,7 +3208,7 @@ OR JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.orderStatus')) NOT IN (-99)) `);
         }
     }
 
-    public async insertVoucherHistory(user_id: number, order_id: string, voucher_id: number) {
+    async insertVoucherHistory(user_id: number, order_id: string, voucher_id: number) {
         try {
             await db.query(
                 `INSERT INTO \`${this.app}\`.\`t_voucher_history\`
@@ -3121,7 +3229,7 @@ OR JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.orderStatus')) NOT IN (-99)) `);
         }
     }
 
-    public async releaseVoucherHistory(order_id: string, status: 1 | 0) {
+    async releaseVoucherHistory(order_id: string, status: 1 | 0) {
         try {
             await db.query(
                 `UPDATE \`${this.app}\`.t_voucher_history
@@ -3134,7 +3242,7 @@ OR JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.orderStatus')) NOT IN (-99)) `);
         }
     }
 
-    public async resetVoucherHistory() {
+    async resetVoucherHistory() {
         try {
             const resetMins = 10;
             const now = moment().tz('Asia/Taipei').format('YYYY-MM-DD HH:mm:ss');
@@ -3151,7 +3259,7 @@ OR JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.orderStatus')) NOT IN (-99)) `);
         }
     }
 
-    public async postVariantsAndPriceValue(content: any) {
+    async postVariantsAndPriceValue(content: any) {
         try {
             content.variants = content.variants ?? [];
             content.min_price = undefined;
@@ -3222,7 +3330,7 @@ OR JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.orderStatus')) NOT IN (-99)) `);
         }
     }
 
-    public async updateVariantsWithSpec(data: any, product_id: string, spec: string[]) {
+    async updateVariantsWithSpec(data: any, product_id: string, spec: string[]) {
         const sql =
             spec.length > 0
                 ? `AND JSON_CONTAINS(content->'$.spec', JSON_ARRAY(${spec
@@ -3251,7 +3359,7 @@ OR JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.orderStatus')) NOT IN (-99)) `);
     }
 
     //更新庫存數量
-    public async calcVariantsStock(calc: number, stock_id: string, product_id: string, spec: string[]) {
+    async calcVariantsStock(calc: number, stock_id: string, product_id: string, spec: string[]) {
         try {
             const pd_data = (
                 await db.query(
@@ -3283,7 +3391,7 @@ OR JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.orderStatus')) NOT IN (-99)) `);
     }
 
     //更新販售數量
-    public async calcSoldOutStock(calc: number, product_id: string, spec: string[]) {
+    async calcSoldOutStock(calc: number, product_id: string, spec: string[]) {
         try {
             const pd_data = (
                 await db.query(
@@ -3308,7 +3416,7 @@ OR JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.orderStatus')) NOT IN (-99)) `);
     }
 
     //商品完成購買寄送信件
-    public async soldMailNotice(json: { brand_domain: string; shop_name: string; product_id: string; order_data: any }) {
+    async soldMailNotice(json: { brand_domain: string; shop_name: string; product_id: string; order_data: any }) {
         try {
             const order_data = json.order_data;
             const order_id = order_data.orderID;
@@ -3338,161 +3446,6 @@ OR JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.orderStatus')) NOT IN (-99)) `);
         }
     }
 
-    async getDataAnalyze(tags: string[], query?: any) {
-        try {
-            console.log('AnalyzeTimer Start');
-            const timer: any = {};
-            query = query || '{}';
-
-            if (tags.length > 0) {
-                const result = {} as any;
-                let pass = 0;
-                await new Promise(async (resolve, reject) => {
-                    for (const tag of tags) {
-                        console.log(`tag ===> ${tag}`);
-                        new Promise(async (resolve, reject) => {
-                            const start = new Date();
-                            try {
-                                switch (tag) {
-                                    case 'recent_active_user':
-                                        result[tag] = await this.getRecentActiveUser();
-                                        break;
-                                    case 'recent_sales':
-                                        result[tag] = await this.getSalesInRecentMonth();
-                                        break;
-                                    case 'recent_orders':
-                                        result[tag] = await this.getOrdersInRecentMonth();
-                                        break;
-                                    case 'hot_products':
-                                        result[tag] = await this.getHotProducts('month');
-                                        break;
-                                    case 'hot_products_all':
-                                        result[tag] = await this.getHotProducts('all', query);
-                                        break;
-                                    case 'hot_products_today':
-                                        result[tag] = await this.getHotProducts('day');
-                                        break;
-                                    // 訂單平均
-                                    case 'order_avg_sale_price':
-                                        result[tag] = await this.getOrderAvgSalePrice(query);
-                                        break;
-                                    case 'order_avg_sale_price_month':
-                                        result[tag] = await this.getOrderAvgSalePriceMonth(query);
-                                        break;
-                                    case 'order_avg_sale_price_year':
-                                        result[tag] = await this.getOrderAvgSalePriceYear(query);
-                                        break;
-                                    case 'order_avg_sale_price_custom':
-                                        result[tag] = await this.getOrderAvgSalePriceCustomer(query);
-                                        break;
-                                    // 總訂單
-                                    case 'orders_per_month_1_year':
-                                        result[tag] = await this.getOrdersPerMonth1Year(query);
-                                        break;
-                                    case 'orders_per_month_2_week':
-                                        result[tag] = await this.getOrdersPerMonth2week(query);
-                                        break;
-                                    case 'orders_per_month':
-                                        result[tag] = await this.getOrdersPerMonth(query);
-                                        break;
-                                    case 'orders_per_month_custom':
-                                        result[tag] = await this.getOrdersPerMonthCostom(query);
-                                        break;
-                                    // 總銷售額
-                                    case 'sales_per_month_2_week':
-                                        result[tag] = await this.getSalesPerMonth2week(query);
-                                        break;
-                                    case 'sales_per_month_1_year':
-                                        result[tag] = await this.getSalesPerMonth1Year(query);
-                                        break;
-                                    case 'sales_per_month_1_month':
-                                        result[tag] = await this.getSalesPerMonth(query);
-                                        break;
-                                    case 'sales_per_month_custom':
-                                        result[tag] = await this.getSalesPerMonthCustom(query);
-                                        break;
-                                    // xxxx
-                                    case 'order_today':
-                                        result[tag] = await this.getOrderToDay();
-                                        break;
-                                    // 註冊數
-                                    case 'recent_register_today':
-                                        result[tag] = await this.getRegisterYear();
-                                        break;
-                                    case 'recent_register_week':
-                                        result[tag] = await this.getRegisterYear();
-                                        break;
-                                    case 'recent_register_month':
-                                        result[tag] = await this.getRegisterMonth();
-                                        break;
-                                    case 'recent_register_year':
-                                        result[tag] = await this.getRegisterYear();
-                                        break;
-                                    case 'recent_register_custom':
-                                        result[tag] = await this.getRegisterCustom(query);
-                                        break;
-                                    // 瀏覽人數
-                                    case 'active_recent_custom':
-                                        result[tag] = await this.getActiveRecentCustom(query);
-                                        break;
-                                    case 'active_recent_month':
-                                        result[tag] = await this.getActiveRecentMonth();
-                                        break;
-                                    case 'active_recent_year':
-                                        result[tag] = await this.getActiveRecentYear();
-                                        break;
-                                    case 'active_recent_2week':
-                                        result[tag] = await this.getActiveRecentWeek();
-                                        break;
-                                }
-                                timer[tag] = (new Date().getTime() - start.getTime()) / 1000;
-                                resolve(true);
-                            } catch (e) {
-                                resolve(false);
-                            }
-                        }).then(() => {
-                            pass++;
-                            if (pass === tags.length) {
-                                resolve(true);
-                            }
-                        });
-                    }
-                    if (pass === tags.length) {
-                        resolve(true);
-                    }
-                });
-
-                console.log('AnalyzeTimer ==>', timer);
-
-                return result;
-            }
-            return { result: false };
-        } catch (e) {
-            throw exception.BadRequestError('BAD_REQUEST', 'getDataAnalyze Error:' + e, null);
-        }
-    }
-
-    generateTimeRange(index: number): { startISO: string; endISO: string } {
-        const now = new Date();
-        const ONE_DAY_TIME = 24 * 60 * 60 * 1000;
-
-        // 計算當天的開始和結束時間
-        const startDate = new Date(now.getTime() - (index + 1) * ONE_DAY_TIME); // 往前推指定天數
-        const endDate = new Date(startDate.getTime() + ONE_DAY_TIME); // 往後加一天
-
-        // 設定開始時間為當天的 16:00:00.000Z
-        startDate.setUTCHours(16, 0, 0, 0);
-
-        // 設定結束時間為隔天的 16:00:00.000Z
-        endDate.setUTCHours(16, 0, 0, 0);
-
-        // 格式化為 ISO 字串
-        const startISO = startDate.toISOString();
-        const endISO = endDate.toISOString();
-
-        return { startISO, endISO };
-    }
-
     formatDateString(isoDate?: string): string {
         // 使用給定的 ISO 8601 日期字符串，或建立一個當前時間的 Date 對象
         const date = isoDate ? new Date(isoDate) : new Date();
@@ -3506,1636 +3459,6 @@ OR JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.orderStatus')) NOT IN (-99)) `);
 
         // 格式化為所需的字符串
         return `${year}-${month}-${day} ${hours}:${minutes}`;
-    }
-
-    async getActiveRecentYear() {
-        const endDate = moment.tz('Asia/Taipei').toDate();
-        endDate.setMonth(endDate.getMonth() + 1, 1);
-
-        const startDate = moment.tz('Asia/Taipei').toDate();
-        startDate.setMonth(endDate.getMonth() - 12);
-
-        const sql = `
-            SELECT mac_address, created_time
-            FROM \`${saasConfig.SAAS_NAME}\`.t_monitor
-            WHERE app_name = ${db.escape(this.app)}
-              AND ip != 'ffff:127.0.0.1'
-            AND req_type = 'file'
-            AND created_time BETWEEN '${startDate.toISOString()}' AND '${endDate.toISOString()}'
-            GROUP BY id, mac_address
-        `;
-        const queryData = await db.query(sql, []);
-
-        const now = moment.tz('Asia/Taipei').toDate(); // 當前時間
-        const dataList = Array.from({ length: 12 }, (_, index) => {
-            // 計算第 index 個月前的日期
-            const targetDate = new Date(now.getFullYear(), now.getMonth() - index, 1);
-
-            const year = targetDate.getFullYear();
-            const month = targetDate.getMonth() + 1; // 月份從 0 開始，需要加 1
-
-            // 篩選該月份的資料
-            const filteredData = queryData.filter((item: any) => {
-                const date = moment.tz(item.created_time, 'UTC').clone().tz('Asia/Taipei').toDate();
-                return date.getFullYear() === year && date.getMonth() + 1 === month;
-            });
-
-            // 計算不重複的 mac_address
-            const uniqueMacAddresses = new Set(filteredData.map((item: any) => item.mac_address));
-
-            return {
-                year,
-                month,
-                total_count: filteredData.length,
-                unique_count: uniqueMacAddresses.size,
-            };
-        });
-
-        const result = dataList.map((data) => data.unique_count);
-
-        return {
-            count_array: result.reverse(), // 將結果反轉，保證時間順序為最近到最遠
-        };
-    }
-
-    async getActiveRecentWeek() {
-        const sql = `
-            SELECT mac_address, ${convertTimeZone('created_time')} AS created_time
-            FROM \`${saasConfig.SAAS_NAME}\`.t_monitor
-            WHERE app_name = ${db.escape(this.app)}
-              AND ip != 'ffff:127.0.0.1'
-                AND req_type = 'file'
-                AND ${convertTimeZone('created_time')} BETWEEN (DATE_SUB(${convertTimeZone('NOW()')}
-                , INTERVAL 14 DAY))
-              AND ${convertTimeZone('NOW()')}
-            GROUP BY id, mac_address
-        `;
-
-        const queryData = await db.query(sql, []);
-
-        const now = moment.tz('Asia/Taipei').toDate(); // 當前時間
-        const dataList = Array.from({ length: 14 }, (_, index) => {
-            const targetDate = new Date(now.getTime());
-            targetDate.setDate(new Date(now.getTime()).getDate() - index); // 設定為第 index 天前的日期
-
-            const year = targetDate.getFullYear();
-            const month = targetDate.getMonth() + 1; // 月份從 0 開始，需要加 1
-            const day = targetDate.getDate();
-
-            // 篩選該日期的資料
-            const filteredData = queryData.filter((item: any) => {
-                const date = moment.tz(item.created_time, 'UTC').clone().tz('Asia/Taipei').toDate();
-                return date.getFullYear() === year && date.getMonth() + 1 === month && date.getDate() === day;
-            });
-
-            // 計算不重複的 mac_address
-            const uniqueMacAddresses = new Set(filteredData.map((item: any) => item.mac_address));
-
-            return {
-                year,
-                month,
-                day,
-                total_count: filteredData.length,
-                unique_count: uniqueMacAddresses.size,
-            };
-        });
-
-        const result = dataList.map((data) => data.unique_count);
-
-        return {
-            count_array: result.reverse(), // 將結果反轉，保證時間順序為最近到最遠
-        };
-    }
-
-    async getActiveRecentMonth() {
-        const sql = `
-            SELECT mac_address, ${convertTimeZone('created_time')} AS created_time
-            FROM \`${saasConfig.SAAS_NAME}\`.t_monitor
-            WHERE app_name = ${db.escape(this.app)}
-              AND ip != 'ffff:127.0.0.1'
-                AND req_type = 'file'
-                AND ${convertTimeZone('created_time')} BETWEEN (DATE_SUB(${convertTimeZone('NOW()')}
-                , INTERVAL 30 DAY))
-              AND ${convertTimeZone('NOW()')}
-            GROUP BY id, mac_address
-        `;
-
-        const queryData = await db.query(sql, []);
-
-        const now = moment.tz('Asia/Taipei').toDate(); // 當前時間
-        const dataList = Array.from({ length: 30 }, (_, index) => {
-            const targetDate = new Date(now.getTime());
-            targetDate.setDate(new Date(now.getTime()).getDate() - index); // 設定為第 index 天前的日期
-
-            const year = targetDate.getFullYear();
-            const month = targetDate.getMonth() + 1; // 月份從 0 開始，需要加 1
-            const day = targetDate.getDate();
-
-            // 篩選該日期的資料
-            const filteredData = queryData.filter((item: any) => {
-                const date = moment.tz(item.created_time, 'UTC').clone().tz('Asia/Taipei').toDate();
-                return date.getFullYear() === year && date.getMonth() + 1 === month && date.getDate() === day;
-            });
-
-            // 計算不重複的 mac_address
-            const uniqueMacAddresses = new Set(filteredData.map((item: any) => item.mac_address));
-
-            return {
-                year,
-                month,
-                day,
-                total_count: filteredData.length,
-                unique_count: uniqueMacAddresses.size,
-            };
-        });
-
-        const result = dataList.map((data) => data.unique_count);
-
-        return {
-            count_array: result.reverse(), // 將結果反轉，保證時間順序為最近到最遠
-        };
-    }
-
-    async getActiveRecentCustom(query: string) {
-        const qData = JSON.parse(query);
-        const formatStartDate = `"${Tool.replaceDatetime(qData.start)}"`;
-        const formatEndDate = `"${Tool.replaceDatetime(qData.end)}"`;
-        const days = this.diffDates(new Date(qData.start), new Date(qData.end));
-        const sql = `
-            SELECT mac_address, ${convertTimeZone('created_time')} AS created_time
-            FROM \`${saasConfig.SAAS_NAME}\`.t_monitor
-            WHERE app_name = ${db.escape(this.app)}
-              AND ip != 'ffff:127.0.0.1'
-                AND req_type = 'file'
-                AND ${convertTimeZone('created_time')}
-                BETWEEN ${convertTimeZone(formatStartDate)}
-              AND ${convertTimeZone(formatEndDate)}
-            GROUP BY id, mac_address
-        `;
-
-        const queryData = await db.query(sql, []);
-
-        const now = moment(qData.end).tz('Asia/Taipei').clone().toDate(); // 當前時間
-        const dataList = Array.from({ length: days }, (_, index) => {
-            const targetDate = new Date(now.getTime());
-            targetDate.setDate(new Date(now.getTime()).getDate() - index); // 設定為第 index 天前的日期
-
-            const year = targetDate.getFullYear();
-            const month = targetDate.getMonth() + 1; // 月份從 0 開始，需要加 1
-            const day = targetDate.getDate();
-
-            // 篩選該日期的資料
-            const filteredData = queryData.filter((item: any) => {
-                const date = moment.tz(item.created_time, 'UTC').clone().tz('Asia/Taipei').toDate();
-                return date.getFullYear() === year && date.getMonth() + 1 === month && date.getDate() === day;
-            });
-
-            // 計算不重複的 mac_address
-            const uniqueMacAddresses = new Set(filteredData.map((item: any) => item.mac_address));
-
-            return {
-                year,
-                month,
-                day,
-                total_count: filteredData.length,
-                unique_count: uniqueMacAddresses.size,
-            };
-        });
-
-        const result = dataList.map((data) => data.unique_count);
-
-        return {
-            count_array: result.reverse(), // 將結果反轉，保證時間順序為最近到最遠
-        };
-    }
-
-    async getRegisterMonth() {
-        try {
-            const countArray: any = {};
-            let pass = 0;
-            await new Promise((resolve, reject) => {
-                for (let index = 0; index < 30; index++) {
-                    const monthCheckoutSQL = `
-                        SELECT count(1)
-                        FROM \`${this.app}\`.t_user
-                        WHERE
-                            DAY (${convertTimeZone('created_time')}) = DAY (DATE_SUB(${convertTimeZone('NOW()')}
-                            , INTERVAL ${index} DAY))
-                          AND MONTH (${convertTimeZone('created_time')}) = MONTH (DATE_SUB(${convertTimeZone('NOW()')}
-                            , INTERVAL ${index} DAY))
-                          AND YEAR (${convertTimeZone('created_time')}) = YEAR (DATE_SUB(${convertTimeZone('NOW()')}
-                            , INTERVAL ${index} DAY))
-                          AND status = 1;
-                    `;
-                    db.query(monthCheckoutSQL, []).then((data) => {
-                        countArray[index] = data[0]['count(1)'];
-                        pass++;
-                        if (pass === 30) {
-                            resolve(true);
-                        }
-                    });
-                }
-            });
-
-            return {
-                countArray: Object.keys(countArray)
-                    .map((dd) => {
-                        return parseInt(dd);
-                    })
-                    .sort((a: any, b: any) => parseInt(a, 10) - parseInt(b, 10))
-                    .map((dd) => {
-                        return countArray[dd];
-                    })
-                    .reverse(),
-            };
-        } catch (e) {
-            throw exception.BadRequestError('BAD_REQUEST', 'getRecentActiveUser Error:' + e, null);
-        }
-    }
-
-    async getRegisterCustom(query: string) {
-        try {
-            const qData = JSON.parse(query);
-            const days = this.diffDates(new Date(qData.start), new Date(qData.end));
-            const formatEndDate = `"${Tool.replaceDatetime(qData.end)}"`;
-
-            const countArray: any = {};
-            let pass = 0;
-            await new Promise((resolve, reject) => {
-                for (let index = 0; index < days; index++) {
-                    const monthCheckoutSQL = `
-                        SELECT count(1)
-                        FROM \`${this.app}\`.t_user
-                        WHERE
-                            DAY (${convertTimeZone('created_time')}) = DAY (DATE_SUB(${convertTimeZone(formatEndDate)}
-                            , INTERVAL ${index} DAY))
-                          AND MONTH (${convertTimeZone('created_time')}) = MONTH (DATE_SUB(${convertTimeZone(formatEndDate)}
-                            , INTERVAL ${index} DAY))
-                          AND YEAR (${convertTimeZone('created_time')}) = YEAR (DATE_SUB(${convertTimeZone(formatEndDate)}
-                            , INTERVAL ${index} DAY))
-                          AND status = 1;
-                    `;
-                    db.query(monthCheckoutSQL, []).then((data) => {
-                        countArray[index] = data[0]['count(1)'];
-                        pass++;
-                        if (pass === days) {
-                            resolve(true);
-                        }
-                    });
-                }
-            });
-
-            return {
-                countArray: Object.keys(countArray)
-                    .map((dd) => {
-                        return parseInt(dd);
-                    })
-                    .sort((a: any, b: any) => parseInt(a, 10) - parseInt(b, 10))
-                    .map((dd) => {
-                        return countArray[dd];
-                    })
-                    .reverse(),
-            };
-        } catch (e) {
-            throw exception.BadRequestError('BAD_REQUEST', 'getRecentActiveUser Error:' + e, null);
-        }
-    }
-
-    async getRegister2week() {
-        try {
-            const countArray: any = {};
-            let pass = 0;
-            await new Promise((resolve, reject) => {
-                for (let index = 0; index < 14; index++) {
-                    const monthCheckoutSQL = `
-                        SELECT count(1)
-                        FROM \`${this.app}\`.t_user
-                        WHERE
-                            DAY (${convertTimeZone('created_time')}) = DAY (DATE_SUB(${convertTimeZone('NOW()')}
-                            , INTERVAL ${index} DAY))
-                          AND MONTH (${convertTimeZone('created_time')}) = MONTH (DATE_SUB(${convertTimeZone('NOW()')}
-                            , INTERVAL ${index} DAY))
-                          AND YEAR (${convertTimeZone('created_time')}) = YEAR (DATE_SUB(${convertTimeZone('NOW()')}
-                            , INTERVAL ${index} DAY))
-                          AND status = 1;
-                    `;
-                    db.query(monthCheckoutSQL, []).then((data) => {
-                        countArray[index] = data[0]['count(1)'];
-                        pass++;
-                        if (pass === 14) {
-                            resolve(true);
-                        }
-                    });
-                }
-            });
-
-            return {
-                countArray: Object.keys(countArray)
-                    .map((dd) => {
-                        return parseInt(dd);
-                    })
-                    .sort((a: any, b: any) => parseInt(a, 10) - parseInt(b, 10))
-                    .map((dd) => {
-                        return countArray[dd];
-                    })
-                    .reverse(),
-            };
-        } catch (e) {
-            throw exception.BadRequestError('BAD_REQUEST', 'getRecentActiveUser Error:' + e, null);
-        }
-    }
-
-    async getRegisterYear() {
-        try {
-            const formatJsonData: { sql: string; data: any[] }[] = [];
-            const countArray: any = {};
-            const order = await db.query(
-                `SELECT count(1)
-                 FROM \`${this.app}\`.t_user
-                 WHERE DATE (created_time) = CURDATE()`,
-                []
-            );
-
-            let pass = 0;
-            await new Promise((resolve, reject) => {
-                for (let index = 0; index < 12; index++) {
-                    const monthRegisterSQL = `
-                        SELECT count(1)
-                        FROM \`${this.app}\`.t_user
-                        WHERE MONTH (${convertTimeZone('created_time')}) = MONTH (DATE_SUB(${convertTimeZone('NOW()')}
-                            , INTERVAL ${index} MONTH))
-                          AND YEAR (${convertTimeZone('created_time')}) = YEAR (DATE_SUB(${convertTimeZone('NOW()')}
-                            , INTERVAL ${index} MONTH))
-                    `;
-                    db.query(monthRegisterSQL, []).then((data) => {
-                        pass++;
-                        countArray[index] = data[0]['count(1)'];
-                        if (pass === 12) {
-                            resolve(true);
-                        }
-                    });
-                }
-            });
-
-            return {
-                //用戶總數
-                today: order[0]['count(1)'],
-                //每月紀錄
-                count_register: Object.keys(countArray)
-                    .sort((a: any, b: any) => parseInt(a, 10) - parseInt(b, 10))
-                    .map((dd) => {
-                        return countArray[dd];
-                    })
-                    .reverse(),
-                //兩週紀錄
-                count_2_week_register: (await this.getRegister2week()).countArray,
-            };
-        } catch (e) {
-            console.error(e);
-            throw exception.BadRequestError('BAD_REQUEST', 'getOrderToDay Error:' + e, null);
-        }
-    }
-
-    async getOrderToDay() {
-        try {
-            const order = await db.query(
-                `SELECT *
-                 FROM \`${this.app}\`.t_checkout
-                 WHERE DATE (created_time) = CURDATE()`,
-                []
-            );
-            return {
-                //訂單總數
-                total_count: order.filter((dd: any) => {
-                    return dd.status === 1;
-                }).length,
-                //未出貨訂單
-                un_shipment: (
-                    await db.query(
-                        `SELECT count(1)
-                         from \`${this.app}\`.t_checkout
-                         WHERE (orderData ->> '$.progress' is null || orderData ->> '$.progress' = 'wait')
-                           and status = 1`,
-                        []
-                    )
-                )[0]['count(1)'],
-                //未付款訂單
-                un_pay: order.filter((dd: any) => {
-                    return dd.status === 0;
-                }).length,
-                //今日成交金額
-                total_amount: (() => {
-                    let amount = 0;
-                    order
-                        .filter((dd: any) => {
-                            return dd.status === 1;
-                        })
-                        .map((dd: any) => {
-                            amount += dd.orderData.total;
-                        });
-                    return amount;
-                })(),
-            };
-        } catch (e) {
-            console.error(e);
-            throw exception.BadRequestError('BAD_REQUEST', 'getOrderToDay Error:' + e, null);
-        }
-    }
-
-    async getRecentActiveUser() {
-        try {
-            const recentSQL = `
-                SELECT *
-                FROM \`${this.app}\`.t_user
-                WHERE online_time BETWEEN DATE_SUB(NOW(), INTERVAL 10 MINUTE) AND NOW();
-            `;
-            const recent_users = await db.query(recentSQL, []);
-            const monthSQL = `
-                SELECT *
-                FROM \`${this.app}\`.t_user
-                WHERE MONTH (online_time) = MONTH (NOW()) AND YEAR (online_time) = YEAR (NOW());
-            `;
-            const month_users = await db.query(monthSQL, []);
-            return { recent: recent_users.length, months: month_users.length };
-        } catch (e) {
-            throw exception.BadRequestError('BAD_REQUEST', 'getRecentActiveUser Error:' + e, null);
-        }
-    }
-
-    async getSalesInRecentMonth() {
-        try {
-            const recentMonthSQL = `
-                SELECT *
-                FROM \`${this.app}\`.t_checkout
-                WHERE MONTH (created_time) = MONTH (NOW()) AND YEAR (created_time) = YEAR (NOW()) AND status = 1;
-            `;
-            const recentMonthCheckouts = await db.query(recentMonthSQL, []);
-            let recent_month_total = 0;
-            recentMonthCheckouts.map((checkout: any) => {
-                recent_month_total += parseInt(checkout.orderData.total, 10);
-            });
-
-            const previousMonthSQL = `
-                SELECT *
-                FROM \`${this.app}\`.t_checkout
-                WHERE
-                    MONTH (created_time) = MONTH (DATE_SUB(NOW()
-                    , INTERVAL 1 MONTH))
-                  AND YEAR (created_time) = YEAR (DATE_SUB(NOW()
-                    , INTERVAL 1 MONTH))
-                  AND status = 1;
-            `;
-            const previousMonthCheckouts = await db.query(previousMonthSQL, []);
-            let previous_month_total = 0;
-            previousMonthCheckouts.map((checkout: any) => {
-                previous_month_total += parseInt(checkout.orderData.total, 10);
-            });
-
-            let gap = 0;
-            if (recent_month_total !== 0 && previous_month_total !== 0) {
-                gap = Math.floor(((recent_month_total - previous_month_total) / previous_month_total) * 10000) / 10000;
-            }
-
-            return { recent_month_total, previous_month_total, gap };
-        } catch (e) {
-            throw exception.BadRequestError('BAD_REQUEST', 'getRecentActiveUser Error:' + e, null);
-        }
-    }
-
-    async getHotProducts(duration: 'month' | 'day' | 'all', query?: string) {
-        try {
-            const qData = JSON.parse(query || '{}');
-
-            const sqlArray = ['1=1'];
-            if (qData.filter_date === 'custom' && qData.start && qData.end) {
-                const formatStartDate = `"${Tool.replaceDatetime(qData.start)}"`;
-                const formatEndDate = `"${Tool.replaceDatetime(qData.end)}"`;
-
-                sqlArray.push(`
-                    (${convertTimeZone('created_time')} 
-                    BETWEEN ${convertTimeZone(formatStartDate)} 
-                    AND ${convertTimeZone(formatEndDate)})
-                `);
-            }
-
-            if (qData.come_from) {
-                switch (qData.come_from) {
-                    case 'all':
-                        break;
-                    case 'website':
-                        sqlArray.push(`
-                            (orderData->>'$.orderSource' <> 'POS')
-                        `);
-                        break;
-                    case 'store':
-                        sqlArray.push(`
-                            (orderData->>'$.orderSource' = 'POS')
-                        `);
-                        break;
-                    default:
-                        sqlArray.push(`
-                            (orderData->>'$.pos_info.where_store' = '${qData.come_from}')
-                        `);
-                        break;
-                }
-            }
-
-            if (qData.filter_date) {
-                const text = (() => {
-                    switch (qData.filter_date) {
-                        case 'today':
-                            return '1 DAY';
-                        case 'week':
-                            return '7 DAY';
-                        case '1m':
-                            return '30 DAY';
-                        case 'year':
-                            return '1 YEAR';
-                    }
-                })();
-
-                if (text) {
-                    sqlArray.push(`
-                        ${convertTimeZone('created_time')} 
-                        BETWEEN (DATE_SUB(${convertTimeZone('CURDATE()')}, INTERVAL ${text})) 
-                        AND ${convertTimeZone('CURDATE()')}
-                    `);
-                }
-            }
-
-            const checkoutSQL = `
-                SELECT *
-                FROM \`${this.app}\`.t_checkout
-                WHERE status = 1
-                  AND ${(() => {
-                      switch (duration) {
-                          case 'day':
-                              return `created_time BETWEEN  CURDATE() AND CURDATE() + INTERVAL 1 DAY - INTERVAL 1 SECOND`;
-                          case 'month':
-                              return `(created_time BETWEEN DATE_SUB(NOW(), INTERVAL 1 MONTH) AND NOW())`;
-                          case 'all':
-                              return sqlArray.join(' AND ');
-                      }
-                  })()};
-            `;
-
-            const checkouts = await db.query(checkoutSQL, []);
-            const series = [];
-            const categories = [];
-            const product_list: {
-                title: string;
-                count: number;
-                preview_image: string;
-                sale_price: number;
-                pos_info: any;
-            }[] = [];
-
-            for (const checkout of checkouts) {
-                if (Array.isArray(checkout.orderData.lineItems)) {
-                    for (const item1 of checkout.orderData.lineItems) {
-                        const index = product_list.findIndex((item2) => item1.title === item2.title);
-                        if (index === -1) {
-                            product_list.push({
-                                title: item1.title,
-                                count: item1.count,
-                                preview_image: (item1 as any).preview_image,
-                                sale_price: item1.sale_price,
-                                pos_info: checkout.orderData.pos_info,
-                            });
-                        } else {
-                            product_list[index].count += item1.count;
-                            product_list[index].sale_price += item1.sale_price;
-                        }
-                    }
-                }
-            }
-
-            const final_product_list = product_list.sort((a, b) => (a.count < b.count ? 1 : -1));
-            for (let index = 0; index < 10; index++) {
-                if (final_product_list[index]) {
-                    const element = final_product_list[index];
-                    series.push(element.count);
-                    categories.push(element.title);
-                }
-            }
-
-            return { series, categories, product_list: final_product_list };
-        } catch (e) {
-            throw exception.BadRequestError('BAD_REQUEST', 'getRecentActiveUser Error:' + e, null);
-        }
-    }
-
-    async getOrdersInRecentMonth() {
-        try {
-            const recentMonthSQL = `
-                SELECT id
-                FROM \`${this.app}\`.t_checkout
-                WHERE MONTH (created_time) = MONTH (NOW()) AND YEAR (created_time) = YEAR (NOW()) AND status = 1;
-            `;
-            const recentMonthCheckouts = await db.query(recentMonthSQL, []);
-            let recent_month_total = recentMonthCheckouts.length;
-
-            const previousMonthSQL = `
-                SELECT id
-                FROM \`${this.app}\`.t_checkout
-                WHERE
-                    MONTH (created_time) = MONTH (DATE_SUB(NOW()
-                    , INTERVAL 1 MONTH))
-                  AND YEAR (created_time) = YEAR (DATE_SUB(NOW()
-                    , INTERVAL 1 MONTH))
-                  AND status = 1;
-            `;
-            const previousMonthCheckouts = await db.query(previousMonthSQL, []);
-            let previous_month_total = previousMonthCheckouts.length;
-
-            let gap = 0;
-            if (recent_month_total !== 0 && previous_month_total !== 0) {
-                gap = Math.floor(((recent_month_total - previous_month_total) / previous_month_total) * 10000) / 10000;
-            }
-
-            return { recent_month_total, previous_month_total, gap };
-        } catch (e) {
-            throw exception.BadRequestError('BAD_REQUEST', 'getRecentActiveUser Error:' + e, null);
-        }
-    }
-
-    async getOrdersPerMonth2week(query: string) {
-        try {
-            const qData = JSON.parse(query);
-            const countArray: any = {};
-            const countArrayPos: any = {};
-            const countArrayWeb: any = {};
-            const countArrayStore: any = {};
-
-            let pass = 0;
-            await new Promise((resolve, reject) => {
-                for (let index = 0; index < 14; index++) {
-                    const monthCheckoutSQL = `
-                        SELECT id, orderData
-                        FROM \`${this.app}\`.t_checkout
-                        WHERE
-                            DAY (${convertTimeZone('created_time')}) = DAY (DATE_SUB(${convertTimeZone('NOW()')}
-                            , INTERVAL ${index} DAY))
-                          AND MONTH (${convertTimeZone('created_time')}) = MONTH (DATE_SUB(${convertTimeZone('NOW()')}
-                            , INTERVAL ${index} DAY))
-                          AND YEAR (${convertTimeZone('created_time')}) = YEAR (DATE_SUB(${convertTimeZone('NOW()')}
-                            , INTERVAL ${index} DAY))
-                          AND status = 1;
-                    `;
-                    db.query(monthCheckoutSQL, []).then((data) => {
-                        pass++;
-                        let total = 0;
-                        let total_pos = 0;
-                        let total_web = 0;
-                        let total_store = 0;
-                        data.map((checkout: any) => {
-                            if (checkout.orderData.orderSource === 'POS') {
-                                total_pos += 1;
-                                if (qData.come_from.includes('store_') && Shopping.isComeStore(checkout.orderData, qData)) {
-                                    total_store += 1;
-                                }
-                            } else {
-                                total_web += 1;
-                            }
-                            total += 1;
-                        });
-                        countArrayStore[index] = total_store;
-                        countArrayPos[index] = total_pos;
-                        countArrayWeb[index] = total_web;
-                        countArray[index] = total;
-                        if (pass === 14) {
-                            resolve(true);
-                        }
-                    });
-                }
-            });
-
-            return {
-                countArray: Object.keys(countArray)
-                    .sort((a: any, b: any) => parseInt(a, 10) - parseInt(b, 10))
-                    .map((dd) => {
-                        return countArray[dd];
-                    }),
-                countArrayPos: Object.keys(countArrayPos)
-                    .sort((a: any, b: any) => parseInt(a, 10) - parseInt(b, 10))
-                    .map((dd) => {
-                        return countArrayPos[dd];
-                    }),
-                countArrayStore: Object.keys(countArrayStore)
-                    .sort((a: any, b: any) => parseInt(a, 10) - parseInt(b, 10))
-                    .map((dd) => {
-                        return countArrayStore[dd];
-                    }),
-                countArrayWeb: Object.keys(countArrayWeb)
-                    .sort((a: any, b: any) => parseInt(a, 10) - parseInt(b, 10))
-                    .map((dd) => {
-                        return countArrayWeb[dd];
-                    }),
-            };
-        } catch (e) {
-            throw exception.BadRequestError('BAD_REQUEST', 'getRecentActiveUser Error:' + e, null);
-        }
-    }
-
-    async getOrdersPerMonth(query: string) {
-        try {
-            const qData = JSON.parse(query);
-            const countArray: any = {};
-            const countArrayPos: any = {};
-            const countArrayWeb: any = {};
-            const countArrayStore: any = {};
-
-            let pass = 0;
-            await new Promise((resolve, reject) => {
-                for (let index = 0; index < 30; index++) {
-                    const monthCheckoutSQL = `
-                        SELECT orderData
-                        FROM \`${this.app}\`.t_checkout
-                        WHERE
-                            DAY (${convertTimeZone('created_time')}) = DAY (DATE_SUB(${convertTimeZone('NOW()')}
-                            , INTERVAL ${index} DAY))
-                          AND MONTH (${convertTimeZone('created_time')}) = MONTH (DATE_SUB(${convertTimeZone('NOW()')}
-                            , INTERVAL ${index} DAY))
-                          AND YEAR (${convertTimeZone('created_time')}) = YEAR (DATE_SUB(${convertTimeZone('NOW()')}
-                            , INTERVAL ${index} DAY))
-                          AND status = 1;
-                    `;
-                    db.query(monthCheckoutSQL, []).then((data) => {
-                        pass++;
-                        let total = 0;
-                        let total_pos = 0;
-                        let total_web = 0;
-                        let total_store = 0;
-                        data.map((checkout: any) => {
-                            if (checkout.orderData.orderSource === 'POS') {
-                                total_pos += 1;
-                                if (qData.come_from.includes('store_') && Shopping.isComeStore(checkout.orderData, qData)) {
-                                    total_store += 1;
-                                }
-                            } else {
-                                total_web += 1;
-                            }
-                            total += 1;
-                        });
-                        countArrayStore[index] = total_store;
-                        countArrayPos[index] = total_pos;
-                        countArrayWeb[index] = total_web;
-                        countArray[index] = total;
-                        if (pass === 30) {
-                            resolve(true);
-                        }
-                    });
-                }
-            });
-
-            return {
-                countArray: Object.keys(countArray)
-                    .sort((a: any, b: any) => parseInt(a, 10) - parseInt(b, 10))
-                    .map((dd) => {
-                        return countArray[dd];
-                    }),
-                countArrayPos: Object.keys(countArrayPos)
-                    .sort((a: any, b: any) => parseInt(a, 10) - parseInt(b, 10))
-                    .map((dd) => {
-                        return countArrayPos[dd];
-                    }),
-                countArrayStore: Object.keys(countArrayStore)
-                    .sort((a: any, b: any) => parseInt(a, 10) - parseInt(b, 10))
-                    .map((dd) => {
-                        return countArrayStore[dd];
-                    }),
-                countArrayWeb: Object.keys(countArrayWeb)
-                    .sort((a: any, b: any) => parseInt(a, 10) - parseInt(b, 10))
-                    .map((dd) => {
-                        return countArrayWeb[dd];
-                    }),
-            };
-        } catch (e) {
-            throw exception.BadRequestError('BAD_REQUEST', 'getRecentActiveUser Error:' + e, null);
-        }
-    }
-
-    async getOrdersPerMonthCostom(query: string) {
-        try {
-            const countArray: any = {};
-            const countArrayPos: any = {};
-            const countArrayWeb: any = {};
-            const countArrayStore: any = {};
-
-            const qData = JSON.parse(query);
-            const days = this.diffDates(new Date(qData.start), new Date(qData.end));
-            const formatEndDate = `"${Tool.replaceDatetime(qData.end)}"`;
-
-            let pass = 0;
-            await new Promise((resolve, reject) => {
-                for (let index = 0; index < days; index++) {
-                    const monthCheckoutSQL = `
-                        SELECT orderData
-                        FROM \`${this.app}\`.t_checkout
-                        WHERE
-                            DAY (${convertTimeZone('created_time')}) = DAY (DATE_SUB(${formatEndDate}
-                            , INTERVAL ${index} DAY))
-                          AND MONTH (${convertTimeZone('created_time')}) = MONTH (DATE_SUB(${formatEndDate}
-                            , INTERVAL ${index} DAY))
-                          AND YEAR (${convertTimeZone('created_time')}) = YEAR (DATE_SUB(${formatEndDate}
-                            , INTERVAL ${index} DAY))
-                          AND status = 1;
-                    `;
-                    db.query(monthCheckoutSQL, []).then((data) => {
-                        pass++;
-                        let total = 0;
-                        let total_pos = 0;
-                        let total_web = 0;
-                        let total_store = 0;
-                        data.map((checkout: any) => {
-                            if (checkout.orderData.orderSource === 'POS') {
-                                total_pos += 1;
-                                if (qData.come_from.includes('store_') && Shopping.isComeStore(checkout.orderData, qData)) {
-                                    total_store += 1;
-                                }
-                            } else {
-                                total_web += 1;
-                            }
-                            total += 1;
-                        });
-                        countArrayStore[index] = total_store;
-                        countArrayPos[index] = total_pos;
-                        countArrayWeb[index] = total_web;
-                        countArray[index] = total;
-                        if (pass === days) {
-                            resolve(true);
-                        }
-                    });
-                }
-            });
-
-            return {
-                countArray: Object.keys(countArray)
-                    .sort((a: any, b: any) => parseInt(a, 10) - parseInt(b, 10))
-                    .map((dd) => {
-                        return countArray[dd];
-                    }),
-                countArrayPos: Object.keys(countArrayPos)
-                    .sort((a: any, b: any) => parseInt(a, 10) - parseInt(b, 10))
-                    .map((dd) => {
-                        return countArrayPos[dd];
-                    }),
-                countArrayStore: Object.keys(countArrayStore)
-                    .sort((a: any, b: any) => parseInt(a, 10) - parseInt(b, 10))
-                    .map((dd) => {
-                        return countArrayStore[dd];
-                    }),
-                countArrayWeb: Object.keys(countArrayWeb)
-                    .sort((a: any, b: any) => parseInt(a, 10) - parseInt(b, 10))
-                    .map((dd) => {
-                        return countArrayWeb[dd];
-                    }),
-            };
-        } catch (e) {
-            throw exception.BadRequestError('BAD_REQUEST', 'getRecentActiveUser Error:' + e, null);
-        }
-    }
-
-    async getOrdersPerMonth1Year(query: string) {
-        try {
-            const qData = JSON.parse(query);
-            const countArray: any = {};
-            const countArrayPos: any = {};
-            const countArrayWeb: any = {};
-            const countArrayStore: any = {};
-
-            let pass = 0;
-            await new Promise((resolve, reject) => {
-                for (let index = 0; index < 12; index++) {
-                    const monthCheckoutSQL = `
-                        SELECT orderData
-                        FROM \`${this.app}\`.t_checkout
-                        WHERE
-                            MONTH (${convertTimeZone('created_time')}) = MONTH (DATE_SUB(${convertTimeZone('NOW()')}
-                            , INTERVAL ${index} MONTH))
-                          AND YEAR (${convertTimeZone('created_time')}) = YEAR (DATE_SUB(${convertTimeZone('NOW()')}
-                            , INTERVAL ${index} MONTH))
-                          AND status = 1;
-                    `;
-                    db.query(monthCheckoutSQL, []).then((data) => {
-                        pass++;
-                        let total = 0;
-                        let total_pos = 0;
-                        let total_web = 0;
-                        let total_store = 0;
-                        data.map((checkout: any) => {
-                            if (checkout.orderData.orderSource === 'POS') {
-                                total_pos += 1;
-                                if (qData.come_from.includes('store_') && Shopping.isComeStore(checkout.orderData, qData)) {
-                                    total_store += 1;
-                                }
-                            } else {
-                                total_web += 1;
-                            }
-                            total += 1;
-                        });
-                        countArrayStore[index] = total_store;
-                        countArrayPos[index] = total_pos;
-                        countArrayWeb[index] = total_web;
-                        countArray[index] = total;
-                        if (pass === 12) {
-                            resolve(true);
-                        }
-                    });
-                }
-            });
-
-            return {
-                countArray: Object.keys(countArray)
-                    .sort((a: any, b: any) => parseInt(a, 10) - parseInt(b, 10))
-                    .map((dd) => {
-                        return countArray[dd];
-                    }),
-                countArrayPos: Object.keys(countArrayPos)
-                    .sort((a: any, b: any) => parseInt(a, 10) - parseInt(b, 10))
-                    .map((dd) => {
-                        return countArrayPos[dd];
-                    }),
-                countArrayStore: Object.keys(countArrayStore)
-                    .sort((a: any, b: any) => parseInt(a, 10) - parseInt(b, 10))
-                    .map((dd) => {
-                        return countArrayStore[dd];
-                    }),
-                countArrayWeb: Object.keys(countArrayWeb)
-                    .sort((a: any, b: any) => parseInt(a, 10) - parseInt(b, 10))
-                    .map((dd) => {
-                        return countArrayWeb[dd];
-                    }),
-            };
-        } catch (e) {
-            throw exception.BadRequestError('BAD_REQUEST', 'getRecentActiveUser Error:' + e, null);
-        }
-    }
-
-    static isComeStore(checkout: any, qData: any) {
-        try {
-            return checkout.pos_info.where_store === qData.come_from;
-        } catch (error) {
-            return false;
-        }
-    }
-
-    async getSalesPerMonth1Year(query: string) {
-        try {
-            const qData = JSON.parse(query);
-            const countArray: any = {};
-            const countArrayPos: any = {};
-            const countArrayWeb: any = {};
-            const countArrayStore: any = {};
-
-            let pass = 0;
-            await new Promise((resolve, reject) => {
-                for (let index = 0; index < 12; index++) {
-                    const monthCheckoutSQL = `
-                        SELECT orderData
-                        FROM \`${this.app}\`.t_checkout
-                        WHERE
-                            MONTH (${convertTimeZone('created_time')}) = MONTH (DATE_SUB(${convertTimeZone('NOW()')}
-                            , INTERVAL ${index} MONTH))
-                          AND YEAR (${convertTimeZone('created_time')}) = YEAR (DATE_SUB(${convertTimeZone('NOW()')}
-                            , INTERVAL ${index} MONTH))
-                          AND status = 1;
-                    `;
-                    db.query(monthCheckoutSQL, []).then((data) => {
-                        pass++;
-                        let total = 0;
-                        let total_pos = 0;
-                        let total_web = 0;
-                        let total_store = 0;
-                        data.map((checkout: any) => {
-                            if (checkout.orderData.orderSource === 'POS') {
-                                total_pos += parseInt(checkout.orderData.total, 10);
-                                if (qData.come_from.includes('store_') && Shopping.isComeStore(checkout.orderData, qData)) {
-                                    total_store += parseInt(checkout.orderData.total, 10);
-                                }
-                            } else {
-                                total_web += parseInt(checkout.orderData.total, 10);
-                            }
-                            total += parseInt(checkout.orderData.total, 10);
-                        });
-                        countArrayStore[index] = total_store;
-                        countArrayPos[index] = total_pos;
-                        countArrayWeb[index] = total_web;
-                        countArray[index] = total;
-                        if (pass === 12) {
-                            resolve(true);
-                        }
-                    });
-                }
-            });
-
-            return {
-                countArray: Object.keys(countArray)
-                    .sort((a: any, b: any) => parseInt(a, 10) - parseInt(b, 10))
-                    .map((dd) => {
-                        return countArray[dd];
-                    }),
-                countArrayPos: Object.keys(countArrayPos)
-                    .sort((a: any, b: any) => parseInt(a, 10) - parseInt(b, 10))
-                    .map((dd) => {
-                        return countArrayPos[dd];
-                    }),
-                countArrayStore: Object.keys(countArrayStore)
-                    .sort((a: any, b: any) => parseInt(a, 10) - parseInt(b, 10))
-                    .map((dd) => {
-                        return countArrayStore[dd];
-                    }),
-                countArrayWeb: Object.keys(countArrayWeb)
-                    .sort((a: any, b: any) => parseInt(a, 10) - parseInt(b, 10))
-                    .map((dd) => {
-                        return countArrayWeb[dd];
-                    }),
-            };
-        } catch (e) {
-            throw exception.BadRequestError('BAD_REQUEST', 'getRecentActiveUser Error:' + e, null);
-        }
-    }
-
-    async getSalesPerMonth2week(query: string) {
-        try {
-            const countArray: any = {};
-            const countArrayPos: any = {};
-            const countArrayWeb: any = {};
-            const countArrayStore: any = {};
-
-            const qData = JSON.parse(query);
-
-            let pass = 0;
-            await new Promise((resolve, reject) => {
-                for (let index = 0; index < 14; index++) {
-                    const monthCheckoutSQL = `
-                        SELECT orderData
-                        FROM \`${this.app}\`.t_checkout
-                        WHERE
-                            DAY (${convertTimeZone('created_time')}) = DAY (DATE_SUB(${convertTimeZone('NOW()')}
-                            , INTERVAL ${index} DAY))
-                          AND MONTH (${convertTimeZone('created_time')}) = MONTH (DATE_SUB(${convertTimeZone('NOW()')}
-                            , INTERVAL ${index} DAY))
-                          AND YEAR (${convertTimeZone('created_time')}) = YEAR (DATE_SUB(${convertTimeZone('NOW()')}
-                            , INTERVAL ${index} DAY))
-                          AND status = 1;
-                    `;
-                    db.query(monthCheckoutSQL, []).then((data) => {
-                        pass++;
-                        let total = 0;
-                        let total_pos = 0;
-                        let total_web = 0;
-                        let total_store = 0;
-                        data.map((checkout: any) => {
-                            if (checkout.orderData.orderSource === 'POS') {
-                                total_pos += parseInt(checkout.orderData.total, 10);
-                                if (qData.come_from.includes('store_') && Shopping.isComeStore(checkout.orderData, qData)) {
-                                    total_store += parseInt(checkout.orderData.total, 10);
-                                }
-                            } else {
-                                total_web += parseInt(checkout.orderData.total, 10);
-                            }
-                            total += parseInt(checkout.orderData.total, 10);
-                        });
-                        countArrayStore[index] = total_store;
-                        countArrayPos[index] = total_pos;
-                        countArrayWeb[index] = total_web;
-                        countArray[index] = total;
-                        if (pass === 14) {
-                            resolve(true);
-                        }
-                    });
-                }
-            });
-
-            return {
-                countArray: Object.keys(countArray)
-                    .sort((a: any, b: any) => parseInt(a, 10) - parseInt(b, 10))
-                    .map((dd) => {
-                        return countArray[dd];
-                    }),
-                countArrayPos: Object.keys(countArrayPos)
-                    .sort((a: any, b: any) => parseInt(a, 10) - parseInt(b, 10))
-                    .map((dd) => {
-                        return countArrayPos[dd];
-                    }),
-                countArrayStore: Object.keys(countArrayStore)
-                    .sort((a: any, b: any) => parseInt(a, 10) - parseInt(b, 10))
-                    .map((dd) => {
-                        return countArrayStore[dd];
-                    }),
-                countArrayWeb: Object.keys(countArrayWeb)
-                    .sort((a: any, b: any) => parseInt(a, 10) - parseInt(b, 10))
-                    .map((dd) => {
-                        return countArrayWeb[dd];
-                    }),
-            };
-        } catch (e) {
-            throw exception.BadRequestError('BAD_REQUEST', 'getRecentActiveUser Error:' + e, null);
-        }
-    }
-
-    async getSalesPerMonth(query: string) {
-        try {
-            const countArray: any = {};
-            const countArrayPos: any = {};
-            const countArrayWeb: any = {};
-            const countArrayStore: any = {};
-
-            const qData = JSON.parse(query);
-
-            let pass = 0;
-            await new Promise((resolve, reject) => {
-                for (let index = 0; index < 30; index++) {
-                    const monthCheckoutSQL = `
-                        SELECT orderData
-                        FROM \`${this.app}\`.t_checkout
-                        WHERE
-                            DAY (${convertTimeZone('created_time')}) = DAY (DATE_SUB(${convertTimeZone('NOW()')}
-                            , INTERVAL ${index} DAY))
-                          AND MONTH (${convertTimeZone('created_time')}) = MONTH (DATE_SUB(${convertTimeZone('NOW()')}
-                            , INTERVAL ${index} DAY))
-                          AND YEAR (${convertTimeZone('created_time')}) = YEAR (DATE_SUB(${convertTimeZone('NOW()')}
-                            , INTERVAL ${index} DAY))
-                          AND status = 1;
-                    `;
-                    db.query(monthCheckoutSQL, []).then((data) => {
-                        pass++;
-                        let total = 0;
-                        let total_pos = 0;
-                        let total_web = 0;
-                        let total_store = 0;
-                        data.map((checkout: any) => {
-                            if (checkout.orderData.orderSource === 'POS') {
-                                total_pos += parseInt(checkout.orderData.total, 10);
-                                if (qData.come_from && qData.come_from.includes('store_') && Shopping.isComeStore(checkout.orderData, qData)) {
-                                    total_store += parseInt(checkout.orderData.total, 10);
-                                }
-                            } else {
-                                total_web += parseInt(checkout.orderData.total, 10);
-                            }
-                            total += parseInt(checkout.orderData.total, 10);
-                        });
-                        countArrayStore[index] = total_store;
-                        countArrayPos[index] = total_pos;
-                        countArrayWeb[index] = total_web;
-                        countArray[index] = total;
-                        if (pass === 30) {
-                            resolve(true);
-                        }
-                    });
-                }
-            });
-
-            return {
-                countArray: Object.keys(countArray)
-                    .sort((a: any, b: any) => parseInt(a, 10) - parseInt(b, 10))
-                    .map((dd) => {
-                        return countArray[dd];
-                    }),
-                countArrayPos: Object.keys(countArrayPos)
-                    .sort((a: any, b: any) => parseInt(a, 10) - parseInt(b, 10))
-                    .map((dd) => {
-                        return countArrayPos[dd];
-                    }),
-                countArrayStore: Object.keys(countArrayStore)
-                    .sort((a: any, b: any) => parseInt(a, 10) - parseInt(b, 10))
-                    .map((dd) => {
-                        return countArrayStore[dd];
-                    }),
-                countArrayWeb: Object.keys(countArrayWeb)
-                    .sort((a: any, b: any) => parseInt(a, 10) - parseInt(b, 10))
-                    .map((dd) => {
-                        return countArrayWeb[dd];
-                    }),
-            };
-        } catch (e) {
-            throw exception.BadRequestError('BAD_REQUEST', 'getRecentActiveUser Error:' + e, null);
-        }
-    }
-
-    diffDates(startDateObj: Date, endDateObj: Date) {
-        var timeDiff = Math.abs(endDateObj.getTime() - startDateObj.getTime());
-        var diffDays = Math.ceil(timeDiff / (1000 * 3600 * 24));
-        return diffDays;
-    }
-
-    async getSalesPerMonthCustom(query: string) {
-        try {
-            const countArray: any = {};
-            const countArrayPos: any = {};
-            const countArrayWeb: any = {};
-            const countArrayStore: any = {};
-
-            const qData = JSON.parse(query);
-
-            const days = this.diffDates(new Date(qData.start), new Date(qData.end));
-            const formatEndDate = `"${Tool.replaceDatetime(qData.end)}"`;
-
-            let pass = 0;
-            await new Promise((resolve, reject) => {
-                for (let index = 0; index < days; index++) {
-                    const monthCheckoutSQL = `
-                        SELECT orderData
-                        FROM \`${this.app}\`.t_checkout
-                        WHERE
-                            DAY (${convertTimeZone('created_time')}) = DAY (DATE_SUB(${convertTimeZone(formatEndDate)}
-                            , INTERVAL ${index} DAY))
-                          AND MONTH (${convertTimeZone('created_time')}) = MONTH (DATE_SUB(${convertTimeZone(formatEndDate)}
-                            , INTERVAL ${index} DAY))
-                          AND YEAR (${convertTimeZone('created_time')}) = YEAR (DATE_SUB(${convertTimeZone(formatEndDate)}
-                            , INTERVAL ${index} DAY))
-                          AND status = 1;
-                    `;
-                    db.query(monthCheckoutSQL, []).then((data) => {
-                        pass++;
-                        let total = 0;
-                        let total_pos = 0;
-                        let total_web = 0;
-                        let total_store = 0;
-                        data.map((checkout: any) => {
-                            if (checkout.orderData.orderSource === 'POS') {
-                                total_pos += parseInt(checkout.orderData.total, 10);
-                                if (qData.come_from.includes('store_') && Shopping.isComeStore(checkout.orderData, qData)) {
-                                    total_store += parseInt(checkout.orderData.total, 10);
-                                }
-                            } else {
-                                total_web += parseInt(checkout.orderData.total, 10);
-                            }
-                            total += parseInt(checkout.orderData.total, 10);
-                        });
-                        countArrayStore[index] = total_store;
-                        countArrayPos[index] = total_pos;
-                        countArrayWeb[index] = total_web;
-                        countArray[index] = total;
-                        if (pass === days) {
-                            resolve(true);
-                        }
-                    });
-                }
-            });
-
-            return {
-                countArray: Object.keys(countArray)
-                    .sort((a: any, b: any) => parseInt(a, 10) - parseInt(b, 10))
-                    .map((dd) => {
-                        return countArray[dd];
-                    }),
-                countArrayPos: Object.keys(countArrayPos)
-                    .sort((a: any, b: any) => parseInt(a, 10) - parseInt(b, 10))
-                    .map((dd) => {
-                        return countArrayPos[dd];
-                    }),
-                countArrayStore: Object.keys(countArrayStore)
-                    .sort((a: any, b: any) => parseInt(a, 10) - parseInt(b, 10))
-                    .map((dd) => {
-                        return countArrayStore[dd];
-                    }),
-                countArrayWeb: Object.keys(countArrayWeb)
-                    .sort((a: any, b: any) => parseInt(a, 10) - parseInt(b, 10))
-                    .map((dd) => {
-                        return countArrayWeb[dd];
-                    }),
-            };
-        } catch (e) {
-            throw exception.BadRequestError('BAD_REQUEST', 'getRecentActiveUser Error:' + e, null);
-        }
-    }
-
-    async getOrderAvgSalePriceYear(query: string) {
-        try {
-            const qData = JSON.parse(query);
-            const countArray: any = {};
-            const countArrayPos: any = {};
-            const countArrayWeb: any = {};
-            const countArrayStore: any = {};
-            let pass = 0;
-            await new Promise((resolve, reject) => {
-                for (let index = 0; index < 12; index++) {
-                    const monthCheckoutSQL = `
-                        SELECT orderData
-                        FROM \`${this.app}\`.t_checkout
-                        WHERE
-                            MONTH (${convertTimeZone('created_time')}) = MONTH (DATE_SUB(${convertTimeZone('NOW()')}
-                            , INTERVAL ${index} MONTH))
-                          AND YEAR (${convertTimeZone('created_time')}) = YEAR (DATE_SUB(${convertTimeZone('NOW()')}
-                            , INTERVAL ${index} MONTH))
-                          AND status = 1;
-                    `;
-                    db.query(monthCheckoutSQL, []).then((data) => {
-                        pass++;
-                        let total = 0;
-                        let total_pos = 0;
-                        let total_web = 0;
-                        let total_store = 0;
-                        let pos_count = 0;
-                        let store_count = 0;
-                        let web_count = 0;
-                        data.map((checkout: any) => {
-                            if (checkout.orderData.orderSource === 'POS') {
-                                pos_count++;
-                                total_pos += parseInt(checkout.orderData.total, 10);
-                                if (qData.come_from.includes('store_') && Shopping.isComeStore(checkout.orderData, qData)) {
-                                    store_count++;
-                                    total_store += parseInt(checkout.orderData.total, 10);
-                                }
-                            } else {
-                                web_count++;
-                                total_web += parseInt(checkout.orderData.total, 10);
-                            }
-                            total += parseInt(checkout.orderData.total, 10);
-                        });
-                        countArrayStore[index] = Math.floor(total_store / store_count);
-                        countArrayPos[index] = Math.floor(total_pos / pos_count);
-                        countArrayWeb[index] = Math.floor(total_web / web_count);
-                        countArray[index] = Math.floor(total / data.length);
-                        if (pass === 12) {
-                            resolve(true);
-                        }
-                    });
-                }
-            });
-
-            return {
-                countArray: Object.keys(countArray)
-                    .sort((a: any, b: any) => parseInt(a, 10) - parseInt(b, 10))
-                    .map((dd) => {
-                        return countArray[dd];
-                    }),
-                countArrayPos: Object.keys(countArrayPos)
-                    .sort((a: any, b: any) => parseInt(a, 10) - parseInt(b, 10))
-                    .map((dd) => {
-                        return countArrayPos[dd];
-                    }),
-                countArrayStore: Object.keys(countArrayStore)
-                    .sort((a: any, b: any) => parseInt(a, 10) - parseInt(b, 10))
-                    .map((dd) => {
-                        return countArrayStore[dd];
-                    }),
-                countArrayWeb: Object.keys(countArrayWeb)
-                    .sort((a: any, b: any) => parseInt(a, 10) - parseInt(b, 10))
-                    .map((dd) => {
-                        return countArrayWeb[dd];
-                    }),
-            };
-        } catch (e) {
-            throw exception.BadRequestError('BAD_REQUEST', 'getRecentActiveUser Error:' + e, null);
-        }
-    }
-
-    async getOrderAvgSalePrice(query: string) {
-        try {
-            const qData = JSON.parse(query);
-            const countArray: any = {};
-            const countArrayPos: any = {};
-            const countArrayWeb: any = {};
-            const countArrayStore: any = {};
-
-            let pass = 0;
-            await new Promise((resolve, reject) => {
-                for (let index = 0; index < 14; index++) {
-                    const monthCheckoutSQL = `
-                        SELECT orderData
-                        FROM \`${this.app}\`.t_checkout
-                        WHERE
-                            DAY (${convertTimeZone('created_time')}) = DAY (DATE_SUB(${convertTimeZone('NOW()')}
-                            , INTERVAL ${index} DAY))
-                          AND MONTH (${convertTimeZone('created_time')}) = MONTH (DATE_SUB(${convertTimeZone('NOW()')}
-                            , INTERVAL ${index} DAY))
-                          AND YEAR (${convertTimeZone('created_time')}) = YEAR (DATE_SUB(${convertTimeZone('NOW()')}
-                            , INTERVAL ${index} DAY))
-                          AND status = 1;
-                    `;
-                    db.query(monthCheckoutSQL, []).then((data) => {
-                        pass++;
-                        let total = 0;
-                        let total_pos = 0;
-                        let total_web = 0;
-                        let total_store = 0;
-                        let pos_count = 0;
-                        let store_count = 0;
-                        let web_count = 0;
-                        data.map((checkout: any) => {
-                            if (checkout.orderData.orderSource === 'POS') {
-                                pos_count++;
-                                total_pos += parseInt(checkout.orderData.total, 10);
-                                if (qData.come_from.includes('store_') && Shopping.isComeStore(checkout.orderData, qData)) {
-                                    store_count++;
-                                    total_store += parseInt(checkout.orderData.total, 10);
-                                }
-                            } else {
-                                web_count++;
-                                total_web += parseInt(checkout.orderData.total, 10);
-                            }
-                            total += parseInt(checkout.orderData.total, 10);
-                        });
-                        countArrayStore[index] = Math.floor(total_store / store_count);
-                        countArrayPos[index] = Math.floor(total_pos / pos_count);
-                        countArrayWeb[index] = Math.floor(total_web / web_count);
-                        countArray[index] = Math.floor(total / data.length);
-                        if (pass === 14) {
-                            resolve(true);
-                        }
-                    });
-                }
-            });
-
-            return {
-                countArray: Object.keys(countArray)
-                    .sort((a: any, b: any) => parseInt(a, 10) - parseInt(b, 10))
-                    .map((dd) => {
-                        return countArray[dd];
-                    }),
-                countArrayPos: Object.keys(countArrayPos)
-                    .sort((a: any, b: any) => parseInt(a, 10) - parseInt(b, 10))
-                    .map((dd) => {
-                        return countArrayPos[dd];
-                    }),
-                countArrayStore: Object.keys(countArrayStore)
-                    .sort((a: any, b: any) => parseInt(a, 10) - parseInt(b, 10))
-                    .map((dd) => {
-                        return countArrayStore[dd];
-                    }),
-                countArrayWeb: Object.keys(countArrayWeb)
-                    .sort((a: any, b: any) => parseInt(a, 10) - parseInt(b, 10))
-                    .map((dd) => {
-                        return countArrayWeb[dd];
-                    }),
-            };
-        } catch (e) {
-            throw exception.BadRequestError('BAD_REQUEST', 'getRecentActiveUser Error:' + e, null);
-        }
-    }
-
-    async getOrderAvgSalePriceMonth(query: string) {
-        try {
-            const qData = JSON.parse(query);
-            const countArray: any = {};
-            const countArrayPos: any = {};
-            const countArrayWeb: any = {};
-            const countArrayStore: any = {};
-
-            let pass = 0;
-            await new Promise((resolve, reject) => {
-                for (let index = 0; index < 30; index++) {
-                    const monthCheckoutSQL = `
-                        SELECT orderData
-                        FROM \`${this.app}\`.t_checkout
-                        WHERE
-                            DAY (${convertTimeZone('created_time')}) = DAY (DATE_SUB(${convertTimeZone('NOW()')}
-                            , INTERVAL ${index} DAY))
-                          AND MONTH (${convertTimeZone('created_time')}) = MONTH (DATE_SUB(${convertTimeZone('NOW()')}
-                            , INTERVAL ${index} DAY))
-                          AND YEAR (${convertTimeZone('created_time')}) = YEAR (DATE_SUB(${convertTimeZone('NOW()')}
-                            , INTERVAL ${index} DAY))
-                          AND status = 1;
-                    `;
-                    db.query(monthCheckoutSQL, []).then((data) => {
-                        pass++;
-                        let total = 0;
-                        let total_pos = 0;
-                        let total_web = 0;
-                        let total_store = 0;
-                        let pos_count = 0;
-                        let store_count = 0;
-                        let web_count = 0;
-                        data.map((checkout: any) => {
-                            if (checkout.orderData.orderSource === 'POS') {
-                                pos_count++;
-                                total_pos += parseInt(checkout.orderData.total, 10);
-                                if (qData.come_from.includes('store_') && Shopping.isComeStore(checkout.orderData, qData)) {
-                                    store_count++;
-                                    total_store += parseInt(checkout.orderData.total, 10);
-                                }
-                            } else {
-                                web_count++;
-                                total_web += parseInt(checkout.orderData.total, 10);
-                            }
-                            total += parseInt(checkout.orderData.total, 10);
-                        });
-                        countArrayStore[index] = Math.floor(total_store / store_count);
-                        countArrayPos[index] = Math.floor(total_pos / pos_count);
-                        countArrayWeb[index] = Math.floor(total_web / web_count);
-                        countArray[index] = Math.floor(total / data.length);
-                        if (pass === 30) {
-                            resolve(true);
-                        }
-                    });
-                }
-            });
-
-            return {
-                countArray: Object.keys(countArray)
-                    .sort((a: any, b: any) => parseInt(a, 10) - parseInt(b, 10))
-                    .map((dd) => {
-                        return countArray[dd];
-                    }),
-                countArrayPos: Object.keys(countArrayPos)
-                    .sort((a: any, b: any) => parseInt(a, 10) - parseInt(b, 10))
-                    .map((dd) => {
-                        return countArrayPos[dd];
-                    }),
-                countArrayStore: Object.keys(countArrayStore)
-                    .sort((a: any, b: any) => parseInt(a, 10) - parseInt(b, 10))
-                    .map((dd) => {
-                        return countArrayStore[dd];
-                    }),
-                countArrayWeb: Object.keys(countArrayWeb)
-                    .sort((a: any, b: any) => parseInt(a, 10) - parseInt(b, 10))
-                    .map((dd) => {
-                        return countArrayWeb[dd];
-                    }),
-            };
-        } catch (e) {
-            throw exception.BadRequestError('BAD_REQUEST', 'getRecentActiveUser Error:' + e, null);
-        }
-    }
-
-    async getOrderAvgSalePriceCustomer(query: string) {
-        try {
-            const countArray: any = {};
-            const countArrayPos: any = {};
-            const countArrayWeb: any = {};
-            const countArrayStore: any = {};
-
-            const qData = JSON.parse(query);
-            const days = this.diffDates(new Date(qData.start), new Date(qData.end));
-            const formatEndDate = `"${Tool.replaceDatetime(qData.end)}"`;
-
-            let pass = 0;
-            await new Promise((resolve, reject) => {
-                for (let index = 0; index < days; index++) {
-                    const monthCheckoutSQL = `
-                        SELECT orderData
-                        FROM \`${this.app}\`.t_checkout
-                        WHERE
-                            DAY (${convertTimeZone('created_time')}) = DAY (DATE_SUB(${convertTimeZone(formatEndDate)}
-                            , INTERVAL ${index} DAY))
-                          AND MONTH (${convertTimeZone('created_time')}) = MONTH (DATE_SUB(${convertTimeZone(formatEndDate)}
-                            , INTERVAL ${index} DAY))
-                          AND YEAR (${convertTimeZone('created_time')}) = YEAR (DATE_SUB(${convertTimeZone(formatEndDate)}
-                            , INTERVAL ${index} DAY))
-                          AND status = 1;
-                    `;
-                    db.query(monthCheckoutSQL, []).then((data) => {
-                        pass++;
-                        let total = 0;
-                        let total_pos = 0;
-                        let total_web = 0;
-                        let total_store = 0;
-                        let pos_count = 0;
-                        let web_count = 0;
-                        let store_count = 0;
-                        data.map((checkout: any) => {
-                            if (checkout.orderData.orderSource === 'POS') {
-                                pos_count++;
-                                total_pos += parseInt(checkout.orderData.total, 10);
-                                if (qData.come_from.includes('store_') && Shopping.isComeStore(checkout.orderData, qData)) {
-                                    store_count++;
-                                    total_store += parseInt(checkout.orderData.total, 10);
-                                }
-                            } else {
-                                web_count++;
-                                total_web += parseInt(checkout.orderData.total, 10);
-                            }
-                            total += parseInt(checkout.orderData.total, 10);
-                        });
-                        countArrayStore[index] = Math.floor(total_store / store_count);
-                        countArrayPos[index] = Math.floor(total_pos / pos_count);
-                        countArrayWeb[index] = Math.floor(total_web / web_count);
-                        countArray[index] = Math.floor(total / data.length);
-                        if (pass === days) {
-                            resolve(true);
-                        }
-                    });
-                }
-            });
-
-            return {
-                countArray: Object.keys(countArray)
-                    .sort((a: any, b: any) => parseInt(a, 10) - parseInt(b, 10))
-                    .map((dd) => {
-                        return countArray[dd];
-                    }),
-                countArrayPos: Object.keys(countArrayPos)
-                    .sort((a: any, b: any) => parseInt(a, 10) - parseInt(b, 10))
-                    .map((dd) => {
-                        return countArrayPos[dd];
-                    }),
-                countArrayStore: Object.keys(countArrayStore)
-                    .sort((a: any, b: any) => parseInt(a, 10) - parseInt(b, 10))
-                    .map((dd) => {
-                        return countArrayStore[dd];
-                    }),
-                countArrayWeb: Object.keys(countArrayWeb)
-                    .sort((a: any, b: any) => parseInt(a, 10) - parseInt(b, 10))
-                    .map((dd) => {
-                        return countArrayWeb[dd];
-                    }),
-            };
-        } catch (e) {
-            throw exception.BadRequestError('BAD_REQUEST', 'getRecentActiveUser Error:' + e, null);
-        }
     }
 
     async getCollectionProducts(tags: string) {
@@ -5825,6 +4148,14 @@ OR JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.orderStatus')) NOT IN (-99)) `);
         return now >= startDateTime && now <= endDateTime;
     }
 
+    static isComeStore(checkout: any, qData: any) {
+        try {
+            return checkout.pos_info.where_store === qData.come_from;
+        } catch (error) {
+            return false;
+        }
+    }
+
     async updateProductCollection(content: string[], id: number) {
         try {
             const updateProdSQL = `UPDATE \`${this.app}\`.t_manager_post
@@ -6127,8 +4458,99 @@ OR JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.orderStatus')) NOT IN (-99)) `);
         });
         return data;
     }
-}
 
-function convertTimeZone(date: string) {
-    return `CONVERT_TZ(${date}, '+00:00', '+08:00')`;
+    async getProductComment(product_id: number) {
+        try {
+            const comments = await db.query(
+                `SELECT * FROM \`${this.app}\`.t_product_comment WHERE product_id = ?;
+                    `,
+                [product_id]
+            );
+            if (comments.length === 0) {
+                return [];
+            }
+            return comments.map((item: any) => item.content);
+        } catch (error) {
+            console.error(error);
+            throw exception.BadRequestError('BAD_REQUEST', 'getProductComment Error:' + error, null);
+        }
+    }
+
+    async postProductComment(data: { product_id: number; rate: number; title: string; comment: string }) {
+        try {
+            if (!this.token) {
+                throw new Error('User not authenticated.');
+            }
+
+            const { product_id, rate, title, comment } = data;
+            const today = new Date().toISOString().split('T')[0]; // 直接使用 ISO 格式 (yyyy-mm-dd)
+
+            const userClass = new User(this.app);
+            const userData = await userClass.getUserData(`${this.token.userID}`, 'userID');
+
+            const content = {
+                userID: this.token.userID,
+                userName: userData.userData.name,
+                date: today,
+                rate,
+                title,
+                comment,
+            };
+
+            // 嘗試更新評論，若無評論則插入
+            const [updateResult] = await db.execute(
+                `UPDATE \`${this.app}\`.t_product_comment 
+                 SET content = ? 
+                 WHERE product_id = ? AND JSON_EXTRACT(content, '$.userID') = ?`,
+                [JSON.stringify(content), product_id, this.token.userID]
+            );
+
+            if (updateResult.affectedRows === 0) {
+                await db.execute(
+                    `INSERT INTO \`${this.app}\`.t_product_comment (product_id, content) 
+                     VALUES (?, ?)`,
+                    [product_id, JSON.stringify(content)]
+                );
+            }
+
+            await this.updateProductAvgRate(product_id);
+
+            return true;
+        } catch (error) {
+            console.error(`Error posting product comment:`, error);
+            throw exception.BadRequestError('BAD_REQUEST', `postProductComment Error: ${error}`, null);
+        }
+    }
+
+    async updateProductAvgRate(product_id: number) {
+        try {
+            // 直接更新產品平均評分，減少 DB 查詢次數
+            const [result] = await db.query(
+                `SELECT 
+                    COALESCE(ROUND(AVG(JSON_EXTRACT(content, '$.rate')), 1), 0) AS avgRate 
+                 FROM \`${this.app}\`.t_product_comment 
+                 WHERE product_id = ?`,
+                [product_id]
+            );
+
+            const avg_rate = result?.avgRate ?? 0;
+
+            // 直接更新 avg_rate，避免讀取整個 product.content 再寫回
+            const updateResult = await db.execute(
+                `UPDATE \`${this.app}\`.t_manager_post 
+                 SET content = JSON_SET(content, '$.avg_rate', ?) 
+                 WHERE id = ?`,
+                [avg_rate, product_id]
+            );
+
+            if (updateResult.affectedRows === 0) {
+                throw new Error(`Product with ID ${product_id} not found.`);
+            }
+
+            return { product_id, avg_rate };
+        } catch (error) {
+            console.error(`Error updating average rate for product ID ${product_id}:`, error);
+            throw exception.BadRequestError('BAD_REQUEST', `updateProductAvgRate Error: ${error}`, null);
+        }
+    }
 }

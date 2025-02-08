@@ -359,7 +359,9 @@ export class ApiShop {
                     json.with_hide_index && par.push(`with_hide_index=${json.with_hide_index}`);
                     json.searchType && par.push(`searchType=${json.searchType}`);
                     json.filter_visible && par.push(`filter_visible=${json.filter_visible}`);
+                    json.view_source && par.push(`view_source=${json.view_source}`);
                     json.show_hidden && par.push(`show_hidden=${json.show_hidden}`);
+                    json.distribution_code && par.push(`distribution_code=${json.distribution_code}`);
                     if (location.pathname.includes('/hidden/')) {
                         par.push(`filter_visible=false`);
                     }
@@ -739,6 +741,18 @@ export class ApiShop {
     static toCheckout(json) {
         return BaseApi.create({
             url: getBaseUrl() + `/api-public/v1/ec/checkout`,
+            type: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'g-app': getConfig().config.appName,
+                Authorization: GlobalUser.token,
+            },
+            data: JSON.stringify(json),
+        });
+    }
+    static postComment(json) {
+        return BaseApi.create({
+            url: getBaseUrl() + `/api-public/v1/ec/product/comment`,
             type: 'POST',
             headers: {
                 'Content-Type': 'application/json',

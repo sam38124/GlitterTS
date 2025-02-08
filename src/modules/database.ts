@@ -103,7 +103,7 @@ export const queryLambada = async (
     const sp = mysql.createPool(cs);
     const connection = await sp.getConnection();
     if (connection) {
-        await connection.release();
+        connection.release();
         config.DB_SHOW_INFO && logger.info(TAG, 'Pool has been created. (function: queryLambada)');
     }
     try {

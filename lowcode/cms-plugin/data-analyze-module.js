@@ -2267,6 +2267,265 @@ export class DataAnalyzeModule {
             };
         });
     }
+    static hotProducts(gvc) {
+        return gvc.bindView(() => {
+            const id = gvc.glitter.getUUID();
+            const vm = {
+                loading: true,
+                data: {},
+                filter_date: 'week',
+                come_from: 'all',
+                switch: false,
+                startDate: '',
+                endDate: '',
+            };
+            gvc.glitter.addMtScript([
+                {
+                    src: 'https://d3jnmi1tfjgtti.cloudfront.net/file/252530754/1714105121170-apexcharts.min.js',
+                },
+            ], () => { }, () => { });
+            const vm_f = {
+                filter: 'count',
+            };
+            return {
+                bind: id,
+                view: () => {
+                    try {
+                        return BgWidget.card([
+                            html `
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <div style="${globalStyle.header_title}">暢銷商品</div>
+                                        <div class="d-flex align-items-center" style="gap:5px;">
+                                            <div
+                                                style="${vm.filter_date === 'week' ? globalStyle.select_date : globalStyle.un_select_date}"
+                                                onclick="${gvc.event(() => {
+                                vm.filter_date = 'week';
+                                gvc.notifyDataChange(id);
+                            })}"
+                                            >
+                                                一週
+                                            </div>
+                                            /
+                                            <div
+                                                style="${vm.filter_date !== 'week' ? globalStyle.select_date : globalStyle.un_select_date}"
+                                                onclick="${gvc.event(() => {
+                                vm.filter_date = '1m';
+                                gvc.notifyDataChange(id);
+                            })}"
+                                            >
+                                                一月
+                                            </div>
+                                        </div>
+                                    </div>
+                                `,
+                            BgWidget.tableV3({
+                                gvc: gvc,
+                                getData: (vmi) => {
+                                    const limit = 10;
+                                    const queryJsonString = () => {
+                                        return JSON.stringify({
+                                            come_from: vm.come_from,
+                                            filter_date: vm.filter_date,
+                                            start: vm.startDate ? new Date(vm.startDate).toISOString() : '',
+                                            end: vm.startDate ? new Date(vm.endDate).toISOString() : '',
+                                        });
+                                    };
+                                    ApiShop.ecDataAnalyze('hot_products_all'.split(','), queryJsonString()).then((data) => {
+                                        function getDatalist() {
+                                            return data.response.hot_products_all.product_list
+                                                .sort((a, b) => {
+                                                if (vm_f.filter === 'count') {
+                                                    return a.count < b.count ? 1 : -1;
+                                                }
+                                                else {
+                                                    return a.sale_price < b.sale_price ? 1 : -1;
+                                                }
+                                            })
+                                                .slice(0, 10)
+                                                .filter((dd) => {
+                                                if (vm.come_from === 'store') {
+                                                    return dd.pos_info;
+                                                }
+                                                else if (vm.come_from === 'website') {
+                                                    return !dd.pos_info;
+                                                }
+                                                else {
+                                                    return true;
+                                                }
+                                            })
+                                                .map((dd, index) => {
+                                                return [
+                                                    {
+                                                        key: 'No.',
+                                                        value: html `<span class="fs-7">${index + 1} .</span>`,
+                                                    },
+                                                    {
+                                                        key: '商品',
+                                                        value: html `<div class="d-flex align-items-center" style="gap:10px;">
+                                                                    ${BgWidget.validImageBox({
+                                                            gvc,
+                                                            image: dd.preview_image,
+                                                            width: 35,
+                                                            class: 'rounded-3',
+                                                        })}
+                                                                    ${dd.title}
+                                                                </div>`,
+                                                    },
+                                                    {
+                                                        key: '銷售額',
+                                                        value: `$ ${dd.sale_price.toLocaleString()}`,
+                                                    },
+                                                    {
+                                                        key: '銷量',
+                                                        value: dd.count,
+                                                    },
+                                                ];
+                                            });
+                                        }
+                                        vmi.pageSize = Math.ceil(data.response.total / limit);
+                                        vmi.tableData = getDatalist();
+                                        vmi.loading = false;
+                                        vmi.callback();
+                                    });
+                                },
+                                rowClick: (data, index) => { },
+                                filter: [],
+                            }),
+                        ].join('<div class="my-3 w-100 border-top"></div>'));
+                    }
+                    catch (e) {
+                        console.error(e);
+                        return `${e}`;
+                    }
+                },
+                divCreate: {
+                    class: `mx-auto`,
+                    style: `width:100%;`,
+                },
+            };
+        });
+    }
+    static hotCollection(gvc) {
+        return gvc.bindView(() => {
+            const id = gvc.glitter.getUUID();
+            const vm = {
+                loading: true,
+                data: {},
+                filter_date: 'week',
+                come_from: 'all',
+                switch: false,
+                startDate: '',
+                endDate: '',
+            };
+            gvc.glitter.addMtScript([
+                {
+                    src: 'https://d3jnmi1tfjgtti.cloudfront.net/file/252530754/1714105121170-apexcharts.min.js',
+                },
+            ], () => { }, () => { });
+            const vm_f = {
+                filter: 'count',
+            };
+            return {
+                bind: id,
+                view: () => {
+                    try {
+                        return BgWidget.card([
+                            html `
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <div style="${globalStyle.header_title}">暢銷類別</div>
+                                        <div class="d-flex align-items-center" style="gap:5px;">
+                                            <div
+                                                style="${vm.filter_date === 'week' ? globalStyle.select_date : globalStyle.un_select_date}"
+                                                onclick="${gvc.event(() => {
+                                vm.filter_date = 'week';
+                                gvc.notifyDataChange(id);
+                            })}"
+                                            >
+                                                一週
+                                            </div>
+                                            /
+                                            <div
+                                                style="${vm.filter_date !== 'week' ? globalStyle.select_date : globalStyle.un_select_date}"
+                                                onclick="${gvc.event(() => {
+                                vm.filter_date = '1m';
+                                gvc.notifyDataChange(id);
+                            })}"
+                                            >
+                                                一月
+                                            </div>
+                                        </div>
+                                    </div>
+                                `,
+                            BgWidget.tableV3({
+                                gvc: gvc,
+                                getData: (vmi) => {
+                                    const limit = 10;
+                                    const queryJsonString = () => {
+                                        return JSON.stringify({
+                                            come_from: vm.come_from,
+                                            filter_date: vm.filter_date,
+                                            start: vm.startDate ? new Date(vm.startDate).toISOString() : '',
+                                            end: vm.startDate ? new Date(vm.endDate).toISOString() : '',
+                                        });
+                                    };
+                                    ApiShop.ecDataAnalyze('hot_products_all'.split(','), queryJsonString()).then((data) => {
+                                        function getDatalist() {
+                                            return data.response.hot_products_all.sorted_collections
+                                                .filter((dd) => {
+                                                if (vm.come_from === 'store') {
+                                                    return dd.pos_info;
+                                                }
+                                                else if (vm.come_from === 'website') {
+                                                    return !dd.pos_info;
+                                                }
+                                                else {
+                                                    return true;
+                                                }
+                                            })
+                                                .map((dd, index) => {
+                                                return [
+                                                    {
+                                                        key: 'No.',
+                                                        value: html `<span class="fs-7">${index + 1} .</span>`,
+                                                    },
+                                                    {
+                                                        key: '類別名稱',
+                                                        value: html `<div class="d-flex align-items-center" style="gap:10px;">${dd.collection}</div>`,
+                                                    },
+                                                    {
+                                                        key: '銷售額',
+                                                        value: `$ ${dd.sale_price.toLocaleString()}`,
+                                                    },
+                                                    {
+                                                        key: '銷量',
+                                                        value: dd.count,
+                                                    },
+                                                ];
+                                            });
+                                        }
+                                        vmi.pageSize = Math.ceil(data.response.total / limit);
+                                        vmi.tableData = getDatalist();
+                                        vmi.loading = false;
+                                        vmi.callback();
+                                    });
+                                },
+                                rowClick: (data, index) => { },
+                                filter: [],
+                            }),
+                        ].join('<div class="my-3 w-100 border-top"></div>'));
+                    }
+                    catch (e) {
+                        console.error(e);
+                        return `${e}`;
+                    }
+                },
+                divCreate: {
+                    class: `mx-auto`,
+                    style: `width:100%;`,
+                },
+            };
+        });
+    }
 }
 function diffDates(startDateObj, endDateObj) {
     var timeDiff = Math.abs(endDateObj.getTime() - startDateObj.getTime());

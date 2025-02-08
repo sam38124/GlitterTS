@@ -544,7 +544,18 @@ class ApiPublic {
   INDEX \`index3\` (\`summary_type\` ASC) VISIBLE,
   INDEX \`index4\` (\`created_time\` ASC) VISIBLE);
 `,
-                }
+                },
+                {
+                    scheme: appName,
+                    table: 't_product_comment',
+                    sql: `(
+  \`id\` int NOT NULL AUTO_INCREMENT,
+  \`product_id\` int DEFAULT NULL,
+  \`content\` json NOT NULL,
+  PRIMARY KEY (\`id\`),
+  KEY \`index2\` (\`product_id\`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci`,
+                },
             ];
             for (const b of chunkArray(sqlArray, groupSize)) {
                 let check = b.length;
@@ -588,8 +599,7 @@ class ApiPublic {
                 await trans.commit();
                 await trans.release();
             }
-            catch (e) {
-            }
+            catch (e) { }
         }
     }
     static async migrateVariants(app) {

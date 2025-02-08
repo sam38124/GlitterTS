@@ -43,15 +43,15 @@ export class BgRecommend {
                     }
                     if (vm.type === 'list') {
                         return BgWidget.container(html `
-                                <div class="title-container">
-                                    ${BgWidget.title('分銷連結')}
-                                    <div class="flex-fill"></div>
-                                    ${BgWidget.darkButton('新增', gvc.event(() => {
+                            <div class="title-container">
+                                ${BgWidget.title('分銷連結')}
+                                <div class="flex-fill"></div>
+                                ${BgWidget.darkButton('新增', gvc.event(() => {
                             vm.type = 'add';
                             gvc.notifyDataChange(vm.id);
                         }))}
-                                </div>
-                                ${BgWidget.container(BgWidget.mainCard(this.linkTable({
+                            </div>
+                            ${BgWidget.container(BgWidget.mainCard(this.linkTable({
                             gvc,
                             vm,
                             rowCallback: (data, index) => {
@@ -59,7 +59,7 @@ export class BgRecommend {
                                 vm.type = 'replace';
                             },
                         })))}
-                            `);
+                        `);
                     }
                     else if (vm.type === 'add') {
                         return this.editorLink({
@@ -317,15 +317,15 @@ export class BgRecommend {
                 view: () => {
                     if (vm.type === 'list') {
                         return BgWidget.container(html `
-                                <div class="title-container">
-                                    ${BgWidget.title('推薦人列表')}
-                                    <div class="flex-fill"></div>
-                                    ${BgWidget.darkButton('新增', gvc.event(() => {
+                            <div class="title-container">
+                                ${BgWidget.title('推薦人列表')}
+                                <div class="flex-fill"></div>
+                                ${BgWidget.darkButton('新增', gvc.event(() => {
                             vm.type = 'add';
                             gvc.notifyDataChange(vm.id);
                         }))}
-                                </div>
-                                ${BgWidget.container(BgWidget.mainCard([
+                            </div>
+                            ${BgWidget.container(BgWidget.mainCard([
                             (() => {
                                 const fvm = {
                                     id: gvc.glitter.getUUID(),
@@ -367,12 +367,10 @@ export class BgRecommend {
                                         ];
                                         if (document.body.clientWidth < 768) {
                                             return html ` <div style="display: flex; align-items: center; gap: 10px; width: 100%; justify-content: space-between">
-                                                                    <div>${filterList[0]}</div>
-                                                                    <div style="display: flex;">
-                                                                        ${filterList[2] ? `<div class="me-2">${filterList[2]}</div>` : ''}
-                                                                    </div>
-                                                                </div>
-                                                                <div style="display: flex; margin-top: 8px;">${filterList[1]}</div>`;
+                                                                <div>${filterList[0]}</div>
+                                                                <div style="display: flex;">${filterList[2] ? `<div class="me-2">${filterList[2]}</div>` : ''}</div>
+                                                            </div>
+                                                            <div style="display: flex; margin-top: 8px;">${filterList[1]}</div>`;
                                         }
                                         else {
                                             return html ` <div style="display: flex; align-items: center; gap: 10px;">${filterList.join('')}</div>`;
@@ -438,7 +436,7 @@ export class BgRecommend {
                                 },
                             }),
                         ].join('')))}
-                            `);
+                        `);
                     }
                     else if (vm.type === 'add') {
                         return this.editorUser({
@@ -766,54 +764,56 @@ export class BgRecommend {
                                                                             : BgWidget.noImageURL;
                                                                     selectVariant.qty = selectVariant.qty || 1;
                                                                     returnHTML += html `
-                                                                                <div style="width: 100%;display: flex;align-items: center;position: relative;padding-right: 20px;">
-                                                                                    <div class="flex-fill d-flex align-items-center col-5" style="font-size: 16px;font-weight: 700;gap: 12px;">
-                                                                                        <div style="width: 54px;height: 54px; background: url('${productIMG}') lightgray 50% / cover no-repeat;"></div>
-                                                                                        <div
-                                                                                            style="display: flex;flex-direction: column;align-items: flex-start;gap: 4px;width: calc(100% - 54px);padding-right: 15px;"
-                                                                                        >
-                                                                                            <div style="text-overflow: ellipsis;white-space: nowrap;overflow: hidden;width: 100%;">
-                                                                                                ${product.content.title}
+                                                                                    <div style="width: 100%;display: flex;align-items: center;position: relative;padding-right: 20px;">
+                                                                                        <div class="flex-fill d-flex align-items-center col-5" style="font-size: 16px;font-weight: 700;gap: 12px;">
+                                                                                            <div
+                                                                                                style="width: 54px;height: 54px; background: url('${productIMG}') lightgray 50% / cover no-repeat;"
+                                                                                            ></div>
+                                                                                            <div
+                                                                                                style="display: flex;flex-direction: column;align-items: flex-start;gap: 4px;width: calc(100% - 54px);padding-right: 15px;"
+                                                                                            >
+                                                                                                <div style="text-overflow: ellipsis;white-space: nowrap;overflow: hidden;width: 100%;">
+                                                                                                    ${product.content.title}
+                                                                                                </div>
                                                                                             </div>
                                                                                         </div>
-                                                                                    </div>
-                                                                                    <div
-                                                                                        class="col-3"
-                                                                                        style="display: flex;padding-right: 40px;align-items: flex-start;font-size: 16px;font-weight: 400;"
-                                                                                    >
-                                                                                        $${(() => {
+                                                                                        <div
+                                                                                            class="col-3"
+                                                                                            style="display: flex;padding-right: 40px;align-items: flex-start;font-size: 16px;font-weight: 400;"
+                                                                                        >
+                                                                                            $${(() => {
                                                                         const price = parseInt(`${selectVariant.sale_price}`, 10);
                                                                         return isNaN(price) ? 0 : price.toLocaleString();
                                                                     })()}
-                                                                                    </div>
-                                                                                    <div style="min-width: 6%;font-size: 16px;font-weight: 400;width: 100px;text-align: right;">
-                                                                                        <span>$${(selectVariant.sale_price * selectVariant.qty).toLocaleString()}</span>
-                                                                                        <div
-                                                                                            class="d-flex align-items-center cursor_pointer"
-                                                                                            style="position: absolute;right:0;top:50%;transform: translateY(-50%)"
-                                                                                            onclick="${gvc.event(() => {
+                                                                                        </div>
+                                                                                        <div style="min-width: 6%;font-size: 16px;font-weight: 400;width: 100px;text-align: right;">
+                                                                                            <span>$${(selectVariant.sale_price * selectVariant.qty).toLocaleString()}</span>
+                                                                                            <div
+                                                                                                class="d-flex align-items-center cursor_pointer"
+                                                                                                style="position: absolute;right:0;top:50%;transform: translateY(-50%)"
+                                                                                                onclick="${gvc.event(() => {
                                                                         newOrder.productCheck.splice(index, 1);
                                                                         gvc.notifyDataChange('listProduct');
                                                                     })}"
-                                                                                        >
-                                                                                            <svg xmlns="http://www.w3.org/2000/svg" width="11" height="10" viewBox="0 0 11 10" fill="none">
-                                                                                                <path
-                                                                                                    d="M1.51367 9.24219L9.99895 0.756906"
-                                                                                                    stroke="#DDDDDD"
-                                                                                                    stroke-width="1.3"
-                                                                                                    stroke-linecap="round"
-                                                                                                />
-                                                                                                <path
-                                                                                                    d="M9.99805 9.24219L1.51276 0.756907"
-                                                                                                    stroke="#DDDDDD"
-                                                                                                    stroke-width="1.3"
-                                                                                                    stroke-linecap="round"
-                                                                                                />
-                                                                                            </svg>
+                                                                                            >
+                                                                                                <svg xmlns="http://www.w3.org/2000/svg" width="11" height="10" viewBox="0 0 11 10" fill="none">
+                                                                                                    <path
+                                                                                                        d="M1.51367 9.24219L9.99895 0.756906"
+                                                                                                        stroke="#DDDDDD"
+                                                                                                        stroke-width="1.3"
+                                                                                                        stroke-linecap="round"
+                                                                                                    />
+                                                                                                    <path
+                                                                                                        d="M9.99805 9.24219L1.51276 0.756907"
+                                                                                                        stroke="#DDDDDD"
+                                                                                                        stroke-width="1.3"
+                                                                                                        stroke-linecap="round"
+                                                                                                    />
+                                                                                                </svg>
+                                                                                            </div>
                                                                                         </div>
                                                                                     </div>
-                                                                                </div>
-                                                                            `;
+                                                                                `;
                                                                 });
                                                             }
                                                             return returnHTML;
@@ -1336,7 +1336,7 @@ export class BgRecommend {
                                                                 BgWidget.editeInput({
                                                                     gvc: gvc,
                                                                     title: '',
-                                                                    default: user ? user.content.name : (_a = vm.data.recommend_user.name) !== null && _a !== void 0 ? _a : '',
+                                                                    default: user ? user.content.name : ((_a = vm.data.recommend_user.name) !== null && _a !== void 0 ? _a : ''),
                                                                     placeHolder: '請輸入名字',
                                                                     callback: (text) => {
                                                                         vm.data.recommend_user.name = text;
@@ -1355,7 +1355,7 @@ export class BgRecommend {
                                                                             return BgWidget.editeInput({
                                                                                 gvc: gvc,
                                                                                 title: '',
-                                                                                default: user ? user.content.email : (_a = vm.data.recommend_user.email) !== null && _a !== void 0 ? _a : '',
+                                                                                default: user ? user.content.email : ((_a = vm.data.recommend_user.email) !== null && _a !== void 0 ? _a : ''),
                                                                                 placeHolder: '請輸入電子信箱',
                                                                                 callback: (text) => {
                                                                                     if (vm.users.find((user) => user.email === text)) {
@@ -1375,7 +1375,7 @@ export class BgRecommend {
                                                                 BgWidget.editeInput({
                                                                     gvc: gvc,
                                                                     title: '',
-                                                                    default: user ? user.content.phone : (_b = vm.data.recommend_user.phone) !== null && _b !== void 0 ? _b : '',
+                                                                    default: user ? user.content.phone : ((_b = vm.data.recommend_user.phone) !== null && _b !== void 0 ? _b : ''),
                                                                     placeHolder: '請輸入電話',
                                                                     callback: (text) => {
                                                                         vm.data.recommend_user.phone = text;
@@ -1597,8 +1597,14 @@ export class BgRecommend {
                                     return;
                                 }
                             }
-                            let lineItems = [];
                             vm.data.lineItems = newOrder.productCheck;
+                            vm.data.start_ISO_Date = new Date(`${vm.data.startDate} ${vm.data.startTime}`).toISOString();
+                            if (vm.data.endDate && vm.data.endTime) {
+                                vm.data.end_ISO_Date = new Date(`${vm.data.endDate} ${vm.data.endTime}`).toISOString();
+                            }
+                            else {
+                                vm.data.end_ISO_Date = '';
+                            }
                             dialog.dataLoading({ visible: true });
                             if (vm.readonly) {
                                 ApiRecommend.putListData({

@@ -81,7 +81,7 @@ export class LanguageBackend {
                 footer_html: (gvc) => {
                     return ``;
                 },
-                width: 300
+                width: 350
             });
         }));
     }

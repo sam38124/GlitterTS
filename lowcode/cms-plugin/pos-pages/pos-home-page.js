@@ -7,7 +7,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
-import { ApiShop } from "../../glitter-base/route/shopping.js";
+import { ApiShop } from '../../glitter-base/route/shopping.js';
 const html = String.raw;
 export class PosHomePage {
     static main(gvc) {
@@ -15,11 +15,13 @@ export class PosHomePage {
             const id = gvc.glitter.getUUID();
             const vm = {
                 loading: true,
-                data: {}
+                data: {},
             };
-            gvc.glitter.addMtScript([{
-                    src: 'https://d3jnmi1tfjgtti.cloudfront.net/file/252530754/1714105121170-apexcharts.min.js'
-                }], () => { }, () => { });
+            gvc.glitter.addMtScript([
+                {
+                    src: 'https://d3jnmi1tfjgtti.cloudfront.net/file/252530754/1714105121170-apexcharts.min.js',
+                },
+            ], () => { }, () => { });
             ApiShop.ecDataAnalyze('order_today,hot_products_today,sales,orders,orders_per_month,recent_active_user,recent_sales,recent_orders,hot_products,order_avg_sale_price,sales_per_month_1_year,orders_per_month_1_year'.split(',')).then((res) => __awaiter(this, void 0, void 0, function* () {
                 vm.loading = false;
                 vm.data = res.response;
@@ -33,33 +35,47 @@ export class PosHomePage {
                     }
                     return html `
                         <div class="row m-0">
-                            <div class="col-12"
-                                 style="width: 100%; padding: 24px; background: white; box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.08); border-radius: 10px; flex-direction: column; justify-content: flex-start; align-items: flex-start; gap: 24px; display: inline-flex;margin-top: 24px;"
+                            <div
+                                class="col-12"
+                                style="width: 100%; padding: 24px; background: white; box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.08); border-radius: 10px; flex-direction: column; justify-content: flex-start; align-items: flex-start; gap: 24px; display: inline-flex;margin-top: 24px;"
                             >
-                                <div class="d-flex flex-column flex-xl-row"
-                                     style="align-self: stretch; flex: 1 1 0; justify-content: flex-start; align-items: center; gap: 20px; display: inline-flex;"
+                                <div
+                                    class="d-flex flex-column flex-xl-row"
+                                    style="align-self: stretch; flex: 1 1 0; justify-content: flex-start; align-items: center; gap: 20px; display: inline-flex;"
                                 >
-                                    <div class=""
-                                         style="flex: 1 1 0; align-self: stretch; flex-direction: column; justify-content: center; align-items: flex-start; gap: 8px; display: inline-flex;"
-                                    >
-                                        <div class=""
-                                             style="align-self: stretch; color: #393939; font-size: 20px; font-family: Noto Sans; font-weight: 700; word-wrap: break-word;"
-                                        >營運狀況總覽
-                                        </div>
-                                        <div class=""
-                                             style="align-self: stretch; color: #8D8D8D; font-size: 16px; font-family: Noto Sans; font-weight: 400; word-wrap: break-word;"
-                                        >查看目前的業務情形
+                                    <div class="" style="flex: 1 1 0; align-self: stretch; flex-direction: column; justify-content: center; align-items: flex-start; gap: 8px; display: inline-flex;">
+                                        <div class="" style="align-self: stretch; color: #393939; font-size: 20px; font-family: Noto Sans; font-weight: 700; word-wrap: break-word;">營運狀況總覽</div>
+                                        <div class="" style="align-self: stretch; color: #8D8D8D; font-size: 16px; font-family: Noto Sans; font-weight: 400; word-wrap: break-word;">
+                                            查看目前的業務情形
                                         </div>
                                     </div>
-                                    <div class="d-flex flex-column flex-sm-row"
-                                         style="width: 896px;    max-width: 100%; align-self: stretch; justify-content: flex-start; align-items: flex-start; gap: 20px; display: flex;"
+                                    <div
+                                        class="d-flex flex-column flex-sm-row"
+                                        style="width: 896px;    max-width: 100%; align-self: stretch; justify-content: flex-start; align-items: flex-start; gap: 20px; display: flex;"
                                     >
                                         ${[
-                        { title: '今日成交總額', value: vm.data.order_today.total_amount, icon: `https://d3jnmi1tfjgtti.cloudfront.net/file/252530754/1716565784156-coins-light.svg` },
-                        { title: '今日成交訂單', value: vm.data.order_today.total_count, icon: `https://d3jnmi1tfjgtti.cloudfront.net/file/252530754/1716560642608-clipboard-list-light 1.svg` },
-                        { title: '未出貨訂單', value: vm.data.order_today.un_shipment, icon: `https://d3jnmi1tfjgtti.cloudfront.net/file/252530754/1716560713871-truck-light 1.svg` },
-                        { title: '未付款訂單', value: vm.data.order_today.un_pay, icon: `https://d3jnmi1tfjgtti.cloudfront.net/file/252530754/1716560798255-credit-card-light 1.svg` }
-                    ].map((dd) => {
+                        {
+                            title: '今日成交總額',
+                            value: vm.data.order_today.total_amount,
+                            icon: `https://d3jnmi1tfjgtti.cloudfront.net/file/252530754/1716565784156-coins-light.svg`,
+                        },
+                        {
+                            title: '今日成交訂單',
+                            value: vm.data.order_today.total_count,
+                            icon: `https://d3jnmi1tfjgtti.cloudfront.net/file/252530754/1716560642608-clipboard-list-light 1.svg`,
+                        },
+                        {
+                            title: '未出貨訂單',
+                            value: vm.data.order_today.un_shipment,
+                            icon: `https://d3jnmi1tfjgtti.cloudfront.net/file/252530754/1716560713871-truck-light 1.svg`,
+                        },
+                        {
+                            title: '未付款訂單',
+                            value: vm.data.order_today.un_pay,
+                            icon: `https://d3jnmi1tfjgtti.cloudfront.net/file/252530754/1716560798255-credit-card-light 1.svg`,
+                        },
+                    ]
+                        .map((dd) => {
                         return ` <div class=""
                                              style="flex: 1 1 0; align-self: stretch; padding-left: 32px; padding-right: 32px; padding-top: 47px; padding-bottom: 47px; background: white; box-shadow: 0px 0px 5px rgba(0, 0, 0, 0.10); border-radius: 10px; overflow: hidden; flex-direction: column; justify-content: center; align-items: flex-start; gap: 10px; display: inline-flex;"
                                         >
@@ -82,7 +98,8 @@ export class PosHomePage {
                                                      src="${dd.icon}">
                                             </div>
                                         </div>`;
-                    }).join('')}
+                    })
+                        .join('')}
                                     </div>
                                 </div>
                             </div>
@@ -127,8 +144,8 @@ export class PosHomePage {
                                 }, 500);
                             },
                             divCreate: {
-                                class: `col-12 col-sm-6 mb-2`
-                            }
+                                class: `col-12 col-sm-6 mb-2`,
+                            },
                         };
                     })}
                             ${gvc.bindView(() => {
@@ -185,8 +202,8 @@ export class PosHomePage {
                                 }, 500);
                             },
                             divCreate: {
-                                class: `col-12 col-sm-6 mb-2`
-                            }
+                                class: `col-12 col-sm-6 mb-2`,
+                            },
                         };
                     })}
                             ${gvc.bindView(() => {
@@ -247,8 +264,8 @@ export class PosHomePage {
                                 }, 500);
                             },
                             divCreate: {
-                                class: `col-12 col-sm-6 mb-2`
-                            }
+                                class: `col-12 col-sm-6 mb-2`,
+                            },
                         };
                     })}
                             ${gvc.bindView(() => {
@@ -306,8 +323,8 @@ export class PosHomePage {
                                 }, 500);
                             },
                             divCreate: {
-                                class: `col-12 col-sm-6 mb-2`
-                            }
+                                class: `col-12 col-sm-6 mb-2`,
+                            },
                         };
                     })}
                             ${gvc.bindView(() => {
@@ -365,16 +382,17 @@ export class PosHomePage {
                                 }, 500);
                             },
                             divCreate: {
-                                class: `col-12 col-sm-6 mb-2`
-                            }
+                                class: `col-12 col-sm-6 mb-2`,
+                            },
                         };
                     })}
                         </div>
                     `;
                 },
                 divCreate: {
-                    class: `mx-auto`, style: `width:1200px;max-width:calc(100% - 20px);`
-                }
+                    class: `mx-auto`,
+                    style: `width:1200px;max-width:calc(100% - 20px);`,
+                },
             };
         });
     }

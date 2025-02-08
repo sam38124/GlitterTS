@@ -370,6 +370,8 @@ export class ApiShop {
         filter_visible?: string;
         app_name?: string;
         show_hidden?: boolean;
+        view_source?: string;
+        distribution_code?: string;
     }) {
         return BaseApi.create({
             url:
@@ -395,7 +397,9 @@ export class ApiShop {
                     json.with_hide_index && par.push(`with_hide_index=${json.with_hide_index}`);
                     json.searchType && par.push(`searchType=${json.searchType}`);
                     json.filter_visible && par.push(`filter_visible=${json.filter_visible}`);
+                    json.view_source && par.push(`view_source=${json.view_source}`);
                     json.show_hidden && par.push(`show_hidden=${json.show_hidden}`);
+                    json.distribution_code && par.push(`distribution_code=${json.distribution_code}`);
                     if (location.pathname.includes('/hidden/')) {
                         par.push(`filter_visible=false`);
                     } else if ((window as any).glitter.getUrlParameter('function') === 'user-editor') {
@@ -864,6 +868,19 @@ export class ApiShop {
     }) {
         return BaseApi.create({
             url: getBaseUrl() + `/api-public/v1/ec/checkout`,
+            type: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'g-app': getConfig().config.appName,
+                Authorization: GlobalUser.token,
+            },
+            data: JSON.stringify(json),
+        });
+    }
+
+    static postComment(json: { product_id: number; rate: number; title: string; comment: string }) {
+        return BaseApi.create({
+            url: getBaseUrl() + `/api-public/v1/ec/product/comment`,
             type: 'POST',
             headers: {
                 'Content-Type': 'application/json',

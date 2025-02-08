@@ -1,11 +1,11 @@
 import db from '../../modules/database';
-import {saasConfig} from '../../config.js';
-import {compare_sql_table} from '../../services/saas-table-check.js';
+import { saasConfig } from '../../config.js';
+import { compare_sql_table } from '../../services/saas-table-check.js';
 import tool from '../../services/tool.js';
-import {AiRobot} from './ai-robot.js';
-import {User} from './user.js';
-import {Shopping} from './shopping.js';
-import {UpdatedTableChecked} from "./updated-table-checked.js";
+import { AiRobot } from './ai-robot.js';
+import { User } from './user.js';
+import { Shopping } from './shopping.js';
+import { UpdatedTableChecked } from './updated-table-checked.js';
 
 export class ApiPublic {
     public static checkApp: { app_name: string; refer_app: string }[] = [];
@@ -558,7 +558,6 @@ export class ApiPublic {
 //                 },
                 {
                     scheme: appName,
-
                     table: `t_check_in_pos`,
                     sql: `(
   \`id\` INT NOT NULL AUTO_INCREMENT,
@@ -587,7 +586,18 @@ export class ApiPublic {
   INDEX \`index3\` (\`summary_type\` ASC) VISIBLE,
   INDEX \`index4\` (\`created_time\` ASC) VISIBLE);
 `,
-                }
+                },
+                {
+                    scheme: appName,
+                    table: 't_product_comment',
+                    sql: `(
+  \`id\` int NOT NULL AUTO_INCREMENT,
+  \`product_id\` int DEFAULT NULL,
+  \`content\` json NOT NULL,
+  PRIMARY KEY (\`id\`),
+  KEY \`index2\` (\`product_id\`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci`,
+                },
             ];
             for (const b of chunkArray(sqlArray, groupSize)) {
                 let check = b.length;
@@ -605,7 +615,7 @@ export class ApiPublic {
             await AiRobot.syncAiRobot(appName);
             await ApiPublic.migrateVariants(appName);
             //檢查資料庫更新
-            await UpdatedTableChecked.startCheck(appName)
+            await UpdatedTableChecked.startCheck(appName);
         } catch (e) {
             console.error(e);
             ApiPublic.checkApp = ApiPublic.checkApp.filter((dd) => {
@@ -639,8 +649,7 @@ export class ApiPublic {
                 await trans.execute(`GRANT ALL PRIVILEGES ON \`${appName}\`.* TO '${sql_info.sql_admin}'@'*';`, []);
                 await trans.commit();
                 await trans.release();
-            } catch (e) {
-            }
+            } catch (e) {}
         }
     }
 

@@ -13,15 +13,14 @@ import { CheckInput } from '../../modules/checkInput.js';
 import { PdClass } from './pd-class.js';
 import { ApiUser } from '../../glitter-base/route/user.js';
 import { Language } from '../../glitter-base/global/language.js';
-import { Currency } from "../../glitter-base/global/currency.js";
+import { Currency } from '../../glitter-base/global/currency.js';
 const html = String.raw;
 export class ProductCard03 {
     static main(gvc, widget, subData) {
         var _a, _b, _c, _d;
-        console.log(`widget==>`, widget);
         const glitter = gvc.glitter;
         const wishId = glitter.getUUID();
-        const prod = (typeof subData.content !== "object") ? subData : subData.content;
+        const prod = typeof subData.content !== 'object' ? subData : subData.content;
         let label = {};
         let loading = false;
         const titleFontColor = (_a = glitter.share.globalValue['theme_color.0.title']) !== null && _a !== void 0 ? _a : '#333333';
@@ -46,8 +45,7 @@ export class ProductCard03 {
         if (radius.length !== 4) {
             radius = [20, 20, 20, 20];
         }
-        let changePage = (index, type, subData) => {
-        };
+        let changePage = (index, type, subData) => { };
         gvc.glitter.getModule(new URL('./official_event/page/change-page.js', gvc.glitter.root_path).href, (cl) => {
             changePage = cl.changePage;
         });
@@ -157,17 +155,19 @@ export class ProductCard03 {
             }
             return rela_link;
         }
-        return html `
-            <div
-                    class="card mb-7 card-border"
-                    style="cursor: pointer"
-                    onclick="${gvc.event(() => {
+        return html ` <div
+            class="card mb-7 card-border"
+            style="cursor: pointer"
+            onclick="${gvc.event(() => {
             PdClass.changePage(prod, gvc);
         })}"
+        >
+            <div
+                class="card-img-top parent card-image position-relative"
+                style="  border-radius: ${radius.map((dd) => `${dd}px`).join(' ')};
+                padding-bottom: ${((rsp[1] / rsp[0]) * 100).toFixed(0)}%;"
             >
-                <div class="card-img-top parent card-image position-relative" style="  border-radius: ${radius.map((dd) => `${dd}px`).join(' ')};
-                padding-bottom: ${((rsp[1] / rsp[0]) * 100).toFixed(0)}%;">
-                    ${gvc.bindView({
+                ${gvc.bindView({
             bind: labelID,
             view: () => {
                 if (prod.label && !loading) {
@@ -192,34 +192,32 @@ export class ProductCard03 {
                                 return `right:0;bottom:0;`;
                         }
                     }
-                    return html `
-                                    <div style="position: absolute;${showPosition()};z-index:2;">${label.data.content}
-                                    </div> `;
+                    return html ` <div style="position: absolute;${showPosition()};z-index:2;">${label.data.content}</div> `;
                 }
                 return ``;
             },
             divCreate: { class: `probLabel w-100 h-100`, style: `position: absolute;left: 0;top: 0;` },
         })}
-                    <img
-                            class="card-image-fit-center"
-                            src="${getImgSrc(0)}"
-                            onmouseover="${gvc.event((e, event) => {
+                <img
+                    class="card-image-fit-center"
+                    src="${getImgSrc(0)}"
+                    onmouseover="${gvc.event((e, event) => {
             if (widget.formData.show_second === 'true') {
                 e.src = getImgSrc(1);
             }
         })}"
-                            onmouseleave="${gvc.event((e, event) => {
+                    onmouseleave="${gvc.event((e, event) => {
             if (widget.formData.show_second === 'true') {
                 e.src = getImgSrc(0);
             }
         })}"
-                    />
-                </div>
-                <div
-                        class="wishBt wish-button ${(() => {
+                />
+            </div>
+            <div
+                class="wishBt wish-button ${(() => {
             return window.store_info.wishlist === false ? 'd-none' : 'd-flex';
         })()}"
-                        onclick="${gvc.event((e, event) => {
+                onclick="${gvc.event((e, event) => {
             event.stopPropagation();
             if (CheckInput.isEmpty(GlobalUser.token)) {
                 changePage('login', 'page', {});
@@ -250,8 +248,8 @@ export class ProductCard03 {
                 }));
             }
         })}"
-                >
-                    ${gvc.bindView({
+            >
+                ${gvc.bindView({
             bind: wishId,
             view: () => {
                 if (vm.wishStatus) {
@@ -262,25 +260,25 @@ export class ProductCard03 {
                 }
             },
         })}
-                </div>
-                <div class="card-collapse-parent">
-                    <div class=" card-title-container">
-                        <div class="row gx-0 mb-2">
-                            <div class="col-12 mb-1">
-                                <div class="w-100 d-flex ${PdClass.isPad() ? 'justify-content-center' : ''}">
-                                    <span class="card-title-text">${prod.title}</span>
-                                </div>
+            </div>
+            <div class="card-collapse-parent">
+                <div class=" card-title-container">
+                    <div class="row gx-0 mb-2">
+                        <div class="col-12 mb-1">
+                            <div class="w-100 d-flex ${PdClass.isPad() ? 'justify-content-center' : ''}">
+                                <span class="card-title-text">${prod.title}</span>
                             </div>
-                            <div class="d-flex d-sm-block d-lg-flex col-12 p-0 card-price-container">
-                                <div class="fs-6 fw-500 card-sale-price">
-                                    ${(() => {
+                        </div>
+                        <div class="d-flex d-sm-block d-lg-flex col-12 p-0 card-price-container">
+                            <div class="fs-6 fw-500 card-sale-price">
+                                ${(() => {
             const minPrice = Math.min(...prod.variants.map((dd) => {
                 return dd.sale_price;
             }));
-            return `${(Currency.convertCurrencyText(minPrice)).toLocaleString()}`;
+            return `${Currency.convertCurrencyText(minPrice).toLocaleString()}`;
         })()}
-                                </div>
-                                ${(() => {
+                            </div>
+                            ${(() => {
             var _a, _b;
             const minPrice = Math.min(...prod.variants.map((dd) => {
                 return dd.sale_price;
@@ -289,36 +287,34 @@ export class ProductCard03 {
                 return dd.sale_price === minPrice;
             })) !== null && _a !== void 0 ? _a : {}).compare_price) !== null && _b !== void 0 ? _b : 0;
             if (comparePrice > 0 && minPrice < comparePrice) {
-                return html `
-                                            <div class="text-decoration-line-through card-cost-price">NT.$
-                                                ${Currency.convertCurrencyText(comparePrice)}
-                                            </div>`;
+                return html ` <div class="text-decoration-line-through card-cost-price">NT.$ ${Currency.convertCurrencyText(comparePrice)}</div>`;
             }
             return '';
         })()}
-                            </div>
                         </div>
-                        <div class="add-cart-child">
-                            <div
-                                    class="w-100 h-100 p-3 add-cart-text" style="  color: ${borderButtonText};
+                    </div>
+                    <div class="add-cart-child">
+                        <div
+                            class="w-100 h-100 p-3 add-cart-text"
+                            style="  color: ${borderButtonText};
                 border: 1px solid ${borderButtonBgr};"
-                                    onclick="${gvc.event((e, event) => {
+                            onclick="${gvc.event((e, event) => {
             event.stopPropagation();
             PdClass.addCartAction({
                 gvc: gvc,
                 titleFontColor: titleFontColor,
                 prod: prod,
-                vm: vm
+                vm: vm,
             });
         })}"
-                            >
-                                <i class="fa-solid fa-cart-plus me-2"></i>${Language.text('add_to_cart')}
-                            </div>
+                        >
+                            <i class="fa-solid fa-cart-plus me-2"></i>${Language.text('add_to_cart')}
                         </div>
                     </div>
                 </div>
-                <div class="checkout-container"></div>
-            </div>`;
+            </div>
+            <div class="checkout-container"></div>
+        </div>`;
     }
 }
 ProductCard03.noImageURL = 'https://jmva.or.jp/wp-content/uploads/2018/07/noimage.png';

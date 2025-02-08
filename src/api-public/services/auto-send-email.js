@@ -8,6 +8,7 @@ const user_js_1 = require("../services/user.js");
 const mail_js_1 = require("../services/mail.js");
 const app_js_1 = require("../../services/app.js");
 const database_js_1 = __importDefault(require("../../modules/database.js"));
+const exception_js_1 = __importDefault(require("../../modules/exception.js"));
 class AutoSendEmail {
     static async getDefCompare(app, tag, language) {
         var _a;
@@ -500,29 +501,33 @@ class AutoSendEmail {
     }
     static async customerOrder(app, tag, order_id, email, language) {
         var _a, _b, _c, _d;
-        const customerMail = await this.getDefCompare(app, tag, language);
-        const brandAndMemberType = await app_js_1.App.checkBrandAndMemberType(app);
-        const order_data = (await database_js_1.default.query(`SELECT *
-                     FROM \`${app}\`.t_checkout
-                     WHERE cart_token = ?
-                    `, [order_id]))[0]['orderData'];
-        if (customerMail.toggle) {
-            try {
-                await new mail_js_1.Mail(app).postMail({
-                    name: customerMail.name,
-                    title: customerMail.title.replace(/@\{\{訂單號碼\}\}/g, order_id),
-                    content: customerMail.content.replace(/@\{\{訂單號碼\}\}/g, `<a href="https://${brandAndMemberType.domain}/order_detail?cart_token=${order_id}">${order_id}</a>`)
-                        .replace(/@\{\{訂單金額\}\}/g, order_data.total)
-                        .replace(/@\{\{姓名\}\}/g, (_a = order_data.customer_info.name) !== null && _a !== void 0 ? _a : '')
-                        .replace(/@\{\{電話\}\}/g, (_b = order_data.customer_info.phone) !== null && _b !== void 0 ? _b : '')
-                        .replace(/@\{\{地址\}\}/g, (_c = order_data.user_info.address) !== null && _c !== void 0 ? _c : '')
-                        .replace(/@\{\{信箱\}\}/g, (_d = order_data.customer_info.email) !== null && _d !== void 0 ? _d : ''),
-                    email: [email],
-                    type: tag,
-                });
+        try {
+            const customerMail = await this.getDefCompare(app, tag, language);
+            const brandAndMemberType = await app_js_1.App.checkBrandAndMemberType(app);
+            const order = await database_js_1.default.query(`SELECT * FROM \`${app}\`.t_checkout WHERE cart_token = ?
+                `, [order_id]);
+            if (order[0]) {
+                const order_data = order[0]['orderData'];
+                if (customerMail.toggle) {
+                    await new mail_js_1.Mail(app).postMail({
+                        name: customerMail.name,
+                        title: customerMail.title.replace(/@\{\{訂單號碼\}\}/g, order_id),
+                        content: customerMail.content
+                            .replace(/@\{\{訂單號碼\}\}/g, `<a href="https://${brandAndMemberType.domain}/order_detail?cart_token=${order_id}">${order_id}</a>`)
+                            .replace(/@\{\{訂單金額\}\}/g, order_data.total)
+                            .replace(/@\{\{姓名\}\}/g, (_a = order_data.customer_info.name) !== null && _a !== void 0 ? _a : '')
+                            .replace(/@\{\{電話\}\}/g, (_b = order_data.customer_info.phone) !== null && _b !== void 0 ? _b : '')
+                            .replace(/@\{\{地址\}\}/g, (_c = order_data.user_info.address) !== null && _c !== void 0 ? _c : '')
+                            .replace(/@\{\{信箱\}\}/g, (_d = order_data.customer_info.email) !== null && _d !== void 0 ? _d : ''),
+                        email: [email],
+                        type: tag,
+                    });
+                }
             }
-            catch (e) {
-            }
+        }
+        catch (error) {
+            console.error(error);
+            throw exception_js_1.default.BadRequestError('BAD_REQUEST', 'customerOrder Error:' + error, null);
         }
     }
 }

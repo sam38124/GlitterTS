@@ -194,28 +194,11 @@ SELECT * FROM  \`${config_1.saasConfig.SAAS_NAME}\`.page_config where  1=1 ${whe
     static async getRealPage(query_page, appName) {
         query_page = query_page || 'index';
         let page = query_page;
-        if (['privacy', 'term', 'refund', 'delivery'].includes(query_page)) {
+        if (['privacy', 'term', 'refund', 'delivery', 'blogs', 'blog_tag_setting', 'blog_global_setting'].includes(query_page)) {
             return 'official-router';
         }
-        if ((query_page.split('/')[0] === 'blogs' && query_page.split('/')[1])) {
-            page = (await database_1.default.query(`SELECT *
-                                   from \`${appName}\`.t_manager_post
-                                   where content->>'$.tag'=${database_1.default.escape(query_page.split('/')[1])} and content->>'$.type'='article' and content->>'$.for_index'='true';`, []))[0].content.template;
-        }
-        if ((query_page.split('/')[0] === 'pages' && query_page.split('/')[1])) {
-            page = (await database_1.default.query(`SELECT *
-                                   from \`${appName}\`.t_manager_post
-                                   where content->>'$.tag'=${database_1.default.escape(query_page.split('/')[1])} and content->>'$.type'='article' and content->>'$.for_index'='false' and (content->>'$.page_type'='page');`, []))[0].content.template;
-        }
-        if (query_page.split('/')[0] === 'shop' && query_page.split('/')[1]) {
-            page = (await database_1.default.query(`SELECT *
-                                   from \`${appName}\`.t_manager_post
-                                   where content->>'$.tag'=${database_1.default.escape(query_page.split('/')[1])} and content->>'$.type'='article' and content->>'$.for_index'='false' and content->>'$.page_type'='shopping';`, []))[0].content.template;
-        }
-        if (query_page.split('/')[0] === 'hidden' && query_page.split('/')[1]) {
-            page = (await database_1.default.query(`SELECT *
-                                   from \`${appName}\`.t_manager_post
-                                   where content->>'$.tag'=${database_1.default.escape(query_page.split('/')[1])} and content->>'$.type'='article' and content->>'$.for_index'='false' and content->>'$.page_type'='hidden';`, []))[0].content.template;
+        if (['blogs', 'pages', 'shop', 'hidden'].includes(query_page.split('/')[0]) && query_page.split('/')[1]) {
+            return 'official-router';
         }
         if (query_page.split('/')[0] === 'distribution' && query_page.split('/')[1]) {
             try {

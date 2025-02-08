@@ -1,3 +1,5 @@
+import { VoucherContent } from '../public-components/user-manager/um-voucher';
+
 export interface Variant {
     save_stock?: string;
     sale_price: number;
@@ -49,12 +51,12 @@ export interface Product {
         addProduct: boolean;
         giveaway: boolean;
     };
-    product_category:'course'|'commodity'
+    product_category: 'course' | 'commodity';
     visible: 'true' | 'false';
     content: string;
     preview_image: string[];
     relative_product: string[];
-    email_notice?:string;
+    email_notice?: string;
     product_tag: {
         language: {
             'en-US': string[];
@@ -102,11 +104,13 @@ export interface Product {
     min_qty?: number;
     max_qty?: number;
     match_by_with?: string[];
-    legacy_by_with?:string[];
+    legacy_by_with?: string[];
     designated_logistics: {
         type: 'all' | 'designated';
         list: string[];
     };
+    about_vouchers: VoucherContent[];
+    comments: any[];
 }
 
 export class ProductInitial {

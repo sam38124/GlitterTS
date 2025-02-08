@@ -13,10 +13,11 @@ export class TermsRelated {
         const gvc = obj.gvc;
         const glitter = gvc.glitter;
         const title_color = glitter.share.globalValue['theme_color.0.title']
+        const id=glitter.getUUID()
         const page = glitter.getUrlParameter('page')
         return gvc.bindView(() => {
             return {
-                bind: glitter.getUUID(),
+                bind: id,
                 view: async () => {
                     //分類頁面
                     if ((`${glitter.getUrlParameter('page')}`.startsWith(`collections`)) ||
@@ -27,21 +28,43 @@ export class TermsRelated {
                                 resolve(res.main(gvc));
                             });
                         })
-                    } else {
+                    } else if (
+                        [ 'blogs','pages','shop','hidden'].find((dd)=>{
+                          return  (`${glitter.getUrlParameter('page')}`.startsWith(dd))
+                        }) && (`${glitter.getUrlParameter('page')}`.split('/')[1])) {
+                        return await new Promise((resolve, reject) => {
+                            glitter.getModule(new URL('./public-components/blogs/blogs-01.js', gvc.glitter.root_path).href, (res) => {
+                                resolve(res.getMain(obj.gvc));
+                            });
+                        })
+                    }else if ((`${glitter.getUrlParameter('page')}`.startsWith(`blogs`))) {
+                        return await new Promise((resolve, reject) => {
+                            glitter.getModule(new URL('./public-components/blogs/list.js', gvc.glitter.root_path).href, (res) => {
+                                resolve(res.main(obj));
+                            });
+                        })
+                    } else if(['blog_tag_setting','blog_global_setting'].includes(glitter.getUrlParameter('page'))){
+
+                        return await new Promise((resolve, reject) => {
+                            glitter.getModule(new URL('./cms-plugin/cms-router.js', gvc.glitter.root_path).href, (res) => {
+                                (document.querySelector(`.${id}`) as any).outerHTML=res.main(gvc);
+                            });
+                        })
+                    }else {
                         //條款頁面
                         let lan_d = (await ApiUser.getPublicConfig(`terms-related-${page}-${Language.getLanguage()}`, 'manager')).response.value.text
                         if (!lan_d) {
                             lan_d = (await ApiUser.getPublicConfig(`terms-related-${page}-${(window as any).store_info.language_setting.def}`, 'manager')).response.value.text
                         }
                         return html`
-                        <div class="mb-5 mt-3" style="min-height: calc(100vh - 200px);">
-                            ${lan_d || ''}
-                        </div>`
+                            <div class="mb-5 mt-3" style="min-height: calc(100vh - 200px);">
+                                ${lan_d || ''}
+                            </div>`
                     }
 
                 },
                 divCreate: {
-                    class: `container text-center`
+                    class: `container text-center ${id}`
                 }
             }
         })

@@ -179,6 +179,11 @@ export class Language {
             { key: 'please_wait', tw: '請稍候...', cn: '請稍候...', en: `Please wait...` },
             { key: 'related_products', tw: '相關商品', cn: '相關商品', en: 'Related Products' },
             { key: 'product_description', tw: '商品描述', cn: '商品描述', en: 'Product Description' },
+            { key: 'customer_reviews', tw: '顧客評論', cn: '顾客评论', en: 'Customer Reviews' },
+            { key: 'title', tw: '標題', cn: '标题', en: 'Title' },
+            { key: 'comment', tw: '評語', cn: '评语', en: 'Comment' },
+            { key: 'write_comment', tw: '撰寫評論', cn: '撰写评论', en: 'Write Comment' },
+            { key: 'rating', tw: '評分', cn: '评分', en: 'Rating' },
             { key: 'switch_language', tw: '切換語言', cn: '切换语言', en: 'Switch language' },
             { key: 'shopping_details', tw: '購物明細', cn: '购物明细', en: 'Shopping details' },
             { key: 'your_shopping_cart', tw: '您的購物車', cn: '您的购物车', en: 'Your shopping cart' },
@@ -397,6 +402,7 @@ export class Language {
             { key: 'sort_by_price_desc', tw: '價格由高至低', cn: '价格由高到低', en: 'Price High to Low' },
             { key: 'sort_by_sales_desc', tw: '依照銷售量高', cn: '按销售量高', en: 'Sales High to Low' },
             { key: 'no_related_products', tw: '查無相關商品', cn: '暂无相关商品', en: 'No Related Products' },
+            { key: 'no_related_blogs', tw: '查無相關文章', cn: '查无相关文章', en: 'No related articles found' },
             { key: 'my', tw: '我的', cn: '我的', en: 'My' },
             { key: 'my_coupons', tw: '我的優惠券', cn: '我的优惠券', en: 'Coupons' },
             { key: 'order_history', tw: '訂單記錄', cn: '订单记录', en: 'Order History' },
@@ -689,6 +695,18 @@ export class Language {
             },
             { key: 'data_submitting', tw: '資料送出中', cn: '数据提交中', en: 'Data submitting' },
             { key: 'submit', tw: '送出', cn: '提交', en: 'Submit' },
+            {
+                key: 'login_required',
+                tw: '請先完成會員登入',
+                cn: '请先完成会员登录',
+                en: 'Please complete member login first',
+            },
+            {
+                key: 'complete_form',
+                tw: '請完整填寫表單',
+                cn: '请完整填写表单',
+                en: 'Please fill out the form completely',
+            },
             { key: 'return_to_order_details', tw: '返回訂單詳情', cn: '返回订单详情', en: 'Return to order details' },
             { key: 'order_details', tw: '訂單明細', cn: '订单明细', en: 'Order Details' },
             { key: 'product_not_found', tw: '找不到此產品', cn: '找不到此产品', en: 'Product not found' },
@@ -813,6 +831,9 @@ export class Language {
             { key: 'refund', tw: '退換貨政策', cn: '退換貨政策', en: 'Refund policy' },
             { key: 'delivery', tw: '購買與配送須知', cn: '配送须知', en: 'Shipping instructions' },
             { key: 'pieces', tw: '件', cn: '件', en: 'Pieces' },
+            { key: 'search_article', tw: '搜尋文章', cn: '搜寻文章', en: 'Search articles' },
+            { key: 'blog_list', tw: '網誌列表', cn: '网志列表', en: 'Blog list' },
+            { key: 'all_article', tw: '所有文章', cn: '所有文章', en: 'All articles' },
         ];
     }
     static getLanguageCustomText(text) {

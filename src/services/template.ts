@@ -226,60 +226,15 @@ SELECT * FROM  \`${saasConfig.SAAS_NAME}\`.page_config where  1=1 ${where_};
     public static async getRealPage(query_page: string, appName: string): Promise<string> {
         query_page = query_page || 'index';
         let page = query_page;
-        //判斷是條款頁面時
-        if(['privacy','term','refund','delivery'].includes(query_page)){
+        //判斷是條款頁面或部落格列表頁面時
+        if(['privacy','term','refund','delivery','blogs','blog_tag_setting','blog_global_setting'].includes(query_page)){
             return  'official-router'
         }
         //當判斷是Blog時
-        if ((query_page.split('/')[0] === 'blogs' && query_page.split('/')[1] )) {
-            page = (
-                await db.query(
-                    `SELECT *
-                                   from \`${appName}\`.t_manager_post
-                                   where content->>'$.tag'=${db.escape(query_page.split('/')[1])} and content->>'$.type'='article' and content->>'$.for_index'='true';`,
-                    []
-                )
-            )[0].content.template;
+        if ([ 'blogs','pages','shop','hidden'].includes(query_page.split('/')[0]) && query_page.split('/')[1] ) {
+            return  'official-router'
         }
-        //當判斷是Page時
-        if ((query_page.split('/')[0] === 'pages' && query_page.split('/')[1])) {
-            page = (
-                await db.query(
-                    `SELECT *
-                                   from \`${appName}\`.t_manager_post
-                                   where content->>'$.tag'=${db.escape(
-                                       query_page.split('/')[1]
-                                   )} and content->>'$.type'='article' and content->>'$.for_index'='false' and (content->>'$.page_type'='page');`,
-                    []
-                )
-            )[0].content.template;
-        }
-        //當判斷是Shop時
-        if (query_page.split('/')[0] === 'shop' && query_page.split('/')[1]) {
-            page = (
-                await db.query(
-                    `SELECT *
-                                   from \`${appName}\`.t_manager_post
-                                   where content->>'$.tag'=${db.escape(
-                                       query_page.split('/')[1]
-                                   )} and content->>'$.type'='article' and content->>'$.for_index'='false' and content->>'$.page_type'='shopping';`,
-                    []
-                )
-            )[0].content.template;
-        }
-        //當判斷是隱形賣場時
-        if (query_page.split('/')[0] === 'hidden' && query_page.split('/')[1]) {
-            page = (
-                await db.query(
-                    `SELECT *
-                                   from \`${appName}\`.t_manager_post
-                                   where content->>'$.tag'=${db.escape(
-                                       query_page.split('/')[1]
-                                   )} and content->>'$.type'='article' and content->>'$.for_index'='false' and content->>'$.page_type'='hidden';`,
-                    []
-                )
-            )[0].content.template;
-        }
+
         //當判斷是分銷連結時
         if (query_page.split('/')[0] === 'distribution' && query_page.split('/')[1]) {
             try {

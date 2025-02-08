@@ -21,7 +21,7 @@ const createPool = async () => {
     try {
         const connection = await pool.getConnection();
         if (connection) {
-            await connection.release();
+            connection.release();
             config.DB_SHOW_INFO && logger.info(TAG, 'Pool has been created. (function: createPool)');
             return pool;
         }
@@ -97,7 +97,7 @@ export const queryLambada = async (
     try {
         const connection = await sp.getConnection();
         if (connection) {
-            await connection.release();
+            connection.release();
             config.DB_SHOW_INFO && logger.info(TAG, 'Pool has been created. (function: queryLambada)');
         }
         const data = await fun({

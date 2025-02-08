@@ -1015,14 +1015,18 @@ white-space: normal;"
                                     ${PaymentPage.spaceView()}
                                     ${gvc.bindView(() => {
                             const vm_id = gvc.glitter.getUUID();
-                            let realTotal = orderDetail.total;
+                            orderDetail.voucherList.map((item) => {
+                                if (item.id === 0) {
+                                    orderDetail.total -= item.discount_total;
+                                }
+                            });
                             return {
                                 bind: vm_id,
                                 dataList: [{ obj: vm, key: 'paySelect' }],
                                 view: () => {
                                     let view = [
                                         html ` <div class="d-flex" style="font-size: 18px;font-weight: 400;margin-bottom: 12px;">
-                                                        <div style="">總金額</div>
+                                                        <div>總金額</div>
                                                         <div class="ms-auto" style="font-size: 24px;font-weight: 700;">${parseInt(orderDetail.total, 10).toLocaleString()}</div>
                                                     </div>`,
                                         html `${PosWidget.bigTitle('付款方式')}
