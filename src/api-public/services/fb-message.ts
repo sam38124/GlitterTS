@@ -135,12 +135,12 @@ export class FbMessage {
             };
             return new Promise<boolean>((resolve, reject) => {
                 axios.request(urlConfig)
-                    .then((response) => {
+                    .then((response:any) => {
                         // let result = response.data.split('\r\n')
                         callback(response)
                         resolve(response.data)
                     })
-                    .catch((error) => {
+                    .catch((error:any) => {
                         console.log("error -- ", error.response.data.error)
                         resolve(false)
                     });
@@ -166,12 +166,12 @@ export class FbMessage {
             };
             return new Promise<boolean>((resolve, reject) => {
                 axios.request(urlConfig)
-                    .then((response) => {
+                    .then((response:any) => {
                         // let result = response.data.split('\r\n')
                         callback(response)
                         resolve(response.data)
                     })
-                    .catch((error) => {
+                    .catch((error:any) => {
                         console.log("error -- ", error.data)
                         resolve(false)
                     });
@@ -196,13 +196,13 @@ export class FbMessage {
 
             return new Promise<boolean>((resolve, reject) => {
                 axios.request(urlConfig)
-                    .then((response) => {
+                    .then((response:any) => {
 
 
                         callback(response.data)
                         resolve(response.data)
                     })
-                    .catch((error) => {
+                    .catch((error:any) => {
                         console.log("error -- ", error)
                         resolve(false)
                     });
@@ -637,11 +637,11 @@ export class FbMessage {
 
             return new Promise<boolean>((resolve, reject) => {
                 axios.request(urlConfig)
-                    .then((response) => {
+                    .then((response:any) => {
                         callback(response.data)
                         resolve(response.data)
                     })
-                    .catch((error) => {
+                    .catch((error:any) => {
                         console.log("error -- ", error)
                         resolve(false)
                     });

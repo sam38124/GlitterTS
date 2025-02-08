@@ -113,7 +113,7 @@ export class EcPay {
                             'Content-Type': 'application/x-www-form-urlencoded',
                         },
                     })
-                    .then((response) => {
+                    .then((response:any) => {
                         resolve(response.data);
                     });
             })

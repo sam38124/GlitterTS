@@ -106,12 +106,12 @@ class Shopee {
                  where \`app_name\` = '${this.app}'
                    and \`key\` = 'shopee_access_token'
                 `, []));
-            response.data.shop_id = shop_id;
+            let passData = Object.assign(Object.assign({}, response.data), { expires_at: new Date(Date.now() + 14373 * 1000).toISOString(), created_at: new Date().toISOString(), shop_id: shop_id });
             if (data.length == 0) {
                 await database_js_1.default.execute(`
                             INSERT INTO \`${config_js_1.saasConfig.SAAS_NAME}\`.private_config (\`app_name\`, \`key\`, \`value\`, \`updated_at\`)
                             VALUES (?, ?, ?, ?);
-                    `, [this.app, "shopee_access_token", response.data, new Date()]);
+                    `, [this.app, "shopee_access_token", passData, new Date()]);
             }
             else {
                 await database_js_1.default.execute(`
@@ -119,8 +119,7 @@ class Shopee {
                             SET \`value\` = ?
                             where \`app_name\` = '${this.app}'
                               and \`key\` = 'shopee_access_token'
-
-                    `, [response.data]);
+                    `, [passData]);
             }
         }
         catch (error) {
@@ -167,7 +166,6 @@ class Shopee {
                     message: response.data.error
                 };
             }
-            console.log(`蝦皮回覆:`, response.data);
             const itemList = response.data.response.item;
             const productData = await Promise.all(itemList.map(async (item, index) => {
                 try {
@@ -307,6 +305,7 @@ class Shopee {
                             newVariants.preview_image = "";
                         }
                     }
+                    newVariants.shopee_model_id = data.model_id;
                     tempVariants.push(newVariants);
                 });
                 postMD.variants = tempVariants;
@@ -359,7 +358,6 @@ class Shopee {
             }
             catch (e) {
             }
-            console.log(`item==>`, item);
             let postMD;
             postMD = this.getInitial({});
             if (origData.length > 0) {
@@ -449,6 +447,175 @@ class Shopee {
             else {
                 console.error('Unexpected Error:', error.message);
             }
+        }
+    }
+    async asyncStockToShopee(obj) {
+        var _a, _b, _c;
+        if (!obj.product.content.shopee_id) {
+            obj.callback();
+            return;
+        }
+        let basicData = {
+            "item_id": obj.product.content.shopee_id,
+            "stock_list": []
+        };
+        const partner_id = (_a = process_1.default.env.shopee_partner_id) !== null && _a !== void 0 ? _a : "";
+        const api_path = "/api/v2/product/get_model_list";
+        const timestamp = Math.floor(Date.now() / 1000);
+        const config = {
+            method: 'get',
+            url: this.generateShopUrl(partner_id, api_path, timestamp, obj.access_token, parseInt(obj.shop_id)),
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            params: {
+                shop_id: parseInt(obj.shop_id),
+                access_token: obj.access_token,
+                item_id: obj.product.content.shopee_id
+            },
+        };
+        try {
+            const response = await (0, axios_1.default)(config);
+            if (!((_c = (_b = response.data) === null || _b === void 0 ? void 0 : _b.response) === null || _c === void 0 ? void 0 : _c.model)) {
+                console.log("response.data -- ", response.data);
+                obj.callback(response.data);
+            }
+            obj.product.content.variants.map((variant) => {
+                let basicStock = {
+                    "model_id": 0,
+                    "seller_stock": [
+                        {
+                            "stock": 0
+                        }
+                    ]
+                };
+                let findModel = response.data.response.model.find((item) => { return item.model_name == variant.spec.join(','); });
+                if (findModel) {
+                    basicStock.model_id = findModel.model_id;
+                    basicStock.seller_stock[0].stock = variant.stock;
+                    basicData.stock_list.push(basicStock);
+                }
+            });
+            const updateConfig = {
+                method: 'post',
+                url: this.generateShopUrl(partner_id, "/api/v2/product/update_stock", timestamp, obj.access_token, parseInt(obj.shop_id)),
+                params: {
+                    shop_id: parseInt(obj.shop_id),
+                    access_token: obj.access_token,
+                },
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                data: JSON.stringify(basicData)
+            };
+            try {
+                const response = await (0, axios_1.default)(updateConfig);
+                obj.callback(response.data);
+            }
+            catch (error) {
+                if (axios_1.default.isAxiosError(error) && error.response) {
+                    console.error('Error Response:', error.response.data);
+                }
+                else {
+                    console.error('Unexpected Error:', error.message);
+                }
+            }
+        }
+        catch (error) {
+            if (axios_1.default.isAxiosError(error) && error.response) {
+                console.error('Error Response:', error.response.data);
+            }
+            else {
+                console.error('Unexpected Error:', error.message);
+            }
+        }
+    }
+    async asyncStockFromShopnex() {
+        let origData = {};
+        try {
+            origData = await database_js_1.default.query(`SELECT *
+                                           FROM \`${this.app}\`.t_manager_post
+                                           WHERE (content ->>'$.type'='product')
+                                             AND (content ->>'$.shopee_id' IS NOT NULL AND content ->>'$.shopee_id' <> '')`, []);
+            let product = origData[8];
+            let error_report = [];
+            let temp = await this.fetchShopeeAccessToken();
+            return Promise.all(origData.map((product) => new Promise((resolve, reject) => {
+                try {
+                    this.asyncStockToShopee({
+                        product: product,
+                        callback: () => {
+                            resolve();
+                        },
+                        access_token: temp.access_token,
+                        shop_id: temp.shop_id
+                    });
+                }
+                catch (e) {
+                    reject(e);
+                }
+            }))).then(() => {
+                console.log("所有產品的庫存同步完成！");
+                return {
+                    result: "OK",
+                };
+            }).catch((error) => {
+                console.error("同步庫存時發生錯誤:", error);
+            });
+        }
+        catch (e) {
+        }
+    }
+    async fetchShopeeAccessToken() {
+        var _a;
+        try {
+            const sqlData = await database_js_1.default.execute(`SELECT * 
+             FROM \`${config_js_1.saasConfig.SAAS_NAME}\`.private_config
+             WHERE \`app_name\` = '${this.app}'
+               AND \`key\` = 'shopee_access_token'`, []);
+            const obj = {};
+            obj.accessToken = sqlData;
+            if (Date.now() >= new Date(sqlData[0].value.expires_at).getTime()) {
+                const partner_id = (_a = process_1.default.env.shopee_partner_id) !== null && _a !== void 0 ? _a : "";
+                const api_path = "/api/v2/auth/access_token/get";
+                const timestamp = Math.floor(Date.now() / 1000);
+                const config = {
+                    method: 'post',
+                    url: this.generateUrl(partner_id, api_path, timestamp),
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    data: JSON.stringify({
+                        shop_id: parseInt(obj.accessToken[0].value.shop_id),
+                        refresh_token: obj.accessToken[0].value.refresh_token,
+                        partner_id: parseInt(partner_id)
+                    }),
+                };
+                try {
+                    const response = await (0, axios_1.default)(config);
+                    try {
+                        await database_js_1.default.execute(`
+                        UPDATE \`${config_js_1.saasConfig.SAAS_NAME}\`.\`private_config\`
+                        SET \`value\` = ?
+                        where \`app_name\` = '${this.app}'
+                          and \`key\` = 'shopee_access_token'
+                    `, [response.data]);
+                        return response.data;
+                    }
+                    catch (e) {
+                        console.error("refresh private_config shopee_access_token error : ", e.data);
+                    }
+                }
+                catch (e) {
+                    console.error("Shopee access token API request failed:", e);
+                }
+            }
+            else {
+                return sqlData[0].value;
+            }
+        }
+        catch (e) {
+            console.error("Database query for Shopee access token failed:", e);
         }
     }
     getInitial(obj) {

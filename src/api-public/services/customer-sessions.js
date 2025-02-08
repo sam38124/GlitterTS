@@ -20,7 +20,7 @@ class CustomerSessions {
                 stock: data.stock,
                 discount_set: data.discount_set,
             };
-            await database_js_1.default.query(`INSERT INTO \`${this.app}\`.\`t_live_purchase_interactions\`
+            const queryData = await database_js_1.default.query(`INSERT INTO \`${this.app}\`.\`t_live_purchase_interactions\`
                            SET ?;`, [{
                     type: data.type,
                     stream_name: data.stream_name,
@@ -28,11 +28,14 @@ class CustomerSessions {
                     status: "1",
                     content: JSON.stringify(content)
                 }]);
-            return { result: false, message: '' };
+            console.log("queryData -- ", queryData);
+            return queryData.insertId;
         }
         catch (e) {
             throw exception_js_1.default.BadRequestError('BAD_REQUEST', 'createScheduled Error:' + e, null);
         }
+    }
+    async listenChatRoom() {
     }
 }
 exports.CustomerSessions = CustomerSessions;

@@ -20,5 +20,6 @@ export declare class CustomerSessions {
         result: boolean;
         message: string;
     }>;
+    listenChatRoom(): Promise<void>;
 }
 export {};

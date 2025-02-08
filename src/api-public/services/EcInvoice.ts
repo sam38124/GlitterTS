@@ -75,7 +75,7 @@ export class EcInvoice {
                 }
             };
             axios.request(config)
-                .then(async (response) => {
+                .then(async (response:any) => {
                     const decipher = crypto.createDecipheriv('aes-128-cbc', cf_.hashkey, cf_.hashiv);
                     let decrypted = decipher.update(response.data.Data, 'base64', 'utf-8');
                     try {
@@ -87,7 +87,7 @@ export class EcInvoice {
                     console.log(`resp--->`, resp)
                     resolve(resp.CompanyName)
                 })
-                .catch((error) => {
+                .catch((error:any) => {
                     console.log(error)
                     resolve(false)
                 });
@@ -125,7 +125,7 @@ export class EcInvoice {
         //PlatformID
         return new Promise<boolean>((resolve, reject) => {
             axios.request(config)
-                .then(async (response) => {
+                .then(async (response:any) => {
                     const decipher = crypto.createDecipheriv('aes-128-cbc', obj.hashKey, obj.hash_IV);
                     let decrypted = decipher.update(response.data.Data, 'base64', 'utf-8');
                     try {
@@ -134,7 +134,6 @@ export class EcInvoice {
                         e instanceof Error && console.log(e.message);
                     }
                     const resp = JSON.parse(decodeURIComponent(decrypted))
-                    console.log(`resp--->`, resp)
                     await db.query(`insert into \`${obj.app_name}\`.t_invoice_memory
                                     set ?`, [
                         {
@@ -160,7 +159,7 @@ export class EcInvoice {
                         resolve(response.data)
                     }
                 })
-                .catch((error) => {
+                .catch((error:any) => {
                     console.log(error)
                     resolve(false)
                 });
@@ -198,7 +197,7 @@ export class EcInvoice {
         //PlatformID
         return new Promise<boolean>((resolve, reject) => {
             axios.request(config)
-                .then(async (response) => {
+                .then(async (response:any) => {
                     const decipher = crypto.createDecipheriv('aes-128-cbc', obj.hashKey, obj.hash_IV);
                     let decrypted = decipher.update(response.data.Data, 'base64', 'utf-8');
                     try {
@@ -213,7 +212,7 @@ export class EcInvoice {
                                     WHERE invoice_no = '${obj.invoice_data.InvoiceNo}'`, [])
                     resolve(response.data)
                 })
-                .catch((error) => {
+                .catch((error:any) => {
                     console.log(error)
                     resolve(false)
                 });
@@ -253,7 +252,7 @@ export class EcInvoice {
         //PlatformID
         return new Promise<boolean>((resolve, reject) => {
             axios.request(config)
-                .then(async (response) => {
+                .then(async (response:any) => {
                     const decipher = crypto.createDecipheriv('aes-128-cbc', obj.hashKey, obj.hash_IV);
                     let decrypted = decipher.update(response.data.Data, 'base64', 'utf-8');
                     try {
@@ -321,7 +320,7 @@ export class EcInvoice {
         //PlatformID
         return new Promise<boolean>((resolve, reject) => {
             axios.request(config)
-                .then(async (response) => {
+                .then(async (response:any) => {
                     const decipher = crypto.createDecipheriv('aes-128-cbc', obj.hashKey, obj.hash_IV);
                     let decrypted = decipher.update(response.data.Data, 'base64', 'utf-8');
                     try {
@@ -346,7 +345,7 @@ export class EcInvoice {
                     );
                     resolve(response.data)
                 })
-                .catch((error) => {
+                .catch((error:any) => {
                     console.log(error)
                     resolve(false)
                 });
@@ -394,7 +393,7 @@ export class EcInvoice {
                 }
             };
             axios.request(config)
-                .then(async (response) => {
+                .then(async (response:any) => {
                     const decipher = crypto.createDecipheriv('aes-128-cbc', obj.hashKey, obj.hash_IV);
                     let decrypted = decipher.update(response.data.Data, 'base64', 'utf-8');
                     try {
@@ -453,7 +452,7 @@ export class EcInvoice {
                     console.log(`invoice_data==>`, resolve_data)
                     resolve(resolve_data)
                 })
-                .catch((error) => {
+                .catch((error:any) => {
                     console.error(`取得失敗::`, error)
                     resolve(false)
                 });
@@ -496,11 +495,11 @@ export class EcInvoice {
         };
         return new Promise<boolean>((resolve, reject) => {
             axios.request(config)
-                .then((response) => {
+                .then((response:any) => {
                     console.log(JSON.stringify(response.data))
                     resolve(response.data)
                 })
-                .catch((error) => {
+                .catch((error:any) => {
                     resolve(false)
                 });
         })
@@ -542,11 +541,11 @@ export class EcInvoice {
         };
         return new Promise<boolean>((resolve, reject) => {
             axios.request(config)
-                .then((response) => {
+                .then((response:any) => {
                     console.log(JSON.stringify(response.data))
                     resolve(response.data)
                 })
-                .catch((error) => {
+                .catch((error:any) => {
                     resolve(false)
                 });
         })
@@ -564,16 +563,13 @@ export class EcInvoice {
         const timeStamp = `${new Date().valueOf()}`
         // 1. 建立請求的參數
         const params = obj.invoice_data;
-        var dateFormat = new Date(params.TimeStamp);
-        console.log(`dateFormat--${dateFormat}`)
+        const dateFormat = new Date(params.TimeStamp);
         // 2. 產生 Query String
         const qs = tool.JsonToQueryString(params);
-        console.log(qs)
         // 3. 開始加密
         // { method: 'aes-256-cbc', inputEndcoding: 'utf-8', outputEndcoding: 'hex' };
         // createCipheriv 方法中，key 要滿 32 字元、iv 要滿 16 字元，請之後測試多注意這點
         const tradeInfo = tool.aesEncrypt(qs, obj.hashKey, obj.hash_IV);
-        console.log(`tradeInfo--${params.TimeStamp}`);
         let data = new FormData();
         data.append('MerchantID_', obj.merchNO);
         data.append('PostData_', tradeInfo);
@@ -586,11 +582,10 @@ export class EcInvoice {
         };
         return new Promise<boolean>((resolve, reject) => {
             axios.request(config)
-                .then((response) => {
-                    console.log(JSON.stringify(response.data))
+                .then((response:any) => {
                     resolve(response.data)
                 })
-                .catch((error) => {
+                .catch((error:any) => {
                     resolve(false)
                 });
         })
@@ -630,11 +625,10 @@ export class EcInvoice {
         };
         return new Promise<boolean>((resolve, reject) => {
             axios.request(config)
-                .then((response) => {
-                    console.log(JSON.stringify(response.data))
+                .then((response:any) => {
                     resolve(response.data.Status === 'SUCCESS')
                 })
-                .catch((error) => {
+                .catch((error:any) => {
                     resolve(false)
                 });
         })

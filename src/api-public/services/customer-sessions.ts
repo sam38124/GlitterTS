@@ -28,14 +28,13 @@ export class CustomerSessions {
 
     async createScheduled(data: scheduled): Promise<{ result: boolean; message: string }>{
         try {
-            // console.log("data -- " , data)
             const content = {
                 platform: data.platform,
                 item_list: data.item_list,
                 stock: data.stock,
                 discount_set: data.discount_set,
             }
-            await db.query(`INSERT INTO \`${this.app}\`.\`t_live_purchase_interactions\`
+            const queryData = await db.query(`INSERT INTO \`${this.app}\`.\`t_live_purchase_interactions\`
                            SET ?;`,[{
                 type:data.type,
                 stream_name:data.stream_name,
@@ -43,9 +42,15 @@ export class CustomerSessions {
                 status:"1",
                 content : JSON.stringify(content)
             }])
-            return { result: false, message: '' };
+            console.log("queryData -- " , queryData)
+            return queryData.insertId;
         }catch (e){
             throw exception.BadRequestError('BAD_REQUEST', 'createScheduled Error:' + e, null);
         }
     }
+
+    async listenChatRoom(){
+
+    }
+
 }

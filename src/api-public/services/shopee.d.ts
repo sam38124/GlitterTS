@@ -102,6 +102,14 @@ export declare class Shopee {
         content_json: any[];
         status: string;
     } | undefined>;
+    asyncStockToShopee(obj: {
+        product: any;
+        access_token: string;
+        shop_id: string;
+        callback: (response?: any) => void;
+    }): Promise<void>;
+    asyncStockFromShopnex(): Promise<any>;
+    fetchShopeeAccessToken(): Promise<any>;
     getInitial(obj: any): {
         type: string;
         title: string;

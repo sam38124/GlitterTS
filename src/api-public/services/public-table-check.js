@@ -502,6 +502,7 @@ class ApiPublic {
                     sql: `(
   \`id\` int NOT NULL AUTO_INCREMENT,
   \`type\` varchar(50) COLLATE utf8mb4_unicode_ci NOT NULL,
+  \`permalink_url\` TEXT,  
   \`stream_name\` varchar(200) NOT NULL,
   \`streamer\` varchar(200) NOT NULL,
   \`status\` int NOT NULL DEFAULT 1,

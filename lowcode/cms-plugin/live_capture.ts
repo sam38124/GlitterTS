@@ -119,8 +119,8 @@ export class LiveCapture {
                                             gvc: gvc,
                                             getData: (vmi) => {
                                                 const limit = 20;
-                                                    vmi.loading = false;
-                                                    vmi.callback();
+                                                vmi.loading = false;
+                                                vmi.callback();
                                                 // ApiShop.getInvoice({
                                                 //     page: vmi.page - 1,
                                                 //     limit: limit,
@@ -252,6 +252,7 @@ export class LiveCapture {
             orderString: '',
             query: '',
         };
+
         // 取得指定天數後的日期
         function getFutureDate(days: number): string {
             const date = new Date();
@@ -264,10 +265,11 @@ export class LiveCapture {
 
             return `${year}-${month}-${day}`;
         }
+
         const dialog = new ShareDialog(gvc.glitter);
         let viewModel: {
             formData: {
-                type:string,
+                type: string,
                 stream_name: string,
                 streamer: string,
                 platform: string,
@@ -278,10 +280,11 @@ export class LiveCapture {
                     period: string,
                 },
                 discount_set: string,
-            }
+            },
+            summaryType : "normal" | "prepare" | "streaming"
         } = {
             formData: {
-                type:"stream_shout",
+                type: "stream_shout",
                 stream_name: "",
                 streamer: "",
                 platform: "Facebook",
@@ -292,12 +295,27 @@ export class LiveCapture {
                     period: "1",
                 },
                 discount_set: "false",
-            }
+            },
+            summaryType : "normal"
         }
         let options: { value: any; title: any; }[] = [];
         let collectLoading = true;
         let dialogShow = false;
-        let editItmeList = false
+        let editItemList = false;
+        const stockExpired = [
+            {
+                title: "一日",
+                value: "1"
+            },
+            {
+                title: "三日",
+                value: "3"
+            },
+            {
+                title: "自定到期日",
+                value: "-1"
+            },
+        ]
         return BgWidget.container(html`
             <div class="title-container">
                 ${BgWidget.goBack(
@@ -335,6 +353,7 @@ export class LiveCapture {
                                                         <input style="display: flex;padding:9px 18px;align-items: center;align-self: stretch;border-radius: 10px;border: 1px solid #DDD;"
                                                                placeholder="${dd.placeholder}" onchange="${gvc.event((e) => {
                                                             (viewModel.formData as any)[dd.name] = e.value;
+                                                            gvc.notifyDataChange('summary')
 
                                                         })}">
                                                     </div>
@@ -367,8 +386,8 @@ export class LiveCapture {
                                         </div>
                                         <div style="display: flex;padding: 0 0 12px 4px;justify-content: center;align-items: center;gap: 18px;align-self: stretch;border-bottom: 1px solid #DDD;background: #FFF;">
                                             ${(() => {
-                                                editItmeList = viewModel.formData.item_list.filter(item => item.selected).length > 0;
-                                                if (editItmeList) {
+                                                editItemList = viewModel.formData.item_list.filter(item => item.selected).length > 0;
+                                                if (editItemList) {
                                                     return html`
                                                         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16"
                                                              style="cursor: pointer;"
@@ -376,7 +395,7 @@ export class LiveCapture {
                                                             viewModel.formData.item_list.map((item: any) => {
                                                                 item.selected = false;
                                                             })
-                                                            editItmeList = false;
+                                                            editItemList = false;
                                                             gvc.notifyDataChange('itemBlock')
                                                         })}">
                                                             <rect width="16" height="16" rx="3" fill="#393939"/>
@@ -416,7 +435,7 @@ export class LiveCapture {
                                                                      viewModel.formData.item_list.map((item: any) => {
                                                                          item.selected = true;
                                                                      })
-                                                                     editItmeList = true;
+                                                                     editItemList = true;
                                                                      gvc.notifyDataChange('itemBlock');
                                                                  }
                                                              })}"></div>
@@ -915,15 +934,15 @@ export class LiveCapture {
                                                                                                                                                         return gvc.bindView({
                                                                                                                                                             bind: `product${productIndex}`,
                                                                                                                                                             view: () => {
-                                                                                                                                                                
+
 
                                                                                                                                                                 function drawRow(variant?: any) {
                                                                                                                                                                     // 
-                                                                                                                                                                    console.log("product.content.live_model -- " , product.content.live_model);
-                                                                                                                                                                    let showModel: any = variant ? variant.live_model:(variants.length > 1)?product.content.live_model:variants[0].live_model;
-                                                                                                                                                                    console.log("here OK" ,  showModel)
+                                                                                                                                                                    console.log("product.content.live_model -- ", product.content.live_model);
+                                                                                                                                                                    let showModel: any = variant ? variant.live_model : (variants.length > 1) ? product.content.live_model : variants[0].live_model;
+                                                                                                                                                                    console.log("here OK", showModel)
                                                                                                                                                                     if (!variant && variants.length > 1) {
-                                                                                                                                                                        
+
                                                                                                                                                                         showModel.stock = 0;
                                                                                                                                                                         showModel.available_Qty = 0
 
@@ -935,7 +954,7 @@ export class LiveCapture {
 
                                                                                                                                                                         showModel.min_limit = variants[0].limit ?? 1;
                                                                                                                                                                         showModel.max_limit = 1;
-                            
+
                                                                                                                                                                         variants.map((variant: any) => {
                                                                                                                                                                             showModel.stock += variant.stock
                                                                                                                                                                             showModel.available_Qty += variant.live_model.available_Qty ?? variant.stock;
@@ -1821,7 +1840,7 @@ export class LiveCapture {
                                                                                          viewBox="0 0 16 16" fill="none"
                                                                                          onclick="${gvc.event(() => {
                                                                                              item.selected = false;
-                                                                                             editItmeList = false
+                                                                                             editItemList = false
                                                                                              gvc.notifyDataChange('itemBlock');
                                                                                          })}">
                                                                                         <rect width="16" height="16" rx="3"
@@ -1837,7 +1856,7 @@ export class LiveCapture {
                                                                                 <div style="width: 16px;height: 16px;border-radius: 3px;border: 1px solid #DDD;cursor:pointer"
                                                                                      onclick="${gvc.event(() => {
                                                                                          item.selected = true;
-                                                                                         editItmeList = true;
+                                                                                         editItemList = true;
                                                                                          gvc.notifyDataChange('itemBlock');
                                                                                      })}"></div>
                                                                             `
@@ -1929,7 +1948,7 @@ export class LiveCapture {
                                                             type="checkbox"
                                                             onchange="${gvc.event((e, event) => {
                                                                 viewModel.formData.stock.reserve = e.value;
-                                                                gvc.notifyDataChange('datePicker');
+                                                                gvc.notifyDataChange(['datePicker' , 'summary']);
                                                             })}"
                                                             checked
                                                     />
@@ -1945,31 +1964,17 @@ export class LiveCapture {
                                                 <div class="w-100"
                                                      style="display: flex;height: 40px;padding: 9px 18px;align-items: center;gap: 10px;flex: 1 0 0;border-radius: 10px;border: 1px solid #DDD;">
                                                     <select class="border-0 w-100" style="" onchange="${gvc.event((e) => {
-                                                        
+
 
                                                         viewModel.formData.stock.period = e.value;
-                                                        if (e.value >= 0){
+                                                        if (e.value >= 0) {
                                                             viewModel.formData.stock.expiry_date = getFutureDate(parseInt(e.value))
                                                         }
-                                                        
-                                                        gvc.notifyDataChange('datePicker');
+
+                                                        gvc.notifyDataChange(['datePicker' , 'summary']);
                                                     })}">
                                                         ${(() => {
-                                                            const data = [
-                                                                {
-                                                                    title: "一日",
-                                                                    value: "1"
-                                                                },
-                                                                {
-                                                                    title: "三日",
-                                                                    value: "3"
-                                                                },
-                                                                {
-                                                                    title: "自定到期日",
-                                                                    value: "-1"
-                                                                },
-                                                            ]
-                                                            return data.map((dd) => {
+                                                            return stockExpired.map((dd) => {
                                                                 return html`
                                                                     <option value="${dd.value}">${dd.title}</option>
                                                                 `
@@ -1991,7 +1996,7 @@ export class LiveCapture {
                                                                value="${viewModel.formData.stock.expiry_date}"
                                                                onchange="${gvc.event((e: any) => {
                                                                    viewModel.formData.stock.expiry_date = e.value;
-
+                                                                   gvc.notifyDataChange(['summary']);
                                                                })}">
                                                     `
                                                 }, divCreate: {
@@ -2010,7 +2015,7 @@ export class LiveCapture {
                                         <div style="display: flex;padding: 20px;flex-direction: column;gap: 18px;">
                                             <div style="font-size: 16px;font-style: normal;font-weight: 700;">優惠折扣</div>
                                             <div class="d-flex flex-column">
-                                               
+
                                                 ${(() => {
                                                     const data = [{
                                                         title: "不套用折扣",
@@ -2021,9 +2026,11 @@ export class LiveCapture {
                                                     }]
                                                     return data.map((dd) => {
                                                         return html`
-                                                            <div class="d-flex align-items-center" style="gap: 6px;" onclick="${gvc.event(()=>{
-                                                                viewModel.formData.discount_set = dd.value;
-                                                            })}}">
+                                                            <div class="d-flex align-items-center" style="gap: 6px;cursor: pointer;"
+                                                                 onclick="${gvc.event(() => {
+                                                                     viewModel.formData.discount_set = dd.value;
+                                                                     gvc.notifyDataChange(['summary' , 'discount']);
+                                                                 })}}">
                                                                 ${viewModel.formData.discount_set == dd.value ? html`
                                                                             <div style="width: 16px;height: 16px;border-radius: 20px;border:solid 4px #393939"></div>`
                                                                         : `<div style="height: 16px;width: 16px;border-radius: 20px;border: 1px solid #DDD;"></div>`}
@@ -2044,19 +2051,68 @@ export class LiveCapture {
                                 }, divCreate: {}
                             })}
                             <div class="w-100" style="margin-bottom: 120px;"></div>
-                            <div class="update-bar-container">
-                                ${BgWidget.cancel(gvc.event(()=>{
-                                    
-                                }))}
-                                ${BgWidget.save(
-                                        gvc.event(async () => {
-                                            await ApiLiveInteraction.createScheduled(viewModel.formData);
-                                        })
-                                )}
-                            </div>,
+                            
                         `, ratio: 70
                     }
-                    , {html: html``, ratio: 30})}
+                    , {
+                        html: html`
+                            ${gvc.bindView({
+                                bind: "summary",
+                                dataList:[{
+                                    obj:viewModel,
+                                    key:"summary",
+                                }],
+                                view: () => {
+                                    return BgWidget.mainCard(html`
+                                        <div style="display: flex;flex-direction: column;align-items: flex-start;gap: 18px;font-size: 16px;font-weight: 400;">
+                                            <div style="font-size: 16px;font-weight: 700;">摘要</div>
+                                            <div style="display: flex;flex-direction: column;gap: 8px;">
+                                                <div>直播名稱 :
+                                                    ${(viewModel.formData.stream_name.length > 0) ? viewModel.formData.stream_name : html`
+                                                        <span style="color: #8D8D8D;">尚未輸入直播名稱</span>`}
+                                                </div>
+                                                <div>直播主 :
+                                                    ${(viewModel.formData.streamer.length > 0) ? viewModel.formData.streamer : html`
+                                                        <span style="color: #8D8D8D;">尚未輸入直播主</span>`}
+                                                </div>
+                                                <div>直播平台 : ${viewModel.formData.platform}</div>
+                                            </div>
+                                            <div class="w-100 " style="height: 1px; background-color: #DDD"></div>
+                                            <div style="display: flex;flex-direction: column;gap: 8px;">
+                                                ${(() => {
+                                                    if (viewModel.formData.stock.reserve) {
+                                                        const date = stockExpired.find((date) => {
+                                                            return date.value == viewModel.formData.stock.period
+                                                        });
+                                                        return html`
+                                                            <div>保留庫存 : ${date?.title},
+                                                                    期限至${viewModel.formData.stock.expiry_date}
+                                                            </div>`
+                                                    } else {
+                                                        return ``
+                                                    }
+                                                })()}
+
+                                                <div>${viewModel.formData.discount_set ? "套用" : "不套用"}折扣</div>
+                                            </div>
+                                        </div>
+                                    `)
+                                }, divCreate: {}
+                            })}
+                        `, ratio: 30
+                    })}
+            <div class="update-bar-container">
+                ${BgWidget.cancel(gvc.event(() => {
+
+                }))}
+                ${BgWidget.save(
+                        gvc.event(async () => {
+                            ApiLiveInteraction.createScheduled(viewModel.formData).then((response) => {
+                                console.log("response -- " , response.response.insertID)
+                            });
+                        }),"下一步"
+                )}
+            </div>,
         `)
     }
 }

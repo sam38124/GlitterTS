@@ -11,7 +11,16 @@ export = router;
 
 router.post('/', async (req: express.Request, resp: express.Response) => {
     try {
-        await new CustomerSessions(req.get('g-app') as string, req.body.token).createScheduled(req.body.data)
+        const insertID = await new CustomerSessions(req.get('g-app') as string, req.body.token).createScheduled(req.body.data)
+        return resp.status(httpStatus.OK).send({insertID:insertID})
+    } catch (err) {
+        return response.fail(resp, err);
+    }
+});
+
+router.post('/listenChat', async (req: express.Request, resp: express.Response) => {
+    try {
+        // await new CustomerSessions(req.get('g-app') as string, req.body.token).createScheduled(req.body.data)
         return resp.status(httpStatus.OK).send("收到你的訊息")
     } catch (err) {
         return response.fail(resp, err);

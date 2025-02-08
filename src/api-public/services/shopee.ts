@@ -75,10 +75,8 @@ export class Shopee {
 
         const sign = this.cryptoSign(partner_id, api_path, timestamp);
 
-
         return `${Shopee.path}${api_path}?partner_id=${partner_id}&timestamp=${timestamp}&sign=${sign}`
 
-        // ?partner_id=1249034&sign=528d448cde17720098c8886aafc973c093af54a489ff4ef80198b39de958d484&timestamp=1736322488
     }
 
     public generateShopUrl(partner_id: string, api_path: string, timestamp: number, access_token: string, shop_id: number) {
@@ -112,7 +110,7 @@ export class Shopee {
         const partner_id = process.env.shopee_partner_id ?? "";//測試版是test partner_id;
         const api_path = "/api/v2/auth/token/get"
         const config = {
-            method: 'post', // 確保是 POST 方法
+            method: 'post',
             url: this.generateUrl(partner_id, api_path, timestamp),
             headers: {
                 'Content-Type': 'application/json',
@@ -126,29 +124,43 @@ export class Shopee {
 
         try {
             const response = await axios(config);
+            interface ShopeeAuthToken {
+                error:string;
+                message:string;
+                shop_id:string;
+                request_id:string;
+                access_token: string;      // Shopee 提供的 Access Token
+                refresh_token: string;     // Shopee 提供的 Refresh Token
+                expire_in: number;         // 剩餘有效秒數 (Shopee 回傳的 `expire_in`)
+                expires_at: string;        // Token 到期時間 (ISO 8601 格式)
+                created_at: string;        // 存入時間 (ISO 8601 格式)
+            }
             const data = (await db.execute(
                 `select *
                  from \`${saasConfig.SAAS_NAME}\`.private_config
                  where \`app_name\` = '${this.app}'
                    and \`key\` = 'shopee_access_token'
                 `, []));
-            response.data.shop_id = shop_id;
+            let passData = {...response.data,
+                expires_at: new Date(Date.now() + 14373 * 1000).toISOString(), // 計算到期時間
+                created_at: new Date().toISOString(),
+                shop_id: shop_id
+            }
             if (data.length == 0) {
                 await db.execute(`
                             INSERT INTO \`${saasConfig.SAAS_NAME}\`.private_config (\`app_name\`, \`key\`, \`value\`, \`updated_at\`)
                             VALUES (?, ?, ?, ?);
                     `
 
-                    , [this.app, "shopee_access_token", response.data, new Date()])
+                    , [this.app, "shopee_access_token", passData, new Date()])
             } else {
                 await db.execute(`
                             UPDATE \`${saasConfig.SAAS_NAME}\`.\`private_config\`
                             SET \`value\` = ?
                             where \`app_name\` = '${this.app}'
                               and \`key\` = 'shopee_access_token'
-
                     `
-                    , [response.data])
+                    , [passData])
             }
         } catch (error: any) {
             if (axios.isAxiosError(error) && error.response) {
@@ -175,7 +187,7 @@ export class Shopee {
 
         // https://partner.test-stable.shopeemobile.com/api/v2/product/get_item_list?partner_id=1249034&sign=307b14fff0afa5c41a73cfa10d5a4ae5ee8d57e915e8cd8aafb66bb8ee461b02&timestamp=1736326109&shop_id=126385&access_token=70776e48537951626f715a5674446457&offset=0&page_size=10&update_time_from=1611311600&update_time_to=1736352061&item_status=NORMAL
         const config = {
-            method: 'get', // 確保是 POST 方法
+            method: 'get',
             url: this.generateShopUrl(partner_id, api_path, timestamp, data[0].value.access_token, parseInt(data[0].value.shop_id)),
             headers: {
                 'Content-Type': 'application/json',
@@ -191,7 +203,6 @@ export class Shopee {
             },
             paramsSerializer: (params: any) => qs.stringify(params, {arrayFormat: 'repeat'}),
         };
-        // access_token:data[0].value.access_token,
         try {
 
             const response = await axios(config);
@@ -201,14 +212,11 @@ export class Shopee {
                     message: response.data.error
                 }
             }
-
-            console.log(`蝦皮回覆:`, response.data);
             const itemList: {
                 item_id: number,
                 item_status: string,
                 update_time: number
             }[] = response.data.response.item;
-            //透過item_id 取得他的detail 和 model(shopee的variants)
 
             const productData = await Promise.all(
                 itemList.map(async (item, index: number) => {
@@ -315,7 +323,7 @@ export class Shopee {
             const partner_id = process.env.shopee_partner_id ?? "";//測試版是test partner_id;
             const api_path = "/api/v2/product/get_model_list";
             const config = {
-                method: 'get', // 確保是 POST 方法
+                method: 'get',
                 url: that.generateShopUrl(partner_id, api_path, timestamp, data[0].value.access_token, parseInt(data[0].value.shop_id)),
                 headers: {
                     'Content-Type': 'application/json',
@@ -329,44 +337,6 @@ export class Shopee {
             try {
                 const response = await axios(config);
                 let tempVariants: Variant[] = [];
-                // "specs": [
-                //     {
-                //         "title": "size",
-                //         "option": [
-                //             {
-                //                 "title": "s",
-                //                 "expand": true,
-                //                 "language_title": {}
-                //             },
-                //             {
-                //                 "title": "l",
-                //                 "expand": true,
-                //                 "language_title": {}
-                //             }
-                //         ],
-                //         "language_title": {}
-                //     }
-                // ],
-                //插入variant
-                // let tempVariant:Variant={
-                //     sale_price= number;
-                //     compare_price: number;
-                //     cost: number;
-                //     spec: string[];
-                //     profit: number;
-                //     v_length: number;
-                //     v_width: number;
-                //     v_height: number;
-                //     weight: number;
-                //     shipment_type: 'weight' | 'none' | 'volume';
-                //     sku: string;
-                //     barcode: string;
-                //     stock: number;
-                //     stockList:{};
-                //     preview_image: string;
-                //     show_understocking: string;
-                //     type: string;
-                // }
 
                 const tier_variation = response.data.response.tier_variation;
                 const model = response.data.response.model;
@@ -440,7 +410,7 @@ export class Shopee {
                             newVariants.preview_image = ""; // 若發生錯誤，設為 null
                         }
                     }
-
+                    (newVariants as any).shopee_model_id = data.model_id;
                     tempVariants.push(newVariants);
                 })
 
@@ -475,7 +445,7 @@ export class Shopee {
         const partner_id = process.env.shopee_partner_id ?? "";//測試版是test partner_id;
         const api_path = "/api/v2/product/get_item_base_info";
         const config = {
-            method: 'get', // 確保是 POST 方法
+            method: 'get',
             url: this.generateShopUrl(partner_id, api_path, timestamp, data[0].value.access_token, parseInt(data[0].value.shop_id)),
             headers: {
                 'Content-Type': 'application/json',
@@ -501,7 +471,6 @@ export class Shopee {
             } catch (e: any) {
 
             }
-            console.log(`item==>`,item)
             let postMD: {
                 template: string;
                 visible: string;
@@ -637,7 +606,195 @@ export class Shopee {
             }
         }
     }
+    public async asyncStockToShopee(obj:{
+        product:any,
+        access_token:string,
+        shop_id:string
+        callback:(response?:any)=>void
+    }){
+        if (!obj.product.content.shopee_id){
+            //沒有shopee_id的話直接回去
+            obj.callback();
+            return
+        }
+        let basicData:{
+            item_id:string,
+            stock_list:any[]
+        } = {
+            "item_id": obj.product.content.shopee_id,
+            "stock_list": []
+        };
+        const partner_id = process.env.shopee_partner_id ?? "";
+        const api_path = "/api/v2/product/get_model_list";
+        const timestamp = Math.floor(Date.now() / 1000);
 
+        const config = {
+            method: 'get',
+            url: this.generateShopUrl(partner_id, api_path, timestamp, obj.access_token, parseInt(obj.shop_id)),
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            params: {
+                shop_id: parseInt(obj.shop_id),
+                access_token: obj.access_token,
+                item_id: obj.product.content.shopee_id
+            },
+        };
+        try {
+            const response = await axios(config);
+            if (!response.data?.response?.model){
+                //找不到該商品 todo 找不到的判斷
+                console.log("response.data -- " , response.data)
+                obj.callback(response.data);
+            }
+            //找到兩個名字相同的 把儲存model_id 還有庫存
+            obj.product.content.variants.map((variant:any)=>{
+                let basicStock = {
+                    "model_id": 0,
+                    "seller_stock": [
+                        {
+                            "stock": 0
+                        }
+                    ]
+                }
+
+                let findModel = response.data.response.model.find((item:any)=>{return item.model_name == variant.spec.join(',')});
+
+                if (findModel){
+                    basicStock.model_id = findModel.model_id;
+                    //shopee 單倉儲的情形
+                    basicStock.seller_stock[0].stock = variant.stock;
+                    basicData.stock_list.push(basicStock);
+                }
+            })
+            // 同步這個商品的庫存
+            const updateConfig = {
+                method: 'post',
+                url: this.generateShopUrl(partner_id, "/api/v2/product/update_stock", timestamp, obj.access_token, parseInt(obj.shop_id)),
+                params: {
+                    shop_id: parseInt(obj.shop_id),
+                    access_token: obj.access_token,
+                },
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                data: JSON.stringify(basicData)
+            };
+            try {
+                const response = await axios(updateConfig);
+                obj.callback(response.data);
+            } catch (error: any) {
+                if (axios.isAxiosError(error) && error.response) {
+                    console.error('Error Response:', error.response.data);
+                } else {
+                    console.error('Unexpected Error:', error.message);
+                }
+            }
+        } catch (error: any) {
+            if (axios.isAxiosError(error) && error.response) {
+                console.error('Error Response:', error.response.data);
+            } else {
+                console.error('Unexpected Error:', error.message);
+            }
+        }
+    }
+    public async asyncStockFromShopnex(): Promise<any> {
+        let origData: any = {};
+        try {
+            origData = await db.query(`SELECT *
+                                           FROM \`${this.app}\`.t_manager_post
+                                           WHERE (content ->>'$.type'='product')
+                                             AND (content ->>'$.shopee_id' IS NOT NULL AND content ->>'$.shopee_id' <> '')`, [])
+            let product = origData[8];
+            let error_report = [];
+            let temp = await this.fetchShopeeAccessToken();
+            return Promise.all(
+                origData.map((product: any) =>
+                    new Promise<void>((resolve, reject) => {
+                        try {
+                            this.asyncStockToShopee({
+                                product: product,
+                                callback: () => {
+                                    resolve(); // 當 `asyncStockToShopee` 執行完畢後標記為完成
+                                },
+                                access_token:temp.access_token,
+                                shop_id:temp.shop_id
+                            });
+                        } catch (e: any) {
+                            reject(e); // 捕獲錯誤並拒絕該 Promise
+                        }
+                    })
+                )
+            ).then(() => {
+                console.log("所有產品的庫存同步完成！");
+                return{
+                    result: "OK",
+                }
+
+            }).catch((error) => {
+                console.error("同步庫存時發生錯誤:", error);
+            });
+
+        } catch (e: any) {
+
+        }
+    }
+    public async fetchShopeeAccessToken(): Promise<any> {
+        try {
+            const sqlData = await db.execute(
+                `SELECT * 
+             FROM \`${saasConfig.SAAS_NAME}\`.private_config
+             WHERE \`app_name\` = '${this.app}'
+               AND \`key\` = 'shopee_access_token'`,
+                []
+            );
+
+            const obj: any = {};
+            obj.accessToken = sqlData;
+            //如果他過期了 刷新
+            if (Date.now() >= new Date(sqlData[0].value.expires_at).getTime()){
+                const partner_id = process.env.shopee_partner_id ?? "";
+                const api_path = "/api/v2/auth/access_token/get";
+                const timestamp = Math.floor(Date.now() / 1000);
+                const config = {
+                    method: 'post',
+                    url: this.generateUrl(partner_id, api_path, timestamp),
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    data: JSON.stringify({
+                        shop_id: parseInt(obj.accessToken[0].value.shop_id),
+                        refresh_token: obj.accessToken[0].value.refresh_token,
+                        partner_id: parseInt(partner_id)
+                    }),
+                };
+
+                try {
+                    const response = await axios(config);
+                    try {
+                        await db.execute(`
+                        UPDATE \`${saasConfig.SAAS_NAME}\`.\`private_config\`
+                        SET \`value\` = ?
+                        where \`app_name\` = '${this.app}'
+                          and \`key\` = 'shopee_access_token'
+                    `, [response.data])
+                        return response.data
+                    }catch (e:any){
+                        console.error("refresh private_config shopee_access_token error : ", e.data);
+                    }
+
+                } catch (e: any) {
+                    console.error("Shopee access token API request failed:", e);
+                }
+            }else {
+                return sqlData[0].value;
+            }
+
+
+        } catch (e: any) {
+            console.error("Database query for Shopee access token failed:", e);
+        }
+    }
     public getInitial(obj: any) {
         function getEmptyLanguageData() {
             return {

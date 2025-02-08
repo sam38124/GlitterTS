@@ -1756,7 +1756,6 @@ export class ShoppingProductSetting {
                             }))}
                                 ${BgWidget.save(obj.gvc.event(() => {
                                 setTimeout(() => {
-                                    console.log(postMD);
                                     postMD.variants.forEach((variant) => {
                                         if (Object.keys(variant.stockList).length > 0) {
                                             variant.stock = 0;

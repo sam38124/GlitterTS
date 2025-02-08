@@ -55,6 +55,19 @@ export class ApiShopee {
             callback(r.response);
         });
     }
+    public static syncProduct(callback:(response:any)=>void){
+        BaseApi.create({
+            url: getBaseUrl() + `/api-public/v1/shopee/syncStock`,
+            type: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'g-app': getConfig().config.appName,
+                Authorization: getConfig().config.token,
+            },
+        }).then(r => {
+            callback(r.response);
+        });
+    }
 }
 
 function getConfig() {

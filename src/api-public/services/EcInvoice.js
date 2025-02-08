@@ -88,7 +88,6 @@ class EcInvoice {
                     e instanceof Error && console.log(e.message);
                 }
                 const resp = JSON.parse(decodeURIComponent(decrypted));
-                console.log(`resp--->`, resp);
                 await database_1.default.query(`insert into \`${obj.app_name}\`.t_invoice_memory
                                     set ?`, [
                     {
@@ -423,12 +422,9 @@ class EcInvoice {
         const salesMoney = 1000;
         const timeStamp = `${new Date().valueOf()}`;
         const params = obj.invoice_data;
-        var dateFormat = new Date(params.TimeStamp);
-        console.log(`dateFormat--${dateFormat}`);
+        const dateFormat = new Date(params.TimeStamp);
         const qs = tool.JsonToQueryString(params);
-        console.log(qs);
         const tradeInfo = tool.aesEncrypt(qs, obj.hashKey, obj.hash_IV);
-        console.log(`tradeInfo--${params.TimeStamp}`);
         let data = new form_data_1.default();
         data.append('MerchantID_', obj.merchNO);
         data.append('PostData_', tradeInfo);
@@ -442,7 +438,6 @@ class EcInvoice {
         return new Promise((resolve, reject) => {
             axios_1.default.request(config)
                 .then((response) => {
-                console.log(JSON.stringify(response.data));
                 resolve(response.data);
             })
                 .catch((error) => {
@@ -474,7 +469,6 @@ class EcInvoice {
         return new Promise((resolve, reject) => {
             axios_1.default.request(config)
                 .then((response) => {
-                console.log(JSON.stringify(response.data));
                 resolve(response.data.Status === 'SUCCESS');
             })
                 .catch((error) => {

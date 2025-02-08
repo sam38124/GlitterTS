@@ -13,15 +13,12 @@ export = router;
 
 router.get('/', async (req: express.Request, resp: express.Response) => {
     try {
-        console.log("req.body in get -- ", req.body)
     } catch (err) {
         return response.fail(resp, err);
     }
 });
 router.post('/getAuth', async (req: express.Request, resp: express.Response) => {
     try {
-
-        // console.log(new Shopee().generateAuth())
         return response.succ(
             resp,
             {
@@ -34,8 +31,6 @@ router.post('/getAuth', async (req: express.Request, resp: express.Response) => 
 });
 router.post('/getToken', async (req: express.Request, resp: express.Response) => {
     try {
-
-        console.log(req.body)
         if(await UtPermission.isManager(req)){
             return response.succ(
                 resp,
@@ -60,17 +55,29 @@ router.post('/getItemList', async (req: express.Request, resp: express.Response)
         }
 
     } catch (err) {
-        console.log("here -- ok")
         return response.fail(resp, err);
     }
 });
 router.get('/listenMessage', async (req: express.Request, resp: express.Response) => {
     try {
-        console.log("req.body in post -- ", req)
         return response.succ(
             resp,
             {
                 "result":"OK"
+            }
+        )
+    } catch (err) {
+        return response.fail(resp, err);
+    }
+});
+router.post('/syncStock', async (req: express.Request, resp: express.Response) => {
+    try {
+        const res = await new Shopee(req.get('g-app') as string , req.body.token).asyncStockFromShopnex();
+        return response.succ(
+            resp,
+            {
+                "result" : "OK",
+                "response" : res
             }
         )
     } catch (err) {

@@ -208,10 +208,10 @@ export class MarketShopee {
 
                                                     <button id="confirm-btn" class="sync-button"
                                                             onclick="${gvc.event(() => {
-                                                                
                                                                 const startTime = Math.floor(new Date(startDate).getTime() / 1000);
                                                                 const endTime = Math.floor(new Date(endDate).getTime() / 1000);
                                                                 const dialog = new ShareDialog(gvc.glitter);
+                                                          
                                                                 dialog.dataLoading({
                                                                     text:"資料匯入中",
                                                                     visible:true
@@ -221,7 +221,6 @@ export class MarketShopee {
                                                                         text:"資料匯入中",
                                                                         visible:false
                                                                     })
-                                                                    console.log("response -- " , response)
                                                                     if (response.type == "error"){
                                                                         dialog.infoMessage({
                                                                             text:`error:${response.message}`
@@ -245,9 +244,24 @@ export class MarketShopee {
 
                                     })}">同步商品
                                     </button>
+                                    <button id="" class="shopee-btn mt-3"
+                                            onclick="${gvc.event(() => {
+                                                const dialog = new ShareDialog(gvc.glitter);
+                                                dialog.dataLoading({
+                                                    visible:true
+                                                })
+                                                ApiShopee.syncProduct((res:any)=>{
+                                                    dialog.dataLoading({
+                                                        visible:false
+                                                    })
+                                                    console.log("res -- " , res);
+                                                })
+                                                
+
+                                            })}">同步商品庫存
+                                    </button>
                                 `),
                                 BgWidget.mbContainer(18),
-
                                 html`
                                     <div class="update-bar-container">
                                         ${BgWidget.save(
