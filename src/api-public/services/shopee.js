@@ -489,12 +489,13 @@ class Shopee {
                     ]
                 };
                 let findModel = response.data.response.model.find((item) => { return item.model_name == variant.spec.join(','); });
-                if (findModel) {
-                    basicStock.model_id = findModel.model_id;
+                if (findModel || response.data.response.model.length == 0) {
+                    basicStock.model_id = 0;
                     basicStock.seller_stock[0].stock = variant.stock;
                     basicData.stock_list.push(basicStock);
                 }
             });
+            console.log("basicData -- ", JSON.stringify(basicData));
             const updateConfig = {
                 method: 'post',
                 url: this.generateShopUrl(partner_id, "/api/v2/product/update_stock", timestamp, obj.access_token, parseInt(obj.shop_id)),

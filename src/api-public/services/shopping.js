@@ -53,6 +53,7 @@ const app_js_1 = require("../../services/app.js");
 const stock_1 = require("./stock");
 const seo_config_js_1 = require("../../seo-config.js");
 const ses_js_1 = require("../../services/ses.js");
+const shopee_1 = require("./shopee");
 class Shopping {
     constructor(app, token) {
         this.app = app;
@@ -696,7 +697,7 @@ class Shopping {
         }
     }
     async toCheckout(data, type = 'add', replace_order_id) {
-        var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m, _o, _p, _q, _r;
+        var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m, _o, _p, _q, _r, _s;
         const check_time = new Date().getTime();
         try {
             data.line_items = (_a = (data.line_items || data.lineItems)) !== null && _a !== void 0 ? _a : [];
@@ -1044,6 +1045,16 @@ class Shopping {
                             if (type !== 'preview' && type !== 'manual' && type !== 'manual-preview' && variant.show_understocking !== 'false') {
                                 const remainingStock = Math.max(variant.stock - b.count, 0);
                                 variant.stock = remainingStock;
+                                if (pd.shopee_id) {
+                                    const access = await new shopee_1.Shopee(this.app, this.token).fetchShopeeAccessToken();
+                                    await new shopee_1.Shopee(this.app, this.token).asyncStockToShopee({
+                                        product: pdDqlData,
+                                        access_token: access.access_token,
+                                        shop_id: access.shop_id,
+                                        callback: () => {
+                                        }
+                                    });
+                                }
                                 if (type === 'POS') {
                                     variant.deduction_log = { [data.pos_store]: b.count };
                                     variant.stockList[data.pos_store].count -= b.count;
@@ -1054,7 +1065,6 @@ class Shopping {
                                     variant.deduction_log = returnData.deductionLog;
                                     b.deduction_log = returnData.deductionLog;
                                 }
-                                console.log("如果他有shopee_id -- ", pd);
                                 saveStockArray.push(() => {
                                     return new Promise(async (resolve, reject) => {
                                         try {
@@ -1287,6 +1297,7 @@ class Shopping {
             });
             if (type === 'preview' || type === 'manual-preview')
                 return { data: carData };
+            return { data: carData };
             console.log(`checkout-time-12=>`, new Date().getTime() - check_time);
             if (type === 'manual') {
                 carData.orderSource = 'manual';
@@ -1353,9 +1364,8 @@ class Shopping {
                 if (data.checkOutType === 'POS' && Array.isArray(data.voucherList)) {
                     const manualVoucher = data.voucherList.find((item) => item.id === 0);
                     if (manualVoucher) {
-                        manualVoucher.discount = manualVoucher.discount_total;
+                        manualVoucher.discount = (_q = manualVoucher.discount_total) !== null && _q !== void 0 ? _q : 0;
                         carData.total -= manualVoucher.discount;
-                        carData.voucherList.push(manualVoucher);
                     }
                 }
                 const trans = await database_js_1.default.Transaction.build();
@@ -1389,7 +1399,7 @@ class Shopping {
                 await Promise.all(saveStockArray.map((dd) => {
                     return dd();
                 }));
-                await new Shopping(this.app).releaseCheckout((_q = data.pay_status) !== null && _q !== void 0 ? _q : 0, carData.orderID);
+                await new Shopping(this.app).releaseCheckout((_r = data.pay_status) !== null && _r !== void 0 ? _r : 0, carData.orderID);
                 return { result: 'SUCCESS', message: 'POS訂單新增成功', data: carData };
             }
             else {
@@ -1444,7 +1454,7 @@ class Shopping {
                     appName: this.app,
                     key: 'glitter_finance',
                 }))[0].value;
-                let kd = (_r = keyData[carData.customer_info.payment_select]) !== null && _r !== void 0 ? _r : {
+                let kd = (_s = keyData[carData.customer_info.payment_select]) !== null && _s !== void 0 ? _s : {
                     ReturnURL: '',
                     NotifyURL: '',
                 };

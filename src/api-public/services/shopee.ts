@@ -643,7 +643,6 @@ export class Shopee {
         try {
             const response = await axios(config);
             if (!response.data?.response?.model){
-                //找不到該商品 todo 找不到的判斷
                 obj.callback(response.data);
             }
             //找到兩個名字相同的 把儲存model_id 還有庫存
@@ -655,12 +654,10 @@ export class Shopee {
                             "stock": 0
                         }
                     ]
-                }
-
+                };
                 let findModel = response.data.response.model.find((item:any)=>{return item.model_name == variant.spec.join(',')});
-
-                if (findModel){
-                    basicStock.model_id = findModel.model_id;
+                if (findModel || response.data.response.model.length == 0){
+                    basicStock.model_id = 0;
                     //shopee 單倉儲的情形
                     basicStock.seller_stock[0].stock = variant.stock;
                     basicData.stock_list.push(basicStock);
@@ -765,7 +762,6 @@ export class Shopee {
                         partner_id: parseInt(partner_id)
                     }),
                 };
-
                 try {
                     const response = await axios(config);
                     try {

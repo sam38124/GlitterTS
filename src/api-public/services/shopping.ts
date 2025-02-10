@@ -26,6 +26,7 @@ import { App } from '../../services/app.js';
 import { Stock } from './stock';
 import { SeoConfig } from '../../seo-config.js';
 import { sendmail } from '../../services/ses.js';
+import {Shopee} from "./shopee";
 
 type BindItem = {
     id: string;
@@ -1502,7 +1503,16 @@ export class Shopping {
                             if (type !== 'preview' && type !== 'manual' && type !== 'manual-preview' && variant.show_understocking !== 'false') {
                                 const remainingStock = Math.max(variant.stock - b.count, 0);
                                 variant.stock = remainingStock;
-
+                                if (pd.shopee_id){
+                                    const access = await new Shopee(this.app , this.token).fetchShopeeAccessToken();
+                                    await new Shopee(this.app , this.token).asyncStockToShopee({
+                                        product:pdDqlData,
+                                        access_token:access.access_token,
+                                        shop_id:access.shop_id,
+                                        callback:()=>{
+                                        }
+                                    });
+                                }
                                 // Handle stock deduction based on checkout type
                                 if (type === 'POS') {
                                     // Deduct stock based on store for POS
@@ -1518,7 +1528,8 @@ export class Shopping {
                                 saveStockArray.push(() => {
                                     return new Promise<boolean>(async (resolve, reject) => {
                                         try {
-                                            //如果他有shopee_id 這邊還要處理同步至蝦皮的庫存
+                                            //如果他有shopee_id 這邊還要處理同步至蝦皮的庫存 todo 還要新增一個是否同步至蝦皮的選項
+
                                             await this.updateVariantsWithSpec(variant, b.id, b.spec);
                                             // Update information in the database
                                             await db.query(
@@ -1792,6 +1803,7 @@ export class Shopping {
 
             // 手動結帳地方判定
             if (type === 'manual') {
+
                 carData.orderSource = 'manual';
                 let tempVoucher: VoucherData = {
                     discount_total: data.voucher.discount_total,
@@ -1867,9 +1879,10 @@ export class Shopping {
                 if (data.checkOutType === 'POS' && Array.isArray(data.voucherList)) {
                     const manualVoucher = data.voucherList.find((item: any) => item.id === 0);
                     if (manualVoucher) {
-                        manualVoucher.discount = manualVoucher.discount_total;
+                        manualVoucher.discount = manualVoucher.discount_total??0;
                         carData.total -= manualVoucher.discount;
-                        carData.voucherList.push(manualVoucher);
+
+                        // carData.voucherList && carData.voucherList.push(manualVoucher);
                     }
                 }
 
