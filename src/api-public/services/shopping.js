@@ -1480,7 +1480,7 @@ class Shopping {
                         }));
                         return await new financial_service_js_1.LinePay(this.app, kd).createOrder(carData);
                     case 'paynow': {
-                        kd.ReturnURL = `${process.env.DOMAIN}/api-public/v1/ec/redirect?g-app=${this.app}&paynow=true`;
+                        kd.ReturnURL = `${process.env.DOMAIN}/api-public/v1/ec/redirect?g-app=${this.app}&return=${id}&paynow=true`;
                         kd.NotifyURL = `${process.env.DOMAIN}/api-public/v1/ec/notify?g-app=${this.app}&paynow=true`;
                         await Promise.all(saveStockArray.map((dd) => {
                             return dd();

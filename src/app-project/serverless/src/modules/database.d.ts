@@ -22,7 +22,7 @@ declare const _default: {
     getPagination: (sql: string, page: number, pageCount: number) => string;
     escape: (parameter: any) => string;
     queryLambada: (cf: {
-        database?: string;
+        database?: string | undefined;
     }, fun: (v: {
         query(sql: string, params: unknown[]): Promise<any>;
     }) => any) => Promise<any>;
