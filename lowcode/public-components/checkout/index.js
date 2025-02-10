@@ -2395,7 +2395,6 @@ export class CheckoutIndex {
                                     }).then((res) => {
                                         var _a, _b, _c;
                                         dialog.dataLoading({ visible: false });
-                                        return;
                                         if (vm.cartData.customer_info.payment_select == 'paynow') {
                                             if (!((_c = (_b = (_a = res.response) === null || _a === void 0 ? void 0 : _a.data) === null || _b === void 0 ? void 0 : _b.result) === null || _c === void 0 ? void 0 : _c.secret)) {
                                                 return "paynow API失敗";

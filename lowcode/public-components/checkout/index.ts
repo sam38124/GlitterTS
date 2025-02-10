@@ -2517,7 +2517,7 @@ export class CheckoutIndex {
                                                                 give_away: apiCart.cart.give_away,
                                                             }).then((res) => {
                                                                 dialog.dataLoading({ visible: false });
-                                                                return 
+                                                           
                                                                 if (vm.cartData.customer_info.payment_select == 'paynow'){
                                                                     if (!res.response?.data?.result?.secret){
                                                                         return "paynow API失敗"

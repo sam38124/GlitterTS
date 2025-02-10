@@ -1116,7 +1116,7 @@ export class Shopping {
                         const variant = pd.variants.find((dd: any) => dd.spec.join('-') === b.spec.join('-'));
 
                         // 更新庫存
-                        updateStock(variant, b.deduction_log);
+                        await updateStock(variant, b.deduction_log);
 
                         // 更新變體資訊
                         await this.updateVariantsWithSpec(variant, b.id, b.spec);
@@ -1515,10 +1515,10 @@ export class Shopping {
                                     variant.deduction_log = returnData.deductionLog;
                                     b.deduction_log = returnData.deductionLog;
                                 }
-
                                 saveStockArray.push(() => {
                                     return new Promise<boolean>(async (resolve, reject) => {
                                         try {
+                                            //如果他有shopee_id 這邊還要處理同步至蝦皮的庫存
                                             await this.updateVariantsWithSpec(variant, b.id, b.spec);
                                             // Update information in the database
                                             await db.query(
@@ -2647,7 +2647,7 @@ export class Shopping {
                 migrateOrder(data.orderData.lineItems);
                 migrateOrder(origin[0].orderData.lineItems);
 
-                //當訂單變成已取消的當下去執行
+                //當訂單變成已取消的當下去執行庫存回填
                 if (origin[0].orderData.orderStatus !== '-1' && data.orderData.orderStatus === '-1') {
                     for (const lineItem of origin[0].orderData.lineItems) {
                         //回填所有庫存點數量

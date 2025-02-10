@@ -192,8 +192,9 @@ export class ProductDetail {
                 })}
                     <div class="d-flex flex-column align-items-center mt-2" style="width:100%;">
                         ${gvc.bindView((() => {
+                    var _a, _b, _c;
                     const id = glitter.getUUID();
-                    const commentLength = vm.data.content.comments.length;
+                    const commentLength = (_c = (_b = (_a = vm.data.content) === null || _a === void 0 ? void 0 : _a.comments) === null || _b === void 0 ? void 0 : _b.length) !== null && _c !== void 0 ? _c : 0;
                     return {
                         bind: id,
                         view: () => {

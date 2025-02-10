@@ -477,7 +477,6 @@ class Shopee {
         try {
             const response = await (0, axios_1.default)(config);
             if (!((_c = (_b = response.data) === null || _b === void 0 ? void 0 : _b.response) === null || _c === void 0 ? void 0 : _c.model)) {
-                console.log("response.data -- ", response.data);
                 obj.callback(response.data);
             }
             obj.product.content.variants.map((variant) => {
@@ -537,8 +536,6 @@ class Shopee {
                                            FROM \`${this.app}\`.t_manager_post
                                            WHERE (content ->>'$.type'='product')
                                              AND (content ->>'$.shopee_id' IS NOT NULL AND content ->>'$.shopee_id' <> '')`, []);
-            let product = origData[8];
-            let error_report = [];
             let temp = await this.fetchShopeeAccessToken();
             return Promise.all(origData.map((product) => new Promise((resolve, reject) => {
                 try {

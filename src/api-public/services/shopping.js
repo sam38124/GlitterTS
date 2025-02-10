@@ -734,7 +734,7 @@ class Shopping {
                         })).data;
                         const pd = pdDqlData.content;
                         const variant = pd.variants.find((dd) => dd.spec.join('-') === b.spec.join('-'));
-                        updateStock(variant, b.deduction_log);
+                        await updateStock(variant, b.deduction_log);
                         await this.updateVariantsWithSpec(variant, b.id, b.spec);
                         await database_js_1.default.query(`UPDATE \`${this.app}\`.\`t_manager_post\` SET content = ? WHERE id = ?
                             `, [JSON.stringify(pd), pdDqlData.id]);
@@ -1054,6 +1054,7 @@ class Shopping {
                                     variant.deduction_log = returnData.deductionLog;
                                     b.deduction_log = returnData.deductionLog;
                                 }
+                                console.log("如果他有shopee_id -- ", pd);
                                 saveStockArray.push(() => {
                                     return new Promise(async (resolve, reject) => {
                                         try {

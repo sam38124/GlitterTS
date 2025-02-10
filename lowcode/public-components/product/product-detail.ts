@@ -213,7 +213,7 @@ export class ProductDetail {
                         ${gvc.bindView(
                             (() => {
                                 const id = glitter.getUUID();
-                                const commentLength = vm.data.content.comments.length;
+                                const commentLength = vm.data.content?.comments?.length??0;
                                 return {
                                     bind: id,
                                     view: () => {

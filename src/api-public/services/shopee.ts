@@ -644,7 +644,6 @@ export class Shopee {
             const response = await axios(config);
             if (!response.data?.response?.model){
                 //找不到該商品 todo 找不到的判斷
-                console.log("response.data -- " , response.data)
                 obj.callback(response.data);
             }
             //找到兩個名字相同的 把儲存model_id 還有庫存
@@ -705,8 +704,6 @@ export class Shopee {
                                            FROM \`${this.app}\`.t_manager_post
                                            WHERE (content ->>'$.type'='product')
                                              AND (content ->>'$.shopee_id' IS NOT NULL AND content ->>'$.shopee_id' <> '')`, [])
-            let product = origData[8];
-            let error_report = [];
             let temp = await this.fetchShopeeAccessToken();
             return Promise.all(
                 origData.map((product: any) =>
