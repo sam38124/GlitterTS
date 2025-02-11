@@ -41,6 +41,8 @@ export type ActiveSchedule = {
 };
 
 export interface Product {
+    sync_shopee_stock?: boolean;
+    shopee_id: number;
     label: any;
     shipment_type?: string;
     id?: string;

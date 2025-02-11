@@ -172,7 +172,9 @@ export class ShoppingSettingAdvance {
                         BgWidget.mainCard([
                             html `
                                         <div class="d-flex flex-column guide5-4">
-                                            <div style="font-weight: 700;" class="mb-1">${cat_title}標籤 ${BgWidget.languageInsignia(vm.language, 'margin-left:5px;')}</div>
+                                            <div style="font-weight: 700;" class="mb-1">${cat_title}標籤
+                                                ${BgWidget.languageInsignia(vm.language, 'margin-left:5px;')}
+                                            </div>
                                             ${BgWidget.grayNote('用戶於前台搜尋標籤，即可搜尋到此' + cat_title)}
                                             <div class="mb-2"></div>
                                             ${BgWidget.multipleInput(gvc, postMD.product_tag.language[vm.language], {
@@ -182,7 +184,8 @@ export class ShoppingSettingAdvance {
                             })}
                                         </div>
                                     `,
-                            html ` <div class="mt-2 mb-2 position-relative" style="font-weight: 700;">
+                            html `
+                                        <div class="mt-2 mb-2 position-relative" style="font-weight: 700;">
                                             ${cat_title}促銷標籤
                                             ${BgWidget.questionButton(gvc.event(() => {
                                 QuestionInfo.promoteLabel(gvc);
@@ -240,6 +243,37 @@ export class ShoppingSettingAdvance {
                             })}
                                     </div>`
                         ].join('')),
+                        gvc.bindView({
+                            bind: "",
+                            view: () => {
+                                var _a;
+                                if (postMD.shopee_id) {
+                                    postMD.sync_shopee_stock = (_a = postMD.sync_shopee_stock) !== null && _a !== void 0 ? _a : true;
+                                    console.log("postMD.shopee_id -- ", postMD.shopee_id);
+                                    return BgWidget.mainCard([
+                                        html `
+                                                    <div style="font-weight: 700;margin-bottom: 8px;" class="">
+                                                       庫存與蝦皮同步
+                                                    </div>
+                                                    <div class="cursor_pointer form-check form-switch m-0 p-0"
+                                                         style="margin-top: 10px;">
+                                                        <input
+                                                                class="form-check-input m-0"
+                                                                type="checkbox"
+                                                                onchange="${gvc.event((e, event) => {
+                                            postMD.sync_shopee_stock = !postMD.sync_shopee_stock;
+                                            console.log(postMD.sync_shopee_stock);
+                                        })}"
+                                                                ${postMD.sync_shopee_stock ? "checked" : ""}
+
+                                                        />
+                                                    </div>
+                                                `
+                                    ].join());
+                                }
+                                return ``;
+                            }, divCreate: {}
+                        }),
                         BgWidget.mainCard([
                             html `
                                         <div class="d-flex flex-column guide5-4">
@@ -344,14 +378,18 @@ export class ShoppingSettingAdvance {
                                                         view: () => {
                                                             try {
                                                                 return html `
-                                                                                  <div style="font-weight: 700;" class=" d-flex flex-column">
-                                                                                      ${BgWidget.grayNote(`購物車必須連同包含以下其中一個${postMD.product_category === 'course' ? `課程或商品` : `商品`}才可結帳`)}
-                                                                                  </div>
-                                                                                  <div class="d-flex align-items-center gray-bottom-line-18" style="gap: 24px; justify-content: space-between;">
-                                                                                      <div class="form-check-label c_updown_label">
-                                                                                          <div class="tx_normal">商品列表</div>
-                                                                                      </div>
-                                                                                      ${BgWidget.grayButton('選擇商品', gvc.event(() => {
+                                                                                <div style="font-weight: 700;"
+                                                                                     class=" d-flex flex-column">
+                                                                                    ${BgWidget.grayNote(`購物車必須連同包含以下其中一個${postMD.product_category === 'course' ? `課程或商品` : `商品`}才可結帳`)}
+                                                                                </div>
+                                                                                <div class="d-flex align-items-center gray-bottom-line-18"
+                                                                                     style="gap: 24px; justify-content: space-between;">
+                                                                                    <div class="form-check-label c_updown_label">
+                                                                                        <div class="tx_normal">
+                                                                                            商品列表
+                                                                                        </div>
+                                                                                    </div>
+                                                                                    ${BgWidget.grayButton('選擇商品', gvc.event(() => {
                                                                     BgProduct.productsDialog({
                                                                         gvc: gvc,
                                                                         default: postMD.match_by_with,
@@ -364,8 +402,8 @@ export class ShoppingSettingAdvance {
                                                                         },
                                                                     });
                                                                 }), { textStyle: 'font-weight: 400;' })}
-                                                                                  </div>
-                                                                                  ${gvc.bindView(() => {
+                                                                                </div>
+                                                                                ${gvc.bindView(() => {
                                                                     const vm = {
                                                                         id: gvc.glitter.getUUID(),
                                                                         loading: true,
@@ -384,16 +422,22 @@ export class ShoppingSettingAdvance {
                                                                             }
                                                                             return vm.data
                                                                                 .map((opt, index) => {
-                                                                                return html ` <div class="d-flex align-items-center form-check-label c_updown_label gap-3">
-                                                                                                          <span class="tx_normal">${index + 1} .</span>
-                                                                                                          ${BgWidget.validImageBox({
+                                                                                return html `
+                                                                                                            <div class="d-flex align-items-center form-check-label c_updown_label gap-3">
+                                                                                                                <span class="tx_normal">${index + 1} .</span>
+                                                                                                                ${BgWidget.validImageBox({
                                                                                     gvc: gvc,
                                                                                     image: opt.image,
                                                                                     width: 40,
                                                                                 })}
-                                                                                                          <div class="tx_normal ${opt.note ? 'mb-1' : ''}">${opt.value}</div>
-                                                                                                          ${opt.note ? html ` <div class="tx_gray_12">${opt.note}</div> ` : ''}
-                                                                                                      </div>`;
+                                                                                                                <div class="tx_normal ${opt.note ? 'mb-1' : ''}">
+                                                                                                                    ${opt.value}
+                                                                                                                </div>
+                                                                                                                ${opt.note ? html `
+                                                                                                                    <div class="tx_gray_12">
+                                                                                                                        ${opt.note}
+                                                                                                                    </div> ` : ''}
+                                                                                                            </div>`;
                                                                             })
                                                                                 .join('');
                                                                         }),
@@ -403,7 +447,7 @@ export class ShoppingSettingAdvance {
                                                                         },
                                                                     };
                                                                 })}
-                                                                              `;
+                                                                            `;
                                                             }
                                                             catch (e) {
                                                                 console.error(e);
@@ -424,14 +468,18 @@ export class ShoppingSettingAdvance {
                                                         view: () => {
                                                             try {
                                                                 return html `
-                                                                                  <div style="font-weight: 700;" class=" d-flex flex-column">
-                                                                                      ${BgWidget.grayNote(`已購買過的訂單記錄中，必須包含以下${postMD.product_category === 'course' ? `課程或商品` : `商品`}才可以結帳`)}
-                                                                                  </div>
-                                                                                  <div class="d-flex align-items-center gray-bottom-line-18" style="gap: 24px; justify-content: space-between;">
-                                                                                      <div class="form-check-label c_updown_label">
-                                                                                          <div class="tx_normal">商品列表</div>
-                                                                                      </div>
-                                                                                      ${BgWidget.grayButton('選擇商品', gvc.event(() => {
+                                                                                <div style="font-weight: 700;"
+                                                                                     class=" d-flex flex-column">
+                                                                                    ${BgWidget.grayNote(`已購買過的訂單記錄中，必須包含以下${postMD.product_category === 'course' ? `課程或商品` : `商品`}才可以結帳`)}
+                                                                                </div>
+                                                                                <div class="d-flex align-items-center gray-bottom-line-18"
+                                                                                     style="gap: 24px; justify-content: space-between;">
+                                                                                    <div class="form-check-label c_updown_label">
+                                                                                        <div class="tx_normal">
+                                                                                            商品列表
+                                                                                        </div>
+                                                                                    </div>
+                                                                                    ${BgWidget.grayButton('選擇商品', gvc.event(() => {
                                                                     BgProduct.productsDialog({
                                                                         gvc: gvc,
                                                                         default: postMD.match_by_with,
@@ -444,8 +492,8 @@ export class ShoppingSettingAdvance {
                                                                         },
                                                                     });
                                                                 }), { textStyle: 'font-weight: 400;' })}
-                                                                                  </div>
-                                                                                  ${gvc.bindView(() => {
+                                                                                </div>
+                                                                                ${gvc.bindView(() => {
                                                                     const vm = {
                                                                         id: gvc.glitter.getUUID(),
                                                                         loading: true,
@@ -464,16 +512,22 @@ export class ShoppingSettingAdvance {
                                                                             }
                                                                             return vm.data
                                                                                 .map((opt, index) => {
-                                                                                return html ` <div class="d-flex align-items-center form-check-label c_updown_label gap-3">
-                                                                                                          <span class="tx_normal">${index + 1} .</span>
-                                                                                                          ${BgWidget.validImageBox({
+                                                                                return html `
+                                                                                                            <div class="d-flex align-items-center form-check-label c_updown_label gap-3">
+                                                                                                                <span class="tx_normal">${index + 1} .</span>
+                                                                                                                ${BgWidget.validImageBox({
                                                                                     gvc: gvc,
                                                                                     image: opt.image,
                                                                                     width: 40,
                                                                                 })}
-                                                                                                          <div class="tx_normal ${opt.note ? 'mb-1' : ''}">${opt.value}</div>
-                                                                                                          ${opt.note ? html ` <div class="tx_gray_12">${opt.note}</div> ` : ''}
-                                                                                                      </div>`;
+                                                                                                                <div class="tx_normal ${opt.note ? 'mb-1' : ''}">
+                                                                                                                    ${opt.value}
+                                                                                                                </div>
+                                                                                                                ${opt.note ? html `
+                                                                                                                    <div class="tx_gray_12">
+                                                                                                                        ${opt.note}
+                                                                                                                    </div> ` : ''}
+                                                                                                            </div>`;
                                                                             })
                                                                                 .join('');
                                                                         }),
@@ -483,7 +537,7 @@ export class ShoppingSettingAdvance {
                                                                         },
                                                                     };
                                                                 })}
-                                                                              `;
+                                                                            `;
                                                             }
                                                             catch (e) {
                                                                 console.error(e);
@@ -515,7 +569,8 @@ export class ShoppingSettingAdvance {
                                     if (loading) {
                                         return '';
                                     }
-                                    return html ` <div class="tx_700">指定物流配送方式</div>
+                                    return html `
+                                                <div class="tx_700">指定物流配送方式</div>
                                                 ${BgWidget.mbContainer(18)}
                                                 ${gvc.bindView(() => {
                                         const id = gvc.glitter.getUUID();
@@ -583,14 +638,38 @@ export class ShoppingSettingAdvance {
                                                                                 if (dd.result && dd.response.result[0]) {
                                                                                     const shipment_setting = dd.response.result[0].value;
                                                                                     designatedVM.dataList = [
-                                                                                        { name: '中華郵政', value: 'normal' },
-                                                                                        { name: '黑貓到府', value: 'black_cat' },
-                                                                                        { name: '全家店到店', value: 'FAMIC2C' },
-                                                                                        { name: '萊爾富店到店', value: 'HILIFEC2C' },
-                                                                                        { name: 'OK超商店到店', value: 'OKMARTC2C' },
-                                                                                        { name: '7-ELEVEN超商交貨便', value: 'UNIMARTC2C' },
-                                                                                        { name: '實體門市取貨', value: 'shop' },
-                                                                                        { name: '國際快遞', value: 'global_express' },
+                                                                                        {
+                                                                                            name: '中華郵政',
+                                                                                            value: 'normal'
+                                                                                        },
+                                                                                        {
+                                                                                            name: '黑貓到府',
+                                                                                            value: 'black_cat'
+                                                                                        },
+                                                                                        {
+                                                                                            name: '全家店到店',
+                                                                                            value: 'FAMIC2C'
+                                                                                        },
+                                                                                        {
+                                                                                            name: '萊爾富店到店',
+                                                                                            value: 'HILIFEC2C'
+                                                                                        },
+                                                                                        {
+                                                                                            name: 'OK超商店到店',
+                                                                                            value: 'OKMARTC2C'
+                                                                                        },
+                                                                                        {
+                                                                                            name: '7-ELEVEN超商交貨便',
+                                                                                            value: 'UNIMARTC2C'
+                                                                                        },
+                                                                                        {
+                                                                                            name: '實體門市取貨',
+                                                                                            value: 'shop'
+                                                                                        },
+                                                                                        {
+                                                                                            name: '國際快遞',
+                                                                                            value: 'global_express'
+                                                                                        },
                                                                                     ]
                                                                                         .concat(((_a = shipment_setting.custom_delivery) !== null && _a !== void 0 ? _a : []).map((dd) => {
                                                                                         return {
@@ -656,8 +735,11 @@ export class ShoppingSettingAdvance {
                                     postMD.relative_product = (_a = postMD.relative_product) !== null && _a !== void 0 ? _a : [];
                                     try {
                                         return html `
-                                                    <div style="font-weight: 700;" class="mb-3 d-flex flex-column">相關商品 ${BgWidget.grayNote('相關商品將會顯示於商品頁底部')}</div>
-                                                    <div class="d-flex align-items-center gray-bottom-line-18" style="gap: 24px; justify-content: space-between;">
+                                                    <div style="font-weight: 700;" class="mb-3 d-flex flex-column">相關商品
+                                                        ${BgWidget.grayNote('相關商品將會顯示於商品頁底部')}
+                                                    </div>
+                                                    <div class="d-flex align-items-center gray-bottom-line-18"
+                                                         style="gap: 24px; justify-content: space-between;">
                                                         <div class="form-check-label c_updown_label">
                                                             <div class="tx_normal">商品列表</div>
                                                         </div>
@@ -694,16 +776,22 @@ export class ShoppingSettingAdvance {
                                                     }
                                                     return vm.data
                                                         .map((opt, index) => {
-                                                        return html ` <div class="d-flex align-items-center form-check-label c_updown_label gap-3">
-                                                                            <span class="tx_normal">${index + 1} .</span>
-                                                                            ${BgWidget.validImageBox({
+                                                        return html `
+                                                                                <div class="d-flex align-items-center form-check-label c_updown_label gap-3">
+                                                                                    <span class="tx_normal">${index + 1} .</span>
+                                                                                    ${BgWidget.validImageBox({
                                                             gvc: gvc,
                                                             image: opt.image,
                                                             width: 40,
                                                         })}
-                                                                            <div class="tx_normal ${opt.note ? 'mb-1' : ''}">${opt.value}</div>
-                                                                            ${opt.note ? html ` <div class="tx_gray_12">${opt.note}</div> ` : ''}
-                                                                        </div>`;
+                                                                                    <div class="tx_normal ${opt.note ? 'mb-1' : ''}">
+                                                                                        ${opt.value}
+                                                                                    </div>
+                                                                                    ${opt.note ? html `
+                                                                                        <div class="tx_gray_12">
+                                                                                            ${opt.note}
+                                                                                        </div> ` : ''}
+                                                                                </div>`;
                                                     })
                                                         .join('');
                                                 }),
@@ -734,7 +822,10 @@ export class ShoppingSettingAdvance {
                                     postMD.relative_product = (_a = postMD.relative_product) !== null && _a !== void 0 ? _a : [];
                                     try {
                                         return html `
-                                                    <div style="font-weight: 700;" class="mb-3 d-flex flex-column">${cat_title}通知 ${BgWidget.grayNote(`購買此${cat_title}會收到的通知信，內容為空則不寄送。`)}</div>
+                                                    <div style="font-weight: 700;" class="mb-3 d-flex flex-column">
+                                                        ${cat_title}通知
+                                                        ${BgWidget.grayNote(`購買此${cat_title}會收到的通知信，內容為空則不寄送。`)}
+                                                    </div>
                                                     ${BgWidget.richTextEditor({
                                             gvc: gvc,
                                             content: (_b = postMD.email_notice) !== null && _b !== void 0 ? _b : '',
@@ -789,10 +880,11 @@ export class ShoppingSettingAdvance {
                                 bind: id,
                                 view: () => {
                                     return [
-                                        html ` <div class="title-container px-0">
-                                                    <div style="color:#393939;font-weight: 700;">AI 選品</div>
-                                                    <div class="flex-fill"></div>
-                                                    ${BgWidget.grayButton('設定描述語句', gvc.event(() => {
+                                        html `
+                                                    <div class="title-container px-0">
+                                                        <div style="color:#393939;font-weight: 700;">AI 選品</div>
+                                                        <div class="flex-fill"></div>
+                                                        ${BgWidget.grayButton('設定描述語句', gvc.event(() => {
                                             function refresh() {
                                                 gvc.notifyDataChange(id);
                                             }
@@ -825,7 +917,7 @@ export class ShoppingSettingAdvance {
                                         }), {
                                             textStyle: 'width:100%;',
                                         })}
-                                                </div>`,
+                                                    </div>`,
                                         html `
                                                     <div>
                                                         ${postMD.ai_description

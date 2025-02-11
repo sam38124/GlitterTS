@@ -552,7 +552,6 @@ export class PayPal {
     PAYPAL_SECRET: string;
     PAYPAL_BASE_URL: string
 
-    //todo PAYPAL_CLIENT_ID PAYPAL_SECRET 會是動態的 還有 PAYPAL_BASE_URL的沙箱環境
     constructor(appName: string, keyData: {
         ReturnURL?: string,
         NotifyURL?: string,
@@ -777,7 +776,6 @@ export class LinePay {
     LinePay_SECRET: string;
     LinePay_BASE_URL: string
 
-    //todo LinePay_CLIENT_ID LinePay_SECRET 會是動態的 還有 LinePay_BASE_URL的沙箱環境
     constructor(appName: string, keyData: any) {
         this.keyData = keyData;
         this.appName = appName;

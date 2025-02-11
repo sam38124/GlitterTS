@@ -1503,16 +1503,7 @@ export class Shopping {
                             if (type !== 'preview' && type !== 'manual' && type !== 'manual-preview' && variant.show_understocking !== 'false') {
                                 const remainingStock = Math.max(variant.stock - b.count, 0);
                                 variant.stock = remainingStock;
-                                if (pd.shopee_id){
-                                    const access = await new Shopee(this.app , this.token).fetchShopeeAccessToken();
-                                    await new Shopee(this.app , this.token).asyncStockToShopee({
-                                        product:pdDqlData,
-                                        access_token:access.access_token,
-                                        shop_id:access.shop_id,
-                                        callback:()=>{
-                                        }
-                                    });
-                                }
+
                                 // Handle stock deduction based on checkout type
                                 if (type === 'POS') {
                                     // Deduct stock based on store for POS
@@ -1529,7 +1520,16 @@ export class Shopping {
                                     return new Promise<boolean>(async (resolve, reject) => {
                                         try {
                                             //如果他有shopee_id 這邊還要處理同步至蝦皮的庫存 todo 還要新增一個是否同步至蝦皮的選項
-
+                                            if (pd.shopee_id && (pd.postMD.sync_shopee_stock != false)){
+                                                const access = await new Shopee(this.app , this.token).fetchShopeeAccessToken();
+                                                await new Shopee(this.app , this.token).asyncStockToShopee({
+                                                    product:pdDqlData,
+                                                    access_token:access.access_token,
+                                                    shop_id:access.shop_id,
+                                                    callback:()=>{
+                                                    }
+                                                });
+                                            }
                                             await this.updateVariantsWithSpec(variant, b.id, b.spec);
                                             // Update information in the database
                                             await db.query(
@@ -3779,6 +3779,7 @@ OR JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.orderStatus')) NOT IN (-99)) `);
             dd.compare_price && (dd.compare_price = parseInt(dd.compare_price, 10));
             dd.shipment_weight && (dd.shipment_weight = parseInt(dd.shipment_weight, 10));
         });
+
     }
 
     async postProduct(content: any) {
@@ -4027,6 +4028,18 @@ OR JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.orderStatus')) NOT IN (-99)) `);
 
         try {
             content.type = 'product';
+
+            if (content.shopee_id && content.sync_shopee_stock != false){
+
+                const access = await new Shopee(this.app , this.token).fetchShopeeAccessToken();
+                await new Shopee(this.app , this.token).asyncStockToShopee({
+                    product:{content:content},
+                    access_token:access.access_token,
+                    shop_id:access.shop_id,
+                    callback:()=>{
+                    }
+                });
+            }
             this.checkVariantDataType(content.variants);
             const data = await db.query(
                 `update \`${this.app}\`.\`t_manager_post\`
