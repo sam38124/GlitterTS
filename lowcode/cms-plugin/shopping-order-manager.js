@@ -564,7 +564,9 @@ export class ShoppingOrderManager {
                                     option: true,
                                     event: () => {
                                         const checkArray = vm.dataList.filter((dd) => dd.checked);
-                                        return OrderSetting.combineOrders(gvc, checkArray);
+                                        return OrderSetting.combineOrders(gvc, checkArray, () => {
+                                            gvc.notifyDataChange(vm.id);
+                                        });
                                     },
                                 },
                                 {
@@ -890,7 +892,7 @@ export class ShoppingOrderManager {
                                                                                    
                                                                                     <div class="tx_normal d-none d-sm-flex"
                                                                                          style="display: flex;justify-content: end;${document.body.clientWidth > 800 ? `width: 110px` : ``}">
-                                                                                            $${dd.sale_price.toLocaleString()}
+                                                                                            $${(dd.sale_price * dd.count).toLocaleString()}
                                                                                     </div>`;
                                     },
                                     divCreate: { class: `d-flex align-items-center` },
@@ -1666,7 +1668,17 @@ export class ShoppingOrderManager {
                                                             訂單來源
                                                         </div>
                                                         <div>
-                                                            ${orderData.orderData.orderSource == 'pos' ? 'POS' : '線上'}
+                                                            ${(() => {
+                                var _a;
+                                if (!orderData.orderData.orderSource) {
+                                    return '線上';
+                                }
+                                const source = {
+                                    pos: 'POS',
+                                    combine: '合併訂單',
+                                };
+                                return (_a = source[orderData.orderData.orderSource]) !== null && _a !== void 0 ? _a : '線上';
+                            })()}
                                                         </div>
                                                     `),
                             BgWidget.mainCard(html `

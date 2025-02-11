@@ -4,10 +4,10 @@ init(import.meta.url, (gvc, glitter, gBundle) => {
     const html = String.raw;
     const icons = {
         loading: html ` <div class="mt-2"><div class="spinner-border fs-1"></div></div>`,
-        success: html `<i class="fa-regular fa-circle-check mb-1" style="font-size: 60px;"></i>`,
-        error: html `<i class="fa-sharp fa-regular fa-circle-xmark mb-1" style="font-size: 60px;"></i>`,
-        info: html `<i class="fa-regular fa-circle-exclamation mb-1" style="font-size: 60px;"></i>`,
-        question: html `<i class="fa-regular fa-circle-question mb-1" style="font-size: 60px;"></i>`,
+        success: html `<i class="fa-regular fa-circle-check mb-1" style="font-size: 4rem;"></i>`,
+        error: html `<i class="fa-sharp fa-regular fa-circle-xmark mb-1" style="font-size: 4rem;"></i>`,
+        info: html `<i class="fa-regular fa-circle-exclamation mb-1" style="font-size: 4rem;"></i>`,
+        question: html `<i class="fa-regular fa-circle-question mb-1" style="font-size: 4rem;"></i>`,
     };
     const createButton = (config, classes = '') => {
         return html `<div class="btn ${classes}" style="font-size: 14px;" onclick="${gvc.event(config.event)}">${config.title}</div>`;

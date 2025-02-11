@@ -1648,6 +1648,53 @@ class Shopping {
             throw exception_js_1.default.BadRequestError('BAD_REQUEST', 'putReturnOrder Error:' + e, null);
         }
     }
+    async combineOrder(dataMap) {
+        try {
+            delete dataMap.token;
+            for (const data of Object.values(dataMap)) {
+                if (data.orders.length === 0)
+                    continue;
+                const cartTokens = data.orders.map((order) => order.cart_token);
+                const placeholders = cartTokens.map(() => '?').join(',');
+                const orders = await database_js_1.default.query(`SELECT * FROM \`${this.app}\`.t_checkout WHERE cart_token IN (${placeholders});`, cartTokens);
+                const targetOrder = orders.find((order) => order.cart_token === data.targetID);
+                const feedsOrder = orders.filter((order) => order.cart_token !== data.targetID);
+                if (!targetOrder)
+                    continue;
+                const formatTargetOrder = JSON.parse(JSON.stringify(targetOrder));
+                const base = formatTargetOrder.orderData;
+                base.orderSource = 'combine';
+                const accumulateValues = (feed, keys, operation) => {
+                    keys.forEach((key) => {
+                        var _a, _b;
+                        base[key] = operation((_a = base[key]) !== null && _a !== void 0 ? _a : (Array.isArray(feed[key]) ? [] : 0), (_b = feed[key]) !== null && _b !== void 0 ? _b : (Array.isArray(feed[key]) ? [] : 0));
+                    });
+                };
+                const mergeOrders = (feed) => {
+                    var _a, _b;
+                    accumulateValues(feed, ['total', 'rebate', 'discount', 'use_rebate', 'use_wallet', 'goodsWeight', 'shipment_fee'], (a, b) => a + b);
+                    accumulateValues(feed, ['give_away', 'lineItems', 'code_array', 'voucherList'], (a, b) => a.concat(b));
+                    if (((_a = base.useRebateInfo) === null || _a === void 0 ? void 0 : _a.point) !== undefined && ((_b = feed.useRebateInfo) === null || _b === void 0 ? void 0 : _b.point) !== undefined) {
+                        base.useRebateInfo.point += feed.useRebateInfo.point;
+                    }
+                };
+                feedsOrder.forEach((order) => mergeOrders(order.orderData));
+                const newCartToken = `${Date.now()}`;
+                await database_js_1.default.execute(`INSERT INTO \`${this.app}\`.t_checkout (cart_token, status, email, orderData)
+                     VALUES (?, ?, ?, ?)`, [newCartToken, targetOrder.status, targetOrder.email, JSON.stringify(base)]);
+                await Promise.all(orders.map(async (order) => {
+                    order.orderData.archived = 'true';
+                    return database_js_1.default.query(`UPDATE \`${this.app}\`.t_checkout 
+                             SET orderData = ? 
+                             WHERE cart_token = ?`, [JSON.stringify(order.orderData), order.cart_token]);
+                }));
+            }
+            return true;
+        }
+        catch (e) {
+            throw exception_js_1.default.BadRequestError('BAD_REQUEST', 'combineOrder Error:' + e, null);
+        }
+    }
     async formatUseRebate(total, useRebate) {
         try {
             const getRS = await new user_js_1.User(this.app).getConfig({ key: 'rebate_setting', user_id: 'manager' });

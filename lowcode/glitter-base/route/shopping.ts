@@ -705,6 +705,19 @@ export class ApiShop {
         });
     }
 
+    static combineOrder(json: any) {
+        return BaseApi.create({
+            url: getBaseUrl() + `/api-public/v1/ec/combineOrder`,
+            type: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'g-app': getConfig().config.appName,
+                Authorization: getConfig().config.token,
+            },
+            data: JSON.stringify(json),
+        });
+    }
+
     static setCollection(json: any) {
         return BaseApi.create({
             url: getBaseUrl() + `/api-public/v1/manager/config`,

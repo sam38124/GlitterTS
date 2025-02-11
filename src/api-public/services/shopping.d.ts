@@ -101,6 +101,7 @@ type CartItem = {
     };
 };
 type Cart = {
+    archived?: string;
     customer_info: any;
     lineItems: CartItem[];
     discount?: number;
@@ -135,13 +136,21 @@ type Cart = {
     custom_form_data?: any;
     distribution_id?: number;
     distribution_info?: any;
-    orderSource: '' | 'manual' | 'normal' | 'POS';
+    orderSource: '' | 'manual' | 'normal' | 'POS' | 'combine';
     code_array: string[];
     deliveryData?: DeliveryData;
     give_away: CartItem[];
     language?: string;
     pos_info?: any;
     goodsWeight: number;
+};
+type Order = {
+    id: number;
+    cart_token: string;
+    status: number;
+    email: string;
+    orderData: Cart;
+    created_time: string;
 };
 export declare class Shopping {
     app: string;
@@ -343,6 +352,12 @@ export declare class Shopping {
             status: any;
         };
     }>;
+    combineOrder(dataMap: Record<string, {
+        status: 'success';
+        note: '';
+        orders: Order[];
+        targetID: string;
+    }>): Promise<boolean>;
     formatUseRebate(total: number, useRebate: number): Promise<{
         point: number;
         limit?: number;
