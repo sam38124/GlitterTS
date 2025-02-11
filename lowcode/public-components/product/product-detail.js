@@ -192,9 +192,10 @@ export class ProductDetail {
                 })}
                     <div class="d-flex flex-column align-items-center mt-2" style="width:100%;">
                         ${gvc.bindView((() => {
-                    var _a, _b, _c;
+                    var _a, _b;
                     const id = glitter.getUUID();
-                    const commentLength = (_c = (_b = (_a = vm.data.content) === null || _a === void 0 ? void 0 : _a.comments) === null || _b === void 0 ? void 0 : _b.length) !== null && _c !== void 0 ? _c : 0;
+                    const commentCount = (_b = (_a = vm.data.content.comments) === null || _a === void 0 ? void 0 : _a.length) !== null && _b !== void 0 ? _b : 0;
+                    const maxDisplayCount = Math.min(commentCount, 15);
                     return {
                         bind: id,
                         view: () => {
@@ -204,7 +205,7 @@ export class ProductDetail {
                                     key: 'default',
                                 },
                                 {
-                                    title: `${Language.text('customer_reviews')} (${commentLength > 15 ? 15 : commentLength})`,
+                                    title: `${Language.text('customer_reviews')} (${maxDisplayCount})`,
                                     key: 'comment',
                                 },
                             ].concat(vm.content_manager

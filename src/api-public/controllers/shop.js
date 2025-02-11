@@ -460,6 +460,19 @@ router.post('/returnOrder', async (req, resp) => {
         return response_1.default.fail(resp, err);
     }
 });
+router.post('/combineOrder', async (req, resp) => {
+    try {
+        if (await ut_permission_1.UtPermission.isManager(req)) {
+            return response_1.default.succ(resp, await new shopping_1.Shopping(req.get('g-app'), req.body.token).combineOrder(req.body));
+        }
+        else {
+            return response_1.default.fail(resp, exception_1.default.BadRequestError('BAD_REQUEST', 'No permission.', null));
+        }
+    }
+    catch (err) {
+        return response_1.default.fail(resp, err);
+    }
+});
 router.get('/voucher', async (req, resp) => {
     try {
         let query = [`(content->>'$.type'='voucher')`];
@@ -575,8 +588,8 @@ async function redirect_link(req, resp) {
         }
         if (req.query.jkopay && req.query.jkopay === 'true') {
             let kd = {
-                ReturnURL: "",
-                NotifyURL: ""
+                ReturnURL: '',
+                NotifyURL: '',
             };
             const jko = new financial_service_js_1.JKO(req.query.appName, kd);
             const data = jko.confirmAndCaptureOrder(req.query.orderID);

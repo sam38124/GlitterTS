@@ -1609,7 +1609,7 @@ ${(_c = obj.default) !== null && _c !== void 0 ? _c : ''}</textarea
                                     vm.originalData.map((dd, index) => {
                                         const checkboxParent = gvc.glitter.document.querySelector(`[gvc-checkbox="checkbox${index}"]`);
                                         if (checkboxParent) {
-                                            const checkboxIcon = checkboxParent.querySelector(result ? 'i.fa-regular.fa-square' : 'i.fa-solid.fa-square-check ');
+                                            const checkboxIcon = checkboxParent.querySelector(result ? 'i.fa-square' : 'i.fa-square-check');
                                             if (checkboxIcon) {
                                                 checkboxIcon.click();
                                             }
@@ -1791,6 +1791,9 @@ ${(_c = obj.default) !== null && _c !== void 0 ? _c : ''}</textarea
                                                                                 class="${ids.textClass} ${tdClass} tb_v3 tx_normal"
                                                                                 style="${style}"
                                                                                 ${obj.filter.length !== 0 && tdIndex === 0 ? `gvc-checkbox="checkbox${trIndex}"` : ''}
+                                                                                onclick="${d3.key.includes('data-click="false"') ? gvc.event((e, event) => {
+                                    event.stopPropagation();
+                                }) : ''}"
                                                                         >
                                                                             <div class="text-nowrap"
                                                                                  style="color: #393939 !important;">
@@ -1813,7 +1816,9 @@ ${(_c = obj.default) !== null && _c !== void 0 ? _c : ''}</textarea
                                 vm.page = page;
                                 vm.loading = true;
                                 created.checkbox = false;
-                                obj.tab_click(vm);
+                                if (obj.tab_click) {
+                                    obj.tab_click(vm);
+                                }
                                 gvc.notifyDataChange(ids.container);
                             }, false)}
                             </div>`;
@@ -2009,13 +2014,13 @@ ${(_c = obj.default) !== null && _c !== void 0 ? _c : ''}</textarea
                             >
                                 <input
                                         class="form-check-input ${randomString} cursor_pointer"
-                                        style="margin-top: 0.35rem;"
+                                        style="margin-top: 0.35rem; margin-right: 0.5rem;"
                                         type="${obj && obj.single ? 'radio' : 'checkbox'}"
                                         id="${id}_${item.key}"
                                         ${def.includes(item.key) ? 'checked' : ''}
                                 />
                                 <label class="form-check-label cursor_pointer" for="${id}_${item.key}"
-                                       style="font-size: 16px; color: #393939;">${item.name}</label>
+                                       style="font-size: 16px; color: #393939; margin-top: 0.125rem;">${item.name}</label>
                             </div>
                             ${def.includes(item.key) && item.innerHtml
                         ? html `
@@ -2189,7 +2194,7 @@ ${(_c = obj.default) !== null && _c !== void 0 ? _c : ''}</textarea
             height: 40px !important;
             border-radius: 10px;
             background: linear-gradient(0deg, #f7f7f7 0%, #f7f7f7 100%), #fff;
-            padding: 0 22px;
+            padding: 0 20px;
             ${document.body.clientWidth > 768 ? `width: 100%;` : `width: calc(100vw - 24px); `}
         `;
         return html `
@@ -3031,7 +3036,6 @@ ${(_c = obj.default) !== null && _c !== void 0 ? _c : ''}</textarea
                 const id = Tool.randomString(7);
                 opt.key = `${opt.key}`;
                 function call() {
-                    console.log(1);
                     if (obj.default.includes(opt.key)) {
                         obj.default = obj.default.filter((item) => item !== opt.key);
                     }
@@ -3204,7 +3208,6 @@ ${(_c = obj.default) !== null && _c !== void 0 ? _c : ''}</textarea
                 const id = Tool.randomString(7);
                 opt.key = `${opt.key}`;
                 function call() {
-                    console.log(2);
                     if (obj.default.includes(opt.key)) {
                         obj.default = obj.default.filter((item) => item !== opt.key);
                     }
@@ -3764,8 +3767,8 @@ ${(_c = obj.default) !== null && _c !== void 0 ? _c : ''}</textarea
         const className = Tool.randomString(6);
         gvc.addStyle(`
             .${className} {
-                min-width: 1rem;
-                min-height: 1rem;
+                min-width: 1.25rem;
+                min-height: 1.25rem;
             }
             .${className}:checked[type='checkbox'] {
                 border: 2px solid ${color !== null && color !== void 0 ? color : '#000'};
@@ -3780,8 +3783,8 @@ ${(_c = obj.default) !== null && _c !== void 0 ? _c : ''}</textarea
         const className = `dark_dot`;
         gvc.addStyle(`
             .${className} {
-                min-width: 1rem;
-                min-height: 1rem;
+                min-width: 1.15rem;
+                min-height: 1.15rem;
                 margin-right: 4px;
             }
             .${className}:checked[type='radio'] {
@@ -3797,8 +3800,8 @@ ${(_c = obj.default) !== null && _c !== void 0 ? _c : ''}</textarea
         const className = Tool.randomString(6);
         gvc.addStyle(`
             .${className} {
-                min-width: 1rem;
-                min-height: 1rem;
+                min-width: 1.15rem;
+                min-height: 1.15rem;
                 margin-right: 4px;
             }
             .${className}:checked[type='radio'] {

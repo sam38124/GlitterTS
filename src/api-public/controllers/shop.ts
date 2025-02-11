@@ -7,7 +7,7 @@ import redis from '../../modules/redis.js';
 import axios from 'axios';
 import { UtDatabase } from '../utils/ut-database.js';
 import { UtPermission } from '../utils/ut-permission';
-import {EcPay, EzPay, JKO, LinePay, PayNow, PayPal} from '../services/financial-service.js';
+import { EcPay, EzPay, JKO, LinePay, PayNow, PayPal } from '../services/financial-service.js';
 import { Private_config } from '../../services/private_config.js';
 import { User } from '../services/user.js';
 import { Post } from '../services/post.js';
@@ -513,6 +513,19 @@ router.post('/returnOrder', async (req: express.Request, resp: express.Response)
     }
 });
 
+// 合併訂單
+router.post('/combineOrder', async (req: express.Request, resp: express.Response) => {
+    try {
+        if (await UtPermission.isManager(req)) {
+            return response.succ(resp, await new Shopping(req.get('g-app') as string, req.body.token).combineOrder(req.body));
+        } else {
+            return response.fail(resp, exception.BadRequestError('BAD_REQUEST', 'No permission.', null));
+        }
+    } catch (err) {
+        return response.fail(resp, err);
+    }
+});
+
 // 優惠券
 router.get('/voucher', async (req: express.Request, resp: express.Response) => {
     try {
@@ -649,12 +662,12 @@ async function redirect_link(req: express.Request, resp: express.Response) {
         }
         if (req.query.jkopay && req.query.jkopay === 'true') {
             let kd = {
-                ReturnURL : "",
-                NotifyURL : ""
-            }
+                ReturnURL: '',
+                NotifyURL: '',
+            };
 
-            const jko = new JKO(req.query.appName as string, kd)
-            const data:any = jko.confirmAndCaptureOrder(req.query.orderID as string)
+            const jko = new JKO(req.query.appName as string, kd);
+            const data: any = jko.confirmAndCaptureOrder(req.query.orderID as string);
             if (data.tranactions[0].status == 'success') {
                 await new Shopping(req.query.appName as string).releaseCheckout(1, req.query.orderID as string);
             }

@@ -2591,8 +2591,8 @@ export class CheckoutIndex {
 
                                                                 for (let i = 0; i < localStorage.length; i++) {
                                                                     const key = localStorage.key(i);
-                                                                    if (key && cartKeys.some((cartKey) => key.includes(cartKey))) {
-                                                                        const formatKey = key.replace((window as any).appName, '');
+                                                                    if (key && cartKeys.some((cartKey) => key?.includes(cartKey))) {
+                                                                        const formatKey = key?.replace((window as any).appName, '');
                                                                         const cart = new ApiCart(formatKey);
                                                                         cart.setCart((cartItem) => {
                                                                             cartItem.line_items = cartItem.line_items.filter((item) => !lineItemIds.includes(item.id));

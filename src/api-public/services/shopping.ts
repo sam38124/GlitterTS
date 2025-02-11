@@ -7,7 +7,7 @@ import axios from 'axios';
 import app from '../../app';
 import redis from '../../modules/redis.js';
 import Tool from '../../modules/tool.js';
-import FinancialService, { LinePay, PayNow, PayPal ,JKO } from './financial-service.js';
+import FinancialService, { LinePay, PayNow, PayPal, JKO } from './financial-service.js';
 import { Private_config } from '../../services/private_config.js';
 import { User } from './user.js';
 import { Invoice } from './invoice.js';
@@ -138,9 +138,11 @@ type CartItem = {
 };
 
 type Cart = {
+    archived?: string;
     customer_info: any;
     lineItems: CartItem[];
     discount?: number;
+    orderStatus?: string;
     total: number;
     email: string;
     user_info: any;
@@ -168,13 +170,22 @@ type Cart = {
     custom_form_data?: any;
     distribution_id?: number;
     distribution_info?: any;
-    orderSource: '' | 'manual' | 'normal' | 'POS';
+    orderSource: '' | 'manual' | 'normal' | 'POS' | 'combine';
     code_array: string[];
     deliveryData?: DeliveryData;
     give_away: CartItem[];
     language?: string;
     pos_info?: any; //POS結帳資訊
     goodsWeight: number;
+};
+
+type Order = {
+    id: number;
+    cart_token: string;
+    status: number;
+    email: string;
+    orderData: Cart;
+    created_time: string;
 };
 
 export class Shopping {
@@ -2050,11 +2061,11 @@ export class Shopping {
                         );
                         return await new PayNow(this.app, kd).createOrder(carData);
                     }
-                    case 'jkopay':{
+                    case 'jkopay': {
                         kd.ReturnURL = `${process.env.DOMAIN}/api-public/v1/ec/redirect?g-app=${this.app}&jkopay=true&orderid=${carData.orderID}`;
                         kd.NotifyURL = `${process.env.DOMAIN}/api-public/v1/ec/notify?g-app=${this.app}&jkopay=true`;
                         return await new JKO(this.app, kd).createOrder(carData);
-                        break
+                        break;
                     }
                     default:
                         carData.method = 'off_line';
@@ -2267,6 +2278,73 @@ export class Shopping {
             };
         } catch (e) {
             throw exception.BadRequestError('BAD_REQUEST', 'putReturnOrder Error:' + e, null);
+        }
+    }
+
+    async combineOrder(dataMap: Record<string, { status: 'success'; note: ''; orders: Order[]; targetID: string }>) {
+        try {
+            delete dataMap.token;
+
+            for (const data of Object.values(dataMap)) {
+                if (data.orders.length === 0) continue;
+
+                const cartTokens = data.orders.map((order) => order.cart_token);
+                const placeholders = cartTokens.map(() => '?').join(',');
+                const orders: Order[] = await db.query(`SELECT * FROM \`${this.app}\`.t_checkout WHERE cart_token IN (${placeholders});`, cartTokens);
+
+                const targetOrder = orders.find((order) => order.cart_token === data.targetID);
+                const feedsOrder = orders.filter((order) => order.cart_token !== data.targetID);
+
+                if (!targetOrder) continue;
+
+                const formatTargetOrder = JSON.parse(JSON.stringify(targetOrder));
+                const base = formatTargetOrder.orderData;
+                base.orderSource = 'combine';
+
+                const accumulateValues = (feed: Cart, keys: (keyof Cart)[], operation: (targetVal: any, feedVal: any) => any) => {
+                    keys.forEach((key) => {
+                        (base as any)[key] = operation(base[key] ?? (Array.isArray(feed[key]) ? [] : 0), feed[key] ?? (Array.isArray(feed[key]) ? [] : 0));
+                    });
+                };
+
+                const mergeOrders = (feed: Cart) => {
+                    accumulateValues(feed, ['total', 'rebate', 'discount', 'use_rebate', 'use_wallet', 'goodsWeight', 'shipment_fee'], (a, b) => a + b);
+                    accumulateValues(feed, ['give_away', 'lineItems', 'code_array', 'voucherList'], (a, b) => a.concat(b));
+
+                    if (base.useRebateInfo?.point !== undefined && feed.useRebateInfo?.point !== undefined) {
+                        base.useRebateInfo.point += feed.useRebateInfo.point;
+                    }
+                };
+
+                feedsOrder.forEach((order) => mergeOrders(order.orderData));
+
+                const newCartToken = `${Date.now()}`;
+
+                // 新增合併後的訂單
+                await db.execute(
+                    `INSERT INTO \`${this.app}\`.t_checkout (cart_token, status, email, orderData)
+                     VALUES (?, ?, ?, ?)`,
+                    [newCartToken, targetOrder.status, targetOrder.email, JSON.stringify(base)]
+                );
+
+                // 批次封存原始訂單
+                await Promise.all(
+                    orders.map(async (order) => {
+                        order.orderData.orderStatus = '-1';
+                        order.orderData.archived = 'true';
+                        return db.query(
+                            `UPDATE \`${this.app}\`.t_checkout 
+                             SET orderData = ? 
+                             WHERE cart_token = ?`,
+                            [JSON.stringify(order.orderData), order.cart_token]
+                        );
+                    })
+                );
+            }
+
+            return true;
+        } catch (e) {
+            throw exception.BadRequestError('BAD_REQUEST', 'combineOrder Error:' + e, null);
         }
     }
 
