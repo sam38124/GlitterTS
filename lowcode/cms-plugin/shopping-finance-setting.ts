@@ -100,23 +100,47 @@ export class ShoppingFinanceSetting {
             payment_info_custom: [],
         } as any;
 
-        const vm = {
+        const vm: {
+            id: string,
+            onBoxId: string,
+            posBoxId: string,
+            offBoxId: string,
+            loading: boolean,
+            page: 'online' | 'offline' | 'pos',
+        } = {
             id: gvc.glitter.getUUID(),
             onBoxId: gvc.glitter.getUUID(),
             posBoxId: gvc.glitter.getUUID(),
             offBoxId: gvc.glitter.getUUID(),
             loading: true,
+            page: 'online'
         };
 
         const onlinePayArray = [
-            {key: 'newWebPay', name: '藍新金流'},
-            {key: 'ecPay', name: '綠界金流'},
-            {key: 'paypal', name: 'PayPal'},
-            {key: 'line_pay', name: 'Line Pay'},
-            {key: 'jkopay', name: '街口支付'},
-            {key: 'paynow', name: 'PayNow 立吉富'},
-            {key: 'line_pay_scan', name: 'Line Pay', type: 'pos'},
-            {key: 'ut_credit_card', name: '聯合信用卡', type: 'pos'},
+            {key: 'newWebPay', name: '藍新金流', img: 'https://d3jnmi1tfjgtti.cloudfront.net/file/122538856/logo.jpg'},
+            {
+                key: 'ecPay',
+                name: '綠界金流',
+                img: 'https://d3jnmi1tfjgtti.cloudfront.net/file/122538856/52415944_122858408.428215.png'
+            },
+            {
+                key: 'paynow',
+                name: 'PayNow 立吉富',
+                img: 'https://d3jnmi1tfjgtti.cloudfront.net/file/122538856/download.png'
+            },
+            {key: 'paypal', name: 'PayPal', img: 'https://d3jnmi1tfjgtti.cloudfront.net/file/122538856/174861.png'},
+            {
+                key: 'line_pay',
+                name: 'Line Pay',
+                img: 'https://d3jnmi1tfjgtti.cloudfront.net/file/122538856/tw-11134207-7r98t-ltrond04grjj74.jpeg'
+            },
+            {
+                key: 'jkopay',
+                name: '街口支付',
+                img: 'https://d3jnmi1tfjgtti.cloudfront.net/file/122538856/1200x630waw.png'
+            },
+            {key: 'line_pay_scan', name: 'Line Pay', type: 'pos',img:'https://d3jnmi1tfjgtti.cloudfront.net/file/122538856/tw-11134207-7r98t-ltrond04grjj74.jpeg'},
+            {key: 'ut_credit_card', name: '聯合信用卡', type: 'pos',img:'https://d3jnmi1tfjgtti.cloudfront.net/file/122538856/unnamed (1) copy.jpg'},
         ];
 
 
@@ -124,6 +148,14 @@ export class ShoppingFinanceSetting {
 
         function refresh() {
             gvc.notifyDataChange(vm.id);
+        }
+
+        function saveData() {
+            saasConfig.api.setPrivateConfig(saasConfig.config.appName, 'glitter_finance', keyData).then((r: {
+                response: any;
+                result: boolean
+            }) => {
+            })
         }
 
         function updateCustomFinance(obj: {
@@ -147,9 +179,10 @@ export class ShoppingFinanceSetting {
                 )
             );
             let form: any = undefined;
+
             BgWidget.settingDialog({
                 gvc: gvc,
-                title: '新增自訂金流',
+                title: obj.function==='replace' ? `修改金流設定`:'新增自訂金流',
                 innerHTML: (gvc) => {
                     form = BgWidget.customForm(gvc, [
                         {
@@ -162,25 +195,60 @@ export class ShoppingFinanceSetting {
                             no_padding: true,
                         },
                     ]);
+                    const vm:{
+                        page:'setting'|'note'
+                    }={
+                        page:"setting"
+                    }
                     return gvc.bindView(
                         (() => {
                             const id = gvc.glitter.getUUID();
                             return {
                                 bind: id,
                                 view: () => {
-                                    return [
-                                        BgWidget.editeInput({
-                                            gvc: gvc,
-                                            title: '自訂金流名稱',
-                                            default: custom_finance.name,
-                                            callback: (text) => {
-                                                custom_finance.name = text;
-                                            },
-                                            placeHolder: '請輸入自訂金流名稱',
-                                            global_language: true
-                                        }),
-                                        form.view,
-                                    ].join(BgWidget.mbContainer(12));
+                                    let v_=[
+                                        BgWidget.tab([
+                                            {title:'金流設定',key:'setting'},
+                                            {title:'付款說明',key:'note'}
+                                        ],gvc,vm.page,(res)=>{
+                                            (vm.page as any)=res
+                                            gvc.notifyDataChange(id)
+                                        },'margin-bottom:0px;margin-top:-10px;')
+                                    ]
+                                    if(vm.page==='setting'){
+                                        v_=v_.concat([
+                                            BgWidget.editeInput({
+                                                gvc: gvc,
+                                                title: '自訂金流名稱',
+                                                default: custom_finance.name,
+                                                callback: (text) => {
+                                                    custom_finance.name = text;
+                                                },
+                                                placeHolder: '請輸入自訂金流名稱',
+                                                global_language: true
+                                            }),
+                                            form.view,
+                                        ])
+                                    }
+                                    if(vm.page==='note'){
+                                        v_=v_.concat([
+                                            html`
+                            <div class="d-flex justify-content-between mb-3">
+                                <div class="tx_normal">付款說明</div>
+                            </div>`,
+                                            BgWidget.richTextEditor({
+                                                gvc: gvc,
+                                                content: custom_finance.text,
+                                                callback: (content) => {
+                                                    custom_finance.text = content;
+                                                    alert(custom_finance.text)
+                                                    gvc.notifyDataChange(id)
+                                                },
+                                                title: '付款說明'
+                                            })
+                                        ])
+                                    }
+                                    return v_.join(BgWidget.mbContainer(12));
                                 },
                                 divCreate: {},
                                 onCreate: () => {
@@ -288,591 +356,612 @@ export class ShoppingFinanceSetting {
                                     }
                                     delete keyData.off_line_support[key];
                                 });
-
-                                return [
-                                    BgWidget.mainCard(
-                                            html`
-                                                <div class="tx_700">線上金流</div>
-                                                ${BgWidget.grayNote('透過服務商串接線上付款功能')} ${BgWidget.mbContainer(12)}
-                                                ${BgWidget.multiCheckboxContainer(
-                                                        gvc,
-                                                        onlinePayArray.filter((dd) => {
-                                                            return dd.type !== 'pos'
-                                                        }),
-                                                        (() => {
-                                                            let array = [];
-                                                            keyData.newWebPay.toggle && array.push('newWebPay');
-                                                            keyData.ecPay.toggle && array.push('ecPay');
-                                                            keyData.paypal.toggle && array.push('paypal');
-                                                            keyData.line_pay.toggle && array.push('line_pay');
-                                                            keyData.paynow.toggle && array.push('paynow');
-                                                            keyData.jkopay.toggle && array.push('jkopay');
-                                                            
-                                                            return array;
-                                                        })(),
-                                                        (data) => {
-                                                            onlinePayArray.filter((dd) => {
-                                                                return dd.type !== 'pos'
-                                                            }).map((dd) => {
-                                                                (keyData as any)[dd.key].toggle = data.includes(dd.key);
-                                                            });
-                                                            gvc.notifyDataChange(vm.onBoxId);
+                                const vMap: string[] = [
+                                    BgWidget.tab([
+                                        {
+                                            key: 'online',
+                                            title: '線上金流'
+                                        },
+                                        {
+                                            key: 'offline',
+                                            title: '線下金流'
+                                        },
+                                        {
+                                            key: 'pos',
+                                            title: 'POS付款'
+                                        }
+                                    ], gvc, vm.page, (key: any) => {
+                                        vm.page = key;
+                                        gvc.notifyDataChange(vm.id)
+                                    }, 'margin-top:0px;margin-bottom:0px;')
+                                ]
+                                //線上金流
+                                if (vm.page === 'online') {
+                                    vMap.push(`<div class="my-2">${BgWidget.blueNote('透過線上金流消費者可於線上進行結帳付款。')}</div>`)
+                                    vMap.push(html`
+                                        <div class="row">${
+                                                onlinePayArray.filter((dd) => {
+                                                    return dd.type !== 'pos'
+                                                }).map((dd) => {
+                                                    return ` <div class="col-12 col-md-4 p-0 p-md-2">
+                                                            <div
+                                                                    class="w-100 position-relative main-card"
+                                                                    style="padding: 24px 32px; background: white; overflow: hidden; flex-direction: column; justify-content: flex-start; align-items: flex-start; gap: 18px; display: inline-flex;"
+                                                            >
+                                                                <div class="position-absolute fw-500"
+                                                                                 style="cursor:pointer;right:15px;top:15px;">
+                                                                                ${BgWidget.customButton({
+                                                        button: {
+                                                            color: 'gray',
+                                                            size: 'sm'
                                                         },
-                                                        {single: false, zeroOption: true}
-                                                )}
-                                                ${gvc.bindView({
-                                                    bind: vm.onBoxId,
-                                                    view: () => {
-                                                        const payData_List = onlinePayArray.filter((dd) => {
-                                                            return dd.type !== 'pos'
-                                                        }).filter((item) => {
-                                                            return (keyData as any)[item.key] && (keyData as any)[item.key].toggle;
-                                                        });
-                                                        if (!payData_List.length) {
-                                                            return '';
-                                                        }
-                                                        return [
-                                                            html`${BgWidget.mbContainer(12)}
-                                                            <div class="tx_700">設定</div>
-                                                            ${BgWidget.mbContainer(12)}`,
-                                                            payData_List
-                                                                    .map((payData) => {
-                                                                        const key_d = (keyData as any)[payData.key];
+                                                        text: {
+                                                            name: `金流設定`
+                                                        },
+                                                        event: gvc.event(() => {
+                                                            const payData = dd;
+                                                            const key_d = JSON.parse(JSON.stringify((keyData as any)[payData.key]));
+                                                            BgWidget.settingDialog({
+                                                                gvc: gvc,
+                                                                title: '金流設定',
+                                                                innerHTML: (gvc: GVC) => {
+                                                                    return `<div>${(() => {
                                                                         switch (payData.key) {
                                                                             case 'newWebPay':
                                                                             case 'ecPay':
-                                                                                return html` ${BgWidget.openBoxContainer({
-                                                                                    gvc,
-                                                                                    tag: 'detail',
-                                                                                    title: payData.name + redDot,
-                                                                                    openOnInit: false,
-                                                                                    insideHTML: [
-                                                                                        BgWidget.inlineCheckBox({
-                                                                                            title: '串接路徑',
-                                                                                            gvc: gvc,
-                                                                                            def: key_d.ActionURL,
-                                                                                            array: (() => {
-                                                                                                if (payData.key === 'newWebPay') {
-                                                                                                    return [
-                                                                                                        {
-                                                                                                            title: '正式站',
-                                                                                                            value: 'https://core.newebpay.com/MPG/mpg_gateway',
-                                                                                                        },
-                                                                                                        {
-                                                                                                            title: '測試站',
-                                                                                                            value: 'https://ccore.newebpay.com/MPG/mpg_gateway',
-                                                                                                        },
-                                                                                                    ];
-                                                                                                } else {
-                                                                                                    return [
-                                                                                                        {
-                                                                                                            title: '正式站',
-                                                                                                            value: 'https://payment.ecpay.com.tw/Cashier/AioCheckOut/V5',
-                                                                                                        },
-                                                                                                        {
-                                                                                                            title: '測試站',
-                                                                                                            value: 'https://payment-stage.ecpay.com.tw/Cashier/AioCheckOut/V5',
-                                                                                                        },
-                                                                                                    ];
-                                                                                                }
-                                                                                            })(),
-                                                                                            callback: (text: any) => {
-                                                                                                key_d.ActionURL = text;
-                                                                                            },
+                                                                                return [
+                                                                                    BgWidget.inlineCheckBox({
+                                                                                        title: '串接路徑',
+                                                                                        gvc: gvc,
+                                                                                        def: key_d.ActionURL,
+                                                                                        array: (() => {
+                                                                                            if (payData.key === 'newWebPay') {
+                                                                                                return [
+                                                                                                    {
+                                                                                                        title: '正式站',
+                                                                                                        value: 'https://core.newebpay.com/MPG/mpg_gateway',
+                                                                                                    },
+                                                                                                    {
+                                                                                                        title: '測試站',
+                                                                                                        value: 'https://ccore.newebpay.com/MPG/mpg_gateway',
+                                                                                                    },
+                                                                                                ];
+                                                                                            } else {
+                                                                                                return [
+                                                                                                    {
+                                                                                                        title: '正式站',
+                                                                                                        value: 'https://payment.ecpay.com.tw/Cashier/AioCheckOut/V5',
+                                                                                                    },
+                                                                                                    {
+                                                                                                        title: '測試站',
+                                                                                                        value: 'https://payment-stage.ecpay.com.tw/Cashier/AioCheckOut/V5',
+                                                                                                    },
+                                                                                                ];
+                                                                                            }
+                                                                                        })(),
+                                                                                        callback: (text: any) => {
+                                                                                            key_d.ActionURL = text;
+                                                                                        },
+                                                                                    }),
+                                                                                    BgWidget.inlineCheckBox({
+                                                                                        title: '開通付款方式',
+                                                                                        gvc: gvc,
+                                                                                        def: ['credit', 'atm', 'web_atm', 'c_code', 'c_bar_code'].filter((dd) => {
+                                                                                            return (key_d as any)[dd];
                                                                                         }),
-                                                                                        BgWidget.inlineCheckBox({
-                                                                                            title: '開通付款方式',
-                                                                                            gvc: gvc,
-                                                                                            def: ['credit', 'atm', 'web_atm', 'c_code', 'c_bar_code'].filter((dd) => {
-                                                                                                return (key_d as any)[dd];
-                                                                                            }),
-                                                                                            array: [
-                                                                                                {
-                                                                                                    title: '信用卡',
-                                                                                                    value: 'credit',
-                                                                                                },
-                                                                                                {
-                                                                                                    title: '一般 ATM',
-                                                                                                    value: 'atm',
-                                                                                                },
-                                                                                                {
-                                                                                                    title: '網路 ATM',
-                                                                                                    value: 'web_atm',
-                                                                                                },
-                                                                                                {
-                                                                                                    title: '超商代碼',
-                                                                                                    value: 'c_code',
-                                                                                                },
-                                                                                                {
-                                                                                                    title: '超商條碼',
-                                                                                                    value: 'c_bar_code',
-                                                                                                },
-                                                                                            ],
-                                                                                            callback: (array: any) => {
-                                                                                                ['credit', 'atm', 'web_atm', 'c_code', 'c_bar_code'].map((dd) => {
-                                                                                                    (key_d as any)[dd] = !!array.find((d1: string) => {
-                                                                                                        return d1 === dd;
-                                                                                                    });
+                                                                                        array: [
+                                                                                            {
+                                                                                                title: '信用卡',
+                                                                                                value: 'credit',
+                                                                                            },
+                                                                                            {
+                                                                                                title: '一般 ATM',
+                                                                                                value: 'atm',
+                                                                                            },
+                                                                                            {
+                                                                                                title: '網路 ATM',
+                                                                                                value: 'web_atm',
+                                                                                            },
+                                                                                            {
+                                                                                                title: '超商代碼',
+                                                                                                value: 'c_code',
+                                                                                            },
+                                                                                            {
+                                                                                                title: '超商條碼',
+                                                                                                value: 'c_bar_code',
+                                                                                            },
+                                                                                        ],
+                                                                                        callback: (array: any) => {
+                                                                                            ['credit', 'atm', 'web_atm', 'c_code', 'c_bar_code'].map((dd) => {
+                                                                                                (key_d as any)[dd] = !!array.find((d1: string) => {
+                                                                                                    return d1 === dd;
                                                                                                 });
-                                                                                            },
-                                                                                            type: 'multiple',
-                                                                                        }),
-                                                                                        BgWidget.editeInput({
-                                                                                            gvc: gvc,
-                                                                                            title: '特店編號',
-                                                                                            default: key_d.MERCHANT_ID,
-                                                                                            callback: (text) => {
-                                                                                                key_d.MERCHANT_ID = text;
-                                                                                            },
-                                                                                            placeHolder: '請輸入特店編號',
-                                                                                        }),
-                                                                                        BgWidget.editeInput({
-                                                                                            gvc: gvc,
-                                                                                            title: 'HASH_KEY',
-                                                                                            default: key_d.HASH_KEY,
-                                                                                            callback: (text) => {
-                                                                                                key_d.HASH_KEY = text;
-                                                                                            },
-                                                                                            placeHolder: '請輸入HASH_KEY',
-                                                                                        }),
-                                                                                        BgWidget.editeInput({
-                                                                                            gvc: gvc,
-                                                                                            title: 'HASH_IV',
-                                                                                            default: key_d.HASH_IV,
-                                                                                            callback: (text) => {
-                                                                                                key_d.HASH_IV = text;
-                                                                                            },
-                                                                                            placeHolder: '請輸入HASH_IV',
-                                                                                        }),
-                                                                                    ].join(''),
-                                                                                })}`;
+                                                                                            });
+                                                                                        },
+                                                                                        type: 'multiple',
+                                                                                    }),
+                                                                                    BgWidget.editeInput({
+                                                                                        gvc: gvc,
+                                                                                        title: '特店編號',
+                                                                                        default: key_d.MERCHANT_ID,
+                                                                                        callback: (text) => {
+                                                                                            key_d.MERCHANT_ID = text;
+                                                                                        },
+                                                                                        placeHolder: '請輸入特店編號',
+                                                                                    }),
+                                                                                    BgWidget.editeInput({
+                                                                                        gvc: gvc,
+                                                                                        title: 'HASH_KEY',
+                                                                                        default: key_d.HASH_KEY,
+                                                                                        callback: (text) => {
+                                                                                            key_d.HASH_KEY = text;
+                                                                                        },
+                                                                                        placeHolder: '請輸入HASH_KEY',
+                                                                                    }),
+                                                                                    BgWidget.editeInput({
+                                                                                        gvc: gvc,
+                                                                                        title: 'HASH_IV',
+                                                                                        default: key_d.HASH_IV,
+                                                                                        callback: (text) => {
+                                                                                            key_d.HASH_IV = text;
+                                                                                        },
+                                                                                        placeHolder: '請輸入HASH_IV',
+                                                                                    }),
+                                                                                ].join('');
                                                                             case 'paypal':
-                                                                                return html` ${BgWidget.openBoxContainer({
-                                                                                    gvc,
-                                                                                    tag: 'detail',
-                                                                                    title: payData.name + redDot,
-                                                                                    openOnInit: false,
-                                                                                    insideHTML: [
-                                                                                        BgWidget.inlineCheckBox({
-                                                                                            title: '串接路徑',
-                                                                                            gvc: gvc,
-                                                                                            def: `${keyData.paypal.BETA}`,
-                                                                                            array: [
-                                                                                                {
-                                                                                                    title: '正式站',
-                                                                                                    value: `false`,
-                                                                                                },
-                                                                                                {
-                                                                                                    title: '測試站',
-                                                                                                    value: `true`,
-                                                                                                },
-                                                                                            ],
-                                                                                            callback: (text: any) => {
-                                                                                                keyData.paypal.BETA = text;
+                                                                                return [
+                                                                                    BgWidget.inlineCheckBox({
+                                                                                        title: '串接路徑',
+                                                                                        gvc: gvc,
+                                                                                        def: `${keyData.paypal.BETA}`,
+                                                                                        array: [
+                                                                                            {
+                                                                                                title: '正式站',
+                                                                                                value: `false`,
                                                                                             },
-                                                                                        }),
-                                                                                        BgWidget.editeInput({
-                                                                                            gvc: gvc,
-                                                                                            title: 'CLIENT_ID',
-                                                                                            default: keyData.paypal.PAYPAL_CLIENT_ID,
-                                                                                            callback: (text) => {
-                                                                                                keyData.paypal.PAYPAL_CLIENT_ID = text;
+                                                                                            {
+                                                                                                title: '測試站',
+                                                                                                value: `true`,
                                                                                             },
-                                                                                            placeHolder: '請輸入CLIENT_ID',
-                                                                                        }),
-                                                                                        BgWidget.editeInput({
-                                                                                            gvc: gvc,
-                                                                                            title: 'SECRET',
-                                                                                            default: keyData.paypal.PAYPAL_SECRET,
-                                                                                            callback: (text) => {
-                                                                                                keyData.paypal.PAYPAL_SECRET = text;
-                                                                                            },
-                                                                                            placeHolder: '請輸入SECRET',
-                                                                                        }),
-                                                                                    ].join(''),
-                                                                                })}`;
+                                                                                        ],
+                                                                                        callback: (text: any) => {
+                                                                                            keyData.paypal.BETA = text;
+                                                                                        },
+                                                                                    }),
+                                                                                    BgWidget.editeInput({
+                                                                                        gvc: gvc,
+                                                                                        title: 'CLIENT_ID',
+                                                                                        default: keyData.paypal.PAYPAL_CLIENT_ID,
+                                                                                        callback: (text) => {
+                                                                                            keyData.paypal.PAYPAL_CLIENT_ID = text;
+                                                                                        },
+                                                                                        placeHolder: '請輸入CLIENT_ID',
+                                                                                    }),
+                                                                                    BgWidget.editeInput({
+                                                                                        gvc: gvc,
+                                                                                        title: 'SECRET',
+                                                                                        default: keyData.paypal.PAYPAL_SECRET,
+                                                                                        callback: (text) => {
+                                                                                            keyData.paypal.PAYPAL_SECRET = text;
+                                                                                        },
+                                                                                        placeHolder: '請輸入SECRET',
+                                                                                    }),
+                                                                                ].join('')
                                                                             case 'line_pay':
-                                                                                return html` ${BgWidget.openBoxContainer({
-                                                                                    gvc,
-                                                                                    tag: 'detail',
-                                                                                    title: payData.name + redDot,
-                                                                                    openOnInit: false,
-                                                                                    insideHTML: [
-                                                                                        BgWidget.inlineCheckBox({
-                                                                                            title: '串接路徑',
-                                                                                            gvc: gvc,
-                                                                                            def: `${keyData.line_pay.BETA}`,
-                                                                                            array: [
-                                                                                                {
-                                                                                                    title: '正式站',
-                                                                                                    value: `false`,
-                                                                                                },
-                                                                                                {
-                                                                                                    title: '測試站',
-                                                                                                    value: `true`,
-                                                                                                },
-                                                                                            ],
-                                                                                            callback: (text: any) => {
-                                                                                                keyData.line_pay.BETA = text;
+                                                                                return [
+                                                                                    BgWidget.inlineCheckBox({
+                                                                                        title: '串接路徑',
+                                                                                        gvc: gvc,
+                                                                                        def: `${keyData.line_pay.BETA}`,
+                                                                                        array: [
+                                                                                            {
+                                                                                                title: '正式站',
+                                                                                                value: `false`,
                                                                                             },
-                                                                                        }),
-                                                                                        BgWidget.editeInput({
-                                                                                            gvc: gvc,
-                                                                                            title: 'CLIENT_ID',
-                                                                                            default: keyData.line_pay.CLIENT_ID,
-                                                                                            callback: (text) => {
-                                                                                                keyData.line_pay.CLIENT_ID = text;
+                                                                                            {
+                                                                                                title: '測試站',
+                                                                                                value: `true`,
                                                                                             },
-                                                                                            placeHolder: '請輸入CLIENT_ID',
-                                                                                        }),
-                                                                                        BgWidget.editeInput({
-                                                                                            gvc: gvc,
-                                                                                            title: 'SECRET',
-                                                                                            default: keyData.line_pay.SECRET,
-                                                                                            callback: (text) => {
-                                                                                                keyData.line_pay.SECRET = text;
-                                                                                            },
-                                                                                            placeHolder: '請輸入SECRET',
-                                                                                        }),
-                                                                                    ].join(''),
-                                                                                })}`;
+                                                                                        ],
+                                                                                        callback: (text: any) => {
+                                                                                            keyData.line_pay.BETA = text;
+                                                                                        },
+                                                                                    }),
+                                                                                    BgWidget.editeInput({
+                                                                                        gvc: gvc,
+                                                                                        title: 'CLIENT_ID',
+                                                                                        default: keyData.line_pay.CLIENT_ID,
+                                                                                        callback: (text) => {
+                                                                                            keyData.line_pay.CLIENT_ID = text;
+                                                                                        },
+                                                                                        placeHolder: '請輸入CLIENT_ID',
+                                                                                    }),
+                                                                                    BgWidget.editeInput({
+                                                                                        gvc: gvc,
+                                                                                        title: 'SECRET',
+                                                                                        default: keyData.line_pay.SECRET,
+                                                                                        callback: (text) => {
+                                                                                            keyData.line_pay.SECRET = text;
+                                                                                        },
+                                                                                        placeHolder: '請輸入SECRET',
+                                                                                    }),
+                                                                                ].join('')
                                                                             case 'jkopay':
-                                                                                return html` ${BgWidget.openBoxContainer({
-                                                                                    gvc,
-                                                                                    tag: 'detail',
-                                                                                    title: payData.name + redDot,
-                                                                                    openOnInit: false,
-                                                                                    insideHTML: [
-                                                                                        BgWidget.editeInput({
-                                                                                            gvc: gvc,
-                                                                                            title: 'STORE_ID',
-                                                                                            default: keyData.jkopay.STORE_ID,
-                                                                                            callback: (text) => {
-                                                                                                keyData.jkopay.STORE_ID = text;
-                                                                                            },
-                                                                                            placeHolder: '請輸入STORE_ID',
-                                                                                        }),
-                                                                                        BgWidget.editeInput({
-                                                                                            gvc: gvc,
-                                                                                            title: 'API_KEY',
-                                                                                            default: keyData.jkopay.API_KEY,
-                                                                                            callback: (text) => {
-                                                                                                keyData.jkopay.API_KEY = text;
-                                                                                            },
-                                                                                            placeHolder: '請輸入API_KEY',
-                                                                                        }),
-                                                                                        BgWidget.editeInput({
-                                                                                            gvc: gvc,
-                                                                                            title: 'SECRET',
-                                                                                            default: keyData.jkopay.SECRET_KEY,
-                                                                                            callback: (text) => {
-                                                                                                keyData.jkopay.SECRET_KEY = text;
-                                                                                            },
-                                                                                            placeHolder: '請輸入SECRET_KEY',
-                                                                                        }),
-                                                                                    ].join(''),
-                                                                                })}`;
+                                                                                return [
+                                                                                    BgWidget.editeInput({
+                                                                                        gvc: gvc,
+                                                                                        title: 'STORE_ID',
+                                                                                        default: keyData.jkopay.STORE_ID,
+                                                                                        callback: (text) => {
+                                                                                            keyData.jkopay.STORE_ID = text;
+                                                                                        },
+                                                                                        placeHolder: '請輸入STORE_ID',
+                                                                                    }),
+                                                                                    BgWidget.editeInput({
+                                                                                        gvc: gvc,
+                                                                                        title: 'API_KEY',
+                                                                                        default: keyData.jkopay.API_KEY,
+                                                                                        callback: (text) => {
+                                                                                            keyData.jkopay.API_KEY = text;
+                                                                                        },
+                                                                                        placeHolder: '請輸入API_KEY',
+                                                                                    }),
+                                                                                    BgWidget.editeInput({
+                                                                                        gvc: gvc,
+                                                                                        title: 'SECRET',
+                                                                                        default: keyData.jkopay.SECRET_KEY,
+                                                                                        callback: (text) => {
+                                                                                            keyData.jkopay.SECRET_KEY = text;
+                                                                                        },
+                                                                                        placeHolder: '請輸入SECRET_KEY',
+                                                                                    }),
+                                                                                ].join('')
                                                                             case 'paynow':
-                                                                                return html` ${BgWidget.openBoxContainer({
-                                                                                    gvc,
-                                                                                    tag: 'detail',
-                                                                                    title: payData.name + redDot,
-                                                                                    openOnInit: false,
-                                                                                    insideHTML: [
-                                                                                        BgWidget.inlineCheckBox({
-                                                                                            title: '串接路徑',
-                                                                                            gvc: gvc,
-                                                                                            def: `${keyData.paynow.BETA}`,
-                                                                                            array: [
-                                                                                                {
-                                                                                                    title: '正式站',
-                                                                                                    value: `false`,
-                                                                                                },
-                                                                                                {
-                                                                                                    title: '測試站',
-                                                                                                    value: `true`,
-                                                                                                },
-                                                                                            ],
-                                                                                            callback: (text: any) => {
-                                                                                                keyData.paynow.BETA = text;
+                                                                                return [
+                                                                                    BgWidget.inlineCheckBox({
+                                                                                        title: '串接路徑',
+                                                                                        gvc: gvc,
+                                                                                        def: `${keyData.paynow.BETA}`,
+                                                                                        array: [
+                                                                                            {
+                                                                                                title: '正式站',
+                                                                                                value: `false`,
                                                                                             },
-                                                                                        }),
-                                                                                        BgWidget.editeInput({
-                                                                                            gvc: gvc,
-                                                                                            title: 'public key',
-                                                                                            default: keyData.paynow.public_key,
-                                                                                            callback: (text) => {
-                                                                                                keyData.paynow.public_key = text;
+                                                                                            {
+                                                                                                title: '測試站',
+                                                                                                value: `true`,
                                                                                             },
-                                                                                            placeHolder: '請輸入public key',
-                                                                                        }),
-                                                                                        BgWidget.editeInput({
-                                                                                            gvc: gvc,
-                                                                                            title: 'private key',
-                                                                                            default: keyData.paynow.private_key,
-                                                                                            callback: (text) => {
-                                                                                                keyData.paynow.private_key = text;
-                                                                                            },
-                                                                                            placeHolder: '請輸入private key',
-                                                                                        })].join(''),
-                                                                                })}`;
+                                                                                        ],
+                                                                                        callback: (text: any) => {
+                                                                                            keyData.paynow.BETA = text;
+                                                                                        },
+                                                                                    }),
+                                                                                    BgWidget.editeInput({
+                                                                                        gvc: gvc,
+                                                                                        title: 'public key',
+                                                                                        default: keyData.paynow.public_key,
+                                                                                        callback: (text) => {
+                                                                                            keyData.paynow.public_key = text;
+                                                                                        },
+                                                                                        placeHolder: '請輸入public key',
+                                                                                    }),
+                                                                                    BgWidget.editeInput({
+                                                                                        gvc: gvc,
+                                                                                        title: 'private key',
+                                                                                        default: keyData.paynow.private_key,
+                                                                                        callback: (text) => {
+                                                                                            keyData.paynow.private_key = text;
+                                                                                        },
+                                                                                        placeHolder: '請輸入private key',
+                                                                                    })].join('');
                                                                         }
-                                                                    })
-                                                                    .join('<div class="my-2"></div>'),
-                                                        ].join('');
-                                                    },
-                                                })}`
-                                    ),
-                                    BgWidget.mainCard(
-                                            html`
-                                                <div style="display: flex; gap: 14px;" class="align-items-center">
-                                                    <div class="tx_700">線下金流</div>
-                                                    <div class="flex-fill"></div>
-                                                    ${BgWidget.grayButton(
-                                                            '新增自訂金流',
-                                                            gvc.event(() => {
-                                                                updateCustomFinance({function: 'plus'});
+                                                                        return ``
+                                                                    })()}</div>`
+                                                                },
+                                                                footer_html: (gvc) => {
+                                                                    return [BgWidget.cancel(gvc.event(() => {
+                                                                        gvc.closeDialog()
+                                                                    })), BgWidget.save(gvc.event(() => {
+                                                                        (keyData as any)[payData.key] = key_d
+                                                                        saveData();
+                                                                        gvc.closeDialog()
+                                                                    }))].join('')
+                                                                }
                                                             })
-                                                    )}
-                                                </div>
+                                                        })
+                                                    })}
+                                                                            </div>
+                                                                <div style="align-self: stretch; justify-content: flex-start; align-items: center; gap: 28px; display: inline-flex">
+                                                                    <div style="min-width: 46px;max-width: 46px;">
+                                                                        <img src="${dd.img || BgWidget.noImageURL}"/>
+                                                                    </div>
+                                                                    <div style="flex-direction: column; justify-content: center; align-items: flex-start; gap: 4px; display: inline-flex">
+                                                                        <div class="tx_normal">${dd.name}</div>
+                                                                        <div class="d-flex align-items-center"
+                                                                             style="gap:4px;">
+                                                                            <div class="tx_normal">
+                                                                              ${(keyData as any)[dd.key].toggle ? `開啟` : `關閉`}
+                                                                            </div>
+                                                                            <div class="cursor_pointer form-check form-switch"
+                                                                                 style="margin-top: 10px;">
+                                                                                <input
+                                                                                        class="form-check-input"
+                                                                                        type="checkbox"
+                                                                                        onchange="${gvc.event((e, event) => {
+                                                        (keyData as any)[dd.key].toggle = !(keyData as any)[dd.key].toggle
+                                                        saveData()
+                                                    })}"
+                                                                     ${(keyData as any)[dd.key].toggle ? `checked` : ``} 
+                                                                                />
+                                                                            </div>
+                                                                        </div>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                        </div>`
+                                                }).join('')
+                                        }
+                                        </div>`)
+                                }
+                                if (vm.page === 'offline') {
+                                    const offlinePayArray = [
+                                        {key: 'atm', name: 'ATM銀行轉帳', customerClass: 'guide2-3',img:'https://d3jnmi1tfjgtti.cloudfront.net/file/122538856/20200804163522idfs9.jpg'},
+                                        {key: 'line', name: 'LINE 轉帳',img:'https://d3jnmi1tfjgtti.cloudfront.net/file/122538856/unnamed.webp'},
+                                        {key: 'cash_on_delivery', name: `<div class="d-flex flex-wrap align-items-center" style="gap:5px;">
+貨到付款
+${BgWidget.greenNote('支援四大超商')}
+</div>`,img: 'https://d3jnmi1tfjgtti.cloudfront.net/file/122538856/images.png',hide_setting:true},
+                                        ...keyData.payment_info_custom.map((dd) => {
+                                            return {
+                                                key: dd.id,
+                                                name: html`${Language.getLanguageCustomText(dd.name)}`,
+                                                custom:true
+                                            };
+                                        }),
+                                    ];
 
-                                                ${BgWidget.grayNote('不執行線上付款，由店家自行與消費者商議付款方式')}
-
-                                                ${BgWidget.mbContainer(12)}
-                                                ${(() => {
-                                                    const offlinePayArray = [
-                                                        {key: 'atm', name: 'ATM銀行轉帳', customerClass: 'guide2-3'},
-                                                        {key: 'line', name: 'LINE 轉帳'},
-                                                        {key: 'cash_on_delivery', name: '貨到付款'},
-                                                        ...keyData.payment_info_custom.map((dd) => {
-                                                            return {
-                                                                key: dd.id,
-                                                                name: html`${Language.getLanguageCustomText(dd.name)}
-                                                                <i
-                                                                        class="fa-solid fa-pencil cursor_pointer ms-1"
-                                                                        onclick="${gvc.event((e, event) => {
-
-                                                                            updateCustomFinance({
-                                                                                function: 'replace',
-                                                                                data: keyData.payment_info_custom.find((d1: any) => {
-                                                                                    return dd.id === d1.id;
-                                                                                }),
-                                                                            });
-                                                                            event.stopPropagation();
-                                                                            event.preventDefault();
-                                                                        })}"
-                                                                ></i>`,
-                                                            };
-                                                        }),
-                                                    ];
-
-                                                    return BgWidget.multiCheckboxContainer(
-                                                            gvc,
-                                                            offlinePayArray,
-                                                            offlinePayArray
-                                                                    .slice()
-                                                                    .filter((item) => {
-                                                                        return (keyData.off_line_support as any)[item.key];
-                                                                    })
-                                                                    .map((item) => {
-                                                                        return item.key;
-                                                                    }),
-                                                            (data) => {
-                                                                offlinePayArray.map((item) => {
-                                                                    (keyData.off_line_support as any)[item.key] = data.some((d: string) => {
-                                                                        return d === item.key;
-                                                                    });
-                                                                });
-                                                                gvc.notifyDataChange(vm.offBoxId);
-                                                            },
-                                                            {single: false}
-                                                    );
-                                                })()}
-                                                ${gvc.bindView({
-                                                    bind: vm.offBoxId,
-                                                    view: () => {
-                                                        const payData = [
-                                                            'atm',
-                                                            'line',
-                                                            ...keyData.payment_info_custom.map((dd) => {
-                                                                return dd.id;
-                                                            }),
-                                                        ].filter((key) => {
-                                                            return (keyData.off_line_support as any)[key];
-                                                        });
-
-                                                        if (payData.length == 0) {
-                                                            return '';
-                                                        }
-
-                                                        return html`
-                                                            ${BgWidget.mbContainer(12)}
-                                                            <div class="tx_700">付款資訊</div>
-                                                            ${BgWidget.grayNote('於訂單確認頁面及通知郵件中顯示，告知顧客付款的銀行帳戶或其他付款說明')}${BgWidget.mbContainer(12)}
-                                                            ${payData
-                                                                    .map((key) => {
-                                                                        if (key === 'atm') {
-                                                                            return BgWidget.openBoxContainer({
-                                                                                gvc,
-                                                                                tag: 'detail',
-                                                                                title: 'ATM銀行轉帳' + redDot,
-                                                                                insideHTML: ShoppingFinanceSetting.atm(gvc, keyData),
-                                                                                guideClass: 'guide2-4',
-                                                                            });
-                                                                        }
-                                                                        if (key === 'line') {
-                                                                            return BgWidget.openBoxContainer({
-                                                                                gvc,
-                                                                                tag: 'detail',
-                                                                                title: 'LINE 轉帳' + redDot,
-                                                                                insideHTML: ShoppingFinanceSetting.line_pay(gvc, keyData),
-                                                                                height: 700,
-                                                                            });
-                                                                        }
-
-                                                                        const i = keyData.payment_info_custom.findIndex((dd: any) => {
-                                                                            return dd.id === key;
-                                                                        });
-
-                                                                        if (i === -1) {
-                                                                            return '';
-                                                                        }
-
-                                                                        const customer = keyData.payment_info_custom[i];
-                                                                        return BgWidget.openBoxContainer({
-                                                                            gvc,
-                                                                            tag: 'detail',
-                                                                            title: `自訂金流：${Language.getLanguageCustomText(customer.name)}` + redDot,
-                                                                            insideHTML: ShoppingFinanceSetting.customerText(gvc, keyData, i),
-                                                                            height: 700,
-                                                                        });
-                                                                    })
-                                                                    .filter((str) => str.length > 0)
-                                                                    .join(BgWidget.mbContainer(12))}
-                                                        `;
+                                    vMap.push(`<div class="my-2">${BgWidget.blueNote('透過設定線下金流進入手動核款的流程，或使用超商取貨付款。')}</div>`)
+                                    vMap.push(html`
+                                        <div class="row">${
+                                                offlinePayArray.map((dd:any) => {
+                                                return ` <div class="col-12 col-md-4 p-0 p-md-2">
+                                                            <div
+                                                                    class="w-100 position-relative main-card"
+                                                                    style="padding: 24px 32px; background: white; overflow: hidden; flex-direction: column; justify-content: flex-start; align-items: flex-start; gap: 18px; display: inline-flex;"
+                                                            >
+                                                                <div class="position-absolute fw-500 ${(dd.hide_setting) ? `d-none`:``}"
+                                                                                 style="cursor:pointer;right:15px;top:15px;">
+                                                                                ${BgWidget.customButton({
+                                                    button: {
+                                                        color: 'gray',
+                                                        size: 'sm'
                                                     },
-                                                })}
-                                            `
-                                    ),
-                                    BgWidget.mainCard(
-                                            html`
-                                                <div class="tx_700">POS金流設定</div>
-                                                ${BgWidget.grayNote('設定實體店面所需串接的付款方式')} ${BgWidget.mbContainer(12)}
-                                                ${BgWidget.multiCheckboxContainer(
-                                                        gvc,
-                                                        onlinePayArray.filter((dd) => {
-                                                            return dd.type === 'pos'
-                                                        }),
-                                                        (() => {
-                                                            let array = [];
-                                                            keyData.newWebPay.toggle && array.push('newWebPay');
-                                                            keyData.ecPay.toggle && array.push('ecPay');
-                                                            keyData.paypal.toggle && array.push('paypal');
-                                                            keyData.line_pay.toggle && array.push('line_pay');
-                                                            keyData.line_pay_scan.toggle && array.push('line_pay_scan');
-                                                            keyData.ut_credit_card.toggle && array.push('ut_credit_card');
-                                                            return array;
-                                                        })(),
-                                                        (data) => {
-                                                            onlinePayArray.filter((dd) => {
-                                                                return dd.type === 'pos'
-                                                            }).map((dd) => {
-                                                                (keyData as any)[dd.key].toggle = data.includes(dd.key);
+                                                    text: {
+                                                        name: `金流設定`
+                                                    },
+                                                    event: gvc.event(() => {
+                                                        if(dd.custom){
+                                                            
+                                                            updateCustomFinance({
+                                                                function: 'replace',
+                                                                data: keyData.payment_info_custom.find((d1: any) => {
+                                                                    return dd.key === d1.id;
+                                                                }),
                                                             });
-                                                            gvc.notifyDataChange(vm.posBoxId);
-                                                        },
-                                                        {single: false, zeroOption: true}
-                                                )}
-                                                ${gvc.bindView({
-                                                    bind: vm.posBoxId,
-                                                    view: () => {
-                                                        const payData_List = onlinePayArray.filter((dd) => {
-                                                            return dd.type === 'pos'
-                                                        }).filter((item) => {
-                                                            return (keyData as any)[item.key] && (keyData as any)[item.key].toggle;
-                                                        });
-                                                        if (!payData_List.length) {
-                                                            return '';
+                                                            return
                                                         }
-                                                        return [
-                                                            html`${BgWidget.mbContainer(12)}
-                                                            <div class="tx_700">設定</div>
-                                                            ${BgWidget.mbContainer(12)}`,
-                                                            payData_List
-                                                                    .map((payData) => {
-                                                                        const key_d = (keyData as any)[payData.key];
-                                                                        switch (payData.key) {
-                                                                            case 'line_pay_scan':
-                                                                                return html` ${BgWidget.openBoxContainer({
-                                                                                    gvc,
-                                                                                    tag: 'detail',
-                                                                                    title: payData.name + redDot,
-                                                                                    openOnInit: false,
-                                                                                    insideHTML: [
-                                                                                        BgWidget.inlineCheckBox({
-                                                                                            title: '串接路徑',
-                                                                                            gvc: gvc,
-                                                                                            def: `${keyData.line_pay_scan.BETA}`,
-                                                                                            array: [
-                                                                                                {
-                                                                                                    title: '正式站',
-                                                                                                    value: `false`,
-                                                                                                },
-                                                                                                {
-                                                                                                    title: '測試站',
-                                                                                                    value: `true`,
-                                                                                                },
-                                                                                            ],
-                                                                                            callback: (text: any) => {
-                                                                                                keyData.line_pay_scan.BETA = text;
-                                                                                            },
-                                                                                        }),
-                                                                                        BgWidget.editeInput({
-                                                                                            gvc: gvc,
-                                                                                            title: 'CLIENT_ID',
-                                                                                            default: keyData.line_pay_scan.CLIENT_ID,
-                                                                                            callback: (text) => {
-                                                                                                keyData.line_pay_scan.CLIENT_ID = text;
-                                                                                            },
-                                                                                            placeHolder: '請輸入CLIENT_ID',
-                                                                                        }),
-                                                                                        BgWidget.editeInput({
-                                                                                            gvc: gvc,
-                                                                                            title: 'SECRET',
-                                                                                            default: keyData.line_pay_scan.SECRET,
-                                                                                            callback: (text) => {
-                                                                                                keyData.line_pay_scan.SECRET = text;
-                                                                                            },
-                                                                                            placeHolder: '請輸入SECRET',
-                                                                                        }),
-                                                                                    ].join(''),
-                                                                                })}`;
-                                                                            case 'ut_credit_card':
-                                                                                return html` ${BgWidget.openBoxContainer({
-                                                                                    gvc,
-                                                                                    tag: 'detail',
-                                                                                    title: payData.name + redDot,
-                                                                                    openOnInit: false,
-                                                                                    insideHTML: [
-                                                                                        BgWidget.editeInput({
-                                                                                            gvc: gvc,
-                                                                                            title: '刷卡機密碼',
-                                                                                            default: keyData.ut_credit_card.pwd,
-                                                                                            callback: (text) => {
-                                                                                                keyData.ut_credit_card.pwd = text;
-                                                                                            },
-                                                                                            placeHolder: '請輸入刷卡機密碼',
-                                                                                        })
-                                                                                    ].join(''),
-                                                                                })}`;
-                                                                        }
-                                                                    })
-                                                                    .join('<div class="my-2"></div>'),
-                                                        ].join('');
+                                                        BgWidget.settingDialog({
+                                                            gvc: gvc,
+                                                            title: '金流設定',
+                                                            innerHTML: (gvc: GVC) => {
+                                                                return `<div>${(() => {
+                                                                    switch (dd.key) {
+                                                                        case 'atm':
+                                                                  return ShoppingFinanceSetting.atm(gvc, keyData)
+                                                                        case 'line':
+                                                                            return ShoppingFinanceSetting.line_pay(gvc, keyData)
+                                                                    }
+                                                                    return ``
+                                                                })()}</div>`
+                                                            },
+                                                            footer_html: (gvc) => {
+                                                                return [BgWidget.cancel(gvc.event(() => {
+                                                                    gvc.closeDialog()
+                                                                })), BgWidget.save(gvc.event(() => {
+                                                                    saveData();
+                                                                    gvc.closeDialog()
+                                                                }))].join('')
+                                                            }
+                                                        })
+                                                    })
+                                                })}
+                                                                            </div>
+                                                                <div style="align-self: stretch; justify-content: flex-start; align-items: center; gap: 28px; display: inline-flex">
+                                                                    <div style="min-width: 46px;max-width: 46px;">
+                                                                    ${dd.img ? ` <img class="rounded-2" src="${dd.img }"/>`:`<i class="fa-regular fa-puzzle-piece-simple fs-4" aria-hidden="true"></i>`}
+                                                                       
+                                                                    </div>
+                                                                    <div style="flex-direction: column; justify-content: center; align-items: flex-start; gap: 4px; display: inline-flex">
+                                                                        <div class="tx_normal">${dd.name}</div>
+                                                                        <div class="d-flex align-items-center"
+                                                                             style="gap:4px;">
+                                                                            <div class="tx_normal">
+                                                                              ${(keyData.off_line_support as any)[dd.key] ? `開啟` : `關閉`}
+                                                                            </div>
+                                                                            <div class="cursor_pointer form-check form-switch"
+                                                                                 style="margin-top: 10px;">
+                                                                                <input
+                                                                                        class="form-check-input"
+                                                                                        type="checkbox"
+                                                                                        onchange="${gvc.event((e, event) => {
+                                                    (keyData.off_line_support as any)[dd.key] = !(keyData.off_line_support as any)[dd.key]
+                                                    saveData()
+                                                })}"
+                                                                     ${(keyData.off_line_support as any)[dd.key] ? `checked` : ``} 
+                                                                                />
+                                                                            </div>
+                                                                        </div>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                        </div>`
+                                            }).join('')
+                                    }
+                                            <div
+                                                    class="col-12 col-md-4 p-0 p-md-2"
+                                                    style="cursor: pointer;"
+                                                    onclick="${gvc.event(() => {
+                                                        updateCustomFinance({function: 'plus'});
+                                                    })}"
+                                            >
+                                                <div
+                                                        class="w-100 main-card"
+                                                        style="min-height:121px;padding: 24px; background: white; overflow: hidden; flex-direction: column; justify-content: center; align-items: center; gap: 18px; display: inline-flex"
+                                                >
+                                                    <div class="fw-bold"
+                                                         style="align-self: stretch; justify-content: center; align-items: center; gap: 14px; display: inline-flex;color:#4D86DB;">
+                                                        <i class="fa-regular fa-circle-plus fs-5"></i>
+                                                        <div class="fs-5">新增自訂付款</div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>`)
+                                    
+                                }
+
+                                //線上金流
+                                if (vm.page === 'pos') {
+                                    vMap.push(`<div class="my-2">${BgWidget.blueNote('設定實體店面所需串接的付款方式。')}</div>`)
+                                    vMap.push(html`
+                                        <div class="row">${
+                                            onlinePayArray.filter((dd) => {
+                                                return dd.type === 'pos'
+                                            }).map((dd) => {
+                                                return ` <div class="col-12 col-md-4 p-0 p-md-2">
+                                                            <div
+                                                                    class="w-100 position-relative main-card"
+                                                                    style="padding: 24px 32px; background: white; overflow: hidden; flex-direction: column; justify-content: flex-start; align-items: flex-start; gap: 18px; display: inline-flex;"
+                                                            >
+                                                                <div class="position-absolute fw-500"
+                                                                                 style="cursor:pointer;right:15px;top:15px;">
+                                                                                ${BgWidget.customButton({
+                                                    button: {
+                                                        color: 'gray',
+                                                        size: 'sm'
                                                     },
-                                                })}`
-                                    )
-                                ].join(BgWidget.mbContainer(24));
+                                                    text: {
+                                                        name: `金流設定`
+                                                    },
+                                                    event: gvc.event(() => {
+                                                        const payData = dd;
+                                                        const key_d = JSON.parse(JSON.stringify((keyData as any)[payData.key]));
+                                                        BgWidget.settingDialog({
+                                                            gvc: gvc,
+                                                            title: '金流設定',
+                                                            innerHTML: (gvc: GVC) => {
+                                                                return `<div>${(() => {
+                                                                    switch (payData.key) {
+                                                                        case 'line_pay_scan':
+                                                                            return html` ${[
+                                                                                BgWidget.inlineCheckBox({
+                                                                                    title: '串接路徑',
+                                                                                    gvc: gvc,
+                                                                                    def: `${keyData.line_pay_scan.BETA}`,
+                                                                                    array: [
+                                                                                        {
+                                                                                            title: '正式站',
+                                                                                            value: `false`,
+                                                                                        },
+                                                                                        {
+                                                                                            title: '測試站',
+                                                                                            value: `true`,
+                                                                                        },
+                                                                                    ],
+                                                                                    callback: (text: any) => {
+                                                                                        keyData.line_pay_scan.BETA = text;
+                                                                                    },
+                                                                                }),
+                                                                                BgWidget.editeInput({
+                                                                                    gvc: gvc,
+                                                                                    title: 'CLIENT_ID',
+                                                                                    default: key_d.CLIENT_ID,
+                                                                                    callback: (text) => {
+                                                                                        key_d.CLIENT_ID = text;
+                                                                                    },
+                                                                                    placeHolder: '請輸入CLIENT_ID',
+                                                                                }),
+                                                                                BgWidget.editeInput({
+                                                                                    gvc: gvc,
+                                                                                    title: 'SECRET',
+                                                                                    default: key_d.SECRET,
+                                                                                    callback: (text) => {
+                                                                                        key_d.SECRET = text;
+                                                                                    },
+                                                                                    placeHolder: '請輸入SECRET',
+                                                                                }),
+                                                                            ].join('')}`;
+                                                                        case 'ut_credit_card':
+                                                                            return html` ${[
+                                                                                BgWidget.editeInput({
+                                                                                    gvc: gvc,
+                                                                                    title: '刷卡機密碼',
+                                                                                    default: key_d.pwd,
+                                                                                    callback: (text) => {
+                                                                                        key_d.pwd = text;
+                                                                                    },
+                                                                                    placeHolder: '請輸入刷卡機密碼',
+                                                                                })
+                                                                            ].join('')}`;
+                                                                    }
+                                                                    return ``
+                                                                })()}</div>`
+                                                            },
+                                                            footer_html: (gvc) => {
+                                                                return [BgWidget.cancel(gvc.event(() => {
+                                                                    gvc.closeDialog()
+                                                                })), BgWidget.save(gvc.event(() => {
+                                                                    (keyData as any)[payData.key] = key_d
+                                                                    saveData();
+                                                                    gvc.closeDialog()
+                                                                }))].join('')
+                                                            }
+                                                        })
+                                                    })
+                                                })}
+                                                                            </div>
+                                                                <div style="align-self: stretch; justify-content: flex-start; align-items: center; gap: 28px; display: inline-flex">
+                                                                    <div style="min-width: 46px;max-width: 46px;">
+                                                                        <img src="${dd.img || BgWidget.noImageURL}"/>
+                                                                    </div>
+                                                                    <div style="flex-direction: column; justify-content: center; align-items: flex-start; gap: 4px; display: inline-flex">
+                                                                        <div class="tx_normal">${dd.name}</div>
+                                                                        <div class="d-flex align-items-center"
+                                                                             style="gap:4px;">
+                                                                            <div class="tx_normal">
+                                                                              ${(keyData as any)[dd.key].toggle ? `開啟` : `關閉`}
+                                                                            </div>
+                                                                            <div class="cursor_pointer form-check form-switch"
+                                                                                 style="margin-top: 10px;">
+                                                                                <input
+                                                                                        class="form-check-input"
+                                                                                        type="checkbox"
+                                                                                        onchange="${gvc.event((e, event) => {
+                                                    (keyData as any)[dd.key].toggle = !(keyData as any)[dd.key].toggle
+                                                    saveData()
+                                                })}"
+                                                                     ${(keyData as any)[dd.key].toggle ? `checked` : ``} 
+                                                                                />
+                                                                            </div>
+                                                                        </div>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                        </div>`
+                                            }).join('')
+                                    }
+                                        </div>`)
+                                }
+                                return vMap.join('<div></div>')
                             } catch (e) {
                                 console.error(e);
                                 return `${e}`;
@@ -904,31 +993,6 @@ export class ShoppingFinanceSetting {
                     }),
                 ].join(BgWidget.mbContainer(24))}
                 ${BgWidget.mbContainer(240)}
-                <div class="update-bar-container">
-                    ${BgWidget.save(
-                            gvc.event(() => {
-                                console.log("keyData -- ", keyData)
-                                dialog.dataLoading({visible: true});
-                                saasConfig.api.setPrivateConfig(saasConfig.config.appName, 'glitter_finance', keyData).then((r: {
-                                    response: any;
-                                    result: boolean
-                                }) => {
-
-
-                                    setTimeout(() => {
-                                        dialog.dataLoading({visible: false});
-                                        if (r.response) {
-                                            dialog.successMessage({text: '設定成功'});
-                                        } else {
-                                            dialog.errorMessage({text: '設定失敗'});
-                                        }
-                                    }, 300);
-                                });
-                            }),
-                            '儲存',
-                            'guide2-6'
-                    )}
-                </div>
             `
         );
     }
@@ -980,10 +1044,14 @@ export class ShoppingFinanceSetting {
         });
     }
 
-    static customerText(gvc: GVC, keyData: any, id: number) {
-        keyData.payment_info_custom[id] = {
+    static customerText(gvc: GVC, keyData: any, id: string) {
+        const fi_= keyData.payment_info_custom.find((id_:string)=>{
+            return id_===id
+        })
+        keyData[keyData.findIndex(fi_)]
+        = {
             text: '',
-            ...keyData.payment_info_custom[id],
+            ...keyData[keyData.findIndex(fi_)]
         };
         return gvc.bindView(() => {
             const view_id = gvc.glitter.getUUID();
@@ -997,9 +1065,9 @@ export class ShoppingFinanceSetting {
                             </div>`,
                         BgWidget.richTextEditor({
                             gvc: gvc,
-                            content: keyData.payment_info_custom[id].text,
+                            content: fi_.text,
                             callback: (content) => {
-                                keyData.payment_info_custom[id].text = content;
+                                fi_.text = content;
                             },
                             title: '付款說明'
                         })

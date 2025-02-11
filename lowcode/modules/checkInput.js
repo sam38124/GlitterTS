@@ -20,8 +20,8 @@ export class CheckInput {
         return landlineRegex.test(input) || mobileRegex.test(input);
     }
     static isNumberString(input) {
-        const regex = /^\d+$/g;
-        return regex.test(input);
+        const num = parseFloat(input);
+        return !isNaN(num);
     }
     static isEnglishNumberHyphen(input) {
         const regex = /^[a-zA-Z0-9-]+$/;

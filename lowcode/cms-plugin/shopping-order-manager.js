@@ -365,8 +365,10 @@ export class ShoppingOrderManager {
                         })(),
                         BgWidget.tableV3({
                             gvc: gvc,
+                            def_page: ShoppingOrderManager.vm.page,
                             getData: (vmi) => {
                                 const limit = 20;
+                                ShoppingOrderManager.vm.page = vmi.page;
                                 ApiShop.getOrder({
                                     page: vmi.page - 1,
                                     limit: limit,
@@ -478,6 +480,10 @@ export class ShoppingOrderManager {
                                     vmi.originalData = vm.dataList;
                                     vmi.tableData = getDatalist();
                                     vmi.loading = false;
+                                    if ((vmi.pageSize != 0) && (vmi.page > vmi.pageSize)) {
+                                        ShoppingOrderManager.vm.page = 1;
+                                        gvc.notifyDataChange(vm.id);
+                                    }
                                     vmi.callback();
                                 });
                             },
@@ -934,7 +940,7 @@ export class ShoppingOrderManager {
                                     }
                                 })(),
                                 ...(() => {
-                                    if (orderData.orderData.use_wallet) {
+                                    if (orderData.orderData.use_wallet && `${orderData.orderData.use_wallet}` !== '0') {
                                         return [
                                             {
                                                 title: '錢包',
@@ -3713,4 +3719,7 @@ export class ShoppingOrderManager {
         return;
     }
 }
+ShoppingOrderManager.vm = {
+    page: 1
+};
 window.glitter.setModule(import.meta.url, ShoppingOrderManager);

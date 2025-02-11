@@ -202,6 +202,9 @@ interface OrderData {
 const html = String.raw;
 
 export class ShoppingOrderManager {
+    public static vm={
+        page:1
+    }
     public static main(
         gvc: GVC,
         query: {
@@ -589,8 +592,10 @@ export class ShoppingOrderManager {
                                         })(),
                                         BgWidget.tableV3({
                                             gvc: gvc,
+                                            def_page:ShoppingOrderManager.vm.page,
                                             getData: (vmi) => {
                                                 const limit = 20;
+                                                ShoppingOrderManager.vm.page=vmi.page;
                                                 ApiShop.getOrder({
                                                     page: vmi.page - 1,
                                                     limit: limit,
@@ -677,6 +682,7 @@ export class ShoppingOrderManager {
                                                                 {
                                                                     key: '訂單狀態',
                                                                     value: (() => {
+                                                                       
                                                                         switch (dd.orderData.orderStatus ?? '0') {
                                                                             case '-1':
                                                                                 return BgWidget.notifyInsignia('已取消');
@@ -700,6 +706,10 @@ export class ShoppingOrderManager {
                                                     vmi.originalData = vm.dataList;
                                                     vmi.tableData = getDatalist();
                                                     vmi.loading = false;
+                                                    if((vmi.pageSize != 0) && (vmi.page>vmi.pageSize)){
+                                                        ShoppingOrderManager.vm.page=1
+                                                        gvc.notifyDataChange(vm.id)
+                                                    }
                                                     vmi.callback();
                                                 });
                                             },
@@ -965,7 +975,6 @@ export class ShoppingOrderManager {
         }
 
         const vt = OrderSetting.getAllStatusBadge(orderData);
-        
         ApiUser.getUsersDataWithEmailOrPhone(orderData.email).then((res) => {
             userData = res.response;
             userDataLoading = false;
@@ -1179,7 +1188,7 @@ export class ShoppingOrderManager {
                                                                     }
                                                                 })(),
                                                                 ...(() => {
-                                                                    if (orderData.orderData.use_wallet) {
+                                                                    if (orderData.orderData.use_wallet  && `${orderData.orderData.use_wallet }` !== '0') {
                                                                         return [
                                                                             {
                                                                                 title: '錢包',

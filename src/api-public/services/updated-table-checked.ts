@@ -30,7 +30,8 @@ ADD INDEX \`index5\` (\`store\` ASC) VISIBLE;`
             console.log(`資料庫更新:${obj.last_version}-to-${obj.new_version}`)
             await db.query(`
                 ${obj.event}
-                ALTER TABLE \`${obj.app_name}\`.\`${obj.table_name}\` COMMENT = '${obj.new_version}';`, [])
+               `, [])
+            await db.query(`ALTER TABLE \`${obj.app_name}\`.\`${obj.table_name}\` COMMENT = '${obj.new_version}';`,[]);
         }
     }
 }

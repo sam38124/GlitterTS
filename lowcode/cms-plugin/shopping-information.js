@@ -335,6 +335,22 @@ export class ShoppingInformation {
                                                 />
                                             </div>
                                         </div>
+                                        <div class="d-flex flex-column" style="gap:8px;">
+                                            <div style="color: #393939;font-size: 16px;">啟用顧客評論功能</div>
+                                            <div style="color: #8D8D8D;font-size:13px;">啟用顧客評論功能，顧客可以對您的商品進行評論。
+                                            </div>
+                                            <div class="cursor_pointer form-check form-switch m-0 p-0"
+                                                 style="margin-top: 10px;">
+                                                <input
+                                                        class="form-check-input m-0"
+                                                        type="checkbox"
+                                                        onchange="${gvc.event((e, event) => {
+                            vm.data.customer_comment = !vm.data.customer_comment;
+                        })}"
+                                                        ${vm.data.customer_comment ? `checked` : ``}
+                                                />
+                                            </div>
+                                        </div>
                                         ${gvc.bindView(() => {
                             const id = gvc.glitter.getUUID();
                             const html = String.raw;
@@ -514,6 +530,23 @@ export class ShoppingInformation {
                                                 />
                                             </div>
                                         </div>
+                                        ${vm.data.multi_currency ? `<div class="d-flex flex-column " style="gap:8px;">
+                                            <div style="color: #393939;font-size: 16px;">啟用貨幣切換</div>
+                                            <div style="color: #8D8D8D;font-size:13px;">
+                                                是否開放用戶於前台自行切換幣別進行顯示
+                                            </div>
+                                            <div class="cursor_pointer form-check form-switch ms-0 ps-0"
+                                                 style="">
+                                                <input
+                                                        class="form-check-input m-0"
+                                                        type="checkbox"
+                                                        onchange="${gvc.event((e, event) => {
+                            vm.data.switch_currency = !vm.data.switch_currency;
+                        })}"
+                                                        ${vm.data.switch_currency ? `checked` : ``}
+                                                />
+                                            </div>
+                                        </div>` : ``}
                                         <div class="d-flex flex-column mt-2" style="gap:8px;">
                                             <div style="color: #393939;font-size: 16px;">預設顯示幣別</div>
                                             <div style="color: #8D8D8D;font-size:13px;">
@@ -535,23 +568,7 @@ export class ShoppingInformation {
                         })}
                                             </div>
                                         </div>
-                                        ${vm.data.multi_currency ? `<div class="d-flex flex-column " style="gap:8px;">
-                                            <div style="color: #393939;font-size: 16px;">啟用貨幣切換</div>
-                                            <div style="color: #8D8D8D;font-size:13px;">
-                                                是否開放用戶於前台自行切換幣別進行顯示
-                                            </div>
-                                            <div class="cursor_pointer form-check form-switch ms-0 ps-0"
-                                                 style="">
-                                                <input
-                                                        class="form-check-input m-0"
-                                                        type="checkbox"
-                                                        onchange="${gvc.event((e, event) => {
-                            vm.data.switch_currency = !vm.data.switch_currency;
-                        })}"
-                                                        ${vm.data.switch_currency ? `checked` : ``}
-                                                />
-                                            </div>
-                                        </div>` : ``}
+                                     
                                     </div>
                                 </div>
                             `, ``);

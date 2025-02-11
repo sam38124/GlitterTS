@@ -391,9 +391,18 @@ class User {
             if (!line_profile.email) {
                 throw exception_1.default.BadRequestError('BAD_REQUEST', 'Line Register Error', null);
             }
-            if ((await database_1.default.query(`select count(1)
-                         from \`${this.app}\`.t_user
-                         where userData ->>'$.email' = ?`, [line_profile.email]))[0]['count(1)'] == 0) {
+            const app = this.app;
+            async function getUsData() {
+                return (await database_1.default.execute(`select *
+                     from \`${app}\`.t_user
+                     where (userData ->>'$.email' = ?) or (userData ->>'$.lineID' = ?)
+                     ORDER BY CASE WHEN (userData ->>'$.lineID' = ?)  THEN 1
+                                  ELSE 3
+                                  END
+                    `, [line_profile.email, userData.sub, userData.sub]));
+            }
+            let findList = await getUsData();
+            if (!findList[0]) {
                 const findAuth = await this.findAuthUser(line_profile.email);
                 const userID = findAuth ? findAuth.user : User.generateUserID();
                 await database_1.default.execute(`INSERT INTO \`${this.app}\`.\`t_user\` (\`userID\`, \`account\`, \`pwd\`, \`userData\`, \`status\`)
@@ -409,10 +418,9 @@ class User {
                     1,
                 ]);
                 await this.createUserHook(userID);
+                findList = await getUsData();
             }
-            const data = (await database_1.default.execute(`select *
-                     from \`${this.app}\`.t_user
-                     where userData ->>'$.email' = ?`, [line_profile.email]))[0];
+            const data = findList[0];
             const usData = await this.getUserData(data.userID, 'userID');
             data.userData.lineID = userData.sub;
             await database_1.default.execute(`update \`${this.app}\`.t_user
@@ -1922,10 +1930,14 @@ class User {
             const result = await database_1.default.query(`select count(1)
                  from ${process_1.default.env.GLITTER_DB}.app_config
                  where (appName = ?
-                     and user = ?)   OR appName in (
-                     (SELECT appName FROM \`${config_1.saasConfig.SAAS_NAME}\`.app_auth_config
-                      WHERE user = ? AND status = 1 AND invited = 1 AND appName = ?)
-                 );`, [this.app, (_a = this.token) === null || _a === void 0 ? void 0 : _a.userID, (_b = this.token) === null || _b === void 0 ? void 0 : _b.userID, this.app]);
+                     and user = ?)
+                    OR appName in (
+                     (SELECT appName
+                      FROM \`${config_1.saasConfig.SAAS_NAME}\`.app_auth_config
+                      WHERE user = ?
+                        AND status = 1
+                        AND invited = 1
+                        AND appName = ?));`, [this.app, (_a = this.token) === null || _a === void 0 ? void 0 : _a.userID, (_b = this.token) === null || _b === void 0 ? void 0 : _b.userID, this.app]);
             return {
                 result: result[0]['count(1)'] === 1,
             };

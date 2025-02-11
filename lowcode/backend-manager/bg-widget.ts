@@ -1840,6 +1840,7 @@ ${obj.default ?? ''}</textarea
         itemSelect?: () => void;
         hiddenPageSplit?: boolean;
         tab_click?:(vm: TableV3)=>void;
+        def_page?:number
     }) {
         const gvc = obj.gvc;
         const glitter = gvc.glitter;
@@ -1877,7 +1878,7 @@ ${obj.default ?? ''}</textarea
         return gvc.bindView(() => {
             const vm: TableV3 = {
                 loading: true,
-                page: 1,
+                page: obj.def_page ?? 1,
                 pageSize: 0,
                 tableData: [],
                 originalData: [],
@@ -2141,9 +2142,7 @@ ${obj.default ?? ''}</textarea
                                                     vm.page = page;
                                                     vm.loading = true;
                                                     created.checkbox = false;
-                                                    if (obj.tab_click) {
-                                                        obj.tab_click(vm);
-                                                    }
+                                                    obj.tab_click && obj.tab_click!!(vm);
                                                     gvc.notifyDataChange(ids.container);
                                                 },
                                                 false

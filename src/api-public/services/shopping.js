@@ -129,6 +129,10 @@ class Shopping {
                 if (sqlJoinSearch.length) {
                     querySql.push(`(${sqlJoinSearch.map((condition) => `(${condition})`).join(' OR ')})`);
                 }
+                query.order_by = `ORDER BY CASE 
+    WHEN content->>'$.language_data."zh-TW".seo.domain' = '${decodedDomain}'  THEN 1
+    ELSE 2
+  END`;
             }
             if (query.id) {
                 const ids = `${query.id}`
@@ -378,11 +382,13 @@ class Shopping {
                         recommendData,
                         userData,
                     });
+                    product.content.comments = [];
                     if (products.total === 1) {
                         product.content.comments = await this.getProductComment(product.id);
                     }
                 };
-                if (products.total === 1 && !Array.isArray(products.data)) {
+                if (!Array.isArray(products.data)) {
+                    products.data.total = 1;
                     await processProduct(products.data);
                 }
                 else {
@@ -1505,6 +1511,11 @@ class Shopping {
                     }
                     default:
                         carData.method = 'off_line';
+                        await database_js_1.default.execute(`INSERT INTO \`${this.app}\`.t_checkout (cart_token, status, email, orderData)
+                             values (?, ?, ?, ?)`, [carData.orderID, 0, carData.email, carData]);
+                        await Promise.all(saveStockArray.map((dd) => {
+                            return dd();
+                        }));
                         new notify_js_1.ManagerNotify(this.app).checkout({
                             orderData: carData,
                             status: 0,
@@ -1520,11 +1531,7 @@ class Shopping {
                             console.log('訂單line訊息寄送成功');
                         }
                         auto_send_email_js_1.AutoSendEmail.customerOrder(this.app, 'auto-email-order-create', carData.orderID, carData.email, carData.language);
-                        await database_js_1.default.execute(`INSERT INTO \`${this.app}\`.t_checkout (cart_token, status, email, orderData)
-                             values (?, ?, ?, ?)`, [carData.orderID, 0, carData.email, carData]);
-                        await Promise.all(saveStockArray.map((dd) => {
-                            return dd();
-                        }));
+                        await this.releaseVoucherHistory(carData.orderID, 1);
                         return {
                             off_line: true,
                             return_url: `${process.env.DOMAIN}/api-public/v1/ec/redirect?g-app=${this.app}&return=${id}`,
@@ -1784,6 +1791,7 @@ class Shopping {
         }
         const userClass = new user_js_1.User(this.app);
         const userData = (_a = (await userClass.getUserData(cart.email, 'email_or_phone'))) !== null && _a !== void 0 ? _a : { userID: -1 };
+        console.log(`userData===>`, userData);
         const allVoucher = await this.getAllUseVoucher(userData.userID);
         let overlay = false;
         const voucherList = allVoucher
@@ -2048,6 +2056,12 @@ class Shopping {
                 }
                 migrateOrder(data.orderData.lineItems);
                 migrateOrder(origin[0].orderData.lineItems);
+                if (data.orderData.orderStatus === '-1') {
+                    await this.releaseVoucherHistory(data.orderData.orderID, 0);
+                }
+                else {
+                    await this.releaseVoucherHistory(data.orderData.orderID, 1);
+                }
                 if (origin[0].orderData.orderStatus !== '-1' && data.orderData.orderStatus === '-1') {
                     for (const lineItem of origin[0].orderData.lineItems) {
                         for (const b of Object.keys(lineItem.deduction_log)) {
@@ -2356,7 +2370,6 @@ OR JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.orderStatus')) NOT IN (-99)) `);
                 await database_js_1.default.execute(`UPDATE \`${this.app}\`.t_checkout
                      SET status = ?
                      WHERE cart_token = ?`, [-1, order_id]);
-                await this.releaseVoucherHistory(order_id, 0);
             }
             if (original_status === 1 && status !== 1) {
                 for (const b of order_data['orderData'].lineItems) {
@@ -3559,13 +3572,10 @@ OR JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.orderStatus')) NOT IN (-99)) `);
                 title,
                 comment,
             };
-            const [updateResult] = await database_js_1.default.execute(`UPDATE \`${this.app}\`.t_product_comment 
-                 SET content = ? 
-                 WHERE product_id = ? AND JSON_EXTRACT(content, '$.userID') = ?`, [JSON.stringify(content), product_id, this.token.userID]);
-            if (updateResult.affectedRows === 0) {
-                await database_js_1.default.execute(`INSERT INTO \`${this.app}\`.t_product_comment (product_id, content) 
-                     VALUES (?, ?)`, [product_id, JSON.stringify(content)]);
-            }
+            const updateResult = await database_js_1.default.query(`delete from \`${this.app}\`.t_product_comment
+                 WHERE product_id = ${product_id} AND content->>'$.userID'=${this.token.userID} and id>0`, []);
+            await database_js_1.default.execute(`INSERT  INTO \`${this.app}\`.t_product_comment (product_id, content)
+                 VALUES (?, ?)`, [product_id, JSON.stringify(content)]);
             await this.updateProductAvgRate(product_id);
             return true;
         }

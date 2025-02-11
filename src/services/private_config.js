@@ -142,6 +142,20 @@ class Private_config {
                         toggle: false,
                     };
                 }
+                if (!keyData.paynow) {
+                    keyData.paynow = {
+                        BETA: 'false',
+                        public_key: '',
+                        private_key: ''
+                    };
+                }
+                if (!keyData.jkopay) {
+                    keyData.jkopay = {
+                        STORE_ID: '',
+                        API_KEY: '',
+                        SECRET_KEY: ''
+                    };
+                }
                 ['paypal', 'newWebPay', 'ecPay'].map((dd) => {
                     if (keyData[dd].toggle) {
                         keyData.TYPE = dd;

@@ -32,6 +32,9 @@ type ViewModel = {
 };
 
 export class UserList {
+    public static vm={
+        page:1
+    }
     public static main(
         gvc: GVC,
         obj?: {
@@ -258,6 +261,7 @@ export class UserList {
                                                         gvc: gvc,
                                                         getData: (vd) => {
                                                             vmi = vd;
+                                                            UserList.vm.page=vmi.page;
                                                             const limit = 20;
                                                             ApiUser.getUserListOrders({
                                                                 page: vmi.page - 1,
@@ -274,6 +278,10 @@ export class UserList {
                                                                 vmi.originalData = vm.dataList;
                                                                 vmi.tableData = getDatalist();
                                                                 vmi.loading = false;
+                                                                if((vmi.pageSize != 0) && (vmi.page>vmi.pageSize)){
+                                                                    UserList.vm.page=1
+                                                                    gvc.notifyDataChange(vm.id)
+                                                                }
                                                                 vmi.callback();
                                                             });
                                                         },
@@ -312,6 +320,7 @@ export class UserList {
                                                                 },
                                                             },
                                                         ],
+                                                        def_page:UserList.vm.page
                                                     });
                                                 },
                                             }),

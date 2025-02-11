@@ -204,10 +204,12 @@ export class ProductDetail {
                                     title: Language.text('product_description'),
                                     key: 'default',
                                 },
-                                {
-                                    title: `${Language.text('customer_reviews')} (${maxDisplayCount})`,
-                                    key: 'comment',
-                                },
+                                ...(window.store_info.customer_comment) ? [
+                                    {
+                                        title: `${Language.text('customer_reviews')} (${maxDisplayCount})`,
+                                        key: 'comment',
+                                    }
+                                ] : []
                             ].concat(vm.content_manager
                                 .filter((cont) => {
                                 return prod.content_array.includes(cont.id);

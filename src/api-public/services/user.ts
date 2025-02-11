@@ -127,7 +127,7 @@ export class User {
         //超過30秒可在次發送
         if (!time || new Date().getTime() - new Date(time).getTime() > 1000 * 30) {
             await redis.setValue(`verify-${account}-last-time`, new Date().toISOString());
-            const data = await AutoSendEmail.getDefCompare(this.app, 'auto-email-verify-update','zh-TW');
+            const data = await AutoSendEmail.getDefCompare(this.app, 'auto-email-verify-update', 'zh-TW');
             const code = Tool.randomNumber(6);
             await redis.setValue(`verify-${account}`, code);
             data.content = data.content.replace(`@{{code}}`, code);
@@ -147,7 +147,7 @@ export class User {
         //超過30秒可在次發送
         if (!time || new Date().getTime() - new Date(time).getTime() > 1000 * 30) {
             await redis.setValue(`verify-phone-${account}-last-time`, new Date().toISOString());
-            const data = await AutoSendEmail.getDefCompare(this.app, 'auto-phone-verify-update','zh-TW');
+            const data = await AutoSendEmail.getDefCompare(this.app, 'auto-phone-verify-update', 'zh-TW');
             const code = Tool.randomNumber(6);
             await redis.setValue(`verify-phone-${account}`, code);
             data.content = data.content.replace(`@{{code}}`, code);
@@ -226,8 +226,8 @@ export class User {
                     });
                 }
             }
-            if(userData && userData.email){
-                userData.email=userData.email.toLowerCase()
+            if (userData && userData.email) {
+                userData.email = userData.email.toLowerCase()
             }
             userData.verify_code = undefined;
             userData.verify_code_phone = undefined;
@@ -274,7 +274,7 @@ export class User {
                 userID,
             ]
         );
-        const data = await AutoSendEmail.getDefCompare(this.app, 'auto-email-welcome','zh-TW');
+        const data = await AutoSendEmail.getDefCompare(this.app, 'auto-email-welcome', 'zh-TW');
         if (data.toggle) {
             sendmail(`${data.name} <${process.env.smtp}>`, usData.account, data.title, data.content);
         }
@@ -488,15 +488,24 @@ export class User {
             if (!line_profile.email) {
                 throw exception.BadRequestError('BAD_REQUEST', 'Line Register Error', null);
             }
+            const app=this.app
+            async function getUsData(){
+               return  (
+                    (await db.execute(
+                        `select *
+                     from \`${app}\`.t_user
+                     where (userData ->>'$.email' = ?) or (userData ->>'$.lineID' = ?)
+                     ORDER BY CASE WHEN (userData ->>'$.lineID' = ?)  THEN 1
+                                  ELSE 3
+                                  END
+                    `,
+                        [line_profile.email,(userData as any).sub,(userData as any).sub]
+                    )) as any
+                )
+            }
+            let findList: any = await getUsData();
             if (
-                (
-                    await db.query(
-                        `select count(1)
-                         from \`${this.app}\`.t_user
-                         where userData ->>'$.email' = ?`,
-                        [line_profile.email]
-                    )
-                )[0]['count(1)'] == 0
+                !findList[0]
             ) {
                 const findAuth = await this.findAuthUser(line_profile.email);
                 const userID = findAuth ? findAuth.user : User.generateUserID();
@@ -516,15 +525,9 @@ export class User {
                     ]
                 );
                 await this.createUserHook(userID);
+                findList=await getUsData();
             }
-            const data: any = (
-                (await db.execute(
-                    `select *
-                     from \`${this.app}\`.t_user
-                     where userData ->>'$.email' = ?`,
-                    [line_profile.email]
-                )) as any
-            )[0];
+            const data = findList[0]
             const usData: any = await this.getUserData(data.userID, 'userID');
             data.userData.lineID = (userData as any).sub;
             await db.execute(
@@ -636,37 +639,38 @@ export class User {
     }
 
     //POS切換
-    public async loginWithPin(user_id:string,pin: string) {
+    public async loginWithPin(user_id: string, pin: string) {
         try {
-           if(await UtPermission.isManagerTokenCheck(this.app,`${this.token!!.userID}`)){
-               const per_c=new SharePermission(this.app,this.token!!)
-              const permission:any=((await per_c.getPermission({
-                  page:0,
-                  limit:1000
-              })) as any).data;
-              if(permission.find((dd:any)=>{
-                  return `${dd.user}`===`${user_id}` && `${dd.config.pin}`===pin
-              })){
-                  const user_ = new User((await per_c.getBaseData())?.brand);
-                  const usData: any = await user_.getUserData(user_id, 'userID');
-                  usData.pwd = undefined;
-                  usData.token = await UserUtil.generateToken({
-                      user_id: usData['userID'],
-                      account: usData['account'],
-                      userData: {},
-                  });
-                  return  usData
-              }else{
-                  throw exception.BadRequestError('BAD_REQUEST', 'Auth failed', null);
-              }
-           }else{
-               throw exception.BadRequestError('BAD_REQUEST', 'Auth failed', null);
-           }
+            if (await UtPermission.isManagerTokenCheck(this.app, `${this.token!!.userID}`)) {
+                const per_c = new SharePermission(this.app, this.token!!)
+                const permission: any = ((await per_c.getPermission({
+                    page: 0,
+                    limit: 1000
+                })) as any).data;
+                if (permission.find((dd: any) => {
+                    return `${dd.user}` === `${user_id}` && `${dd.config.pin}` === pin
+                })) {
+                    const user_ = new User((await per_c.getBaseData())?.brand);
+                    const usData: any = await user_.getUserData(user_id, 'userID');
+                    usData.pwd = undefined;
+                    usData.token = await UserUtil.generateToken({
+                        user_id: usData['userID'],
+                        account: usData['account'],
+                        userData: {},
+                    });
+                    return usData
+                } else {
+                    throw exception.BadRequestError('BAD_REQUEST', 'Auth failed', null);
+                }
+            } else {
+                throw exception.BadRequestError('BAD_REQUEST', 'Auth failed', null);
+            }
             return {};
         } catch (e) {
             throw exception.BadRequestError('BAD_REQUEST', e as any, null);
         }
     }
+
     public async loginWithApple(token: string) {
         try {
             const config = await this.getConfigV2({
@@ -2158,41 +2162,42 @@ export class User {
             const data_ = await db.execute(
                 `select *
                  from \`${this.app}\`.t_user_public_config
-                 where ${(config.key.includes(',')) ? `\`key\` in (${config.key.split(',').map((dd)=>{
+                 where ${(config.key.includes(',')) ? `\`key\` in (${config.key.split(',').map((dd) => {
                      return db.escape(dd)
-                 }).join(',')})`:`\`key\` = ${db.escape(config.key)}`}
+                 }).join(',')})` : `\`key\` = ${db.escape(config.key)}`}
                    and user_id = ${db.escape(config.user_id)}
                 `,
                 []
             );
-            const that=this
-            async function loop(data:any){
+            const that = this
+
+            async function loop(data: any) {
                 if (!data && config.user_id === 'manager') {
                     //特定Key沒有值要補值進去
                     switch (config.key) {
                         case 'global_express_country':
                             await that.setConfig({
-                                key:config.key,
-                                user_id:config.user_id,
-                                value:{
-                                    country:[]
+                                key: config.key,
+                                user_id: config.user_id,
+                                value: {
+                                    country: []
                                 }
                             })
                             return await that.getConfigV2(config)
                         case 'store_version':
                             await that.setConfig({
-                                key:config.key,
-                                user_id:config.user_id,
-                                value:{
-                                    version:'v1'
+                                key: config.key,
+                                user_id: config.user_id,
+                                value: {
+                                    version: 'v1'
                                 }
                             })
                             return await that.getConfigV2(config)
                         case 'store_manager':
                             await that.setConfig({
-                                key:config.key,
-                                user_id:config.user_id,
-                                value:{
+                                key: config.key,
+                                user_id: config.user_id,
+                                value: {
                                     list: [
                                         {
                                             "id": "store_default",
@@ -2249,16 +2254,17 @@ export class User {
                 }
                 return (data && data.value) || {};
             }
-            if(config.key.includes(',')){
-                return (await Promise.all(config.key.split(',').map(async (dd:any)=>{
+
+            if (config.key.includes(',')) {
+                return (await Promise.all(config.key.split(',').map(async (dd: any) => {
                     return {
-                        key:dd,
-                        value:await loop(data_.find((d1:any)=>{
-                            return d1.key===dd
+                        key: dd,
+                        value: await loop(data_.find((d1: any) => {
+                            return d1.key === dd
                         }))
                     }
                 })))
-            }else{
+            } else {
                 return await loop(data_[0])
             }
         } catch (e) {
@@ -2279,7 +2285,7 @@ export class User {
                 'en-US': [],
                 'zh-CN': [],
             };
-        }else if(key==='store_manager'){
+        } else if (key === 'store_manager') {
             value.list = value.list ?? [
                 {
                     "id": "store_default",
@@ -2359,11 +2365,15 @@ export class User {
                 `select count(1)
                  from ${process.env.GLITTER_DB}.app_config
                  where (appName = ?
-                     and user = ?)   OR appName in (
-                     (SELECT appName FROM \`${saasConfig.SAAS_NAME}\`.app_auth_config
-                      WHERE user = ? AND status = 1 AND invited = 1 AND appName = ?)
-                 );`,
-                [this.app, this.token?.userID,this.token?.userID,this.app]
+                     and user = ?)
+                    OR appName in (
+                     (SELECT appName
+                      FROM \`${saasConfig.SAAS_NAME}\`.app_auth_config
+                      WHERE user = ?
+                        AND status = 1
+                        AND invited = 1
+                        AND appName = ?));`,
+                [this.app, this.token?.userID, this.token?.userID, this.app]
             );
             return {
                 result: result[0]['count(1)'] === 1,
@@ -2409,7 +2419,7 @@ export class User {
     }
 
     public async forgetPassword(email: string) {
-        const data = await AutoSendEmail.getDefCompare(this.app, 'auto-email-forget','zh-TW');
+        const data = await AutoSendEmail.getDefCompare(this.app, 'auto-email-forget', 'zh-TW');
         const code = Tool.randomNumber(6);
         await redis.setValue(`forget-${email}`, code);
         await redis.setValue(`forget-count-${email}`, '0');
@@ -2437,7 +2447,7 @@ export class User {
             return ip_data
         } catch (e) {
             return {
-                country:'TW'
+                country: 'TW'
             }
         }
     }

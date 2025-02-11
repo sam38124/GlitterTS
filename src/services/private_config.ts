@@ -157,6 +157,23 @@ export class Private_config {
                         toggle: false,
                     };
                 }
+                //POS 實體信用卡
+                if (!(keyData as any).paynow) {
+                    keyData.paynow = {
+                        BETA: 'false',
+                        public_key: '',
+                        private_key:''
+                    };
+                }
+                //街口支付
+                if (!(keyData as any).jkopay) {
+                    keyData.jkopay = {
+                        STORE_ID: '',
+                        API_KEY: '',
+                        SECRET_KEY:''
+                    };
+                }
+
                 ['paypal', 'newWebPay', 'ecPay'].map((dd) => {
                     if (keyData[dd].toggle) {
                         keyData.TYPE = dd;

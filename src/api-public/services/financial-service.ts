@@ -934,7 +934,7 @@ export class PayNow {
         let config = {
             method: 'get',
             maxBodyLength: Infinity,
-            url: `${this.BASE_URL}api/v1/payment-intents/${transactionId}`,
+            url: `${this.BASE_URL}/api/v1/payment-intents/${transactionId}`,
             headers: {
                 'Accept': 'application/json',
                 'Authorization': `Bearer ` + this.PrivateKey

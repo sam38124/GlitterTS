@@ -323,8 +323,6 @@ export class ProductExcel {
                             }
                             row[i] = text;
                         });
-
-
                         if (row[1]) {
                             if (Object.keys(productData).length != 0) {
                                 postMD.push(productData);

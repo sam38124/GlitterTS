@@ -23,8 +23,9 @@ export class CheckInput {
     }
 
     static isNumberString(input: string): boolean {
-        const regex = /^\d+$/g;
-        return regex.test(input);
+        const num = parseFloat(input);
+
+        return !isNaN(num);
     }
 
     static isEnglishNumberHyphen(input: string): boolean {

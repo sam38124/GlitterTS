@@ -96,7 +96,6 @@ class Shopee {
         const timestamp = Math.floor(Date.now() / 1000);
         const baseString = `${partner_id}${api_path}${timestamp}`;
         const signature = this.cryptoSign(partner_id !== null && partner_id !== void 0 ? partner_id : "", api_path, timestamp);
-        console.log("url -- ", `${Shopee.path}${api_path}?partner_id=${partner_id}&timestamp=${timestamp}&redirect=${redirectUrl}&sign=${signature}`);
         return `${Shopee.path}${api_path}?partner_id=${partner_id}&timestamp=${timestamp}&redirect=${redirectUrl}&sign=${signature}`;
     }
     async getToken(code, shop_id) {

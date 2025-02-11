@@ -1521,7 +1521,7 @@ export class DataAnalyzeModule {
                         return '';
                     }
                     return GlobalStruct.cardStructure(html `<div class="d-flex flex-column">
-                            <div style="${globalStyle.header_title}">瀏覽人數</div>
+                            <div style="${globalStyle.header_title}">瀏覽數量</div>
                             ${gvc.bindView(() => {
                         return {
                             bind: vm.sum_id,

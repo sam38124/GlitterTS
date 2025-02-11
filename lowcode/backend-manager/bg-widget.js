@@ -1572,9 +1572,10 @@ ${(_c = obj.default) !== null && _c !== void 0 ? _c : ''}</textarea
             }
         `);
         return gvc.bindView(() => {
+            var _a;
             const vm = {
                 loading: true,
-                page: 1,
+                page: (_a = obj.def_page) !== null && _a !== void 0 ? _a : 1,
                 pageSize: 0,
                 tableData: [],
                 originalData: [],
@@ -1816,9 +1817,7 @@ ${(_c = obj.default) !== null && _c !== void 0 ? _c : ''}</textarea
                                 vm.page = page;
                                 vm.loading = true;
                                 created.checkbox = false;
-                                if (obj.tab_click) {
-                                    obj.tab_click(vm);
-                                }
+                                obj.tab_click && obj.tab_click(vm);
                                 gvc.notifyDataChange(ids.container);
                             }, false)}
                             </div>`;

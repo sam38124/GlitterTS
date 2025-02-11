@@ -509,7 +509,7 @@ export class UmClass {
             }
 
             .bgw-input[type='date'] {
-                color: rgba(0, 0, 0, 0);
+                color: black;
             }
 
             .bgw-input[type='date']::before {

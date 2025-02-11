@@ -500,8 +500,8 @@ export class PdClass {
                 .map((v) => {
                 return html `
                                   <div class="d-flex gap-2 align-items-center">
-                                      <div class="insignia insignia-gray">${eventName(v.reBackType)}</div>
-                                      <div style="font-size: 12px; font-weight: 500;">${v.title}</div>
+                                      <div class="insignia insignia-gray rounded-0 fw-bold" style="font-size: 13px;">${eventName(v.reBackType)}</div>
+                                      <div style="font-size: 13px; font-weight: 500;">${v.title}</div>
                                   </div>
                               `;
             })

@@ -297,6 +297,10 @@ export class Shopping {
                 if (sqlJoinSearch.length) {
                     querySql.push(`(${sqlJoinSearch.map((condition) => `(${condition})`).join(' OR ')})`);
                 }
+                query.order_by=`ORDER BY CASE 
+    WHEN content->>'$.language_data."zh-TW".seo.domain' = '${decodedDomain}'  THEN 1
+    ELSE 2
+  END`
             }
 
             if (query.id) {
@@ -564,10 +568,8 @@ export class Shopping {
 
                 product.total_sales = totalSale;
             }
-
             if (query.domain && products.data.length > 0) {
                 const decodedDomain = decodeURIComponent(query.domain);
-
                 const foundProduct = products.data.find((dd: any) => {
                     if (!query.language) {
                         return false;
@@ -593,7 +595,6 @@ export class Shopping {
             const userData = (await userClass.getUserData(userID, 'userID')) ?? { userID: -1 };
             const allVoucher = await this.getAllUseVoucher(userData.userID);
             const recommendData = await this.getDistributionRecommend(distributionCode);
-
             if (products.total && products.data) {
                 const processProduct = async (product: any) => {
                     product.content.about_vouchers = await this.aboutProductVoucher({
@@ -604,12 +605,14 @@ export class Shopping {
                         recommendData,
                         userData,
                     });
+                    product.content.comments=[]
                     if (products.total === 1) {
                         product.content.comments = await this.getProductComment(product.id);
                     }
                 };
 
-                if (products.total === 1 && !Array.isArray(products.data)) {
+                if (!Array.isArray(products.data)) {
+                    products.data.total=1
                     await processProduct(products.data);
                 } else {
                     await Promise.all(products.data.map(processProduct));
@@ -1983,6 +1986,7 @@ export class Shopping {
                         }),
                     ]
                 );
+
                 carData.method = 'off_line';
                 await db.execute(
                     `INSERT INTO \`${this.app}\`.t_checkout (cart_token, status, email, orderData)
@@ -2069,6 +2073,16 @@ export class Shopping {
                     }
                     default:
                         carData.method = 'off_line';
+                        await db.execute(
+                            `INSERT INTO \`${this.app}\`.t_checkout (cart_token, status, email, orderData)
+                             values (?, ?, ?, ?)`,
+                            [carData.orderID, 0, carData.email, carData]
+                        );
+                        await Promise.all(
+                            saveStockArray.map((dd) => {
+                                return dd();
+                            })
+                        );
                         // 訂單成立信件通知
                         new ManagerNotify(this.app).checkout({
                             orderData: carData,
@@ -2091,17 +2105,7 @@ export class Shopping {
                         // }
 
                         AutoSendEmail.customerOrder(this.app, 'auto-email-order-create', carData.orderID, carData.email, carData.language!!);
-
-                        await db.execute(
-                            `INSERT INTO \`${this.app}\`.t_checkout (cart_token, status, email, orderData)
-                             values (?, ?, ?, ?)`,
-                            [carData.orderID, 0, carData.email, carData]
-                        );
-                        await Promise.all(
-                            saveStockArray.map((dd) => {
-                                return dd();
-                            })
-                        );
+                        await this.releaseVoucherHistory(carData.orderID,1);
                         return {
                             off_line: true,
                             return_url: `${process.env.DOMAIN}/api-public/v1/ec/redirect?g-app=${this.app}&return=${id}`,
@@ -2437,8 +2441,9 @@ export class Shopping {
 
         // 確認用戶資訊
         const userClass = new User(this.app);
-        const userData = (await userClass.getUserData(cart.email, 'email_or_phone')) ?? { userID: -1 };
 
+        const userData = (await userClass.getUserData(cart.email, 'email_or_phone')) ?? { userID: -1 };
+        console.log(`userData===>`,userData)
         // 取得所有可使用優惠券
         const allVoucher = await this.getAllUseVoucher(userData.userID);
 
@@ -2737,6 +2742,11 @@ export class Shopping {
 
                 migrateOrder(data.orderData.lineItems);
                 migrateOrder(origin[0].orderData.lineItems);
+                if(data.orderData.orderStatus === '-1'){
+                    await this.releaseVoucherHistory(data.orderData.orderID, 0)
+                }else{
+                    await this.releaseVoucherHistory(data.orderData.orderID, 1)
+                }
 
                 //當訂單變成已取消的當下去執行庫存回填
                 if (origin[0].orderData.orderStatus !== '-1' && data.orderData.orderStatus === '-1') {
@@ -3140,7 +3150,7 @@ OR JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.orderStatus')) NOT IN (-99)) `);
                      WHERE cart_token = ?`,
                     [-1, order_id]
                 );
-                await this.releaseVoucherHistory(order_id, 0);
+                // await this.releaseVoucherHistory(order_id, 0);
             }
 
             //如果原先狀態為已付款，且更改的狀態不為已付款
@@ -4600,22 +4610,18 @@ OR JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.orderStatus')) NOT IN (-99)) `);
                 title,
                 comment,
             };
-
-            // 嘗試更新評論，若無評論則插入
-            const [updateResult] = await db.execute(
-                `UPDATE \`${this.app}\`.t_product_comment 
-                 SET content = ? 
-                 WHERE product_id = ? AND JSON_EXTRACT(content, '$.userID') = ?`,
-                [JSON.stringify(content), product_id, this.token.userID]
+           // 嘗試更新評論，若無評論則插入
+            const updateResult = await db.query(
+                `delete from \`${this.app}\`.t_product_comment
+                 WHERE product_id = ${product_id} AND content->>'$.userID'=${this.token.userID} and id>0`,
+                [ ]
             );
 
-            if (updateResult.affectedRows === 0) {
-                await db.execute(
-                    `INSERT INTO \`${this.app}\`.t_product_comment (product_id, content) 
-                     VALUES (?, ?)`,
-                    [product_id, JSON.stringify(content)]
-                );
-            }
+            await db.execute(
+                `INSERT  INTO \`${this.app}\`.t_product_comment (product_id, content)
+                 VALUES (?, ?)`,
+                [product_id, JSON.stringify(content)]
+            );
 
             await this.updateProductAvgRate(product_id);
 
