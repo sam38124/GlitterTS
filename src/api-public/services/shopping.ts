@@ -141,6 +141,7 @@ type Cart = {
     customer_info: any;
     lineItems: CartItem[];
     discount?: number;
+    orderStatus?: string;
     total: number;
     email: string;
     user_info: any;
@@ -2316,6 +2317,7 @@ export class Shopping {
                 // 批次封存原始訂單
                 await Promise.all(
                     orders.map(async (order) => {
+                        order.orderData.orderStatus = '-1';
                         order.orderData.archived = 'true';
                         return db.query(
                             `UPDATE \`${this.app}\`.t_checkout 

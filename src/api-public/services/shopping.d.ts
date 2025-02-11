@@ -105,6 +105,7 @@ type Cart = {
     customer_info: any;
     lineItems: CartItem[];
     discount?: number;
+    orderStatus?: string;
     total: number;
     email: string;
     user_info: any;

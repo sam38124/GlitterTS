@@ -1683,6 +1683,7 @@ class Shopping {
                 await database_js_1.default.execute(`INSERT INTO \`${this.app}\`.t_checkout (cart_token, status, email, orderData)
                      VALUES (?, ?, ?, ?)`, [newCartToken, targetOrder.status, targetOrder.email, JSON.stringify(base)]);
                 await Promise.all(orders.map(async (order) => {
+                    order.orderData.orderStatus = '-1';
                     order.orderData.archived = 'true';
                     return database_js_1.default.query(`UPDATE \`${this.app}\`.t_checkout 
                              SET orderData = ? 
