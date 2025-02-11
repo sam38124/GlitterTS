@@ -999,7 +999,6 @@ export class ShoppingOrderManager {
                                     }
                                 })(),
                                 ...orderData.orderData.voucherList.map((dd) => {
-                                    console.log(dd);
                                     if (dd.reBackType === 'add_on_items') {
                                         return {
                                             title: '加購優惠',

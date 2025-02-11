@@ -1115,7 +1115,7 @@ h6 {
     }
 
     .main-card {
-        padding: 16px;
+        padding: 10px;
         border-radius: 0;
         box-shadow: none;
     }
@@ -1128,6 +1128,11 @@ h6 {
         font-size: 12px;
         padding: 6px 9px;
         height: 32px;
+    }
+
+    .insignia {
+        padding: 6px 10px;
+        font-size: 12px;
     }
 }
 

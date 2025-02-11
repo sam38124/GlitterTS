@@ -1,6 +1,6 @@
 import { BgWidget } from '../../backend-manager/bg-widget.js';
 import { ApiUser } from '../../glitter-base/route/user.js';
-import { ShareDialog } from '../../dialog/ShareDialog.js';
+import { ShareDialog } from '../../glitterBundle/dialog/ShareDialog.js';
 const html = String.raw;
 const css = String.raw;
 export class OrderSetting {
@@ -234,15 +234,17 @@ export class OrderSetting {
         const latestPageConfig = parentPageConfig === null || parentPageConfig === void 0 ? void 0 : parentPageConfig[parentPageConfig.length - 1];
         const ogvc = (latestPageConfig === null || latestPageConfig === void 0 ? void 0 : latestPageConfig.gvc) || topGVC;
         const glitter = ogvc.glitter;
+        const dialog = new ShareDialog(glitter);
+        const isDesktop = document.body.clientWidth > 768;
         const vm = {
             originDataArray: JSON.parse(JSON.stringify(dataArray)),
             prefix: 'combine-orders',
         };
         const ids = {
+            show: '',
             page: glitter.getUUID(),
         };
         const gClass = (name) => `${vm.prefix}-${name}`;
-        const closeDialog = () => glitter.closeDiaLog();
         const applyClass = () => {
             ogvc.addStyle(`
                 .scrollbar-appear::-webkit-scrollbar {
@@ -298,8 +300,29 @@ export class OrderSetting {
                     bottom: 0;
                     z-index: 10;
                 }
+                .${vm.prefix}-dashboard-gray {
+                    color: #8d8d8d;
+                    font-size: 16px;
+                    font-weight: 400;
+                }
+                .${vm.prefix}-update {
+                    width: 60px;
+                    color: #4d86db;
+                    font-weight: 400;
+                    gap: 8px;
+                    cursor: pointer;
+                }
+                .${vm.prefix}-list {
+                    list-style: disc;
+                    white-space: break-spaces;
+                }
+                .${vm.prefix}-box {
+                    border-radius: 10px;
+                    padding: 6px 10px; 
+                }
             `);
         };
+        const closeDialog = () => glitter.closeDiaLog();
         const renderHeader = (gvc) => html `
             <div class="d-flex align-items-center ${gClass('header')}">
                 <div class="${gClass('back-btn')}" onclick="${gvc.event(closeDialog)}">
@@ -323,9 +346,176 @@ export class OrderSetting {
             console.log('cancel');
         };
         const renderFooter = (gvc) => html ` <div class="${gClass('footer')}">${BgWidget.cancel(gvc.event(handleCancel))} ${BgWidget.save(gvc.event(handleSave))}</div> `;
-        const renderContent = (gvc) => {
-            return html ` <div>renderContent</div> `;
+        const renderContent = (gvc, dataMap) => {
+            const phoneCardStyle = isDesktop ? '' : 'border-radius: 10px; padding: 12px; background: #fff; box-shadow: 0px 0px 10px 0px rgba(0, 0, 0, 0.08);';
+            const fontColor = {
+                success: '#10931D',
+                error: '#DA1313',
+                normal: '#393939',
+            };
+            const hits = ['原訂單將被取消並封存，且所有訂單將合併為一筆新訂單', '合併後的訂單小計和折扣將依據當前的計算方式計算', '系統不會重複計算購物金和點數'];
+            const dashboardData = [
+                {
+                    title: '訂單數量',
+                    count: dataArray.length,
+                    countStyle: 'normal',
+                    unit: '筆',
+                },
+                {
+                    title: '待確認',
+                    count: dataArray.length,
+                    countStyle: 'normal',
+                    unit: '組',
+                },
+                {
+                    title: '可以合併',
+                    count: dataArray.length,
+                    countStyle: 'success',
+                    unit: '組',
+                },
+                {
+                    title: '不可合併',
+                    count: dataArray.length,
+                    countStyle: 'error',
+                    unit: '組',
+                },
+            ];
+            const dashboardItemHTML = (item) => {
+                return BgWidget.mainCard(html `
+                    <div style="${phoneCardStyle}">
+                        <div class="${gClass('dashboard-gray')}">${item.title}</div>
+                        <div class="d-flex align-items-end gap-1">
+                            <span class="tx_700" style="font-size: 24px; color: ${fontColor[item.countStyle]}">${item.count}</span>
+                            <span class="tx_normal" style="margin-bottom: 0.35rem">${item.unit}</span>
+                        </div>
+                    </div>
+                `);
+            };
+            const editOrdersHTML = (key, index) => {
+                const id = `edit-orders-${index}`;
+                const orders = dataMap[key];
+                const userInfo = orders[0].orderData.user_info;
+                const orderToggle = (isExpanded) => {
+                    return html `${orders.length} 筆訂單 <i class="fa-solid fa-angle-${isExpanded ? 'up' : 'down'} ms-1"></i>`;
+                };
+                const userView = () => {
+                    return html ` <span class="tx_700">${userInfo.name}</span>
+                        <span>(${key})</span>`;
+                };
+                const alertText = () => {
+                    return '因付款、配送方式或地址不同，請確認合併訂單應套用至哪筆訂單';
+                };
+                const checkInfoBtn = () => {
+                    return BgWidget.customButton({
+                        button: { color: 'snow', size: 'sm' },
+                        text: { name: '確認資訊' },
+                        event: gvc.event(() => {
+                            console.log(['確認資訊', key]);
+                        }),
+                    });
+                };
+                const toggleOrderView = () => {
+                    const originID = ids.show;
+                    ids.show = originID === id ? '' : id;
+                    gvc.notifyDataChange(originID === id ? id : [originID, id]);
+                };
+                const webView = (isExpanded) => {
+                    return html `
+                        <div class="d-flex ${gClass('box')}" style="background: ${isExpanded ? '#F7F7F7' : '#FFF'}">
+                            <div class="tx_700" style="width: 8%; cursor: pointer;" onclick="${gvc.event(toggleOrderView)}">${orderToggle(isExpanded)}</div>
+                            <div style="width: 30%;">${userView()}</div>
+                            <div style="width: 5%;">${BgWidget.normalInsignia('待確認')}</div>
+                            <div style="width: 50%;">${alertText()}</div>
+                            <div style="width: 7%;">${checkInfoBtn()}</div>
+                        </div>
+                        ${isExpanded ? html `<div class="${gClass('box')}">SHOW</div>` : ''}
+                    `;
+                };
+                const phoneView = (isExpanded) => {
+                    return html `
+                        <div class="d-flex flex-column gap-1 ${gClass('box')}" style="background: ${isExpanded ? '#F7F7F7' : '#FFF'}">
+                            <div class="d-flex">
+                                <div class="tx_700" style="width: 57.5%;" onclick="${gvc.event(toggleOrderView)}">${orderToggle(isExpanded)}</div>
+                                <div style="width: 20%;">${BgWidget.normalInsignia('待確認')}</div>
+                                <div style="width: 22.5%;">${checkInfoBtn()}</div>
+                            </div>
+                            <div>${userView()}</div>
+                            <div style="white-space: break-spaces;">${alertText()}</div>
+                        </div>
+                        ${isExpanded ? html `<div class="${gClass('box')}">SHOW</div>` : ''}
+                    `;
+                };
+                return gvc.bindView({
+                    bind: id,
+                    view: () => {
+                        const isExpanded = ids.show === id;
+                        if (isExpanded) {
+                            console.log(orders);
+                        }
+                        return isDesktop ? webView(isExpanded) : phoneView(isExpanded);
+                    },
+                });
+            };
+            return html `
+                <div class="row">
+                    <div class="col-12 col-lg-5">
+                        ${BgWidget.mainCard(html `
+                            <div style="min-height: 160px; ${phoneCardStyle}">
+                                <span class="tx_700">合併須知</span>
+                                <ul class="mt-2 ms-3">
+                                    ${hits
+                .map((hit) => {
+                return html `<li class="${gClass('list')}">${hit}</li>`;
+            })
+                .join('')}
+                                </ul>
+                            </div>
+                        `)}
+                    </div>
+                    <div class="col-12 col-lg-7">
+                        ${BgWidget.mainCard(html ` <div style="min-height: 160px; ${phoneCardStyle}">
+                                <span class="tx_700">訂單總計</span>
+                                <div class="row mt-3">
+                                    ${dashboardData
+                .map((item) => {
+                return html `<div class="col-6 col-lg-3 px-0 px-lg-2">${dashboardItemHTML(item)}</div>`;
+            })
+                .join('')}
+                                </div>
+                            </div>`)}
+                    </div>
+                </div>
+                <div class="d-flex my-1 my-lg-3">
+                    <div class="flex-fill"></div>
+                    <div class="${gClass('update')}">更新</div>
+                </div>
+                ${BgWidget.mainCard(html `<div style="${phoneCardStyle}">
+                        ${Object.keys(dataMap)
+                .map((key, index) => editOrdersHTML(key, index))
+                .join(BgWidget.horizontalLine())}
+                    </div>`)}
+            `;
         };
+        const dataObject = {};
+        for (const order of dataArray) {
+            const { email, user_info, progress, orderStatus } = order.orderData;
+            if (!((progress === undefined || progress === 'wait') && (orderStatus === undefined || `${orderStatus}` === '0'))) {
+                dialog.infoMessage({ text: '訂單狀態應為處理中，且尚未出貨' });
+                return;
+            }
+            const key = email || (user_info === null || user_info === void 0 ? void 0 : user_info.email) || (user_info === null || user_info === void 0 ? void 0 : user_info.phone);
+            if (key) {
+                dataObject[key] = dataObject[key] || [];
+                dataObject[key].push(order);
+            }
+        }
+        const filteredData = Object.fromEntries(Object.entries(dataObject).filter(([, orders]) => {
+            return orders.length >= 2;
+        }));
+        if (Object.keys(filteredData).length === 0) {
+            dialog.infoMessage({ text: '找不到相同的訂購人，無法合併訂單' });
+            return;
+        }
         glitter.innerDialog((gvc) => {
             applyClass();
             return gvc.bindView({
@@ -333,12 +523,10 @@ export class OrderSetting {
                 view: () => html `
                     <div class="d-flex flex-column ${gClass('full-screen')}">
                         ${renderHeader(gvc)}
-                        <div class="flex-fill overflow-scroll scrollbar-appear" style="padding: 24px 32px;">${renderContent(gvc)}</div>
+                        <div class="flex-fill overflow-scroll scrollbar-appear" style="${isDesktop ? 'padding: 24px 32px;' : 'padding: 0;'}">${renderContent(gvc, filteredData)}</div>
                         ${renderFooter(gvc)}
                     </div>
                 `,
-                divCreate: {},
-                onCreate: () => { },
             });
         }, 'combineOrders');
     }

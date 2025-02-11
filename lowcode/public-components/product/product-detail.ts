@@ -213,7 +213,9 @@ export class ProductDetail {
                         ${gvc.bindView(
                             (() => {
                                 const id = glitter.getUUID();
-                                const commentLength = vm.data.content?.comments?.length??0;
+                                const commentCount = vm.data.content.comments?.length ?? 0;
+                                const maxDisplayCount = Math.min(commentCount, 15);
+
                                 return {
                                     bind: id,
                                     view: () => {
@@ -224,7 +226,7 @@ export class ProductDetail {
                                                     key: 'default',
                                                 },
                                                 {
-                                                    title: `${Language.text('customer_reviews')} (${commentLength > 15 ? 15 : commentLength})`,
+                                                    title: `${Language.text('customer_reviews')} (${maxDisplayCount})`,
                                                     key: 'comment',
                                                 },
                                             ].concat(
