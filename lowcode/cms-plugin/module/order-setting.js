@@ -4,6 +4,75 @@ import { ShareDialog } from '../../glitterBundle/dialog/ShareDialog.js';
 const html = String.raw;
 const css = String.raw;
 export class OrderSetting {
+    static getPaymentMethodText(orderData) {
+        if (orderData.orderSource === 'POS') {
+            return '門市POS付款';
+        }
+        switch (orderData.customer_info.payment_select) {
+            case 'off_line':
+                return '線下付款';
+            case 'newWebPay':
+                return '藍新金流';
+            case 'ecPay':
+                return '綠界金流';
+            case 'line_pay':
+                return 'Line Pay';
+            case 'atm':
+                return '銀行轉帳';
+            case 'line':
+                return 'Line 轉帳';
+            case 'cash_on_delivery':
+                return '貨到付款';
+            default:
+                return '線下付款';
+        }
+    }
+    static getShippingMethodText(orderData) {
+        switch (orderData.user_info.shipment) {
+            case 'UNIMARTC2C':
+                return '7-11店到店';
+            case 'FAMIC2C':
+                return '全家店到店';
+            case 'OKMARTC2C':
+                return 'OK店到店';
+            case 'HILIFEC2C':
+                return '萊爾富店到店';
+            default:
+                return '宅配';
+        }
+    }
+    static getShippingAddress(orderData) {
+        if (['UNIMARTC2C', 'FAMIC2C', 'OKMARTC2C', 'HILIFEC2C'].includes(orderData.user_info.shipment)) {
+            return `${orderData.user_info.CVSStoreName} (${orderData.user_info.CVSAddress})`;
+        }
+        return orderData.user_info.address;
+    }
+    static getAllStatusBadge(orderData) {
+        const paymentBadges = {
+            '0': orderData.orderData.proof_purchase ? BgWidget.warningInsignia('待核款') : BgWidget.notifyInsignia('未付款'),
+            '1': BgWidget.infoInsignia('已付款'),
+            '3': BgWidget.warningInsignia('部分付款'),
+            '-2': BgWidget.notifyInsignia('已退款'),
+        };
+        const outShipBadges = {
+            finish: BgWidget.infoInsignia('已取貨'),
+            shipping: BgWidget.warningInsignia('已出貨'),
+            arrived: BgWidget.warningInsignia('已送達'),
+            wait: BgWidget.notifyInsignia('未出貨'),
+            pre_order: BgWidget.notifyInsignia('待預購'),
+            returns: BgWidget.notifyInsignia('已退貨'),
+        };
+        const orderStatusBadges = {
+            '1': BgWidget.infoInsignia('已完成'),
+            '0': BgWidget.warningInsignia('處理中'),
+        };
+        return {
+            paymentBadge: () => paymentBadges[`${orderData.status}`] || BgWidget.notifyInsignia('付款失敗'),
+            outShipBadge: () => { var _a; return outShipBadges[(_a = orderData.orderData.progress) !== null && _a !== void 0 ? _a : 'wait'] || BgWidget.notifyInsignia('未知狀態'); },
+            orderStatusBadge: () => orderStatusBadges[`${orderData.orderData.orderStatus}`] || BgWidget.notifyInsignia('已取消'),
+            archivedBadge: () => (orderData.orderData.archived === 'true' ? BgWidget.secondaryInsignia('已封存') : ''),
+        };
+    }
     static showEditShip(obj) {
         let stockList = [];
         let loading = true;
@@ -320,6 +389,11 @@ export class OrderSetting {
                     border-radius: 10px;
                     padding: 6px 10px; 
                 }
+                .${vm.prefix}-order-row {
+                    display: flex;
+                    align-items: center;
+                    min-height: 80px;
+                }
             `);
         };
         const closeDialog = () => glitter.closeDiaLog();
@@ -345,7 +419,7 @@ export class OrderSetting {
             closeDialog();
             console.log('cancel');
         };
-        const renderFooter = (gvc) => html ` <div class="${gClass('footer')}">${BgWidget.cancel(gvc.event(handleCancel))} ${BgWidget.save(gvc.event(handleSave))}</div> `;
+        const renderFooter = (gvc) => html ` <div class="${gClass('footer')}">${BgWidget.cancel(gvc.event(handleCancel))} ${BgWidget.save(gvc.event(handleSave), '合併')}</div> `;
         const renderContent = (gvc, dataMap) => {
             const phoneCardStyle = isDesktop ? '' : 'border-radius: 10px; padding: 12px; background: #fff; box-shadow: 0px 0px 10px 0px rgba(0, 0, 0, 0.08);';
             const fontColor = {
@@ -354,7 +428,10 @@ export class OrderSetting {
                 normal: '#393939',
             };
             const hits = ['原訂單將被取消並封存，且所有訂單將合併為一筆新訂單', '合併後的訂單小計和折扣將依據當前的計算方式計算', '系統不會重複計算購物金和點數'];
-            const dashboardData = [
+            const statusDataLength = (status) => {
+                return Object.values(dataMap).filter((item) => item.status === status).length;
+            };
+            const dashboard = [
                 {
                     title: '訂單數量',
                     count: dataArray.length,
@@ -363,19 +440,19 @@ export class OrderSetting {
                 },
                 {
                     title: '待確認',
-                    count: dataArray.length,
+                    count: statusDataLength('normal'),
                     countStyle: 'normal',
                     unit: '組',
                 },
                 {
                     title: '可以合併',
-                    count: dataArray.length,
+                    count: statusDataLength('success'),
                     countStyle: 'success',
                     unit: '組',
                 },
                 {
                     title: '不可合併',
-                    count: dataArray.length,
+                    count: statusDataLength('error'),
                     countStyle: 'error',
                     unit: '組',
                 },
@@ -393,7 +470,8 @@ export class OrderSetting {
             };
             const editOrdersHTML = (key, index) => {
                 const id = `edit-orders-${index}`;
-                const orders = dataMap[key];
+                const data = dataMap[key];
+                const orders = data.orders;
                 const userInfo = orders[0].orderData.user_info;
                 const orderToggle = (isExpanded) => {
                     return html `${orders.length} 筆訂單 <i class="fa-solid fa-angle-${isExpanded ? 'up' : 'down'} ms-1"></i>`;
@@ -402,15 +480,117 @@ export class OrderSetting {
                     return html ` <span class="tx_700">${userInfo.name}</span>
                         <span>(${key})</span>`;
                 };
+                const combineBadge = () => {
+                    const resultMap = {
+                        normal: BgWidget.secondaryInsignia('待確認'),
+                        error: BgWidget.dangerInsignia('不可合併'),
+                        success: BgWidget.successInsignia('可以合併'),
+                    };
+                    return resultMap[data.status];
+                };
                 const alertText = () => {
-                    return '因付款、配送方式或地址不同，請確認合併訂單應套用至哪筆訂單';
+                    return html `<div style="color: ${fontColor[data.status]}">${data.note}</div>`;
                 };
                 const checkInfoBtn = () => {
+                    if (data.status !== 'normal') {
+                        return '';
+                    }
                     return BgWidget.customButton({
                         button: { color: 'snow', size: 'sm' },
                         text: { name: '確認資訊' },
                         event: gvc.event(() => {
-                            console.log(['確認資訊', key]);
+                            const dialogVM = {
+                                selectOrderID: dataObject[key].targetID,
+                                dotClass: BgWidget.getWhiteDotClass(gvc),
+                            };
+                            return BgWidget.dialog({
+                                gvc: ogvc,
+                                title: '確認資訊',
+                                width: 1100,
+                                innerHTML: (gvc) => {
+                                    const styles = [
+                                        { width: 40, align: 'start' },
+                                        { width: 10, align: 'center' },
+                                        { width: 10, align: 'center' },
+                                        { width: 10, align: 'center' },
+                                        { width: 30, align: 'center' },
+                                    ];
+                                    return html `
+                                        ${BgWidget.grayNote('請與顧客確認合併訂單的付款、配送方式及地址應與下列哪筆訂單相同，避免爭議')}
+                                        <div class="${gClass('box')} mt-2">
+                                            <div class="d-flex">
+                                                ${[{ title: '訂單編號' }, { title: '訂單時間' }, { title: '付款方式' }, { title: '配送方式' }, { title: '配送地址' }]
+                                        .map((item, i) => {
+                                        return html `<div class="tx_700" style="width: ${styles[i].width}%; text-align: ${styles[i].align};">${item.title}</div>`;
+                                    })
+                                        .join('')}
+                                            </div>
+                                            <div class="d-flex flex-column gap-0 mt-3">
+                                                ${orders
+                                        .map((order) => {
+                                        const orderData = order.orderData;
+                                        const vt = this.getAllStatusBadge(order);
+                                        const row = [
+                                            {
+                                                title: html `
+                                                                    <div class="d-flex gap-2">
+                                                                        ${gvc.bindView({
+                                                    bind: `r-${order.cart_token}`,
+                                                    view: () => {
+                                                        return html `<input
+                                                                                    class="form-check-input ${dialogVM.dotClass} cursor_pointer"
+                                                                                    style="margin-top: 0.25rem;"
+                                                                                    type="radio"
+                                                                                    id="r-${order.cart_token}"
+                                                                                    name="check-info-radios"
+                                                                                    onchange="${gvc.event(() => {
+                                                            dialogVM.selectOrderID = order.cart_token;
+                                                            gvc.notifyDataChange(orders.map((d) => `r-${d.cart_token}`));
+                                                        })}"
+                                                                                    ${dialogVM.selectOrderID === order.cart_token ? 'checked' : ''}
+                                                                                />`;
+                                                    },
+                                                })}
+                                                                        <span style="color: #4d86db;">${order.cart_token}</span>
+                                                                        <div class="d-flex justify-content-end gap-2">
+                                                                            ${vt.archivedBadge()} ${vt.paymentBadge()}${vt.outShipBadge()}${vt.orderStatusBadge()}
+                                                                        </div>
+                                                                    </div>
+                                                                `,
+                                            },
+                                            { title: order.created_time.split('T')[0] },
+                                            { title: this.getPaymentMethodText(orderData) },
+                                            { title: this.getShippingMethodText(orderData) },
+                                            { title: this.getShippingAddress(orderData) },
+                                        ]
+                                            .map((item, i) => {
+                                            return html `<div class="tx_normal" style="width: ${styles[i].width}%; text-align: ${styles[i].align};">
+                                                                    <span style="white-space: break-spaces;">${item.title.trim()}</span>
+                                                                </div>`;
+                                        })
+                                            .join('');
+                                        return html ` <div class="${gClass('order-row')}">${row}</div>`;
+                                    })
+                                        .join('')}
+                                            </div>
+                                        </div>
+                                    `;
+                                },
+                                save: {
+                                    event: () => new Promise((resolve) => {
+                                        dataObject[key].targetID = dialogVM.selectOrderID;
+                                        resolve(true);
+                                    }),
+                                },
+                                cancel: {
+                                    event: () => new Promise((resolve) => {
+                                        resolve(true);
+                                    }),
+                                },
+                                xmark: () => new Promise((resolve) => {
+                                    resolve(true);
+                                }),
+                            });
                         }),
                     });
                 };
@@ -424,12 +604,74 @@ export class OrderSetting {
                         <div class="d-flex ${gClass('box')}" style="background: ${isExpanded ? '#F7F7F7' : '#FFF'}">
                             <div class="tx_700" style="width: 8%; cursor: pointer;" onclick="${gvc.event(toggleOrderView)}">${orderToggle(isExpanded)}</div>
                             <div style="width: 30%;">${userView()}</div>
-                            <div style="width: 5%;">${BgWidget.normalInsignia('待確認')}</div>
-                            <div style="width: 50%;">${alertText()}</div>
+                            <div style="width: 7%;">${combineBadge()}</div>
+                            <div style="width: 48%;">${alertText()}</div>
                             <div style="width: 7%;">${checkInfoBtn()}</div>
                         </div>
-                        ${isExpanded ? html `<div class="${gClass('box')}">SHOW</div>` : ''}
+                        ${isExpanded ? webOrders() : ''}
                     `;
+                };
+                const webOrders = () => {
+                    const styles = [
+                        { width: 35, align: 'start' },
+                        { width: 10, align: 'start' },
+                        { width: 10, align: 'center' },
+                        { width: 10, align: 'center' },
+                        { width: 20, align: 'center' },
+                        { width: 10, align: 'center' },
+                        { width: 10, align: 'center' },
+                        { width: 5, align: 'center' },
+                    ];
+                    return html `<div class="${gClass('box')} mt-2">
+                        <div class="d-flex">
+                            ${[
+                        { title: '訂單編號' },
+                        { title: '訂單時間' },
+                        { title: '付款方式' },
+                        { title: '配送方式' },
+                        { title: '配送地址' },
+                        { title: '訂單小計' },
+                        { title: '商品資訊' },
+                        { title: '' },
+                    ]
+                        .map((item, i) => {
+                        return html `<div class="tx_700" style="width: ${styles[i].width}%; text-align: ${styles[i].align};">${item.title}</div>`;
+                    })
+                        .join('')}
+                        </div>
+                        <div class="d-flex flex-column gap-0 mt-3">
+                            ${orders
+                        .map((order) => {
+                        const orderData = order.orderData;
+                        const vt = this.getAllStatusBadge(order);
+                        const row = [
+                            {
+                                title: html `
+                                                <div class="d-flex gap-3">
+                                                    <span style="color: #4d86db;">${order.cart_token}</span>
+                                                    <div class="d-flex justify-content-end gap-2">${vt.archivedBadge()} ${vt.paymentBadge()}${vt.outShipBadge()}${vt.orderStatusBadge()}</div>
+                                                </div>
+                                            `,
+                            },
+                            { title: order.created_time.split('T')[0] },
+                            { title: this.getPaymentMethodText(orderData) },
+                            { title: this.getShippingMethodText(orderData) },
+                            { title: this.getShippingAddress(orderData) },
+                            { title: `$ ${orderData.total.toLocaleString()}` },
+                            { title: `${orderData.lineItems.length}件商品` },
+                            { title: html `<i class="fa-solid fa-xmark" style="color: #B0B0B0; cursor: pointer"></i>` },
+                        ]
+                            .map((item, i) => {
+                            return html `<div class="tx_normal" style="width: ${styles[i].width}%; text-align: ${styles[i].align};">
+                                                <span style="white-space: break-spaces;">${item.title.trim()}</span>
+                                            </div>`;
+                        })
+                            .join('');
+                        return html ` <div class="${gClass('order-row')}">${row}</div>`;
+                    })
+                        .join('')}
+                        </div>
+                    </div>`;
                 };
                 const phoneView = (isExpanded) => {
                     return html `
@@ -449,9 +691,6 @@ export class OrderSetting {
                     bind: id,
                     view: () => {
                         const isExpanded = ids.show === id;
-                        if (isExpanded) {
-                            console.log(orders);
-                        }
                         return isDesktop ? webView(isExpanded) : phoneView(isExpanded);
                     },
                 });
@@ -476,7 +715,7 @@ export class OrderSetting {
                         ${BgWidget.mainCard(html ` <div style="min-height: 160px; ${phoneCardStyle}">
                                 <span class="tx_700">訂單總計</span>
                                 <div class="row mt-3">
-                                    ${dashboardData
+                                    ${dashboard
                 .map((item) => {
                 return html `<div class="col-6 col-lg-3 px-0 px-lg-2">${dashboardItemHTML(item)}</div>`;
             })
@@ -497,6 +736,19 @@ export class OrderSetting {
             `;
         };
         const dataObject = {};
+        const checkOrderMergeConditions = (orders, order) => {
+            const checkPayStatus = orders.every((item) => order.status === item.status);
+            const checkShipping = orders.every((item) => order.orderData.user_info.shipment === item.orderData.user_info.shipment);
+            const checkAddress = orders.every((item) => {
+                const userInfo = order.orderData.user_info;
+                const itemUserInfo = item.orderData.user_info;
+                if (['UNIMARTC2C', 'FAMIC2C', 'OKMARTC2C', 'HILIFEC2C'].includes(userInfo.shipment)) {
+                    return userInfo.CVSStoreName === itemUserInfo.CVSStoreName;
+                }
+                return userInfo.address === itemUserInfo.address;
+            });
+            return { checkPayStatus, checkShipping, checkAddress };
+        };
         for (const order of dataArray) {
             const { email, user_info, progress, orderStatus } = order.orderData;
             if (!((progress === undefined || progress === 'wait') && (orderStatus === undefined || `${orderStatus}` === '0'))) {
@@ -505,12 +757,27 @@ export class OrderSetting {
             }
             const key = email || (user_info === null || user_info === void 0 ? void 0 : user_info.email) || (user_info === null || user_info === void 0 ? void 0 : user_info.phone);
             if (key) {
-                dataObject[key] = dataObject[key] || [];
-                dataObject[key].push(order);
+                dataObject[key] = dataObject[key] || {
+                    status: 'error',
+                    note: '需包含至少兩筆訂單，否則無法進行合併',
+                    orders: [],
+                };
+                const orders = dataObject[key].orders;
+                orders.push(order);
+                if (orders.length > 1) {
+                    dataObject[key].status = 'success';
+                    dataObject[key].targetID = orders[0].cart_token;
+                    dataObject[key].note = '';
+                }
+                const { checkPayStatus, checkShipping, checkAddress } = checkOrderMergeConditions(orders, order);
+                if (!(checkPayStatus && checkShipping && checkAddress) && dataObject[key].status !== 'normal') {
+                    dataObject[key].status = 'normal';
+                    dataObject[key].note = '因付款、配送方式或地址不同，請確認合併訂單應套用至哪筆訂單';
+                }
             }
         }
-        const filteredData = Object.fromEntries(Object.entries(dataObject).filter(([, orders]) => {
-            return orders.length >= 2;
+        const filteredData = Object.fromEntries(Object.entries(dataObject).filter(([, data]) => {
+            return data.orders.length >= 2;
         }));
         if (Object.keys(filteredData).length === 0) {
             dialog.infoMessage({ text: '找不到相同的訂購人，無法合併訂單' });
@@ -523,7 +790,7 @@ export class OrderSetting {
                 view: () => html `
                     <div class="d-flex flex-column ${gClass('full-screen')}">
                         ${renderHeader(gvc)}
-                        <div class="flex-fill overflow-scroll scrollbar-appear" style="${isDesktop ? 'padding: 24px 32px;' : 'padding: 0;'}">${renderContent(gvc, filteredData)}</div>
+                        <div class="flex-fill overflow-scroll scrollbar-appear" style="${isDesktop ? 'padding: 24px 32px;' : 'padding: 0;'}">${renderContent(gvc, dataObject)}</div>
                         ${renderFooter(gvc)}
                     </div>
                 `,

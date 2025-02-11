@@ -728,60 +728,7 @@ export class ShoppingOrderManager {
             const minutes = String(date.getMinutes()).padStart(2, '0');
             return `${year}-${month}-${day} ${hours}:${minutes}`;
         }
-        const vt = {
-            paymentBadge: () => {
-                if (orderData.status === 0) {
-                    if (orderData.orderData.proof_purchase) {
-                        return BgWidget.warningInsignia('待核款');
-                    }
-                    return BgWidget.notifyInsignia('未付款');
-                }
-                else if (orderData.status === 1) {
-                    return BgWidget.infoInsignia('已付款');
-                }
-                else if (orderData.status === 3) {
-                    return BgWidget.warningInsignia('部分付款');
-                }
-                else if (orderData.status === -2) {
-                    return BgWidget.notifyInsignia('已退款');
-                }
-                else {
-                    return BgWidget.notifyInsignia('付款失敗');
-                }
-            },
-            outShipBadge: () => {
-                var _a;
-                switch ((_a = orderData.orderData.progress) !== null && _a !== void 0 ? _a : 'wait') {
-                    case 'finish':
-                        return BgWidget.infoInsignia('已取貨');
-                    case 'shipping':
-                        return BgWidget.warningInsignia('已出貨');
-                    case 'arrived':
-                        return BgWidget.warningInsignia('已送達');
-                    case 'wait':
-                        return BgWidget.notifyInsignia('未出貨');
-                    case 'pre_order':
-                        return BgWidget.notifyInsignia('待預購');
-                    case 'returns':
-                        return BgWidget.notifyInsignia('已退貨');
-                }
-            },
-            orderStatusBadge: () => {
-                if (orderData.orderData.orderStatus === '1') {
-                    return BgWidget.infoInsignia('已完成');
-                }
-                else if (orderData.orderData.orderStatus === '0') {
-                    return BgWidget.warningInsignia('處理中');
-                }
-                return BgWidget.notifyInsignia('已取消');
-            },
-            archivedBadge: () => {
-                if (orderData.orderData.archived === 'true') {
-                    return BgWidget.secondaryInsignia('已封存');
-                }
-                return '';
-            },
-        };
+        const vt = OrderSetting.getAllStatusBadge(orderData);
         ApiUser.getUsersDataWithEmailOrPhone(orderData.email).then((res) => {
             userData = res.response;
             userDataLoading = false;
@@ -1133,7 +1080,7 @@ export class ShoppingOrderManager {
                                             }
                                         }
                                         catch (e) {
-                                            console.log(e);
+                                            console.error(e);
                                             return `error-${e}`;
                                         }
                                     },

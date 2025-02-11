@@ -1067,8 +1067,6 @@ ${obj.structEnd ? obj.structEnd : '})()'}`,
                 'https://cdn.jsdelivr.net/npm/froala-editor@latest/css/froala_editor.pkgd.min.css',
             ]);
 
-            console.log(`obj.hiddenBorder: ${obj.hiddenBorder}`);
-
             gvc.addStyle(`
                 #${richID} li {
                     list-style: revert;
@@ -2682,8 +2680,8 @@ ${obj.gvc.bindView(() => {
             return {
                 bind: id,
                 view: () => {
-                    return html`<i class="${obj.def ? `fa-solid fa-square-check` : `fa-regular fa-square`} "
-                                   style="color: #393939;"></i>`;
+                    return html`<i class="${obj.def ? `fa-solid fa-square-check` : `fa-light fa-square`} "
+                                   style="color: #393939; font-size: 22px;"></i>`;
                 },
                 divCreate: ()=>{
                     return {
@@ -2699,6 +2697,10 @@ ${obj.gvc.bindView(() => {
                                     event.stopPropagation();
                                     obj.gvc.notifyDataChange(id);
                                 }),
+                            },
+                            {
+                                key: 'data-click',
+                                value: 'false',
                             },
                         ],
                         class: `d-flex align-items-center justify-content-center`,
@@ -2769,7 +2771,7 @@ ${obj.gvc.bindView(() => {
                                                 })}"
                                         >
                                             <i class="${isSelect() ? `fa-solid fa-circle-dot` : `fa-regular fa-circle`} me-2"
-                                               style="color: ${obj.readonly ? '#808080' : '#393939'}"></i>
+                                               style="color: ${obj.readonly ? '#808080' : '#393939'}; font-size: 1.15rem;"></i>
                                             <span style="font-size: 16px; cursor: pointer;">${dd.title}</span>
                                         </div>
                                         ${obj.def === dd.value && dd.innerHtml ? `<div style="margin-top: 8px;">${dd.innerHtml}</div>` : ``}

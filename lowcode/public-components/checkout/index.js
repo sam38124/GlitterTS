@@ -2458,8 +2458,8 @@ export class CheckoutIndex {
                                         const cartKeys = [ApiCart.cartPrefix, ApiCart.buyItNow, ApiCart.globalCart];
                                         for (let i = 0; i < localStorage.length; i++) {
                                             const key = localStorage.key(i);
-                                            if (key && cartKeys.some((cartKey) => key.includes(cartKey))) {
-                                                const formatKey = key.replace(window.appName, '');
+                                            if (key && cartKeys.some((cartKey) => key === null || key === void 0 ? void 0 : key.includes(cartKey))) {
+                                                const formatKey = key === null || key === void 0 ? void 0 : key.replace(window.appName, '');
                                                 const cart = new ApiCart(formatKey);
                                                 cart.setCart((cartItem) => {
                                                     cartItem.line_items = cartItem.line_items.filter((item) => !lineItemIds.includes(item.id));

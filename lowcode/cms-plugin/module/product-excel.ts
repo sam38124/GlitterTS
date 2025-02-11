@@ -2,7 +2,6 @@ import { GVC } from '../../glitterBundle/GVController.js';
 import { ShareDialog } from '../../glitterBundle/dialog/ShareDialog.js';
 import { ApiShop } from '../../glitter-base/route/shopping.js';
 import { CheckInput } from '../../modules/checkInput.js';
-import * as domain from "node:domain";
 import {Variant} from "../../public-models/product.js";
 
 export interface RowInitData {
@@ -313,6 +312,19 @@ export class ProductExcel {
                 data.forEach((row: any, index: number) => {
                     const variantData = getVariantData();
                     if (index != 0) {
+                        row.forEach((rowData: any, i: number) => {
+                            let text = '';
+                            if (rowData.richText) {
+                                rowData.richText.map((item: any) => {
+                                    text += item.text;
+                                });
+                            } else {
+                                text = rowData;
+                            }
+                            row[i] = text;
+                        });
+
+
                         if (row[1]) {
                             if (Object.keys(productData).length != 0) {
                                 postMD.push(productData);
@@ -451,7 +463,7 @@ export class ProductExcel {
                     }
                 });
                 postMD.push(productData);
-                // console.log(`one-push`)
+
                 //商品連結若為空，則預設值為商品名稱
                 postMD.map((dd:any)=>{
                     dd.seo.domain=dd.seo.domain || dd.title
@@ -505,7 +517,7 @@ export class ProductExcel {
                 }
 
             } catch (e) {
-                console.log(e);
+                console.error(e);
                 dialog.dataLoading({ visible: false });
                 dialog.errorMessage({ text: '資料錯誤' });
             }

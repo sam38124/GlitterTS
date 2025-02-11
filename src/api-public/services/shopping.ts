@@ -7,7 +7,7 @@ import axios from 'axios';
 import app from '../../app';
 import redis from '../../modules/redis.js';
 import Tool from '../../modules/tool.js';
-import FinancialService, { LinePay, PayNow, PayPal ,JKO } from './financial-service.js';
+import FinancialService, { LinePay, PayNow, PayPal, JKO } from './financial-service.js';
 import { Private_config } from '../../services/private_config.js';
 import { User } from './user.js';
 import { Invoice } from './invoice.js';

@@ -1915,7 +1915,7 @@ ${obj.default ?? ''}</textarea
                                     vm.originalData.map((dd: any, index: number) => {
                                         const checkboxParent = gvc.glitter.document.querySelector(`[gvc-checkbox="checkbox${index}"]`);
                                         if (checkboxParent) {
-                                            const checkboxIcon = checkboxParent.querySelector(result ? 'i.fa-regular.fa-square' : 'i.fa-solid.fa-square-check ') as any;
+                                            const checkboxIcon = checkboxParent.querySelector(result ? 'i.fa-square' : 'i.fa-square-check') as any;
                                             if (checkboxIcon) {
                                                 checkboxIcon.click();
                                             }
@@ -2106,12 +2106,16 @@ ${obj.default ?? ''}</textarea
                                                                 ${dd.length > 1 && tdIndex === 0 ? 'border-radius: 10px 0 0 10px;' : ''}
                                                                 ${dd.length > 1 && tdIndex === dd.length - 1 ? 'border-radius: 0 10px 10px 0;' : ''}
                                                                 ${dd.length === 1 ? 'border-radius: 10px;' : ''}`
-                                                                 
                                                                     return html`
                                                                         <td
                                                                                 class="${ids.textClass} ${tdClass} tb_v3 tx_normal"
                                                                                 style="${style}"
                                                                                 ${obj.filter.length !== 0 && tdIndex === 0 ? `gvc-checkbox="checkbox${trIndex}"` : ''}
+                                                                                onclick="${
+                                                                                    d3.key.includes('data-click="false"') ? gvc.event((e, event) => {
+                                                                                        event.stopPropagation();
+                                                                                    }) : ''
+                                                                                }"
                                                                         >
                                                                             <div class="text-nowrap"
                                                                                  style="color: #393939 !important;">
@@ -2137,7 +2141,9 @@ ${obj.default ?? ''}</textarea
                                                     vm.page = page;
                                                     vm.loading = true;
                                                     created.checkbox = false;
-                                                    obj.tab_click!!(vm);
+                                                    if (obj.tab_click) {
+                                                        obj.tab_click(vm);
+                                                    }
                                                     gvc.notifyDataChange(ids.container);
                                                 },
                                                 false
@@ -2401,13 +2407,13 @@ ${obj.default ?? ''}</textarea
                             >
                                 <input
                                         class="form-check-input ${randomString} cursor_pointer"
-                                        style="margin-top: 0.35rem;"
+                                        style="margin-top: 0.35rem; margin-right: 0.5rem;"
                                         type="${obj && obj.single ? 'radio' : 'checkbox'}"
                                         id="${id}_${item.key}"
                                         ${def.includes(item.key) ? 'checked' : ''}
                                 />
                                 <label class="form-check-label cursor_pointer" for="${id}_${item.key}"
-                                       style="font-size: 16px; color: #393939;">${item.name}</label>
+                                       style="font-size: 16px; color: #393939; margin-top: 0.125rem;">${item.name}</label>
                             </div>
                             ${def.includes(item.key) && item.innerHtml
                                     ? html`
@@ -2608,7 +2614,7 @@ ${obj.default ?? ''}</textarea
             height: 40px !important;
             border-radius: 10px;
             background: linear-gradient(0deg, #f7f7f7 0%, #f7f7f7 100%), #fff;
-            padding: 0 22px;
+            padding: 0 20px;
             ${document.body.clientWidth > 768 ? `width: 100%;` : `width: calc(100vw - 24px); `}
         `;
         return html`
@@ -3554,7 +3560,6 @@ ${obj.default ?? ''}</textarea
                 opt.key = `${opt.key}`;
 
                 function call() {
-                    console.log(1);
                     if (obj.default.includes(opt.key)) {
                         obj.default = obj.default.filter((item) => item !== opt.key);
                     } else {
@@ -3761,7 +3766,6 @@ ${obj.default ?? ''}</textarea
                 opt.key = `${opt.key}`;
 
                 function call() {
-                    console.log(2);
                     if (obj.default.includes(opt.key)) {
                         obj.default = obj.default.filter((item) => item !== opt.key);
                     } else {
@@ -4431,8 +4435,8 @@ ${obj.default ?? ''}</textarea
         const className = Tool.randomString(6);
         gvc.addStyle(`
             .${className} {
-                min-width: 1rem;
-                min-height: 1rem;
+                min-width: 1.25rem;
+                min-height: 1.25rem;
             }
             .${className}:checked[type='checkbox'] {
                 border: 2px solid ${color ?? '#000'};
@@ -4448,8 +4452,8 @@ ${obj.default ?? ''}</textarea
         const className = `dark_dot`;
         gvc.addStyle(`
             .${className} {
-                min-width: 1rem;
-                min-height: 1rem;
+                min-width: 1.15rem;
+                min-height: 1.15rem;
                 margin-right: 4px;
             }
             .${className}:checked[type='radio'] {
@@ -4466,8 +4470,8 @@ ${obj.default ?? ''}</textarea
         const className = Tool.randomString(6);
         gvc.addStyle(`
             .${className} {
-                min-width: 1rem;
-                min-height: 1rem;
+                min-width: 1.15rem;
+                min-height: 1.15rem;
                 margin-right: 4px;
             }
             .${className}:checked[type='radio'] {

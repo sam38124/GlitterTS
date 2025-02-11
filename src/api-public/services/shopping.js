@@ -1054,7 +1054,6 @@ class Shopping {
                                     variant.deduction_log = returnData.deductionLog;
                                     b.deduction_log = returnData.deductionLog;
                                 }
-                                console.log("如果他有shopee_id -- ", pd);
                                 saveStockArray.push(() => {
                                     return new Promise(async (resolve, reject) => {
                                         try {

@@ -230,6 +230,18 @@ export class ProductExcel {
                         var _a;
                         const variantData = getVariantData();
                         if (index != 0) {
+                            row.forEach((rowData, i) => {
+                                let text = '';
+                                if (rowData.richText) {
+                                    rowData.richText.map((item) => {
+                                        text += item.text;
+                                    });
+                                }
+                                else {
+                                    text = rowData;
+                                }
+                                row[i] = text;
+                            });
                             if (row[1]) {
                                 if (Object.keys(productData).length != 0) {
                                     postMD.push(productData);
@@ -396,7 +408,7 @@ export class ProductExcel {
                     }
                 }
                 catch (e) {
-                    console.log(e);
+                    console.error(e);
                     dialog.dataLoading({ visible: false });
                     dialog.errorMessage({ text: '資料錯誤' });
                 }
