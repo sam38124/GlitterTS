@@ -1134,7 +1134,7 @@ export class ShoppingOrderManager {
                                                                                         ${BgWidget.grayNote(`存貨單位 (SKU)：${dd.sku && dd.sku.length > 0 ? dd.sku : '無'}`)}
                                                                                     </div>
                                                                                     <div class="flex-fill"></div>
-                                                                                    <div class="tx_normal_16 d-none d-lg-flex">
+                                                                                    <div class="tx_normal_16 d-none d-lg-flex justify-content-end" style="min-width: 80px;">
                                                                                             $${dd.sale_price.toLocaleString()}
                                                                                         × ${dd.count}
                                                                                     </div>
@@ -1148,7 +1148,7 @@ export class ShoppingOrderManager {
                                                                                             $${(dd.sale_price * dd.count).toLocaleString()}
                                                                                     </div>`;
                                                                             },
-                                                                            divCreate: {class: `d-flex align-items-center`},
+                                                                            divCreate: {class: `d-flex align-items-center gap-1`},
                                                                         });
                                                                     })
                                                                     .join(html`

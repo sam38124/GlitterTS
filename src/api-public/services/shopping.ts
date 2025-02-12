@@ -2349,11 +2349,18 @@ export class Shopping {
                 };
 
                 const mergeOrders = (feed: Cart) => {
-                    accumulateValues(feed, ['total', 'rebate', 'discount', 'use_rebate', 'use_wallet', 'goodsWeight', 'shipment_fee'], (a, b) => a + b);
+                    accumulateValues(feed, ['total', 'rebate', 'discount', 'use_rebate', 'use_wallet', 'goodsWeight'], (a, b) => a + b);
                     accumulateValues(feed, ['give_away', 'lineItems', 'code_array', 'voucherList'], (a, b) => a.concat(b));
 
                     if (base.useRebateInfo?.point !== undefined && feed.useRebateInfo?.point !== undefined) {
                         base.useRebateInfo.point += feed.useRebateInfo.point;
+                    }
+
+                    // 若未付款，則總計扣除運費，反之補上運費
+                    if (formatTargetOrder.status === 0 && !base.proof_purchase && base.customer_info.payment_select !== 'cash_on_delivery') {
+                        base.total -= feed.shipment_fee;
+                    } else {
+                        base.shipment_fee += feed.shipment_fee;
                     }
                 };
 

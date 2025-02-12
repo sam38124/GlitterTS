@@ -1722,8 +1722,14 @@ class Shopping {
                 };
                 const mergeOrders = (feed) => {
                     var _a, _b;
-                    accumulateValues(feed, ['total', 'rebate', 'discount', 'use_rebate', 'use_wallet', 'goodsWeight', 'shipment_fee'], (a, b) => a + b);
+                    accumulateValues(feed, ['total', 'rebate', 'discount', 'use_rebate', 'use_wallet', 'goodsWeight'], (a, b) => a + b);
                     accumulateValues(feed, ['give_away', 'lineItems', 'code_array', 'voucherList'], (a, b) => a.concat(b));
+                    if (formatTargetOrder.status === 0 && !base.proof_purchase && base.customer_info.payment_select !== 'cash_on_delivery') {
+                        base.total -= feed.shipment_fee;
+                    }
+                    else {
+                        base.shipment_fee += feed.shipment_fee;
+                    }
                     if (((_a = base.useRebateInfo) === null || _a === void 0 ? void 0 : _a.point) !== undefined && ((_b = feed.useRebateInfo) === null || _b === void 0 ? void 0 : _b.point) !== undefined) {
                         base.useRebateInfo.point += feed.useRebateInfo.point;
                     }
