@@ -1470,18 +1470,16 @@ export class ShoppingOrderManager {
                                                                                         }),
                                                                                     })
                                                                                     : ''}
-                                                                            ${deliveryConfig.toggle === 'true'
-                                                                                    ? BgWidget.customButton({
-                                                                                        button: {
-                                                                                            color: 'gray',
-                                                                                            size: 'sm'
-                                                                                        },
-                                                                                        text: {name: '列印出貨單'},
-                                                                                        event: gvc.event(() => {
-                                                                                            DeliveryHTML.print(gvc, [orderData], 'shipment');
-                                                                                        }),
-                                                                                    })
-                                                                                    : ''}
+                                                                            ${BgWidget.customButton({
+                                                                                button: {
+                                                                                    color: 'gray',
+                                                                                    size: 'sm'
+                                                                                },
+                                                                                text: {name: '列印出貨單'},
+                                                                                event: gvc.event(() => {
+                                                                                    DeliveryHTML.print(gvc, [orderData], 'shipment');
+                                                                                }),
+                                                                            })}
                                                                             ${BgWidget.customButton({
                                                                                 button: {color: 'gray', size: 'sm'},
                                                                                 text: {name: '列印揀貨單'},
