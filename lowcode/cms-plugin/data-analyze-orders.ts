@@ -56,12 +56,17 @@ export class DataAnalyze {
                                     DataAnalyzeModule.orderAverage(gvc, vm),
                                     DataAnalyzeModule.viewPeople(gvc, vm),
                                     DataAnalyzeModule.registerPeople(gvc, vm),
-                                    DataAnalyzeModule.transferRatio(gvc, vm),
+                                    DataAnalyzeModule.transferRatio(gvc, vm)
                                 ]
                                     .map((dd) => {
                                         return html`<div class="col-12 col-lg-4 col-md-6 mb-3 px-2">${dd}</div>`;
                                     })
                                     .join('')}
+                                ${[  DataAnalyzeModule.hotProducts(gvc),
+                                    DataAnalyzeModule.hotCollection(gvc)].map((dd) => {
+                                    return html`<div class="col-12 col-lg-6 col-md-6 mb-3 px-2">${dd}</div>`;
+                                })
+                                        .join('')}
                             </div>
                         `;
                     } catch (e) {

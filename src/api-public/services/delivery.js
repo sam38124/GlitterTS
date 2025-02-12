@@ -38,12 +38,15 @@ class EcPay {
     static generateForm(json) {
         const formId = `form_ecpay_${tool_js_1.default.randomString(10)}`;
         const inputHTML = Object.entries(json.params)
-            .map(([key, value]) => html `<input type="hidden" name="${key}" id="${key}" value="${value}" />`)
+            .map(([key, value]) => html `<input type="hidden" name="${key}" id="${key}" value="${value}"/>`)
             .join('\n');
         return html `
-            <form id="${formId}" action="${json.actionURL}" method="post" enctype="application/x-www-form-urlencoded" accept="text/html">
-                ${inputHTML} ${json.checkMacValue ? html `<input type="hidden" name="CheckMacValue" id="CheckMacValue" value="${json.checkMacValue}" />` : ''}
-                <button type="submit" class="btn btn-secondary custom-btn beside-btn d-none" id="submit" hidden></button>
+            <form id="${formId}" action="${json.actionURL}" method="post" enctype="application/x-www-form-urlencoded"
+                  accept="text/html">
+                ${inputHTML} ${json.checkMacValue ? html `<input type="hidden" name="CheckMacValue" id="CheckMacValue"
+                                                                value="${json.checkMacValue}"/>` : ''}
+                <button type="submit" class="btn btn-secondary custom-btn beside-btn d-none" id="submit"
+                        hidden></button>
             </form>
         `;
     }
@@ -83,9 +86,10 @@ class EcPay {
     }
     async notifyOrder(json) {
         try {
-            const checkouts = await database_js_1.default.query(`SELECT * FROM \`${this.appName}\`.t_checkout 
-                WHERE JSON_EXTRACT(orderData, '$.deliveryData.AllPayLogisticsID') = ?
-                  AND JSON_EXTRACT(orderData, '$.deliveryData.MerchantTradeNo') = ?;`, [json.AllPayLogisticsID, json.MerchantTradeNo]);
+            const checkouts = await database_js_1.default.query(`SELECT *
+                 FROM \`${this.appName}\`.t_checkout
+                 WHERE JSON_EXTRACT(orderData, '$.deliveryData.AllPayLogisticsID') = ?
+                   AND JSON_EXTRACT(orderData, '$.deliveryData.MerchantTradeNo') = ?;`, [json.AllPayLogisticsID, json.MerchantTradeNo]);
             if (checkouts[0]) {
                 const checkout = checkouts[0];
                 if (checkout.orderData.deliveryNotifyList && checkout.orderData.deliveryNotifyList.length > 0) {
@@ -94,7 +98,9 @@ class EcPay {
                 else {
                     checkout.orderData.deliveryNotifyList = [json];
                 }
-                await database_js_1.default.query(`UPDATE \`${this.appName}\`.t_checkout SET ? WHERE id = ?
+                await database_js_1.default.query(`UPDATE \`${this.appName}\`.t_checkout
+                     SET ?
+                     WHERE id = ?
                     `, [
                     {
                         orderData: JSON.stringify(checkout.orderData),
@@ -134,7 +140,7 @@ class Delivery {
         const keyData = (await private_config_js_1.Private_config.getConfig({
             appName: this.appName,
             key: 'glitter_delivery',
-        }))[0].value;
+        }))[0].value.ec_pay;
         const actionURL = keyData.Action === 'main' ? 'https://logistics.ecpay.com.tw/Express/Create' : 'https://logistics-stage.ecpay.com.tw/Express/Create';
         const originParams = Object.assign({ MerchantID: keyData.MERCHANT_ID, MerchantTradeDate: (0, moment_timezone_1.default)().tz('Asia/Taipei').format('YYYY/MM/DD HH:mm:ss'), ServerReplyURL: `${process.env.DOMAIN}/api-public/v1/delivery/c2cNotify?g-app=${this.appName}`, SenderName: keyData.SenderName, SenderCellPhone: keyData.SenderCellPhone }, json);
         const params = Delivery.removeUndefined(originParams);
@@ -188,7 +194,9 @@ class Delivery {
             : `https://logistics-stage.ecpay.com.tw/${storePath[deliveryData.LogisticsSubType]}`;
         const checkMacValue = EcPay.generateCheckMacValue(params, keyData.HASH_KEY, keyData.HASH_IV);
         const random_id = tool_js_1.default.randomString(6);
-        await database_js_1.default.query(`UPDATE \`${this.appName}\`.t_checkout SET ? WHERE id = ?
+        await database_js_1.default.query(`UPDATE \`${this.appName}\`.t_checkout
+             SET ?
+             WHERE id = ?
             `, [
             {
                 orderData: JSON.stringify(carData),
@@ -208,14 +216,14 @@ class Delivery {
             appName: this.appName,
             key: 'glitter_delivery',
         }))[0];
-        if (!(deliveryConfig && deliveryConfig.value.toggle === 'true')) {
+        if (!(deliveryConfig && `${deliveryConfig.value.ec_pay.toggle}` === 'true')) {
             console.error('deliveryConfig 不存在 / 未開啟');
             return {
                 result: false,
                 message: '尚未開啟物流追蹤設定',
             };
         }
-        const keyData = deliveryConfig.value;
+        const keyData = deliveryConfig.value.ec_pay;
         const shoppingClass = new shopping_js_1.Shopping(this.appName);
         const cart = await shoppingClass.getCheckOut({
             page: 0,
@@ -236,7 +244,7 @@ class Delivery {
         if (carData.deliveryData[keyData.Action] === undefined) {
             console.log(`綠界物流單 開始建立（使用${keyData.Action === 'main' ? '正式' : '測試'}環境）`);
             if (['FAMIC2C', 'UNIMARTC2C', 'HILIFEC2C', 'OKMARTC2C'].includes(carData.user_info.LogisticsSubType)) {
-                const delivery = await this.postStoreOrder({
+                const delivery_cf = {
                     LogisticsType: 'CVS',
                     LogisticsSubType: carData.user_info.LogisticsSubType,
                     GoodsAmount: carData.total,
@@ -256,13 +264,12 @@ class Delivery {
                             }
                             return '131386';
                         })(),
-                });
+                };
+                const delivery = await this.postStoreOrder(delivery_cf);
                 if (delivery.result) {
                     carData.deliveryData[keyData.Action] = delivery.data;
-                    console.info('綠界物流單 四大超商 建立成功');
                 }
                 else {
-                    console.error(`綠界物流單 四大超商 建立錯誤: ${delivery.message}`);
                     return {
                         result: false,
                         message: `建立錯誤: ${delivery.message}`,
@@ -282,7 +289,7 @@ class Delivery {
                         goodsWeight += item.shipment_obj.value;
                     }
                 });
-                const delivery = await this.postStoreOrder({
+                const delivery_cf = {
                     LogisticsType: 'HOME',
                     LogisticsSubType: carData.user_info.shipment === 'normal' ? 'POST' : 'TCAT',
                     GoodsAmount: carData.total,
@@ -294,7 +301,8 @@ class Delivery {
                     ReceiverAddress: carData.user_info.address,
                     SenderZipCode: senderPostData.zipcode6 || senderPostData.zipcode,
                     SenderAddress: keyData.SenderAddress,
-                });
+                };
+                const delivery = await this.postStoreOrder(delivery_cf);
                 if (delivery.result) {
                     carData.deliveryData[keyData.Action] = delivery.data;
                     console.info('綠界物流單 郵政/黑貓 建立成功');
@@ -320,13 +328,17 @@ class Delivery {
     }
     async notify(json) {
         try {
-            const getNotification = await database_js_1.default.query(`SELECT * FROM \`${this.appName}\`.public_config WHERE \`key\` = "ecpay_delivery_notify";
+            const getNotification = await database_js_1.default.query(`SELECT *
+                 FROM \`${this.appName}\`.public_config
+                 WHERE \`key\` = "ecpay_delivery_notify";
                 `, []);
             json.token && delete json.token;
             const notification = getNotification[0];
             if (notification) {
                 notification.value.push(json);
-                await database_js_1.default.query(`UPDATE \`${this.appName}\`.public_config SET ? WHERE \`key\` = "ecpay_delivery_notify";
+                await database_js_1.default.query(`UPDATE \`${this.appName}\`.public_config
+                     SET ?
+                     WHERE \`key\` = "ecpay_delivery_notify";
                     `, [
                     {
                         value: JSON.stringify(notification.value),
@@ -335,7 +347,8 @@ class Delivery {
                 ]);
             }
             else {
-                await database_js_1.default.query(`INSERT INTO \`${this.appName}\`.public_config SET ?;
+                await database_js_1.default.query(`INSERT INTO \`${this.appName}\`.public_config
+                     SET ?;
                     `, [
                     {
                         key: 'ecpay_delivery_notify',

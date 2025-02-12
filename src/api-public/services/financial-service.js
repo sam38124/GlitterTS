@@ -706,9 +706,6 @@ class PayNow {
             "description": orderData.orderID,
             "resultUrl": this.keyData.ReturnURL + `&orderID=${orderData.orderID}`,
             "webhookUrl": this.keyData.NotifyURL + `&orderID=${orderData.orderID}`,
-            "allowedPaymentMethods": [
-                "CreditCard",
-            ],
             "expireDays": 3,
         });
         const url = `${this.BASE_URL}/api/v1/payment-intents`;

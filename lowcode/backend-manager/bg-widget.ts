@@ -2545,6 +2545,7 @@ ${obj.default ?? ''}</textarea
     ) {
         return html`
             <div
+                    class="mx-sm-0 mx-2"
                     style="justify-content: flex-start; align-items: flex-start; gap: 22px; display: inline-flex;cursor: pointer;margin-top: 24px;margin-bottom: 24px;font-size: 18px; ${style ?? ''};"
             >
                 ${data

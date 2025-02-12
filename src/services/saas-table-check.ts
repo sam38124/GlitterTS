@@ -36,8 +36,8 @@ export const SaasScheme = {
   KEY \`index4\` (\`mac_address\`),
   KEY \`index5\` (\`created_time\`),
   KEY \`index6\` (\`req_type\`),
-  KEY \`index7\` (\`app_name\`,\`ip\`,\`req_type\`)
-) ENGINE=InnoDB AUTO_INCREMENT=2568150 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci`
+  KEY \`index7\` (\`app_name\`,\`req_type\`)
+) ENGINE=InnoDB AUTO_INCREMENT=3969739 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci`
             },
             {
                 scheme:saasConfig.SAAS_NAME as string,

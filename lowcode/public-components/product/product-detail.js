@@ -101,7 +101,7 @@ export class ProductDetail {
         return gvc.bindView({
             bind: ids.page,
             view: () => __awaiter(this, void 0, void 0, function* () {
-                var _b;
+                var _b, _c;
                 if (loadings.page) {
                     return spinner();
                 }
@@ -440,7 +440,7 @@ export class ProductDetail {
                 })}
                     </div>
                     <div style="margin-top: 150px;"></div>
-                    ${prod.relative_product.length
+                    ${((_c = prod.relative_product) !== null && _c !== void 0 ? _c : []).length
                     ? gvc.bindView(() => {
                         const swipID = gvc.glitter.getUUID();
                         return {

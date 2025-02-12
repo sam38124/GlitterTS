@@ -645,6 +645,11 @@ export class ShoppingOrderManager {
     static supportShipmentMethod() {
         return [
             {
+                title: '國際配送',
+                value: 'global_express',
+                name: ''
+            },
+            {
                 title: '門市立即取貨',
                 value: 'now',
                 name: '',

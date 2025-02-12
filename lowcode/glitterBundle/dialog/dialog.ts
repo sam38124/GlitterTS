@@ -44,7 +44,7 @@ init(import.meta.url, (gvc, glitter, gBundle: Bundle) => {
         <div class="dialog-box">
             <div class="dialog-content" style="width: ${config.width ?? 280}px;">
                 ${config.icon ?? ''}
-                <div class="mt-3 mb-3 fs-6 text-center">${config.content}</div>
+                <div class="mt-3 mb-3 fs-6 text-center w-100" style="white-space: normal;word-break: break-all;">${config.content}</div>
                 <div class="d-flex gap-3 justify-content-center">
                     ${config.cancel ? createButton(config.cancel, 'btn-snow text-dark') : ''} ${config.confirm ? createButton(config.confirm, 'btn-black text-white') : ''}
                 </div>

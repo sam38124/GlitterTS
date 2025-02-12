@@ -48,7 +48,7 @@ export class UmClass {
                         },
                         {
                             key: 'rebate',
-                            title: `${Language.text('my')} ${glitter.share.rebateConfig.title}`,
+                            title: `${Language.text('my')}${glitter.share.rebateConfig.title}`,
                         },
                         {
                             key: 'order_list',

@@ -733,6 +733,7 @@ router.get('/testRelease', async (req: express.Request, resp: express.Response) 
 });
 router.post('/notify', upload.single('file'), async (req: express.Request, resp: express.Response) => {
     try {
+        console.log(`notify-order-result`)
         let decodeData = undefined;
         const appName = req.query['g-app'] as string;
         const type = req.query['type'] as string;

@@ -765,7 +765,7 @@ Setting_editor.menuItems = () => {
             icon: '',
             page: 'shippment_setting',
             group: '商店設定',
-            title: '配送設定',
+            title: '物流設定',
             appName: 'cms_system',
             groupIcon: 'https://d3jnmi1tfjgtti.cloudfront.net/file/252530754/1716566571091-Property 1=gear-regular.svg',
             moduleName: '金流 / 物流 / 發票',

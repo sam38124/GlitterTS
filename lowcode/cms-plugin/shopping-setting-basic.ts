@@ -2893,7 +2893,7 @@ ${language_data.seo.content ?? ''}</textarea
                                     },
                                     { single: false }
                                 )}
-                            <div class="d-flex align-items-center mt-1" style="gap:6px;">
+                            <div class="${postMD.shopee_id ? `d-flex`:`d-none`} align-items-center mt-1" style="gap:6px;">
                                 <img src="https://deo.shopeemobile.com/shopee/shopee-mobilemall-live-sg/assets/icon_favicon_1_32.0Wecxv.png" style="width:20px;height:20px;"></img>
                                 蝦皮賣場
                             </div>

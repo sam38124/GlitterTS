@@ -474,7 +474,7 @@ export class ProductDetail {
                         })}
                     </div>
                     <div style="margin-top: 150px;"></div>
-                    ${prod.relative_product.length
+                    ${(prod.relative_product ?? []).length
                         ? gvc.bindView(() => {
                               const swipID = gvc.glitter.getUUID();
                               return {

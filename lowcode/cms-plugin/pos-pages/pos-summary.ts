@@ -519,7 +519,7 @@ ${((dd.real) - (last_m + dd.payment) === 0) ? '$0' : `<span class="text-danger">
                     if(!vm.loading){
                         return  BgWidget.spinner()
                     }
-                    if(!store_list.length){
+                    if(!store_list.length && !this.in_pos()){
                         return `<div class="mt-5">${BgWidget.warningInsignia('尚未設定任何門市，請先前往門市設定新增門市。')}</div>`
                     }
                     return BgWidget.container(html`

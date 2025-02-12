@@ -1033,14 +1033,14 @@ h6 {
 
 .insignia {
     border-radius: 0.5rem;
-    height: 26px;
+    min-height: 26px;
     padding: 6px 8px;
     font-size: 14px;
     display: inline-block;
     font-weight: 500;
-    line-height: 1;
+    line-height: 1.2;
     text-align: center;
-    white-space: nowrap;
+    white-space: normal;
     vertical-align: baseline;
 }
 

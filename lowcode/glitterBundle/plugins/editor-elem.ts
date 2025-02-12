@@ -997,6 +997,7 @@ ${obj.structEnd ? obj.structEnd : '})()'}`,
         style?: string;
         readonly?: boolean;
         rich_height?: string;
+
     }) {
         const gvc = obj.gvc;
         const glitter = gvc.glitter;
@@ -1191,7 +1192,8 @@ ${obj.structEnd ? obj.structEnd : '})()'}`,
                             function render() {
                                 setTimeout(() => {
                                     const FroalaEditor = (glitter.window as any).FroalaEditor;
-                                    function dataChange(){
+
+                                    function dataChange() {
                                         const parser = new DOMParser();
                                         const doc = parser.parseFromString(editor.html.get(), 'text/html');
                                         try {
@@ -1203,12 +1205,12 @@ ${obj.structEnd ? obj.structEnd : '})()'}`,
                                                 videoElement.removeAttribute('height');
                                             });
                                             editor.selection.save()
-                                        }catch (e) {
+                                        } catch (e) {
 
                                         }
-
                                         obj.callback(doc.documentElement.outerHTML);
                                     }
+
                                     editor = new FroalaEditor('#' + richID, {
                                         enter: FroalaEditor.ENTER_DIV,
                                         language: 'zh_tw',
@@ -1220,6 +1222,9 @@ ${obj.structEnd ? obj.structEnd : '})()'}`,
                                         events: {
                                             imageMaxSize: 5 * 1024 * 1024,
                                             imageAllowedTypes: ['jpeg', 'jpg', 'png'],
+                                            blur:function () {
+                                                dataChange()
+                                            },
                                             contentChanged: function () {
                                                 dataChange()
                                             },
@@ -1449,6 +1454,7 @@ ${obj.structEnd ? obj.structEnd : '})()'}`,
                         }
                     }, 100);
                 },
+
             };
         });
     }
@@ -2683,7 +2689,7 @@ ${obj.gvc.bindView(() => {
                     return html`<i class="${obj.def ? `fa-solid fa-square-check` : `fa-light fa-square`} "
                                    style="color: #393939; font-size: 22px;"></i>`;
                 },
-                divCreate: ()=>{
+                divCreate: () => {
                     return {
                         option: [
                             {

@@ -199,7 +199,7 @@ background: ${(_a = colors.bgr) !== null && _a !== void 0 ? _a : '#000'};overflo
                                 <img
                                     src="${widget.formData.logo}"
                                     style="${document.body.clientWidth < 800
-            ? `max-height: 100%;max-width:200px;`
+            ? `max-height: 100%;max-width:200px;max-height:60px;`
             : `height: ${(() => {
                 try {
                     const h = widget.formData.height;

@@ -2129,6 +2129,7 @@ ${(_c = obj.default) !== null && _c !== void 0 ? _c : ''}</textarea
     static tab(data, gvc, select, callback, style) {
         return html `
             <div
+                    class="mx-sm-0 mx-2"
                     style="justify-content: flex-start; align-items: flex-start; gap: 22px; display: inline-flex;cursor: pointer;margin-top: 24px;margin-bottom: 24px;font-size: 18px; ${style !== null && style !== void 0 ? style : ''};"
             >
                 ${data

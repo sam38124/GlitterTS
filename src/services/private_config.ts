@@ -1,9 +1,9 @@
 import exception from '../modules/exception.js';
 import db from '../modules/database.js';
-import { saasConfig } from '../config.js';
-import { IToken } from '../models/Auth.js';
+import {saasConfig} from '../config.js';
+import {IToken} from '../models/Auth.js';
 import moment from 'moment/moment.js';
-import { Post } from '../api-public/services/post';
+import {Post} from '../api-public/services/post';
 
 export class Private_config {
     public token: IToken;
@@ -18,9 +18,9 @@ export class Private_config {
             }
             await db.execute(
                 `replace
-            into \`${saasConfig.SAAS_NAME}\`.private_config (app_name,\`key\`,\`value\`,updated_at)
+                into \`${saasConfig.SAAS_NAME}\`.private_config (app_name,\`key\`,\`value\`,updated_at)
             values (?,?,?,?)
-            `,
+                `,
                 [config.appName, config.key, config.value, moment(new Date()).format('YYYY-MM-DD HH:mm:ss')]
             );
         } catch (e) {
@@ -28,15 +28,18 @@ export class Private_config {
             throw exception.BadRequestError('ERROR', 'ERROR.' + e, null);
         }
     }
+
     public async getConfig(config: { appName: string; key: string }) {
         if (!(await this.verifyPermission(config.appName))) {
             throw exception.BadRequestError('Forbidden', 'No Permission.', null);
         }
         try {
             const data = await db.execute(
-                `select * from \`${saasConfig.SAAS_NAME}\`.private_config where app_name=${db.escape(config.appName)} and 
-                                             \`key\`=${db.escape(config.key)}
-            `,
+                `select *
+                 from \`${saasConfig.SAAS_NAME}\`.private_config
+                 where app_name = ${db.escape(config.appName)}
+                   and \`key\` = ${db.escape(config.key)}
+                `,
                 []
             );
             if (data[0] && data[0].value) {
@@ -48,12 +51,15 @@ export class Private_config {
             throw exception.BadRequestError('ERROR', 'ERROR.' + e, null);
         }
     }
+
     public static async getConfig(config: { appName: string; key: string }) {
         try {
             const data = await db.execute(
-                `select * from \`${saasConfig.SAAS_NAME}\`.private_config where app_name=${db.escape(config.appName)} and 
-                                             \`key\`=${db.escape(config.key)}
-            `,
+                `select *
+                 from \`${saasConfig.SAAS_NAME}\`.private_config
+                 where app_name = ${db.escape(config.appName)}
+                   and \`key\` = ${db.escape(config.key)}
+                `,
                 []
             );
             if (data[0] && data[0].value) {
@@ -68,14 +74,16 @@ export class Private_config {
 
     public async verifyPermission(appName: string) {
         const result = await db.query(
-            `SELECT count(1) 
-            FROM ${saasConfig.SAAS_NAME}.app_config
-            WHERE 
-                (user = ? and appName = ?)
+            `SELECT count(1)
+             FROM ${saasConfig.SAAS_NAME}.app_config
+             WHERE (user = ? and appName = ?)
                 OR appName in (
-                    (SELECT appName FROM \`${saasConfig.SAAS_NAME}\`.app_auth_config
-                    WHERE user = ? AND status = 1 AND invited = 1 AND appName = ?)
-                );
+                 (SELECT appName
+                  FROM \`${saasConfig.SAAS_NAME}\`.app_auth_config
+                  WHERE user = ?
+                    AND status = 1
+                    AND invited = 1
+                    AND appName = ?));
             `,
             [this.token.userID, appName, this.token.userID, appName]
         );
@@ -162,7 +170,7 @@ export class Private_config {
                     keyData.paynow = {
                         BETA: 'false',
                         public_key: '',
-                        private_key:''
+                        private_key: ''
                     };
                 }
                 //街口支付
@@ -170,10 +178,9 @@ export class Private_config {
                     keyData.jkopay = {
                         STORE_ID: '',
                         API_KEY: '',
-                        SECRET_KEY:''
+                        SECRET_KEY: ''
                     };
                 }
-
                 ['paypal', 'newWebPay', 'ecPay'].map((dd) => {
                     if (keyData[dd].toggle) {
                         keyData.TYPE = dd;
@@ -184,6 +191,30 @@ export class Private_config {
                 });
                 keyData.payment_info_custom = keyData.payment_info_custom || [];
                 break;
+            case 'glitter_delivery':
+                //轉換成V2版本
+                if (!keyData.ec_pay) {
+                    const og=JSON.parse(JSON.stringify(keyData))
+                    Object.keys(keyData).map((dd)=>{
+                        delete keyData[dd]
+                    });
+                    keyData.ec_pay=og
+                }
+                if (!keyData.pay_now) {
+                    keyData.pay_now = {
+                        Action: 'test',
+                        toggle: false,
+                        account: '',
+                        pwd: ''
+                    }
+                }
+                if(typeof keyData.pay_now.toggle==='string'){
+                    keyData.pay_now.toggle=false
+                }
+                if(typeof keyData.ec_pay.toggle==='string'){
+                    keyData.ec_pay.toggle=false
+                }
+                break
         }
     }
 }
