@@ -1528,7 +1528,7 @@ class Shopping {
                         return await new financial_service_js_1.LinePay(this.app, kd).createOrder(carData);
                     case 'paynow': {
                         kd.ReturnURL = `${process.env.DOMAIN}/api-public/v1/ec/redirect?g-app=${this.app}&return=${id}&paynow=true`;
-                        kd.NotifyURL = `${process.env.DOMAIN}/api-public/v1/ec/notify?g-app=${this.app}&paynow=true`;
+                        kd.NotifyURL = `${process.env.DOMAIN}/api-public/v1/ec/notify?g-app=${this.app}&paynow=true&type=paynow`;
                         await Promise.all(saveStockArray.map((dd) => {
                             return dd();
                         }));
@@ -1724,14 +1724,14 @@ class Shopping {
                     var _a, _b;
                     accumulateValues(feed, ['total', 'rebate', 'discount', 'use_rebate', 'use_wallet', 'goodsWeight'], (a, b) => a + b);
                     accumulateValues(feed, ['give_away', 'lineItems', 'code_array', 'voucherList'], (a, b) => a.concat(b));
+                    if (((_a = base.useRebateInfo) === null || _a === void 0 ? void 0 : _a.point) !== undefined && ((_b = feed.useRebateInfo) === null || _b === void 0 ? void 0 : _b.point) !== undefined) {
+                        base.useRebateInfo.point += feed.useRebateInfo.point;
+                    }
                     if (formatTargetOrder.status === 0 && !base.proof_purchase && base.customer_info.payment_select !== 'cash_on_delivery') {
                         base.total -= feed.shipment_fee;
                     }
                     else {
                         base.shipment_fee += feed.shipment_fee;
-                    }
-                    if (((_a = base.useRebateInfo) === null || _a === void 0 ? void 0 : _a.point) !== undefined && ((_b = feed.useRebateInfo) === null || _b === void 0 ? void 0 : _b.point) !== undefined) {
-                        base.useRebateInfo.point += feed.useRebateInfo.point;
                     }
                 };
                 feedsOrder.forEach((order) => mergeOrders(order.orderData));
@@ -2163,7 +2163,7 @@ class Shopping {
                         limit: 10,
                         skip_shopee_check: true
                     });
-                    if (pd.data) {
+                    if (pd.data && pd.data.shopee_id) {
                         console.log(`sync-pd.data`, pd.data.content.variants);
                         await new shopee_1.Shopee(this.app, this.token).asyncStockToShopee({
                             product: pd.data,

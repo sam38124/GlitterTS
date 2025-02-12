@@ -2092,7 +2092,7 @@ export class Shopping {
                         return await new LinePay(this.app, kd).createOrder(carData);
                     case 'paynow': {
                         kd.ReturnURL = `${process.env.DOMAIN}/api-public/v1/ec/redirect?g-app=${this.app}&return=${id}&paynow=true`;
-                        kd.NotifyURL = `${process.env.DOMAIN}/api-public/v1/ec/notify?g-app=${this.app}&paynow=true`;
+                        kd.NotifyURL = `${process.env.DOMAIN}/api-public/v1/ec/notify?g-app=${this.app}&paynow=true&type=paynow`;
                         await Promise.all(
                             saveStockArray.map((dd) => {
                                 return dd();
@@ -2864,7 +2864,7 @@ export class Shopping {
                         limit: 10,
                         skip_shopee_check:true
                     });
-                    if (pd.data) {
+                    if (pd.data && pd.data.shopee_id) {
                         console.log(`sync-pd.data`,pd.data.content.variants)
                         await new Shopee(this.app, this.token).asyncStockToShopee({
                             product: pd.data,
