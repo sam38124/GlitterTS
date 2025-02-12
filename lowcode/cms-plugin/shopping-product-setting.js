@@ -586,13 +586,18 @@ export class ShoppingProductSetting {
                                                                                 {
                                                                                     key: '商品',
                                                                                     value: html `
-                                                                                                            <div class="d-flex">
+                                                                                                            <div class="d-flex align-items-center">
                                                                                                                 ${BgWidget.validImageBox({
                                                                                         gvc: gvc,
                                                                                         image: dd.content.preview_image[0],
                                                                                         width: 40,
                                                                                         class: 'rounded border me-4',
-                                                                                    })}${Tool.truncateString(dd.content.title)}
+                                                                                    })}<div class="d-flex flex-column" style="">
+                                                                                                                ${(dd.content.shopee_id) ? `
+                                                                                                                 <div style="margin-bottom: -10px;"><div class="insignia" style="background: orangered;color: white;">蝦皮</div></div>
+                                                                                                                ` : ``}
+                                                                                                              <div>  ${Tool.truncateString(dd.content.title)}</div>
+                                                                                                            </div>
                                                                                                             </div>`,
                                                                                 },
                                                                                 {
@@ -909,6 +914,8 @@ export class ShoppingProductSetting {
             const dd = postMD;
             return (dd.language_data
                 &&
+                    dd.language_data[(window.parent.store_info.language_setting.def)].preview_image
+                &&
                     dd.language_data[(window.parent.store_info.language_setting.def)].preview_image[0])
                 || dd.preview_image[0];
         }
@@ -936,12 +943,13 @@ export class ShoppingProductSetting {
                 return {
                     bind: id,
                     view: () => {
-                        variant[`preview_image_${ShoppingProductSetting.select_language}`] = variant[`preview_image_${ShoppingProductSetting.select_language}`] || variant.preview_image || getDefImg();
-                        let pre_ciew = variant[`preview_image_${ShoppingProductSetting.select_language}`];
-                        if ((pre_ciew === BgWidget.noImageURL) || !pre_ciew) {
-                            pre_ciew = getDefImg();
-                        }
-                        return html `
+                        try {
+                            variant[`preview_image_${ShoppingProductSetting.select_language}`] = variant[`preview_image_${ShoppingProductSetting.select_language}`] || variant.preview_image || getDefImg();
+                            let pre_ciew = variant[`preview_image_${ShoppingProductSetting.select_language}`];
+                            if ((pre_ciew === BgWidget.noImageURL) || !pre_ciew) {
+                                pre_ciew = getDefImg();
+                            }
+                            return html `
                                                                     <div style="font-weight: 700;">規格</div>
                                                                     <div>
                                                                         ${variant.spec.length > 0 ? variant.spec.join(' / ') : '單一規格'}
@@ -961,32 +969,37 @@ export class ShoppingProductSetting {
                                                                             <i
                                                                                     class="fa-regular fa-eye"
                                                                                     onclick="${obj.gvc.event(() => {
-                            window.parent.glitter.openDiaLog(new URL('../dialog/image-preview.js', import.meta.url).href, 'preview', variant[`preview_image_${ShoppingProductSetting.select_language}`] || BgWidget.noImageURL);
-                        })}"
+                                window.parent.glitter.openDiaLog(new URL('../dialog/image-preview.js', import.meta.url).href, 'preview', variant[`preview_image_${ShoppingProductSetting.select_language}`] || BgWidget.noImageURL);
+                            })}"
                                                                             ></i>
                                                                         </div>
                                                                     </div>
                                                                     <div
                                                                             style="width: 136px;text-align: center;color: #36B;cursor: pointer;"
                                                                             onclick="${obj.gvc.event(() => {
-                            const language_data = postMD.language_data[ShoppingProductSetting.select_language];
-                            imageLibrary.selectImageFromArray(language_data.preview_image, {
-                                gvc: gvc,
-                                title: html `
+                                const language_data = postMD.language_data[ShoppingProductSetting.select_language];
+                                imageLibrary.selectImageFromArray(language_data.preview_image, {
+                                    gvc: gvc,
+                                    title: html `
                                                                                         <div class="d-flex flex-column"
                                                                                              style="border-radius: 10px 10px 0px 0px;background: #F2F2F2;">
                                                                                             圖片庫
                                                                                         </div>`,
-                                getSelect: (imageUrl) => {
-                                    variant[`preview_image_${ShoppingProductSetting.select_language}`] = imageUrl;
-                                    gvc.notifyDataChange(id);
-                                },
-                            });
-                        })}"
+                                    getSelect: (imageUrl) => {
+                                        variant[`preview_image_${ShoppingProductSetting.select_language}`] = imageUrl;
+                                        gvc.notifyDataChange(id);
+                                    },
+                                });
+                            })}"
                                                                     >
                                                                         變更
                                                                     </div>
                                                                 `;
+                        }
+                        catch (e) {
+                            console.log(e);
+                            return `${e}`;
+                        }
                     },
                     divCreate: {
                         style: `display: flex;flex-direction: column;align-items: flex-start;gap: 18px;align-self: stretch;`,
@@ -1211,7 +1224,9 @@ export class ShoppingProductSetting {
                                                                                  style="gap: 8px;border-left:solid 1px #E5E5E5;padding-left:14px;">
                                                                                 <div class="w-100"
                                                                                      style="font-size: 14px;font-weight: 400;color: #8D8D8D;">
-                                                                                    線上販售的商品將優先從庫存量較多的庫存點中扣除
+                                                                                    ${postMD.shopee_id ? `
+                                                                                    此商品來源為蝦皮電商平台，將自動同步蝦皮庫存
+                                                                                    ` : `線上販售的商品將優先從庫存量較多的庫存點中扣除`}
                                                                                 </div>
                                                                                 ${(() => {
                                     return stockList.map((stockSpot) => {
@@ -1219,6 +1234,7 @@ export class ShoppingProductSetting {
                                         console.log(`stockSpot.id=>`, stockSpot.id);
                                         variant.stockList = (_b = variant.stockList) !== null && _b !== void 0 ? _b : {};
                                         variant.stockList[stockSpot.id] = (_c = variant.stockList[stockSpot.id]) !== null && _c !== void 0 ? _c : { count: 0 };
+                                        console.log(`postMD.shopee_id=>`, postMD.shopee_id);
                                         return html `
                                                                                             <div>${stockSpot.name}</div>
                                                                                             <input
@@ -1233,6 +1249,7 @@ export class ShoppingProductSetting {
                                             variant.stock += inputValue;
                                             console.log("variant.stock -- ", variant.stock);
                                         })}"
+                                                                                                    ${postMD.shopee_id ? `readonly` : ``}
                                                                                             />
                                                                                         `;
                                     }).join(``);
@@ -1251,6 +1268,10 @@ export class ShoppingProductSetting {
                                                                             <div class="flex-fill d-flex flex-column"
                                                                                  style="gap: 8px">
                                                                                 <div>庫存數量</div>
+                                                                                <div class="w-100 ${postMD.shopee_id ? `` : `d-none`}"
+                                                                                     style="font-size: 14px;font-weight: 400;color: #8D8D8D;">
+                                                                                    此商品來源為蝦皮電商平台，將自動同步蝦皮庫存
+                                                                                </div>
                                                                                 <input
                                                                                         class="w-100"
                                                                                         type="number"
@@ -1260,6 +1281,7 @@ export class ShoppingProductSetting {
                                                                                         onchange="${gvc.event((e) => {
                                     variant.stock = e.value;
                                 })}"
+                                                                                        ${postMD.shopee_id ? `readonly` : ``}
                                                                                 />
                                                                             </div>
 
@@ -1306,7 +1328,11 @@ export class ShoppingProductSetting {
                                                                 ${variant.show_understocking == 'false' ? '' : html `
                                                                             <div class="flex-fill d-flex flex-column"
                                                                                  style="gap: 8px;font-size: 16px;font-weight: 700;">
-                                                                                <div>安全庫存</div>
+                                                                                <div>庫存警示</div>
+                                                                                <div class="w-100"
+                                                                                     style="font-size: 14px;font-weight: 400;color: #8D8D8D;">
+                                                                                當庫存低於此數量，會自動寄送警示通知。
+                                                                                </div>
                                                                                 <input
                                                                                         class="w-100"
                                                                                         value="${(_b = variant.save_stock) !== null && _b !== void 0 ? _b : '0'}"

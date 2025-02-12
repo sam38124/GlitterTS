@@ -301,6 +301,7 @@ export class ProductSetting {
                                                                 data['stock'] = count;
                                                                 gvc.notifyDataChange(vm.id);
                                                             })}"
+${postMD.shopee_id ? `readonly` : ``}
                                                                                                                         />
                                                                                                                     </div>`;
                                                         }).join('');

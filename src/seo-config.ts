@@ -167,7 +167,7 @@ export class SeoConfig {
         const relative_product=await new Shopping(app_name,undefined).getProduct({
             page:0,
             limit:100,
-            id_list:(pd_content.relative_product ?? []).join(',')
+            id_list:[-99].concat((pd_content.relative_product ?? [])).join(',')
         });
         const variant=pd_content.variants[0]
         let preview_image=[variant.preview_image].concat(pd_content.preview_image).filter((dd)=>{

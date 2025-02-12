@@ -183,6 +183,7 @@ export declare class Shopping {
         currency_code?: string;
         view_source?: string;
         distribution_code?: string;
+        skip_shopee_check?: boolean;
     }): Promise<{
         data: any;
         result: boolean;

@@ -11,6 +11,8 @@ import { BgWidget } from '../backend-manager/bg-widget.js';
 import { ApiUser } from '../glitter-base/route/user.js';
 import { ShareDialog } from '../glitterBundle/dialog/ShareDialog.js';
 import { ApiShopee } from "../glitter-base/route/shopee.js";
+import { ApiPageConfig } from "../api/pageConfig.js";
+const css = String.raw;
 export class MarketShopee {
     static main(gvc) {
         const shopee = localStorage.getItem('shopeeCode');
@@ -29,14 +31,25 @@ export class MarketShopee {
                     advertiser_ID: '',
                     commission: '',
                 },
+                config: {}
             };
             const html = String.raw;
-            ApiUser.getPublicConfig(key, 'manager').then((dd) => {
+            function save_shopee() {
+                ApiUser.setPublicConfig({
+                    key: 'shopp_config',
+                    value: vm.config,
+                    user_id: 'manager'
+                });
+            }
+            Promise.all([ApiUser.getPublicConfig(key, 'manager'), ApiUser.getPublicConfig('shopp_config', 'manager')]).then((dd) => {
+                var _a;
                 vm.loading = false;
-                dd.response.value && (vm.data = dd.response.value);
+                dd[0].response.value && (vm.data = dd[0].response.value);
+                vm.config = dd[1].response.value;
+                vm.config.auto_async = (_a = vm.config.auto_async) !== null && _a !== void 0 ? _a : true;
                 gvc.notifyDataChange(id);
             });
-            gvc.addStyle(html `
+            gvc.addStyle(css `
                         .shopee-btn {
                         background-color: #FB5533; /* 主橙色 */
                         color: #FFFFFF; /* 白色文字 */
@@ -73,9 +86,27 @@ export class MarketShopee {
                         BgWidget.mbContainer(18),
                         BgWidget.mainCard(html `
                                     <div class="d-flex flex-column" style="gap:12px;">
-                                        <div class="tx_700">商店授權</div>
+                                        <div class="tx_700 d-flex align-items-center" style="gap:5px;">當前商店授權狀態
+                                            ${gvc.bindView(() => {
+                            const id = gvc.glitter.getUUID();
+                            return {
+                                bind: id,
+                                view: () => __awaiter(this, void 0, void 0, function* () {
+                                    const access_token = yield ApiPageConfig.getPrivateConfig(window.parent.appName, 'shopee_access_token');
+                                    if (access_token.response.result[0] && access_token.response.result[0].value.access_token) {
+                                        let dead_line = new Date(access_token.response.result[0]['updated_at']);
+                                        dead_line.setTime(dead_line.getTime() + 30 * 3600 * 24 * 1000);
+                                        return BgWidget.infoInsignia(`已授權至 ${gvc.glitter.ut.dateFormat(dead_line, 'yyyy-MM-dd')}`);
+                                    }
+                                    else {
+                                        return BgWidget.warningInsignia('尚未授權');
+                                    }
+                                })
+                            };
+                        })}
+                                        </div>
                                         <div>
-                                            為了啟用蝦皮相關服務，請點擊下方按鈕進行授權操作。完成授權後，您將可以正常使用所有功能。
+                                            為了啟用蝦皮相關服務，請點擊下方按鈕進行授權操作，蝦皮授權有效期限為30天，請定期前往此頁面刷新有效期限。
                                         </div>
                                     </div>
                                     <button class="shopee-btn mt-3" onclick="${gvc.event(() => {
@@ -83,12 +114,52 @@ export class MarketShopee {
                             ApiShopee.generateAuth(window.parent.location.href);
                         })}">授權蝦皮
                                     </button>
-                                    <button class="shopee-btn mt-3" onclick="${gvc.event(() => {
-                            const today = new Date().toISOString().split('T')[0];
-                            let startDate = today;
-                            let endDate = today;
-                            gvc.glitter.innerDialog((gvc) => {
-                                gvc.addStyle(html `
+                                    <button id="" class="shopee-btn mt-3 d-none"
+                                            onclick="${gvc.event(() => {
+                            const dialog = new ShareDialog(gvc.glitter);
+                            dialog.dataLoading({
+                                visible: true
+                            });
+                            ApiShopee.syncProduct((res) => {
+                                dialog.dataLoading({
+                                    visible: false
+                                });
+                                console.log("res -- ", res);
+                            });
+                        })}">同步商品庫存
+                                    </button>
+                                `),
+                        BgWidget.mbContainer(18),
+                        BgWidget.mainCard(html `
+                                    ${gvc.bindView(() => {
+                            const id = gvc.glitter.getUUID();
+                            let loading = false;
+                            let first = true;
+                            function reload() {
+                                gvc.notifyDataChange(id);
+                            }
+                            return {
+                                bind: id,
+                                view: () => __awaiter(this, void 0, void 0, function* () {
+                                    if (first) {
+                                        loading = (yield ApiShopee.syncStatus()).response.result;
+                                        first = false;
+                                    }
+                                    return [
+                                        html `
+                                                        <div class="tx_700 d-flex flex-column">匯入蝦皮商品
+                                                        </div>
+                                                        ${BgWidget.grayNote('如要同步蝦皮商品庫存，請先匯入蝦皮商品。')}
+                                                       <div>
+                                                           ${loading ? BgWidget.grayButton(`<div class="d-flex align-items-center" style="gap:8px;">
+ <div class="spinner-border spinner" style="width:20px;height: 20px;"></div>同步中請稍候...
+</div>`, gvc.event(() => { })) : ``}
+                                                           <button class="shopee-btn ${loading ? `d-none` : ``}" onclick="${gvc.event(() => {
+                                            const today = new Date().toISOString().split('T')[0];
+                                            let startDate = today;
+                                            let endDate = today;
+                                            gvc.glitter.innerDialog((gvc) => {
+                                                gvc.addStyle(html `
 
                                                 /* 外部容器 */
                                                 .shopee-sync {
@@ -165,74 +236,66 @@ export class MarketShopee {
                                                 .shopee-sync {
                                                 width: 90%;
                                                 }
-                                                }
-
-                                            `);
-                                return html `
+                                                } `);
+                                                return html `
                                                 <div id="date-sync"
                                                      style="position:relative;background: #fff;border: 1px solid #e0e0e0;border-radius: 8px;box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);padding: 20px;width: 300px;text-align: center;">
                                                     <i
                                                             class="fa-regular fa-circle-xmark fs-5 text-dark cursor_pointer"
                                                             style="position: absolute;right: 5px; top: 5px;"
                                                             onclick="${gvc.event(() => {
-                                    gvc.closeDialog();
-                                })}"
+                                                    gvc.closeDialog();
+                                                })}"
                                                     ></i>
                                                     <div class="sync-header">選擇同步商品的日期區間</div>
                                                     <div class="sync-body">
                                                         <label for="start-date">開始日期：</label>
                                                         <input type="date" id="start-date" value="${startDate}"
                                                                class="sync-input" onchange="${gvc.event((e) => {
-                                    startDate = e.value;
-                                })}"/>
-
+                                                    startDate = e.value;
+                                                })}"/>
                                                         <label for="end-date">結束日期：</label>
                                                         <input type="date" id="end-date" value="${endDate}"
                                                                class="sync-input" onchange="${gvc.event((e) => {
-                                    if (new Date(startDate) > new Date(endDate)) {
-                                        alert('開始日期不能晚於結束日期');
-                                        return;
-                                    }
-                                    endDate = e.value;
-                                })}"/>
-
+                                                    if (new Date(startDate) > new Date(endDate)) {
+                                                        alert('開始日期不能晚於結束日期');
+                                                        return;
+                                                    }
+                                                    endDate = e.value;
+                                                })}"/>
                                                     </div>
-
                                                     <button id="confirm-btn" class="sync-button"
                                                             onclick="${gvc.event(() => {
-                                    const startTime = Math.floor(new Date(startDate).getTime() / 1000);
-                                    const endTime = Math.floor(new Date(endDate).getTime() / 1000);
-                                    const dialog = new ShareDialog(gvc.glitter);
-                                    dialog.dataLoading({
-                                        text: "資料匯入中",
-                                        visible: true
-                                    });
-                                    ApiShopee.getItemList(startTime, endTime, (response) => {
-                                        dialog.dataLoading({
-                                            text: "資料匯入中",
-                                            visible: false
-                                        });
-                                        if (response.type == "error") {
-                                            dialog.infoMessage({
-                                                text: `error:${response.message}`
-                                            });
-                                        }
-                                        else {
-                                            dialog.infoMessage({
-                                                text: `匯入完成`
-                                            });
-                                            gvc.closeDialog();
-                                        }
-                                    });
-                                })}">確定
+                                                    const startTime = Math.floor(new Date(startDate).getTime() / 1000);
+                                                    const endTime = Math.floor(new Date(endDate).getTime() / 1000);
+                                                    ApiShopee.getItemList(startTime, endTime, (response) => { });
+                                                    gvc.closeDialog();
+                                                    loading = true;
+                                                    reload();
+                                                })}">確定
                                                     </button>
-                                                    
                                                 </div>
                                             `;
-                            }, 'sync');
-                        })}">同步商品
-                                    </button>
-                                    <button id="" class="shopee-btn mt-3"
+                                            }, 'sync');
+                                        })}">匯入商品
+                                                           </button>
+                                                       </div>
+                                                    `
+                                    ].join('');
+                                }),
+                                divCreate: {
+                                    class: `d-flex flex-column`, style: 'gap:8px;'
+                                }, onCreate: () => {
+                                    ApiShopee.syncStatus().then((res) => {
+                                        loading = res.response.result;
+                                        setTimeout(() => {
+                                            gvc.notifyDataChange(id);
+                                        }, 1000);
+                                    });
+                                }
+                            };
+                        })}
+                                    <button id="" class="shopee-btn mt-3 d-none"
                                             onclick="${gvc.event(() => {
                             const dialog = new ShareDialog(gvc.glitter);
                             dialog.dataLoading({
@@ -247,23 +310,6 @@ export class MarketShopee {
                         })}">同步商品庫存
                                     </button>
                                 `),
-                        BgWidget.mbContainer(18),
-                        html `
-                                    <div class="update-bar-container">
-                                        ${BgWidget.save(gvc.event(() => __awaiter(this, void 0, void 0, function* () {
-                            const dialog = new ShareDialog(gvc.glitter);
-                            dialog.dataLoading({ visible: true });
-                            ApiUser.setPublicConfig({
-                                key: key,
-                                value: vm.data,
-                                user_id: 'manager',
-                            }).then(() => {
-                                dialog.dataLoading({ visible: false });
-                                dialog.successMessage({ text: '設定成功' });
-                                gvc.closeDialog();
-                            });
-                        })))}
-                                    </div>`,
                     ].join('');
                 },
             };

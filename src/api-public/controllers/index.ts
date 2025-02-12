@@ -71,6 +71,8 @@ const whiteList: {}[] = [
     { url: config.getRoute(config.public_route.shopee, 'public'), method: 'POST' },
     { url: config.getRoute(config.public_route.shopee + '/listenMessage', 'public'), method: 'POST' },
     { url: config.getRoute(config.public_route.shopee + '/listenMessage', 'public'), method: 'GET' },
+    { url: config.getRoute(config.public_route.shopee+'/stock-hook', 'public'), method: 'GET' },
+    { url: config.getRoute(config.public_route.shopee+'/stock-hook', 'public'), method: 'POST' },
     { url: config.getRoute(config.public_route.line_message + '/listenMessage', 'public'), method: 'POST' },
     { url: config.getRoute(config.public_route.fb_message + '/listenMessage', 'public'), method: 'GET' },
     { url: config.getRoute(config.public_route.fb_message + '/listenMessage', 'public'), method: 'POST' },
@@ -146,6 +148,7 @@ const whiteList: {}[] = [
     { url: config.getRoute(config.public_route.graph_api, 'public'), method: 'PATCH' },
     { url: config.getRoute(config.public_route.ai_chat + '/ask-order', 'public'), method: 'GET' },
     { url: config.getRoute(config.public_route.ai_chat + '/search-product', 'public'), method: 'POST' },
+
 ];
 
 async function doAuthAction(req: express.Request, resp: express.Response, next_step: express.NextFunction) {

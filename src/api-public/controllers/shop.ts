@@ -973,6 +973,7 @@ router.get('/product', async (req: express.Request, resp: express.Response) => {
             language: req.headers['language'] as string,
             currency_code: req.headers['currency_code'] as string,
         });
+
         return response.succ(resp, shopping);
     } catch (err) {
         return response.fail(resp, err);

@@ -69,6 +69,8 @@ const whiteList = [
     { url: config_1.config.getRoute(config_1.config.public_route.shopee, 'public'), method: 'POST' },
     { url: config_1.config.getRoute(config_1.config.public_route.shopee + '/listenMessage', 'public'), method: 'POST' },
     { url: config_1.config.getRoute(config_1.config.public_route.shopee + '/listenMessage', 'public'), method: 'GET' },
+    { url: config_1.config.getRoute(config_1.config.public_route.shopee + '/stock-hook', 'public'), method: 'GET' },
+    { url: config_1.config.getRoute(config_1.config.public_route.shopee + '/stock-hook', 'public'), method: 'POST' },
     { url: config_1.config.getRoute(config_1.config.public_route.line_message + '/listenMessage', 'public'), method: 'POST' },
     { url: config_1.config.getRoute(config_1.config.public_route.fb_message + '/listenMessage', 'public'), method: 'GET' },
     { url: config_1.config.getRoute(config_1.config.public_route.fb_message + '/listenMessage', 'public'), method: 'POST' },

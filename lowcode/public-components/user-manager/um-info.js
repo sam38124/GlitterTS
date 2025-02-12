@@ -243,9 +243,10 @@ export class UMInfo {
                             const update_userData = JSON.parse(JSON.stringify(vm.data.userData));
                             ApiUser.getPublicConfig('custom_form_register', 'manager').then((res) => {
                                 ApiUser.getPublicConfig('login_config', 'manager').then((data) => {
-                                    var _a, _b;
+                                    var _a, _b, _c;
                                     vm_info.login_config = (_a = data.response.value) !== null && _a !== void 0 ? _a : {};
                                     vm_info.list = ((_b = res.response.value) !== null && _b !== void 0 ? _b : { list: [] }).list;
+                                    vm_info.list = (_c = vm_info.list) !== null && _c !== void 0 ? _c : [];
                                     vm_info.form_array = FormCheck.initialRegisterForm(vm_info.list).filter((dd) => {
                                         return !dd.hidden;
                                     });

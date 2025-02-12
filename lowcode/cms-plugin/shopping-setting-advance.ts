@@ -274,39 +274,6 @@ export class ShoppingSettingAdvance {
                                     </div>`
                                 ].join('')
                             ),
-                            gvc.bindView({
-                                bind: "",
-                                view: () => {
-                                    if (postMD.shopee_id) {
-                                        postMD.sync_shopee_stock = postMD.sync_shopee_stock ?? true;
-                                        console.log("postMD.shopee_id -- ", postMD.shopee_id)
-                                        return BgWidget.mainCard(
-                                            [
-                                                html`
-                                                    <div style="font-weight: 700;margin-bottom: 8px;" class="">
-                                                       庫存與蝦皮同步
-                                                    </div>
-                                                    <div class="cursor_pointer form-check form-switch m-0 p-0"
-                                                         style="margin-top: 10px;">
-                                                        <input
-                                                                class="form-check-input m-0"
-                                                                type="checkbox"
-                                                                onchange="${gvc.event((e, event) => {
-                                                                    postMD.sync_shopee_stock = !postMD.sync_shopee_stock;
-                                                                    console.log(postMD.sync_shopee_stock)
-
-                                                                })}"
-                                                                ${postMD.sync_shopee_stock?"checked":""}
-
-                                                        />
-                                                    </div>
-                                                `
-                                            ].join()
-                                        )
-                                    }
-                                    return ``
-                                }, divCreate: {}
-                            }),
                             BgWidget.mainCard(
                                 [
                                     html`

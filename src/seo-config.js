@@ -117,7 +117,7 @@ class SeoConfig {
         const relative_product = await new shopping_js_1.Shopping(app_name, undefined).getProduct({
             page: 0,
             limit: 100,
-            id_list: ((_a = pd_content.relative_product) !== null && _a !== void 0 ? _a : []).join(',')
+            id_list: [-99].concat(((_a = pd_content.relative_product) !== null && _a !== void 0 ? _a : [])).join(',')
         });
         const variant = pd_content.variants[0];
         let preview_image = [variant.preview_image].concat(pd_content.preview_image).filter((dd) => {

@@ -1143,7 +1143,12 @@ export class ShoppingSettingBasic {
                     };
                 })),
                 postMD.variants.length > 1
-                    ? BgWidget.mainCard(html ` <div style="font-size: 16px;font-weight: 700;color:#393939;margin-bottom: 18px;">規格設定</div>` +
+                    ? BgWidget.mainCard(html ` <div style="font-size: 16px;font-weight: 700;color:#393939;${postMD.shopee_id ? `` : `margin-bottom: 18px;`}">規格設定</div>
+                              <div class="w-100 ${postMD.shopee_id ? `` : `d-none`}"
+                                   style="font-size: 14px;font-weight: 400;color: #8D8D8D;margin-bottom: 18px;">
+                                  此商品來源為蝦皮電商平台，將自動同步蝦皮庫存
+                              </div>
+                              ` +
                         obj.gvc.bindView(() => {
                             var _a;
                             function getPreviewImage(img) {
@@ -2655,7 +2660,12 @@ ${(_b = language_data.seo.content) !== null && _b !== void 0 ? _b : ''}</textare
                     { key: 'pos', name: 'POS' },
                 ], (_b = postMD.channel) !== null && _b !== void 0 ? _b : [], (text) => {
                     postMD.channel = text;
-                }, { single: false })}`),
+                }, { single: false })}
+                            <div class="d-flex align-items-center mt-1" style="gap:6px;">
+                                <img src="https://deo.shopeemobile.com/shopee/shopee-mobilemall-live-sg/assets/icon_favicon_1_32.0Wecxv.png" style="width:20px;height:20px;"></img>
+                                蝦皮賣場
+                            </div>
+                            `),
                 BgWidget.mainCard(html ` <div class="mb-2 position-relative" style="font-weight: 700;">
                                     ${cat_title}促銷標籤
                                     ${BgWidget.questionButton(gvc.event(() => {

@@ -169,11 +169,11 @@ export class Shopee {
             } else {
                 await db.execute(`
                             UPDATE \`${saasConfig.SAAS_NAME}\`.\`private_config\`
-                            SET \`value\` = ?
+                            SET \`value\` = ? , updated_at=?
                             where \`app_name\` = '${this.app}'
                               and \`key\` = 'shopee_access_token'
                     `
-                    , [passData])
+                    , [passData,new Date()])
             }
         } catch (error: any) {
             if (axios.isAxiosError(error) && error.response) {
@@ -184,10 +184,12 @@ export class Shopee {
         }
     }
 
+    public static getItemProgress:string[]=[]
     public async getItemList(start: string, end: string, index: number = 0) {
         const timestamp = Math.floor(Date.now() / 1000);
         const partner_id = Shopee.partner_id??"";
         const api_path = "/api/v2/product/get_item_list";
+        await this.fetchShopeeAccessToken();
         const data = (await db.execute(
             `select *
              from \`${saasConfig.SAAS_NAME}\`.private_config
@@ -215,7 +217,6 @@ export class Shopee {
             paramsSerializer: (params: any) => qs.stringify(params, {arrayFormat: 'repeat'}),
         };
         try {
-
             const response = await axios(config);
             if (response.data.error.length > 0) {
                 return {
@@ -232,17 +233,16 @@ export class Shopee {
             const productData = await Promise.all(
                 itemList.map(async (item, index: number) => {
                     try {
-                        const productData = await db.query(`SELECT count(1)
+                        const pd_data = (await db.query(`SELECT count(1)
                                                             FROM ${this.app}.t_manager_post
                                                             WHERE (content ->>'$.type'='product')
-                                                              AND (content ->>'$.shopee_id' =?);`, [item.item_id])
-                        if (productData[0]['count(1)'] > 0) {
+                                                              AND (content ->>'$.shopee_id' = ${item.item_id});`, []))
+                        if (pd_data[0]['count(1)'] > 0) {
                             return null
                         } else {
                             return await this.getProductDetail(item.item_id); // 返回上傳後的資料
                         }
                     } catch (error) {
-                        console.error('下載或上傳失敗:', error);
                         return null; // 返回 null 以處理失敗的情況
                     }
                 })
@@ -252,7 +252,6 @@ export class Shopee {
                 return dd
             });
             temp.collection = [];
-
             try {
                 await new Shopping(this.app, this.token).postMulProduct(temp);
                 if (response.data.response.has_next_page) {
@@ -292,9 +291,11 @@ export class Shopee {
         }
     }
 
-    public async getProductDetail(id: number) {
+    public async getProductDetail(id: number,option?:{
+        skip_image_load:boolean
+    }) {
         const that = this
-
+        const token=await this.fetchShopeeAccessToken()
         async function getModel(postMD: {
             template: string;
             visible: string;
@@ -329,26 +330,25 @@ export class Shopee {
             productType: { product: boolean; addProduct: boolean; giveaway: boolean };
             content_json: any[];
             status: string
-        }, origData: any) {
+        }) {
             const timestamp = Math.floor(Date.now() / 1000);
             const partner_id = Shopee.partner_id ?? "";
             const api_path = "/api/v2/product/get_model_list";
             const config = {
                 method: 'get',
-                url: that.generateShopUrl(partner_id, api_path, timestamp, data[0].value.access_token, parseInt(data[0].value.shop_id)),
+                url: that.generateShopUrl(partner_id, api_path, timestamp, token.access_token, parseInt(token.shop_id)),
                 headers: {
                     'Content-Type': 'application/json',
                 },
                 params: {
-                    shop_id: parseInt(data[0].value.shop_id),
-                    access_token: data[0].value.access_token,
+                    shop_id: parseInt(token.shop_id),
+                    access_token: token.access_token,
                     item_id: id
                 },
             };
             try {
                 const response = await axios(config);
                 let tempVariants: Variant[] = [];
-
                 const tier_variation = response.data.response.tier_variation;
                 const model = response.data.response.model;
                 const specs: {
@@ -390,10 +390,10 @@ export class Shopee {
                         cost: 0,
                         spec: data.model_name.split(','),
                         profit: 0,
-                        v_length: origData?.dimension?.package_length ?? 0,
-                        v_width: origData?.dimension?.package_width ?? 0,
-                        v_height: origData?.dimension?.package_height ?? 0,
-                        weight: origData?.weight,
+                        v_length:  0,
+                        v_width:  0,
+                        v_height: 0,
+                        weight: 0,
                         shipment_type: 'none',
                         sku: data.model_sku,
                         barcode: "",
@@ -403,7 +403,7 @@ export class Shopee {
                         show_understocking: "true",
                         type: "product",
                     }
-                    if (data?.image?.image_url_list.length > 0) {
+                    if (!(option && option.skip_image_load) && (data?.image?.image_url_list.length > 0)) {
                         try {
                             const imageUrl = data.image.image_url_list[0]; // 取得第一個圖片的 URL
                             if (imageUrl) {
@@ -436,20 +436,7 @@ export class Shopee {
             }
         }
 
-        let data: any;
-        try {
-            const sqlData = (await db.execute(
-                `select *
-                 from \`${saasConfig.SAAS_NAME}\`.private_config
-                 where \`app_name\` = '${this.app}'
-                   and \`key\` = 'shopee_access_token'
-                `,
-                []
-            ));
-            data = sqlData
-        } catch (e: any) {
-            console.log("get private_config shopee_access_token error : ", e);
-        }
+
 
 
         const timestamp = Math.floor(Date.now() / 1000);
@@ -457,13 +444,13 @@ export class Shopee {
         const api_path = "/api/v2/product/get_item_base_info";
         const config = {
             method: 'get',
-            url: this.generateShopUrl(partner_id, api_path, timestamp, data[0].value.access_token, parseInt(data[0].value.shop_id)),
+            url: this.generateShopUrl(partner_id, api_path, timestamp, token.access_token, parseInt(token.shop_id)),
             headers: {
                 'Content-Type': 'application/json',
             },
             params: {
-                shop_id: parseInt(data[0].value.shop_id),
-                access_token: data[0].value.access_token,
+                shop_id: parseInt(token.shop_id),
+                access_token: token.access_token,
                 item_id_list: id
             },
 
@@ -531,7 +518,7 @@ export class Shopee {
             if (item.description_info && item.description_info.extended_description.field_list.length > 0) {
                 let temp = ``;
                 const promises = item.description_info.extended_description.field_list.map(async (item1: any) => {
-                    if (item1.field_type == 'image') {
+                    if (item1.field_type == 'image' && !(option && option.skip_image_load)) {
                         try {
                             const buffer = await this.downloadImage(item1.image_info.image_url);
                             const fileExtension = "jpg";
@@ -547,7 +534,7 @@ export class Shopee {
                 await Promise.all(promises);
                 if(item.description_info && item.description_info.extended_description){
                     item.description_info.extended_description.field_list.map((item: any) => {
-                        if (item.field_type == 'image') {
+                        if (item.field_type == 'image' && !(option && option.skip_image_load)) {
                             temp += html`
                             <div style="white-space: pre-wrap;"><img src="${item.image_info.s3}"
                                                                      alt='${item.image_info.image_id}'></div>`
@@ -586,9 +573,9 @@ export class Shopee {
                 postMD.variants.push(newVariants);
             } else {
                 //多規格
-                await getModel(postMD, data);
+                await getModel(postMD);
             }
-            if (item.image.image_url_list.length > 0) {
+            if (item.image.image_url_list.length > 0 && !(option && option.skip_image_load)) {
                 postMD.preview_image = await Promise.all(
                     item.image.image_url_list.map(async (imageUrl: string, index: number) => {
                         try {
@@ -619,10 +606,16 @@ export class Shopee {
     }
     public async asyncStockToShopee(obj:{
         product:any,
-        access_token:string,
-        shop_id:string
+        access_token?:string,
+        shop_id?:string
         callback:(response?:any)=>void
     }){
+        console.log(`asyncStockToShopee===>`)
+        if(!obj.access_token || !obj.shop_id){
+            const access = await new Shopee(this.app , this.token).fetchShopeeAccessToken();
+            obj.access_token=access.access_token
+            obj.shop_id=access.shop_id
+        }
         if (!obj.product.content.shopee_id){
             //沒有shopee_id的話直接回去
             obj.callback();
@@ -641,12 +634,12 @@ export class Shopee {
 
         const config = {
             method: 'get',
-            url: this.generateShopUrl(partner_id, api_path, timestamp, obj.access_token, parseInt(obj.shop_id)),
+            url: this.generateShopUrl(partner_id, api_path, timestamp, obj.access_token!!, parseInt(obj.shop_id!!)),
             headers: {
                 'Content-Type': 'application/json',
             },
             params: {
-                shop_id: parseInt(obj.shop_id),
+                shop_id: parseInt(obj.shop_id!!),
                 access_token: obj.access_token,
                 item_id: obj.product.content.shopee_id
             },
@@ -677,9 +670,9 @@ export class Shopee {
             // 同步這個商品的庫存
             const updateConfig = {
                 method: 'post',
-                url: this.generateShopUrl(partner_id, "/api/v2/product/update_stock", timestamp, obj.access_token, parseInt(obj.shop_id)),
+                url: this.generateShopUrl(partner_id, "/api/v2/product/update_stock", timestamp, obj.access_token!!, parseInt(obj.shop_id!!)),
                 params: {
-                    shop_id: parseInt(obj.shop_id),
+                    shop_id: parseInt(obj.shop_id!!),
                     access_token: obj.access_token,
                 },
                 headers: {
@@ -689,6 +682,8 @@ export class Shopee {
             };
             try {
                 const response = await axios(updateConfig);
+                console.log(`update_stock`,JSON.stringify(basicData))
+                console.log(`update_stock`,response.data)
                 obj.callback(response.data);
             } catch (error: any) {
                 if (axios.isAxiosError(error) && error.response) {
@@ -756,9 +751,10 @@ export class Shopee {
 
             const obj: any = {};
             obj.accessToken = sqlData;
-            //如果他過期了 刷新
-            if (Date.now() >= new Date(sqlData[0].value.expires_at).getTime()){
-                const partner_id = Shopee.partner_id ?? "";
+            //如果超過4小時，代表過期了需要刷新
+            if (new Date().getTime() >= (new Date(sqlData[0].updated_at).getTime() + (3.9 * 3600 * 1000))){
+                console.log(`確認要刷新token`)
+                const partner_id = Shopee.partner_id!!;
                 const api_path = "/api/v2/auth/access_token/get";
                 const timestamp = Math.floor(Date.now() / 1000);
                 const config = {
@@ -778,10 +774,10 @@ export class Shopee {
                     try {
                         await db.execute(`
                         UPDATE \`${saasConfig.SAAS_NAME}\`.\`private_config\`
-                        SET \`value\` = ?
+                        SET \`value\` = ? , updated_at = ?
                         where \`app_name\` = '${this.app}'
                           and \`key\` = 'shopee_access_token'
-                    `, [response.data])
+                    `, [response.data,new Date()])
                         return response.data
                     }catch (e:any){
                         console.error("refresh private_config shopee_access_token error : ", e.data);

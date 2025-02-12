@@ -20,6 +20,7 @@ export declare class Shopee {
     private cryptoSign;
     generateAuth(redirectUrl: string): string;
     getToken(code: string, shop_id: string): Promise<void>;
+    static getItemProgress: string[];
     getItemList(start: string, end: string, index?: number): Promise<{
         type: string;
         message: any;
@@ -41,7 +42,9 @@ export declare class Shopee {
         message: any;
         data?: undefined;
     } | undefined>;
-    getProductDetail(id: number): Promise<{
+    getProductDetail(id: number, option?: {
+        skip_image_load: boolean;
+    }): Promise<{
         template: string;
         visible: string;
         preview_image: any[];
@@ -105,8 +108,8 @@ export declare class Shopee {
     } | undefined>;
     asyncStockToShopee(obj: {
         product: any;
-        access_token: string;
-        shop_id: string;
+        access_token?: string;
+        shop_id?: string;
         callback: (response?: any) => void;
     }): Promise<void>;
     asyncStockFromShopnex(): Promise<any>;

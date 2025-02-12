@@ -4,6 +4,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 const express_1 = __importDefault(require("express"));
 const response_1 = __importDefault(require("../../modules/response"));
+const exception_1 = __importDefault(require("../../modules/exception"));
 const ut_permission_js_1 = require("../utils/ut-permission.js");
 const shopee_1 = require("../services/shopee");
 const router = express_1.default.Router();
@@ -36,11 +37,33 @@ router.post('/getToken', async (req, resp) => {
         return response_1.default.fail(resp, err);
     }
 });
+router.get('/sync-status', async (req, resp) => {
+    return response_1.default.succ(resp, {
+        result: shopee_1.Shopee.getItemProgress.find((dd) => {
+            return dd === req.get('g-app');
+        }) !== undefined
+    });
+});
 router.post('/getItemList', async (req, resp) => {
     try {
         if (await ut_permission_js_1.UtPermission.isManager(req)) {
-            const itemList = await new shopee_1.Shopee(req.get('g-app'), req.body.token).getItemList(req.body.start, req.body.end);
-            return response_1.default.succ(resp, itemList);
+            shopee_1.Shopee.getItemProgress.push(req.get('g-app'));
+            const itemList = new shopee_1.Shopee(req.get('g-app'), req.body.token).getItemList(req.body.start, req.body.end);
+            itemList.then(() => {
+                shopee_1.Shopee.getItemProgress = shopee_1.Shopee.getItemProgress.filter((dd) => {
+                    return dd !== req.get('g-app');
+                });
+            }).catch(() => {
+                shopee_1.Shopee.getItemProgress = shopee_1.Shopee.getItemProgress.filter((dd) => {
+                    return dd !== req.get('g-app');
+                });
+            });
+            return response_1.default.succ(resp, {
+                result: true
+            });
+        }
+        else {
+            throw exception_1.default.BadRequestError('BAD_REQUEST', 'No permission.', null);
         }
     }
     catch (err) {
@@ -68,6 +91,21 @@ router.post('/syncStock', async (req, resp) => {
     catch (err) {
         return response_1.default.fail(resp, err);
     }
+});
+['post', 'get'].map((dd) => {
+    router[dd]('/stock-hook', async (req, resp) => {
+        try {
+            console.log(`stock-hook-body===>`, req.body);
+            console.log(`stock-hook-query===>`, req.query);
+            return response_1.default.succ(resp, {
+                "result": "OK",
+                "response": {}
+            });
+        }
+        catch (err) {
+            return response_1.default.fail(resp, err);
+        }
+    });
 });
 module.exports = router;
 //# sourceMappingURL=shopee.js.map

@@ -349,6 +349,7 @@ export class UMInfo {
                                             ApiUser.getPublicConfig('login_config', 'manager').then((data) => {
                                                 vm_info.login_config = data.response.value ?? {};
                                                 vm_info.list = (res.response.value ?? { list: [] }).list;
+                                                vm_info.list=vm_info.list??[]
                                                 vm_info.form_array = FormCheck.initialRegisterForm(vm_info.list).filter((dd: any) => {
                                                     return !dd.hidden;
                                                 });

@@ -496,12 +496,17 @@ ${((dd.real) - (last_m + dd.payment) === 0) ? '$0' : `<span class="text-danger">
                     (window.parent as any).glitter.share.member_auth_list=gvc.glitter.share.member_auth_list;
                     const store = store_d.response.value.list ?? [];
                     console.log(`store.response.value`, store)
-                    POSSetting.config.where_store = store.find((dd: any) => {
-                        return dd.is_shop
-                    }).id;
                     store_list = store.filter((dd: any) => {
                         return dd.is_shop
                     });
+                    if(!store_list.length){
+                        vm.loading=true
+                        gvc.notifyDataChange(init_id)
+                        return
+                    }
+                    POSSetting.config.where_store = store.find((dd: any) => {
+                        return dd.is_shop
+                    }).id;
                     vm.loading=true
                     gvc.notifyDataChange(init_id)
                 }
@@ -513,6 +518,9 @@ ${((dd.real) - (last_m + dd.payment) === 0) ? '$0' : `<span class="text-danger">
                 view: () => {
                     if(!vm.loading){
                         return  BgWidget.spinner()
+                    }
+                    if(!store_list.length){
+                        return `<div class="mt-5">${BgWidget.warningInsignia('尚未設定任何門市，請先前往門市設定新增門市。')}</div>`
                     }
                     return BgWidget.container(html`
                         <div class="title-container ${PosSummary.in_pos() ? `mb-4`:''}">

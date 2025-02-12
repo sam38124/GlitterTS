@@ -60,8 +60,9 @@ class Shopping {
         this.token = token;
     }
     async getProduct(query) {
-        var _a, _b, _c, _d, _e, _f;
+        var _a, _b, _c, _d, _e;
         try {
+            const start = new Date().getTime();
             const userClass = new user_js_1.User(this.app);
             const userID = this.token ? `${this.token.userID}` : '';
             const store_info = await userClass.getConfigV2({
@@ -310,47 +311,71 @@ class Shopping {
                     return dd;
                 });
             }
-            for (const product of Array.isArray(products.data) ? products.data : [products.data]) {
-                if (!product)
-                    continue;
-                let totalSale = 0;
-                const { language } = query;
-                const { content } = product;
-                if (language && ((_c = content === null || content === void 0 ? void 0 : content.language_data) === null || _c === void 0 ? void 0 : _c[language])) {
-                    const langData = content.language_data[language];
-                    Object.assign(content, {
-                        seo: langData.seo,
-                        title: langData.title || content.title,
-                        content: langData.content || content.content,
-                        content_array: langData.content_array || content.content_array,
-                        content_json: langData.content_json || content.content_json,
-                        preview_image: langData.preview_image || content.preview_image,
-                    });
-                    (content.variants || []).forEach((variant) => {
-                        var _a;
-                        variant.stock = 0;
-                        variant.sold_out = variant.sold_out || 0;
-                        variant.preview_image = variant[`preview_image_${language}`] || variant.preview_image;
-                        if (variant.preview_image === 'https://d3jnmi1tfjgtti.cloudfront.net/file/234285319/1722936949034-default_image.jpg') {
-                            variant.preview_image = (_a = content.preview_image) === null || _a === void 0 ? void 0 : _a[0];
+            console.log(`get-product-sql-finish`, (new Date().getTime() - start) / 1000);
+            await Promise.all((Array.isArray(products.data) ? products.data : [products.data]).map((product) => {
+                return new Promise(async (resolve, reject) => {
+                    var _a;
+                    if (product) {
+                        let totalSale = 0;
+                        const { language } = query;
+                        const { content } = product;
+                        if (language && ((_a = content === null || content === void 0 ? void 0 : content.language_data) === null || _a === void 0 ? void 0 : _a[language])) {
+                            const langData = content.language_data[language];
+                            Object.assign(content, {
+                                seo: langData.seo,
+                                title: langData.title || content.title,
+                                content: langData.content || content.content,
+                                content_array: langData.content_array || content.content_array,
+                                content_json: langData.content_json || content.content_json,
+                                preview_image: langData.preview_image || content.preview_image,
+                            });
+                            (content.variants || []).forEach((variant) => {
+                                var _a;
+                                variant.stock = 0;
+                                variant.sold_out = variant.sold_out || 0;
+                                variant.preview_image = variant[`preview_image_${language}`] || variant.preview_image;
+                                if (variant.preview_image === 'https://d3jnmi1tfjgtti.cloudfront.net/file/234285319/1722936949034-default_image.jpg') {
+                                    variant.preview_image = (_a = content.preview_image) === null || _a === void 0 ? void 0 : _a[0];
+                                }
+                                Object.entries(variant.stockList || {}).forEach(([storeId, stockData]) => {
+                                    if (!store_config.list.some((store) => store.id === storeId) || !(stockData === null || stockData === void 0 ? void 0 : stockData.count)) {
+                                        delete variant.stockList[storeId];
+                                    }
+                                    else {
+                                        variant.stockList[storeId].count = parseInt(stockData.count, 10);
+                                        variant.stock += variant.stockList[storeId].count;
+                                    }
+                                });
+                                store_config.list.forEach((store) => {
+                                    variant.stockList[store.id] = variant.stockList[store.id] || { count: 0 };
+                                });
+                                totalSale += variant.sold_out;
+                            });
                         }
-                        Object.entries(variant.stockList || {}).forEach(([storeId, stockData]) => {
-                            if (!store_config.list.some((store) => store.id === storeId) || !(stockData === null || stockData === void 0 ? void 0 : stockData.count)) {
-                                delete variant.stockList[storeId];
+                        if (content.shopee_id && !query.skip_shopee_check) {
+                            const shopee_data = await new shopee_1.Shopee(this.app, this.token).getProductDetail(content.shopee_id, {
+                                skip_image_load: true
+                            });
+                            if (shopee_data && shopee_data.variants) {
+                                console.log(`get-shopee_data-success`);
+                                (content.variants || []).forEach((variant) => {
+                                    const shopee_variants = shopee_data.variants.find((dd) => {
+                                        return dd.spec.join('') === variant.spec.join('');
+                                    });
+                                    if (shopee_variants) {
+                                        variant.stock = shopee_variants.stock;
+                                        variant.stockList = {};
+                                        variant.stockList[store_config.list[0].id] = { count: variant.stock };
+                                    }
+                                });
                             }
-                            else {
-                                variant.stockList[storeId].count = parseInt(stockData.count, 10);
-                                variant.stock += variant.stockList[storeId].count;
-                            }
-                        });
-                        store_config.list.forEach((store) => {
-                            variant.stockList[store.id] = variant.stockList[store.id] || { count: 0 };
-                        });
-                        totalSale += variant.sold_out;
-                    });
-                }
-                product.total_sales = totalSale;
-            }
+                        }
+                        product.total_sales = totalSale;
+                    }
+                    resolve(true);
+                });
+            }));
+            console.log(`get-product-shopee-finish`, (new Date().getTime() - start) / 1000);
             if (query.domain && products.data.length > 0) {
                 const decodedDomain = decodeURIComponent(query.domain);
                 const foundProduct = products.data.find((dd) => {
@@ -367,11 +392,12 @@ class Shopping {
             if ((query.domain || query.id) && products.data !== undefined) {
                 products.data.json_ld = await seo_config_js_1.SeoConfig.getProductJsonLd(this.app, products.data.content);
             }
-            const viewSource = (_d = query.view_source) !== null && _d !== void 0 ? _d : 'normal';
-            const distributionCode = (_e = query.distribution_code) !== null && _e !== void 0 ? _e : '';
-            const userData = (_f = (await userClass.getUserData(userID, 'userID'))) !== null && _f !== void 0 ? _f : { userID: -1 };
+            const viewSource = (_c = query.view_source) !== null && _c !== void 0 ? _c : 'normal';
+            const distributionCode = (_d = query.distribution_code) !== null && _d !== void 0 ? _d : '';
+            const userData = (_e = (await userClass.getUserData(userID, 'userID'))) !== null && _e !== void 0 ? _e : { userID: -1 };
             const allVoucher = await this.getAllUseVoucher(userData.userID);
             const recommendData = await this.getDistributionRecommend(distributionCode);
+            console.log(`get-product-voucher-finish`, (new Date().getTime() - start) / 1000);
             if (products.total && products.data) {
                 const processProduct = async (product) => {
                     product.content.about_vouchers = await this.aboutProductVoucher({
@@ -421,7 +447,8 @@ class Shopping {
         return validVouchers.filter(Boolean);
     }
     async getDistributionRecommend(distribution_code) {
-        const recommends = await database_js_1.default.query(`SELECT * FROM \`${this.app}\`.t_recommend_links`, []);
+        const recommends = await database_js_1.default.query(`SELECT *
+                                           FROM \`${this.app}\`.t_recommend_links`, []);
         const recommendData = recommends
             .map((dd) => dd.content)
             .filter((dd) => {
@@ -729,7 +756,9 @@ class Shopping {
                 }
             }
             if (data.order_id && type === 'POS') {
-                const order = (await database_js_1.default.query(`SELECT * FROM \`${this.app}\`.t_checkout WHERE cart_token = ?`, [data.order_id]))[0];
+                const order = (await database_js_1.default.query(`SELECT *
+                                               FROM \`${this.app}\`.t_checkout
+                                               WHERE cart_token = ?`, [data.order_id]))[0];
                 if (order) {
                     for (const b of order.orderData.lineItems) {
                         const pdDqlData = (await this.getProduct({
@@ -743,7 +772,9 @@ class Shopping {
                         const variant = pd.variants.find((dd) => dd.spec.join('-') === b.spec.join('-'));
                         await updateStock(variant, b.deduction_log);
                         await this.updateVariantsWithSpec(variant, b.id, b.spec);
-                        await database_js_1.default.query(`UPDATE \`${this.app}\`.\`t_manager_post\` SET content = ? WHERE id = ?
+                        await database_js_1.default.query(`UPDATE \`${this.app}\`.\`t_manager_post\`
+                             SET content = ?
+                             WHERE id = ?
                             `, [JSON.stringify(pd), pdDqlData.id]);
                     }
                 }
@@ -1064,18 +1095,17 @@ class Shopping {
                                 saveStockArray.push(() => {
                                     return new Promise(async (resolve, reject) => {
                                         try {
-                                            if (pd.shopee_id && (pd.postMD.sync_shopee_stock != false)) {
-                                                const access = await new shopee_1.Shopee(this.app, this.token).fetchShopeeAccessToken();
+                                            if (pd.shopee_id) {
                                                 await new shopee_1.Shopee(this.app, this.token).asyncStockToShopee({
                                                     product: pdDqlData,
-                                                    access_token: access.access_token,
-                                                    shop_id: access.shop_id,
                                                     callback: () => {
                                                     }
                                                 });
                                             }
                                             await this.updateVariantsWithSpec(variant, b.id, b.spec);
-                                            await database_js_1.default.query(`UPDATE \`${this.app}\`.\`t_manager_post\` SET ? WHERE id = ${pdDqlData.id}
+                                            await database_js_1.default.query(`UPDATE \`${this.app}\`.\`t_manager_post\`
+                                                 SET ?
+                                                 WHERE id = ${pdDqlData.id}
                                                 `, [{ content: JSON.stringify(pd) }]);
                                             resolve(true);
                                         }
@@ -1177,7 +1207,8 @@ class Shopping {
                             carData.lineItems.push(dd);
                         }
                     }
-                    catch (e) { }
+                    catch (e) {
+                    }
                 });
                 await this.checkVoucher(carData);
                 console.log(`checkout-time-check-voucher-2=>`, new Date().getTime() - check_time);
@@ -1673,7 +1704,9 @@ class Shopping {
                     continue;
                 const cartTokens = data.orders.map((order) => order.cart_token);
                 const placeholders = cartTokens.map(() => '?').join(',');
-                const orders = await database_js_1.default.query(`SELECT * FROM \`${this.app}\`.t_checkout WHERE cart_token IN (${placeholders});`, cartTokens);
+                const orders = await database_js_1.default.query(`SELECT *
+                                                        FROM \`${this.app}\`.t_checkout
+                                                        WHERE cart_token IN (${placeholders});`, cartTokens);
                 const targetOrder = orders.find((order) => order.cart_token === data.targetID);
                 const feedsOrder = orders.filter((order) => order.cart_token !== data.targetID);
                 if (!targetOrder)
@@ -1702,8 +1735,8 @@ class Shopping {
                 await Promise.all(orders.map(async (order) => {
                     order.orderData.orderStatus = '-1';
                     order.orderData.archived = 'true';
-                    return database_js_1.default.query(`UPDATE \`${this.app}\`.t_checkout 
-                             SET orderData = ? 
+                    return database_js_1.default.query(`UPDATE \`${this.app}\`.t_checkout
+                             SET orderData = ?
                              WHERE cart_token = ?`, [JSON.stringify(order.orderData), order.cart_token]);
                 }));
             }
@@ -2116,6 +2149,25 @@ class Shopping {
                  SET ?
                  WHERE id = ?
                 `, [update, data.id]);
+            await Promise.all(origin[0].orderData.lineItems.map((lineItem) => {
+                return new Promise(async (resolve, reject) => {
+                    const pd = await new Shopping(this.app, this.token).getProduct({
+                        id: lineItem.id,
+                        page: 0,
+                        limit: 10,
+                        skip_shopee_check: true
+                    });
+                    if (pd.data) {
+                        console.log(`sync-pd.data`, pd.data.content.variants);
+                        await new shopee_1.Shopee(this.app, this.token).asyncStockToShopee({
+                            product: pd.data,
+                            callback: () => {
+                            }
+                        });
+                    }
+                    resolve(true);
+                });
+            }));
             return {
                 result: 'success',
                 orderData: data.orderData,
@@ -2621,9 +2673,11 @@ OR JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.orderStatus')) NOT IN (-99)) `);
     }
     async calcVariantsStock(calc, stock_id, product_id, spec) {
         try {
-            const pd_data = (await database_js_1.default.query(`select *
-                     from \`${this.app}\`.t_manager_post
-                     where id = ?`, [product_id]))[0]['content'];
+            const pd_data = (await this.getProduct({
+                id: product_id,
+                page: 0,
+                limit: 10
+            })).data.content;
             const store_config = await new user_js_1.User(this.app).getConfigV2({ key: 'store_manager', user_id: 'manager' });
             const variant_s = pd_data.variants.find((dd) => {
                 return dd.spec.join('-') === spec.join('-');
@@ -2682,7 +2736,8 @@ OR JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.orderStatus')) NOT IN (-99)) `);
                     .replace(/@\{\{電話\}\}/g, (_c = order_data.user_info.phone) !== null && _c !== void 0 ? _c : '')
                     .replace(/@\{\{地址\}\}/g, (_d = order_data.user_info.address) !== null && _d !== void 0 ? _d : '')
                     .replace(/@\{\{信箱\}\}/g, (_e = order_data.user_info.email) !== null && _e !== void 0 ? _e : '');
-                (0, ses_js_1.sendmail)(`${json.shop_name} <${process.env.smtp}>`, order_data.user_info.email, `${pd_data.title} 購買通知信`, notice, () => { });
+                (0, ses_js_1.sendmail)(`${json.shop_name} <${process.env.smtp}>`, order_data.user_info.email, `${pd_data.title} 購買通知信`, notice, () => {
+                });
             }
         }
         catch (e) {
@@ -3157,16 +3212,6 @@ OR JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.orderStatus')) NOT IN (-99)) `);
         }
         try {
             content.type = 'product';
-            if (content.shopee_id && content.sync_shopee_stock != false) {
-                const access = await new shopee_1.Shopee(this.app, this.token).fetchShopeeAccessToken();
-                await new shopee_1.Shopee(this.app, this.token).asyncStockToShopee({
-                    product: { content: content },
-                    access_token: access.access_token,
-                    shop_id: access.shop_id,
-                    callback: () => {
-                    }
-                });
-            }
             this.checkVariantDataType(content.variants);
             const data = await database_js_1.default.query(`update \`${this.app}\`.\`t_manager_post\`
                  SET ?
@@ -3391,7 +3436,51 @@ OR JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.orderStatus')) NOT IN (-99)) `);
                         return `order by id desc`;
                 }
             })();
+            const userClass = new user_js_1.User(this.app);
+            const store_config = await userClass.getConfigV2({
+                key: 'store_manager',
+                user_id: 'manager',
+            });
             const data = await this.querySqlByVariants(querySql, query);
+            const shopee_data_list = [];
+            await Promise.all((data.data).map((v_c) => {
+                const product = v_c['product_content'];
+                return new Promise(async (resolve, reject) => {
+                    if (product) {
+                        let totalSale = 0;
+                        const content = product;
+                        if (content.shopee_id) {
+                            let shopee_dd = shopee_data_list.find((dd) => { return dd.id === content.shopee_id; });
+                            if (!shopee_dd) {
+                                shopee_dd = {
+                                    id: content.shopee_id,
+                                    data: await new shopee_1.Shopee(this.app, this.token).getProductDetail(content.shopee_id, { skip_image_load: true })
+                                };
+                                shopee_data_list.push(shopee_dd);
+                            }
+                            const shopee_data = shopee_dd.data;
+                            if (shopee_data && shopee_data.variants) {
+                                const variant = v_c['variant_content'];
+                                const shopee_variants = shopee_data.variants.find((dd) => {
+                                    return dd.spec.join('') === variant.spec.join('');
+                                });
+                                if (shopee_variants) {
+                                    variant.stock = shopee_variants.stock;
+                                    variant.stockList = {};
+                                    variant.stockList[store_config.list[0].id] = { count: variant.stock };
+                                }
+                                const p_ind = product.variants.findIndex((dd) => {
+                                    return dd.spec.join('') === variant.spec.join('');
+                                });
+                                product.variants[p_ind] = variant;
+                                v_c['stockList'] = v_c['variant_content']['stockList'];
+                            }
+                        }
+                        product.total_sales = totalSale;
+                    }
+                    resolve(true);
+                });
+            }));
             return data;
         }
         catch (e) {
@@ -3543,8 +3632,10 @@ OR JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.orderStatus')) NOT IN (-99)) `);
     }
     async getProductComment(product_id) {
         try {
-            const comments = await database_js_1.default.query(`SELECT * FROM \`${this.app}\`.t_product_comment WHERE product_id = ?;
-                    `, [product_id]);
+            const comments = await database_js_1.default.query(`SELECT *
+                 FROM \`${this.app}\`.t_product_comment
+                 WHERE product_id = ?;
+                `, [product_id]);
             if (comments.length === 0) {
                 return [];
             }
@@ -3572,9 +3663,13 @@ OR JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.orderStatus')) NOT IN (-99)) `);
                 title,
                 comment,
             };
-            const updateResult = await database_js_1.default.query(`delete from \`${this.app}\`.t_product_comment
-                 WHERE product_id = ${product_id} AND content->>'$.userID'=${this.token.userID} and id>0`, []);
-            await database_js_1.default.execute(`INSERT  INTO \`${this.app}\`.t_product_comment (product_id, content)
+            const updateResult = await database_js_1.default.query(`delete
+                 from \`${this.app}\`.t_product_comment
+                 WHERE product_id = ${product_id}
+                   AND content ->>'$.userID'=${this.token.userID}
+                   and id
+                     >0`, []);
+            await database_js_1.default.execute(`INSERT INTO \`${this.app}\`.t_product_comment (product_id, content)
                  VALUES (?, ?)`, [product_id, JSON.stringify(content)]);
             await this.updateProductAvgRate(product_id);
             return true;
@@ -3587,13 +3682,12 @@ OR JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.orderStatus')) NOT IN (-99)) `);
     async updateProductAvgRate(product_id) {
         var _a;
         try {
-            const [result] = await database_js_1.default.query(`SELECT 
-                    COALESCE(ROUND(AVG(JSON_EXTRACT(content, '$.rate')), 1), 0) AS avgRate 
-                 FROM \`${this.app}\`.t_product_comment 
+            const [result] = await database_js_1.default.query(`SELECT COALESCE(ROUND(AVG(JSON_EXTRACT(content, '$.rate')), 1), 0) AS avgRate
+                 FROM \`${this.app}\`.t_product_comment
                  WHERE product_id = ?`, [product_id]);
             const avg_rate = (_a = result === null || result === void 0 ? void 0 : result.avgRate) !== null && _a !== void 0 ? _a : 0;
-            const updateResult = await database_js_1.default.execute(`UPDATE \`${this.app}\`.t_manager_post 
-                 SET content = JSON_SET(content, '$.avg_rate', ?) 
+            const updateResult = await database_js_1.default.execute(`UPDATE \`${this.app}\`.t_manager_post
+                 SET content = JSON_SET(content, '$.avg_rate', ?)
                  WHERE id = ?`, [avg_rate, product_id]);
             if (updateResult.affectedRows === 0) {
                 throw new Error(`Product with ID ${product_id} not found.`);

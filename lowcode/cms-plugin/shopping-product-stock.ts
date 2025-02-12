@@ -112,10 +112,10 @@ export class StockList {
                     dd.variant_content.stockList = dd.variant_content.stockList ?? {};
                 }
 
-                if (dd.variant_content.preview_image === BgWidget.noImageURL) {
+                if ((!dd.variant_content.preview_image) || (dd.variant_content.preview_image === BgWidget.noImageURL)) {
                     dd.variant_content.preview_image = (dd.product_content.language_data
                             &&
-                            dd.product_content.language_data[((window.parent as any).store_info.language_setting.def)].preview_image[0])
+                            dd.product_content.language_data[((window.parent as any).store_info.language_setting.def)].preview_image && dd.product_content.language_data[((window.parent as any).store_info.language_setting.def)].preview_image[0])
                         || dd.product_content.preview_image[0]
                 }
                 return [
@@ -134,7 +134,7 @@ export class StockList {
                                 >${Tool.truncateString(
                                         (() => {
                                             try {
-                                                return dd.product_content.language_data['zh-TW'].title;
+                                                return dd.product_content.language_data['zh-TW'].title || dd.product_content.title;
                                             } catch (error) {
                                                 console.error(`variant id ${dd.id} 沒有 zh-TW 的標題，使用原標題`);
                                                 return dd.product_content.title;
@@ -220,6 +220,7 @@ export class StockList {
                                                                     gvc.notifyDataChange(vm.updateId);
                                                                 })}"
                                                                 value="${stockData.count ?? 0}"
+                                                                ${dd.product_content.shopee_id ? `readonly`:``}
                                                         />
                                                     </div>`
                                     : html`<span class="fs-7">${defaultNull}</div>`,

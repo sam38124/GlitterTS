@@ -68,6 +68,18 @@ export class ApiShopee {
             callback(r.response);
         });
     }
+    public static syncStatus(){
+        return BaseApi.create({
+            url: getBaseUrl() + `/api-public/v1/shopee/sync-status`,
+            type: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+                'g-app': getConfig().config.appName,
+                Authorization: getConfig().config.token,
+            },
+        });
+    }
+
 }
 
 function getConfig() {

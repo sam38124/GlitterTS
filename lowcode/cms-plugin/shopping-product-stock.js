@@ -66,10 +66,10 @@ export class StockList {
                 else {
                     dd.variant_content.stockList = (_a = dd.variant_content.stockList) !== null && _a !== void 0 ? _a : {};
                 }
-                if (dd.variant_content.preview_image === BgWidget.noImageURL) {
+                if ((!dd.variant_content.preview_image) || (dd.variant_content.preview_image === BgWidget.noImageURL)) {
                     dd.variant_content.preview_image = (dd.product_content.language_data
                         &&
-                            dd.product_content.language_data[(window.parent.store_info.language_setting.def)].preview_image[0])
+                            dd.product_content.language_data[(window.parent.store_info.language_setting.def)].preview_image && dd.product_content.language_data[(window.parent.store_info.language_setting.def)].preview_image[0])
                         || dd.product_content.preview_image[0];
                 }
                 return [
@@ -87,7 +87,7 @@ export class StockList {
                                 <span class="tx_normal"
                                 >${Tool.truncateString((() => {
                             try {
-                                return dd.product_content.language_data['zh-TW'].title;
+                                return dd.product_content.language_data['zh-TW'].title || dd.product_content.title;
                             }
                             catch (error) {
                                 console.error(`variant id ${dd.id} 沒有 zh-TW 的標題，使用原標題`);
@@ -166,6 +166,7 @@ export class StockList {
                                         gvc.notifyDataChange(vm.updateId);
                                     })}"
                                                                 value="${(_c = stockData.count) !== null && _c !== void 0 ? _c : 0}"
+                                                                ${dd.product_content.shopee_id ? `readonly` : ``}
                                                         />
                                                     </div>`
                                 : html `<span class="fs-7">${defaultNull}</div>`,

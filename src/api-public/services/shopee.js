@@ -132,10 +132,10 @@ class Shopee {
             else {
                 await database_js_1.default.execute(`
                             UPDATE \`${config_js_1.saasConfig.SAAS_NAME}\`.\`private_config\`
-                            SET \`value\` = ?
+                            SET \`value\` = ? , updated_at=?
                             where \`app_name\` = '${this.app}'
                               and \`key\` = 'shopee_access_token'
-                    `, [passData]);
+                    `, [passData, new Date()]);
             }
         }
         catch (error) {
@@ -152,6 +152,7 @@ class Shopee {
         const timestamp = Math.floor(Date.now() / 1000);
         const partner_id = (_a = Shopee.partner_id) !== null && _a !== void 0 ? _a : "";
         const api_path = "/api/v2/product/get_item_list";
+        await this.fetchShopeeAccessToken();
         const data = (await database_js_1.default.execute(`select *
              from \`${config_js_1.saasConfig.SAAS_NAME}\`.private_config
              where \`app_name\` = '${this.app}'
@@ -185,11 +186,11 @@ class Shopee {
             const itemList = response.data.response.item;
             const productData = await Promise.all(itemList.map(async (item, index) => {
                 try {
-                    const productData = await database_js_1.default.query(`SELECT count(1)
+                    const pd_data = (await database_js_1.default.query(`SELECT count(1)
                                                             FROM ${this.app}.t_manager_post
                                                             WHERE (content ->>'$.type'='product')
-                                                              AND (content ->>'$.shopee_id' =?);`, [item.item_id]);
-                    if (productData[0]['count(1)'] > 0) {
+                                                              AND (content ->>'$.shopee_id' = ${item.item_id});`, []));
+                    if (pd_data[0]['count(1)'] > 0) {
                         return null;
                     }
                     else {
@@ -197,7 +198,6 @@ class Shopee {
                     }
                 }
                 catch (error) {
-                    console.error('下載或上傳失敗:', error);
                     return null;
                 }
             }));
@@ -240,23 +240,24 @@ class Shopee {
             }
         }
     }
-    async getProductDetail(id) {
+    async getProductDetail(id, option) {
         var _a;
         const that = this;
-        async function getModel(postMD, origData) {
+        const token = await this.fetchShopeeAccessToken();
+        async function getModel(postMD) {
             var _a;
             const timestamp = Math.floor(Date.now() / 1000);
             const partner_id = (_a = Shopee.partner_id) !== null && _a !== void 0 ? _a : "";
             const api_path = "/api/v2/product/get_model_list";
             const config = {
                 method: 'get',
-                url: that.generateShopUrl(partner_id, api_path, timestamp, data[0].value.access_token, parseInt(data[0].value.shop_id)),
+                url: that.generateShopUrl(partner_id, api_path, timestamp, token.access_token, parseInt(token.shop_id)),
                 headers: {
                     'Content-Type': 'application/json',
                 },
                 params: {
-                    shop_id: parseInt(data[0].value.shop_id),
-                    access_token: data[0].value.access_token,
+                    shop_id: parseInt(token.shop_id),
+                    access_token: token.access_token,
                     item_id: id
                 },
             };
@@ -282,17 +283,17 @@ class Shopee {
                 });
                 postMD.specs = specs;
                 model.map(async (data) => {
-                    var _a, _b, _c, _d, _e, _f, _g;
+                    var _a;
                     let newVariants = {
                         sale_price: data.price_info[0].current_price,
                         compare_price: data.price_info[0].original_price,
                         cost: 0,
                         spec: data.model_name.split(','),
                         profit: 0,
-                        v_length: (_b = (_a = origData === null || origData === void 0 ? void 0 : origData.dimension) === null || _a === void 0 ? void 0 : _a.package_length) !== null && _b !== void 0 ? _b : 0,
-                        v_width: (_d = (_c = origData === null || origData === void 0 ? void 0 : origData.dimension) === null || _c === void 0 ? void 0 : _c.package_width) !== null && _d !== void 0 ? _d : 0,
-                        v_height: (_f = (_e = origData === null || origData === void 0 ? void 0 : origData.dimension) === null || _e === void 0 ? void 0 : _e.package_height) !== null && _f !== void 0 ? _f : 0,
-                        weight: origData === null || origData === void 0 ? void 0 : origData.weight,
+                        v_length: 0,
+                        v_width: 0,
+                        v_height: 0,
+                        weight: 0,
                         shipment_type: 'none',
                         sku: data.model_sku,
                         barcode: "",
@@ -302,7 +303,7 @@ class Shopee {
                         show_understocking: "true",
                         type: "product",
                     };
-                    if (((_g = data === null || data === void 0 ? void 0 : data.image) === null || _g === void 0 ? void 0 : _g.image_url_list.length) > 0) {
+                    if (!(option && option.skip_image_load) && (((_a = data === null || data === void 0 ? void 0 : data.image) === null || _a === void 0 ? void 0 : _a.image_url_list.length) > 0)) {
                         try {
                             const imageUrl = data.image.image_url_list[0];
                             if (imageUrl) {
@@ -335,30 +336,18 @@ class Shopee {
                 }
             }
         }
-        let data;
-        try {
-            const sqlData = (await database_js_1.default.execute(`select *
-                 from \`${config_js_1.saasConfig.SAAS_NAME}\`.private_config
-                 where \`app_name\` = '${this.app}'
-                   and \`key\` = 'shopee_access_token'
-                `, []));
-            data = sqlData;
-        }
-        catch (e) {
-            console.log("get private_config shopee_access_token error : ", e);
-        }
         const timestamp = Math.floor(Date.now() / 1000);
         const partner_id = (_a = Shopee.partner_id) !== null && _a !== void 0 ? _a : "";
         const api_path = "/api/v2/product/get_item_base_info";
         const config = {
             method: 'get',
-            url: this.generateShopUrl(partner_id, api_path, timestamp, data[0].value.access_token, parseInt(data[0].value.shop_id)),
+            url: this.generateShopUrl(partner_id, api_path, timestamp, token.access_token, parseInt(token.shop_id)),
             headers: {
                 'Content-Type': 'application/json',
             },
             params: {
-                shop_id: parseInt(data[0].value.shop_id),
-                access_token: data[0].value.access_token,
+                shop_id: parseInt(token.shop_id),
+                access_token: token.access_token,
                 item_id_list: id
             },
         };
@@ -383,7 +372,7 @@ class Shopee {
             if (item.description_info && item.description_info.extended_description.field_list.length > 0) {
                 let temp = ``;
                 const promises = item.description_info.extended_description.field_list.map(async (item1) => {
-                    if (item1.field_type == 'image') {
+                    if (item1.field_type == 'image' && !(option && option.skip_image_load)) {
                         try {
                             const buffer = await this.downloadImage(item1.image_info.image_url);
                             const fileExtension = "jpg";
@@ -399,7 +388,7 @@ class Shopee {
                 await Promise.all(promises);
                 if (item.description_info && item.description_info.extended_description) {
                     item.description_info.extended_description.field_list.map((item) => {
-                        if (item.field_type == 'image') {
+                        if (item.field_type == 'image' && !(option && option.skip_image_load)) {
                             temp += html `
                             <div style="white-space: pre-wrap;"><img src="${item.image_info.s3}"
                                                                      alt='${item.image_info.image_id}'></div>`;
@@ -436,9 +425,9 @@ class Shopee {
                 postMD.variants.push(newVariants);
             }
             else {
-                await getModel(postMD, data);
+                await getModel(postMD);
             }
-            if (item.image.image_url_list.length > 0) {
+            if (item.image.image_url_list.length > 0 && !(option && option.skip_image_load)) {
                 postMD.preview_image = await Promise.all(item.image.image_url_list.map(async (imageUrl, index) => {
                     try {
                         const buffer = await this.downloadImage(imageUrl);
@@ -467,6 +456,12 @@ class Shopee {
     }
     async asyncStockToShopee(obj) {
         var _a, _b, _c;
+        console.log(`asyncStockToShopee===>`);
+        if (!obj.access_token || !obj.shop_id) {
+            const access = await new Shopee(this.app, this.token).fetchShopeeAccessToken();
+            obj.access_token = access.access_token;
+            obj.shop_id = access.shop_id;
+        }
         if (!obj.product.content.shopee_id) {
             obj.callback();
             return;
@@ -525,6 +520,8 @@ class Shopee {
             };
             try {
                 const response = await (0, axios_1.default)(updateConfig);
+                console.log(`update_stock`, JSON.stringify(basicData));
+                console.log(`update_stock`, response.data);
                 obj.callback(response.data);
             }
             catch (error) {
@@ -580,7 +577,6 @@ class Shopee {
         }
     }
     async fetchShopeeAccessToken() {
-        var _a;
         try {
             const sqlData = await database_js_1.default.execute(`SELECT * 
              FROM \`${config_js_1.saasConfig.SAAS_NAME}\`.private_config
@@ -588,8 +584,9 @@ class Shopee {
                AND \`key\` = 'shopee_access_token'`, []);
             const obj = {};
             obj.accessToken = sqlData;
-            if (Date.now() >= new Date(sqlData[0].value.expires_at).getTime()) {
-                const partner_id = (_a = Shopee.partner_id) !== null && _a !== void 0 ? _a : "";
+            if (new Date().getTime() >= (new Date(sqlData[0].updated_at).getTime() + (3.9 * 3600 * 1000))) {
+                console.log(`確認要刷新token`);
+                const partner_id = Shopee.partner_id;
                 const api_path = "/api/v2/auth/access_token/get";
                 const timestamp = Math.floor(Date.now() / 1000);
                 const config = {
@@ -609,10 +606,10 @@ class Shopee {
                     try {
                         await database_js_1.default.execute(`
                         UPDATE \`${config_js_1.saasConfig.SAAS_NAME}\`.\`private_config\`
-                        SET \`value\` = ?
+                        SET \`value\` = ? , updated_at = ?
                         where \`app_name\` = '${this.app}'
                           and \`key\` = 'shopee_access_token'
-                    `, [response.data]);
+                    `, [response.data, new Date()]);
                         return response.data;
                     }
                     catch (e) {
@@ -749,4 +746,5 @@ class Shopee {
     }
 }
 exports.Shopee = Shopee;
+Shopee.getItemProgress = [];
 //# sourceMappingURL=shopee.js.map
