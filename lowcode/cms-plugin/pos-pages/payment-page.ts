@@ -1883,7 +1883,6 @@ white-space: normal;"
                     const invoice = res.response.data.invoice;
                     if (res.response.data.invoice && (PayConfig.deviceType === 'pos' || ConnectionMode.on_connected_device) && c_vm.invoice_select !== 'carry' && c_vm.invoice_select !== 'nouse') {
                         POSSetting.config.pickup_number++;
-
                         function print(type: 'save' | 'client') {
                             if (type === 'client') {
                                 if (PayConfig.deviceType === 'pos') {
@@ -1898,6 +1897,7 @@ white-space: normal;"
                                 }
                             }
                         }
+                        print('client')
                     }
                     dialog.dataLoading({ visible: false });
                     orderDetail.lineItems = [];

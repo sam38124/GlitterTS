@@ -9,6 +9,131 @@ import {PaymentPage} from "./payment-page.js";
 const html = String.raw
 
 export class ProductsPage {
+    static pageSplitV2 = (gvc: GVC, countPage: number, nowPage: number, callback: (p: number) => void) => {
+        const generator = (n: number) => {
+            return html`<li class="page-item my-0 mx-0">
+                <div class="page-link-v2" onclick="${gvc.event(() => callback(n))}">${n}</div>
+            </li>`;
+        };
+        const glitter = gvc.glitter;
+
+        let vm = {
+            id: glitter.getUUID(),
+            loading: false,
+            dataList: <any>[],
+        };
+
+        gvc.addStyle(`
+            .page-link-v2 {
+                display: inline-flex;
+                height: 32px;
+                padding: 10px;
+                flex-direction: column;
+                justify-content: center;
+                align-items: center;
+                gap: 10px;
+                cursor: pointer;
+                background: #fff;
+                border:1px solid #393939;
+                color: #393939;
+            }
+
+            .page-link-prev {
+                border-radius: 7px 0px 0px 7px;
+                border: 1px solid #d8d8d8;
+                background: #fff;
+                color: #393939;
+            }
+
+            .page-link-next {
+                border-radius: 0px 7px 7px 0px;
+                border: 1px solid #d8d8d8;
+                background: #fff;
+                color: #393939;
+            }
+
+            .page-link-active {
+                background: #393939;
+                color: #fff;
+            }
+
+            .angle-style {
+                font-size: 12px;
+                color: #d8d8d8;
+            }
+        `);
+
+        return gvc.bindView({
+            bind: vm.id,
+            view: () => {
+                if (vm.loading) {
+                    return html`<div class="w-100 d-flex align-items-center justify-content-center p-3">
+                        <div class="spinner-border"></div>
+                    </div>`;
+                } else {
+                    return html`
+                        <nav class="d-flex my-3 justify-content-center">
+                            <ul class="pagination pagination-rounded mb-0">
+                                <li class="page-item me-0">
+                                    <div
+                                        class="page-link-v2 page-link-prev"
+                                        aria-label="Previous"
+                                        style="cursor:pointer"
+                                        onclick="${gvc.event(() => {
+                        nowPage - 1 > 0 && callback(nowPage - 1);
+                    })}"
+                                    >
+                                        <i class="fa-solid fa-angle-left angle-style"></i>
+                                    </div>
+                                </li>
+                                ${glitter.print(() => {
+                        if (nowPage - 2 > 0) {
+                            return generator(nowPage - 2) + generator(nowPage - 1);
+                        } else if (nowPage - 1 > 0) {
+                            return generator(nowPage - 1);
+                        } else {
+                            return ``;
+                        }
+                    })}
+                                <li class="page-item active mx-0" style="border-radius: 100%">
+                                    <div class="page-link-v2 page-link-active">${nowPage}</div>
+                                </li>
+                                ${glitter.print(() => {
+                        if (nowPage + 2 <= countPage) {
+                            return generator(nowPage + 1) + generator(nowPage + 2);
+                        } else if (nowPage + 1 <= countPage) {
+                            return generator(nowPage + 1);
+                        } else {
+                            return ``;
+                        }
+                    })}
+                                <li class="page-item ms-0">
+                                    <div
+                                        class="page-link-v2 page-link-next"
+                                        aria-label="Next"
+                                        style="cursor:pointer"
+                                        onclick="${gvc.event(() => {
+                        nowPage + 1 <= countPage && callback(nowPage + 1);
+                    })}"
+                                    >
+                                        <i class="fa-solid fa-angle-right angle-style"></i>
+                                    </div>
+                                </li>
+                            </ul>
+                        </nav>
+                    `;
+                }
+            },
+            divCreate: {},
+            onCreate: () => {
+                if (vm.loading) {
+                    vm.loading = false;
+                    gvc.notifyDataChange(vm.id);
+                }
+            },
+        });
+    };
+
     public static main(obj: { gvc: GVC, vm: ViewModel, orderDetail: OrderDetail }) {
         const swal = new Swal(obj.gvc);
         const gvc = obj.gvc
@@ -16,6 +141,33 @@ export class ProductsPage {
         const orderDetail = obj.orderDetail
         const dialog = new ShareDialog(gvc.glitter);
         (orderDetail as any).total = orderDetail.total || 0;
+        const pVM={
+            pageSize:0,
+            pageIndex:1,
+            limit:20
+        }
+        function loadData() {
+            let category = vm.categories.find((category: any) => {
+                return category.select == true;
+            })
+            dialog.dataLoading({visible: true})
+            ApiShop.getProduct({
+                page: pVM.pageIndex-1,
+                collection: (category.key == 'all' ? '' : category.key),
+                limit: pVM.limit,
+                search: vm.query,
+                status: 'inRange',
+                channel: 'pos',
+                orderBy: 'created_time_desc'
+            }).then(res => {
+                vm.productSearch = res.response.data;
+                pVM.pageSize = Math.ceil(res.response.total / parseInt(pVM.limit as any, 10));
+                dialog.dataLoading({visible: false})
+                gvc.notifyDataChange(`productShow`)
+            })
+        }
+        loadData();
+        gvc.glitter.share.reloadProduct=loadData
         return html`
             <div class="left-panel"
                  style="${(document.body.offsetWidth < 800) ? `width:calc(100%);padding-top: 42px` : `width:calc(100% - 352px);padding-top: 32px ;padding-bottom:32px;`}overflow: hidden;">
@@ -46,7 +198,8 @@ export class ProductsPage {
                                                  category.select = false;
                                              })
                                              data.select = true;
-                                             vm.searchable = true;
+                                             pVM.pageIndex=1
+                                             loadData()
                                              gvc.notifyDataChange(['category', 'productShow']);
                                          })}">
                                         ${data.value}
@@ -64,90 +217,73 @@ export class ProductsPage {
                         style: `width:100%;overflow: scroll;padding-bottom:32px;${(document.body.clientWidth > 992) ? `padding-left:32px !important;padding-right:32px !important;` : `padding-top:20px;`}`
                     }
                 })}
-                ${gvc.bindView({
-                    bind: `productShow`,
-                    view: () => {
-                        let image = 'https://d3jnmi1tfjgtti.cloudfront.net/file/234285319/1722936949034-default_image.jpg';
-                        let parent = document.querySelector(`.left-panel`) as HTMLElement;
-                        let rowItem = Math.floor((parent.offsetWidth - 72) / 188);
-                        rowItem = (rowItem * 188 + 26 * (rowItem - 1) > (parent.offsetWidth - 72)) ? rowItem - 1 : rowItem;
-                        if (document.body.offsetWidth < 600) {
-                            rowItem = 2;
-                        }
-                        let maxwidth = (parent.offsetWidth - 72 - (rowItem - 1) * 26) / rowItem
-                        if (document.body.offsetWidth < 600) {
-                            maxwidth += 10;
-                        }
-                        let category = vm.categories.find((category: any) => {
-                            return category.select == true;
-                        })
+                ${gvc.bindView(
+                        ()=>{
+                          
+                            return {
+                                bind: `productShow`,
+                                view: () => {
+                                    let image = 'https://d3jnmi1tfjgtti.cloudfront.net/file/234285319/1722936949034-default_image.jpg';
+                                    let parent = document.querySelector(`.left-panel`) as HTMLElement;
+                                    let rowItem = Math.floor((parent.offsetWidth - 72) / 188);
+                                    rowItem = (rowItem * 188 + 26 * (rowItem - 1) > (parent.offsetWidth - 72)) ? rowItem - 1 : rowItem;
+                                    if (document.body.offsetWidth < 600) {
+                                        rowItem = 2;
+                                    }
+                                    let maxwidth = (parent.offsetWidth - 72 - (rowItem - 1) * 26) / rowItem
+                                    if (document.body.offsetWidth < 600) {
+                                        maxwidth += 10;
+                                    }
+                             
 
-                        function arraysEqual(arr1: any[], arr2: any[]) {
-                            if (arr1.length !== arr2.length) return false;
-                            return arr1.every((value, index) => value === arr2[index]);
-                        }
+                                    function arraysEqual(arr1: any[], arr2: any[]) {
+                                        if (arr1.length !== arr2.length) return false;
+                                        return arr1.every((value, index) => value === arr2[index]);
+                                    }
 
-                        function changeSelectVariant(product: any) {
-                            let emptyArray: any[] = [];
-                            product.content.specs.forEach((spec: any) => {
-                                emptyArray.push(spec.option.find((opt: any) => {
-                                    return opt.select == true;
-                                }).title)
-                            })
-                            return product.content.variants.find((variant: any) => {
-                                return arraysEqual(variant.spec, emptyArray)
-                            })
-                        }
+                                    function changeSelectVariant(product: any) {
+                                        let emptyArray: any[] = [];
+                                        product.content.specs.forEach((spec: any) => {
+                                            emptyArray.push(spec.option.find((opt: any) => {
+                                                return opt.select == true;
+                                            }).title)
+                                        })
+                                        return product.content.variants.find((variant: any) => {
+                                            return arraysEqual(variant.spec, emptyArray)
+                                        })
+                                    }
+                                 
+                                    if (vm.productSearch.length > 0) {
 
+                                        return vm.productSearch.map((data) => {
+                                            let selectVariant = data.content.variants[0];
+                                            selectVariant.show_understocking = (selectVariant.show_understocking) === 'true'
+                                            let count = 1;
+                                            data.content.specs.forEach((spec: any) => {
+                                                spec.option[0].select = true;
+                                            })
 
-                        if (vm.searchable) {
-                            dialog.dataLoading({visible: true})
-                            ApiShop.getProduct({
-                                page: 0,
-                                collection: (category.key == 'all' ? '' : category.key),
-                                limit: 50000,
-                                search: vm.query,
-                                status: 'inRange',
-                                channel: 'pos',
-                                orderBy: 'created_time_desc'
-                            }).then(res => {
-                                vm.searchable = false;
-                                vm.productSearch = res.response.data;
-                                dialog.dataLoading({visible: false})
-                                gvc.notifyDataChange(`productShow`)
-                            })
-                        }
-                        if (vm.productSearch.length > 0) {
-
-                            return vm.productSearch.map((data) => {
-                                let selectVariant = data.content.variants[0];
-                                selectVariant.show_understocking = (selectVariant.show_understocking) === 'true'
-                                let count = 1;
-                                data.content.specs.forEach((spec: any) => {
-                                    spec.option[0].select = true;
-                                })
-
-                                return html`
+                                            return html`
                                     <div class="d-flex flex-column mb-4 mb-sm-0"
                                          style="max-width:${maxwidth}px;flex-basis: 188px;flex-grow: 1;border-radius: 10px;box-shadow: 0px 0px 10px 0px rgba(0, 0, 0, 0.08);"
                                          onclick="${gvc.event(() => {
-                                             gvc.glitter.innerDialog((gvc) => {
-                                                 return gvc.bindView({
-                                                     bind: `productDialog`,
-                                                     view: () => {
-                                                         try {
-                                                             selectVariant.preview_image = selectVariant.preview_image || [];
-                                                             selectVariant.stock = (selectVariant.stockList[POSSetting.config.where_store] && parseInt(selectVariant.stockList[POSSetting.config.where_store].count, 10)) || 0;
-                                                             return html`
+                                                gvc.glitter.innerDialog((gvc) => {
+                                                    return gvc.bindView({
+                                                        bind: `productDialog`,
+                                                        view: () => {
+                                                            try {
+                                                                selectVariant.preview_image = selectVariant.preview_image || [];
+                                                                selectVariant.stock = (selectVariant.stockList[POSSetting.config.where_store] && parseInt(selectVariant.stockList[POSSetting.config.where_store].count, 10)) || 0;
+                                                                return html`
                                                                  <div class="w-100 h-100 d-flex align-items-center justify-content-center"
                                                                       onclick="${gvc.event(() => {
-                                                                          gvc.glitter.closeDiaLog()
-                                                                      })}">
+                                                                    gvc.glitter.closeDiaLog()
+                                                                })}">
                                                                      <div class="d-flex flex-column position-relative"
                                                                           style="width: 542px;padding: 32px;background-color: white;border-radius: 10px;max-width: calc(100% - 20px);overflow-y:auto;max-height:calc(100% - 20px);"
                                                                           onclick="${gvc.event((e, event) => {
-                                                                              event.stopPropagation();
-                                                                          })}">
+                                                                    event.stopPropagation();
+                                                                })}">
                                                                          <div class="w-100 d-block d-sm-flex flex-column flex-sm-row m"
                                                                               style="gap:24px;">
                                                                              <div class="rounded-3 d-none"
@@ -160,63 +296,63 @@ export class ProductsPage {
                                                                                          NT.${parseInt(selectVariant.sale_price, 10).toLocaleString()}
                                                                                  </div>
                                                                                  ${gvc.bindView({
-                                                                                     bind: `productSpec`,
-                                                                                     view: () => {
-                                                                                         if (data.content.specs.length > 0) {
-                                                                                             return data.content.specs.map((spec: any) => {
-                                                                                                 return html`
+                                                                    bind: `productSpec`,
+                                                                    view: () => {
+                                                                        if (data.content.specs.length > 0) {
+                                                                            return data.content.specs.map((spec: any) => {
+                                                                                return html`
                                                                                                      <div style="font-size: 16px;font-style: normal;font-weight: 500;color: #8D8D8D;">
                                                                                                          ${spec.title}
                                                                                                      </div>
                                                                                                      <select class="w-100 form-select"
                                                                                                              style="border-radius: 5px;border: 1px solid #DDD;padding: 10px 18px;font-size: 18px;"
                                                                                                              onchange="${gvc.event((e) => {
-                                                                                                                 spec.option.forEach((option: any) => {
-                                                                                                                     option.select = false;
-                                                                                                                 })
-                                                                                                                 spec.option[e.value].select = true;
-                                                                                                                 selectVariant = changeSelectVariant(data);
-                                                                                                                 gvc.notifyDataChange('productDialog');
-                                                                                                             })}">
+                                                                                    spec.option.forEach((option: any) => {
+                                                                                        option.select = false;
+                                                                                    })
+                                                                                    spec.option[e.value].select = true;
+                                                                                    selectVariant = changeSelectVariant(data);
+                                                                                    gvc.notifyDataChange('productDialog');
+                                                                                })}">
                                                                                                          ${(() => {
-                                                                                                             return spec.option.map((option: any, index: number) => {
-                                                                                                                 return html`
+                                                                                    return spec.option.map((option: any, index: number) => {
+                                                                                        return html`
                                                                                                                      <option class="d-flex align-items-center justify-content-center"
                                                                                                                              value="${index}"
                                                                                                                              ${(option.select) ? 'selected' : ''}
                                                                                                                              style="border-radius: 5px;padding: 10px 18px;color: #393939;font-size: 18px;font-weight: 500;letter-spacing: 0.72px;"
                                                                                                                              onclick="${gvc.event(() => {
-                                                                                                                             })}">
+                                                                                        })}">
                                                                                                                          ${option.title}
                                                                                                                      </option>`
-                                                                                                             }).join('');
-                                                                                                         })()}
+                                                                                    }).join('');
+                                                                                })()}
                                                                                                      </select>
                                                                                                  `
-                                                                                             }).join('')
-                                                                                         } else {
-                                                                                             return ``
-                                                                                         }
-                                                                                     },
-                                                                                     divCreate: {
-                                                                                         style: `gap:8px;margin-bottom:${data.content.specs.length ? `24px` : `0px`};margin-top:16px;`,
-                                                                                         class: `d-flex flex-column`
-                                                                                     }
-                                                                                 })}
+                                                                            }).join('')
+                                                                        } else {
+                                                                            return ``
+                                                                        }
+                                                                    },
+                                                                    divCreate: {
+                                                                        style: `gap:8px;margin-bottom:${data.content.specs.length ? `24px` : `0px`};margin-top:16px;`,
+                                                                        class: `d-flex flex-column`
+                                                                    }
+                                                                })}
                                                                                  ${gvc.bindView(() => {
 
-                                                                                     return {
-                                                                                         bind: 'count_bt',
-                                                                                         view: () => {
-                                                                                             return html`
+                                                                    return {
+                                                                        bind: 'count_bt',
+                                                                        view: () => {
+                                                                            return html`
                                                                                                  <div class="d-flex align-items-center justify-content-between"
                                                                                                       style="gap: 10px;padding: 10px 18px;border-radius: 5px;border: 1px solid #DDD;">
                                                                                                      <div class="d-flex align-items-center justify-content-center"
                                                                                                           style="border-radius: 10px;cursor: pointer;"
                                                                                                           onclick="${gvc.event(() => {
-                                                                                                              count = (count == 1) ? count : count - 1;
-                                                                                                              gvc.notifyDataChange(`productDialog`);
-                                                                                                          })}">
+                                                                                count = (count == 1) ? count : count - 1;
+                                                                                gvc.notifyDataChange(`productDialog`);
+                                                                            })}">
                                                                                                          <svg xmlns="http://www.w3.org/2000/svg"
                                                                                                               width="13"
                                                                                                               height="3"
@@ -230,15 +366,15 @@ export class ProductsPage {
                                                                                                             style="text-align: center;width: 30px;"
                                                                                                             value="${count}"
                                                                                                             onchange="${gvc.event((e) => {
-                                                                                                                count = e.value;
-                                                                                                                gvc.notifyDataChange(['count_bt', 'product_btn']);
-                                                                                                            })}">
+                                                                                count = e.value;
+                                                                                gvc.notifyDataChange(['count_bt', 'product_btn']);
+                                                                            })}">
                                                                                                      <div class="d-flex align-items-center justify-content-center"
                                                                                                           style="border-radius: 10px;cursor: pointer;"
                                                                                                           onclick="${gvc.event(() => {
-                                                                                                              count++
-                                                                                                              gvc.notifyDataChange(['count_bt', 'product_btn']);
-                                                                                                          })}">
+                                                                                count++
+                                                                                gvc.notifyDataChange(['count_bt', 'product_btn']);
+                                                                            })}">
                                                                                                          <svg xmlns="http://www.w3.org/2000/svg"
                                                                                                               width="14"
                                                                                                               height="15"
@@ -254,125 +390,125 @@ export class ProductsPage {
                                                                                                  </div>
                                                                                              `
 
-                                                                                         },
-                                                                                         divCreate: {
-                                                                                             class: `d-flex flex-column`,
-                                                                                             style: ``
-                                                                                         }
-                                                                                     }
-                                                                                 })}
+                                                                        },
+                                                                        divCreate: {
+                                                                            class: `d-flex flex-column`,
+                                                                            style: ``
+                                                                        }
+                                                                    }
+                                                                })}
                                                                              </div>
                                                                          </div>
                                                                          <div class="d-flex mt-4 justify-content-between"
                                                                               style="gap:10px;">
                                                                              ${
-                                                                                     gvc.bindView(() => {
+                                                                        gvc.bindView(() => {
 
-                                                                                         return {
-                                                                                             bind: 'close',
-                                                                                             view: () => {
-                                                                                                 return `取消`
-                                                                                             },
-                                                                                             divCreate: () => {
-                                                                                                 return {
-                                                                                                     class: `d-flex align-items-center justify-content-center`,
-                                                                                                     style: `flex:1;padding: 12px 24px;font-size: 20px;color: #FFF;font-weight: 500;border-radius: 10px;min-height: 58px;background:gray;`,
-                                                                                                     option: [
-                                                                                                         {
-                                                                                                             key: 'onclick',
-                                                                                                             value: gvc.event(() => {
-                                                                                                                 gvc.glitter.closeDiaLog()
-                                                                                                             })
-                                                                                                         }
-                                                                                                     ]
-                                                                                                 }
-                                                                                             }
-                                                                                         }
-                                                                                     })
-                                                                             }
+                                                                            return {
+                                                                                bind: 'close',
+                                                                                view: () => {
+                                                                                    return `取消`
+                                                                                },
+                                                                                divCreate: () => {
+                                                                                    return {
+                                                                                        class: `d-flex align-items-center justify-content-center`,
+                                                                                        style: `flex:1;padding: 12px 24px;font-size: 20px;color: #FFF;font-weight: 500;border-radius: 10px;min-height: 58px;background:gray;`,
+                                                                                        option: [
+                                                                                            {
+                                                                                                key: 'onclick',
+                                                                                                value: gvc.event(() => {
+                                                                                                    gvc.glitter.closeDiaLog()
+                                                                                                })
+                                                                                            }
+                                                                                        ]
+                                                                                    }
+                                                                                }
+                                                                            }
+                                                                        })
+                                                                }
                                                                              ${
-                                                                                     gvc.bindView(() => {
-                                                                                         return {
-                                                                                             bind: 'product_btn',
-                                                                                             view: () => {
-                                                                                                 if (selectVariant.show_understocking && selectVariant.stock === 0) {
-                                                                                                     return `預購商品`
-                                                                                                 }
-                                                                                                 return `加入購物車`
-                                                                                             },
-                                                                                             divCreate: () => {
-                                                                                                 return {
-                                                                                                     class: `d-flex align-items-center justify-content-center`,
-                                                                                                     style: `flex:1;padding: 12px 24px;font-size: 20px;color: #FFF;font-weight: 500;border-radius: 10px;background: ${(selectVariant.show_understocking && selectVariant.stock === 0) ? `#FF6C02;` : `#393939;`}min-height: 58px;`,
-                                                                                                     option: [
-                                                                                                         {
-                                                                                                             key: 'onclick',
-                                                                                                             value: gvc.event(() => {
-                                                                                                                 function next() {
-                                                                                                                     let addItem = orderDetail.lineItems.find((item: any) => {
-                                                                                                                         console.log(data)
-                                                                                                                         console.log(item)
-                                                                                                                         console.log(selectVariant)
-                                                                                                                         return data.content.title == item.title && arraysEqual(item.spec, selectVariant.spec)
-                                                                                                                     });
-                                                                                                                     if (addItem) {
-                                                                                                                         addItem.count += count;
-                                                                                                                     } else {
-                                                                                                                         orderDetail.lineItems.push({
-                                                                                                                             id: data.id,
-                                                                                                                             title: data.content.title,
-                                                                                                                             preview_image: (selectVariant.preview_image.length > 1) ? selectVariant.preview_image : data.content.preview_image[0],
-                                                                                                                             spec: selectVariant.spec,
-                                                                                                                             count: count,
-                                                                                                                             sale_price: selectVariant.sale_price,
-                                                                                                                             sku: selectVariant.sku
-                                                                                                                         })
-                                                                                                                     }
-                                                                                                                     if (document.querySelector('.js-cart-count')) {
-                                                                                                                         (document.querySelector('.js-cart-count') as any).recreateView()
-                                                                                                                     }
-                                                                                                                     gvc.glitter.share.checkStock()
-                                                                                                                     gvc.glitter.closeDiaLog()
-                                                                                                                 }
+                                                                        gvc.bindView(() => {
+                                                                            return {
+                                                                                bind: 'product_btn',
+                                                                                view: () => {
+                                                                                    if (selectVariant.show_understocking && selectVariant.stock === 0) {
+                                                                                        return `預購商品`
+                                                                                    }
+                                                                                    return `加入購物車`
+                                                                                },
+                                                                                divCreate: () => {
+                                                                                    return {
+                                                                                        class: `d-flex align-items-center justify-content-center`,
+                                                                                        style: `flex:1;padding: 12px 24px;font-size: 20px;color: #FFF;font-weight: 500;border-radius: 10px;background: ${(selectVariant.show_understocking && selectVariant.stock === 0) ? `#FF6C02;` : `#393939;`}min-height: 58px;`,
+                                                                                        option: [
+                                                                                            {
+                                                                                                key: 'onclick',
+                                                                                                value: gvc.event(() => {
+                                                                                                    function next() {
+                                                                                                        let addItem = orderDetail.lineItems.find((item: any) => {
+                                                                                                            console.log(data)
+                                                                                                            console.log(item)
+                                                                                                            console.log(selectVariant)
+                                                                                                            return data.content.title == item.title && arraysEqual(item.spec, selectVariant.spec)
+                                                                                                        });
+                                                                                                        if (addItem) {
+                                                                                                            addItem.count += count;
+                                                                                                        } else {
+                                                                                                            orderDetail.lineItems.push({
+                                                                                                                id: data.id,
+                                                                                                                title: data.content.title,
+                                                                                                                preview_image: (selectVariant.preview_image.length > 1) ? selectVariant.preview_image : data.content.preview_image[0],
+                                                                                                                spec: selectVariant.spec,
+                                                                                                                count: count,
+                                                                                                                sale_price: selectVariant.sale_price,
+                                                                                                                sku: selectVariant.sku
+                                                                                                            })
+                                                                                                        }
+                                                                                                        if (document.querySelector('.js-cart-count')) {
+                                                                                                            (document.querySelector('.js-cart-count') as any).recreateView()
+                                                                                                        }
+                                                                                                        gvc.glitter.share.checkStock()
+                                                                                                        gvc.glitter.closeDiaLog()
+                                                                                                    }
 
-                                                                                                                 if (selectVariant.show_understocking && selectVariant.stock === 0) {
-                                                                                                                     const dialog = new ShareDialog(gvc.glitter)
-                                                                                                                     dialog.checkYesOrNot({
-                                                                                                                         text: ' 庫存數量不足，是否進行預購?',
-                                                                                                                         callback: (response) => {
-                                                                                                                             if (response) {
-                                                                                                                                 next()
-                                                                                                                             }
-                                                                                                                         }
-                                                                                                                     })
-                                                                                                                     return
-                                                                                                                 } else {
-                                                                                                                     next()
-                                                                                                                 }
+                                                                                                    if (selectVariant.show_understocking && selectVariant.stock === 0) {
+                                                                                                        const dialog = new ShareDialog(gvc.glitter)
+                                                                                                        dialog.checkYesOrNot({
+                                                                                                            text: ' 庫存數量不足，是否進行預購?',
+                                                                                                            callback: (response) => {
+                                                                                                                if (response) {
+                                                                                                                    next()
+                                                                                                                }
+                                                                                                            }
+                                                                                                        })
+                                                                                                        return
+                                                                                                    } else {
+                                                                                                        next()
+                                                                                                    }
 
-                                                                                                             })
-                                                                                                         }
-                                                                                                     ]
-                                                                                                 }
-                                                                                             }
-                                                                                         }
-                                                                                     })
-                                                                             }
+                                                                                                })
+                                                                                            }
+                                                                                        ]
+                                                                                    }
+                                                                                }
+                                                                            }
+                                                                        })
+                                                                }
                                                                          </div>
                                                                      </div>
                                                                  </div>`
-                                                         } catch (e) {
-                                                             console.log(e)
-                                                             return ``
-                                                         }
-                                                     }, divCreate: {class: `w-100 h-100 `}
-                                                 })
-                                             }, 'product', {
-                                                 dismiss: () => {
-                                                     gvc.notifyDataChange('order')
-                                                 }
-                                             })
-                                         })}">
+                                                            } catch (e) {
+                                                                console.log(e)
+                                                                return ``
+                                                            }
+                                                        }, divCreate: {class: `w-100 h-100 `}
+                                                    })
+                                                }, 'product', {
+                                                    dismiss: () => {
+                                                        gvc.notifyDataChange('order')
+                                                    }
+                                                })
+                                            })}">
                                         <div class="w-100"
                                              style="border-radius: 10px 10px 0 0;;padding-bottom: 116px;background: 50%/cover no-repeat url('${data.content.preview_image[0] ?? image ?? image}');"></div>
                                         <div class="d-flex flex-column"
@@ -387,26 +523,36 @@ export class ProductsPage {
                                         </div>
                                     </div>
                                 `
-                            }).join('')
-                        } else {
-                            return POSSetting.emptyView('查無相關商品')
-                        }
-                        return html``
-                    },
-                    divCreate: () => {
-                        if (document.body.offsetWidth < 800) {
-                            return {
-                                class: `d-flex flex-wrap w-100 product-show`,
-                                style: `overflow:scroll;max-height:100%;padding-left:24px;padding-right:24px;justify-content: space-between;padding-bottom:100px;`
+                                        }).join('')+`
+                                        <div class="w-100">
+                                        ${this.pageSplitV2(gvc, pVM.pageSize, pVM.pageIndex, (p) => {
+                                            pVM.pageIndex = p;
+                                            (document.querySelector('html') as any).scrollTo(0, 0);
+                                            loadData()
+                                        })}
+</div>
+                                        `
+                                    } else {
+                                        return POSSetting.emptyView('查無相關商品')
+                                    }
+                                    return html``
+                                },
+                                divCreate: () => {
+                                    if (document.body.offsetWidth < 800) {
+                                        return {
+                                            class: `d-flex flex-wrap w-100 product-show`,
+                                            style: `overflow:scroll;max-height:100%;padding-left:24px;padding-right:24px;justify-content: space-between;padding-bottom:100px;`
+                                        }
+                                    } else {
+                                        return {
+                                            class: `d-flex flex-wrap w-100 product-show p-2`,
+                                            style: `gap:26px;overflow:scroll;max-height:100%;padding-bottom:100px !important;margin-left:32px;margin-right:32px;`
+                                        }
+                                    }
+                                }
                             }
-                        } else {
-                            return {
-                                class: `d-flex flex-wrap w-100 product-show p-2`,
-                                style: `gap:26px;overflow:scroll;max-height:100%;padding-bottom:100px !important;margin-left:32px;margin-right:32px;`
-                            }
                         }
-                    }
-                })}
+                    )}
             </div>
             ${(() => {
                 const checkId = gvc.glitter.getUUID()

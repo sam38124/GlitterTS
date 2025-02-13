@@ -126,7 +126,6 @@ export type ViewModel = {
     query: string;
     order: any;
     productSearch: any[];
-    searchable: boolean;
     categorySearch: boolean;
     categories: any[];
     loading: boolean;

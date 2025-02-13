@@ -539,33 +539,43 @@ export class Shopping {
                                 content_json: langData.content_json || content.content_json,
                                 preview_image: langData.preview_image || content.preview_image,
                             });
-                            (content.variants || []).forEach((variant: any) => {
-                                variant.stock = 0;
-                                variant.sold_out = variant.sold_out || 0;
-                                variant.preview_image = variant[`preview_image_${language}`] || variant.preview_image;
-
-                                if (variant.preview_image === 'https://d3jnmi1tfjgtti.cloudfront.net/file/234285319/1722936949034-default_image.jpg') {
-                                    variant.preview_image = content.preview_image?.[0];
-                                }
-
-                                // 過濾並計算庫存
-                                Object.entries(variant.stockList || {}).forEach(([storeId, stockData]: [string, any]) => {
-                                    if (!store_config.list.some((store: any) => store.id === storeId) || !stockData?.count) {
-                                        delete variant.stockList[storeId];
-                                    } else {
-                                        variant.stockList[storeId].count = parseInt(stockData.count, 10);
-                                        variant.stock += variant.stockList[storeId].count;
-                                    }
-                                });
-
-                                // 確保所有商店 ID 都存在
-                                store_config.list.forEach((store: any) => {
-                                    variant.stockList[store.id] = variant.stockList[store.id] || {count: 0};
-                                });
-
-                                totalSale += variant.sold_out;
-                            });
                         }
+                        content.min_price=Infinity;
+                        content.max_price=Number.MIN_VALUE;
+                        (content.variants || []).forEach((variant: any) => {
+                            variant.stock = 0;
+                            variant.sold_out = variant.sold_out || 0;
+                            variant.preview_image = variant[`preview_image_${language}`] || variant.preview_image;
+                            if(content.min_price>variant.sale_price){
+                                console.log(`content.min_price=>`,variant.sale_price)
+                                content.min_price=variant.sale_price
+                            }
+
+                            if(content.max_price<variant.sale_price){
+                                content.max_price=variant.sale_price
+                            }
+                            if (variant.preview_image === 'https://d3jnmi1tfjgtti.cloudfront.net/file/234285319/1722936949034-default_image.jpg') {
+                                variant.preview_image = content.preview_image?.[0];
+                            }
+
+                            // 過濾並計算庫存
+                            Object.entries(variant.stockList || {}).forEach(([storeId, stockData]: [string, any]) => {
+                                if (!store_config.list.some((store: any) => store.id === storeId) || !stockData?.count) {
+                                    delete variant.stockList[storeId];
+                                } else {
+                                    variant.stockList[storeId].count = parseInt(stockData.count, 10);
+                                    variant.stock += variant.stockList[storeId].count;
+                                }
+                            });
+
+                            // 確保所有商店 ID 都存在
+                            store_config.list.forEach((store: any) => {
+                                variant.stockList[store.id] = variant.stockList[store.id] || {count: 0};
+                            });
+
+                            totalSale += variant.sold_out;
+
+                        });
                         if(content.shopee_id && !query.skip_shopee_check){
                            const shopee_data=await new Shopee(this.app,this.token).getProductDetail(content.shopee_id,{
                                skip_image_load:true
@@ -618,7 +628,7 @@ export class Shopping {
             const userData = (await userClass.getUserData(userID, 'userID')) ?? {userID: -1};
             const allVoucher = await this.getAllUseVoucher(userData.userID);
             const recommendData = await this.getDistributionRecommend(distributionCode);
-            console.log(`get-product-voucher-finish`,(new Date().getTime() - start) / 1000)
+            console.log(`get-product-voucher-finish`,(new Date().getTime() - start) / 1000);
             if (products.total && products.data) {
                 const processProduct = async (product: any) => {
                     product.content.about_vouchers = await this.aboutProductVoucher({

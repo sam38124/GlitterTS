@@ -507,7 +507,6 @@ height: 51px;
             order: {},
             query: '',
             productSearch: [],
-            searchable: true,
             categorySearch: true,
             categories: [
                 {
@@ -837,8 +836,7 @@ ${document.body.clientWidth < 800 ? `` : `position: absolute;left: 50%;top:50%;t
 
                                                         glitter.share.search_interval = setTimeout(() => {
                                                             vm.query = e.value;
-                                                            vm.searchable = true
-                                                            gvc.notifyDataChange('mainView')
+                                                            gvc.glitter.share.reloadProduct()
                                                         }, 500)
                                                     })}"
                                             />
@@ -1160,7 +1158,6 @@ ${document.body.clientWidth < 800 ? `` : `position: absolute;left: 50%;top:50%;t
                                                         gvc: gvc
                                                     })
                                                 }
-                                                vm.searchable = true
                                                 return ProductsPage.main({gvc: gvc, vm: vm, orderDetail: orderDetail});
                                             } catch (e) {
                                                 console.log(e);

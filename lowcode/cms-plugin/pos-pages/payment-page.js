@@ -1795,6 +1795,7 @@ white-space: normal;"
                                     }
                                 }
                             }
+                            print('client');
                         }
                         dialog.dataLoading({ visible: false });
                         orderDetail.lineItems = [];
