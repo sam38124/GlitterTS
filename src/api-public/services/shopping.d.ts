@@ -172,6 +172,7 @@ export declare class Shopping {
         max_price?: string;
         status?: string;
         channel?: string;
+        whereStore?: string;
         order_by?: string;
         id_list?: string;
         with_hide_index?: string;
@@ -261,6 +262,7 @@ export declare class Shopping {
         value: string;
     }[]>;
     getPostAddressData(address: string): Promise<any>;
+    updateExhibitionActiveStock(exh_id: string, v_id: number, count: number): Promise<void>;
     toCheckout(data: {
         line_items: {
             deduction_log?: {
@@ -319,6 +321,7 @@ export declare class Shopping {
         invoice_select?: string;
         pre_order?: boolean;
         voucherList?: any;
+        isExhibition?: boolean;
     }, type?: 'add' | 'preview' | 'manual' | 'manual-preview' | 'POS', replace_order_id?: string): Promise<any>;
     getReturnOrder(query: {
         page: number;
@@ -452,6 +455,15 @@ export declare class Shopping {
     }): boolean;
     static isComeStore(checkout: any, qData: any): boolean;
     updateProductCollection(content: string[], id: number): Promise<void>;
+    getProductVariants(id_list: string): Promise<{
+        data: any;
+        result: boolean;
+        total?: undefined;
+    } | {
+        data: any;
+        total: any;
+        result?: undefined;
+    }>;
     getVariants(query: {
         page: number;
         limit: number;

@@ -362,6 +362,7 @@ export class ApiShop {
         minPrice?: string;
         status?: string;
         channel?: string;
+        whereStore?: string;
         schedule?: boolean;
         orderBy?: string;
         id_list?: string;
@@ -388,6 +389,7 @@ export class ApiShop {
                     json.minPrice && par.push(`min_price=${json.minPrice}`);
                     json.status && par.push(`status=${json.status}`);
                     json.channel && par.push(`channel=${json.channel}`);
+                    json.whereStore && par.push(`whereStore=${json.whereStore}`);
                     if (json.schedule === true || json.schedule === false) {
                         par.push(`schedule=${json.schedule}`);
                     }

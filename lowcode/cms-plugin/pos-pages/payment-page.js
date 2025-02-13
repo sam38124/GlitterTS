@@ -110,6 +110,10 @@ export class PaymentPage {
                             })) {
                                 obj.ogOrderData.user_info.shipment = 'now';
                             }
+                            console.log('orderDetail');
+                            console.log(orderDetail);
+                            console.log('ogOrderData lineitem');
+                            console.log(obj.ogOrderData.lineItems);
                             obj.ogOrderData.lineItems = obj.ogOrderData.lineItems.filter((dd) => {
                                 return orderDetail.lineItems.find((d1) => {
                                     return dd.id + dd.spec.join('-') === d1.id + d1.spec.join('-');

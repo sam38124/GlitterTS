@@ -8,6 +8,16 @@ import { ApiStock } from '../glitter-base/route/stock.js';
 import { CheckInput } from '../modules/checkInput.js';
 import { Tool } from '../modules/tool.js';
 const html = String.raw;
+function getTimeState(startDate, endDate) {
+    const now = new Date();
+    const start = new Date(`${startDate}T00:00:00`);
+    const end = new Date(`${endDate}T23:59:59`);
+    if (now < start)
+        return 'beforeStart';
+    if (now > end)
+        return 'afterEnd';
+    return 'inRange';
+}
 export class ExhibitionManager {
     static main(gvc) {
         const glitter = gvc.glitter;
@@ -61,16 +71,6 @@ export class ExhibitionManager {
             afterEnd: BgWidget.secondaryInsignia('已結束'),
             inRange: BgWidget.successInsignia('展覽中'),
         };
-        function getTimeState(startDate, endDate) {
-            const now = new Date();
-            const start = new Date(`${startDate}T00:00:00`);
-            const end = new Date(`${endDate}T23:59:59`);
-            if (now < start)
-                return 'beforeStart';
-            if (now > end)
-                return 'afterEnd';
-            return 'inRange';
-        }
         function getDatalist() {
             return vm.dataList.map((dd) => {
                 return [
@@ -207,6 +207,7 @@ export class ExhibitionManager {
         const dialog = new ShareDialog(glitter);
         const st_name = '展場';
         const tableID = glitter.getUUID();
+        const state = type === 'replace' ? getTimeState(vm.data.startDate, vm.data.endDate) : 'create';
         function getDatalist() {
             return vm.dataList.map((dd) => {
                 var _a;
@@ -247,6 +248,7 @@ export class ExhibitionManager {
                                         data.storeFrom = text;
                                         const stock = (_b = (_a = content.stockList[data.storeFrom]) === null || _a === void 0 ? void 0 : _a.count) !== null && _b !== void 0 ? _b : 0;
                                         data.saleStock = Math.min(data.saleStock, stock);
+                                        data.activeSaleStock = data.saleStock;
                                     }
                                     catch (error) {
                                         console.error(`variant id ${dd.id} stockList 設值有誤`);
@@ -255,6 +257,7 @@ export class ExhibitionManager {
                                 resetSaleStock();
                                 gvc.notifyDataChange([ids.stock, ids.saleStock]);
                             },
+                            readonly: state === 'inRange',
                         })}</span
                         >`,
                     },
@@ -300,7 +303,9 @@ export class ExhibitionManager {
                                                 return;
                                             }
                                             data.saleStock = n;
+                                            data.activeSaleStock = n;
                                         },
+                                        readonly: state === 'inRange',
                                     });
                                 },
                                 divCreate: {
@@ -332,34 +337,6 @@ export class ExhibitionManager {
                                             return;
                                         }
                                         data.salePrice = parseInt(`${text}`, 10);
-                                    },
-                                });
-                            },
-                            divCreate: {
-                                elem: 'span',
-                                class: 'fs-7',
-                            },
-                        }),
-                    },
-                    {
-                        key: '每人限購',
-                        value: gvc.bindView({
-                            bind: ids.personBuyLimit,
-                            view: () => {
-                                var _a;
-                                return BgWidget.editeInput({
-                                    gvc: gvc,
-                                    title: '',
-                                    type: 'number',
-                                    default: `${(_a = data.personBuyLimit) !== null && _a !== void 0 ? _a : ''}`,
-                                    placeHolder: '',
-                                    callback: (text) => {
-                                        const n = parseInt(`${text}`, 10);
-                                        if (n < 0) {
-                                            gvc.notifyDataChange(ids.personBuyLimit);
-                                            return;
-                                        }
-                                        data.personBuyLimit = parseInt(`${text}`, 10);
                                     },
                                 });
                             },
@@ -462,21 +439,8 @@ export class ExhibitionManager {
                     .join(BgWidget.mbContainer(18))),
                 BgWidget.mainCard([
                     html `<div class="tx_700">展場商品</div>`,
-                    html `${BgWidget.select({
-                        gvc: gvc,
-                        default: '',
-                        options: [].map((dd) => {
-                            return {
-                                key: dd,
-                                value: dd,
-                            };
-                        }),
-                        callback: (text) => {
-                            console.log('選擇類別', text);
-                        },
-                    })}`,
                     html `<div class="d-flex align-items-center gap-2">
-                                        <div style="width: 90%">
+                                        <div style="width: ${state === 'inRange' ? 100 : 90}%">
                                             ${BgWidget.editeInput({
                         gvc: gvc,
                         title: '',
@@ -485,32 +449,36 @@ export class ExhibitionManager {
                         callback: (text) => {
                             console.log('搜尋', text);
                         },
+                        divStyle: 'display: none;',
                     })}
                                         </div>
-                                        <div style="width: auto">
-                                            ${BgWidget.grayButton('查看全部', gvc.event(() => {
-                        BgWidget.variantDialog({
-                            gvc,
-                            title: '所有商品',
-                            default: vm.data.dataList.slice().map(({ variantID }) => `${variantID}`),
-                            callback: (resultData) => {
-                                const existingDataMap = new Map(vm.data.dataList.map((item) => [item.variantID, item]));
-                                vm.data.dataList = resultData.map((id) => {
-                                    var _a;
-                                    const variantID = parseInt(id, 10);
-                                    return ((_a = existingDataMap.get(variantID)) !== null && _a !== void 0 ? _a : {
-                                        variantID,
-                                        storeFrom: '',
-                                        saleStock: 0,
-                                        salePrice: 0,
-                                        personBuyLimit: 0,
+                                        ${state === 'inRange'
+                        ? ''
+                        : html `<div style="width: auto;">
+                                                  ${BgWidget.grayButton('選擇商品', gvc.event(() => {
+                            BgWidget.variantDialog({
+                                gvc,
+                                title: '所有商品',
+                                default: vm.data.dataList.slice().map(({ variantID }) => `${variantID}`),
+                                callback: (resultData) => {
+                                    const existingDataMap = new Map(vm.data.dataList.map((item) => [item.variantID, item]));
+                                    vm.data.dataList = resultData.map((id) => {
+                                        var _a;
+                                        const variantID = parseInt(id, 10);
+                                        return ((_a = existingDataMap.get(variantID)) !== null && _a !== void 0 ? _a : {
+                                            variantID,
+                                            storeFrom: '',
+                                            saleStock: 0,
+                                            activeSaleStock: 0,
+                                            salePrice: 0,
+                                            personBuyLimit: 0,
+                                        });
                                     });
-                                });
-                                gvc.notifyDataChange(tableID);
-                            },
-                        });
-                    }))}
-                                        </div>
+                                    gvc.notifyDataChange(tableID);
+                                },
+                            });
+                        }))}
+                                              </div>`}
                                     </div> `,
                     gvc.bindView({
                         bind: tableID,
@@ -563,23 +531,25 @@ export class ExhibitionManager {
                                     });
                                 },
                                 rowClick: () => { },
-                                filter: [
-                                    {
-                                        name: '移除',
-                                        event: (checkedData) => {
-                                            dialog.warningMessage({
-                                                text: '確認移除所選商品嗎？',
-                                                callback: (response) => {
-                                                    if (!response)
-                                                        return;
-                                                    const checkedIDs = new Set(checkedData.map((item) => item.id));
-                                                    vm.data.dataList = vm.data.dataList.filter((data) => !checkedIDs.has(data.variantID));
-                                                    gvc.notifyDataChange(tableID);
-                                                },
-                                            });
+                                filter: state === 'inRange'
+                                    ? []
+                                    : [
+                                        {
+                                            name: '移除',
+                                            event: (checkedData) => {
+                                                dialog.warningMessage({
+                                                    text: '確認移除所選商品嗎？',
+                                                    callback: (response) => {
+                                                        if (!response)
+                                                            return;
+                                                        const checkedIDs = new Set(checkedData.map((item) => item.id));
+                                                        vm.data.dataList = vm.data.dataList.filter((data) => !checkedIDs.has(data.variantID));
+                                                        gvc.notifyDataChange(tableID);
+                                                    },
+                                                });
+                                            },
                                         },
-                                    },
-                                ],
+                                    ],
                             });
                         },
                     }),

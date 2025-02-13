@@ -5,16 +5,16 @@ import exception from '../../modules/exception';
 import db from '../../modules/database.js';
 import redis from '../../modules/redis.js';
 import axios from 'axios';
-import {UtDatabase} from '../utils/ut-database.js';
-import {UtPermission} from '../utils/ut-permission';
-import {EcPay, EzPay, JKO, LinePay, PayNow, PayPal} from '../services/financial-service.js';
-import {Private_config} from '../../services/private_config.js';
-import {User} from '../services/user.js';
-import {Post} from '../services/post.js';
-import {Shopping, VoucherData} from '../services/shopping';
-import {DataAnalyze} from '../services/data-analyze';
-import {Rebate, IRebateSearch} from '../services/rebate';
-import {Pos} from '../services/pos.js';
+import { UtDatabase } from '../utils/ut-database.js';
+import { UtPermission } from '../utils/ut-permission';
+import { EcPay, EzPay, JKO, LinePay, PayNow, PayPal } from '../services/financial-service.js';
+import { Private_config } from '../../services/private_config.js';
+import { User } from '../services/user.js';
+import { Post } from '../services/post.js';
+import { Shopping, VoucherData } from '../services/shopping';
+import { DataAnalyze } from '../services/data-analyze';
+import { Rebate, IRebateSearch } from '../services/rebate';
+import { Pos } from '../services/pos.js';
 
 const router: express.Router = express.Router();
 export = router;
@@ -37,7 +37,7 @@ router.post('/worker', async (req: express.Request, resp: express.Response) => {
 // 多國貨幣
 router.get('/currency-covert', async (req: express.Request, resp: express.Response) => {
     try {
-        return response.succ(resp, {data: await Shopping.currencyCovert((req.query.base || 'TWD') as string)});
+        return response.succ(resp, { data: await Shopping.currencyCovert((req.query.base || 'TWD') as string) });
     } catch (err) {
         return response.fail(resp, err);
     }
@@ -55,25 +55,25 @@ router.get('/rebate', async (req: express.Request, resp: express.Response) => {
 
         const user = await new User(app).getUserData(req.body.token.userID, 'userID');
         if (user.id) {
-            const historyList = await rebateClass.getCustomerRebateHistory({user_id: req.body.token.userID});
+            const historyList = await rebateClass.getCustomerRebateHistory({ user_id: req.body.token.userID });
             const oldest = await rebateClass.getOldestRebate(req.body.token.userID);
             const historyMaps = historyList
                 ? historyList.data.map((item: any) => {
-                    return {
-                        id: item.id,
-                        orderID: item.content.order_id ?? '',
-                        userID: item.user_id,
-                        money: item.origin,
-                        remain: item.remain,
-                        status: 1,
-                        note: item.note,
-                        created_time: item.created_at,
-                        deadline: item.deadline,
-                        userData: user.userData,
-                    };
-                })
+                      return {
+                          id: item.id,
+                          orderID: item.content.order_id ?? '',
+                          userID: item.user_id,
+                          money: item.origin,
+                          remain: item.remain,
+                          status: 1,
+                          note: item.note,
+                          created_time: item.created_at,
+                          deadline: item.deadline,
+                          userData: user.userData,
+                      };
+                  })
                 : [];
-            return response.succ(resp, {data: historyMaps, oldest: oldest?.data});
+            return response.succ(resp, { data: historyMaps, oldest: oldest?.data });
         }
         return response.fail(resp, '使用者不存在');
     } catch (err) {
@@ -85,7 +85,7 @@ router.get('/rebate/config', async (req: express.Request, resp: express.Response
         const app = req.get('g-app') as string;
         const rebateClass = new Rebate(app);
         const config = await rebateClass.getConfig();
-        return response.succ(resp, {data: config});
+        return response.succ(resp, { data: config });
     } catch (err) {
         return response.fail(resp, err);
     }
@@ -94,9 +94,9 @@ router.get('/rebate/sum', async (req: express.Request, resp: express.Response) =
     try {
         const app = req.get('g-app') as string;
         const rebateClass = new Rebate(app);
-        const data = await rebateClass.getOneRebate({user_id: req.query.userID || req.body.token.userID});
+        const data = await rebateClass.getOneRebate({ user_id: req.query.userID || req.body.token.userID });
         const main = await rebateClass.mainStatus();
-        return response.succ(resp, {main: main, sum: data ? data.point : 0});
+        return response.succ(resp, { main: main, sum: data ? data.point : 0 });
     } catch (err) {
         return response.fail(resp, err);
     }
@@ -348,8 +348,7 @@ router.get('/order/payment-method', async (req: express.Request, resp: express.R
             delete keyData[dd];
         });
         return response.succ(resp, keyData);
-    } catch (e) {
-    }
+    } catch (e) {}
 });
 router.get('/payment/method', async (req: express.Request, resp: express.Response) => {
     try {
@@ -558,7 +557,7 @@ router.get('/voucher', async (req: express.Request, resp: express.Response) => {
         // 篩選過期優惠券
         if (req.query.date_confirm === 'true') {
             vouchers.data = vouchers.data.filter((voucher: { content: VoucherData }) => {
-                const {start_ISO_Date, end_ISO_Date} = voucher.content;
+                const { start_ISO_Date, end_ISO_Date } = voucher.content;
                 const now = new Date().getTime();
                 return new Date(start_ISO_Date).getTime() < now && (!end_ISO_Date || new Date(end_ISO_Date).getTime() > now);
             });
@@ -574,11 +573,11 @@ router.get('/voucher', async (req: express.Request, resp: express.Response) => {
             const userData = await userClass.getUserData(req.query.user_email as string, 'email_or_phone');
             return userData.userID;
         })();
-        const userLevels = await userClass.getUserLevel([{userId: userID}]);
+        const userLevels = await userClass.getUserLevel([{ userId: userID }]);
 
         // 篩選用戶適用的優惠券
         vouchers.data = vouchers.data.filter((voucher: { content: VoucherData }) => {
-            const {target, targetList} = voucher.content;
+            const { target, targetList } = voucher.content;
 
             switch (target) {
                 case 'customer':
@@ -604,7 +603,7 @@ router.delete('/voucher', async (req: express.Request, resp: express.Response) =
             await new Shopping(req.get('g-app') as string, req.body.token).deleteVoucher({
                 id: req.query.id as string,
             });
-            return response.succ(resp, {result: true});
+            return response.succ(resp, { result: true });
         } else {
             return response.fail(resp, exception.BadRequestError('BAD_REQUEST', 'No permission.', null));
         }
@@ -617,7 +616,7 @@ router.delete('/voucher', async (req: express.Request, resp: express.Response) =
 async function redirect_link(req: express.Request, resp: express.Response) {
     try {
         //預防沒有APPName
-        req.query.appName = req.query.appName || req.get('g-app') as string || (req.query['g-app'] as string);
+        req.query.appName = req.query.appName || (req.get('g-app') as string) || (req.query['g-app'] as string);
         // 判斷paypal進來 做capture
         let return_url = new URL((await redis.getValue(req.query.return as string)) as any);
         if (req.query.LinePay && req.query.LinePay === 'true') {
@@ -650,7 +649,6 @@ async function redirect_link(req: express.Request, resp: express.Response) {
             }
         }
         if (req.query.paynow && req.query.paynow === 'true') {
-
             // const check_id = '1234555'
             const keyData = (
                 await Private_config.getConfig({
@@ -683,32 +681,31 @@ async function redirect_link(req: express.Request, resp: express.Response) {
         const html = String.raw;
         return resp.send(
             html`<!DOCTYPE html>
-            <html lang="en">
-            <head>
-                <meta charset="UTF-8"/>
-                <title>Title</title>
-            </head>
-            <body>
-            <script>
-                try {
-                    window.webkit.messageHandlers.addJsInterFace.postMessage(
-                            JSON.stringify({
-                                functionName: 'check_out_finish',
-                                callBackId: 0,
-                                data: {
-                                    redirect: '${return_url.href}',
-                                },
-                            })
-                    );
-                } catch (e) {
-                }
-                location.href = '${return_url.href}';
-            </script>
-            </body>
-            </html> `
+                <html lang="en">
+                    <head>
+                        <meta charset="UTF-8" />
+                        <title>Title</title>
+                    </head>
+                    <body>
+                        <script>
+                            try {
+                                window.webkit.messageHandlers.addJsInterFace.postMessage(
+                                    JSON.stringify({
+                                        functionName: 'check_out_finish',
+                                        callBackId: 0,
+                                        data: {
+                                            redirect: '${return_url.href}',
+                                        },
+                                    })
+                                );
+                            } catch (e) {}
+                            location.href = '${return_url.href}';
+                        </script>
+                    </body>
+                </html> `
         );
     } catch (err) {
-        console.error(err)
+        console.error(err);
         return response.fail(resp, err);
     }
 }
@@ -718,7 +715,7 @@ router.post('/redirect', redirect_link);
 
 // 執行訂單結帳與付款事項
 const storage = multer.memoryStorage();
-const upload = multer({storage});
+const upload = multer({ storage });
 router.get('/testRelease', async (req: express.Request, resp: express.Response) => {
     try {
         const test = true;
@@ -733,7 +730,7 @@ router.get('/testRelease', async (req: express.Request, resp: express.Response) 
 });
 router.post('/notify', upload.single('file'), async (req: express.Request, resp: express.Response) => {
     try {
-        console.log(`notify-order-result`)
+        console.log(`notify-order-result`);
         let decodeData = undefined;
         const appName = req.query['g-app'] as string;
         const type = req.query['type'] as string;
@@ -860,7 +857,7 @@ router.post('/wishlist', async (req: express.Request, resp: express.Response) =>
                 't_post'
             );
         }
-        return response.succ(resp, {result: true});
+        return response.succ(resp, { result: true });
     } catch (err) {
         return response.fail(resp, err);
     }
@@ -876,7 +873,7 @@ router.delete('/wishlist', async (req: express.Request, resp: express.Response) 
             `,
             [req.body.token.userID]
         );
-        return response.succ(resp, {result: true});
+        return response.succ(resp, { result: true });
     } catch (err) {
         return response.fail(resp, err);
     }
@@ -980,6 +977,7 @@ router.get('/product', async (req: express.Request, resp: express.Response) => {
             max_price: req.query.max_price as string,
             status: req.query.status as string,
             channel: req.query.channel as string,
+            whereStore: req.query.whereStore as string,
             id_list: req.query.id_list as string,
             order_by: req.query.order_by as string,
             with_hide_index: req.query.with_hide_index as string,
@@ -1098,7 +1096,7 @@ router.get('/product/comment', async (req: express.Request, resp: express.Respon
 router.post('/product/comment', async (req: express.Request, resp: express.Response) => {
     try {
         await new Shopping(req.get('g-app') as string, req.body.token).postProductComment(req.body);
-        return response.succ(resp, {result: true});
+        return response.succ(resp, { result: true });
     } catch (err) {
         return response.fail(resp, err);
     }
@@ -1122,7 +1120,7 @@ router.delete('/product', async (req: express.Request, resp: express.Response) =
             await new Shopping(req.get('g-app') as string, req.body.token).deleteProduct({
                 id: req.query.id as string,
             });
-            return response.succ(resp, {result: true});
+            return response.succ(resp, { result: true });
         } else {
             return response.fail(resp, exception.BadRequestError('BAD_REQUEST', 'No permission.', null));
         }
@@ -1188,7 +1186,7 @@ router.post('/pos/checkout', async (req: express.Request, resp: express.Response
 // POS機相關
 router.post('/pos/linePay', async (req: express.Request, resp: express.Response) => {
     try {
-        return response.succ(resp, {result: await new Shopping(req.get('g-app') as string, req.body.token).linePay(req.body)});
+        return response.succ(resp, { result: await new Shopping(req.get('g-app') as string, req.body.token).linePay(req.body) });
     } catch (err) {
         return response.fail(resp, err);
     }
@@ -1283,9 +1281,16 @@ router.post('/apple-webhook', async (req: express.Request, resp: express.Respons
         for (const b of receipt.receipt.in_app.filter((dd: any) => {
             return ['light_year_apple', 'basic_year_apple', 'omo_year_apple', 'app_year_apple', 'flagship_year_apple'].includes(`${dd.product_id}`) && dd.in_app_ownership_type === 'PURCHASED';
         })) {
-            if (!(await db.query(`select count(1)
+            if (
+                !(
+                    await db.query(
+                        `select count(1)
                                   from shopnex.t_checkout
-                                  where cart_token = ?`, [b.transaction_id]))[0]['count(1)']) {
+                                  where cart_token = ?`,
+                        [b.transaction_id]
+                    )
+                )[0]['count(1)']
+            ) {
                 const app_info = (
                     await db.query(
                         `select dead_line, user
@@ -1346,7 +1351,7 @@ router.post('/apple-webhook', async (req: express.Request, resp: express.Respons
                                         rebate: 0,
                                         collection: [],
                                         sale_price: money,
-                                        shipment_obj: {type: 'weight', value: 0},
+                                        shipment_obj: { type: 'weight', value: 0 },
                                         preview_image: 'https://d3jnmi1tfjgtti.cloudfront.net/file/252530754/1702389593777-Frame 2 (2).png',
                                         discount_price: 0,
                                     },
@@ -1365,22 +1370,22 @@ router.post('/apple-webhook', async (req: express.Request, resp: express.Respons
                                 orderSource: '',
                                 voucherList: [],
                                 shipment_fee: 0,
-                                customer_info: {payment_select: 'ecPay'},
-                                useRebateInfo: {point: 0},
-                                payment_setting: {TYPE: 'ecPay'},
+                                customer_info: { payment_select: 'ecPay' },
+                                useRebateInfo: { point: 0 },
+                                payment_setting: { TYPE: 'ecPay' },
                                 user_rebate_sum: 0,
-                                off_line_support: {atm: false, line: false, cash_on_delivery: false},
-                                payment_info_atm: {bank_code: '', bank_name: '', bank_user: '', bank_account: ''},
+                                off_line_support: { atm: false, line: false, cash_on_delivery: false },
+                                payment_info_atm: { bank_code: '', bank_name: '', bank_user: '', bank_account: '' },
                                 shipment_support: [],
                                 shipment_selector: [],
-                                payment_info_line_pay: {text: ''},
+                                payment_info_line_pay: { text: '' },
                             }),
                         },
                     ]
                 );
             }
         }
-        return response.succ(resp, {result: true});
+        return response.succ(resp, { result: true });
     } catch (err) {
         console.error(err);
         return response.fail(resp, err);

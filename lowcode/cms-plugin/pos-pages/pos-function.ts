@@ -313,48 +313,104 @@ export class PosFunction {
     }
 
     // 切換門市
-    public static selectStoreSwitch(gvc: GVC) {
+    public static selectStoreSwitch(gvc: GVC, callback: () => void) {
         gvc.glitter.innerDialog((gvc) => {
+            const isDesktop = document.body.clientWidth > 768;
             const c_vm = {
                 text: '',
                 id: gvc.glitter.getUUID(),
+                prefix: 'select-store',
             };
 
-            return gvc.bindView(() => {
-                const storeElements = gvc.glitter.share.store_list
-                    .filter((store: any) => gvc.glitter.share.select_member.config.support_shop.includes(store.id))
-                    .map((store: any) => {
-                        return html`
-                            <div
-                                class="d-flex align-items-center p-0 w-100"
-                                style="cursor: pointer; gap: 10px;"
-                                onclick="${gvc.event(() => {
-                                    POSSetting.config.where_store = store.id;
-                                    gvc.closeDialog();
-                                })}"
-                            >
-                                <img
-                                    src="https://assets.imgix.net/~text?bg=7ED379&amp;txtclr=ffffff&amp;w=100&amp;h=100&amp;txtsize=40&amp;txt=${store.name}&amp;txtfont=Helvetica&amp;txtalign=middle,center"
-                                    class="rounded-circle"
-                                    width="40"
-                                    alt="${store.name}"
-                                    style="width:40px; height:40px;"
-                                />
-                                <div class="d-flex flex-column">
-                                    <div>${store.name}</div>
-                                </div>
-                                <div class="flex-fill"></div>
-                                <div
-                                    class="ms-auto d-flex align-items-center justify-content-center border p-2 rounded-3 mt-2"
-                                    style="text-align: center; font-size: 16px; font-weight: 700; background: #393939; color: white;"
-                                >
-                                    選擇
-                                </div>
-                            </div>
-                        `;
-                    })
-                    .join('<div class="my-2 w-100 border-top"></div>');
+            // mainCard 手機版專用
+            const phoneCardStyle = isDesktop ? '' : 'border-radius: 10px; background: #fff; padding: 16px; box-shadow: 0px 0px 10px 0px rgba(0, 0, 0, 0.08);';
 
+            gvc.addStyle(`
+                .${c_vm.prefix}-title {
+                    color: #393939;
+                    text-align: center;
+                    font-size: ${isDesktop ? '32px' : '20px'};
+                    font-weight: 700;
+                    line-height: 140%;
+                    letter-spacing: ${isDesktop ? '3.2px' : '2px'};
+                }
+                .${c_vm.prefix}-container {
+                    width: ${isDesktop ? 'calc(80vw)' : 'calc(100vw - 60px)'};
+                    max-height: calc(100vh - 100px);
+                    overflow-y: auto;
+                    padding: ${isDesktop ? '56px' : '20px'};
+                    background: white;
+                    box-shadow: 2px 2px 10px rgba(0, 0, 0, 0.15);
+                    border-radius: 20px;
+                    display: flex;
+                    flex-direction: column;
+                    align-items: center;
+                    gap: 10px;
+                }
+            `);
+
+            const storeElements = html`
+                <div>
+                    <div class="${c_vm.prefix}-title">選擇此裝置所在的門市</div>
+                    <div class="row mt-4">
+                        ${gvc.glitter.share.store_list
+                            .filter((store: any) => gvc.glitter.share.select_member.config.support_shop.includes(store.id))
+                            .map((store: any) => {
+                                return html`<div class="col-6 col-lg-3 mt-3">
+                                    ${BgWidget.mainCard(
+                                        html`<div
+                                            class="d-flex align-items-center justify-content-center w-100"
+                                            style="cursor: pointer; gap: 10px; font-size: 18px; ${phoneCardStyle}"
+                                            onclick="${gvc.event(() => {
+                                                POSSetting.config.where_store = store.id;
+                                                gvc.closeDialog();
+                                                callback();
+                                            })}"
+                                        >
+                                            ${store.name}
+                                        </div>`
+                                    )}
+                                </div>`;
+                            })
+                            .join('')}
+                    </div>
+                </div>
+                ${gvc.glitter.share.exhibition_list.length > 0
+                    ? html`<div class="d-flex align-items-center gap-1 my-3 my-lg-5">
+                              <div style="flex-grow: 1;">${BgWidget.horizontalLine()}</div>
+                              <div style="width: 50px; text-align: center;">或者</div>
+                              <div style="flex-grow: 1;">${BgWidget.horizontalLine()}</div>
+                          </div>
+                          <div>
+                              <div class="${c_vm.prefix}-title">選擇此裝置所在的展場</div>
+                              <div class="row mt-4">
+                                  ${gvc.glitter.share.exhibition_list
+                                      .map((exhibition: any) => {
+                                          return html`<div class="col-12 col-lg-6 mt-3">
+                                              ${BgWidget.mainCard(
+                                                  html`<div
+                                                      class="d-flex flex-column align-items-center justify-content-center w-100 gap-1"
+                                                      style="cursor: pointer; ${phoneCardStyle}"
+                                                      onclick="${gvc.event(() => {
+                                                          POSSetting.config.where_store = exhibition.id;
+                                                          gvc.closeDialog();
+                                                          callback();
+                                                      })}"
+                                                  >
+                                                      <div style="margin-bottom: 6px; font-size: 18px;">${exhibition.name}</div>
+                                                      <div style="color: #8D8D8D;">地址：${exhibition.address}</div>
+                                                      <div style="color: #8D8D8D;">時間：${exhibition.startDate} ~ ${exhibition.endDate}</div>
+                                                  </div>`
+                                              )}
+                                          </div>`;
+                                      })
+                                      .join('')}
+                              </div>
+                          </div>`
+                    : ''}
+            `;
+
+            return gvc.bindView(() => {
                 return {
                     bind: c_vm.id,
                     view: () => html`
@@ -364,8 +420,7 @@ export class PosFunction {
                         </div>
                     `,
                     divCreate: {
-                        class: '',
-                        style: `width: 338px; max-height: 200px; overflow-y: auto; padding: 25px 20px; background: white; box-shadow: 2px 2px 10px rgba(0, 0, 0, 0.15); border-radius: 20px; display: flex; flex-direction: column; align-items: center; gap: 10px;`,
+                        class: `${c_vm.prefix}-container`,
                     },
                 };
             });

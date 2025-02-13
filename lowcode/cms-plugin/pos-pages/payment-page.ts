@@ -130,6 +130,10 @@ export class PaymentPage {
                                 (obj.ogOrderData.user_info.shipment as any) = 'now';
                             }
                             //儲存資料至本地暫存
+                            console.log('orderDetail');
+                            console.log(orderDetail);
+                            console.log('ogOrderData lineitem');
+                            console.log(obj.ogOrderData.lineItems);
                             obj.ogOrderData.lineItems = obj.ogOrderData.lineItems.filter((dd) => {
                                 return orderDetail.lineItems.find((d1: any) => {
                                     return dd.id + dd.spec.join('-') === d1.id + d1.spec.join('-');
@@ -1897,7 +1901,7 @@ white-space: normal;"
                                 }
                             }
                         }
-                        print('client')
+                        print('client');
                     }
                     dialog.dataLoading({ visible: false });
                     orderDetail.lineItems = [];

@@ -317,8 +317,7 @@ router.get('/order/payment-method', async (req, resp) => {
         });
         return response_1.default.succ(resp, keyData);
     }
-    catch (e) {
-    }
+    catch (e) { }
 });
 router.get('/payment/method', async (req, resp) => {
     try {
@@ -603,29 +602,28 @@ async function redirect_link(req, resp) {
         }
         const html = String.raw;
         return resp.send(html `<!DOCTYPE html>
-            <html lang="en">
-            <head>
-                <meta charset="UTF-8"/>
-                <title>Title</title>
-            </head>
-            <body>
-            <script>
-                try {
-                    window.webkit.messageHandlers.addJsInterFace.postMessage(
-                            JSON.stringify({
-                                functionName: 'check_out_finish',
-                                callBackId: 0,
-                                data: {
-                                    redirect: '${return_url.href}',
-                                },
-                            })
-                    );
-                } catch (e) {
-                }
-                location.href = '${return_url.href}';
-            </script>
-            </body>
-            </html> `);
+                <html lang="en">
+                    <head>
+                        <meta charset="UTF-8" />
+                        <title>Title</title>
+                    </head>
+                    <body>
+                        <script>
+                            try {
+                                window.webkit.messageHandlers.addJsInterFace.postMessage(
+                                    JSON.stringify({
+                                        functionName: 'check_out_finish',
+                                        callBackId: 0,
+                                        data: {
+                                            redirect: '${return_url.href}',
+                                        },
+                                    })
+                                );
+                            } catch (e) {}
+                            location.href = '${return_url.href}';
+                        </script>
+                    </body>
+                </html> `);
     }
     catch (err) {
         console.error(err);
@@ -878,6 +876,7 @@ router.get('/product', async (req, resp) => {
             max_price: req.query.max_price,
             status: req.query.status,
             channel: req.query.channel,
+            whereStore: req.query.whereStore,
             id_list: req.query.id_list,
             order_by: req.query.order_by,
             with_hide_index: req.query.with_hide_index,
