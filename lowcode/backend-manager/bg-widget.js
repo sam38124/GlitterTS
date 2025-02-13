@@ -2497,7 +2497,7 @@ ${(_c = obj.default) !== null && _c !== void 0 ? _c : ''}</textarea
                 </option>`))}
         </select>`;
     }
-    static searchFilter(event, vale, placeholder, margin) {
+    static searchFilter(event, value, placeholder, margin) {
         return html `
             <div class="w-100 position-relative" style="height: 40px !important; margin: ${margin !== null && margin !== void 0 ? margin : 0};">
                 <i class="fa-regular fa-magnifying-glass"
@@ -2505,7 +2505,7 @@ ${(_c = obj.default) !== null && _c !== void 0 ? _c : ''}</textarea
                    aria-hidden="true"></i>
                 <input class="form-control h-100"
                        style="border-radius: 10px; border: 1px solid #DDD; padding-left: 50px; height: 100%;"
-                       placeholder="${placeholder}" onchange="${event}" value="${vale}"/>
+                       placeholder="${placeholder}" onchange="${event}" value="${value}"/>
             </div>`;
     }
     static funnelFilter(obj) {
@@ -3136,7 +3136,7 @@ ${(_c = obj.default) !== null && _c !== void 0 ? _c : ''}</textarea
                     if (vm.loading) {
                         ApiShop.getVariants({
                             page: 0,
-                            limit: 99999,
+                            limit: 99,
                             search: vm.query || undefined,
                             searchType: 'title',
                             orderBy: vm.orderString || undefined,

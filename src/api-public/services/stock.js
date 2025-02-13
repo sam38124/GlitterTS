@@ -168,6 +168,62 @@ class Stock {
             }
         }
     }
+    async productStock(json) {
+        const page = json.page ? parseInt(`${json.page}`, 10) : 0;
+        const limit = json.limit ? parseInt(`${json.limit}`, 10) : 20;
+        try {
+            const sqlArr = ['1=1'];
+            if (json.variant_id_list) {
+                sqlArr.push(`(v.id in (${json.variant_id_list}))`);
+            }
+            const sqlText = sqlArr.join(' AND ');
+            const getStockTotal = await database_1.default.query(`SELECT count(v.id) as c
+                 FROM \`${this.app}\`.t_variants as v,
+                      \`${this.app}\`.t_manager_post as p
+                 WHERE v.product_id = p.id
+                   AND ${sqlText}
+                `, []);
+            console.log(`SELECT v.*, p.content as product_content
+            FROM \`${this.app}\`.t_variants as v,
+                 \`${this.app}\`.t_manager_post as p
+            WHERE v.product_id = p.id
+              AND ${sqlText}
+                LIMIT ${page * limit}
+                , ${limit};
+           `);
+            let data = await database_1.default.query(`SELECT v.*, p.content as product_content
+                 FROM \`${this.app}\`.t_variants as v,
+                      \`${this.app}\`.t_manager_post as p
+                 WHERE v.product_id = p.id
+                   AND ${sqlText}
+                     LIMIT ${page * limit}
+                     , ${limit};
+                `, []);
+            data.map((item) => {
+                item.count = Object.values(item.content.stockList).reduce((sum, stock) => sum + stock.count, 0);
+                item.title = (() => {
+                    try {
+                        return item.product_content.language_data['zh-TW'].title;
+                    }
+                    catch (error) {
+                        console.error(`product id ${item.product_id} 沒有 zh-TW 的標題，使用原標題`);
+                        return item.product_content.title;
+                    }
+                })();
+                return item;
+            });
+            return {
+                total: getStockTotal[0].c,
+                data,
+            };
+        }
+        catch (error) {
+            console.error(error);
+            if (error instanceof Error) {
+                throw exception_1.default.BadRequestError('stock productList Error: ', error.message, null);
+            }
+        }
+    }
     async deleteStoreProduct(store_id) {
         try {
             const productList = {};

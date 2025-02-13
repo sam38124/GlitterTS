@@ -584,21 +584,19 @@ class Shopping {
                         \`${this.app}\`.t_manager_post AS p ON v.product_id = p.id
                    WHERE ${querySql.join(' and ')} ${query.order_by || `order by id desc`}
         `;
+        query.limit = query.limit && query.limit > 999 ? 999 : query.limit;
+        const limitSQL = `limit ${query.page * query.limit} , ${query.limit}`;
         if (query.id) {
-            const data = (await database_js_1.default.query(`SELECT *
-                     FROM (${sql}) as subqyery
-                         limit ${query.page * query.limit}
-                        , ${query.limit}`, []))[0];
+            const data = (await database_js_1.default.query(`SELECT * FROM (${sql}) as subqyery ${limitSQL}
+                    `, []))[0];
             return { data: data, result: !!data };
         }
         else {
             return {
-                data: await database_js_1.default.query(`SELECT *
-                     FROM (${sql}) as subqyery
-                         limit ${query.page * query.limit}
-                        , ${query.limit}`, []),
-                total: (await database_js_1.default.query(`SELECT count(1)
-                         FROM (${sql}) as subqyery`, []))[0]['count(1)'],
+                data: await database_js_1.default.query(`SELECT * FROM (${sql}) as subqyery ${limitSQL}
+                    `, []),
+                total: (await database_js_1.default.query(`SELECT count(1) FROM (${sql}) as subqyery
+                        `, []))[0]['count(1)'],
             };
         }
     }
@@ -2608,59 +2606,57 @@ OR JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.orderStatus')) NOT IN (-99)) `);
             content.variants = (_a = content.variants) !== null && _a !== void 0 ? _a : [];
             content.min_price = undefined;
             content.max_price = undefined;
-            if (content.id) {
-                await database_js_1.default.query(`DELETE
-                     FROM \`${this.app}\`.t_variants
-                     WHERE (product_id = ${content.id})
-                       AND id > 0
-                    `, []);
-            }
-            const store_config = await new user_js_1.User(this.app).getConfigV2({ key: 'store_manager', user_id: 'manager' });
             content.total_sales = 0;
-            await Promise.all(content.variants.map((a) => {
+            if (!content.id) {
+                throw exception_js_1.default.BadRequestError('BAD_REQUEST', 'Missing product ID.', null);
+            }
+            const originVariants = await database_js_1.default.query(`SELECT id, product_id, content->>'$.spec' as spec 
+                 FROM \`${this.app}\`.t_variants 
+                 WHERE product_id = ?`, [content.id]);
+            await database_js_1.default.query(`DELETE FROM \`${this.app}\`.t_variants WHERE product_id = ? AND id > 0`, [content.id]);
+            const _user = new user_js_1.User(this.app);
+            const storeConfig = await _user.getConfigV2({ key: 'store_manager', user_id: 'manager' });
+            const sourceMap = {};
+            const insertPromises = content.variants.map(async (variant) => {
                 var _a, _b, _c;
-                content.total_sales += (_a = a.sold_out) !== null && _a !== void 0 ? _a : 0;
-                content.min_price = (_b = content.min_price) !== null && _b !== void 0 ? _b : a.sale_price;
-                content.max_price = (_c = content.max_price) !== null && _c !== void 0 ? _c : a.sale_price;
-                if (a.sale_price < content.min_price) {
-                    content.min_price = a.sale_price;
+                content.total_sales += (_a = variant.sold_out) !== null && _a !== void 0 ? _a : 0;
+                content.min_price = Math.min((_b = content.min_price) !== null && _b !== void 0 ? _b : variant.sale_price, variant.sale_price);
+                content.max_price = Math.max((_c = content.max_price) !== null && _c !== void 0 ? _c : variant.sale_price, variant.sale_price);
+                variant.type = 'variants';
+                variant.product_id = content.id;
+                variant.stockList = variant.stockList || {};
+                if (variant.show_understocking === 'false') {
+                    variant.stock = 0;
+                    variant.stockList = {};
                 }
-                if (a.sale_price > content.max_price) {
-                    content.max_price = a.sale_price;
+                else if (Object.keys(variant.stockList).length === 0) {
+                    variant.stockList[storeConfig.list[0].id] = { count: variant.stock };
                 }
-                a.type = 'variants';
-                a.product_id = content.id;
-                a.stockList = a.stockList || {};
-                if (a.show_understocking === 'false') {
-                    a.stock = 0;
-                    a.stockList = {};
+                const insertData = await database_js_1.default.query(`INSERT INTO \`${this.app}\`.t_variants SET ?`, [{ content: JSON.stringify(variant), product_id: content.id }]);
+                const originalVariant = originVariants.find((item) => JSON.parse(item.spec).join(',') === variant.spec.join(','));
+                if (originalVariant) {
+                    sourceMap[originalVariant.id] = insertData.insertId;
                 }
-                else if (Object.keys(a.stockList).length === 0) {
-                    a.stockList[store_config.list[0].id] = { count: a.stock };
-                }
-                return new Promise(async (resolve, reject) => {
-                    await database_js_1.default.query(`INSERT INTO \`${this.app}\`.t_variants
-                             SET ?`, [
-                        {
-                            content: JSON.stringify(a),
-                            product_id: content.id,
-                        },
-                    ]);
-                    resolve(true);
+                return insertData;
+            });
+            await Promise.all(insertPromises);
+            const exhibitionConfig = await _user.getConfigV2({ key: 'exhibition_manager', user_id: 'manager' });
+            exhibitionConfig.list.forEach((exhibition) => {
+                exhibition.dataList.forEach((item) => {
+                    if (sourceMap[item.variantID]) {
+                        item.variantID = sourceMap[item.variantID];
+                    }
                 });
-            }));
-            await database_js_1.default.query(`UPDATE \`${this.app}\`.\`t_manager_post\`
-                 SET ?
-                 WHERE id = ?
-                `, [
-                {
-                    content: JSON.stringify(content),
-                },
-                content.id,
-            ]);
+            });
+            await _user.setConfig({
+                key: 'exhibition_manager',
+                user_id: 'manager',
+                value: exhibitionConfig,
+            });
+            await database_js_1.default.query(`UPDATE \`${this.app}\`.t_manager_post SET ? WHERE id = ?`, [{ content: JSON.stringify(content) }, content.id]);
         }
         catch (error) {
-            throw exception_js_1.default.BadRequestError('BAD_REQUEST', 'postVariantsAndPriceValue Error:' + express_1.default, null);
+            throw exception_js_1.default.BadRequestError('BAD_REQUEST', 'postVariantsAndPriceValue Error: ' + error, null);
         }
     }
     async updateVariantsWithSpec(data, product_id, spec) {

@@ -2942,7 +2942,7 @@ ${obj.default ?? ''}</textarea
         </select>`;
     }
 
-    static searchFilter(event: string, vale: string, placeholder: string, margin?: string) {
+    static searchFilter(event: string, value: string, placeholder: string, margin?: string) {
         return html`
             <div class="w-100 position-relative" style="height: 40px !important; margin: ${margin ?? 0};">
                 <i class="fa-regular fa-magnifying-glass"
@@ -2950,7 +2950,7 @@ ${obj.default ?? ''}</textarea
                    aria-hidden="true"></i>
                 <input class="form-control h-100"
                        style="border-radius: 10px; border: 1px solid #DDD; padding-left: 50px; height: 100%;"
-                       placeholder="${placeholder}" onchange="${event}" value="${vale}"/>
+                       placeholder="${placeholder}" onchange="${event}" value="${value}"/>
             </div>`;
     }
 
@@ -3673,7 +3673,8 @@ ${obj.default ?? ''}</textarea
                             if (vm.loading) {
                                 ApiShop.getVariants({
                                     page: 0,
-                                    limit: 99999,
+                                    limit: 99,
+                                    // limit: 99999,
                                     search: vm.query || undefined,
                                     searchType: 'title',
                                     orderBy: vm.orderString || undefined,
@@ -3713,7 +3714,7 @@ ${obj.default ?? ''}</textarea
                                         if (currentScrollTop > lastScrollTop) {
                                             lastScrollTop = currentScrollTop;
 
-                                            // 檢查是否需要加載更多內容
+                                            // 檢查是否需要載入更多內容
                                             if (currentScrollTop > loadBatch * itemHeight) {
                                                 loadBatch++;
 

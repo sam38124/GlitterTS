@@ -336,9 +336,7 @@ export class FilterOptions {
         { key: 'order_id', value: '原訂單編號' },
     ];
 
-    static fbLiveSelect = [
-        { key: 'fb_live_name', value: '直播名稱' },
-    ];
+    static fbLiveSelect = [{ key: 'fb_live_name', value: '直播名稱' }];
 
     static productFilterFrame = {
         status: [],
@@ -615,4 +613,12 @@ export class FilterOptions {
     static stockHistoryCheckFunnel = [];
 
     static stockHistoryCheckOrderBy = [];
+
+    static exhibitionFilterFrame = {};
+
+    static exhibitionSelect = [{ key: 'name', value: '庫存點名稱' }];
+
+    static exhibitionFunnel = [];
+
+    static exhibitionOrderBy = [];
 }

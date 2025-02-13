@@ -27,6 +27,25 @@ router.get('/store/productList', async (req: express.Request, resp: express.Resp
     }
 });
 
+router.get('/productStock', async (req: express.Request, resp: express.Response) => {
+    try {
+        if (await UtPermission.isManager(req)) {
+            return response.succ(
+                resp,
+                await new Stock(req.get('g-app') as string, req.body.token).productStock({
+                    page: req.query.page ? `${req.query.page}` : '0',
+                    limit: req.query.limit ? `${req.query.limit}` : '20',
+                    variant_id_list: req.query.variant_id_list as string,
+                })
+            );
+        } else {
+            throw exception.BadRequestError('BAD_REQUEST', 'No permission.', null);
+        }
+    } catch (err) {
+        return response.fail(resp, err);
+    }
+});
+
 router.delete('/store', async (req: express.Request, resp: express.Response) => {
     try {
         if (await UtPermission.isManager(req)) {

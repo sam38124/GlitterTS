@@ -316,9 +316,7 @@ FilterOptions.allowanceSelect = [
     { key: 'invoice_no', value: '原發票編號' },
     { key: 'order_id', value: '原訂單編號' },
 ];
-FilterOptions.fbLiveSelect = [
-    { key: 'fb_live_name', value: '直播名稱' },
-];
+FilterOptions.fbLiveSelect = [{ key: 'fb_live_name', value: '直播名稱' }];
 FilterOptions.productFilterFrame = {
     status: [],
     channel: [],
@@ -534,3 +532,7 @@ FilterOptions.stockHistoryCheckFilterFrame = {};
 FilterOptions.stockHistoryCheckSelect = [{ key: 'title', value: '商品名稱' }];
 FilterOptions.stockHistoryCheckFunnel = [];
 FilterOptions.stockHistoryCheckOrderBy = [];
+FilterOptions.exhibitionFilterFrame = {};
+FilterOptions.exhibitionSelect = [{ key: 'name', value: '庫存點名稱' }];
+FilterOptions.exhibitionFunnel = [];
+FilterOptions.exhibitionOrderBy = [];

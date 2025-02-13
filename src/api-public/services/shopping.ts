@@ -877,13 +877,13 @@ export class Shopping {
                         \`${this.app}\`.t_manager_post AS p ON v.product_id = p.id
                    WHERE ${querySql.join(' and ')} ${query.order_by || `order by id desc`}
         `;
+        query.limit = query.limit && query.limit > 999 ? 999 : query.limit;
+        const limitSQL = `limit ${query.page * query.limit} , ${query.limit}`;
         if (query.id) {
             const data = (
                 await db.query(
-                    `SELECT *
-                     FROM (${sql}) as subqyery
-                         limit ${query.page * query.limit}
-                        , ${query.limit}`,
+                    `SELECT * FROM (${sql}) as subqyery ${limitSQL}
+                    `,
                     []
                 )
             )[0];
@@ -891,16 +891,14 @@ export class Shopping {
         } else {
             return {
                 data: await db.query(
-                    `SELECT *
-                     FROM (${sql}) as subqyery
-                         limit ${query.page * query.limit}
-                        , ${query.limit}`,
+                    `SELECT * FROM (${sql}) as subqyery ${limitSQL}
+                    `,
                     []
                 ),
                 total: (
                     await db.query(
-                        `SELECT count(1)
-                         FROM (${sql}) as subqyery`,
+                        `SELECT count(1) FROM (${sql}) as subqyery
+                        `,
                         []
                     )
                 )[0]['count(1)'],
@@ -3438,71 +3436,86 @@ OR JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.orderStatus')) NOT IN (-99)) `);
             content.variants = content.variants ?? [];
             content.min_price = undefined;
             content.max_price = undefined;
-            if (content.id) {
-                await db.query(
-                    `DELETE
-                     FROM \`${this.app}\`.t_variants
-                     WHERE (product_id = ${content.id})
-                       AND id > 0
-                    `,
-                    []
-                );
-            }
-            const store_config = await new User(this.app).getConfigV2({key: 'store_manager', user_id: 'manager'});
             content.total_sales = 0;
-            await Promise.all(
-                content.variants.map((a: any) => {
-                    content.total_sales += a.sold_out ?? 0;
-                    content.min_price = content.min_price ?? a.sale_price;
-                    content.max_price = content.max_price ?? a.sale_price;
-                    if (a.sale_price < content.min_price) {
-                        content.min_price = a.sale_price;
-                    }
-                    if (a.sale_price > content.max_price) {
-                        content.max_price = a.sale_price;
-                    }
-                    a.type = 'variants';
-                    a.product_id = content.id;
-                    a.stockList = a.stockList || {};
-                    if (a.show_understocking === 'false') {
-                        a.stock = 0;
-                        a.stockList = {};
-                    } else if (Object.keys(a.stockList).length === 0) {
-                        //適應舊版庫存更新
-                        a.stockList[store_config.list[0].id] = {count: a.stock};
-                    }
-                    return new Promise(async (resolve, reject) => {
-                        await db.query(
-                            `INSERT INTO \`${this.app}\`.t_variants
-                             SET ?`,
-                            [
-                                {
-                                    content: JSON.stringify(a),
-                                    product_id: content.id,
-                                },
-                            ]
-                        );
-                        resolve(true);
-                    });
-                })
+    
+            if (!content.id) {
+                throw exception.BadRequestError('BAD_REQUEST', 'Missing product ID.', null);
+            }
+    
+            const originVariants = await db.query(
+                `SELECT id, product_id, content->>'$.spec' as spec 
+                 FROM \`${this.app}\`.t_variants 
+                 WHERE product_id = ?`, 
+                [content.id]
             );
-
+    
             await db.query(
-                `UPDATE \`${this.app}\`.\`t_manager_post\`
-                 SET ?
-                 WHERE id = ?
-                `,
-                [
-                    {
-                        content: JSON.stringify(content),
-                    },
-                    content.id,
-                ]
+                `DELETE FROM \`${this.app}\`.t_variants WHERE product_id = ? AND id > 0`, 
+                [content.id]
+            );
+    
+            const _user = new User(this.app);
+            const storeConfig = await _user.getConfigV2({ key: 'store_manager', user_id: 'manager' });
+    
+            const sourceMap: Record<string, string> = {};
+            const insertPromises = content.variants.map(async (variant: any) => {
+                content.total_sales += variant.sold_out ?? 0;
+                content.min_price = Math.min(content.min_price ?? variant.sale_price, variant.sale_price);
+                content.max_price = Math.max(content.max_price ?? variant.sale_price, variant.sale_price);
+    
+                variant.type = 'variants';
+                variant.product_id = content.id;
+                variant.stockList = variant.stockList || {};
+    
+                if (variant.show_understocking === 'false') {
+                    variant.stock = 0;
+                    variant.stockList = {};
+                } else if (Object.keys(variant.stockList).length === 0) {
+                    variant.stockList[storeConfig.list[0].id] = { count: variant.stock };
+                }
+    
+                const insertData = await db.query(
+                    `INSERT INTO \`${this.app}\`.t_variants SET ?`,
+                    [{ content: JSON.stringify(variant), product_id: content.id }]
+                );
+    
+                const originalVariant = originVariants.find((item: any) =>
+                    JSON.parse(item.spec).join(',') === variant.spec.join(',')
+                );
+    
+                if (originalVariant) {
+                    sourceMap[originalVariant.id] = insertData.insertId;
+                }
+    
+                return insertData;
+            });
+    
+            await Promise.all(insertPromises);
+    
+            const exhibitionConfig = await _user.getConfigV2({ key: 'exhibition_manager', user_id: 'manager' });
+            exhibitionConfig.list.forEach((exhibition: any) => {
+                exhibition.dataList.forEach((item: any) => {
+                    if (sourceMap[item.variantID]) {
+                        item.variantID = sourceMap[item.variantID];
+                    }
+                });
+            });
+    
+            await _user.setConfig({
+                key: 'exhibition_manager',
+                user_id: 'manager',
+                value: exhibitionConfig,
+            });
+    
+            await db.query(
+                `UPDATE \`${this.app}\`.t_manager_post SET ? WHERE id = ?`,
+                [{ content: JSON.stringify(content) }, content.id]
             );
         } catch (error) {
-            throw exception.BadRequestError('BAD_REQUEST', 'postVariantsAndPriceValue Error:' + e, null);
+            throw exception.BadRequestError('BAD_REQUEST', 'postVariantsAndPriceValue Error: ' + error, null);
         }
     }
+    
 
     async updateVariantsWithSpec(data: any, product_id: string, spec: string[]) {
         const sql =
