@@ -18,6 +18,7 @@ import { ProductAi } from './ai-generator/product-ai.js';
 import { imageLibrary } from '../modules/image-library.js';
 import { Language } from "../glitter-base/global/language.js";
 import { ShoppingShipmentSetting } from "./shopping-shipment-setting.js";
+import { ShipmentConfig } from "../glitter-base/global/shipment-config.js";
 const html = String.raw;
 export class ShoppingFinanceSetting {
     static main(gvc) {
@@ -610,7 +611,7 @@ export class ShoppingFinanceSetting {
                                 {
                                     key: 'cash_on_delivery', name: `<div class="d-flex flex-wrap align-items-center" style="gap:5px;">
 貨到付款
-${BgWidget.greenNote('支援四大超商')}
+${BgWidget.greenNote('支援四大超商/黑貓代收')}
 </div>`, img: 'https://d3jnmi1tfjgtti.cloudfront.net/file/122538856/images.png', hide_setting: true
                                 },
                                 ...keyData.payment_info_custom.map((dd) => {
@@ -1228,50 +1229,7 @@ ${BgWidget.greenNote('支援四大超商')}
                                     bind: id,
                                     view: () => {
                                         var _a;
-                                        return [
-                                            {
-                                                title: '中華郵政',
-                                                value: 'normal',
-                                                src: 'https://d3jnmi1tfjgtti.cloudfront.net/file/122538856/Chunghwa_Post_Logo.svg.png',
-                                            },
-                                            {
-                                                title: '黑貓到府',
-                                                value: 'black_cat',
-                                                src: 'https://d3jnmi1tfjgtti.cloudfront.net/file/122538856/w644 (1).jpeg',
-                                            },
-                                            {
-                                                title: '7-ELEVEN超商交貨便',
-                                                value: 'UNIMARTC2C',
-                                                src: 'https://d3jnmi1tfjgtti.cloudfront.net/file/234285319/1716734544575-34f72af5b441738b1f65a0597c28d9cf (1).png',
-                                            },
-                                            {
-                                                title: '全家店到店',
-                                                value: 'FAMIC2C',
-                                                src: 'https://d3jnmi1tfjgtti.cloudfront.net/file/234285319/1716734396302-e970be63c9acb23e41cf80c77b7ca35b.jpeg',
-                                            },
-                                            {
-                                                title: '萊爾富店到店',
-                                                value: 'HILIFEC2C',
-                                                src: 'https://d3jnmi1tfjgtti.cloudfront.net/file/234285319/1716734423037-6e2664ad52332c40b4106868ada74646.png',
-                                            },
-                                            {
-                                                title: 'OK超商店到店',
-                                                value: 'OKMARTC2C',
-                                                src: 'https://d3jnmi1tfjgtti.cloudfront.net/file/234285319/1716734510490-beb1c70f9e168b7bab198ea2bf226148.png',
-                                            },
-                                            {
-                                                title: '國際快遞',
-                                                value: 'global_express',
-                                                type: 'font_awesome',
-                                                src: `<i class="fa-sharp fa-regular fa-earth-americas" style="font-size: 35px;color:#1d59c0;"></i>`,
-                                            },
-                                            {
-                                                title: '實體門市取貨',
-                                                value: 'shop',
-                                                type: 'font_awesome',
-                                                src: `<i class="fa-duotone fa-solid fa-shop" style="font-size: 35px;color:#319e49;"></i>`,
-                                            }
-                                        ]
+                                        return ShipmentConfig.list
                                             .concat(((_a = vm.data.custom_delivery) !== null && _a !== void 0 ? _a : []).map((dd) => {
                                             return {
                                                 title: Language.getLanguageCustomText(dd.name),
@@ -1762,14 +1720,6 @@ ${BgWidget.greenNote('支援四大超商')}
                                         return [
                                             {
                                                 title: `<div class="d-flex flex-column">
-綠界物流追蹤
-${BgWidget.greenNote('支援四大超商/黑貓/中華郵政')}
-</div>`,
-                                                value: 'ec_pay',
-                                                src: 'https://d3jnmi1tfjgtti.cloudfront.net/file/122538856/52415944_122858408.428215.png',
-                                            },
-                                            {
-                                                title: `<div class="d-flex flex-column">
 PayNow物流追蹤
 ${BgWidget.greenNote('支援四大超商/黑貓')}
 </div>`,
@@ -1808,21 +1758,6 @@ ${BgWidget.greenNote('支援四大超商/黑貓')}
                                                                             bind: id,
                                                                             view: () => {
                                                                                 return [
-                                                                                    BgWidget.openBoxContainer({
-                                                                                        gvc,
-                                                                                        tag: 'delivery_alert_info',
-                                                                                        title: '注意事項',
-                                                                                        insideHTML: html `
-                                                                                                                            <div class="mt-2"
-                                                                                                                                 style="white-space: normal;">
-                                                                                                                                ${BgWidget.alertInfo('', [
-                                                                                            '1. 支援四大超商（7-ELEVEN、全家、萊爾富、OK超商）黑貓與中華郵政',
-                                                                                            '2. 寄件人名稱請設定最多10字元（中文5個字, 英文10個字, 不得含指定特殊符號）',
-                                                                                            '3. 寄件人手機應為09開頭的格式',
-                                                                                        ])}
-                                                                                                                            </div>`,
-                                                                                        height: document.body.clientWidth > 768 ? 300 : 385,
-                                                                                    }),
                                                                                     ...(() => {
                                                                                         var _a, _b, _c, _d, _e, _f, _g;
                                                                                         let array = [
@@ -1992,7 +1927,7 @@ ${BgWidget.greenNote('支援四大超商/黑貓')}
                                                                                                                             <div class="mt-2"
                                                                                                                                  style="white-space: normal;">
                                                                                                                                 ${BgWidget.alertInfo('', [
-                                                                                            '1. 支援四大超商（7-ELEVEN、全家、萊爾富、OK超商）黑貓與中華郵政',
+                                                                                            '1. 支援四大超商（7-ELEVEN、全家、萊爾富、OK超商）與黑貓',
                                                                                             '2. 寄件人名稱請設定最多10字元（中文5個字, 英文10個字, 不得含指定特殊符號）',
                                                                                             '3. 寄件人手機應為09開頭的格式',
                                                                                         ])}
@@ -2000,7 +1935,7 @@ ${BgWidget.greenNote('支援四大超商/黑貓')}
                                                                                         height: document.body.clientWidth > 768 ? 300 : 385,
                                                                                     }),
                                                                                     ...(() => {
-                                                                                        var _a, _b, _c;
+                                                                                        var _a, _b, _c, _d, _e, _f, _g;
                                                                                         let array = [
                                                                                             BgWidget.inlineCheckBox({
                                                                                                 title: '串接路徑',
@@ -2038,7 +1973,43 @@ ${BgWidget.greenNote('支援四大超商/黑貓')}
                                                                                                     vm.delivery[dd.value].pwd = text;
                                                                                                 },
                                                                                                 placeHolder: '請輸入串接密碼',
-                                                                                            })
+                                                                                            }),
+                                                                                            BgWidget.editeInput({
+                                                                                                gvc: gvc,
+                                                                                                title: '寄件人名稱',
+                                                                                                default: (_d = vm.delivery[dd.value].SenderName) !== null && _d !== void 0 ? _d : '',
+                                                                                                callback: (text) => {
+                                                                                                    vm.delivery[dd.value].SenderName = text;
+                                                                                                },
+                                                                                                placeHolder: '請輸入寄件人名稱 / 您的商家名稱',
+                                                                                            }),
+                                                                                            BgWidget.editeInput({
+                                                                                                gvc: gvc,
+                                                                                                title: '寄件人手機',
+                                                                                                default: (_e = vm.delivery[dd.value].SenderCellPhone) !== null && _e !== void 0 ? _e : '',
+                                                                                                callback: (text) => {
+                                                                                                    vm.delivery[dd.value].SenderCellPhone = text;
+                                                                                                },
+                                                                                                placeHolder: '請輸入寄件人手機 / 您的手機',
+                                                                                            }),
+                                                                                            BgWidget.editeInput({
+                                                                                                gvc: gvc,
+                                                                                                title: '寄件人地址',
+                                                                                                default: (_f = vm.delivery[dd.value].SenderAddress) !== null && _f !== void 0 ? _f : '',
+                                                                                                callback: (text) => {
+                                                                                                    vm.delivery[dd.value].SenderAddress = text;
+                                                                                                },
+                                                                                                placeHolder: '請輸入寄件人地址 / 商家地址',
+                                                                                            }),
+                                                                                            BgWidget.editeInput({
+                                                                                                gvc: gvc,
+                                                                                                title: '寄件人信箱',
+                                                                                                default: (_g = vm.delivery[dd.value].SenderEmail) !== null && _g !== void 0 ? _g : '',
+                                                                                                callback: (text) => {
+                                                                                                    vm.delivery[dd.value].SenderEmail = text;
+                                                                                                },
+                                                                                                placeHolder: '請輸入寄件人信箱',
+                                                                                            }),
                                                                                         ];
                                                                                         return array;
                                                                                     })(),

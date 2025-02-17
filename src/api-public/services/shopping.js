@@ -54,6 +54,7 @@ const stock_1 = require("./stock");
 const seo_config_js_1 = require("../../seo-config.js");
 const ses_js_1 = require("../../services/ses.js");
 const shopee_1 = require("./shopee");
+const shipment_config_js_1 = require("../config/shipment-config.js");
 class Shopping {
     constructor(app, token) {
         this.app = app;
@@ -435,9 +436,6 @@ class Shopping {
                 }
                 if (query.channel && query.channel === 'exhibition') {
                     const exh = exh_config.list.find((item) => item.id === query.whereStore);
-                    console.log('=======');
-                    console.log(query.whereStore);
-                    console.log(exh);
                     if (exh) {
                         const exh_variant_ids = exh.dataList.map((d) => d.variantID);
                         const variantsResult = await this.getProductVariants(exh_variant_ids.join(','));
@@ -1022,40 +1020,12 @@ class Shopping {
                 orderID: data.order_id || `${new Date().getTime()}`,
                 shipment_support: shipment_setting.support,
                 shipment_info: shipment_setting.info,
-                shipment_selector: [
-                    {
-                        name: '中華郵政',
-                        value: 'normal',
-                    },
-                    {
-                        name: '黑貓到府',
-                        value: 'black_cat',
-                    },
-                    {
-                        name: '全家店到店',
-                        value: 'FAMIC2C',
-                    },
-                    {
-                        name: '萊爾富店到店',
-                        value: 'HILIFEC2C',
-                    },
-                    {
-                        name: 'OK超商店到店',
-                        value: 'OKMARTC2C',
-                    },
-                    {
-                        name: '7-ELEVEN超商交貨便',
-                        value: 'UNIMARTC2C',
-                    },
-                    {
-                        name: '實體門市取貨',
-                        value: 'shop',
-                    },
-                    {
-                        name: '國際快遞',
-                        value: 'global_express',
-                    },
-                ]
+                shipment_selector: shipment_config_js_1.ShipmentConfig.list.map((dd) => {
+                    return {
+                        name: dd.title,
+                        value: dd.value
+                    };
+                })
                     .concat(((_h = shipment_setting.custom_delivery) !== null && _h !== void 0 ? _h : []).map((dd) => {
                     return {
                         form: dd.form,
@@ -2702,7 +2672,7 @@ OR JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.orderStatus')) NOT IN (-99)) `);
         }
     }
     async postVariantsAndPriceValue(content) {
-        var _a;
+        var _a, _b;
         try {
             content.variants = (_a = content.variants) !== null && _a !== void 0 ? _a : [];
             content.min_price = undefined;
@@ -2742,6 +2712,7 @@ OR JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.orderStatus')) NOT IN (-99)) `);
             });
             await Promise.all(insertPromises);
             const exhibitionConfig = await _user.getConfigV2({ key: 'exhibition_manager', user_id: 'manager' });
+            exhibitionConfig.list = (_b = exhibitionConfig.list) !== null && _b !== void 0 ? _b : [];
             exhibitionConfig.list.forEach((exhibition) => {
                 exhibition.dataList.forEach((item) => {
                     if (sourceMap[item.variantID]) {
@@ -2757,6 +2728,7 @@ OR JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.orderStatus')) NOT IN (-99)) `);
             await database_js_1.default.query(`UPDATE \`${this.app}\`.t_manager_post SET ? WHERE id = ?`, [{ content: JSON.stringify(content) }, content.id]);
         }
         catch (error) {
+            console.error(error);
             throw exception_js_1.default.BadRequestError('BAD_REQUEST', 'postVariantsAndPriceValue Error: ' + error, null);
         }
     }
@@ -3266,8 +3238,10 @@ OR JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.orderStatus')) NOT IN (-99)) `);
                     resolve(true);
                 });
             }));
-            let max_id = (await database_js_1.default.query(`select max(id)
-                         from \`${this.app}\`.t_manager_post`, []))[0]['max(id)'] || 0;
+            let max_id = ((await database_js_1.default.query(`select max(id)
+                         from \`${this.app}\`.t_manager_post`, []))[0]['max(id)'] || 0) + 1;
+            console.log(`max_id==>`, max_id);
+            console.log(`productArrayOG==>`, productArray);
             productArray.map((product) => {
                 var _a;
                 if (!product.id) {
@@ -3277,6 +3251,7 @@ OR JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.orderStatus')) NOT IN (-99)) `);
                 this.checkVariantDataType(product.variants);
                 return [product.id || null, (_a = this.token) === null || _a === void 0 ? void 0 : _a.userID, JSON.stringify(product)];
             });
+            console.log(`productArray==>`, productArray);
             const data = await database_js_1.default.query(`replace
                 INTO \`${this.app}\`.\`t_manager_post\` (id,userID,content) values ?`, [
                 productArray.map((product) => {
@@ -3333,6 +3308,15 @@ OR JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.orderStatus')) NOT IN (-99)) `);
                 content.id,
             ]);
             await new Shopping(this.app, this.token).postVariantsAndPriceValue(content);
+            if (content.shopee_id) {
+                await new shopee_1.Shopee(this.app, this.token).asyncStockToShopee({
+                    product: {
+                        content: content
+                    },
+                    callback: () => {
+                    }
+                });
+            }
             return content.insertId;
         }
         catch (e) {

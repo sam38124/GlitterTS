@@ -169,7 +169,7 @@ export class StockList {
                         key: '安全庫存',
                         value: html`<span class="fs-7">${dd.variant_content.save_stock ?? defaultNull}</span>`,
                     },
-                    ...vm.stockStores.map((store) => {
+                    ...vm.stockStores.map((store,index) => {
                         vm.stockArray.push(dd.variant_content.stockList);
                         dd.variant_content.stockList[store.id] = dd.variant_content.stockList[store.id] ?? {count: 0};
                         const stockData = dd.variant_content.stockList[store.id];
@@ -220,7 +220,7 @@ export class StockList {
                                                                     gvc.notifyDataChange(vm.updateId);
                                                                 })}"
                                                                 value="${stockData.count ?? 0}"
-                                                                ${dd.product_content.shopee_id ? `readonly`:``}
+                                                                ${(dd.product_content.shopee_id&&index) ? `readonly`:``}
                                                         />
                                                     </div>`
                                     : html`<span class="fs-7">${defaultNull}</div>`,

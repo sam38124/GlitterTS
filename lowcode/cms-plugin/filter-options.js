@@ -1,3 +1,4 @@
+import { ShipmentConfig } from "../glitter-base/global/shipment-config.js";
 export class FilterOptions {
 }
 FilterOptions.userFilterFrame = {
@@ -147,13 +148,9 @@ FilterOptions.orderFunnel = [
         key: 'shipment',
         type: 'multi_checkbox',
         name: '運送方式',
-        data: [
-            { key: 'normal', name: '宅配' },
-            { key: 'UNIMARTC2C', name: '7-11店到店' },
-            { key: 'FAMIC2C', name: '全家店到店' },
-            { key: 'OKMARTC2C', name: 'OK店到店' },
-            { key: 'HILIFEC2C', name: '萊爾富店到店' },
-        ],
+        data: ShipmentConfig.list.map((dd) => {
+            return { key: dd.value, name: dd.title };
+        }),
     },
     {
         key: 'created_time',

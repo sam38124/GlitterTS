@@ -244,6 +244,9 @@ class Shopee {
         var _a;
         const that = this;
         const token = await this.fetchShopeeAccessToken();
+        if (!token) {
+            return false;
+        }
         async function getModel(postMD) {
             var _a;
             const timestamp = Math.floor(Date.now() / 1000);
@@ -500,8 +503,9 @@ class Shopee {
                     ]
                 };
                 let findModel = response.data.response.model.find((item) => { return item.model_name == variant.spec.join(','); });
+                console.log(`findModel===>`, findModel);
                 if (findModel || response.data.response.model.length == 0) {
-                    basicStock.model_id = 0;
+                    basicStock.model_id = (findModel && findModel.model_id) || 0;
                     basicStock.seller_stock[0].stock = variant.stock;
                     basicData.stock_list.push(basicStock);
                 }

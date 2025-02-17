@@ -7,27 +7,27 @@ import axios from 'axios';
 import app from '../../app';
 import redis from '../../modules/redis.js';
 import Tool from '../../modules/tool.js';
-import FinancialService, { LinePay, PayNow, PayPal, JKO } from './financial-service.js';
-import { Private_config } from '../../services/private_config.js';
-import { User } from './user.js';
-import { Invoice } from './invoice.js';
-import { Rebate } from './rebate.js';
-import { CustomCode } from '../services/custom-code.js';
-import { ManagerNotify } from './notify.js';
-import { AutoSendEmail } from './auto-send-email.js';
-import { Recommend } from './recommend.js';
-import { DeliveryData } from './delivery.js';
-import { saasConfig } from '../../config.js';
-import { SMS } from './sms.js';
-import { LineMessage } from './line-message';
-import { EcInvoice } from './EcInvoice';
-import { onlinePayArray, paymentInterface } from '../models/glitter-finance.js';
-import { App } from '../../services/app.js';
-import { Stock } from './stock';
-import { SeoConfig } from '../../seo-config.js';
-import { sendmail } from '../../services/ses.js';
-import { Shopee } from './shopee';
-
+import FinancialService, {LinePay, PayNow, PayPal, JKO} from './financial-service.js';
+import {Private_config} from '../../services/private_config.js';
+import {User} from './user.js';
+import {Invoice} from './invoice.js';
+import {Rebate} from './rebate.js';
+import {CustomCode} from '../services/custom-code.js';
+import {ManagerNotify} from './notify.js';
+import {AutoSendEmail} from './auto-send-email.js';
+import {Recommend} from './recommend.js';
+import {DeliveryData} from './delivery.js';
+import {saasConfig} from '../../config.js';
+import {SMS} from './sms.js';
+import {LineMessage} from './line-message';
+import {EcInvoice} from './EcInvoice';
+import {onlinePayArray, paymentInterface} from '../models/glitter-finance.js';
+import {App} from '../../services/app.js';
+import {Stock} from './stock';
+import {SeoConfig} from '../../seo-config.js';
+import {sendmail} from '../../services/ses.js';
+import {Shopee} from "./shopee";
+import {ShipmentConfig as Shipment_support_config} from '../config/shipment-config.js'
 type BindItem = {
     id: string;
     spec: string[];
@@ -292,7 +292,7 @@ export class Shopping {
                         break;
                 }
             }
-
+//
             if (query.domain) {
                 const decodedDomain = decodeURIComponent(query.domain);
                 const sqlJoinSearch = [
@@ -309,7 +309,7 @@ export class Shopping {
     ELSE 2
   END`;
             }
-
+//
             if (query.id) {
                 const ids = `${query.id}`
                     .split(',')
@@ -321,7 +321,6 @@ export class Shopping {
                     querySql.push(`id = '${ids[0]}'`);
                 }
             }
-
             // 當非管理員時，檢查是否顯示隱形商品
             if (query.filter_visible) {
                 if (query.filter_visible === 'true') {
@@ -662,7 +661,6 @@ export class Shopping {
                     if (exh) {
                         const exh_variant_ids = exh.dataList.map((d: { variantID: number }) => d.variantID);
                         const variantsResult = await this.getProductVariants(exh_variant_ids.join(','));
-
                         if (variantsResult.total > 0) {
                             const variantsList = new Map(
                                 variantsResult.data
@@ -1477,40 +1475,12 @@ export class Shopping {
                 orderID: data.order_id || `${new Date().getTime()}`,
                 shipment_support: shipment_setting.support as any,
                 shipment_info: shipment_setting.info as any,
-                shipment_selector: [
-                    {
-                        name: '中華郵政',
-                        value: 'normal',
-                    },
-                    {
-                        name: '黑貓到府',
-                        value: 'black_cat',
-                    },
-                    {
-                        name: '全家店到店',
-                        value: 'FAMIC2C',
-                    },
-                    {
-                        name: '萊爾富店到店',
-                        value: 'HILIFEC2C',
-                    },
-                    {
-                        name: 'OK超商店到店',
-                        value: 'OKMARTC2C',
-                    },
-                    {
-                        name: '7-ELEVEN超商交貨便',
-                        value: 'UNIMARTC2C',
-                    },
-                    {
-                        name: '實體門市取貨',
-                        value: 'shop',
-                    },
-                    {
-                        name: '國際快遞',
-                        value: 'global_express',
-                    },
-                ]
+                shipment_selector: Shipment_support_config.list.map((dd)=>{
+                    return {
+                        name:dd.title,
+                        value:dd.value
+                    }
+                })
                     .concat(
                         (shipment_setting.custom_delivery ?? []).map((dd: any) => {
                             return {
@@ -3594,6 +3564,7 @@ OR JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.orderStatus')) NOT IN (-99)) `);
             await Promise.all(insertPromises);
 
             const exhibitionConfig = await _user.getConfigV2({ key: 'exhibition_manager', user_id: 'manager' });
+            exhibitionConfig.list=exhibitionConfig.list ?? []
             exhibitionConfig.list.forEach((exhibition: any) => {
                 exhibition.dataList.forEach((item: any) => {
                     if (sourceMap[item.variantID]) {
@@ -3610,6 +3581,7 @@ OR JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.orderStatus')) NOT IN (-99)) `);
 
             await db.query(`UPDATE \`${this.app}\`.t_manager_post SET ? WHERE id = ?`, [{ content: JSON.stringify(content) }, content.id]);
         } catch (error) {
+            console.error(error)
             throw exception.BadRequestError('BAD_REQUEST', 'postVariantsAndPriceValue Error: ' + error, null);
         }
     }
@@ -4226,14 +4198,15 @@ OR JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.orderStatus')) NOT IN (-99)) `);
             );
 
             let max_id =
-                (
+                ( (
                     await db.query(
                         `select max(id)
                          from \`${this.app}\`.t_manager_post`,
                         []
                     )
-                )[0]['max(id)'] || 0;
-
+                )[0]['max(id)'] || 0) +1;
+            console.log(`max_id==>`,max_id)
+            console.log(`productArrayOG==>`,productArray)
             productArray.map((product: any) => {
                 if (!product.id) {
                     product.id = max_id++;
@@ -4242,6 +4215,8 @@ OR JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.orderStatus')) NOT IN (-99)) `);
                 this.checkVariantDataType(product.variants);
                 return [product.id || null, this.token?.userID, JSON.stringify(product)];
             });
+            console.log(`productArray==>`,productArray)
+
 
             const data = await db.query(
                 `replace
@@ -4311,6 +4286,16 @@ OR JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.orderStatus')) NOT IN (-99)) `);
                 ]
             );
             await new Shopping(this.app, this.token).postVariantsAndPriceValue(content);
+            if (content.shopee_id) {
+                await new Shopee(this.app, this.token).asyncStockToShopee({
+                    product: {
+                        content:content
+                    },
+                    callback: () => {
+                    }
+                })
+            }
+
             return content.insertId;
         } catch (e) {
             console.error(e);

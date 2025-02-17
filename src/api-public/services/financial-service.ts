@@ -4,6 +4,10 @@ import moment from 'moment-timezone';
 import axios, {AxiosRequestConfig} from "axios";
 import redis from "../../modules/redis";
 import process from "process";
+import CryptoJS from "crypto-js";
+import {createCipheriv, randomBytes, createHash} from 'crypto';
+import Tool from "./ezpay/tool.js";
+import tool from "../../modules/tool.js";
 
 interface KeyData {
     MERCHANT_ID: string;
@@ -930,6 +934,66 @@ export class PayNow {
         this.BASE_URL = (keyData.BETA == 'true') ? "https://sandboxapi.paynow.com.tw" : "https://api.paynow.com.tw"; // 沙箱環境
     }
 
+    async executePaymentIntent(transactionId: string, secret: string, paymentNo: string) {
+        console.log(`json=>`, {
+            "paymentNo": paymentNo,
+            "usePayNowSdk": true,
+            "key": this.PublicKey,
+            "secret": secret,
+            "paymentMethodType": "CreditCard",
+            "paymentMethodData": {},
+            "otpFlag": false,
+            "meta": {
+                "client": {
+                    "height": 0,
+                    "width": 0
+                },
+                "iframe": {
+                    "height": 0,
+                    "width": 0
+                }
+            },
+            "owlpay_session": "string"
+        })
+        let config = {
+            method: 'POST',
+            maxBodyLength: Infinity,
+            url: `${this.BASE_URL}/api/v1/payment-intents/${transactionId}/checkout`,
+            headers: {
+                'Accept': 'application/json',
+                'Authorization': `Bearer ` + this.PrivateKey
+            },
+            data: JSON.stringify({
+                "paymentNo": paymentNo,
+                "usePayNowSdk": true,
+                "key": this.PublicKey,
+                "secret": secret,
+                "paymentMethodType": "CreditCard",
+                "paymentMethodData": {},
+                "otpFlag": false,
+                "meta": {
+                    "client": {
+                        "height": 0,
+                        "width": 0
+                    },
+                    "iframe": {
+                        "height": 0,
+                        "width": 0
+                    }
+                }
+            })
+        };
+
+        try {
+            const response = await axios.request(config);
+            return response.data;
+        } catch (error: any) {
+            console.error("Error paynow:", error.response?.data.data || error.message);
+            throw error;
+        }
+    }
+
+    //確認付款資訊
     async confirmAndCaptureOrder(transactionId?: string) {
         let config = {
             method: 'get',
@@ -949,6 +1013,9 @@ export class PayNow {
         }
     }
 
+
+
+
     async createOrder(orderData: {
         lineItems: {
             id: string;
@@ -965,6 +1032,7 @@ export class PayNow {
         user_email: string;
         method: string;
     }) {
+
         const data = JSON.stringify({
             "amount": orderData.total,
             "currency": "TWD",
@@ -1005,6 +1073,8 @@ export class PayNow {
             throw error;
         }
     }
+
+
 }
 
 // 街口
@@ -1031,14 +1101,14 @@ export class JKO {
 
     async confirmAndCaptureOrder(transactionId?: string) {
         const secret = this.keyData.SECRET_KEY;
-        const digest = this.generateDigest(`platform_order_ids=${transactionId}` , secret);
+        const digest = this.generateDigest(`platform_order_ids=${transactionId}`, secret);
         let config = {
             method: 'get',
             url: `${this.BASE_URL}/platform/inquiry?platform_order_ids=${transactionId}`,
             headers: {
                 'Content-Type': 'application/json',
                 'DIGEST': digest,
-                'API-KEY' : this.keyData.API_KEY
+                'API-KEY': this.keyData.API_KEY
             },
         };
         try {
@@ -1056,7 +1126,7 @@ export class JKO {
             spec: string[];
             count: number;
             sale_price: number;
-            preview_image:string;
+            preview_image: string;
             title: string;
         }[];
         total: number;
@@ -1072,19 +1142,20 @@ export class JKO {
             spec: string[];
             count: number;
             sale_price: number;
-            preview_image:string;
+            preview_image: string;
             title: string;
-        }[]){
-            return lineItems.map((item)=>{
+        }[]) {
+            return lineItems.map((item) => {
                 return {
-                    'name' : item.title+' '+item.spec.join(','),
-                    'img' : item.preview_image,
-                    'unit_count' : item.count,
-                    'unit_price' : item.sale_price,
-                    'unit_final_price' : item.sale_price
+                    'name': item.title + ' ' + item.spec.join(','),
+                    'img': item.preview_image,
+                    'unit_count': item.count,
+                    'unit_price': item.sale_price,
+                    'unit_final_price': item.sale_price
                 }
             })
         }
+
         // console.log(transProduct(orderData.lineItems));
         // console.log("orderData.lineItems -- " , orderData.lineItems)
         const payload = {
@@ -1099,7 +1170,7 @@ export class JKO {
 
 
         const secret = this.keyData.SECRET_KEY;
-        const digest = this.generateDigest(JSON.stringify(payload) , secret);
+        const digest = this.generateDigest(JSON.stringify(payload), secret);
 
         return
         const url = `${this.BASE_URL}platform/entry`;
@@ -1109,7 +1180,7 @@ export class JKO {
             headers: {
                 'Content-Type': 'application/json',
                 'DIGEST': digest,
-                'API-KEY' : this.keyData.API_KEY
+                'API-KEY': this.keyData.API_KEY
             },
             data: payload
         };
@@ -1117,11 +1188,12 @@ export class JKO {
             const response = await axios.request(config);
 
             await db.execute(
-                `INSERT INTO \`${this.appName}\`.t_checkout (cart_token, status, email, orderData) VALUES (?, ?, ?, ?)
-            `,
+                `INSERT INTO \`${this.appName}\`.t_checkout (cart_token, status, email, orderData)
+                 VALUES (?, ?, ?, ?)
+                `,
                 [orderData.orderID, 0, orderData.user_email, orderData]
             );
-            await redis.setValue('paynow'+orderData.orderID, response.data.result.id)
+            await redis.setValue('paynow' + orderData.orderID, response.data.result.id)
             return ``
         } catch (error: any) {
             console.error("Error payNow:", error.response?.data || error.message);

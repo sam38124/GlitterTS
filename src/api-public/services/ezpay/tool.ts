@@ -83,7 +83,7 @@ export default class Tool {
     public aesEncrypt(
         data: string,
         key: string,
-        iv: string,
+        iv: string | null,
         input: Encoding = 'utf-8',
         output: Encoding = 'hex',
         method = 'aes-256-cbc'
@@ -91,9 +91,12 @@ export default class Tool {
         while (key.length % 32 !== 0) {
             key += '\0';
         }
-        while (iv.length % 16 !== 0) {
-            iv += '\0';
+        if(typeof iv==='string'){
+            while (iv.length % 16 !== 0) {
+                iv += '\0';
+            }
         }
+
         const cipher = crypto.createCipheriv(method, key, iv);
         let encrypted = cipher.update(data, input, output);
         encrypted += cipher.final(output);

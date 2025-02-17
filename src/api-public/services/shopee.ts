@@ -296,6 +296,9 @@ export class Shopee {
     }) {
         const that = this
         const token=await this.fetchShopeeAccessToken()
+        if(!token){
+            return  false
+        }
         async function getModel(postMD: {
             template: string;
             visible: string;
@@ -660,8 +663,9 @@ export class Shopee {
                     ]
                 };
                 let findModel = response.data.response.model.find((item:any)=>{return item.model_name == variant.spec.join(',')});
+                console.log(`findModel===>`,findModel)
                 if (findModel || response.data.response.model.length == 0){
-                    basicStock.model_id = 0;
+                    basicStock.model_id = (findModel && findModel.model_id) || 0;
                     //shopee 單倉儲的情形
                     basicStock.seller_stock[0].stock = variant.stock;
                     basicData.stock_list.push(basicStock);

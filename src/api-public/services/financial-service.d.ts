@@ -194,6 +194,7 @@ export declare class PayNow {
     PrivateKey: string;
     BASE_URL: string;
     constructor(appName: string, keyData: any);
+    executePaymentIntent(transactionId: string, secret: string, paymentNo: string): Promise<any>;
     confirmAndCaptureOrder(transactionId?: string): Promise<any>;
     createOrder(orderData: {
         lineItems: {

@@ -593,8 +593,7 @@ export class ShoppingProductSetting {
                                                                                         width: 40,
                                                                                         class: 'rounded border me-4',
                                                                                     })}<div class="d-flex flex-column" style="">
-                                                                                                                ${(dd.content.shopee_id) ? `
-                                                                                                                 <div style="margin-bottom: -10px;"><div class="insignia" style="background: orangered;color: white;">蝦皮</div></div>
+                                                                                                                ${(dd.content.shopee_id) ? `<div style="margin-bottom: -10px;"><div class="insignia" style="background: orangered;color: white;">蝦皮</div></div>
                                                                                                                 ` : ``}
                                                                                                               <div>  ${Tool.truncateString(dd.content.title)}</div>
                                                                                                             </div>
@@ -1225,18 +1224,19 @@ export class ShoppingProductSetting {
                                                                                 <div class="w-100"
                                                                                      style="font-size: 14px;font-weight: 400;color: #8D8D8D;">
                                                                                     ${postMD.shopee_id ? `
-                                                                                    此商品來源為蝦皮電商平台，將自動同步蝦皮庫存
+                                                                                    此商品來源為蝦皮電商平台，更改將自動同步蝦皮庫存，蝦皮商品僅支援單一庫存點。
                                                                                     ` : `線上販售的商品將優先從庫存量較多的庫存點中扣除`}
                                                                                 </div>
                                                                                 ${(() => {
-                                    return stockList.map((stockSpot) => {
+                                    return stockList.map((stockSpot, index) => {
                                         var _b, _c, _d;
-                                        console.log(`stockSpot.id=>`, stockSpot.id);
+                                        if (postMD.shopee_id && index > 0) {
+                                            return ``;
+                                        }
                                         variant.stockList = (_b = variant.stockList) !== null && _b !== void 0 ? _b : {};
                                         variant.stockList[stockSpot.id] = (_c = variant.stockList[stockSpot.id]) !== null && _c !== void 0 ? _c : { count: 0 };
-                                        console.log(`postMD.shopee_id=>`, postMD.shopee_id);
                                         return html `
-                                                                                            <div>${stockSpot.name}</div>
+                                                                                            <div>${postMD.shopee_id ? `蝦皮庫存` : stockSpot.name}</div>
                                                                                             <input
                                                                                                     class="w-100"
                                                                                                     value="${(_d = variant.stockList[stockSpot.id].count) !== null && _d !== void 0 ? _d : 0}"
@@ -1249,7 +1249,6 @@ export class ShoppingProductSetting {
                                             variant.stock += inputValue;
                                             console.log("variant.stock -- ", variant.stock);
                                         })}"
-                                                                                                    ${postMD.shopee_id ? `readonly` : ``}
                                                                                             />
                                                                                         `;
                                     }).join(``);
@@ -1281,7 +1280,6 @@ export class ShoppingProductSetting {
                                                                                         onchange="${gvc.event((e) => {
                                     variant.stock = e.value;
                                 })}"
-                                                                                        ${postMD.shopee_id ? `readonly` : ``}
                                                                                 />
                                                                             </div>
 

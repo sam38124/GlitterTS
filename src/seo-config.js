@@ -3,7 +3,9 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.extractProds = exports.extractCols = exports.SeoConfig = void 0;
+exports.SeoConfig = void 0;
+exports.extractCols = extractCols;
+exports.extractProds = extractProds;
 const manager_js_1 = require("./api-public/services/manager.js");
 const database_js_1 = __importDefault(require("./modules/database.js"));
 const ut_database_js_1 = require("./api-public/utils/ut-database.js");
@@ -162,11 +164,13 @@ class SeoConfig {
                 cf.data.page_config.seo.title = article.data[0].content.language_data[cf.language].seo.title;
                 cf.data.page_config.seo.content = article.data[0].content.language_data[cf.language].seo.content;
                 cf.data.page_config.seo.keywords = article.data[0].content.language_data[cf.language].seo.keywords;
+                cf.data.page_config.seo.image = article.data[0].content.language_data[cf.language].seo.image;
             }
             else {
                 cf.data.page_config.seo.title = article.data[0].content.seo.title;
                 cf.data.page_config.seo.content = article.data[0].content.seo.content;
                 cf.data.page_config.seo.keywords = article.data[0].content.seo.keywords;
+                cf.data.page_config.seo.image = article.data[0].content.seo.image;
             }
         }
     }
@@ -316,7 +320,6 @@ function extractCols(data) {
     });
     return items;
 }
-exports.extractCols = extractCols;
 function extractProds(data) {
     const items = [];
     data.map((item) => {
@@ -325,7 +328,6 @@ function extractProds(data) {
     });
     return items;
 }
-exports.extractProds = extractProds;
 function isCurrentTimeWithinRange(data) {
     const now = new Date();
     now.setTime(now.getTime() + 8 * 3600 * 1000);

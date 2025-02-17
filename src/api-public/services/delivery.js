@@ -13,6 +13,7 @@ const crypto_1 = __importDefault(require("crypto"));
 const axios_1 = __importDefault(require("axios"));
 const moment_timezone_1 = __importDefault(require("moment-timezone"));
 const shopping_js_1 = require("./shopping.js");
+const paynow_logistics_js_1 = require("./paynow-logistics.js");
 const html = String.raw;
 class EcPay {
     constructor(appName) {
@@ -123,6 +124,11 @@ class Delivery {
     async getC2CMap(returnURL, logistics) {
         const id = 'redirect_' + tool_js_1.default.randomString(10);
         await redis_js_1.default.setValue(id, returnURL);
+        console.log(`process.env.EC_SHIPMENT_ID=>`, process.env.EC_SHIPMENT_ID);
+        if (logistics === 'UNIMARTFREEZE') {
+            logistics = 'UNIMARTC2C';
+        }
+        console.log(`logistics=>`, logistics);
         const params = {
             MerchantID: process.env.EC_SHIPMENT_ID,
             MerchantTradeNo: new Date().getTime(),
@@ -212,115 +218,198 @@ class Delivery {
     }
     async getOrderInfo(obj) {
         var _a;
-        const deliveryConfig = (await private_config_js_1.Private_config.getConfig({
-            appName: this.appName,
-            key: 'glitter_delivery',
-        }))[0];
-        if (!(deliveryConfig && `${deliveryConfig.value.ec_pay.toggle}` === 'true')) {
-            console.error('deliveryConfig 不存在 / 未開啟');
+        try {
+            const deliveryConfig = (await private_config_js_1.Private_config.getConfig({
+                appName: this.appName,
+                key: 'glitter_delivery',
+            }))[0];
+            console.log(`deliveryConfig=>`, deliveryConfig);
+            if (!(deliveryConfig && (`${deliveryConfig.value.ec_pay.toggle}` === 'true' || `${deliveryConfig.value.pay_now.toggle}` === 'true'))) {
+                console.error('deliveryConfig 不存在 / 未開啟');
+                return {
+                    result: false,
+                    message: '尚未開啟物流追蹤設定',
+                };
+            }
+            const keyData = deliveryConfig.value.ec_pay;
+            const shoppingClass = new shopping_js_1.Shopping(this.appName);
+            const cart = (await Promise.all(obj.cart_token.split(',').map((dd) => {
+                console.log(`cart_token=>${dd}`);
+                return new Promise(async (resolve, reject) => {
+                    const data = await shoppingClass.getCheckOut({
+                        page: 0,
+                        limit: 1,
+                        search: dd,
+                        searchType: 'cart_token',
+                    });
+                    resolve(data.data);
+                });
+            }))).filter((dd) => {
+                console.log(`search_result=>`, dd[0]);
+                return dd[0];
+            });
+            if (!(cart.length)) {
+                console.error('orderData 不存在');
+                return {
+                    result: false,
+                    message: '此訂單不存在',
+                };
+            }
+            if (`${deliveryConfig.value.pay_now.toggle}` === 'true') {
+                const pay_now = new paynow_logistics_js_1.PayNowLogistics(this.appName);
+                await Promise.all(cart.map((dd) => {
+                    return new Promise(async (resolve, reject) => {
+                        try {
+                            await pay_now.printLogisticsOrder(dd[0].orderData);
+                            resolve(true);
+                        }
+                        catch (e) {
+                            resolve(true);
+                        }
+                    });
+                }));
+                const carData = cart[0][0].orderData;
+                const config = {
+                    method: 'get',
+                    maxBodyLength: Infinity,
+                    url: `${(await pay_now.config()).link}/${(() => {
+                        switch (carData.user_info.shipment) {
+                            case 'UNIMARTC2C':
+                                return 'api/Order711';
+                            case 'FAMIC2C':
+                                return 'api/OrderFamiC2C';
+                            case 'HILIFEC2C':
+                                return 'api/OrderHiLife';
+                            case 'OKMARTC2C':
+                                return 'api/OKC2C';
+                            case 'UNIMARTFREEZE':
+                                return 'Member/Order/Print711FreezingC2CLabel';
+                        }
+                        return ``;
+                    })()}?orderNumberStr=${obj.cart_token}&user_account=${(await pay_now.config()).account}`,
+                    headers: { 'Content-Type': 'application/json' }
+                };
+                const link_response = await (0, axios_1.default)(config);
+                const link = link_response.data;
+                return {
+                    result: true,
+                    link: link.replace('S,', ''),
+                };
+            }
+            else if (`${deliveryConfig.value.ec_pay.toggle}` === 'true') {
+                const id = cart[0][0].id;
+                const carData = cart[0][0].orderData;
+                carData.deliveryData = (_a = carData.deliveryData) !== null && _a !== void 0 ? _a : {};
+                let random_id = '';
+                if (carData.deliveryData[keyData.Action] === undefined) {
+                    console.log(`綠界物流單 開始建立（使用${keyData.Action === 'main' ? '正式' : '測試'}環境）`);
+                    console.log(`carData.user_info.LogisticsSubType==>`, carData.user_info.shipment);
+                    if (['FAMIC2C', 'UNIMARTC2C', 'HILIFEC2C', 'OKMARTC2C', 'UNIMARTFREEZE'].includes(carData.user_info.shipment)) {
+                        const delivery_cf = {
+                            LogisticsType: 'CVS',
+                            LogisticsSubType: carData.user_info.shipment,
+                            GoodsAmount: carData.total,
+                            CollectionAmount: carData.user_info.shipment === 'UNIMARTC2C' ? carData.total : undefined,
+                            IsCollection: carData.customer_info.payment_select === 'cash_on_delivery' ? 'Y' : 'N',
+                            GoodsName: `訂單編號 ${carData.orderID}`,
+                            ReceiverName: carData.user_info.name,
+                            ReceiverCellPhone: carData.user_info.phone,
+                            ReceiverStoreID: keyData.Action === 'main'
+                                ? carData.user_info.CVSStoreID
+                                : (() => {
+                                    if (carData.user_info.shipment === 'OKMARTC2C') {
+                                        return '1328';
+                                    }
+                                    if (carData.user_info.shipment === 'FAMIC2C') {
+                                        return '006598';
+                                    }
+                                    if (carData.user_info.shipment === 'UNIMARTFREEZE') {
+                                        return `896539`;
+                                    }
+                                    return '131386';
+                                })(),
+                        };
+                        const delivery = await this.postStoreOrder(delivery_cf);
+                        if (delivery.result) {
+                            carData.deliveryData[keyData.Action] = delivery.data;
+                        }
+                        else {
+                            return {
+                                result: false,
+                                message: `建立錯誤: ${delivery.message}`,
+                            };
+                        }
+                    }
+                    if (['normal', 'black_cat', 'black_cat_ice', 'black_cat_freezing'].includes(carData.user_info.shipment)) {
+                        const receiverPostData = await shoppingClass.getPostAddressData(carData.user_info.address);
+                        const senderPostData = await new Promise((resolve) => {
+                            setTimeout(() => {
+                                resolve(shoppingClass.getPostAddressData(keyData.SenderAddress));
+                            }, 2000);
+                        });
+                        let goodsWeight = 0;
+                        carData.lineItems.map((item) => {
+                            if (item.shipment_obj.type === 'weight') {
+                                goodsWeight += item.shipment_obj.value;
+                            }
+                        });
+                        const delivery_cf = {
+                            LogisticsType: 'HOME',
+                            LogisticsSubType: carData.user_info.shipment === 'normal' ? 'POST' : 'TCAT',
+                            GoodsAmount: carData.total,
+                            GoodsName: `訂單編號 ${carData.orderID}`,
+                            GoodsWeight: carData.user_info.shipment === 'normal' ? goodsWeight : undefined,
+                            ReceiverName: carData.user_info.name,
+                            ReceiverCellPhone: carData.user_info.phone,
+                            ReceiverZipCode: receiverPostData.zipcode6 || receiverPostData.zipcode,
+                            ReceiverAddress: carData.user_info.address,
+                            SenderZipCode: senderPostData.zipcode6 || senderPostData.zipcode,
+                            SenderAddress: keyData.SenderAddress,
+                            Temperature: (() => {
+                                switch (carData.user_info.shipment) {
+                                    case 'black_cat_ice':
+                                        return '0002';
+                                    case 'black_cat_freezing':
+                                        return '0003';
+                                    default:
+                                        return '0001';
+                                }
+                            })()
+                        };
+                        const delivery = await this.postStoreOrder(delivery_cf);
+                        if (delivery.result) {
+                            carData.deliveryData[keyData.Action] = delivery.data;
+                            console.info('綠界物流單 郵政/黑貓 建立成功');
+                        }
+                        else {
+                            console.error(`綠界物流單 郵政/黑貓 建立錯誤: ${delivery.message}`);
+                            return {
+                                result: false,
+                                message: `建立錯誤: ${delivery.message}`,
+                            };
+                        }
+                    }
+                }
+                random_id = await this.generatorDeliveryId(id, carData, keyData);
+                if (!random_id) {
+                    return {
+                        result: false,
+                        message: '尚未啟用物流追蹤功能',
+                    };
+                }
+            }
+            return {
+                result: false,
+                message: '尚未啟用物流追蹤功能',
+            };
+        }
+        catch (e) {
+            console.error(`error-`, e);
             return {
                 result: false,
                 message: '尚未開啟物流追蹤設定',
             };
         }
-        const keyData = deliveryConfig.value.ec_pay;
-        const shoppingClass = new shopping_js_1.Shopping(this.appName);
-        const cart = await shoppingClass.getCheckOut({
-            page: 0,
-            limit: 1,
-            search: obj.cart_token,
-            searchType: 'cart_token',
-        });
-        if (!(cart.data.length === 1 && cart.data[0].orderData)) {
-            console.error('orderData 不存在');
-            return {
-                result: false,
-                message: '此訂單不存在',
-            };
-        }
-        const id = cart.data[0].id;
-        const carData = cart.data[0].orderData;
-        carData.deliveryData = (_a = carData.deliveryData) !== null && _a !== void 0 ? _a : {};
-        if (carData.deliveryData[keyData.Action] === undefined) {
-            console.log(`綠界物流單 開始建立（使用${keyData.Action === 'main' ? '正式' : '測試'}環境）`);
-            if (['FAMIC2C', 'UNIMARTC2C', 'HILIFEC2C', 'OKMARTC2C'].includes(carData.user_info.LogisticsSubType)) {
-                const delivery_cf = {
-                    LogisticsType: 'CVS',
-                    LogisticsSubType: carData.user_info.LogisticsSubType,
-                    GoodsAmount: carData.total,
-                    CollectionAmount: carData.user_info.LogisticsSubType === 'UNIMARTC2C' ? carData.total : undefined,
-                    IsCollection: carData.customer_info.payment_select === 'cash_on_delivery' ? 'Y' : 'N',
-                    GoodsName: `訂單編號 ${carData.orderID}`,
-                    ReceiverName: carData.user_info.name,
-                    ReceiverCellPhone: carData.user_info.phone,
-                    ReceiverStoreID: keyData.Action === 'main'
-                        ? carData.user_info.CVSStoreID
-                        : (() => {
-                            if (carData.user_info.LogisticsSubType === 'OKMARTC2C') {
-                                return '1328';
-                            }
-                            if (carData.user_info.LogisticsSubType === 'FAMIC2C') {
-                                return '006598';
-                            }
-                            return '131386';
-                        })(),
-                };
-                const delivery = await this.postStoreOrder(delivery_cf);
-                if (delivery.result) {
-                    carData.deliveryData[keyData.Action] = delivery.data;
-                }
-                else {
-                    return {
-                        result: false,
-                        message: `建立錯誤: ${delivery.message}`,
-                    };
-                }
-            }
-            if (['normal', 'black_cat'].includes(carData.user_info.shipment)) {
-                const receiverPostData = await shoppingClass.getPostAddressData(carData.user_info.address);
-                const senderPostData = await new Promise((resolve) => {
-                    setTimeout(() => {
-                        resolve(shoppingClass.getPostAddressData(keyData.SenderAddress));
-                    }, 2000);
-                });
-                let goodsWeight = 0;
-                carData.lineItems.map((item) => {
-                    if (item.shipment_obj.type === 'weight') {
-                        goodsWeight += item.shipment_obj.value;
-                    }
-                });
-                const delivery_cf = {
-                    LogisticsType: 'HOME',
-                    LogisticsSubType: carData.user_info.shipment === 'normal' ? 'POST' : 'TCAT',
-                    GoodsAmount: carData.total,
-                    GoodsName: `訂單編號 ${carData.orderID}`,
-                    GoodsWeight: carData.user_info.shipment === 'normal' ? goodsWeight : undefined,
-                    ReceiverName: carData.user_info.name,
-                    ReceiverCellPhone: carData.user_info.phone,
-                    ReceiverZipCode: receiverPostData.zipcode6 || receiverPostData.zipcode,
-                    ReceiverAddress: carData.user_info.address,
-                    SenderZipCode: senderPostData.zipcode6 || senderPostData.zipcode,
-                    SenderAddress: keyData.SenderAddress,
-                };
-                const delivery = await this.postStoreOrder(delivery_cf);
-                if (delivery.result) {
-                    carData.deliveryData[keyData.Action] = delivery.data;
-                    console.info('綠界物流單 郵政/黑貓 建立成功');
-                }
-                else {
-                    console.error(`綠界物流單 郵政/黑貓 建立錯誤: ${delivery.message}`);
-                    return {
-                        result: false,
-                        message: `建立錯誤: ${delivery.message}`,
-                    };
-                }
-            }
-        }
-        const random_id = await this.generatorDeliveryId(id, carData, keyData);
-        return {
-            result: true,
-            id: random_id,
-        };
     }
     static removeUndefined(originParams) {
         const params = Object.fromEntries(Object.entries(originParams).filter(([_, value]) => value !== undefined));

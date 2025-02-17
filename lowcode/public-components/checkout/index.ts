@@ -16,6 +16,7 @@ import { Language } from '../../glitter-base/global/language.js';
 import { FakeOrder } from './fake-order.js';
 import { FormCheck } from '../../cms-plugin/module/form-check.js';
 import { Currency } from '../../glitter-base/global/currency.js';
+import {ShipmentConfig} from "../../glitter-base/global/shipment-config.js";
 
 const html = String.raw;
 
@@ -1651,11 +1652,26 @@ export class CheckoutIndex {
                                               </div>`
                                             : ``}
                                         <!-- 選取超商 -->
-                                        ${['UNIMARTC2C', 'FAMIC2C', 'HILIFEC2C', 'OKMARTC2C'].includes(vm.cartData.user_info.shipment)
+                                        ${ShipmentConfig.supermarketList.includes(vm.cartData.user_info.shipment)
                                             ? html` <div class="col-12">
                                                   <button
                                                       class="${gClass('button-bgr')}"
                                                       onclick="${gvc.event(() => {
+                                                          // ApiDelivery.storeMaps({
+                                                          //     returnURL: location.href,
+                                                          //     logistics: vm.cartData.user_info.shipment,
+                                                          // }).then(async (res) => {
+                                                          //     console.log(res.response)
+                                                          //     $('body').html(` <form  action="https://logistic.paynow.com.tw/Member/Order/Choselogistics" method="post" enctype="application/x-www-form-urlencoded"
+                                                          // accept="text/html">
+                                                          //      <input type="hidden" name="CheckMacValue" id="CheckMacValue"
+                                                          //       value="${json.checkMacValue}"/>
+                                                          // <button type="submit" class="btn btn-secondary custom-btn beside-btn d-none" id="submit"
+                                                          // hidden></button>
+                                                          // </form>`);
+                                                          //     (document.querySelector('#submit') as any).click();
+                                                          // });
+                                                         
                                                           ApiDelivery.storeMaps({
                                                               returnURL: location.href,
                                                               logistics: vm.cartData.user_info.shipment,
@@ -1763,6 +1779,7 @@ export class CheckoutIndex {
                                                   html` <label class="${gClass('label')}">${Language.text('state')}</label>
                                                       <input
                                                           class="${gClass('input')}"
+                                                          class="${gClass('input')}"
                                                           type="state"
                                                           placeholder="${Language.text('state')}"
                                                           value="${vm.cartData.user_info.state || ''}"
@@ -1818,7 +1835,7 @@ export class CheckoutIndex {
                                         })()}
                                     </div>
                                 </section>
-                                <section class="${['UNIMARTC2C', 'FAMIC2C', 'HILIFEC2C', 'OKMARTC2C'].includes(vm.cartData.user_info.shipment) ? `` : `mt-4`}">
+                                <section class="${ShipmentConfig.supermarketList.includes(vm.cartData.user_info.shipment) ? `` : `mt-4`}">
                                     <div class="${gClass('banner-bgr')} shadow">
                                         <span class="${gClass('banner-text')}">${Language.text('customer_info')}</span>
                                     </div>
@@ -2452,10 +2469,14 @@ export class CheckoutIndex {
                                                     <button
                                                         class="${gClass(verify.length > 0 ? 'button-bgr-disable' : 'button-bgr')}"
                                                         onclick="${gvc.event(() => {
+                                                            if (vm.cartData.user_info_same) {
+                                                                vm.cartData.user_info.name = vm.cartData.customer_info.name;
+                                                                vm.cartData.user_info.phone = vm.cartData.customer_info.phone;
+                                                                vm.cartData.user_info.email = vm.cartData.customer_info.email;
+                                                            }
                                                             if (verify.length > 0) {
                                                                 return;
                                                             }
-                                                            
                                                             const dialog = new ShareDialog(gvc.glitter);
                                                             if (!this.checkFormData(gvc, vm.cartData, widget)) {
                                                                 return;
@@ -2478,11 +2499,6 @@ export class CheckoutIndex {
                                                                     dialog.errorMessage({ text: Language.text('max_p_count_d').replace('_c_', min).replace('_p_', `『${title}』`) });
                                                                     return;
                                                                 }
-                                                            }
-                                                            if (vm.cartData.user_info_same) {
-                                                                vm.cartData.user_info.name = vm.cartData.customer_info.name;
-                                                                vm.cartData.user_info.phone = vm.cartData.customer_info.phone;
-                                                                vm.cartData.user_info.email = vm.cartData.customer_info.email;
                                                             }
                                                             ['MerchantTradeNo', 'LogisticsSubType', 'CVSStoreID', 'CVSStoreName', 'CVSTelephone', 'CVSOutSide', 'ExtraData', 'CVSAddress'].map((dd) => {
                                                                 if (gvc.glitter.getUrlParameter(dd)) {
@@ -2725,7 +2741,7 @@ export class CheckoutIndex {
         }
 
         // 填入預設資料
-        if (['UNIMARTC2C', 'FAMIC2C', 'HILIFEC2C', 'OKMARTC2C'].includes(subData['shipment'])) {
+        if (ShipmentConfig.supermarketList.includes(subData['shipment'])) {
             ['MerchantID', 'MerchantTradeNo', 'LogisticsSubType', 'CVSStoreID', 'CVSAddress', 'CVSTelephone', 'CVSOutSide', 'CVSStoreName'].map((dd) => {
                 if ((window as any).glitter.getUrlParameter(dd)) {
                     subData[dd] = decodeURIComponent((window as any).glitter.getUrlParameter(dd));
@@ -2752,7 +2768,7 @@ export class CheckoutIndex {
         }
 
         // 驗證配送門市
-        if (['UNIMARTC2C', 'FAMIC2C', 'HILIFEC2C', 'OKMARTC2C'].includes(subData['shipment']) && !subData['CVSStoreName']) {
+        if (ShipmentConfig.supermarketList.includes(subData['shipment']) && !subData['CVSStoreName']) {
             dialog.errorMessage({
                 text: Language.text('select_delivery_store'),
             });

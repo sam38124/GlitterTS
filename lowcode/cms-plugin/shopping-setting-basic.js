@@ -1843,9 +1843,7 @@ export class ShoppingSettingBasic {
                                                                           `;
                                                             }
                                                             return html `
-                                                                          <div
-                                                                              style="border-radius: 10px;border: 1px solid #DDD;;display: flex;height: 40px;padding: 8px 0px 8px 18px;align-items: center;"
-                                                                          >
+                                                                          <div style="border-radius: 10px;border: 1px solid #DDD;;display: flex;height: 40px;padding: 8px 0px 8px 18px;align-items: center;">
                                                                               <i
                                                                                   class="${selected.length ? `fa-solid fa-square-check` : `fa-regular fa-square`}"
                                                                                   style="width: 16px;height: 16px;margin-left:2px;margin-right:18px;cursor: pointer; color: ${selected.length
@@ -2033,7 +2031,7 @@ export class ShoppingSettingBasic {
                                                                                                               style="height: 40px;width:100%;padding: 0px 18px;border-radius: 10px;border: 1px solid #DDD;background: #FFF;font-size: 13px;"
                                                                                                               placeholder="${dd.title}"
                                                                                                               type="number"
-                                                                                                              readonly
+                                                                                                              ${dd.key == 'stock' ? `readonly` : ``}
                                                                                                               min="0"
                                                                                                               onclick="${gvc.event(() => {
                                                                                 if (index === 1) {
@@ -2218,7 +2216,7 @@ export class ShoppingSettingBasic {
                                                                                                                                   style="width: 100%;height: 40px;padding: 0px 18px;border-radius: 10px;border: 1px solid #DDD;background: #FFF;"
                                                                                                                                   value="${(_a = data[dd]) !== null && _a !== void 0 ? _a : 0}"
                                                                                                                                   min="0"
-                                                                                                                                  readonly
+                                                                                                                                  ${(index === 1) ? `readonly` : ``}
                                                                                                                                   onclick="${gvc.event(() => {
                                                                                             if (index === 1) {
                                                                                                 ProductSetting.showBatchEditDialog({

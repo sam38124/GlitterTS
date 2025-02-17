@@ -232,13 +232,13 @@ export class ProductExcel {
                         if (index != 0) {
                             row.forEach((rowData, i) => {
                                 let text = '';
-                                if (rowData.richText) {
+                                if (rowData && rowData.richText) {
                                     rowData.richText.map((item) => {
                                         text += item.text;
                                     });
                                 }
                                 else {
-                                    text = rowData;
+                                    text = rowData !== null && rowData !== void 0 ? rowData : '';
                                 }
                                 row[i] = text;
                             });

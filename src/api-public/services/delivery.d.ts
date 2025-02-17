@@ -79,10 +79,10 @@ export declare class Delivery {
     }): Promise<{
         result: boolean;
         message: string;
-        id?: undefined;
+        link?: undefined;
     } | {
         result: boolean;
-        id: string;
+        link: any;
         message?: undefined;
     }>;
     static removeUndefined(originParams: any): {

@@ -26,7 +26,9 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.createAPP = exports.initial = exports.app = void 0;
+exports.app = void 0;
+exports.initial = initial;
+exports.createAPP = createAPP;
 const path_1 = __importDefault(require("path"));
 const express_1 = __importDefault(require("express"));
 const cors_1 = __importDefault(require("cors"));
@@ -120,7 +122,6 @@ async function initial(serverPort) {
         console.log('Starting up the server now.');
     })();
 }
-exports.initial = initial;
 function createContext(req, res, next) {
     const uuid = (0, uuid_1.v4)();
     const ip = req.ip;
@@ -152,6 +153,7 @@ async function createAPP(dd) {
                 var _a, _b, _c, _d, _e, _f;
                 const og_url = req.headers['x-original-url'];
                 const custom_heads = [];
+                console.log(`req.query.page=>`, req.query.page);
                 try {
                     if (req.query.state === 'google_login') {
                         req.query.page = 'login';
@@ -222,7 +224,7 @@ async function createAPP(dd) {
                                 page: req.query.page,
                             });
                         }
-                        else if (`${req.query.page}`.startsWith('blogs')) {
+                        else if (`${req.query.page}` === ('blogs')) {
                             const seo = await new user_js_1.User(req.get('g-app'), req.body.token).getConfigV2({
                                 key: 'article_seo_data_' + language,
                                 user_id: 'manager',
@@ -667,7 +669,6 @@ async function createAPP(dd) {
         };
     }));
 }
-exports.createAPP = createAPP;
 async function getSeoDetail(appName, req) {
     const sqlData = await private_config_js_1.Private_config.getConfig({
         appName: appName,

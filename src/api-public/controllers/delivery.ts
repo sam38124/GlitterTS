@@ -2,6 +2,8 @@ import express from 'express';
 import response from '../../modules/response';
 import { Delivery, EcPay } from '../services/delivery.js';
 import redis from '../../modules/redis.js';
+import {PayNow} from "../services/financial-service.js";
+import {PayNowLogistics} from "../services/paynow-logistics.js";
 
 const router: express.Router = express.Router();
 
@@ -51,8 +53,9 @@ router.post('/c2cNotify', async (req: express.Request, resp: express.Response) =
 
 router.post('/storeMaps', async (req: express.Request, resp: express.Response) => {
     try {
-        const formString = await new Delivery(req.get('g-app') as string).getC2CMap(req.body.returnURL, req.body.logistics);
-        return response.succ(resp, { form: formString });
+        return response.succ(resp, { form: await (new PayNowLogistics(req.get('g-app') as string).choseLogistics(req.body.logistics,req.body.returnURL)) });
+        // const formString = await new Delivery(req.get('g-app') as string).getC2CMap(req.body.returnURL, req.body.logistics);
+        // return response.succ(resp, { form: formString });
     } catch (err) {
         return response.fail(resp, err);
     }

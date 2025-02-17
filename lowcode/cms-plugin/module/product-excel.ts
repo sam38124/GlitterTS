@@ -314,12 +314,12 @@ export class ProductExcel {
                     if (index != 0) {
                         row.forEach((rowData: any, i: number) => {
                             let text = '';
-                            if (rowData.richText) {
+                            if (rowData && rowData.richText) {
                                 rowData.richText.map((item: any) => {
                                     text += item.text;
                                 });
                             } else {
-                                text = rowData;
+                                text = rowData ?? '';
                             }
                             row[i] = text;
                         });

@@ -26,6 +26,7 @@ import { Language } from "../glitter-base/global/language.js";
 import { OrderSetting } from "./module/order-setting.js";
 import { CountryTw } from "../modules/country-language/country-tw.js";
 import { PaymentPage } from "./pos-pages/payment-page.js";
+import { ShipmentConfig } from "../glitter-base/global/shipment-config.js";
 const html = String.raw;
 export class ShoppingOrderManager {
     static main(gvc, query) {
@@ -499,7 +500,7 @@ export class ShoppingOrderManager {
                                         const checkArray = vm.dataList.filter((dd) => dd.checked);
                                         const strArray = checkArray.map((dd) => {
                                             try {
-                                                return dd.orderData.deliveryData.LogisticsSubType;
+                                                return dd.orderData.user_info.shipment;
                                             }
                                             catch (error) {
                                                 return undefined;
@@ -643,50 +644,11 @@ export class ShoppingOrderManager {
         });
     }
     static supportShipmentMethod() {
-        return [
-            {
-                title: '國際配送',
-                value: 'global_express',
-                name: ''
-            },
-            {
-                title: '門市立即取貨',
-                value: 'now',
-                name: '',
-            },
-            {
-                title: '一般宅配',
-                value: 'normal',
-                name: '',
-            },
-            {
-                title: '全家店到店',
-                value: 'FAMIC2C',
-                name: '',
-            },
-            {
-                title: '萊爾富店到店',
-                value: 'HILIFEC2C',
-                name: '',
-            },
-            {
-                title: 'OK超商店到店',
-                value: 'OKMARTC2C',
-                name: '',
-            },
-            {
-                title: '7-ELEVEN超商交貨便',
-                value: 'UNIMARTC2C',
-                name: '',
-            },
-            {
-                title: '實體門市取貨',
-                value: 'shop',
-                name: '',
-            },
-        ].map((dd) => {
-            dd.name = dd.title;
-            return dd;
+        return ShipmentConfig.list.map((dd) => {
+            return {
+                name: dd.title,
+                value: dd.value
+            };
         });
     }
     static replaceOrder(gvc, vm, passOrderData, backCallback) {
@@ -1209,7 +1171,7 @@ export class ShoppingOrderManager {
                                                 return dd.value === orderData.orderData.user_info.shipment;
                                             }) || { name: '門市取貨' }).name)}
                                                                             </div>
-                                                                            ${['FAMIC2C', 'UNIMARTC2C', 'HILIFEC2C', 'OKMARTC2C', 'normal', 'black_cat'].includes(orderData.orderData.user_info.shipment)
+                                                                            ${ShipmentConfig.supportPrintList.includes(orderData.orderData.user_info.shipment)
                                                 ? BgWidget.customButton({
                                                     button: {
                                                         color: 'gray',
@@ -1244,7 +1206,7 @@ export class ShoppingOrderManager {
                                                 }),
                                             })}
                                                                         </div>`,
-                                            html ` ${['UNIMARTC2C', 'FAMIC2C', 'OKMARTC2C', 'HILIFEC2C', 'normal'].includes(orderData.orderData.user_info.shipment)
+                                            html ` ${['UNIMARTC2C', 'FAMIC2C', 'OKMARTC2C', 'HILIFEC2C', 'normal', 'UNIMARTFREEZE', 'black_cat', 'black_cat_freezing'].includes(orderData.orderData.user_info.shipment)
                                                 ? html `
                                                                                 <div class="tx_700">配送資訊</div>
                                                                                 ${BgWidget.mbContainer(12)}`
@@ -1252,22 +1214,34 @@ export class ShoppingOrderManager {
                                                                     <div class="d-flex flex-column tx_normal"
                                                                          style="gap: 4px;">
                                                                         ${(() => {
-                                                var _a;
-                                                if (['normal', 'black_cat', 'global_express'].includes(orderData.orderData.user_info.shipment)) {
+                                                var _a, _b;
+                                                if (['normal', 'black_cat', 'global_express', 'black_cat_freezing'].includes(orderData.orderData.user_info.shipment)) {
                                                     let map = [];
-                                                    map.push(`國家 : ${(_a = CountryTw.find((dd) => {
+                                                    if ((_a = CountryTw.find((dd) => {
                                                         return dd.countryCode === orderData.orderData.user_info.country;
-                                                    })) === null || _a === void 0 ? void 0 : _a.countryName}`);
-                                                    map.push(`城市 : ${orderData.orderData.user_info.city}`);
-                                                    map.push(`州/省 : ${orderData.orderData.user_info.state}`);
-                                                    map.push(`郵遞區號 : ${orderData.orderData.user_info.postal_code}`);
-                                                    map.push(`地址 : ${orderData.orderData.user_info.address}`);
+                                                    })) === null || _a === void 0 ? void 0 : _a.countryName) {
+                                                        map.push(`國家 : ${(_b = CountryTw.find((dd) => {
+                                                            return dd.countryCode === orderData.orderData.user_info.country;
+                                                        })) === null || _b === void 0 ? void 0 : _b.countryName}`);
+                                                    }
+                                                    if (orderData.orderData.user_info.city) {
+                                                        map.push(`城市 : ${orderData.orderData.user_info.city}`);
+                                                    }
+                                                    if (orderData.orderData.user_info.state) {
+                                                        map.push(`州/省 : ${orderData.orderData.user_info.state}`);
+                                                    }
+                                                    if (orderData.orderData.user_info.postal_code) {
+                                                        map.push(`郵遞區號 : ${orderData.orderData.user_info.postal_code}`);
+                                                    }
+                                                    if (orderData.orderData.user_info.address) {
+                                                        map.push(`地址 : ${orderData.orderData.user_info.address}`);
+                                                    }
                                                     return map.join('<div class="w-100 border-top my-1"></div>');
                                                 }
                                                 const formData = (orderData.orderData.shipment_selector || ShoppingOrderManager.supportShipmentMethod()).find((dd) => {
                                                     return dd.value === orderData.orderData.user_info.shipment;
                                                 });
-                                                if (['UNIMARTC2C', 'FAMIC2C', 'OKMARTC2C', 'HILIFEC2C'].includes(orderData.orderData.user_info.shipment)) {
+                                                if (['UNIMARTC2C', 'FAMIC2C', 'OKMARTC2C', 'HILIFEC2C', 'UNIMARTFREEZE'].includes(orderData.orderData.user_info.shipment)) {
                                                     return html `
                                                                                     <div class="d-flex flex-wrap">
                                                                                         <span class="me-2">門市名稱:</span>
@@ -1779,6 +1753,7 @@ export class ShoppingOrderManager {
                                                 case 'HILIFEC2C':
                                                 case 'OKMARTC2C':
                                                 case 'UNIMARTC2C':
+                                                case 'UNIMARTFREEZE':
                                                     return [
                                                         html `
                                                                                                             <div class="d-flex flex-wrap w-100">
@@ -1801,6 +1776,7 @@ export class ShoppingOrderManager {
                                                                                                             </div>`,
                                                     ].join('');
                                                 case 'global_express':
+                                                case 'black_cat_freezing':
                                                 case 'normal':
                                                     return [
                                                         html `
@@ -3708,8 +3684,13 @@ export class ShoppingOrderManager {
             if (res.result && res.response.data) {
                 const data = res.response.data;
                 if (data.result) {
-                    const url = ApiDelivery.getFormURL(data.id);
-                    glitter.openNewTab(url);
+                    if (data.link) {
+                        glitter.openNewTab(data.link);
+                    }
+                    else {
+                        const url = ApiDelivery.getFormURL(data.id);
+                        glitter.openNewTab(url);
+                    }
                 }
                 else {
                     dialog.errorMessage({ text: (_a = data.message) !== null && _a !== void 0 ? _a : '發生錯誤' });

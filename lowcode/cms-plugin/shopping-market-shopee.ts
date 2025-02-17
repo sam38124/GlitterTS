@@ -7,6 +7,7 @@ import {ApiPageConfig} from "../api/pageConfig.js";
 
 const css=String.raw
 export class MarketShopee {
+
     public static main(gvc: GVC) {
         const shopee = localStorage.getItem('shopeeCode');
         if (shopee) {
@@ -301,7 +302,10 @@ export class MarketShopee {
                                         },onCreate:()=>{
                                             ApiShopee.syncStatus().then((res)=>{
                                                 loading=res.response.result
-                                                setTimeout(()=>{
+                                                if(gvc.glitter.share.shopee_interval){
+                                                    clearInterval(gvc.glitter.share.shopee_interval)
+                                                }
+                                                gvc.glitter.share.shopee_interval=setTimeout(()=>{
                                                     gvc.notifyDataChange(id)
                                                 },1000)
                                             })

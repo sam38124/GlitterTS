@@ -12,6 +12,7 @@ import { QuestionInfo } from './module/question-info.js';
 import { ApiUser } from '../glitter-base/route/user.js';
 import { BgProduct } from '../backend-manager/bg-product.js';
 import { ApiPageConfig } from '../api/pageConfig.js';
+import { ShipmentConfig } from "../glitter-base/global/shipment-config.js";
 const html = String.raw;
 export class ShoppingSettingAdvance {
     static main(obj) {
@@ -606,40 +607,12 @@ export class ShoppingSettingAdvance {
                                                                                 var _a;
                                                                                 if (dd.result && dd.response.result[0]) {
                                                                                     const shipment_setting = dd.response.result[0].value;
-                                                                                    designatedVM.dataList = [
-                                                                                        {
-                                                                                            name: '中華郵政',
-                                                                                            value: 'normal'
-                                                                                        },
-                                                                                        {
-                                                                                            name: '黑貓到府',
-                                                                                            value: 'black_cat'
-                                                                                        },
-                                                                                        {
-                                                                                            name: '全家店到店',
-                                                                                            value: 'FAMIC2C'
-                                                                                        },
-                                                                                        {
-                                                                                            name: '萊爾富店到店',
-                                                                                            value: 'HILIFEC2C'
-                                                                                        },
-                                                                                        {
-                                                                                            name: 'OK超商店到店',
-                                                                                            value: 'OKMARTC2C'
-                                                                                        },
-                                                                                        {
-                                                                                            name: '7-ELEVEN超商交貨便',
-                                                                                            value: 'UNIMARTC2C'
-                                                                                        },
-                                                                                        {
-                                                                                            name: '實體門市取貨',
-                                                                                            value: 'shop'
-                                                                                        },
-                                                                                        {
-                                                                                            name: '國際快遞',
-                                                                                            value: 'global_express'
-                                                                                        },
-                                                                                    ]
+                                                                                    designatedVM.dataList = ShipmentConfig.list.map((dd) => {
+                                                                                        return {
+                                                                                            name: dd.title,
+                                                                                            value: dd.value
+                                                                                        };
+                                                                                    })
                                                                                         .concat(((_a = shipment_setting.custom_delivery) !== null && _a !== void 0 ? _a : []).map((dd) => {
                                                                                         return {
                                                                                             form: dd.form,

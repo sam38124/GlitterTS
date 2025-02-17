@@ -160,9 +160,15 @@ export class ProductSetting {
                                             return titleArray;
                                         }
 
-                                        titleArray = insertSubStocks(titleArray, stockList.map((item: any) => {
+                                        titleArray = insertSubStocks(titleArray, stockList.map((item: any,index:number) => {
+                                            if(postMD.shopee_id && index){
+                                                return ``
+                                            }
+                                            if(postMD.shopee_id){
+                                                return  `蝦皮庫存`
+                                            }
                                             return item.name
-                                        }));
+                                        }).filter((dd:any)=>{return dd}));
                                         return titleArray.map((title) => {
                                             return html`
                                                 <div class="d-flex flex-shrink-0"
@@ -308,7 +314,10 @@ export class ProductSetting {
                                                                                                                     </select>
                                                                                                                 </div>
                                                                                                             `
-                                                                                                            returnHTML += stockList.map((item: any) => {
+                                                                                                            returnHTML += stockList.map((item: any,index:number) => {
+                                                                                                                if(postMD.shopee_id && index){
+                                                                                                                    return ``
+                                                                                                                }
                                                                                                                 if (!(data as any)['stockList']) {
                                                                                                                     (data as any)['stockList'] = {}
                                                                                                                 }
@@ -344,7 +353,6 @@ export class ProductSetting {
                                                                                                                                     data['stock'] = count;
                                                                                                                                     gvc.notifyDataChange(vm.id);
                                                                                                                                 })}"
-${postMD.shopee_id ? `readonly`:``}
                                                                                                                         />
                                                                                                                     </div>`;
                                                                                                             }).join('')
@@ -508,7 +516,7 @@ ${postMD.shopee_id ? `readonly`:``}
             type TitleItem = {
                 title: string;
                 width: string;
-                key?:string
+                key?: string
             };
             let titleArray: TitleItem[] = [
                 {
@@ -520,19 +528,19 @@ ${postMD.shopee_id ? `readonly`:``}
                 }, {
                     title: "原售價",
                     width: `${elementLength}px`,
-                    key : 'original_price'
+                    key: 'original_price'
                 }, {
                     title: "直播售價",
                     width: `${elementLength}px`,
-                    key : 'live_price'
+                    key: 'live_price'
                 }, {
                     title: "庫存",
                     width: `${elementLength}px`,
-                    key : 'stock'
+                    key: 'stock'
                 }, {
                     title: "可賣數量",
                     width: `${elementLength}px`,
-                    key : 'available_Qty'
+                    key: 'available_Qty'
                 }
             ];
             return gvc.bindView({
@@ -570,7 +578,7 @@ ${postMD.shopee_id ? `readonly`:``}
                                 <div class="d-flex " style="margin-bottom:24px;gap:24px;">
                                     ${(() => {
                                         return titleArray.map((title) => {
-                                            
+
                                             return html`
                                                 <div class="d-flex flex-shrink-0"
                                                      style="width:${title.width};font-size: 16px;font-style: normal;font-weight: 700;">
@@ -582,44 +590,48 @@ ${postMD.shopee_id ? `readonly`:``}
                                 </div>
                                 <div class="d-flex flex-column" style="gap:12px;">
                                     ${selected.map((item: any, index: number) => {
-                                        return item.content.variants.map((variant:any)=>{
+                                        return item.content.variants.map((variant: any) => {
                                             return html`
-                                            <div class="d-flex" style="gap:24px;">
-                                                ${titleArray.map((title,index)=>{
-                                                    
+                                                <div class="d-flex" style="gap:24px;">
+                                                    ${titleArray.map((title, index) => {
 
-                                                    return html`
-                                                <div class="d-flex flex-shrink-0"
-                                                     style="width:${title.width};font-size: 16px;font-style: normal;font-weight: 400;">
-                                                    ${(()=>{
-                                                        switch (index){
-                                                            case 0:
-                                                                return html`
-                                                                    <div class="d-flex">
-                                                                        <div style="width: 40px;height: 40px;border-radius: 5px;background: url('${getPreviewImage(item.content.preview_image[0])}') lightgray 50% / cover no-repeat;"></div>
-                                                                        <div>${item.content.title}</div>
-                                                                    </div>
-                                                                `
-                                                            case 1:
-                                                                return (variant.spec.length == 0)?'單一規格':variant.spec.join(',');
-                                                            case 3:
-                                                            case 5:
-                                                                return html`
-                                                                    <input class="w-100" value="${variant.live_model[title.key??""]}" style="height: 40px;padding: 0 18px;border-radius: 10px;border: 1px solid #DDD;" onchange="${gvc.event((e)=>{
-                                                                        variant.live_model[title.key??""] = e.value 
-                                                                    })}" ${index == 5?`max=${variant.stock}`:''}>
-                                                                `
-                                                            case 4:
-                                                                return variant.stock;
-                                                            default:{
-                                                                return variant.live_model[title.key??""];
-                                                            }
-                                                        }
-                                                    })()}
+
+                                                        return html`
+                                                            <div class="d-flex flex-shrink-0"
+                                                                 style="width:${title.width};font-size: 16px;font-style: normal;font-weight: 400;">
+                                                                ${(() => {
+                                                                    switch (index) {
+                                                                        case 0:
+                                                                            return html`
+                                                                                <div class="d-flex">
+                                                                                    <div style="width: 40px;height: 40px;border-radius: 5px;background: url('${getPreviewImage(item.content.preview_image[0])}') lightgray 50% / cover no-repeat;"></div>
+                                                                                    <div>${item.content.title}</div>
+                                                                                </div>
+                                                                            `
+                                                                        case 1:
+                                                                            return (variant.spec.length == 0) ? '單一規格' : variant.spec.join(',');
+                                                                        case 3:
+                                                                        case 5:
+                                                                            return html`
+                                                                                <input class="w-100"
+                                                                                       value="${variant.live_model[title.key ?? ""]}"
+                                                                                       style="height: 40px;padding: 0 18px;border-radius: 10px;border: 1px solid #DDD;"
+                                                                                       onchange="${gvc.event((e) => {
+                                                                                           variant.live_model[title.key ?? ""] = e.value
+                                                                                       })}"
+                                                                                       ${index == 5 ? `max=${variant.stock}` : ''}>
+                                                                            `
+                                                                        case 4:
+                                                                            return variant.stock;
+                                                                        default: {
+                                                                            return variant.live_model[title.key ?? ""];
+                                                                        }
+                                                                    }
+                                                                })()}
+                                                            </div>
+                                                        `
+                                                    }).join('')}
                                                 </div>
-                                            `
-                                                }).join('')}
-                                            </div>
                                             `
                                         }).join('')
                                     }).join('')}
@@ -641,7 +653,7 @@ ${postMD.shopee_id ? `readonly`:``}
                                 }))}
                             </div>
                         </div>
-                        
+
                     `
                 },
                 divCreate: {},

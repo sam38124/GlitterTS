@@ -659,8 +659,7 @@ async function redirect_link(req: express.Request, resp: express.Response) {
             const check_id = await redis.getValue(`paynow` + req.query.orderID);
             const payNow = new PayNow(req.query.appName as string, keyData);
             const data: any = await payNow.confirmAndCaptureOrder(check_id as string);
-            console.log(`paynow-check_id`, check_id);
-            console.log(`paynow-data`, data);
+
             if (data.type == 'success') {
                 await new Shopping(req.query.appName as string).releaseCheckout(1, req.query.orderID as string);
             }
@@ -1497,6 +1496,37 @@ router.post('/pos/work-status', async (req: express.Request, resp: express.Respo
         return response.succ(resp, {
             status: await new Pos(req.get('g-app') as string, req.body.token).setWorkStatus(req.body),
         });
+    } catch (err) {
+        return response.fail(resp, err);
+    }
+});
+
+
+
+router.post('/logistics/redirect', async (req: express.Request, resp: express.Response) => {
+    try {
+        const re_:string=req.query['return'] as string;
+        const return_url=new URL((await redis.getValue(`redirect_${re_}`)) as string);
+        console.log(`logistics/redirect/body`,req.body)
+        console.log(`logistics/redirect/query`,req.query)
+        return_url.searchParams.set('CVSStoreID',req.body.storeid);
+        return_url.searchParams.set('CVSStoreName',req.body.storename);
+        return_url.searchParams.set('CVSAddress',req.body.storeaddress);
+        const html = String.raw;
+        return resp.send(
+            html`<!DOCTYPE html>
+            <html lang="en">
+            <head>
+                <meta charset="UTF-8"/>
+                <title>Title</title>
+            </head>
+            <body>
+            <script>
+                location.href = '${return_url.toString()}';
+            </script>
+            </body>
+            </html> `
+        );
     } catch (err) {
         return response.fail(resp, err);
     }

@@ -146,6 +146,7 @@ export async function createAPP(dd: any) {
                 seoManager: async (req) => {
                     const og_url = req.headers['x-original-url'];
                     const custom_heads:string[]=[];
+                    console.log(`req.query.page=>`,req.query.page)
                     try {
                         if (req.query.state === 'google_login') {
                             req.query.page = 'login';
@@ -219,7 +220,7 @@ export async function createAPP(dd: any) {
                                     product_id: req.query.product_id as any,
                                     page: req.query.page as any,
                                 });
-                            } else if (`${req.query.page}`.startsWith('blogs')) {
+                            } else if (`${req.query.page}` === ('blogs')) {
                                 //網誌目錄
                                 const seo=await new User(req.get('g-app') as string, req.body.token).getConfigV2({
                                     key: 'article_seo_data_'+language,

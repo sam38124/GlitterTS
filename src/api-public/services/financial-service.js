@@ -678,6 +678,65 @@ class PayNow {
         this.PrivateKey = (_b = keyData.private_key) !== null && _b !== void 0 ? _b : "";
         this.BASE_URL = (keyData.BETA == 'true') ? "https://sandboxapi.paynow.com.tw" : "https://api.paynow.com.tw";
     }
+    async executePaymentIntent(transactionId, secret, paymentNo) {
+        var _a;
+        console.log(`json=>`, {
+            "paymentNo": paymentNo,
+            "usePayNowSdk": true,
+            "key": this.PublicKey,
+            "secret": secret,
+            "paymentMethodType": "CreditCard",
+            "paymentMethodData": {},
+            "otpFlag": false,
+            "meta": {
+                "client": {
+                    "height": 0,
+                    "width": 0
+                },
+                "iframe": {
+                    "height": 0,
+                    "width": 0
+                }
+            },
+            "owlpay_session": "string"
+        });
+        let config = {
+            method: 'POST',
+            maxBodyLength: Infinity,
+            url: `${this.BASE_URL}/api/v1/payment-intents/${transactionId}/checkout`,
+            headers: {
+                'Accept': 'application/json',
+                'Authorization': `Bearer ` + this.PrivateKey
+            },
+            data: JSON.stringify({
+                "paymentNo": paymentNo,
+                "usePayNowSdk": true,
+                "key": this.PublicKey,
+                "secret": secret,
+                "paymentMethodType": "CreditCard",
+                "paymentMethodData": {},
+                "otpFlag": false,
+                "meta": {
+                    "client": {
+                        "height": 0,
+                        "width": 0
+                    },
+                    "iframe": {
+                        "height": 0,
+                        "width": 0
+                    }
+                }
+            })
+        };
+        try {
+            const response = await axios_1.default.request(config);
+            return response.data;
+        }
+        catch (error) {
+            console.error("Error paynow:", ((_a = error.response) === null || _a === void 0 ? void 0 : _a.data.data) || error.message);
+            throw error;
+        }
+    }
     async confirmAndCaptureOrder(transactionId) {
         var _a;
         let config = {
@@ -808,8 +867,9 @@ class JKO {
         };
         try {
             const response = await axios_1.default.request(config);
-            await database_js_1.default.execute(`INSERT INTO \`${this.appName}\`.t_checkout (cart_token, status, email, orderData) VALUES (?, ?, ?, ?)
-            `, [orderData.orderID, 0, orderData.user_email, orderData]);
+            await database_js_1.default.execute(`INSERT INTO \`${this.appName}\`.t_checkout (cart_token, status, email, orderData)
+                 VALUES (?, ?, ?, ?)
+                `, [orderData.orderID, 0, orderData.user_email, orderData]);
             await redis_1.default.setValue('paynow' + orderData.orderID, response.data.result.id);
             return ``;
         }

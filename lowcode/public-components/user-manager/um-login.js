@@ -136,8 +136,8 @@ export class UMLogin {
                                                 class="bgw-input"
                                                 type="${item.form_config.type}"
                                                 id="reg-${item.key}"
-                                                placeholder="${placeholder}"
-                                                data-placeholder="${placeholder}"
+                                               ${(item.form_config.type === 'date') ? `` : ` placeholder="${placeholder}"
+                                                data-placeholder="${placeholder}"`}
                                                 onchange="${gvc.event((e) => {
                                 if (CheckInput.isEmpty(e.value)) {
                                     e.style.color = 'rgba(0,0,0,0)';
