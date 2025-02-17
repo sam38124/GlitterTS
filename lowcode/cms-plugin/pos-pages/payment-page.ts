@@ -130,10 +130,6 @@ export class PaymentPage {
                                 (obj.ogOrderData.user_info.shipment as any) = 'now';
                             }
                             //儲存資料至本地暫存
-                            console.log('orderDetail');
-                            console.log(orderDetail);
-                            console.log('ogOrderData lineitem');
-                            console.log(obj.ogOrderData.lineItems);
                             obj.ogOrderData.lineItems = obj.ogOrderData.lineItems.filter((dd) => {
                                 return orderDetail.lineItems.find((d1: any) => {
                                     return dd.id + dd.spec.join('-') === d1.id + d1.spec.join('-');
@@ -1573,6 +1569,22 @@ white-space: normal;"
                 },
             };
         });
+    }
+
+    public static rmProductHistory(product_id: number) {
+        const orderDetail: any = JSON.parse(localStorage.getItem('pos_order_detail') as string);
+        if (orderDetail && orderDetail.lineItems) {
+            orderDetail.lineItems = orderDetail.lineItems.filter((item: any) => item.id !== product_id);
+        }
+        this.storeHistory(orderDetail);
+    }
+
+    public static clearProductHistory() {
+        const orderDetail: any = JSON.parse(localStorage.getItem('pos_order_detail') as string);
+        if (orderDetail && orderDetail.lineItems) {
+            orderDetail.lineItems = [];
+        }
+        this.storeHistory(orderDetail);
     }
 
     public static storeHistory(orderDetail: OrderDetail) {

@@ -1313,7 +1313,7 @@ export class DataAnalyze {
             AND created_time BETWEEN '${startDate.toISOString()}' AND '${endDate.toISOString()}'
             GROUP BY id, mac_address
         `;
-        console.log(`sql=>`,sql)
+
         const queryData = await db.query(sql, []);
 
         const now = moment.tz('Asia/Taipei').toDate(); // 當前時間

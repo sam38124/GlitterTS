@@ -9,7 +9,7 @@ import { PaymentPage } from './payment-page.js';
 const html = String.raw;
 
 export class ProductsPage {
-    static pageSplitV2 = (gvc: GVC, countPage: number, nowPage: number, callback: (p: number) => void) => {
+    public static pageSplitV2 = (gvc: GVC, countPage: number, nowPage: number, callback: (p: number) => void) => {
         const generator = (n: number) => {
             return html`<li class="page-item my-0 mx-0">
                 <div class="page-link-v2" onclick="${gvc.event(() => callback(n))}">${n}</div>
@@ -790,6 +790,8 @@ export class ProductsPage {
                                                         <div
                                                             class=""
                                                             onclick="${gvc.event(() => {
+                                                                const rmProd = orderDetail.lineItems[index];
+                                                                PaymentPage.rmProductHistory(rmProd.id);
                                                                 orderDetail.lineItems.splice(index, 1);
                                                                 if (document.querySelector('.js-cart-count')) {
                                                                     (document.querySelector('.js-cart-count') as any).recreateView();

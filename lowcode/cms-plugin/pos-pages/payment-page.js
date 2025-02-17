@@ -110,10 +110,6 @@ export class PaymentPage {
                             })) {
                                 obj.ogOrderData.user_info.shipment = 'now';
                             }
-                            console.log('orderDetail');
-                            console.log(orderDetail);
-                            console.log('ogOrderData lineitem');
-                            console.log(obj.ogOrderData.lineItems);
                             obj.ogOrderData.lineItems = obj.ogOrderData.lineItems.filter((dd) => {
                                 return orderDetail.lineItems.find((d1) => {
                                     return dd.id + dd.spec.join('-') === d1.id + d1.spec.join('-');
@@ -1485,6 +1481,20 @@ white-space: normal;"
                 },
             };
         });
+    }
+    static rmProductHistory(product_id) {
+        const orderDetail = JSON.parse(localStorage.getItem('pos_order_detail'));
+        if (orderDetail && orderDetail.lineItems) {
+            orderDetail.lineItems = orderDetail.lineItems.filter((item) => item.id !== product_id);
+        }
+        this.storeHistory(orderDetail);
+    }
+    static clearProductHistory() {
+        const orderDetail = JSON.parse(localStorage.getItem('pos_order_detail'));
+        if (orderDetail && orderDetail.lineItems) {
+            orderDetail.lineItems = [];
+        }
+        this.storeHistory(orderDetail);
     }
     static storeHistory(orderDetail) {
         localStorage.setItem('pos_order_detail', JSON.stringify(orderDetail));

@@ -629,6 +629,8 @@ export class ProductsPage {
                                                         <div
                                                             class=""
                                                             onclick="${gvc.event(() => {
+                            const rmProd = orderDetail.lineItems[index];
+                            PaymentPage.rmProductHistory(rmProd.id);
                             orderDetail.lineItems.splice(index, 1);
                             if (document.querySelector('.js-cart-count')) {
                                 document.querySelector('.js-cart-count').recreateView();

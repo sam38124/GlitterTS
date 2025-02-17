@@ -20,13 +20,11 @@ import { PosSummary } from './pos-pages/pos-summary.js';
 import { ApiPos } from '../glitter-base/route/pos.js';
 import { PosWidget } from './pos-widget.js';
 
+const html = String.raw;
+const css = String.raw;
+
 export class POSSetting {
-    public static config: {
-        who: string;
-        recreate: () => void;
-        pickup_number: number;
-        where_store: string;
-    } = {
+    public static config: { who: string; recreate: () => void; pickup_number: number; where_store: string } = {
         get who() {
             return localStorage.getItem('pos_use_member') || '';
         },
@@ -57,7 +55,6 @@ export class POSSetting {
         const dialog = new ShareDialog(gvc.glitter);
         return gvc.bindView(() => {
             const id = gvc.glitter.getUUID();
-            const html = String.raw;
             const vm: {
                 account: string;
                 pwd: string;
@@ -168,7 +165,7 @@ height: 51px;
         });
     }
 
-    public static async initial(gvc: GVC) {
+    public static initial(gvc: GVC) {
         gvc.glitter.share.editorViewModel = {
             app_config_original: {},
         };
@@ -176,10 +173,6 @@ height: 51px;
             shop_name: '',
         };
 
-        // document.addEventListener('keydown', function(event) {
-        //     console.log(`event.key==>`,event.key)
-        //     event.preventDefault(); // 阻止事件
-        // });
         return new Promise(async (resolve, reject) => {
             ApiUser.getPublicConfig('store-information', 'manager').then((res) => {
                 gvc.glitter.share.shop_config.shop_name = res.response.value.shop_name;
@@ -293,8 +286,16 @@ height: 51px;
                         timer_vm.last_string = '';
                     }, 150);
                 }
-                console.log(`event.key==>`, event.key);
             };
+            function getTimeState(startDate: string, endDate: string): 'beforeStart' | 'inRange' | 'afterEnd' {
+                const now = new Date();
+                const start = new Date(`${startDate}T00:00:00`);
+                const end = new Date(`${endDate}T23:59:59`);
+
+                if (now < start) return 'beforeStart'; // 待上架
+                if (now > end) return 'afterEnd'; // 下架
+                return 'inRange'; // 上架
+            }
             return {
                 bind: id,
                 view: async () => {
@@ -315,7 +316,11 @@ height: 51px;
                         member_auth = member_auth.response.data.filter((dd: any) => dd.invited && dd.status);
                         store_list = store_list.response.value.list;
                         glitter.share.store_list = store_list;
-                        glitter.share.exhibition_list = exhibition_list.response.value.list ?? [];
+                        const exh_list = exhibition_list.response.value.list ?? [];
+                        glitter.share.exhibition_list = exh_list.filter((item: any) => {
+                            const state = getTimeState(item.startDate, item.endDate);
+                            return state === 'inRange';
+                        });
                         glitter.share.member_auth_list = member_auth;
                         try {
                             const login_user = GlobalUser.parseJWT(GlobalUser.saas_token).payload.userID;
@@ -391,7 +396,6 @@ height: 51px;
     public static async scannerCallback(gvc: GVC, text: string) {
         const dialog = new ShareDialog(gvc.glitter);
         const swal = new Swal(gvc);
-        console.log(text);
         if (PayConfig.onPayment) {
             PayConfig.onPayment(text);
             return;
@@ -412,7 +416,6 @@ height: 51px;
                 dialog.dataLoading({ visible: false });
                 if (res.response.data[0]) {
                     const data = res.response.data[0];
-                    console.log(`data===>`, data);
                     const selectVariant = res.response.data[0].content.variants.find((d1: any) => {
                         return d1.barcode === text;
                     });
@@ -516,8 +519,6 @@ height: 51px;
             ],
         };
 
-        const html = String.raw;
-
         glitter.share.reloadPosPage = () => {
             gvc.notifyDataChange(vm.id);
         };
@@ -528,13 +529,13 @@ height: 51px;
         };
 
         function loadOrderData() {
-            if (localStorage.getItem('pos_order_detail')) {
-                orderDetail = JSON.parse(localStorage.getItem('pos_order_detail') as string);
+            const storageOrder = localStorage.getItem('pos_order_detail');
+            if (storageOrder) {
+                orderDetail = JSON.parse(storageOrder);
             } else {
                 orderDetail.user_info = orderDetail.user_info || { shipment: 'now' };
                 (orderDetail.user_info.shipment as any) = 'now';
             }
-
             if (!orderDetail.lineItems || orderDetail.lineItems.length === 0) {
                 orderDetail.user_info = orderDetail.user_info || { shipment: 'now' };
                 (orderDetail.user_info.shipment as any) = 'now';
@@ -1192,7 +1193,7 @@ ${document.body.clientWidth < 800 ? `` : `position: absolute;left: 50%;top:50%;t
                                                 }
                                                 return ProductsPage.main({ gvc: gvc, vm: vm, orderDetail: orderDetail });
                                             } catch (e) {
-                                                console.log(e);
+                                                console.error(e);
                                                 return `${e}`;
                                             }
                                         })();
@@ -1210,7 +1211,7 @@ ${document.body.clientWidth < 800 ? `` : `position: absolute;left: 50%;top:50%;t
                         } catch (e) {
                             localStorage.removeItem('pos_order_detail');
                             gvc.recreateView();
-                            console.log(e);
+                            console.error(e);
                             return `${e}`;
                         }
                     },
@@ -1227,8 +1228,7 @@ ${document.body.clientWidth < 800 ? `` : `position: absolute;left: 50%;top:50%;t
     }
 
     public static initialStyle(gvc: GVC) {
-        const css = String.raw;
-        gvc.addStyle(css`
+        gvc.addStyle(`
             .hoverHidden div {
                 display: none;
             }
@@ -1251,26 +1251,6 @@ ${document.body.clientWidth < 800 ? `` : `position: absolute;left: 50%;top:50%;t
                 animation: slideOutFromLeft 0.5s ease-out forwards;
             }
 
-            /* @keyframes 定義動畫 */
-            @keyframes slideInFromLeft {
-                0% {
-                    left: -120%; /* 起始位置在畫面外 */
-                }
-                100% {
-                    left: 0; /* 結束位置在畫面內 */
-                }
-            }
-            /* @keyframes 定義動畫 */
-            @keyframes slideOutFromLeft {
-                0% {
-                    left: 0; /* 起始位置在畫面外 */
-                }
-                100% {
-                    left: -120%; /* 結束位置在畫面內 */
-                }
-            }
-        `);
-        gvc.addStyle(css`
             .scroll-right-in {
                 right: -120%; /* 將元素移到畫面外 */
                 animation: slideInRight 0.5s ease-out forwards;
@@ -1281,7 +1261,24 @@ ${document.body.clientWidth < 800 ? `` : `position: absolute;left: 50%;top:50%;t
                 animation: slideOutRight 0.5s ease-out forwards;
             }
 
-            /* @keyframes 定義動畫 */
+            @keyframes slideInFromLeft {
+                0% {
+                    left: -120%; /* 起始位置在畫面外 */
+                }
+                100% {
+                    left: 0; /* 結束位置在畫面內 */
+                }
+            }
+
+            @keyframes slideOutFromLeft {
+                0% {
+                    left: 0; /* 起始位置在畫面外 */
+                }
+                100% {
+                    left: -120%; /* 結束位置在畫面內 */
+                }
+            }
+
             @keyframes slideInRight {
                 0% {
                     right: -120%; /* 起始位置在畫面外 */
@@ -1290,7 +1287,7 @@ ${document.body.clientWidth < 800 ? `` : `position: absolute;left: 50%;top:50%;t
                     right: 0; /* 結束位置在畫面內 */
                 }
             }
-            /* @keyframes 定義動畫 */
+
             @keyframes slideOutRight {
                 0% {
                     right: 0; /* 起始位置在畫面外 */

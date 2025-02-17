@@ -1249,7 +1249,6 @@ class DataAnalyze {
             AND created_time BETWEEN '${startDate.toISOString()}' AND '${endDate.toISOString()}'
             GROUP BY id, mac_address
         `;
-        console.log(`sql=>`, sql);
         const queryData = await database_js_1.default.query(sql, []);
         const now = moment_1.default.tz('Asia/Taipei').toDate();
         const dataList = Array.from({ length: 12 }, (_, index) => {

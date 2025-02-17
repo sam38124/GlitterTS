@@ -27,12 +27,13 @@ import { TempOrder } from './pos-pages/temp-order.js';
 import { PosSummary } from './pos-pages/pos-summary.js';
 import { ApiPos } from '../glitter-base/route/pos.js';
 import { PosWidget } from './pos-widget.js';
+const html = String.raw;
+const css = String.raw;
 export class POSSetting {
     static loginManager(gvc, mode, result) {
         const dialog = new ShareDialog(gvc.glitter);
         return gvc.bindView(() => {
             const id = gvc.glitter.getUUID();
-            const html = String.raw;
             const vm = {
                 account: '',
                 pwd: '',
@@ -138,25 +139,23 @@ height: 51px;
         });
     }
     static initial(gvc) {
-        return __awaiter(this, void 0, void 0, function* () {
-            gvc.glitter.share.editorViewModel = {
-                app_config_original: {},
-            };
-            gvc.glitter.share.shop_config = {
-                shop_name: '',
-            };
-            return new Promise((resolve, reject) => __awaiter(this, void 0, void 0, function* () {
-                ApiUser.getPublicConfig('store-information', 'manager').then((res) => {
-                    gvc.glitter.share.shop_config.shop_name = res.response.value.shop_name;
-                    ApiPageConfig.getAppConfig().then((res) => {
-                        gvc.glitter.share.editorViewModel.app_config_original = res.response.result[0];
-                        gvc.glitter.share.editorViewModel.domain = res.response.result[0].domain;
-                        gvc.glitter.share.editorViewModel.originalDomain = gvc.glitter.share.editorViewModel.domain;
-                        resolve(true);
-                    });
+        gvc.glitter.share.editorViewModel = {
+            app_config_original: {},
+        };
+        gvc.glitter.share.shop_config = {
+            shop_name: '',
+        };
+        return new Promise((resolve, reject) => __awaiter(this, void 0, void 0, function* () {
+            ApiUser.getPublicConfig('store-information', 'manager').then((res) => {
+                gvc.glitter.share.shop_config.shop_name = res.response.value.shop_name;
+                ApiPageConfig.getAppConfig().then((res) => {
+                    gvc.glitter.share.editorViewModel.app_config_original = res.response.result[0];
+                    gvc.glitter.share.editorViewModel.domain = res.response.result[0].domain;
+                    gvc.glitter.share.editorViewModel.originalDomain = gvc.glitter.share.editorViewModel.domain;
+                    resolve(true);
                 });
-            }));
-        });
+            });
+        }));
     }
     static main(gvc) {
         const glitter = gvc.glitter;
@@ -242,8 +241,17 @@ height: 51px;
                         timer_vm.last_string = '';
                     }, 150);
                 }
-                console.log(`event.key==>`, event.key);
             };
+            function getTimeState(startDate, endDate) {
+                const now = new Date();
+                const start = new Date(`${startDate}T00:00:00`);
+                const end = new Date(`${endDate}T23:59:59`);
+                if (now < start)
+                    return 'beforeStart';
+                if (now > end)
+                    return 'afterEnd';
+                return 'inRange';
+            }
             return {
                 bind: id,
                 view: () => __awaiter(this, void 0, void 0, function* () {
@@ -265,7 +273,11 @@ height: 51px;
                         member_auth = member_auth.response.data.filter((dd) => dd.invited && dd.status);
                         store_list = store_list.response.value.list;
                         glitter.share.store_list = store_list;
-                        glitter.share.exhibition_list = (_a = exhibition_list.response.value.list) !== null && _a !== void 0 ? _a : [];
+                        const exh_list = (_a = exhibition_list.response.value.list) !== null && _a !== void 0 ? _a : [];
+                        glitter.share.exhibition_list = exh_list.filter((item) => {
+                            const state = getTimeState(item.startDate, item.endDate);
+                            return state === 'inRange';
+                        });
                         glitter.share.member_auth_list = member_auth;
                         try {
                             const login_user = GlobalUser.parseJWT(GlobalUser.saas_token).payload.userID;
@@ -337,7 +349,6 @@ height: 51px;
         return __awaiter(this, void 0, void 0, function* () {
             const dialog = new ShareDialog(gvc.glitter);
             const swal = new Swal(gvc);
-            console.log(text);
             if (PayConfig.onPayment) {
                 PayConfig.onPayment(text);
                 return;
@@ -358,7 +369,6 @@ height: 51px;
                     dialog.dataLoading({ visible: false });
                     if (res.response.data[0]) {
                         const data = res.response.data[0];
-                        console.log(`data===>`, data);
                         const selectVariant = res.response.data[0].content.variants.find((d1) => {
                             return d1.barcode === text;
                         });
@@ -456,7 +466,6 @@ height: 51px;
                 },
             ],
         };
-        const html = String.raw;
         glitter.share.reloadPosPage = () => {
             gvc.notifyDataChange(vm.id);
         };
@@ -466,8 +475,9 @@ height: 51px;
             orderDetail.user_info.shipment = 'now';
         };
         function loadOrderData() {
-            if (localStorage.getItem('pos_order_detail')) {
-                orderDetail = JSON.parse(localStorage.getItem('pos_order_detail'));
+            const storageOrder = localStorage.getItem('pos_order_detail');
+            if (storageOrder) {
+                orderDetail = JSON.parse(storageOrder);
             }
             else {
                 orderDetail.user_info = orderDetail.user_info || { shipment: 'now' };
@@ -1056,7 +1066,7 @@ ${document.body.clientWidth < 800 ? `` : `position: absolute;left: 50%;top:50%;t
                                         return ProductsPage.main({ gvc: gvc, vm: vm, orderDetail: orderDetail });
                                     }
                                     catch (e) {
-                                        console.log(e);
+                                        console.error(e);
                                         return `${e}`;
                                     }
                                 })();
@@ -1075,7 +1085,7 @@ ${document.body.clientWidth < 800 ? `` : `position: absolute;left: 50%;top:50%;t
                     catch (e) {
                         localStorage.removeItem('pos_order_detail');
                         gvc.recreateView();
-                        console.log(e);
+                        console.error(e);
                         return `${e}`;
                     }
                 },
@@ -1091,8 +1101,7 @@ ${document.body.clientWidth < 800 ? `` : `position: absolute;left: 50%;top:50%;t
         }) + NormalPageEditor.leftNav(gvc));
     }
     static initialStyle(gvc) {
-        const css = String.raw;
-        gvc.addStyle(css `
+        gvc.addStyle(`
             .hoverHidden div {
                 display: none;
             }
@@ -1115,26 +1124,6 @@ ${document.body.clientWidth < 800 ? `` : `position: absolute;left: 50%;top:50%;t
                 animation: slideOutFromLeft 0.5s ease-out forwards;
             }
 
-            /* @keyframes 定義動畫 */
-            @keyframes slideInFromLeft {
-                0% {
-                    left: -120%; /* 起始位置在畫面外 */
-                }
-                100% {
-                    left: 0; /* 結束位置在畫面內 */
-                }
-            }
-            /* @keyframes 定義動畫 */
-            @keyframes slideOutFromLeft {
-                0% {
-                    left: 0; /* 起始位置在畫面外 */
-                }
-                100% {
-                    left: -120%; /* 結束位置在畫面內 */
-                }
-            }
-        `);
-        gvc.addStyle(css `
             .scroll-right-in {
                 right: -120%; /* 將元素移到畫面外 */
                 animation: slideInRight 0.5s ease-out forwards;
@@ -1145,7 +1134,24 @@ ${document.body.clientWidth < 800 ? `` : `position: absolute;left: 50%;top:50%;t
                 animation: slideOutRight 0.5s ease-out forwards;
             }
 
-            /* @keyframes 定義動畫 */
+            @keyframes slideInFromLeft {
+                0% {
+                    left: -120%; /* 起始位置在畫面外 */
+                }
+                100% {
+                    left: 0; /* 結束位置在畫面內 */
+                }
+            }
+
+            @keyframes slideOutFromLeft {
+                0% {
+                    left: 0; /* 起始位置在畫面外 */
+                }
+                100% {
+                    left: -120%; /* 結束位置在畫面內 */
+                }
+            }
+
             @keyframes slideInRight {
                 0% {
                     right: -120%; /* 起始位置在畫面外 */
@@ -1154,7 +1160,7 @@ ${document.body.clientWidth < 800 ? `` : `position: absolute;left: 50%;top:50%;t
                     right: 0; /* 結束位置在畫面內 */
                 }
             }
-            /* @keyframes 定義動畫 */
+
             @keyframes slideOutRight {
                 0% {
                     right: 0; /* 起始位置在畫面外 */
