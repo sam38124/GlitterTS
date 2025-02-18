@@ -220,7 +220,7 @@ gvc.notifyDataChange(id)
                         return {
                             title: (dd.language_data && dd.language_data[Language.getLanguage()].title) || dd.title,
                             desc: (dd.language_data && dd.language_data[Language.getLanguage()].description) || dd.description,
-                            image: dd.preview_image,
+                            image: dd.seo && dd.seo.image ? dd.seo.image : 'https://d3jnmi1tfjgtti.cloudfront.net/file/234285319/1722936949034-default_image.jpg',
                             collection: dd.collection ?? [],
                             created_time: created_time,
                             tag: dd.tag
@@ -291,6 +291,7 @@ border-radius: 15px;
                     ]
                     if (vm.data.length) {
                         map_v.push(vm.data.map((dd) => {
+                            // console.log(dd);
                             return html`<a class="col-12 col-md-6 col-lg-4 mb-4 mb-lg-5 px-lg-3"
                                            style="cursor: pointer;color:${theme_color.title} !important;text-decoration:none !important;"
                                            href="blogs/${dd.tag}" onclick="${gvc.event((e, event) => {

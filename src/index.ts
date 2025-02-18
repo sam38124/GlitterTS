@@ -233,7 +233,7 @@ export async function createAPP(dd: any) {
                                 data.page_config.seo.logo = seo.logo || data.page_config.seo.logo;
                             }else if (`${req.query.page}`.startsWith('blogs/')) {
                                 //網誌搜索
-                                await SeoConfig.articleSeo({
+                                data.page_config.seo = await SeoConfig.articleSeo({
                                     article: req.query.article as any,
                                     page: req.query.page as any,
                                     language,
@@ -563,7 +563,6 @@ export async function createAPP(dd: any) {
                                         })
                                     );
                                 });
-                                console.log(array);
                                 return array;
                             })(),
                             ...(() => {
@@ -572,7 +571,6 @@ export async function createAPP(dd: any) {
                                     dd = dd.content;
                                     array = array.concat(
                                         language_setting.support.map((d1: any) => {
-                                            // console.log(`products=>`,dd)
                                             const seo = (dd.language_data && dd.language_data[d1] && dd.language_data[d1].seo && dd.language_data[d1].seo.domain) || dd.seo.domain;
                                             if (d1 === language_setting.def) {
                                                 return { url: `https://${domain}/products/${seo}`, changefreq: 'weekly' };

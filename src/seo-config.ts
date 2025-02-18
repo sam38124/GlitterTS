@@ -231,6 +231,8 @@ export class SeoConfig {
                 cf.data.page_config.seo.image =  article.data[0].content.seo.image;
             }
         }
+
+        return cf.data.page_config.seo
     }
 
     //取得多國語言

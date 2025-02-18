@@ -267,43 +267,7 @@ placeholder="請輸入網誌目錄描述">${vm.SEOData.seo.content || ''}</texta
                                                     </div>
                                                 </div>
                                             </div>
-                                            <div class="d-flex flex-column w-50" style="gap:8px">
-                                                <div class="d-flex align-items-center position-relative"
-                                                     style="gap:4px;font-weight:700;font-size: 16px;cursor: pointer;">社群分享縮圖
-                                                    ${BgWidget.generateTooltipButton(gvc, html `
-                                                                <div class="d-flex flex-column">
-                                                                    <img src="https://d3jnmi1tfjgtti.cloudfront.net/file/234285319/1716793630046-favicon.jpg"
-                                                                         alt="Q4">
-                                                                </div>
-                                                            `)}
-                                                </div>
-                                                <div class="w-100 "
-                                                     style="height:191px; display: flex;justify-content: center;align-items: center;border-radius: 10px;border: 1px solid #DDD;background: #FFF;"
-                                                     onclick="${gvc.event(() => {
-                                imageLibrary.selectImageLibrary(gvc, (urlArray) => {
-                                    if (urlArray.length > 0) {
-                                        vm.SEOData.seo.logo = urlArray[0].data;
-                                        gvc.notifyDataChange('SEO');
-                                    }
-                                    else {
-                                        const dialog = new ShareDialog(gvc.glitter);
-                                        dialog.errorMessage({ text: '請選擇至少一張圖片' });
-                                    }
-                                }, html `
-                                                                     <div class="d-flex flex-column"
-                                                                          style="border-radius: 10px 10px 0px 0px;background: #F2F2F2;">
-                                                                         社群分享縮圖
-                                                                     </div>`, { mul: false });
-                            })}">
-                                                    <img class="${vm.SEOData.seo.logo && vm.SEOData.seo.logo.length > 0 ? '' : 'd-none'}"
-                                                         style="height:calc(100% - 10px);max-width: 100%;"
-                                                         src="${vm.SEOData.seo.logo}" alt="縮圖error">
-                                                    <div class="${vm.SEOData.seo.logo && vm.SEOData.seo.logo.length > 0 ? 'd-none' : ''}"
-                                                         style="padding: 10px;border-radius: 10px;background: #FFF;/* 按鈕 */box-shadow: 0px 0px 10px 0px rgba(0, 0, 0, 0.10);">
-                                                        新增圖片
-                                                    </div>
-                                                </div>
-                                            </div>
+                                            
                                         </div>
                                     </div>
 

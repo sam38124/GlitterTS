@@ -80,7 +80,7 @@ export class BlogList {
                             return {
                                 title: (dd.language_data && dd.language_data[Language.getLanguage()].title) || dd.title,
                                 desc: (dd.language_data && dd.language_data[Language.getLanguage()].description) || dd.description,
-                                image: dd.preview_image,
+                                image: dd.seo && dd.seo.image ? dd.seo.image : 'https://d3jnmi1tfjgtti.cloudfront.net/file/234285319/1722936949034-default_image.jpg',
                                 collection: (_a = dd.collection) !== null && _a !== void 0 ? _a : [],
                                 created_time: created_time,
                                 tag: dd.tag

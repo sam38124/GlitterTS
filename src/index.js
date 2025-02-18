@@ -235,13 +235,15 @@ async function createAPP(dd) {
                             data.page_config.seo.logo = seo.logo || data.page_config.seo.logo;
                         }
                         else if (`${req.query.page}`.startsWith('blogs/')) {
-                            await seo_config_js_1.SeoConfig.articleSeo({
+                            data.page_config.seo = await seo_config_js_1.SeoConfig.articleSeo({
                                 article: req.query.article,
                                 page: req.query.page,
                                 language,
                                 appName,
                                 data,
                             });
+                            console.log(1);
+                            console.log(data.page_config.seo);
                         }
                         else if (`${req.query.page}`.startsWith('pages/')) {
                             await seo_config_js_1.SeoConfig.articleSeo({
@@ -270,6 +272,8 @@ async function createAPP(dd) {
                                 data.page_config.seo[dd] = seo_detail[dd];
                             });
                         }
+                        console.log(2);
+                        console.log(data.page_config.seo);
                         let link_prefix = req.originalUrl.split('/')[1];
                         if (link_prefix.includes('?')) {
                             link_prefix = link_prefix.substring(0, link_prefix.indexOf('?'));
@@ -310,6 +314,8 @@ async function createAPP(dd) {
                             (() => {
                                 var _a;
                                 const d = data.page_config.seo;
+                                console.log(3);
+                                console.log(d);
                                 return html `
                                         ${(() => {
                                     var _a, _b, _c;
@@ -317,6 +323,7 @@ async function createAPP(dd) {
                                         return seo_config_js_1.SeoConfig.editorSeo;
                                     }
                                     else {
+                                        console.log(d.image || home_seo.image || '');
                                         return html `<title>${[
                                             home_seo.title_prefix || '',
                                             d.title || '',
@@ -550,7 +557,6 @@ async function createAPP(dd) {
                                 }
                             }));
                         });
-                        console.log(array);
                         return array;
                     })(),
                     ...(() => {

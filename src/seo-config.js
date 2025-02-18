@@ -171,6 +171,7 @@ class SeoConfig {
                 cf.data.page_config.seo.image = article.data[0].content.seo.image;
             }
         }
+        return cf.data.page_config.seo;
     }
     static async language(store_info, req) {
         function checkIncludes(lan) {
