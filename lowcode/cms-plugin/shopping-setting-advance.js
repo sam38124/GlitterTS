@@ -22,65 +22,44 @@ export class ShoppingSettingAdvance {
         const shipment_config = obj.shipment_config;
         const variantsViewID = gvc.glitter.getUUID();
         function updateVariants() {
-            const remove_indexs = [];
-            let complexity = 1;
-            postMD.specs = postMD.specs.filter((dd) => {
-                return dd.option && dd.option.length !== 0;
-            });
-            postMD.specs.map((spec) => {
-                complexity *= spec.option.length;
-            });
-            const cType = [];
-            function generateCombinations(specs, currentCombination, index = 0) {
-                if (index === specs.length &&
-                    currentCombination.length > 0 &&
-                    cType.findIndex((ct) => {
-                        return JSON.stringify(ct) === JSON.stringify(currentCombination);
-                    }) === -1) {
-                    cType.push(JSON.parse(JSON.stringify(currentCombination)));
-                    return;
-                }
-                const currentSpecOptions = specs[index];
-                if (currentSpecOptions) {
-                    for (const option of currentSpecOptions) {
-                        currentCombination[index] = option;
-                        generateCombinations(specs, currentCombination, index + 1);
+            const specs = {};
+            function getCombinations(specs) {
+                const keys = Object.keys(specs);
+                const result = [];
+                function combine(index, current) {
+                    if (index === keys.length) {
+                        result.push(Object.assign({}, current));
+                        return;
+                    }
+                    const key = keys[index];
+                    for (const value of specs[key]) {
+                        current[key] = value;
+                        combine(index + 1, current);
                     }
                 }
+                combine(0, {});
+                return result;
             }
-            function checkSpecInclude(spec, index) {
-                if (postMD.specs[index]) {
-                    for (const { title } of postMD.specs[index].option) {
-                        if (spec === title)
-                            return true;
-                    }
-                    return false;
-                }
-                return false;
-            }
-            for (let n = 0; n < complexity; n++) {
-                let currentCombination = [];
-                generateCombinations(postMD.specs.map((dd) => {
-                    return dd.option.map((dd) => {
-                        return dd.title;
-                    });
-                }), currentCombination);
-                const waitAdd = cType.find((dd) => {
-                    return !postMD.variants.find((d2) => {
-                        return JSON.stringify(d2.spec) === JSON.stringify(dd);
-                    });
+            postMD.specs.map((dd) => {
+                specs[dd.title] = dd.option.map((d1) => {
+                    return d1.title;
                 });
-                if (waitAdd && postMD.variants[0].spec.length == 0) {
-                    postMD.variants[0].spec = waitAdd;
-                }
-                else if (waitAdd) {
+            });
+            const combinations = getCombinations(specs);
+            combinations.map((d1) => {
+                const spec = postMD.specs.map((dd) => {
+                    return d1[dd.title];
+                });
+                if (!postMD.variants.find((d2) => {
+                    return d2.spec.join('') === spec.join('');
+                })) {
                     postMD.variants.push({
                         show_understocking: 'true',
                         type: 'variants',
                         sale_price: 0,
                         compare_price: 0,
                         cost: 0,
-                        spec: waitAdd,
+                        spec: JSON.parse(JSON.stringify(spec)),
                         profit: 0,
                         v_length: 0,
                         v_width: 0,
@@ -94,19 +73,7 @@ export class ShoppingSettingAdvance {
                         preview_image: '',
                     });
                 }
-            }
-            if (postMD.variants && postMD.variants.length > 0) {
-                postMD.variants.map((variant, index1) => {
-                    if (variant.spec.length !== postMD.specs.length) {
-                        remove_indexs.push(index1);
-                    }
-                    variant.spec.map((sp, index2) => {
-                        if (!checkSpecInclude(sp, index2)) {
-                            remove_indexs.push(index1);
-                        }
-                    });
-                });
-            }
+            });
             postMD.variants = postMD.variants.filter((variant) => {
                 let pass = true;
                 let index = 0;
@@ -141,6 +108,23 @@ export class ShoppingSettingAdvance {
                     stock: 0,
                     stockList: {},
                     preview_image: '',
+                });
+            }
+            if (postMD.product_category === 'kitchen') {
+                postMD.variants.map((dd) => {
+                    var _a, _b, _c, _d;
+                    dd.compare_price = 0;
+                    dd.sale_price = dd.spec.map((d1, index) => {
+                        var _a;
+                        return parseInt((_a = postMD.specs[index].option.find((d2) => {
+                            return d2.title === d1;
+                        }).price) !== null && _a !== void 0 ? _a : "0", 10);
+                    }).reduce((acc, cur) => acc + cur, 0);
+                    dd.weight = parseFloat((_a = postMD.weight) !== null && _a !== void 0 ? _a : '0');
+                    dd.v_height = parseFloat((_b = postMD.v_height) !== null && _b !== void 0 ? _b : '0');
+                    dd.v_width = parseFloat((_c = postMD.v_width) !== null && _c !== void 0 ? _c : '0');
+                    dd.v_length = parseFloat((_d = postMD.v_length) !== null && _d !== void 0 ? _d : '0');
+                    dd.shipment_type = postMD.shipment_type;
                 });
             }
             postMD.variants.map((dd) => {

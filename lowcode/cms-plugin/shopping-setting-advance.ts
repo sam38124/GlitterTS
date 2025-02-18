@@ -30,71 +30,49 @@ export class ShoppingSettingAdvance {
         const variantsViewID = gvc.glitter.getUUID();
 
         function updateVariants() {
-            const remove_indexs: number[] = [];
-            let complexity = 1;
-            postMD.specs = postMD.specs.filter((dd) => {
-                return dd.option && dd.option.length !== 0;
-            });
-            postMD.specs.map((spec) => {
-                complexity *= spec.option.length;
-            });
-            const cType: string[][] = [];
+            const specs: any = {};
 
-            function generateCombinations(specs: any, currentCombination: any, index = 0) {
-                if (
-                    index === specs.length &&
-                    currentCombination.length > 0 &&
-                    cType.findIndex((ct: string[]) => {
-                        return JSON.stringify(ct) === JSON.stringify(currentCombination);
-                    }) === -1
-                ) {
-                    cType.push(JSON.parse(JSON.stringify(currentCombination)));
-                    return;
-                }
-                const currentSpecOptions = specs[index];
-                if (currentSpecOptions) {
-                    for (const option of currentSpecOptions) {
-                        currentCombination[index] = option;
-                        generateCombinations(specs, currentCombination, index + 1);
+            function getCombinations(specs: any) {
+                const keys = Object.keys(specs);
+                const result: any = [];
+
+                function combine(index: any, current: any) {
+                    if (index === keys.length) {
+                        result.push({...current});
+                        return;
+                    }
+                    const key = keys[index];
+                    for (const value of specs[key]) {
+                        current[key] = value;
+                        combine(index + 1, current);
                     }
                 }
+
+                combine(0, {});
+                return result;
             }
 
-            function checkSpecInclude(spec: string, index: number) {
-                if (postMD.specs[index]) {
-                    for (const {title} of postMD.specs[index].option) {
-                        if (spec === title) return true;
-                    }
-                    return false;
-                }
-                return false;
-            }
-
-            for (let n = 0; n < complexity; n++) {
-                let currentCombination: any = [];
-                generateCombinations(
-                    postMD.specs.map((dd) => {
-                        return dd.option.map((dd: any) => {
-                            return dd.title;
-                        });
-                    }),
-                    currentCombination
-                );
-                const waitAdd = cType.find((dd: any) => {
-                    return !postMD.variants.find((d2) => {
-                        return JSON.stringify(d2.spec) === JSON.stringify(dd);
-                    });
-                });
-                if (waitAdd && postMD.variants[0].spec.length == 0) {
-                    postMD.variants[0].spec = waitAdd;
-                } else if (waitAdd) {
+            postMD.specs.map((dd) => {
+                specs[dd.title] = dd.option.map((d1: any) => {
+                    return d1.title
+                })
+            })
+            const combinations = getCombinations(specs);
+            combinations.map((d1: any) => {
+                const spec = postMD.specs.map((dd) => {
+                    return d1[dd.title]
+                })
+                //如果沒有此規格
+                if (!postMD.variants.find((d2) => {
+                    return d2.spec.join('') === spec.join('')
+                })) {
                     postMD.variants.push({
                         show_understocking: 'true',
                         type: 'variants',
                         sale_price: 0,
                         compare_price: 0,
                         cost: 0,
-                        spec: waitAdd,
+                        spec: JSON.parse(JSON.stringify(spec)),
                         profit: 0,
                         v_length: 0,
                         v_width: 0,
@@ -106,23 +84,9 @@ export class ShoppingSettingAdvance {
                         stock: 0,
                         stockList: {},
                         preview_image: '',
-                    });
+                    })
                 }
-            }
-
-            if (postMD.variants && postMD.variants.length > 0) {
-                postMD.variants.map((variant: any, index1: number) => {
-                    if (variant.spec.length !== postMD.specs.length) {
-                        remove_indexs.push(index1);
-                    }
-                    variant.spec.map((sp: string, index2: number) => {
-                        if (!checkSpecInclude(sp, index2)) {
-                            remove_indexs.push(index1);
-                        }
-                    });
-                });
-            }
-
+            })
             postMD.variants = postMD.variants.filter((variant) => {
                 let pass = true;
                 let index = 0;
@@ -140,8 +104,7 @@ export class ShoppingSettingAdvance {
                 }
                 return pass && variant.spec.length === postMD.specs.length;
             });
-
-            // 當規格為空時，需補一個進去
+            // // 當規格為空時，需補一個進去
             if (postMD.variants.length === 0) {
                 postMD.variants.push({
                     show_understocking: 'true',
@@ -163,8 +126,25 @@ export class ShoppingSettingAdvance {
                     preview_image: '',
                 });
             }
+            if (postMD.product_category === 'kitchen') {
+                postMD.variants.map((dd) => {
+                    dd.compare_price=0
+                    dd.sale_price = dd.spec.map((d1, index) => {
+                        return parseInt(postMD.specs[index].option.find((d2:any) => {
+                            return d2.title === d1
+                        }).price ?? "0",10)
+                    }).reduce((acc, cur) => acc + cur, 0);
+                    dd.weight=parseFloat(postMD.weight ?? '0');
+                    dd.v_height=parseFloat(postMD.v_height ?? '0');
+                    dd.v_width=parseFloat(postMD.v_width ?? '0');
+                    dd.v_length=parseFloat(postMD.v_length ?? '0');
+                    (dd.shipment_type as any)=postMD.shipment_type!!
+                })
+            }
+
             postMD.variants.map((dd: any) => {
                 dd.checked = undefined;
+
                 return dd;
             });
             obj.vm.replaceData = postMD;

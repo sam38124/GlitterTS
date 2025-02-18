@@ -492,7 +492,12 @@ export class ShoppingProductSetting {
                                                                             },
                                                                             {
                                                                                 key: 'commodity',
-                                                                                value: '實體商品',
+                                                                                value: '零售商品',
+                                                                                compare: 'shop'
+                                                                            },
+                                                                            {
+                                                                                key: 'kitchen',
+                                                                                value: '餐飲組合',
                                                                                 compare: 'shop'
                                                                             }
                                                                         ].filter((dd) => {
@@ -503,6 +508,7 @@ export class ShoppingProductSetting {
                                                                             vm.type = 'add'
                                                                             return
                                                                         }
+                                                                        (ShoppingProductSetting.select_product_type as any)=support_pd[0].key;
                                                                         BgWidget.settingDialog({
                                                                             gvc: gvc,
                                                                             title: '選擇商品類型',
@@ -513,7 +519,7 @@ export class ShoppingProductSetting {
                                                                                         ${BgWidget.select({
                                                                                             gvc: gvc,
                                                                                             callback: (data) => {
-                                                                                                (ShoppingProductSetting.select_product_type as any) = data.key
+                                                                                                (ShoppingProductSetting.select_product_type as any) = data;
                                                                                             },
                                                                                             options: support_pd,
                                                                                             default: ShoppingProductSetting.select_product_type

@@ -474,6 +474,41 @@ class Shopping {
                     return parseInt(`${item.sale_price}`, 10);
                 });
                 product.content.min_price = Math.min(...priceArray);
+                if (product.content.product_category === 'kitchen') {
+                    let postMD = product.content;
+                    product.content.variants.map((dd) => {
+                        var _a, _b, _c, _d;
+                        dd.compare_price = 0;
+                        dd.sale_price = dd.spec.map((d1, index) => {
+                            var _a;
+                            return parseInt((_a = postMD.specs[index].option.find((d2) => {
+                                return d2.title === d1;
+                            }).price) !== null && _a !== void 0 ? _a : "0", 10);
+                        }).reduce((acc, cur) => acc + cur, 0);
+                        dd.weight = parseFloat((_a = postMD.weight) !== null && _a !== void 0 ? _a : '0');
+                        dd.v_height = parseFloat((_b = postMD.v_height) !== null && _b !== void 0 ? _b : '0');
+                        dd.v_width = parseFloat((_c = postMD.v_width) !== null && _c !== void 0 ? _c : '0');
+                        dd.v_length = parseFloat((_d = postMD.v_length) !== null && _d !== void 0 ? _d : '0');
+                        dd.shipment_type = postMD.shipment_type;
+                        dd.show_understocking = 'true';
+                        dd.stock = Math.min(...dd.spec.map((d1, index) => {
+                            var _a, _b;
+                            if (!`${(_a = postMD.specs[index].option.find((d2) => {
+                                return d2.title === d1;
+                            }).stock) !== null && _a !== void 0 ? _a : ''}`) {
+                                return Infinity;
+                            }
+                            else {
+                                return parseInt((_b = postMD.specs[index].option.find((d2) => {
+                                    return d2.title === d1;
+                                }).stock) !== null && _b !== void 0 ? _b : "0", 10);
+                            }
+                        }));
+                        if (dd.stock === Infinity) {
+                            dd.show_understocking = "false";
+                        }
+                    });
+                }
             };
             if (products.total && products.data) {
                 if (!Array.isArray(products.data)) {
@@ -514,7 +549,7 @@ class Shopping {
     }
     async getDistributionRecommend(distribution_code) {
         const recommends = await database_js_1.default.query(`SELECT *
-                                           FROM \`${this.app}\`.t_recommend_links`, []);
+             FROM \`${this.app}\`.t_recommend_links`, []);
         const recommendData = recommends
             .map((dd) => dd.content)
             .filter((dd) => {
@@ -644,15 +679,18 @@ class Shopping {
         query.limit = query.limit && query.limit > 999 ? 999 : query.limit;
         const limitSQL = `limit ${query.page * query.limit} , ${query.limit}`;
         if (query.id) {
-            const data = (await database_js_1.default.query(`SELECT * FROM (${sql}) as subqyery ${limitSQL}
+            const data = (await database_js_1.default.query(`SELECT *
+                     FROM (${sql}) as subqyery ${limitSQL}
                     `, []))[0];
             return { data: data, result: !!data };
         }
         else {
             return {
-                data: await database_js_1.default.query(`SELECT * FROM (${sql}) as subqyery ${limitSQL}
+                data: await database_js_1.default.query(`SELECT *
+                     FROM (${sql}) as subqyery ${limitSQL}
                     `, []),
-                total: (await database_js_1.default.query(`SELECT count(1) FROM (${sql}) as subqyery
+                total: (await database_js_1.default.query(`SELECT count(1)
+                         FROM (${sql}) as subqyery
                         `, []))[0]['count(1)'],
             };
         }
@@ -853,8 +891,8 @@ class Shopping {
             }
             if (data.order_id && type === 'POS') {
                 const order = (await database_js_1.default.query(`SELECT *
-                                               FROM \`${this.app}\`.t_checkout
-                                               WHERE cart_token = ?`, [data.order_id]))[0];
+                         FROM \`${this.app}\`.t_checkout
+                         WHERE cart_token = ?`, [data.order_id]))[0];
                 if (order) {
                     for (const b of order.orderData.lineItems) {
                         console.log('1 getProduct');
@@ -1113,6 +1151,7 @@ class Shopping {
                                 Object.assign(b, {
                                     specs: pd.specs,
                                     language_data: pd.language_data,
+                                    product_category: pd.product_category,
                                     preview_image: variant.preview_image || pd.preview_image[0],
                                     title: pd.title,
                                     sale_price: variant.sale_price,
@@ -1176,10 +1215,33 @@ class Shopping {
                                             if (pd.shopee_id) {
                                                 await new shopee_1.Shopee(this.app, this.token).asyncStockToShopee({
                                                     product: pdDqlData,
-                                                    callback: () => { },
+                                                    callback: () => {
+                                                    },
                                                 });
                                             }
-                                            await this.updateVariantsWithSpec(variant, b.id, b.spec);
+                                            if (pd.product_category === 'kitchen') {
+                                                variant.spec.map((d1, index) => {
+                                                    var _a;
+                                                    const count_s = `${(_a = pd.specs[index].option.find((d2) => {
+                                                        return d2.title === d1;
+                                                    }).stock) !== null && _a !== void 0 ? _a : ''}`;
+                                                    if (count_s) {
+                                                        pd.specs[index].option.find((d2) => {
+                                                            return d2.title === d1;
+                                                        }).stock = parseInt(count_s, 10) - b.count;
+                                                    }
+                                                });
+                                                const store_config = await userClass.getConfigV2({
+                                                    key: 'store_manager',
+                                                    user_id: 'manager',
+                                                });
+                                                b.deduction_log = {};
+                                                b.deduction_log[store_config.list[0].id] = b.count;
+                                                console.log(`b.deduction_log==>`, b.deduction_log);
+                                            }
+                                            else {
+                                                await this.updateVariantsWithSpec(variant, b.id, b.spec);
+                                            }
                                             await database_js_1.default.query(`UPDATE \`${this.app}\`.\`t_manager_post\`
                                                  SET ?
                                                  WHERE id = ${pdDqlData.id}
@@ -1284,7 +1346,8 @@ class Shopping {
                             carData.lineItems.push(dd);
                         }
                     }
-                    catch (e) { }
+                    catch (e) {
+                    }
                 });
                 await this.checkVoucher(carData);
                 console.log(`checkout-time-check-voucher-2=>`, new Date().getTime() - check_time);
@@ -1784,8 +1847,8 @@ class Shopping {
                 const cartTokens = data.orders.map((order) => order.cart_token);
                 const placeholders = cartTokens.map(() => '?').join(',');
                 const orders = await database_js_1.default.query(`SELECT *
-                                                        FROM \`${this.app}\`.t_checkout
-                                                        WHERE cart_token IN (${placeholders});`, cartTokens);
+                     FROM \`${this.app}\`.t_checkout
+                     WHERE cart_token IN (${placeholders});`, cartTokens);
                 const targetOrder = orders.find((order) => order.cart_token === data.targetID);
                 const feedsOrder = orders.filter((order) => order.cart_token !== data.targetID);
                 if (!targetOrder)
@@ -2176,8 +2239,13 @@ class Shopping {
                 }
                 if (origin[0].orderData.orderStatus !== '-1' && data.orderData.orderStatus === '-1') {
                     for (const lineItem of origin[0].orderData.lineItems) {
-                        for (const b of Object.keys(lineItem.deduction_log)) {
-                            await new Shopping(this.app, this.token).calcVariantsStock(lineItem.deduction_log[b] || 0, b, lineItem.id, lineItem.spec);
+                        if (lineItem.product_category === 'kitchen') {
+                            await new Shopping(this.app, this.token).calcVariantsStock(lineItem.count, '', lineItem.id, lineItem.spec);
+                        }
+                        else {
+                            for (const b of Object.keys(lineItem.deduction_log)) {
+                                await new Shopping(this.app, this.token).calcVariantsStock(lineItem.deduction_log[b] || 0, b, lineItem.id, lineItem.spec);
+                            }
                         }
                     }
                     await auto_send_email_js_1.AutoSendEmail.customerOrder(this.app, 'auto-email-order-cancel-success', data.orderData.orderID, data.orderData.email, data.orderData.language);
@@ -2212,10 +2280,15 @@ class Shopping {
                             const og_line_items = origin[0].orderData.lineItems.find((dd) => {
                                 return dd.id === new_line_item.id && dd.spec.join('') === new_line_item.spec.join('');
                             });
-                            for (const key of Object.keys(new_line_item.deduction_log)) {
-                                const u_ = new_line_item.deduction_log[key];
-                                const o_ = og_line_items.deduction_log[key];
-                                await new Shopping(this.app, this.token).calcVariantsStock((u_ - o_) * -1, key, new_line_item.id, new_line_item.spec);
+                            if (new_line_item.product_category === 'kitchen') {
+                                await new Shopping(this.app, this.token).calcVariantsStock(new_line_item.count, '', new_line_item.id, new_line_item.spec);
+                            }
+                            else {
+                                for (const key of Object.keys(new_line_item.deduction_log)) {
+                                    const u_ = new_line_item.deduction_log[key];
+                                    const o_ = og_line_items.deduction_log[key];
+                                    await new Shopping(this.app, this.token).calcVariantsStock((u_ - o_) * -1, key, new_line_item.id, new_line_item.spec);
+                                }
                             }
                         }
                     }
@@ -2240,7 +2313,8 @@ class Shopping {
                         console.log(`sync-pd.data`, pd.data.content.variants);
                         await new shopee_1.Shopee(this.app, this.token).asyncStockToShopee({
                             product: pd.data,
-                            callback: () => { },
+                            callback: () => {
+                            },
                         });
                     }
                     resolve(true);
@@ -2675,10 +2749,13 @@ OR JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.orderStatus')) NOT IN (-99)) `);
             if (!content.id) {
                 throw exception_js_1.default.BadRequestError('BAD_REQUEST', 'Missing product ID.', null);
             }
-            const originVariants = await database_js_1.default.query(`SELECT id, product_id, content->>'$.spec' as spec 
-                 FROM \`${this.app}\`.t_variants 
+            const originVariants = await database_js_1.default.query(`SELECT id, product_id, content ->>'$.spec' as spec
+                 FROM \`${this.app}\`.t_variants
                  WHERE product_id = ?`, [content.id]);
-            await database_js_1.default.query(`DELETE FROM \`${this.app}\`.t_variants WHERE product_id = ? AND id > 0`, [content.id]);
+            await database_js_1.default.query(`DELETE
+                            FROM \`${this.app}\`.t_variants
+                            WHERE product_id = ?
+                              AND id > 0`, [content.id]);
             const _user = new user_js_1.User(this.app);
             const storeConfig = await _user.getConfigV2({ key: 'store_manager', user_id: 'manager' });
             const sourceMap = {};
@@ -2697,7 +2774,11 @@ OR JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.orderStatus')) NOT IN (-99)) `);
                 else if (Object.keys(variant.stockList).length === 0) {
                     variant.stockList[storeConfig.list[0].id] = { count: variant.stock };
                 }
-                const insertData = await database_js_1.default.query(`INSERT INTO \`${this.app}\`.t_variants SET ?`, [{ content: JSON.stringify(variant), product_id: content.id }]);
+                const insertData = await database_js_1.default.query(`INSERT INTO \`${this.app}\`.t_variants
+                                                   SET ?`, [{
+                        content: JSON.stringify(variant),
+                        product_id: content.id
+                    }]);
                 const originalVariant = originVariants.find((item) => JSON.parse(item.spec).join(',') === variant.spec.join(','));
                 if (originalVariant) {
                     sourceMap[originalVariant.id] = insertData.insertId;
@@ -2719,7 +2800,9 @@ OR JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.orderStatus')) NOT IN (-99)) `);
                 user_id: 'manager',
                 value: exhibitionConfig,
             });
-            await database_js_1.default.query(`UPDATE \`${this.app}\`.t_manager_post SET ? WHERE id = ?`, [{ content: JSON.stringify(content) }, content.id]);
+            await database_js_1.default.query(`UPDATE \`${this.app}\`.t_manager_post
+                            SET ?
+                            WHERE id = ?`, [{ content: JSON.stringify(content) }, content.id]);
         }
         catch (error) {
             console.error(error);
@@ -2756,18 +2839,33 @@ OR JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.orderStatus')) NOT IN (-99)) `);
                 page: 0,
                 limit: 10,
             })).data.content;
-            const store_config = await new user_js_1.User(this.app).getConfigV2({ key: 'store_manager', user_id: 'manager' });
             const variant_s = pd_data.variants.find((dd) => {
                 return dd.spec.join('-') === spec.join('-');
             });
-            if (Object.keys(variant_s.stockList).length === 0) {
-                variant_s.stockList[store_config.list[0].id] = { count: variant_s.stock };
+            if (pd_data.product_category === 'kitchen') {
+                variant_s.spec.map((d1, index) => {
+                    var _a;
+                    const count_s = `${(_a = pd_data.specs[index].option.find((d2) => {
+                        return d2.title === d1;
+                    }).stock) !== null && _a !== void 0 ? _a : ''}`;
+                    if (count_s) {
+                        pd_data.specs[index].option.find((d2) => {
+                            return d2.title === d1;
+                        }).stock = parseInt(count_s, 10) + calc;
+                    }
+                });
             }
-            if (variant_s.stockList[stock_id]) {
-                variant_s.stockList[stock_id].count = variant_s.stockList[stock_id].count || 0;
-                variant_s.stockList[stock_id].count = variant_s.stockList[stock_id].count + calc;
-                if (variant_s.stockList[stock_id].count < 0) {
-                    variant_s.stockList[stock_id].count = 0;
+            else {
+                const store_config = await new user_js_1.User(this.app).getConfigV2({ key: 'store_manager', user_id: 'manager' });
+                if (Object.keys(variant_s.stockList).length === 0) {
+                    variant_s.stockList[store_config.list[0].id] = { count: variant_s.stock };
+                }
+                if (variant_s.stockList[stock_id]) {
+                    variant_s.stockList[stock_id].count = variant_s.stockList[stock_id].count || 0;
+                    variant_s.stockList[stock_id].count = variant_s.stockList[stock_id].count + calc;
+                    if (variant_s.stockList[stock_id].count < 0) {
+                        variant_s.stockList[stock_id].count = 0;
+                    }
                 }
             }
             await this.postVariantsAndPriceValue(pd_data);
@@ -2814,7 +2912,8 @@ OR JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.orderStatus')) NOT IN (-99)) `);
                     .replace(/@\{\{電話\}\}/g, (_c = order_data.user_info.phone) !== null && _c !== void 0 ? _c : '')
                     .replace(/@\{\{地址\}\}/g, (_d = order_data.user_info.address) !== null && _d !== void 0 ? _d : '')
                     .replace(/@\{\{信箱\}\}/g, (_e = order_data.user_info.email) !== null && _e !== void 0 ? _e : '');
-                (0, ses_js_1.sendmail)(`${json.shop_name} <${process.env.smtp}>`, order_data.user_info.email, `${pd_data.title} 購買通知信`, notice, () => { });
+                (0, ses_js_1.sendmail)(`${json.shop_name} <${process.env.smtp}>`, order_data.user_info.email, `${pd_data.title} 購買通知信`, notice, () => {
+                });
             }
         }
         catch (e) {

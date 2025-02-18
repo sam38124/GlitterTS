@@ -45,6 +45,10 @@ export interface Product {
     shopee_id: number;
     label: any;
     shipment_type?: string;
+    v_length?:string;
+    v_width?:string;
+    v_height?:string;
+    weight?:string;
     id?: string;
     title: string;
     ai_description: string;
@@ -53,7 +57,7 @@ export interface Product {
         addProduct: boolean;
         giveaway: boolean;
     };
-    product_category: 'course' | 'commodity';
+    product_category: 'course' | 'commodity' | 'kitchen';
     visible: 'true' | 'false';
     content: string;
     preview_image: string[];

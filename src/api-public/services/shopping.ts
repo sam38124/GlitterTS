@@ -1,4 +1,4 @@
-import { IToken } from '../models/Auth.js';
+import {IToken} from '../models/Auth.js';
 import exception from '../../modules/exception.js';
 import db from '../../modules/database.js';
 import e from 'express';
@@ -28,6 +28,7 @@ import {SeoConfig} from '../../seo-config.js';
 import {sendmail} from '../../services/ses.js';
 import {Shopee} from "./shopee";
 import {ShipmentConfig as Shipment_support_config} from '../config/shipment-config.js'
+
 type BindItem = {
     id: string;
     spec: string[];
@@ -541,8 +542,8 @@ export class Shopping {
                     return new Promise(async (resolve, reject) => {
                         if (product) {
                             let totalSale = 0;
-                            const { language } = query;
-                            const { content } = product;
+                            const {language} = query;
+                            const {content} = product;
                             if (language && content?.language_data?.[language]) {
                                 const langData = content.language_data[language];
                                 Object.assign(content, {
@@ -584,7 +585,7 @@ export class Shopping {
 
                                 // 確保所有商店 ID 都存在
                                 store_config.list.forEach((store: any) => {
-                                    variant.stockList[store.id] = variant.stockList[store.id] || { count: 0 };
+                                    variant.stockList[store.id] = variant.stockList[store.id] || {count: 0};
                                 });
 
                                 totalSale += variant.sold_out;
@@ -603,7 +604,7 @@ export class Shopping {
                                         if (shopee_variants) {
                                             variant.stock = shopee_variants.stock;
                                             variant.stockList = {};
-                                            variant.stockList[store_config.list[0].id] = { count: variant.stock };
+                                            variant.stockList[store_config.list[0].id] = {count: variant.stock};
                                         }
                                     });
                                 }
@@ -639,7 +640,7 @@ export class Shopping {
             const distributionCode = query.distribution_code ?? '';
 
             // 取得所有優惠券與適配的分銷連結
-            const userData = (await userClass.getUserData(userID, 'userID')) ?? { userID: -1 };
+            const userData = (await userClass.getUserData(userID, 'userID')) ?? {userID: -1};
             const allVoucher = await this.getAllUseVoucher(userData.userID);
             const recommendData = await this.getDistributionRecommend(distributionCode);
             console.log(`get-product-voucher-finish`, (new Date().getTime() - start) / 1000);
@@ -676,7 +677,9 @@ export class Shopping {
                                 const variantID = variantsList.get(specString);
 
                                 if (variantID) {
-                                    const vData = exh.dataList.find((a: { variantID: number }) => a.variantID === variantID);
+                                    const vData = exh.dataList.find((a: {
+                                        variantID: number
+                                    }) => a.variantID === variantID);
                                     pv.variant_id = variantID;
                                     pv.exhibition_type = true;
                                     pv.exhibition_active_stock = vData?.activeSaleStock ?? 0;
@@ -700,6 +703,38 @@ export class Shopping {
                         return parseInt(`${item.sale_price}`, 10);
                     });
                 product.content.min_price = Math.min(...priceArray);
+                if (product.content.product_category === 'kitchen') {
+                    let postMD = product.content as any
+                    product.content.variants.map((dd: any) => {
+                        dd.compare_price = 0
+                        dd.sale_price = dd.spec.map((d1: any, index: number) => {
+                            return parseInt(postMD.specs[index].option.find((d2: any) => {
+                                return d2.title === d1
+                            }).price ?? "0", 10)
+                        }).reduce((acc: any, cur: any) => acc + cur, 0);
+                        dd.weight = parseFloat(postMD.weight ?? '0');
+                        dd.v_height = parseFloat(postMD.v_height ?? '0');
+                        dd.v_width = parseFloat(postMD.v_width ?? '0');
+                        dd.v_length = parseFloat(postMD.v_length ?? '0');
+                        (dd.shipment_type as any) = postMD.shipment_type!!;
+                        dd.show_understocking = 'true';
+                        dd.stock = Math.min(...dd.spec.map((d1: any, index: number) => {
+                            if (!`${postMD.specs[index].option.find((d2: any) => {
+                                return d2.title === d1
+                            }).stock ?? ''}`) {
+                                return Infinity
+                            } else {
+                                return parseInt(postMD.specs[index].option.find((d2: any) => {
+                                    return d2.title === d1
+                                }).stock ?? "0", 10)
+                            }
+
+                        }));
+                        if(dd.stock === Infinity){
+                            dd.show_understocking = "false";
+                        }
+                    })
+                }
             };
 
             if (products.total && products.data) {
@@ -746,14 +781,14 @@ export class Shopping {
         );
 
         // 過濾出有效的優惠券
-        return validVouchers.filter(Boolean);
+        return validVouchers.filter(Boolean) as VoucherData[];
     }
 
     async getDistributionRecommend(distribution_code: string) {
         // 分銷連結
         const recommends = await db.query(
             `SELECT *
-                                           FROM \`${this.app}\`.t_recommend_links`,
+             FROM \`${this.app}\`.t_recommend_links`,
             []
         );
         const recommendData = recommends
@@ -768,7 +803,14 @@ export class Shopping {
         return recommendData;
     }
 
-    async aboutProductVoucher(json: { allVoucher: VoucherData[]; userData: any; recommendData: any; product: any; userID: string; viewSource: string }) {
+    async aboutProductVoucher(json: {
+        allVoucher: VoucherData[];
+        userData: any;
+        recommendData: any;
+        product: any;
+        userID: string;
+        viewSource: string
+    }) {
         const id = `${json.product.id}`;
         const collection = json.product.content.collection || [];
         const userData = json.userData;
@@ -844,7 +886,7 @@ export class Shopping {
                     []
                 )
             )[0];
-            return { data: data, result: !!data };
+            return {data: data, result: !!data};
         } else {
             return {
                 data: (
@@ -893,7 +935,7 @@ export class Shopping {
                     []
                 )
             )[0];
-            return { data: data, result: !!data };
+            return {data: data, result: !!data};
         } else {
             return {
                 data: await db.query(
@@ -939,22 +981,25 @@ export class Shopping {
         if (query.id) {
             const data = (
                 await db.query(
-                    `SELECT * FROM (${sql}) as subqyery ${limitSQL}
+                    `SELECT *
+                     FROM (${sql}) as subqyery ${limitSQL}
                     `,
                     []
                 )
             )[0];
-            return { data: data, result: !!data };
+            return {data: data, result: !!data};
         } else {
             return {
                 data: await db.query(
-                    `SELECT * FROM (${sql}) as subqyery ${limitSQL}
+                    `SELECT *
+                     FROM (${sql}) as subqyery ${limitSQL}
                     `,
                     []
                 ),
                 total: (
                     await db.query(
-                        `SELECT count(1) FROM (${sql}) as subqyery
+                        `SELECT count(1)
+                         FROM (${sql}) as subqyery
                         `,
                         []
                     )
@@ -1115,7 +1160,7 @@ export class Shopping {
     async updateExhibitionActiveStock(exh_id: string, v_id: number, count: number) {
         try {
             const _user = new User(this.app);
-            const exhibitionConfig = await _user.getConfigV2({ key: 'exhibition_manager', user_id: 'manager' });
+            const exhibitionConfig = await _user.getConfigV2({key: 'exhibition_manager', user_id: 'manager'});
             if (exhibitionConfig.list && exhibitionConfig.list.length > 0) {
                 exhibitionConfig.list.forEach((exhibition: any) => {
                     if (exhibition.id === exh_id) {
@@ -1244,8 +1289,8 @@ export class Shopping {
                 const order = (
                     await db.query(
                         `SELECT *
-                                               FROM \`${this.app}\`.t_checkout
-                                               WHERE cart_token = ?`,
+                         FROM \`${this.app}\`.t_checkout
+                         WHERE cart_token = ?`,
                         [data.order_id]
                     )
                 )[0];
@@ -1357,7 +1402,7 @@ export class Shopping {
             // 判斷購物金是否可用
             if (data.use_rebate && data.use_rebate > 0) {
                 if (userData) {
-                    const userRebate = await rebateClass.getOneRebate({ user_id: userData.userID });
+                    const userRebate = await rebateClass.getOneRebate({user_id: userData.userID});
                     const sum = userRebate ? userRebate.point : 0;
                     if (sum < data.use_rebate) {
                         data.use_rebate = 0;
@@ -1390,33 +1435,33 @@ export class Shopping {
                 const refer =
                     data.user_info.shipment === 'global_express'
                         ? (
-                              (
-                                  await Private_config.getConfig({
-                                      appName: this.app,
-                                      key: 'glitter_shipment_global_' + data.user_info.country,
-                                  })
-                              )[0] ?? {
-                                  value: {
-                                      volume: [],
-                                      weight: [],
-                                      selectCalc: 'volume',
-                                  },
-                              }
-                          ).value
+                            (
+                                await Private_config.getConfig({
+                                    appName: this.app,
+                                    key: 'glitter_shipment_global_' + data.user_info.country,
+                                })
+                            )[0] ?? {
+                                value: {
+                                    volume: [],
+                                    weight: [],
+                                    selectCalc: 'volume',
+                                },
+                            }
+                        ).value
                         : (
-                              (
-                                  await Private_config.getConfig({
-                                      appName: this.app,
-                                      key: 'glitter_shipment_' + data.user_info.shipment,
-                                  })
-                              )[0] ?? {
-                                  value: {
-                                      volume: [],
-                                      weight: [],
-                                      selectCalc: 'def',
-                                  },
-                              }
-                          ).value;
+                            (
+                                await Private_config.getConfig({
+                                    appName: this.app,
+                                    key: 'glitter_shipment_' + data.user_info.shipment,
+                                })
+                            )[0] ?? {
+                                value: {
+                                    volume: [],
+                                    weight: [],
+                                    selectCalc: 'def',
+                                },
+                            }
+                        ).value;
 
                 if (refer.selectCalc !== 'def') {
                     def = refer;
@@ -1476,10 +1521,10 @@ export class Shopping {
                 orderID: data.order_id || `${new Date().getTime()}`,
                 shipment_support: shipment_setting.support as any,
                 shipment_info: shipment_setting.info as any,
-                shipment_selector: Shipment_support_config.list.map((dd)=>{
+                shipment_selector: Shipment_support_config.list.map((dd) => {
                     return {
-                        name:dd.title,
-                        value:dd.value
+                        name: dd.title,
+                        value: dd.value
                     }
                 })
                     .concat(
@@ -1499,7 +1544,7 @@ export class Shopping {
                 use_wallet: 0,
                 method: data.user_info && data.user_info.method,
                 user_email: (userData && userData.account) || data.email || (data.user_info && data.user_info.email) || '',
-                useRebateInfo: { point: 0 },
+                useRebateInfo: {point: 0},
                 custom_form_format: data.custom_form_format,
                 custom_form_data: data.custom_form_data,
                 custom_receipt_form: data.custom_receipt_form,
@@ -1584,6 +1629,7 @@ export class Shopping {
                                 Object.assign(b, {
                                     specs: pd.specs,
                                     language_data: pd.language_data,
+                                    product_category:pd.product_category,
                                     preview_image: variant.preview_image || pd.preview_image[0],
                                     title: pd.title,
                                     sale_price: variant.sale_price,
@@ -1593,7 +1639,7 @@ export class Shopping {
                                     show_understocking: variant.show_understocking,
                                     stockList: variant.stockList,
                                     weight: parseInt(variant.weight || '0', 10),
-                                    designated_logistics: pd.designated_logistics ?? { type: 'all', list: [] },
+                                    designated_logistics: pd.designated_logistics ?? {type: 'all', list: []},
                                 });
 
                                 // Calculate shipment object
@@ -1639,7 +1685,7 @@ export class Shopping {
                                             await this.updateExhibitionActiveStock(data.pos_store, variant.variant_id, b.count);
                                         }
                                     } else {
-                                        variant.deduction_log = { [data.pos_store!!]: b.count };
+                                        variant.deduction_log = {[data.pos_store!!]: b.count};
                                         variant.stockList[data.pos_store!!].count -= b.count;
                                         b.deduction_log = variant.deduction_log;
                                     }
@@ -1656,18 +1702,42 @@ export class Shopping {
                                             if (pd.shopee_id) {
                                                 await new Shopee(this.app, this.token).asyncStockToShopee({
                                                     product: pdDqlData,
-                                                    callback: () => {},
+                                                    callback: () => {
+                                                    },
                                                 });
                                             }
-                                            await this.updateVariantsWithSpec(variant, b.id, b.spec);
+                                            if(pd.product_category === 'kitchen'){
+                                                 //如果是餐廳的話扣庫存的方式不太相同
+                                                variant.spec.map((d1: any, index: number) => {
+                                                    const count_s=`${pd.specs[index].option.find((d2: any) => {
+                                                        return d2.title === d1
+                                                    }).stock ?? ''}`
+                                                    if (count_s) {
+                                                        pd.specs[index].option.find((d2: any) => {
+                                                            return d2.title === d1
+                                                        }).stock=parseInt(count_s,10) -  b.count
+                                                    }
+                                                })
+                                                const store_config = await userClass.getConfigV2({
+                                                    key: 'store_manager',
+                                                    user_id: 'manager',
+                                                });
+                                                b.deduction_log = {};
+                                                b.deduction_log[store_config.list[0].id] = b.count;
+                                                console.log(`b.deduction_log==>`,b.deduction_log)
+                                            }else{
+                                                await this.updateVariantsWithSpec(variant, b.id, b.spec);
+                                            }
+
                                             // Update information in the database
                                             await db.query(
                                                 `UPDATE \`${this.app}\`.\`t_manager_post\`
                                                  SET ?
                                                  WHERE id = ${pdDqlData.id}
                                                 `,
-                                                [{ content: JSON.stringify(pd) }]
+                                                [{content: JSON.stringify(pd)}]
                                             );
+
                                             resolve(true);
                                         } catch (error) {
                                             reject(error);
@@ -1728,7 +1798,7 @@ export class Shopping {
             carData.voucherList = [];
 
             if (userData && userData.account) {
-                const data = await rebateClass.getOneRebate({ user_id: userData.userID });
+                const data = await rebateClass.getOneRebate({user_id: userData.userID});
                 carData.user_rebate_sum = data?.point || 0;
             }
 
@@ -1780,7 +1850,8 @@ export class Shopping {
                             //把加購品加回去
                             carData.lineItems.push(dd);
                         }
-                    } catch (e) {}
+                    } catch (e) {
+                    }
                 });
                 // 再次更新優惠內容
                 await this.checkVoucher(carData);
@@ -1820,7 +1891,7 @@ export class Shopping {
                                     channel: data.checkOutType === 'POS' ? (data.isExhibition ? 'exhibition' : 'pos') : undefined,
                                     whereStore: data.checkOutType === 'POS' ? data.pos_store : undefined,
                                 })
-                            ).data ?? { content: {} }
+                            ).data ?? {content: {}}
                         ).content;
                         pdDqlData.voucher_id = dd.id;
                         (dd.add_on_products as any)[index] = pdDqlData;
@@ -1930,7 +2001,7 @@ export class Shopping {
             });
 
             // ================================ Preview UP ================================
-            if (type === 'preview' || type === 'manual-preview') return { data: carData };
+            if (type === 'preview' || type === 'manual-preview') return {data: carData};
             // ================================ Add DOWN ================================
             console.log(`checkout-time-12=>`, new Date().getTime() - check_time);
 
@@ -2056,7 +2127,7 @@ export class Shopping {
                 );
                 //通知付款
                 await new Shopping(this.app).releaseCheckout((data.pay_status as any) ?? 0, carData.orderID);
-                return { result: 'SUCCESS', message: 'POS訂單新增成功', data: carData };
+                return {result: 'SUCCESS', message: 'POS訂單新增成功', data: carData};
             } else {
                 if (userData && userData.userID) {
                     await rebateClass.insertRebate(userData.userID, carData.use_rebate * -1, '使用折抵', {
@@ -2388,7 +2459,7 @@ export class Shopping {
                      SET ?
                      WHERE id = ?
                     `,
-                    [{ status: data.status, orderData: JSON.stringify(data.orderData) }, data.id]
+                    [{status: data.status, orderData: JSON.stringify(data.orderData)}, data.id]
                 );
                 return {
                     result: 'success',
@@ -2415,8 +2486,8 @@ export class Shopping {
                 const placeholders = cartTokens.map(() => '?').join(',');
                 const orders: Order[] = await db.query(
                     `SELECT *
-                                                        FROM \`${this.app}\`.t_checkout
-                                                        WHERE cart_token IN (${placeholders});`,
+                     FROM \`${this.app}\`.t_checkout
+                     WHERE cart_token IN (${placeholders});`,
                     cartTokens
                 );
 
@@ -2492,7 +2563,7 @@ export class Shopping {
         condition?: number;
     }> {
         try {
-            const getRS = await new User(this.app).getConfig({ key: 'rebate_setting', user_id: 'manager' });
+            const getRS = await new User(this.app).getConfig({key: 'rebate_setting', user_id: 'manager'});
             if (getRS[0] && getRS[0].value) {
                 const configData = getRS[0].value.config;
                 if (configData.condition.type === 'total_price' && configData.condition.value > total) {
@@ -2553,16 +2624,15 @@ export class Shopping {
                         return true;
                 }
             });
-        
+
             return filterItems.sort((a, b) => (caseOffStart === 'price_desc' ? b.sale_price - a.sale_price : a.sale_price - b.sale_price));
         }
-        
+
 
         // 確認用戶資訊
         const userClass = new User(this.app);
 
         const userData = (await userClass.getUserData(cart.email, 'email_or_phone')) ?? { userID: -1 };
-
         // 取得所有可使用優惠券
         const allVoucher = await this.getAllUseVoucher(userData.userID);
 
@@ -2841,7 +2911,7 @@ export class Shopping {
             if (data.orderData) {
                 update.orderData = JSON.stringify(data.orderData);
             }
-            const store_config = await new User(this.app).getConfigV2({ key: 'store_manager', user_id: 'manager' });
+            const store_config = await new User(this.app).getConfigV2({key: 'store_manager', user_id: 'manager'});
             const origin = await db.query(
                 `SELECT *
                  FROM \`${this.app}\`.t_checkout
@@ -2862,7 +2932,7 @@ export class Shopping {
                         lineItem.deduction_log = lineItem.deduction_log || {};
                         if (Object.keys(lineItem.deduction_log).length === 0) {
                             //將舊版回填migrate成新版本
-                            lineItem.deduction_log[store_config.list[0].id] = { count: lineItem.count };
+                            lineItem.deduction_log[store_config.list[0].id] = {count: lineItem.count};
                         }
                     }
                 }
@@ -2879,10 +2949,16 @@ export class Shopping {
                 if (origin[0].orderData.orderStatus !== '-1' && data.orderData.orderStatus === '-1') {
                     for (const lineItem of origin[0].orderData.lineItems) {
                         //回填所有庫存點數量
-                        for (const b of Object.keys(lineItem.deduction_log)) {
-                            await new Shopping(this.app, this.token).calcVariantsStock(lineItem.deduction_log[b] || 0, b, lineItem.id, lineItem.spec);
+                        if(lineItem.product_category==='kitchen'){
+                            await new Shopping(this.app, this.token).calcVariantsStock(lineItem.count, '', lineItem.id, lineItem.spec);
+                        }else {
+                            for (const b of Object.keys(lineItem.deduction_log)) {
+                                await new Shopping(this.app, this.token).calcVariantsStock(lineItem.deduction_log[b] || 0, b, lineItem.id, lineItem.spec);
+                            }
                         }
+
                     }
+
                     await AutoSendEmail.customerOrder(this.app, 'auto-email-order-cancel-success', data.orderData.orderID, data.orderData.email, data.orderData.language);
                 }
 
@@ -2916,11 +2992,16 @@ export class Shopping {
                             const og_line_items = origin[0].orderData.lineItems.find((dd: any) => {
                                 return dd.id === new_line_item.id && dd.spec.join('') === new_line_item.spec.join('');
                             });
-                            for (const key of Object.keys(new_line_item.deduction_log)) {
-                                const u_: number = new_line_item.deduction_log[key];
-                                const o_: number = og_line_items.deduction_log[key];
-                                await new Shopping(this.app, this.token).calcVariantsStock((u_ - o_) * -1, key, new_line_item.id, new_line_item.spec);
+                            if(new_line_item.product_category==='kitchen'){
+                                await new Shopping(this.app, this.token).calcVariantsStock(new_line_item.count, '', new_line_item.id, new_line_item.spec);
+                            }else {
+                                for (const key of Object.keys(new_line_item.deduction_log)) {
+                                    const u_: number = new_line_item.deduction_log[key];
+                                    const o_: number = og_line_items.deduction_log[key];
+                                    await new Shopping(this.app, this.token).calcVariantsStock((u_ - o_) * -1, key, new_line_item.id, new_line_item.spec);
+                                }
                             }
+
                         }
                     }
                 }
@@ -2952,7 +3033,8 @@ export class Shopping {
                             console.log(`sync-pd.data`, pd.data.content.variants);
                             await new Shopee(this.app, this.token).asyncStockToShopee({
                                 product: pd.data,
-                                callback: () => {},
+                                callback: () => {
+                                },
                             });
                         }
                         resolve(true);
@@ -2980,7 +3062,7 @@ export class Shopping {
             );
 
             if (orderList.length !== 1) {
-                return { data: false };
+                return {data: false};
             }
 
             const origin = orderList[0];
@@ -2992,7 +3074,7 @@ export class Shopping {
 
             if (proofPurchase && paymentStatus && progressStatus && orderStatus) {
                 orderData.orderStatus = '-1';
-                const record = { time: this.formatDateString(), record: '顧客手動取消訂單' };
+                const record = {time: this.formatDateString(), record: '顧客手動取消訂單'};
                 if (orderData.editRecord) {
                     orderData.editRecord.push(record);
                 } else {
@@ -3007,7 +3089,7 @@ export class Shopping {
                 [JSON.stringify(orderData), order_id]
             );
 
-            return { data: true };
+            return {data: true};
         } catch (e) {
             throw exception.BadRequestError('BAD_REQUEST', 'cancelOrder Error:' + e, null);
         }
@@ -3042,7 +3124,7 @@ export class Shopping {
             orderData.proof_purchase = text;
 
             // 訂單待核款信件通知
-            new ManagerNotify(this.app).uploadProof({ orderData: orderData });
+            new ManagerNotify(this.app).uploadProof({orderData: orderData});
             await AutoSendEmail.customerOrder(this.app, 'proof-purchase', order_id, orderData.email, orderData.language);
 
             if (orderData.customer_info.phone) {
@@ -3329,7 +3411,7 @@ OR JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.orderStatus')) NOT IN (-99)) `);
                 )[0];
 
                 const brandAndMemberType = await App.checkBrandAndMemberType(this.app);
-                const store_info = await new User(this.app).getConfigV2({ key: 'store-information', user_id: 'manager' });
+                const store_info = await new User(this.app).getConfigV2({key: 'store-information', user_id: 'manager'});
                 for (const b of order_data['orderData'].lineItems) {
                     // 更改為已付款
                     this.calcSoldOutStock(b.count, b.id, b.spec);
@@ -3405,7 +3487,7 @@ OR JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.orderStatus')) NOT IN (-99)) `);
                 }
 
                 try {
-                    await new CustomCode(this.app).checkOutHook({ userData, cartData });
+                    await new CustomCode(this.app).checkOutHook({userData, cartData});
                 } catch (e) {
                     console.error(e);
                 }
@@ -3519,16 +3601,19 @@ OR JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.orderStatus')) NOT IN (-99)) `);
             }
 
             const originVariants = await db.query(
-                `SELECT id, product_id, content->>'$.spec' as spec 
-                 FROM \`${this.app}\`.t_variants 
+                `SELECT id, product_id, content ->>'$.spec' as spec
+                 FROM \`${this.app}\`.t_variants
                  WHERE product_id = ?`,
                 [content.id]
             );
 
-            await db.query(`DELETE FROM \`${this.app}\`.t_variants WHERE product_id = ? AND id > 0`, [content.id]);
+            await db.query(`DELETE
+                            FROM \`${this.app}\`.t_variants
+                            WHERE product_id = ?
+                              AND id > 0`, [content.id]);
 
             const _user = new User(this.app);
-            const storeConfig = await _user.getConfigV2({ key: 'store_manager', user_id: 'manager' });
+            const storeConfig = await _user.getConfigV2({key: 'store_manager', user_id: 'manager'});
 
             const sourceMap: Record<string, string> = {};
             const insertPromises = content.variants.map(async (variant: any) => {
@@ -3544,10 +3629,14 @@ OR JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.orderStatus')) NOT IN (-99)) `);
                     variant.stock = 0;
                     variant.stockList = {};
                 } else if (Object.keys(variant.stockList).length === 0) {
-                    variant.stockList[storeConfig.list[0].id] = { count: variant.stock };
+                    variant.stockList[storeConfig.list[0].id] = {count: variant.stock};
                 }
 
-                const insertData = await db.query(`INSERT INTO \`${this.app}\`.t_variants SET ?`, [{ content: JSON.stringify(variant), product_id: content.id }]);
+                const insertData = await db.query(`INSERT INTO \`${this.app}\`.t_variants
+                                                   SET ?`, [{
+                    content: JSON.stringify(variant),
+                    product_id: content.id
+                }]);
 
                 const originalVariant = originVariants.find((item: any) => JSON.parse(item.spec).join(',') === variant.spec.join(','));
 
@@ -3560,8 +3649,8 @@ OR JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.orderStatus')) NOT IN (-99)) `);
 
             await Promise.all(insertPromises);
 
-            const exhibitionConfig = await _user.getConfigV2({ key: 'exhibition_manager', user_id: 'manager' });
-            exhibitionConfig.list=exhibitionConfig.list ?? []
+            const exhibitionConfig = await _user.getConfigV2({key: 'exhibition_manager', user_id: 'manager'});
+            exhibitionConfig.list = exhibitionConfig.list ?? []
             exhibitionConfig.list.forEach((exhibition: any) => {
                 exhibition.dataList.forEach((item: any) => {
                     if (sourceMap[item.variantID]) {
@@ -3576,7 +3665,9 @@ OR JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.orderStatus')) NOT IN (-99)) `);
                 value: exhibitionConfig,
             });
 
-            await db.query(`UPDATE \`${this.app}\`.t_manager_post SET ? WHERE id = ?`, [{ content: JSON.stringify(content) }, content.id]);
+            await db.query(`UPDATE \`${this.app}\`.t_manager_post
+                            SET ?
+                            WHERE id = ?`, [{content: JSON.stringify(content)}, content.id]);
         } catch (error) {
             console.error(error)
             throw exception.BadRequestError('BAD_REQUEST', 'postVariantsAndPriceValue Error: ' + error, null);
@@ -3587,10 +3678,10 @@ OR JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.orderStatus')) NOT IN (-99)) `);
         const sql =
             spec.length > 0
                 ? `AND JSON_CONTAINS(content->'$.spec', JSON_ARRAY(${spec
-                      .map((data: string) => {
-                          return `\"${data}\"`;
-                      })
-                      .join(',')}));`
+                    .map((data: string) => {
+                        return `\"${data}\"`;
+                    })
+                    .join(',')}));`
                 : '';
 
         try {
@@ -3621,21 +3712,38 @@ OR JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.orderStatus')) NOT IN (-99)) `);
                     limit: 10,
                 })
             ).data.content;
-            const store_config = await new User(this.app).getConfigV2({ key: 'store_manager', user_id: 'manager' });
             const variant_s: any = pd_data.variants.find((dd: any) => {
                 return dd.spec.join('-') === spec.join('-');
             });
-            if (Object.keys(variant_s.stockList).length === 0) {
-                //適應舊版庫存更新
-                variant_s.stockList[store_config.list[0].id] = { count: variant_s.stock };
-            }
-            if (variant_s.stockList[stock_id]) {
-                variant_s.stockList[stock_id].count = variant_s.stockList[stock_id].count || 0;
-                variant_s.stockList[stock_id].count = variant_s.stockList[stock_id].count + calc;
-                if (variant_s.stockList[stock_id].count < 0) {
-                    variant_s.stockList[stock_id].count = 0;
+            //如果是餐飲組合扣除庫存方式不同
+            if(pd_data.product_category==='kitchen'){
+                variant_s.spec.map((d1: any, index: number) => {
+                    const count_s=`${pd_data.specs[index].option.find((d2: any) => {
+                        return d2.title === d1
+                    }).stock ?? ''}`
+                    if (count_s) {
+                        pd_data.specs[index].option.find((d2: any) => {
+                            return d2.title === d1
+                        }).stock=parseInt(count_s,10) +  calc
+                    }
+
+                })
+
+            }else{
+                const store_config = await new User(this.app).getConfigV2({key: 'store_manager', user_id: 'manager'});
+                if (Object.keys(variant_s.stockList).length === 0) {
+                    //適應舊版庫存更新
+                    variant_s.stockList[store_config.list[0].id] = {count: variant_s.stock};
+                }
+                if (variant_s.stockList[stock_id]) {
+                    variant_s.stockList[stock_id].count = variant_s.stockList[stock_id].count || 0;
+                    variant_s.stockList[stock_id].count = variant_s.stockList[stock_id].count + calc;
+                    if (variant_s.stockList[stock_id].count < 0) {
+                        variant_s.stockList[stock_id].count = 0;
+                    }
                 }
             }
+
             await this.postVariantsAndPriceValue(pd_data);
         } catch (e) {
             console.error('error -- can not find variants', e);
@@ -3691,7 +3799,8 @@ OR JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.orderStatus')) NOT IN (-99)) `);
                     .replace(/@\{\{地址\}\}/g, order_data.user_info.address ?? '')
                     .replace(/@\{\{信箱\}\}/g, order_data.user_info.email ?? '');
 
-                sendmail(`${json.shop_name} <${process.env.smtp}>`, order_data.user_info.email, `${pd_data.title} 購買通知信`, notice, () => {});
+                sendmail(`${json.shop_name} <${process.env.smtp}>`, order_data.user_info.email, `${pd_data.title} 購買通知信`, notice, () => {
+                });
             }
         } catch (e) {
             console.error('soldMailNotice error', e);
@@ -3842,7 +3951,7 @@ OR JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.orderStatus')) NOT IN (-99)) `);
                         const sub = config.value[parentIndex].array.find((item: { title: string }) => {
                             return item.title === col;
                         });
-                        return { array: [], title: col, code: sub ? sub.code : '' };
+                        return {array: [], title: col, code: sub ? sub.code : ''};
                     }),
                 };
             } else {
@@ -3955,7 +4064,7 @@ OR JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.orderStatus')) NOT IN (-99)) `);
                                     WHERE \`key\` = 'collection';`;
             await db.execute(update_col_sql, [config.value]);
 
-            return { result: true };
+            return {result: true};
         } catch (e) {
             console.error(e);
             throw exception.BadRequestError('BAD_REQUEST', 'putCollection Error:' + e, null);
@@ -3986,9 +4095,11 @@ OR JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.orderStatus')) NOT IN (-99)) `);
 
                     const sortList = data.map((item) => {
                         if (index > -1) {
-                            return config.value[index].array.find((conf: { title: string }) => conf.title === item.title);
+                            return config.value[index].array.find((conf: {
+                                title: string
+                            }) => conf.title === item.title);
                         }
-                        return { title: '', array: [], code: '' };
+                        return {title: '', array: [], code: ''};
                     });
 
                     config.value[index].array = sortList;
@@ -4113,7 +4224,7 @@ OR JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.orderStatus')) NOT IN (-99)) `);
             const title = levels[0];
             let node = nodes.find((n) => n.title === title);
             if (!node) {
-                node = { title, array: [] };
+                node = {title, array: []};
                 nodes.push(node);
             }
             if (levels.length > 1) {
@@ -4195,15 +4306,15 @@ OR JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.orderStatus')) NOT IN (-99)) `);
             );
 
             let max_id =
-                ( (
+                ((
                     await db.query(
                         `select max(id)
                          from \`${this.app}\`.t_manager_post`,
                         []
                     )
-                )[0]['max(id)'] || 0) +1;
-            console.log(`max_id==>`,max_id)
-            console.log(`productArrayOG==>`,productArray)
+                )[0]['max(id)'] || 0) + 1;
+            console.log(`max_id==>`, max_id)
+            console.log(`productArrayOG==>`, productArray)
             productArray.map((product: any) => {
                 if (!product.id) {
                     product.id = max_id++;
@@ -4212,7 +4323,7 @@ OR JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.orderStatus')) NOT IN (-99)) `);
                 this.checkVariantDataType(product.variants);
                 return [product.id || null, this.token?.userID, JSON.stringify(product)];
             });
-            console.log(`productArray==>`,productArray)
+            console.log(`productArray==>`, productArray)
 
 
             const data = await db.query(
@@ -4286,7 +4397,7 @@ OR JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.orderStatus')) NOT IN (-99)) `);
             if (content.shopee_id) {
                 await new Shopee(this.app, this.token).asyncStockToShopee({
                     product: {
-                        content:content
+                        content: content
                     },
                     callback: () => {
                     }
@@ -4318,17 +4429,19 @@ OR JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.orderStatus')) NOT IN (-99)) `);
                 if (parentTitles.length > 0) {
                     // data 為子層
                     const parentIndex = config.value.findIndex((col: { title: string }) => col.title === parentTitles);
-                    const childrenIndex = config.value[parentIndex].array.findIndex((col: { title: string }) => col.title === data.title);
+                    const childrenIndex = config.value[parentIndex].array.findIndex((col: {
+                        title: string
+                    }) => col.title === data.title);
                     const n = deleteList.findIndex((obj) => obj.parent === parentIndex);
                     if (n === -1) {
-                        deleteList.push({ parent: parentIndex, child: [childrenIndex] });
+                        deleteList.push({parent: parentIndex, child: [childrenIndex]});
                     } else {
                         deleteList[n].child.push(childrenIndex);
                     }
                 } else {
                     // data 為父層
                     const parentIndex = config.value.findIndex((col: { title: string }) => col.title === data.title);
-                    deleteList.push({ parent: parentIndex, child: [-1] });
+                    deleteList.push({parent: parentIndex, child: [-1]});
                 }
             });
 
@@ -4362,7 +4475,7 @@ OR JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.orderStatus')) NOT IN (-99)) `);
                                     WHERE \`key\` = 'collection';`;
             await db.execute(update_col_sql, [config.value]);
 
-            return { result: true };
+            return {result: true};
         } catch (e) {
             throw exception.BadRequestError('BAD_REQUEST', 'getCollectionProducts Error:' + e, null);
         }
@@ -4388,7 +4501,7 @@ OR JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.orderStatus')) NOT IN (-99)) `);
                     await this.updateProductCollection(product.content, product.id);
                 }
             }
-            return { result: true };
+            return {result: true};
         } catch (error) {
             throw exception.BadRequestError('BAD_REQUEST', 'deleteCollectionProduct Error:' + e, null);
         }
@@ -4435,7 +4548,7 @@ OR JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.orderStatus')) NOT IN (-99)) `);
 
     async getProductVariants(id_list: string) {
         try {
-            const data = await this.querySqlByVariants([`(v.id in (${id_list}))`], { page: 0, limit: 999 });
+            const data = await this.querySqlByVariants([`(v.id in (${id_list}))`], {page: 0, limit: 999});
             return data;
         } catch (error) {
             throw exception.BadRequestError('BAD_REQUEST', 'getProductVariants Error:' + e, null);
@@ -4474,14 +4587,14 @@ OR JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.orderStatus')) NOT IN (-99)) `);
             query.id && querySql.push(`(v.id = ${query.id})`);
             query.id_list && querySql.push(`(v.id in (${query.id_list}))`);
             query.collection &&
-                querySql.push(
-                    `(${query.collection
-                        .split(',')
-                        .map((dd) => {
-                            return query.accurate_search_collection ? `(JSON_CONTAINS(p.content->'$.collection', '"${dd}"'))` : `(JSON_EXTRACT(p.content, '$.collection') LIKE '%${dd}%')`;
-                        })
-                        .join(' or ')})`
-                );
+            querySql.push(
+                `(${query.collection
+                    .split(',')
+                    .map((dd) => {
+                        return query.accurate_search_collection ? `(JSON_CONTAINS(p.content->'$.collection', '"${dd}"'))` : `(JSON_EXTRACT(p.content, '$.collection') LIKE '%${dd}%')`;
+                    })
+                    .join(' or ')})`
+            );
             query.status && querySql.push(`(JSON_EXTRACT(p.content, '$.status') = '${query.status}')`);
             query.min_price && querySql.push(`(v.content->>'$.sale_price' >= ${query.min_price})`);
             query.max_price && querySql.push(`(v.content->>'$.sale_price' <= ${query.min_price})`);
@@ -4573,7 +4686,7 @@ OR JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.orderStatus')) NOT IN (-99)) `);
                                 if (!shopee_dd) {
                                     shopee_dd = {
                                         id: content.shopee_id,
-                                        data: await new Shopee(this.app, this.token).getProductDetail(content.shopee_id, { skip_image_load: true }),
+                                        data: await new Shopee(this.app, this.token).getProductDetail(content.shopee_id, {skip_image_load: true}),
                                     };
                                     shopee_data_list.push(shopee_dd);
                                 }
@@ -4586,7 +4699,7 @@ OR JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.orderStatus')) NOT IN (-99)) `);
                                     if (shopee_variants) {
                                         variant.stock = shopee_variants.stock;
                                         variant.stockList = {};
-                                        variant.stockList[store_config.list[0].id] = { count: variant.stock };
+                                        variant.stockList[store_config.list[0].id] = {count: variant.stock};
                                     }
                                     const p_ind = product.variants.findIndex((dd: any) => {
                                         return dd.spec.join('') === variant.spec.join('');
@@ -4649,13 +4762,13 @@ OR JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.orderStatus')) NOT IN (-99)) `);
                     `UPDATE \`${this.app}\`.t_variants
                      SET ?
                      WHERE id = ?`,
-                    [{ content: JSON.stringify(data.variant_content) }, data.id]
+                    [{content: JSON.stringify(data.variant_content)}, data.id]
                 );
                 await db.query(
                     `UPDATE \`${this.app}\`.t_manager_post
                      SET ?
                      WHERE id = ?`,
-                    [{ content: JSON.stringify(data.product_content) }, data.product_id]
+                    [{content: JSON.stringify(data.product_content)}, data.product_id]
                 );
             }
             return {
@@ -4709,11 +4822,19 @@ OR JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.orderStatus')) NOT IN (-99)) `);
             `UPDATE \`${this.app}\`.t_invoice_memory
              SET ?
              WHERE invoice_no = ?`,
-            [{ status: 2, invoice_data: JSON.stringify(dbData.invoice_data) }, obj.invoice_no]
+            [{status: 2, invoice_data: JSON.stringify(dbData.invoice_data)}, obj.invoice_no]
         );
     }
 
-    async allowanceInvoice(obj: { invoiceID: string; allowanceData: any; orderID: string; orderData: any; allowanceInvoiceTotalAmount: string; itemList: any; invoiceDate: string }) {
+    async allowanceInvoice(obj: {
+        invoiceID: string;
+        allowanceData: any;
+        orderID: string;
+        orderData: any;
+        allowanceInvoiceTotalAmount: string;
+        itemList: any;
+        invoiceDate: string
+    }) {
         const config = await app.getAdConfig(this.app, 'invoice_setting');
         let invoiceData = await db.query(
             `
@@ -4806,7 +4927,7 @@ OR JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.orderStatus')) NOT IN (-99)) `);
                 throw new Error('User not authenticated.');
             }
 
-            const { product_id, rate, title, comment } = data;
+            const {product_id, rate, title, comment} = data;
             const today = new Date().toISOString().split('T')[0]; // 直接使用 ISO 格式 (yyyy-mm-dd)
 
             const userClass = new User(this.app);
@@ -4870,7 +4991,7 @@ OR JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.orderStatus')) NOT IN (-99)) `);
                 throw new Error(`Product with ID ${product_id} not found.`);
             }
 
-            return { product_id, avg_rate };
+            return {product_id, avg_rate};
         } catch (error) {
             console.error(`Error updating average rate for product ID ${product_id}:`, error);
             throw exception.BadRequestError('BAD_REQUEST', `updateProductAvgRate Error: ${error}`, null);

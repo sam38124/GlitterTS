@@ -59,11 +59,7 @@ class Schedule {
     }
     async autoCancelOrder(sec) {
         try {
-            console.log('===== TEST autoCancelOrder ======');
             for (const app of Schedule.app) {
-                if (app !== 't_1725992531001') {
-                    continue;
-                }
                 if (await this.perload(app)) {
                     const config = await new user_1.User(app).getConfigV2({ key: 'login_config', user_id: 'manager' });
                     if ((config === null || config === void 0 ? void 0 : config.auto_cancel_order_timer) && config.auto_cancel_order_timer > 0) {
@@ -77,11 +73,14 @@ class Schedule {
                                     AND (orderData->>'$.customer_info.payment_select' <> 'cash_on_delivery')
                                 ORDER BY id DESC;`, []);
                         await Promise.all(orders.map(async (order) => {
-                            console.log([app, config.auto_cancel_order_timer, order.cart_token]);
                             order.orderData.orderStatus = '-1';
                             order.orderData.archived = 'true';
-                            return database_1.default.query(`UPDATE \`${app}\`.t_checkout SET orderData = ? WHERE cart_token = ?
-                                    `, [JSON.stringify(order.orderData), order.cart_token]);
+                            console.log(order.token);
+                            return new shopping_1.Shopping(app).putOrder({
+                                id: order.id,
+                                orderData: order.orderData,
+                                status: '0'
+                            });
                         }));
                     }
                 }
@@ -305,7 +304,16 @@ class Schedule {
     }
     main() {
         const scheduleList = [
-            { second: 5, status: true, func: 'autoCancelOrder', desc: '自動取消未付款未出貨訂單' },
+            { second: 10, status: false, func: 'example', desc: '排程啟用範例' },
+            { second: 3600, status: true, func: 'birthRebate', desc: '生日禮發放購物金' },
+            { second: 3600, status: true, func: 'birthBlessMail', desc: '生日祝福信件' },
+            { second: 600, status: true, func: 'renewMemberLevel', desc: '更新會員分級' },
+            { second: 30, status: true, func: 'resetVoucherHistory', desc: '未付款歷史優惠券重設' },
+            { second: 30, status: true, func: 'autoSendMail', desc: '自動排程寄送信件' },
+            { second: 30, status: true, func: 'autoSendLine', desc: '自動排程寄送line訊息' },
+            { second: 3600 * 24, status: true, func: 'currenciesUpdate', desc: '多國貨幣的更新排程' },
+            { second: 3600 * 24, status: false, func: 'initialSampleApp', desc: '重新刷新示範商店' },
+            { second: 30, status: true, func: 'autoCancelOrder', desc: '自動取消未付款未出貨訂單' },
         ];
         try {
             scheduleList.forEach((schedule) => {

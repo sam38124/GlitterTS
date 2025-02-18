@@ -3,7 +3,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.sendMessage = void 0;
+exports.sendMessage = sendMessage;
 const firebase_admin_1 = __importDefault(require("firebase-admin"));
 function sendMessage(key, message, appName) {
     var _a;
@@ -19,5 +19,4 @@ function sendMessage(key, message, appName) {
         console.error('發送推播時發生錯誤：', error);
     });
 }
-exports.sendMessage = sendMessage;
 //# sourceMappingURL=message.js.map
