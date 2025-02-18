@@ -35,6 +35,7 @@ export class MemberSetting {
             return {
                 bind: vm.id,
                 view: () => {
+                    var _a;
                     if (vm.loading) {
                         return ``;
                     }
@@ -62,7 +63,7 @@ export class MemberSetting {
                                                                 <input
                                                                         class="form-check-input"
                                                                         type="checkbox"
-                                                                        onchange="${gvc.event((e, event) => {
+                                                                        onchange="${gvc.event(() => {
                                 vm.data.login_in_to_order = !vm.data.login_in_to_order;
                                 saveEvent();
                                 gvc.notifyDataChange(vm.id);
@@ -73,6 +74,56 @@ export class MemberSetting {
                                                             <div class="flex-fill"></div>
                                                         </div>`,
                         ].join('')),
+                        BgWidget.mainCard([
+                            html `
+                                                    <div class="tx_normal fw-bolder mt-2 d-flex flex-column"
+                                                         style="margin-bottom: 12px;">顧客手動取消訂單
+                                                        <span class="" style="color:#8D8D8D;font-size: 12px;">顧客可自行取消自己未付款未出貨的訂單</span>
+                                                    </div>`,
+                            html `
+                                                    <div class="d-flex align-items-center w-100"
+                                                         style="gap:4px;margin-bottom: 12px;">
+                                                        <div class="tx_normal ms-2">
+                                                            ${vm.data.customer_cancel_order ? `開啟` : `關閉`}
+                                                        </div>
+                                                        <div class="cursor_pointer form-check form-switch m-0">
+                                                            <input
+                                                                    class="form-check-input"
+                                                                    type="checkbox"
+                                                                    onchange="${gvc.event(() => {
+                                vm.data.customer_cancel_order = !vm.data.customer_cancel_order;
+                                saveEvent();
+                                gvc.notifyDataChange(vm.id);
+                            })}"
+                                                                    ${vm.data.customer_cancel_order ? `checked` : ``}
+                                                            />
+                                                        </div>
+                                                        <div class="flex-fill"></div>
+                                                    </div>`,
+                        ].join('')),
+                        BgWidget.mainCard([
+                            html `
+                                                    <div class="tx_normal fw-bolder mt-2 d-flex flex-column"
+                                                         style="margin-bottom: 12px;">系統自動取消訂單
+                                                        <span class="" style="color:#8D8D8D;font-size: 12px;">若顧客在指定時間內未付款，系統會自動取消訂單，輸入 0 則永不取消訂單</span>
+                                                    </div>`,
+                            html `
+                                                    <div class="d-flex align-items-center w-100" style="gap:4px;margin-bottom: 12px;">
+                                                        ${BgWidget.editeInput({
+                                gvc: gvc,
+                                title: '',
+                                default: `${(_a = vm.data.auto_cancel_order_timer) !== null && _a !== void 0 ? _a : 0}`,
+                                endText: '小時',
+                                placeHolder: `請輸入自動取消訂單時效`,
+                                callback: (text) => {
+                                    const n = Number.parseInt(text, 10);
+                                    vm.data.auto_cancel_order_timer = isNaN(n) || n < 0 ? 0 : n;
+                                    saveEvent();
+                                    gvc.notifyDataChange(vm.id);
+                                },
+                            })}
+                                                    </div>`,
+                        ].join('')),
                         ...(() => {
                             const form = BgWidget.customForm(gvc, [
                                 {
@@ -82,9 +133,7 @@ export class MemberSetting {
                                                              style="margin-bottom: 12px;">
                                                             顧客資訊表單
                                                             <span class="" style="color:#8D8D8D;font-size: 12px;">於結帳頁面中設定顧客必須填寫的顧客資訊表單</span>
-                                                        </div>
-
-                                                    `
+                                                        </div>`
                                 },
                                 {
                                     key: 'custom_form_checkout_recipient',

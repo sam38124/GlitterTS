@@ -7,6 +7,7 @@ exports.Schedule = void 0;
 const moment_1 = __importDefault(require("moment"));
 const database_1 = __importDefault(require("../../modules/database"));
 const exception_1 = __importDefault(require("../../modules/exception"));
+const axios_1 = __importDefault(require("axios"));
 const rebate_1 = require("./rebate");
 const user_1 = require("./user");
 const shopping_1 = require("./shopping");
@@ -15,7 +16,6 @@ const auto_send_email_js_1 = require("./auto-send-email.js");
 const config_1 = require("../../config");
 const initial_fake_data_js_1 = require("./initial-fake-data.js");
 const line_message_1 = require("./line-message");
-const axios_1 = __importDefault(require("axios"));
 class Schedule {
     async perload(app) {
         if (!(await this.isDatabasePass(app)))
@@ -45,6 +45,53 @@ class Schedule {
     async isTableExists(table, app) {
         return (await database_1.default.query(`SHOW TABLES IN \`${app}\` LIKE \'${table}\';`, [])).length > 0;
     }
+    async example(sec) {
+        try {
+            for (const app of Schedule.app) {
+                if (await this.perload(app)) {
+                }
+            }
+        }
+        catch (e) {
+            throw exception_1.default.BadRequestError('BAD_REQUEST', 'Example Error: ' + e, null);
+        }
+        setTimeout(() => this.example(sec), sec * 1000);
+    }
+    async autoCancelOrder(sec) {
+        try {
+            console.log('===== TEST autoCancelOrder ======');
+            for (const app of Schedule.app) {
+                if (app !== 't_1725992531001') {
+                    continue;
+                }
+                if (await this.perload(app)) {
+                    const config = await new user_1.User(app).getConfigV2({ key: 'login_config', user_id: 'manager' });
+                    if ((config === null || config === void 0 ? void 0 : config.auto_cancel_order_timer) && config.auto_cancel_order_timer > 0) {
+                        const orders = await database_1.default.query(`SELECT * FROM \`${app}\`.t_checkout
+                                WHERE 
+                                    status = 0 
+                                    AND created_time < NOW() - INTERVAL ${config.auto_cancel_order_timer} HOUR
+                                    AND (orderData->>'$.proof_purchase' IS NULL)
+                                    AND (orderData->>'$.orderStatus' = 0 OR orderData->>'$.orderStatus' IS NULL)
+                                    AND (orderData->>'$.progress' = 'wait' OR orderData->>'$.progress' IS NULL)
+                                    AND (orderData->>'$.customer_info.payment_select' <> 'cash_on_delivery')
+                                ORDER BY id DESC;`, []);
+                        await Promise.all(orders.map(async (order) => {
+                            console.log([app, config.auto_cancel_order_timer, order.cart_token]);
+                            order.orderData.orderStatus = '-1';
+                            order.orderData.archived = 'true';
+                            return database_1.default.query(`UPDATE \`${app}\`.t_checkout SET orderData = ? WHERE cart_token = ?
+                                    `, [JSON.stringify(order.orderData), order.cart_token]);
+                        }));
+                    }
+                }
+            }
+        }
+        catch (e) {
+            throw exception_1.default.BadRequestError('BAD_REQUEST', 'Example Error: ' + e, null);
+        }
+        setTimeout(() => this.autoCancelOrder(sec), sec * 1000);
+    }
     async renewMemberLevel(sec) {
         try {
             for (const app of Schedule.app) {
@@ -60,18 +107,6 @@ class Schedule {
             console.error('BAD_REQUEST', 'renewMemberLevel Error: ' + e, null);
         }
         setTimeout(() => this.renewMemberLevel(sec), sec * 1000);
-    }
-    async example(sec) {
-        try {
-            for (const app of Schedule.app) {
-                if (await this.perload(app)) {
-                }
-            }
-        }
-        catch (e) {
-            throw exception_1.default.BadRequestError('BAD_REQUEST', 'Example Error: ' + e, null);
-        }
-        setTimeout(() => this.example(sec), sec * 1000);
     }
     async birthRebate(sec) {
         for (const app of Schedule.app) {
@@ -215,7 +250,6 @@ class Schedule {
         setTimeout(() => this.autoSendMail(sec), sec * 1000);
     }
     async autoSendLine(sec) {
-        console.log("test");
         for (const app of Schedule.app) {
             try {
                 if (await this.perload(app)) {
@@ -227,8 +261,8 @@ class Schedule {
                         if (email.status === 0) {
                             new line_message_1.LineMessage(app).chunkSendLine(email.userList, {
                                 data: {
-                                    text: email.content
-                                }
+                                    text: email.content,
+                                },
                             }, email.id);
                         }
                     }
@@ -252,19 +286,16 @@ class Schedule {
                 method: 'get',
                 maxBodyLength: Infinity,
                 url: 'https://data.fixer.io/api/latest?access_key=0ced797dd1cc136b22d6cfee7e2d6476',
-                headers: {}
+                headers: {},
             };
-            axios_1.default.request(config)
+            axios_1.default
+                .request(config)
                 .then(async (response) => {
-                console.log(JSON.stringify(response.data));
-                await database_1.default.query(`insert into \`${config_1.saasConfig.SAAS_NAME}\`.currency_config (\`json\`,updated) values (?,?)`, [
-                    JSON.stringify(response.data),
-                    date_index
-                ]);
+                await database_1.default.query(`insert into \`${config_1.saasConfig.SAAS_NAME}\`.currency_config (\`json\`,updated) values (?,?)`, [JSON.stringify(response.data), date_index]);
                 setTimeout(() => this.currenciesUpdate(sec), sec * 1000);
             })
                 .catch((error) => {
-                console.log(error);
+                console.error(error);
                 setTimeout(() => this.currenciesUpdate(sec), sec * 1000);
             });
         }
@@ -274,15 +305,7 @@ class Schedule {
     }
     main() {
         const scheduleList = [
-            { second: 10, status: false, func: 'example', desc: '排程啟用範例' },
-            { second: 3600, status: true, func: 'birthRebate', desc: '生日禮發放購物金' },
-            { second: 3600, status: true, func: 'birthBlessMail', desc: '生日祝福信件' },
-            { second: 600, status: true, func: 'renewMemberLevel', desc: '更新會員分級' },
-            { second: 30, status: true, func: 'resetVoucherHistory', desc: '未付款歷史優惠券重設' },
-            { second: 30, status: true, func: 'autoSendMail', desc: '自動排程寄送信件' },
-            { second: 30, status: true, func: 'autoSendLine', desc: '自動排程寄送line訊息' },
-            { second: 3600 * 24, status: true, func: 'currenciesUpdate', desc: '多國貨幣的更新排程' },
-            { second: 3600 * 24, status: false, func: 'initialSampleApp', desc: '重新刷新示範商店' },
+            { second: 5, status: true, func: 'autoCancelOrder', desc: '自動取消未付款未出貨訂單' },
         ];
         try {
             scheduleList.forEach((schedule) => {

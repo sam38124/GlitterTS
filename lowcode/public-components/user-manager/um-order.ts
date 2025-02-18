@@ -1,5 +1,6 @@
 import { GVC } from '../../glitterBundle/GVController.js';
 import { UmClass } from './um-class.js';
+import { ApiUser } from '../../glitter-base/route/user.js';
 import { ApiShop } from '../../glitter-base/route/shopping.js';
 import { ApiCart } from '../../glitter-base/route/api-cart.js';
 import { Ad } from '../public/ad.js';
@@ -1122,14 +1123,34 @@ export class UMOrder {
                                                 return '';
                                             }
 
-                                            return html` <div
-                                                class="customer-btn ms-3"
-                                                onclick="${gvc.event(() => {
-                                                    UMOrder.cancelOrder(gvc, vm.data.cart_token);
-                                                })}"
-                                            >
-                                                <div class="customer-btn-text">${Language.text('cancel_order')}</div>
-                                            </div>`;
+                                            const id = glitter.getUUID();
+                                            let loading = true;
+                                            let allow = false;
+
+                                            return gvc.bindView({
+                                                bind: id,
+                                                view: () => {
+                                                    return !loading && allow
+                                                        ? html`
+                                                              <div class="customer-btn ms-3" onclick="${gvc.event(() => UMOrder.cancelOrder(gvc, vm.data.cart_token))}">
+                                                                  <div class="customer-btn-text">${Language.text('cancel_order')}</div>
+                                                              </div>
+                                                          `
+                                                        : '';
+                                                },
+                                                divCreate: {
+                                                    elem: 'span',
+                                                },
+                                                onCreate: () => {
+                                                    if (loading) {
+                                                        ApiUser.getPublicConfig('login_config', 'manager').then((data) => {
+                                                            loading = false;
+                                                            allow = Boolean(data.result && data.response?.value?.customer_cancel_order);
+                                                            gvc.notifyDataChange(id);
+                                                        });
+                                                    }
+                                                },
+                                            });
                                         }
 
                                         function gotoCheckout() {

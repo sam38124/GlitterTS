@@ -18,7 +18,7 @@ if (fs_1.default.existsSync(path_1.default.resolve(wangPath))) {
 }
 if (fs_1.default.existsSync(path_1.default.resolve(danielPath))) {
     console.log('使用 Daniel 路徑環境');
-    config_1.ConfigSetting.runSchedule = false;
+    config_1.ConfigSetting.runSchedule = true;
     config_1.ConfigSetting.setConfig(danielPath);
 }
 if (fs_1.default.existsSync(path_1.default.resolve(zackPath))) {

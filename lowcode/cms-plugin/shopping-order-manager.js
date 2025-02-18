@@ -921,31 +921,39 @@ export class ShoppingOrderManager {
                                     }
                                 })(),
                                 ...orderData.orderData.voucherList.map((dd) => {
-                                    if (dd.reBackType === 'add_on_items') {
-                                        return {
+                                    var _a;
+                                    const descHTML = html `<div style="color: #8D8D8D; font-size: 14px; white-space: nowrap; text-overflow: ellipsis;">
+                                                                        ${dd.title}
+                                                                    </div>`;
+                                    const localString = dd.discount_total.toLocaleString();
+                                    const rebackMaps = {
+                                        add_on_items: {
                                             title: '加購優惠',
-                                            description: `<div style="color: #8D8D8D;font-size: 14px;white-space:nowrap;text-overflow:ellipsis;">${dd.title}</div>`,
-                                            total: `--`,
-                                        };
-                                    }
-                                    if (dd.reBackType === 'giveaway') {
-                                        return {
+                                            description: descHTML,
+                                            total: '－',
+                                        },
+                                        giveaway: {
                                             title: '滿額贈送',
-                                            description: `<div style="color: #8D8D8D;font-size: 14px;white-space:nowrap;text-overflow:ellipsis;">${dd.title}</div>`,
-                                            total: `--`,
-                                        };
-                                    }
-                                    return {
-                                        title: '折扣',
-                                        description: `<div style="color: #8D8D8D;font-size: 14px;white-space:nowrap;text-overflow:ellipsis;">${dd.title}</div>`,
-                                        total: `- $${dd.discount_total.toLocaleString()}`,
+                                            description: descHTML,
+                                            total: '－',
+                                        },
+                                        rebate: {
+                                            title: '回饋購物金',
+                                            description: descHTML,
+                                            total: `${localString} 點`,
+                                        },
+                                        default: {
+                                            title: '折扣',
+                                            description: descHTML,
+                                            total: `- $${localString}`,
+                                        },
                                     };
+                                    return (_a = rebackMaps[dd.reBackType]) !== null && _a !== void 0 ? _a : rebackMaps.default;
                                 }),
                                 {
                                     title: html `<span class="tx_700">總金額</span>`,
                                     description: '',
-                                    total: html `<span
-                                                                            class="tx_700">$${orderData.orderData.total.toLocaleString()}</span>`,
+                                    total: html `<span class="tx_700">$${orderData.orderData.total.toLocaleString()}</span>`,
                                 },
                             ]
                                 .map((dd) => {
