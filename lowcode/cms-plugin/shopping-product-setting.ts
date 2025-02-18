@@ -17,7 +17,7 @@ import {ShoppingSettingBasic} from "./shopping-setting-basic.js";
 import {ShoppingSettingAdvance} from "./shopping-setting-advance.js";
 import {ActiveSchedule, Product, ProductInitial} from "../public-models/product.js";
 
-
+const html = String.raw;
 
 export class ShoppingProductSetting {
     public static select_language = (window.parent as any).store_info.language_setting.def;
@@ -25,7 +25,6 @@ export class ShoppingProductSetting {
     public static select_page_index=0
 
     public static main(gvc: GVC, type: 'product' | 'addProduct' | 'giveaway' | 'hidden' = 'product') {
-        const html = String.raw;
         const glitter = gvc.glitter;
         const dialog = new ShareDialog(glitter);
         const excelHeader = ProductExcel.exampleHeader();
@@ -921,7 +920,6 @@ export class ShoppingProductSetting {
             cancel: () => void;
         };
     }) {
-        const html = String.raw;
         const gvc = obj.gvc;
         const stockId = gvc.glitter.getUUID();
         let postMD: any = obj.defData;
@@ -1788,7 +1786,6 @@ export class ShoppingProductSetting {
             origin_data = JSON.stringify(postMD);
         }, 1000);
         (window.parent as any).glitter.share.checkData = () => origin_data === JSON.stringify(postMD);
-        const html = String.raw;
         const gvc = obj.gvc;
         const dialog = new ShareDialog(gvc.glitter);
         const saasConfig: { config: any; api: any } = (window.parent as any).saasConfig;
@@ -2066,7 +2063,6 @@ export class ShoppingProductSetting {
             save: () => void;
         }
     ) {
-        const html = String.raw;
         const vm = {
             viewId: Tool.randomString(7),
             enterId: Tool.randomString(7),

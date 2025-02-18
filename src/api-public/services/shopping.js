@@ -1081,7 +1081,6 @@ class Shopping {
             let saveStockArray = [];
             for (const b of data.line_items) {
                 try {
-                    console.log('2 getProduct');
                     const pdDqlData = (await this.getProduct({
                         page: 0,
                         limit: 50,
@@ -1444,6 +1443,7 @@ class Shopping {
                     counting: 'single',
                     conditionType: 'item',
                     device: ['normal'],
+                    productOffStart: 'price_all'
                 };
                 carData.discount = data.discount;
                 carData.voucherList = [tempVoucher];
@@ -1884,32 +1884,21 @@ class Shopping {
             dd.discount_price = 0;
             dd.rebate = 0;
         });
-        function switchValidProduct(caseName, caseList) {
-            switch (caseName) {
-                case 'collection':
-                    return cart.lineItems.filter((dp) => {
-                        return (caseList.filter((d1) => {
-                            return dp.collection.find((d2) => {
-                                return d2 === d1;
-                            });
-                        }).length > 0);
-                    });
-                case 'product':
-                    return cart.lineItems.filter((dp) => {
-                        return (caseList
-                            .map((d2) => {
-                            return `${d2}`;
-                        })
-                            .indexOf(`${dp.id}`) !== -1);
-                    });
-                case 'all':
-                    return cart.lineItems;
-            }
-            return [];
+        function switchValidProduct(caseName, caseList, caseOffStart) {
+            const filterItems = cart.lineItems.filter((dp) => {
+                switch (caseName) {
+                    case 'collection':
+                        return dp.collection.some((d2) => caseList.includes(d2));
+                    case 'product':
+                        return caseList.includes(`${dp.id}`);
+                    case 'all':
+                        return true;
+                }
+            });
+            return filterItems.sort((a, b) => (caseOffStart === 'price_desc' ? b.sale_price - a.sale_price : a.sale_price - b.sale_price));
         }
         const userClass = new user_js_1.User(this.app);
         const userData = (_a = (await userClass.getUserData(cart.email, 'email_or_phone'))) !== null && _a !== void 0 ? _a : { userID: -1 };
-        console.log(`userData===>`, userData);
         const allVoucher = await this.getAllUseVoucher(userData.userID);
         let overlay = false;
         const voucherList = allVoucher
@@ -1941,21 +1930,26 @@ class Shopping {
             return true;
         })
             .filter((dd) => {
+            var _a;
             dd.bind = [];
+            dd.productOffStart = (_a = dd.productOffStart) !== null && _a !== void 0 ? _a : 'price_all';
             switch (dd.trigger) {
                 case 'auto':
-                    dd.bind = switchValidProduct(dd.for, dd.forKey);
+                    dd.bind = switchValidProduct(dd.for, dd.forKey, dd.productOffStart);
                     break;
                 case 'code':
                     if (dd.code === `${cart.code}` || (cart.code_array || []).includes(`${dd.code}`)) {
-                        dd.bind = switchValidProduct(dd.for, dd.forKey);
+                        dd.bind = switchValidProduct(dd.for, dd.forKey, dd.productOffStart);
                     }
                     break;
                 case 'distribution':
                     if (cart.distribution_info && cart.distribution_info.voucher === dd.id) {
-                        dd.bind = switchValidProduct(cart.distribution_info.relative, cart.distribution_info.relative_data);
+                        dd.bind = switchValidProduct(cart.distribution_info.relative, cart.distribution_info.relative_data, dd.productOffStart);
                     }
                     break;
+            }
+            if (dd.method === 'percent' && dd.conditionType === 'order' && dd.rule === 'min_count' && dd.reBackType === 'discount' && dd.productOffStart !== 'price_all' && dd.ruleValue > 0) {
+                dd.bind = dd.bind.slice(0, dd.ruleValue);
             }
             return dd.bind.length > 0;
         })

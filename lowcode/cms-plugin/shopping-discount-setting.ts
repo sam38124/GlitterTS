@@ -10,20 +10,15 @@ import { FilterOptions } from './filter-options.js';
 import { Tool } from '../modules/tool.js';
 
 export class ShoppingDiscountSetting {
-    public static getLabel(voucher_type: string) {
-        switch (voucher_type) {
-            case 'giveaway':
-                return `贈品活動`;
-            case 'add_on_items':
-                return `加價購活動`;
-            case 'discount':
-                return `折扣活動`;
-            case 'rebate':
-                return `回饋金活動`;
-            case 'shipment_free':
-                return `免運費活動`;
-        }
-        return ``;
+    public static getLabel(voucher_type: string): string {
+        const labels: Record<string, string> = {
+            giveaway: '贈品活動',
+            add_on_items: '加價購活動',
+            discount: '折扣活動',
+            rebate: '回饋金活動',
+            shipment_free: '免運費活動',
+        };
+        return labels[voucher_type] ?? '未知活動';
     }
 
     public static main(gvc: GVC, voucher_type: 'rebate' | 'discount' | 'shipment_free' | 'add_on_items' | 'giveaway') {
@@ -49,135 +44,124 @@ export class ShoppingDiscountSetting {
                 dataList: [{ obj: vm, key: 'type' }],
                 view: () => {
                     if (vm.type === 'list') {
-                        return BgWidget.container(
-                            html`
-                                <div class="title-container">
-                                    ${BgWidget.title(ShoppingDiscountSetting.getLabel(voucher_type))}
-                                    <div class="flex-fill"></div>
-                                    ${BgWidget.darkButton(
-                                        `新增${ShoppingDiscountSetting.getLabel(voucher_type)}`,
-                                        gvc.event(() => {
-                                            vm.data = undefined;
-                                            vm.type = 'add';
-                                        })
-                                    )}
-                                </div>
-                                ${BgWidget.container(
-                                    BgWidget.mainCard(
-                                        [
-                                            BgWidget.searchPlace(
-                                                gvc.event((e) => {
-                                                    vm.query = e.value;
-                                                    gvc.notifyDataChange(id);
-                                                }),
-                                                vm.query || '',
-                                                '搜尋所有折扣'
-                                            ),
-                                            BgWidget.tableV3({
-                                                gvc: gvc,
-                                                getData: (vmi) => {
-                                                    const limit = 20;
-                                                    ApiShop.getVoucher({
-                                                        page: vmi.page - 1,
-                                                        limit: limit,
-                                                        search: vm.query || undefined,
-                                                        voucher_type: voucher_type,
-                                                    }).then((data) => {
-                                                        function getDatalist() {
-                                                            return data.response.data.map((dd: any) => {
-                                                                return [
-                                                                    {
-                                                                        key: '標題',
-                                                                        value: html`<span class="fs-7">${dd.content.title}</span>`,
-                                                                    },
-                                                                    {
-                                                                        key: '狀態',
-                                                                        value: dd.content.status ? BgWidget.successInsignia('啟用中') : BgWidget.secondaryInsignia('已停用'),
-                                                                    },
-                                                                    {
-                                                                        key: '觸發方式',
-                                                                        value: html`<span class="fs-7"
-                                                                            >${(() => {
-                                                                                switch (dd.content.trigger) {
-                                                                                    case 'auto':
-                                                                                        return '自動';
-                                                                                    case 'code':
-                                                                                        return '輸入代碼';
-                                                                                    case 'distribution':
-                                                                                        return '分銷 & 一頁式';
-                                                                                    default:
-                                                                                        return '尚未設定';
-                                                                                }
-                                                                            })()}</span
-                                                                        >`,
-                                                                    },
-                                                                    {
-                                                                        key: '對象',
-                                                                        value: html`<span class="fs-7">${dd.content.for === 'product' ? `指定商品` : `商品分類`}</span>`,
-                                                                    },
-                                                                    {
-                                                                        key: '折扣項目',
-                                                                        value: html`<span class="fs-7"
-                                                                            >${dd.content.method === 'percent' ? `折扣${dd.content.value}%` : `折扣$${dd.content.value}`}</span
-                                                                        >`,
-                                                                    },
-                                                                ];
-                                                            });
-                                                        }
-
-                                                        vm.dataList = data.response.data;
-                                                        vmi.pageSize = Math.ceil(data.response.total / limit);
-                                                        vmi.originalData = vm.dataList;
-                                                        vmi.tableData = getDatalist();
-                                                        vmi.loading = false;
-                                                        vmi.callback();
-                                                    });
-                                                },
-                                                rowClick: (data, index) => {
-                                                    vm.data = vm.dataList[index].content;
-                                                    vm.type = 'replace';
-                                                },
-                                                filter: [
-                                                    {
-                                                        name: '批量移除',
-                                                        event: () => {
-                                                            const dialog = new ShareDialog(gvc.glitter);
-                                                            dialog.checkYesOrNot({
-                                                                text: '是否確認刪除所選項目？',
-                                                                callback: (response) => {
-                                                                    if (response) {
-                                                                        dialog.dataLoading({ visible: true });
-                                                                        ApiShop.deleteVoucher({
-                                                                            id: vm.dataList
-                                                                                .filter((dd: any) => {
-                                                                                    return dd.checked;
-                                                                                })
-                                                                                .map((dd: any) => {
-                                                                                    return dd.id;
-                                                                                })
-                                                                                .join(`,`),
-                                                                        }).then((res) => {
-                                                                            dialog.dataLoading({ visible: false });
-                                                                            if (res.result) {
-                                                                                vm.dataList = undefined;
-                                                                                gvc.notifyDataChange(id);
-                                                                            } else {
-                                                                                dialog.errorMessage({ text: '刪除失敗' });
-                                                                            }
-                                                                        });
-                                                                    }
-                                                                },
-                                                            });
-                                                        },
-                                                    },
-                                                ],
-                                            }),
-                                        ].join('')
-                                    )
+                        return BgWidget.container(html`
+                            <div class="title-container">
+                                ${BgWidget.title(ShoppingDiscountSetting.getLabel(voucher_type))}
+                                <div class="flex-fill"></div>
+                                ${BgWidget.darkButton(
+                                    `新增${ShoppingDiscountSetting.getLabel(voucher_type)}`,
+                                    gvc.event(() => {
+                                        vm.data = undefined;
+                                        vm.type = 'add';
+                                    })
                                 )}
-                                ${BgWidget.mbContainer(120)}
-                            `
-                        );
+                            </div>
+                            ${BgWidget.container(
+                                BgWidget.mainCard(
+                                    [
+                                        BgWidget.searchPlace(
+                                            gvc.event((e) => {
+                                                vm.query = e.value;
+                                                gvc.notifyDataChange(id);
+                                            }),
+                                            vm.query || '',
+                                            '搜尋所有折扣'
+                                        ),
+                                        BgWidget.tableV3({
+                                            gvc: gvc,
+                                            getData: (vmi) => {
+                                                const limit = 20;
+                                                ApiShop.getVoucher({
+                                                    page: vmi.page - 1,
+                                                    limit: limit,
+                                                    search: vm.query || undefined,
+                                                    voucher_type: voucher_type,
+                                                }).then((data) => {
+                                                    const triggerLabels: Record<string, string> = {
+                                                        auto: '自動',
+                                                        code: '輸入代碼',
+                                                        distribution: '分銷 & 一頁式',
+                                                    };
+
+                                                    function getDatalist() {
+                                                        return data.response.data.map((dd: any) => {
+                                                            return [
+                                                                {
+                                                                    key: '標題',
+                                                                    value: html`<span class="fs-7">${dd.content.title}</span>`,
+                                                                },
+                                                                {
+                                                                    key: '狀態',
+                                                                    value: dd.content.status ? BgWidget.successInsignia('啟用中') : BgWidget.secondaryInsignia('已停用'),
+                                                                },
+                                                                {
+                                                                    key: '觸發方式',
+                                                                    value: html`<span class="fs-7"> ${triggerLabels[dd.content.trigger] ?? '尚未設定'} </span>`,
+                                                                },
+                                                                {
+                                                                    key: '對象',
+                                                                    value: html`<span class="fs-7">${dd.content.for === 'product' ? `指定商品` : `商品分類`}</span>`,
+                                                                },
+                                                                {
+                                                                    key: '折扣項目',
+                                                                    value: html`<span class="fs-7">${dd.content.method === 'percent' ? `折扣${dd.content.value}%` : `折扣$${dd.content.value}`}</span>`,
+                                                                },
+                                                            ];
+                                                        });
+                                                    }
+
+                                                    vm.dataList = data.response.data;
+                                                    vmi.pageSize = Math.ceil(data.response.total / limit);
+                                                    vmi.originalData = vm.dataList;
+                                                    vmi.tableData = getDatalist();
+                                                    vmi.loading = false;
+                                                    vmi.callback();
+                                                });
+                                            },
+                                            rowClick: (data, index) => {
+                                                vm.data = vm.dataList[index].content;
+                                                vm.type = 'replace';
+                                            },
+                                            filter: [
+                                                {
+                                                    name: '批量移除',
+                                                    event: () => {
+                                                        const dialog = new ShareDialog(gvc.glitter);
+                                                        dialog.checkYesOrNot({
+                                                            text: '是否確認刪除所選項目？',
+                                                            callback: (response) => {
+                                                                if (response) {
+                                                                    dialog.dataLoading({ visible: true });
+                                                                    ApiShop.deleteVoucher({
+                                                                        id: vm.dataList
+                                                                            .filter((dd: any) => {
+                                                                                return dd.checked;
+                                                                            })
+                                                                            .map((dd: any) => {
+                                                                                return dd.id;
+                                                                            })
+                                                                            .join(`,`),
+                                                                    }).then((res) => {
+                                                                        dialog.dataLoading({ visible: false });
+                                                                        if (res.result) {
+                                                                            vm.dataList = undefined;
+                                                                            gvc.notifyDataChange(id);
+                                                                        } else {
+                                                                            dialog.errorMessage({ text: '刪除失敗' });
+                                                                        }
+                                                                    });
+                                                                }
+                                                            },
+                                                        });
+                                                    },
+                                                },
+                                            ],
+                                        }),
+                                    ].join('')
+                                )
+                            )}
+                            ${BgWidget.mbContainer(120)}
+                        `);
                     } else if (vm.type == 'replace') {
                         return this.voucherEditor({
                             vm: vm,
@@ -229,6 +213,7 @@ export class ShoppingDiscountSetting {
             rule: 'min_price' | 'min_count';
             counting: 'single' | 'each';
             conditionType: 'item' | 'order';
+            productOffStart: 'price_asc' | 'price_desc' | 'price_all';
             forKey: (number | string)[];
             ruleValue: number;
             startDate: string;
@@ -274,6 +259,7 @@ export class ShoppingDiscountSetting {
             microLimited: 0,
             counting: 'single',
             conditionType: 'order',
+            productOffStart: 'price_desc',
         };
 
         const productForList = [
@@ -296,17 +282,14 @@ export class ShoppingDiscountSetting {
                     return '';
                 })()}`,
                 `活動對象：${(() => {
-                    switch (voucherData.target) {
-                        case 'customer':
-                            return '特定顧客';
-                        case 'levels':
-                            return '會員等級';
-                        case 'group':
-                            return '顧客分群';
-                        case 'all':
-                        default:
-                            return '所有顧客';
-                    }
+                    const targetMapping: Record<string, string> = {
+                        customer: '特定顧客',
+                        levels: '會員等級',
+                        group: '顧客分群',
+                        all: '所有顧客',
+                    };
+
+                    return targetMapping[voucherData.target] || targetMapping.all;
                 })()}`,
                 '',
                 `消費條件：${(() => {
@@ -320,27 +303,23 @@ export class ShoppingDiscountSetting {
                     return '';
                 })()}`,
                 `折扣優惠：${(() => {
-                    switch (voucherData.reBackType) {
-                        case 'rebate':
-                            return voucherData.method === 'fixed' ? `${voucherData.value} 點購物金` : `符合條件商品總額的 ${voucherData.value} ％作為購物金`;
-                        case 'discount':
-                            return voucherData.method === 'fixed' ? `折扣 ${voucherData.value} 元` : `符合條件商品折扣 ${voucherData.value} ％`;
-                        case 'shipment_free':
-                            return '免運費';
-                        default:
-                            return '';
-                    }
+                    const voucherMessages: { [key: string]: (method: string, value: string) => string } = {
+                        rebate: (method, value) => (method === 'fixed' ? `${value} 點購物金` : `符合條件商品總額的 ${value} ％作為購物金`),
+                        discount: (method, value) => (method === 'fixed' ? `折扣 ${value} 元` : `符合條件商品折扣 ${value} ％`),
+                        shipment_free: () => '免運費',
+                    };
+
+                    const messageFunction = voucherMessages[voucherData.reBackType];
+                    return messageFunction ? messageFunction(voucherData.method, voucherData.value) : '';
                 })()}`,
                 `將此優惠套用至：${(() => {
-                    switch (voucherData.for) {
-                        case 'collection':
-                            return `指定 ${voucherData.forKey.length} 種商品分類`;
-                        case 'product':
-                            return `指定 ${voucherData.forKey.length} 個商品`;
-                        case 'all':
-                        default:
-                            return '所有商品';
-                    }
+                    const length = voucherData.forKey?.length ?? 0;
+                    const forMaps: Record<string, string> = {
+                        collection: `指定 ${length} 種商品分類`,
+                        product: `指定 ${length} 個商品`,
+                        all: '所有商品',
+                    };
+                    return forMaps[voucherData.for] || forMaps.all;
                 })()}`,
                 '',
                 voucherData.overlay ? '可以疊加，套用最大優惠' : '不可疊加',
@@ -355,6 +334,7 @@ export class ShoppingDiscountSetting {
         const pageVM = {
             conditionId: gvc.glitter.getUUID(),
             countingId: gvc.glitter.getUUID(),
+            productOffId: gvc.glitter.getUUID(),
         };
 
         return gvc.bindView(() => {
@@ -402,6 +382,7 @@ export class ShoppingDiscountSetting {
                                                             right: '啟用',
                                                         },
                                                         (bool) => {
+                                                            console.log(bool);
                                                             voucherData.status = bool ? 1 : 0;
                                                         }
                                                     )}`,
@@ -1274,6 +1255,45 @@ export class ShoppingDiscountSetting {
                                                                         )}`;
                                                                 },
                                                             }),
+                                                            gvc.bindView({
+                                                                bind: pageVM.productOffId,
+                                                                view: () => {
+                                                                    if (!(voucherData.method === 'percent' && voucherData.conditionType === 'order' && voucherData.rule === 'min_count' && voucherData.reBackType === 'discount')) {
+                                                                        return '';
+                                                                    }
+                                                                    return html` ${BgWidget.horizontalLine()}
+                                                                        <div class="tx_700">打折範圍</div>
+                                                                        ${BgWidget.mbContainer(18)}
+                                                                        ${BgWidget.multiCheckboxContainer(
+                                                                            gvc,
+                                                                            [
+                                                                                {
+                                                                                    key: 'price_desc',
+                                                                                    name: '從最高價的商品打折',
+                                                                                    innerHtml: BgWidget.grayNote(`購物車訂單將會從最高價且符合優惠的${ruleText(n)}商品進行打折`),
+                                                                                },
+                                                                                {
+                                                                                    key: 'price_asc',
+                                                                                    name: '從最低價的商品打折',
+                                                                                    innerHtml: BgWidget.grayNote(`購物車訂單將會從最低價且符合優惠的${ruleText(n)}商品進行打折`),
+                                                                                },
+                                                                                {
+                                                                                    key: 'price_all',
+                                                                                    name: '符合優惠的商品全部打折',
+                                                                                    innerHtml: BgWidget.grayNote(`購物車訂單符合優惠的商品進行打折`),
+                                                                                },
+                                                                            ],
+                                                                            [voucherData.productOffStart],
+                                                                            (text) => {
+                                                                                voucherData.productOffStart = text[0] as 'price_asc' | 'price_desc' | 'price_all';
+                                                                                gvc.notifyDataChange(pageVM.productOffId);
+                                                                            },
+                                                                            {
+                                                                                single: true,
+                                                                            }
+                                                                        )}`;
+                                                                },
+                                                            }),
                                                         ].join('');
                                                     },
                                                 };
@@ -1580,7 +1600,7 @@ export class ShoppingDiscountSetting {
                                             }).then((re) => {
                                                 dialog.dataLoading({ visible: false });
                                                 if (re.result) {
-                                                    vm.status = 'list';
+                                                    vm.type = 'list';
                                                     dialog.successMessage({ text: '上傳成功' });
                                                 } else {
                                                     dialog.errorMessage({ text: '上傳失敗' });

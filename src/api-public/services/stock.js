@@ -183,14 +183,6 @@ class Stock {
                  WHERE v.product_id = p.id
                    AND ${sqlText}
                 `, []);
-            console.log(`SELECT v.*, p.content as product_content
-            FROM \`${this.app}\`.t_variants as v,
-                 \`${this.app}\`.t_manager_post as p
-            WHERE v.product_id = p.id
-              AND ${sqlText}
-                LIMIT ${page * limit}
-                , ${limit};
-           `);
             let data = await database_1.default.query(`SELECT v.*, p.content as product_content
                  FROM \`${this.app}\`.t_variants as v,
                       \`${this.app}\`.t_manager_post as p

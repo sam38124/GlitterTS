@@ -22,6 +22,7 @@ export interface VoucherData {
     value: string;
     for: 'collection' | 'product' | 'all';
     rule: 'min_price' | 'min_count';
+    productOffStart: 'price_asc' | 'price_desc' | 'price_all';
     conditionType: 'order' | 'item';
     counting: 'each' | 'single';
     forKey: string[];

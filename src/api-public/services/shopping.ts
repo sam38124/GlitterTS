@@ -51,6 +51,7 @@ export interface VoucherData {
     value: string;
     for: 'collection' | 'product' | 'all';
     rule: 'min_price' | 'min_count';
+    productOffStart:  'price_asc' | 'price_desc' | 'price_all';
     conditionType: 'order' | 'item';
     counting: 'each' | 'single';
     forKey: string[];
@@ -1544,7 +1545,6 @@ export class Shopping {
             let saveStockArray: (() => Promise<boolean>)[] = [];
             for (const b of data.line_items) {
                 try {
-                    console.log('2 getProduct');
                     const pdDqlData = (
                         await this.getProduct({
                             page: 0,
@@ -1965,6 +1965,7 @@ export class Shopping {
                     counting: 'single',
                     conditionType: 'item',
                     device: ['normal'],
+                    productOffStart: 'price_all'
                 };
                 carData.discount = data.discount;
                 carData.voucherList = [tempVoucher];
@@ -2541,39 +2542,27 @@ export class Shopping {
             dd.rebate = 0;
         });
 
-        function switchValidProduct(caseName: string, caseList: string[]) {
-            switch (caseName) {
-                case 'collection':
-                    return cart.lineItems.filter((dp) => {
-                        return (
-                            caseList.filter((d1) => {
-                                return dp.collection.find((d2) => {
-                                    return d2 === d1;
-                                });
-                            }).length > 0
-                        );
-                    });
-                case 'product':
-                    return cart.lineItems.filter((dp) => {
-                        return (
-                            caseList
-                                .map((d2) => {
-                                    return `${d2}`;
-                                })
-                                .indexOf(`${dp.id}`) !== -1
-                        );
-                    });
-                case 'all':
-                    return cart.lineItems;
-            }
-            return [] as any;
+        function switchValidProduct(caseName: 'collection' | 'product' | 'all', caseList: string[], caseOffStart: 'price_desc' | 'price_asc' | 'price_all'): any {
+            const filterItems = cart.lineItems.filter((dp) => {
+                switch (caseName) {
+                    case 'collection':
+                        return dp.collection.some((d2: string) => caseList.includes(d2));
+                    case 'product':
+                        return caseList.includes(`${dp.id}`);
+                    case 'all':
+                        return true;
+                }
+            });
+        
+            return filterItems.sort((a, b) => (caseOffStart === 'price_desc' ? b.sale_price - a.sale_price : a.sale_price - b.sale_price));
         }
+        
 
         // 確認用戶資訊
         const userClass = new User(this.app);
 
         const userData = (await userClass.getUserData(cart.email, 'email_or_phone')) ?? { userID: -1 };
-        console.log(`userData===>`, userData);
+
         // 取得所有可使用優惠券
         const allVoucher = await this.getAllUseVoucher(userData.userID);
 
@@ -2612,22 +2601,30 @@ export class Shopping {
             })
             .filter((dd) => {
                 dd.bind = [];
+                dd.productOffStart = dd.productOffStart ?? 'price_all';
+
                 // 判斷符合商品類型
                 switch (dd.trigger) {
                     case 'auto': // 自動填入
-                        dd.bind = switchValidProduct(dd.for, dd.forKey);
+                        dd.bind = switchValidProduct(dd.for, dd.forKey, dd.productOffStart);
                         break;
                     case 'code': // 輸入代碼
                         if (dd.code === `${cart.code}` || (cart.code_array || []).includes(`${dd.code}`)) {
-                            dd.bind = switchValidProduct(dd.for, dd.forKey);
+                            dd.bind = switchValidProduct(dd.for, dd.forKey, dd.productOffStart);
                         }
                         break;
                     case 'distribution': // 分銷優惠
                         if (cart.distribution_info && cart.distribution_info.voucher === dd.id) {
-                            dd.bind = switchValidProduct(cart.distribution_info.relative, cart.distribution_info.relative_data);
+                            dd.bind = switchValidProduct(cart.distribution_info.relative, cart.distribution_info.relative_data, dd.productOffStart);
                         }
                         break;
                 }
+
+                // 採用百分比打折, 整份訂單, 最少購買, 活動為現折, 價高者商品或價低商品打折的篩選
+                if (dd.method === 'percent' && dd.conditionType === 'order' && dd.rule === 'min_count' && dd.reBackType === 'discount' && dd.productOffStart !== 'price_all' && dd.ruleValue > 0) {
+                    dd.bind = dd.bind.slice(0, dd.ruleValue);
+                }
+
                 return dd.bind.length > 0;
             })
             .filter((dd) => {

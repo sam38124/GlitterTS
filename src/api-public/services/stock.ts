@@ -257,14 +257,6 @@ export class Stock {
                 []
             );
 
-            console.log(`SELECT v.*, p.content as product_content
-            FROM \`${this.app}\`.t_variants as v,
-                 \`${this.app}\`.t_manager_post as p
-            WHERE v.product_id = p.id
-              AND ${sqlText}
-                LIMIT ${page * limit}
-                , ${limit};
-           `);
             let data = await db.query(
                 `SELECT v.*, p.content as product_content
                  FROM \`${this.app}\`.t_variants as v,

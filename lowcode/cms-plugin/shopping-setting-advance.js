@@ -173,9 +173,7 @@ export class ShoppingSettingAdvance {
                         BgWidget.mainCard([
                             html `
                                         <div class="d-flex flex-column guide5-4">
-                                            <div style="font-weight: 700;" class="mb-1">${cat_title}標籤
-                                                ${BgWidget.languageInsignia(vm.language, 'margin-left:5px;')}
-                                            </div>
+                                            <div style="font-weight: 700;" class="mb-1">${cat_title}標籤 ${BgWidget.languageInsignia(vm.language, 'margin-left:5px;')}</div>
                                             ${BgWidget.grayNote('用戶於前台搜尋標籤，即可搜尋到此' + cat_title)}
                                             <div class="mb-2"></div>
                                             ${BgWidget.multipleInput(gvc, postMD.product_tag.language[vm.language], {
@@ -185,8 +183,7 @@ export class ShoppingSettingAdvance {
                             })}
                                         </div>
                                     `,
-                            html `
-                                        <div class="mt-2 mb-2 position-relative" style="font-weight: 700;">
+                            html ` <div class="mt-2 mb-2 position-relative" style="font-weight: 700;">
                                             ${cat_title}促銷標籤
                                             ${BgWidget.questionButton(gvc.event(() => {
                                 QuestionInfo.promoteLabel(gvc);
@@ -227,22 +224,24 @@ export class ShoppingSettingAdvance {
                                     },
                                 };
                             })())}`,
-                            (postMD.product_category === 'course') ? `` : `<div class="d-flex flex-column mt-2">
+                            postMD.product_category === 'course'
+                                ? ``
+                                : `<div class="d-flex flex-column mt-2">
                                         <div style="font-weight: 700;" class="mb-1">數量單位 ${BgWidget.languageInsignia(vm.language, 'margin-left:5px;')}</div>
                                         ${BgWidget.grayNote('例如 : 坪、件、個、打，預設單位為件。')}
                                         <div class="mb-2"></div>
                                         ${BgWidget.editeInput({
-                                gvc: obj.gvc,
-                                default: `${postMD.unit[vm.language] || ''}`,
-                                title: '',
-                                type: 'text',
-                                placeHolder: `件`,
-                                callback: (text) => {
-                                    postMD.unit[vm.language] = text;
-                                    gvc.notifyDataChange(id);
-                                },
-                            })}
-                                    </div>`
+                                    gvc: obj.gvc,
+                                    default: `${postMD.unit[vm.language] || ''}`,
+                                    title: '',
+                                    type: 'text',
+                                    placeHolder: `件`,
+                                    callback: (text) => {
+                                        postMD.unit[vm.language] = text;
+                                        gvc.notifyDataChange(id);
+                                    },
+                                })}
+                                    </div>`,
                         ].join('')),
                         BgWidget.mainCard([
                             html `
@@ -348,18 +347,14 @@ export class ShoppingSettingAdvance {
                                                         view: () => {
                                                             try {
                                                                 return html `
-                                                                                <div style="font-weight: 700;"
-                                                                                     class=" d-flex flex-column">
-                                                                                    ${BgWidget.grayNote(`購物車必須連同包含以下其中一個${postMD.product_category === 'course' ? `課程或商品` : `商品`}才可結帳`)}
-                                                                                </div>
-                                                                                <div class="d-flex align-items-center gray-bottom-line-18"
-                                                                                     style="gap: 24px; justify-content: space-between;">
-                                                                                    <div class="form-check-label c_updown_label">
-                                                                                        <div class="tx_normal">
-                                                                                            商品列表
-                                                                                        </div>
-                                                                                    </div>
-                                                                                    ${BgWidget.grayButton('選擇商品', gvc.event(() => {
+                                                                                  <div style="font-weight: 700;" class=" d-flex flex-column">
+                                                                                      ${BgWidget.grayNote(`購物車必須連同包含以下其中一個${postMD.product_category === 'course' ? `課程或商品` : `商品`}才可結帳`)}
+                                                                                  </div>
+                                                                                  <div class="d-flex align-items-center gray-bottom-line-18" style="gap: 24px; justify-content: space-between;">
+                                                                                      <div class="form-check-label c_updown_label">
+                                                                                          <div class="tx_normal">商品列表</div>
+                                                                                      </div>
+                                                                                      ${BgWidget.grayButton('選擇商品', gvc.event(() => {
                                                                     BgProduct.productsDialog({
                                                                         gvc: gvc,
                                                                         default: postMD.match_by_with,
@@ -372,8 +367,8 @@ export class ShoppingSettingAdvance {
                                                                         },
                                                                     });
                                                                 }), { textStyle: 'font-weight: 400;' })}
-                                                                                </div>
-                                                                                ${gvc.bindView(() => {
+                                                                                  </div>
+                                                                                  ${gvc.bindView(() => {
                                                                     const vm = {
                                                                         id: gvc.glitter.getUUID(),
                                                                         loading: true,
@@ -392,22 +387,16 @@ export class ShoppingSettingAdvance {
                                                                             }
                                                                             return vm.data
                                                                                 .map((opt, index) => {
-                                                                                return html `
-                                                                                                            <div class="d-flex align-items-center form-check-label c_updown_label gap-3">
-                                                                                                                <span class="tx_normal">${index + 1} .</span>
-                                                                                                                ${BgWidget.validImageBox({
+                                                                                return html ` <div class="d-flex align-items-center form-check-label c_updown_label gap-3">
+                                                                                                          <span class="tx_normal">${index + 1} .</span>
+                                                                                                          ${BgWidget.validImageBox({
                                                                                     gvc: gvc,
                                                                                     image: opt.image,
                                                                                     width: 40,
                                                                                 })}
-                                                                                                                <div class="tx_normal ${opt.note ? 'mb-1' : ''}">
-                                                                                                                    ${opt.value}
-                                                                                                                </div>
-                                                                                                                ${opt.note ? html `
-                                                                                                                    <div class="tx_gray_12">
-                                                                                                                        ${opt.note}
-                                                                                                                    </div> ` : ''}
-                                                                                                            </div>`;
+                                                                                                          <div class="tx_normal ${opt.note ? 'mb-1' : ''}">${opt.value}</div>
+                                                                                                          ${opt.note ? html ` <div class="tx_gray_12">${opt.note}</div> ` : ''}
+                                                                                                      </div>`;
                                                                             })
                                                                                 .join('');
                                                                         }),
@@ -417,7 +406,7 @@ export class ShoppingSettingAdvance {
                                                                         },
                                                                     };
                                                                 })}
-                                                                            `;
+                                                                              `;
                                                             }
                                                             catch (e) {
                                                                 console.error(e);
@@ -438,18 +427,14 @@ export class ShoppingSettingAdvance {
                                                         view: () => {
                                                             try {
                                                                 return html `
-                                                                                <div style="font-weight: 700;"
-                                                                                     class=" d-flex flex-column">
-                                                                                    ${BgWidget.grayNote(`已購買過的訂單記錄中，必須包含以下${postMD.product_category === 'course' ? `課程或商品` : `商品`}才可以結帳`)}
-                                                                                </div>
-                                                                                <div class="d-flex align-items-center gray-bottom-line-18"
-                                                                                     style="gap: 24px; justify-content: space-between;">
-                                                                                    <div class="form-check-label c_updown_label">
-                                                                                        <div class="tx_normal">
-                                                                                            商品列表
-                                                                                        </div>
-                                                                                    </div>
-                                                                                    ${BgWidget.grayButton('選擇商品', gvc.event(() => {
+                                                                                  <div style="font-weight: 700;" class=" d-flex flex-column">
+                                                                                      ${BgWidget.grayNote(`已購買過的訂單記錄中，必須包含以下${postMD.product_category === 'course' ? `課程或商品` : `商品`}才可以結帳`)}
+                                                                                  </div>
+                                                                                  <div class="d-flex align-items-center gray-bottom-line-18" style="gap: 24px; justify-content: space-between;">
+                                                                                      <div class="form-check-label c_updown_label">
+                                                                                          <div class="tx_normal">商品列表</div>
+                                                                                      </div>
+                                                                                      ${BgWidget.grayButton('選擇商品', gvc.event(() => {
                                                                     BgProduct.productsDialog({
                                                                         gvc: gvc,
                                                                         default: postMD.match_by_with,
@@ -462,8 +447,8 @@ export class ShoppingSettingAdvance {
                                                                         },
                                                                     });
                                                                 }), { textStyle: 'font-weight: 400;' })}
-                                                                                </div>
-                                                                                ${gvc.bindView(() => {
+                                                                                  </div>
+                                                                                  ${gvc.bindView(() => {
                                                                     const vm = {
                                                                         id: gvc.glitter.getUUID(),
                                                                         loading: true,
@@ -482,22 +467,16 @@ export class ShoppingSettingAdvance {
                                                                             }
                                                                             return vm.data
                                                                                 .map((opt, index) => {
-                                                                                return html `
-                                                                                                            <div class="d-flex align-items-center form-check-label c_updown_label gap-3">
-                                                                                                                <span class="tx_normal">${index + 1} .</span>
-                                                                                                                ${BgWidget.validImageBox({
+                                                                                return html ` <div class="d-flex align-items-center form-check-label c_updown_label gap-3">
+                                                                                                          <span class="tx_normal">${index + 1} .</span>
+                                                                                                          ${BgWidget.validImageBox({
                                                                                     gvc: gvc,
                                                                                     image: opt.image,
                                                                                     width: 40,
                                                                                 })}
-                                                                                                                <div class="tx_normal ${opt.note ? 'mb-1' : ''}">
-                                                                                                                    ${opt.value}
-                                                                                                                </div>
-                                                                                                                ${opt.note ? html `
-                                                                                                                    <div class="tx_gray_12">
-                                                                                                                        ${opt.note}
-                                                                                                                    </div> ` : ''}
-                                                                                                            </div>`;
+                                                                                                          <div class="tx_normal ${opt.note ? 'mb-1' : ''}">${opt.value}</div>
+                                                                                                          ${opt.note ? html ` <div class="tx_gray_12">${opt.note}</div> ` : ''}
+                                                                                                      </div>`;
                                                                             })
                                                                                 .join('');
                                                                         }),
@@ -507,7 +486,7 @@ export class ShoppingSettingAdvance {
                                                                         },
                                                                     };
                                                                 })}
-                                                                            `;
+                                                                              `;
                                                             }
                                                             catch (e) {
                                                                 console.error(e);
@@ -525,149 +504,151 @@ export class ShoppingSettingAdvance {
                                     return text_.join('');
                                 })),
                         ].join(``)),
-                        (postMD.product_category === 'commodity') ? BgWidget.mainCard(obj.gvc.bindView(() => {
-                            var _a;
-                            let loading = true;
-                            let dataList = [];
-                            postMD.designated_logistics = (_a = postMD.designated_logistics) !== null && _a !== void 0 ? _a : {
-                                type: 'all',
-                                list: [],
-                            };
-                            return {
-                                bind: 'designatedLogistics',
-                                view: () => {
-                                    if (loading) {
-                                        return '';
-                                    }
-                                    return html `
-                                                <div class="tx_700">指定物流配送方式</div>
-                                                ${BgWidget.mbContainer(18)}
-                                                ${gvc.bindView(() => {
-                                        const id = gvc.glitter.getUUID();
-                                        return {
-                                            bind: id,
-                                            view: () => {
-                                                return html `
-                                                                <div style="display: flex; flex-direction: column; gap: 8px;">
-                                                                    ${BgWidget.selectFilter({
-                                                    gvc: gvc,
-                                                    callback: (text) => {
-                                                        postMD.designated_logistics.type = text;
-                                                        gvc.notifyDataChange(id);
-                                                    },
-                                                    default: postMD.designated_logistics.type,
-                                                    options: [
-                                                        {
-                                                            key: 'all',
-                                                            value: '全部',
+                        postMD.product_category === 'commodity'
+                            ? BgWidget.mainCard(obj.gvc.bindView(() => {
+                                var _a;
+                                let loading = true;
+                                let dataList = [];
+                                postMD.designated_logistics = (_a = postMD.designated_logistics) !== null && _a !== void 0 ? _a : {
+                                    type: 'all',
+                                    list: [],
+                                };
+                                return {
+                                    bind: 'designatedLogistics',
+                                    view: () => {
+                                        if (loading) {
+                                            return '';
+                                        }
+                                        return html ` <div class="tx_700">指定物流配送方式</div>
+                                                      ${BgWidget.mbContainer(18)}
+                                                      ${gvc.bindView(() => {
+                                            const id = gvc.glitter.getUUID();
+                                            return {
+                                                bind: id,
+                                                view: () => {
+                                                    return html `
+                                                                      <div style="display: flex; flex-direction: column; gap: 8px;">
+                                                                          ${BgWidget.selectFilter({
+                                                        gvc: gvc,
+                                                        callback: (text) => {
+                                                            postMD.designated_logistics.type = text;
+                                                            gvc.notifyDataChange(id);
                                                         },
-                                                        {
-                                                            key: 'designated',
-                                                            value: '指定物流',
-                                                        },
-                                                    ],
-                                                    style: 'width: 100%;',
-                                                })}
-                                                                    <div>
-                                                                        ${(() => {
-                                                    switch (postMD.designated_logistics.type) {
-                                                        case 'designated':
-                                                            return (() => {
-                                                                const designatedVM = {
-                                                                    id: gvc.glitter.getUUID(),
-                                                                    loading: true,
-                                                                    dataList: [],
-                                                                };
-                                                                return gvc.bindView({
-                                                                    bind: designatedVM.id,
-                                                                    view: () => {
-                                                                        var _a;
-                                                                        if (designatedVM.loading) {
-                                                                            return BgWidget.spinner({ text: { visible: false } });
-                                                                        }
-                                                                        else {
-                                                                            return BgWidget.selectDropList({
-                                                                                gvc: gvc,
-                                                                                callback: (value) => {
-                                                                                    postMD.designated_logistics.list = value;
-                                                                                    gvc.notifyDataChange(id);
-                                                                                },
-                                                                                default: (_a = postMD.designated_logistics.list) !== null && _a !== void 0 ? _a : [],
-                                                                                options: designatedVM.dataList,
-                                                                                style: 'width: 100%;',
-                                                                            });
-                                                                        }
-                                                                    },
-                                                                    divCreate: {
-                                                                        style: 'width: 100%;',
-                                                                    },
-                                                                    onCreate: () => {
-                                                                        if (designatedVM.loading) {
-                                                                            ApiPageConfig.getPrivateConfig(window.parent.appName, 'logistics_setting').then((dd) => {
-                                                                                var _a;
-                                                                                if (dd.result && dd.response.result[0]) {
-                                                                                    const shipment_setting = dd.response.result[0].value;
-                                                                                    designatedVM.dataList = ShipmentConfig.list.map((dd) => {
-                                                                                        return {
-                                                                                            name: dd.title,
-                                                                                            value: dd.value
-                                                                                        };
-                                                                                    })
-                                                                                        .concat(((_a = shipment_setting.custom_delivery) !== null && _a !== void 0 ? _a : []).map((dd) => {
-                                                                                        return {
-                                                                                            form: dd.form,
-                                                                                            name: dd.name,
-                                                                                            value: dd.id,
-                                                                                        };
-                                                                                    }))
-                                                                                        .filter((d1) => {
-                                                                                        return shipment_setting.support.some((d2) => {
-                                                                                            return d2 === d1.value;
+                                                        default: postMD.designated_logistics.type,
+                                                        options: [
+                                                            {
+                                                                key: 'all',
+                                                                value: '全部',
+                                                            },
+                                                            {
+                                                                key: 'designated',
+                                                                value: '指定物流',
+                                                            },
+                                                        ],
+                                                        style: 'width: 100%;',
+                                                    })}
+                                                                          <div>
+                                                                              ${(() => {
+                                                        switch (postMD.designated_logistics.type) {
+                                                            case 'designated':
+                                                                return (() => {
+                                                                    const designatedVM = {
+                                                                        id: gvc.glitter.getUUID(),
+                                                                        loading: true,
+                                                                        dataList: [],
+                                                                    };
+                                                                    return gvc.bindView({
+                                                                        bind: designatedVM.id,
+                                                                        view: () => {
+                                                                            var _a;
+                                                                            if (designatedVM.loading) {
+                                                                                return BgWidget.spinner({ text: { visible: false } });
+                                                                            }
+                                                                            else {
+                                                                                return BgWidget.selectDropList({
+                                                                                    gvc: gvc,
+                                                                                    callback: (value) => {
+                                                                                        postMD.designated_logistics.list = value;
+                                                                                        gvc.notifyDataChange(id);
+                                                                                    },
+                                                                                    default: (_a = postMD.designated_logistics.list) !== null && _a !== void 0 ? _a : [],
+                                                                                    options: designatedVM.dataList,
+                                                                                    style: 'width: 100%;',
+                                                                                });
+                                                                            }
+                                                                        },
+                                                                        divCreate: {
+                                                                            style: 'width: 100%;',
+                                                                        },
+                                                                        onCreate: () => {
+                                                                            if (designatedVM.loading) {
+                                                                                ApiPageConfig.getPrivateConfig(window.parent.appName, 'logistics_setting').then((dd) => {
+                                                                                    var _a;
+                                                                                    if (dd.result && dd.response.result[0]) {
+                                                                                        const shipment_setting = dd.response.result[0].value;
+                                                                                        designatedVM.dataList = ShipmentConfig.list
+                                                                                            .map((dd) => {
+                                                                                            return {
+                                                                                                name: dd.title,
+                                                                                                value: dd.value,
+                                                                                            };
+                                                                                        })
+                                                                                            .concat(((_a = shipment_setting.custom_delivery) !== null && _a !== void 0 ? _a : []).map((dd) => {
+                                                                                            return {
+                                                                                                form: dd.form,
+                                                                                                name: dd.name,
+                                                                                                value: dd.id,
+                                                                                            };
+                                                                                        }))
+                                                                                            .filter((d1) => {
+                                                                                            return shipment_setting.support.some((d2) => {
+                                                                                                return d2 === d1.value;
+                                                                                            });
+                                                                                        })
+                                                                                            .map((item) => {
+                                                                                            return {
+                                                                                                key: item.value,
+                                                                                                value: item.name,
+                                                                                            };
                                                                                         });
-                                                                                    })
-                                                                                        .map((item) => {
-                                                                                        return {
-                                                                                            key: item.value,
-                                                                                            value: item.name,
-                                                                                        };
-                                                                                    });
-                                                                                    designatedVM.loading = false;
-                                                                                    gvc.notifyDataChange(designatedVM.id);
-                                                                                }
-                                                                            });
-                                                                        }
-                                                                    },
-                                                                });
-                                                            })();
-                                                        default:
-                                                            return '';
+                                                                                        designatedVM.loading = false;
+                                                                                        gvc.notifyDataChange(designatedVM.id);
+                                                                                    }
+                                                                                });
+                                                                            }
+                                                                        },
+                                                                    });
+                                                                })();
+                                                            default:
+                                                                return '';
+                                                        }
+                                                    })()}
+                                                                          </div>
+                                                                      </div>
+                                                                  `;
+                                                },
+                                            };
+                                        })}`;
+                                    },
+                                    onCreate: () => {
+                                        if (loading) {
+                                            ApiPageConfig.getPrivateConfig(window.parent.appName, 'glitter_delivery').then((res) => {
+                                                dataList = (() => {
+                                                    try {
+                                                        return res.response.result[0].value;
                                                     }
-                                                })()}
-                                                                    </div>
-                                                                </div>
-                                                            `;
-                                            },
-                                        };
-                                    })}`;
-                                },
-                                onCreate: () => {
-                                    if (loading) {
-                                        ApiPageConfig.getPrivateConfig(window.parent.appName, 'glitter_delivery').then((res) => {
-                                            dataList = (() => {
-                                                try {
-                                                    return res.response.result[0].value;
-                                                }
-                                                catch (error) {
-                                                    return dataList;
-                                                }
-                                            })();
-                                            loading = false;
-                                            gvc.notifyDataChange('designatedLogistics');
-                                        });
-                                    }
-                                },
-                            };
-                        })) : ``,
+                                                    catch (error) {
+                                                        return dataList;
+                                                    }
+                                                })();
+                                                loading = false;
+                                                gvc.notifyDataChange('designatedLogistics');
+                                            });
+                                        }
+                                    },
+                                };
+                            }))
+                            : ``,
                         BgWidget.mainCard(obj.gvc.bindView(() => {
                             const id = gvc.glitter.getUUID();
                             return {
@@ -677,11 +658,8 @@ export class ShoppingSettingAdvance {
                                     postMD.relative_product = (_a = postMD.relative_product) !== null && _a !== void 0 ? _a : [];
                                     try {
                                         return html `
-                                                    <div style="font-weight: 700;" class="mb-3 d-flex flex-column">相關商品
-                                                        ${BgWidget.grayNote('相關商品將會顯示於商品頁底部')}
-                                                    </div>
-                                                    <div class="d-flex align-items-center gray-bottom-line-18"
-                                                         style="gap: 24px; justify-content: space-between;">
+                                                    <div style="font-weight: 700;" class="mb-3 d-flex flex-column">相關商品 ${BgWidget.grayNote('相關商品將會顯示於商品頁底部')}</div>
+                                                    <div class="d-flex align-items-center gray-bottom-line-18" style="gap: 24px; justify-content: space-between;">
                                                         <div class="form-check-label c_updown_label">
                                                             <div class="tx_normal">商品列表</div>
                                                         </div>
@@ -718,22 +696,16 @@ export class ShoppingSettingAdvance {
                                                     }
                                                     return vm.data
                                                         .map((opt, index) => {
-                                                        return html `
-                                                                                <div class="d-flex align-items-center form-check-label c_updown_label gap-3">
-                                                                                    <span class="tx_normal">${index + 1} .</span>
-                                                                                    ${BgWidget.validImageBox({
+                                                        return html ` <div class="d-flex align-items-center form-check-label c_updown_label gap-3">
+                                                                            <span class="tx_normal">${index + 1} .</span>
+                                                                            ${BgWidget.validImageBox({
                                                             gvc: gvc,
                                                             image: opt.image,
                                                             width: 40,
                                                         })}
-                                                                                    <div class="tx_normal ${opt.note ? 'mb-1' : ''}">
-                                                                                        ${opt.value}
-                                                                                    </div>
-                                                                                    ${opt.note ? html `
-                                                                                        <div class="tx_gray_12">
-                                                                                            ${opt.note}
-                                                                                        </div> ` : ''}
-                                                                                </div>`;
+                                                                            <div class="tx_normal ${opt.note ? 'mb-1' : ''}">${opt.value}</div>
+                                                                            ${opt.note ? html ` <div class="tx_gray_12">${opt.note}</div> ` : ''}
+                                                                        </div>`;
                                                     })
                                                         .join('');
                                                 }),
@@ -765,8 +737,7 @@ export class ShoppingSettingAdvance {
                                     try {
                                         return html `
                                                     <div style="font-weight: 700;" class="mb-3 d-flex flex-column">
-                                                        ${cat_title}通知
-                                                        ${BgWidget.grayNote(`購買此${cat_title}會收到的通知信，內容為空則不寄送。`)}
+                                                        ${cat_title}通知 ${BgWidget.grayNote(`購買此${cat_title}會收到的通知信，內容為空則不寄送。`)}
                                                     </div>
                                                     ${BgWidget.richTextEditor({
                                             gvc: gvc,
@@ -779,30 +750,30 @@ export class ShoppingSettingAdvance {
                                                 return [
                                                     {
                                                         title: '商家名稱',
-                                                        value: '@{{app_name}}'
+                                                        value: '@{{app_name}}',
                                                     },
                                                     {
                                                         title: '會員姓名',
-                                                        value: '@{{user_name}}'
+                                                        value: '@{{user_name}}',
                                                     },
                                                     {
                                                         title: '姓名',
-                                                        value: '@{{姓名}}'
+                                                        value: '@{{姓名}}',
                                                     },
                                                     {
                                                         title: '電話',
-                                                        value: '@{{電話}}'
+                                                        value: '@{{電話}}',
                                                     },
                                                     {
                                                         title: '地址',
-                                                        value: '@{{地址}}'
+                                                        value: '@{{地址}}',
                                                     },
                                                     {
                                                         title: '信箱',
-                                                        value: '@{{信箱}}'
-                                                    }
+                                                        value: '@{{信箱}}',
+                                                    },
                                                 ];
-                                            })()
+                                            })(),
                                         })}
                                                 `;
                                     }
@@ -822,11 +793,10 @@ export class ShoppingSettingAdvance {
                                 bind: id,
                                 view: () => {
                                     return [
-                                        html `
-                                                    <div class="title-container px-0">
-                                                        <div style="color:#393939;font-weight: 700;">AI 選品</div>
-                                                        <div class="flex-fill"></div>
-                                                        ${BgWidget.grayButton('設定描述語句', gvc.event(() => {
+                                        html ` <div class="title-container px-0">
+                                                    <div style="color:#393939;font-weight: 700;">AI 選品</div>
+                                                    <div class="flex-fill"></div>
+                                                    ${BgWidget.grayButton('設定描述語句', gvc.event(() => {
                                             function refresh() {
                                                 gvc.notifyDataChange(id);
                                             }
@@ -859,7 +829,7 @@ export class ShoppingSettingAdvance {
                                         }), {
                                             textStyle: 'width:100%;',
                                         })}
-                                                    </div>`,
+                                                </div>`,
                                         html `
                                                     <div>
                                                         ${postMD.ai_description
@@ -871,9 +841,11 @@ export class ShoppingSettingAdvance {
                                 },
                             };
                         })),
-                    ].filter((dd) => {
+                    ]
+                        .filter((dd) => {
                         return dd;
-                    }).join('<div class="my-3"></div>');
+                    })
+                        .join('<div class="my-3"></div>');
                 },
                 divCreate: {
                     class: `w-100`,

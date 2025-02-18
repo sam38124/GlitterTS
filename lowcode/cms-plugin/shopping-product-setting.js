@@ -25,9 +25,9 @@ import { ProductConfig } from './product-config.js';
 import { ShoppingSettingBasic } from "./shopping-setting-basic.js";
 import { ShoppingSettingAdvance } from "./shopping-setting-advance.js";
 import { ProductInitial } from "../public-models/product.js";
+const html = String.raw;
 export class ShoppingProductSetting {
     static main(gvc, type = 'product') {
-        const html = String.raw;
         const glitter = gvc.glitter;
         const dialog = new ShareDialog(glitter);
         const excelHeader = ProductExcel.exampleHeader();
@@ -845,7 +845,6 @@ export class ShoppingProductSetting {
         });
     }
     static editProductSpec(obj) {
-        const html = String.raw;
         const gvc = obj.gvc;
         const stockId = gvc.glitter.getUUID();
         let postMD = obj.defData;
@@ -1574,7 +1573,6 @@ export class ShoppingProductSetting {
                 origin_data = JSON.stringify(postMD);
             }, 1000);
             window.parent.glitter.share.checkData = () => origin_data === JSON.stringify(postMD);
-            const html = String.raw;
             const gvc = obj.gvc;
             const dialog = new ShareDialog(gvc.glitter);
             const saasConfig = window.parent.saasConfig;
@@ -1808,7 +1806,6 @@ export class ShoppingProductSetting {
         });
     }
     static specInput(gvc, temp, cb) {
-        const html = String.raw;
         const vm = {
             viewId: Tool.randomString(7),
             enterId: Tool.randomString(7),
