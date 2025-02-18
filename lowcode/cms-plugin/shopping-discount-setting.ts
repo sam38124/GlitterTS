@@ -382,7 +382,6 @@ export class ShoppingDiscountSetting {
                                                             right: '啟用',
                                                         },
                                                         (bool) => {
-                                                            console.log(bool);
                                                             voucherData.status = bool ? 1 : 0;
                                                         }
                                                     )}`,
