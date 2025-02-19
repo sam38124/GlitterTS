@@ -21,7 +21,11 @@ export class ShoppingSettingAdvance {
         const vm = obj.vm2;
         const shipment_config = obj.shipment_config;
         const variantsViewID = gvc.glitter.getUUID();
+        const start = gvc.glitter.ut.clock();
         function updateVariants() {
+            postMD.specs = postMD.specs.filter((dd) => {
+                return dd.option && dd.option.length;
+            });
             const specs = {};
             function getCombinations(specs) {
                 const keys = Object.keys(specs);
@@ -132,6 +136,8 @@ export class ShoppingSettingAdvance {
                 return dd;
             });
             obj.vm.replaceData = postMD;
+            console.log(`end-time`, start.stop());
+            console.log(`postMD.variants=>`, postMD.variants);
             obj.gvc.notifyDataChange(variantsViewID);
         }
         updateVariants();

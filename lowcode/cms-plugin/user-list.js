@@ -798,7 +798,7 @@ export class UserList {
                                                                 bind: id,
                                                                 view: () => {
                                                                     return new Promise((resolve) => __awaiter(this, void 0, void 0, function* () {
-                                                                        var _a;
+                                                                        var _a, _b;
                                                                         let data = ((_a = (yield saasConfig.api.getPrivateConfig(saasConfig.config.appName, `glitterUserForm`)).response.result[0]) !== null && _a !== void 0 ? _a : {}).value;
                                                                         if (!Array.isArray(data)) {
                                                                             data = [];
@@ -868,6 +868,8 @@ export class UserList {
                                                                         const form_keys = ['custom_form_register', 'customer_form_user_setting'];
                                                                         for (const b of form_keys) {
                                                                             form_formats[b] = (yield ApiUser.getPublicConfig(b, 'manager')).response.value || { list: [] };
+                                                                            console.log(`form_formats[b].list==>`, form_formats[b].list);
+                                                                            form_formats[b].list = (_b = form_formats[b].list) !== null && _b !== void 0 ? _b : [];
                                                                             form_formats[b].list.map((dd) => {
                                                                                 dd.toggle = false;
                                                                             });

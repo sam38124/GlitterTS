@@ -63,6 +63,7 @@ export class BlogList {
             }
         `);
 
+
         return gvc.bindView({
             bind: vm.id,
             view: () => {
@@ -220,7 +221,7 @@ gvc.notifyDataChange(id)
                         return {
                             title: (dd.language_data && dd.language_data[Language.getLanguage()].title) || dd.title,
                             desc: (dd.language_data && dd.language_data[Language.getLanguage()].description) || dd.description,
-                            image: dd.seo && dd.seo.image ? dd.seo.image : 'https://d3jnmi1tfjgtti.cloudfront.net/file/234285319/1722936949034-default_image.jpg',
+                            image: (dd.seo && dd.seo.image ? dd.seo.image : dd.preview_image || 'https://d3jnmi1tfjgtti.cloudfront.net/file/234285319/1722936949034-default_image.jpg'),
                             collection: dd.collection ?? [],
                             created_time: created_time,
                             tag: dd.tag

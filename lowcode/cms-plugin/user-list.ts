@@ -960,6 +960,8 @@ export class UserList {
                                                                                     const form_keys = ['custom_form_register', 'customer_form_user_setting'];
                                                                                     for (const b of form_keys) {
                                                                                         form_formats[b] = (await ApiUser.getPublicConfig(b, 'manager')).response.value || { list: [] };
+                                                                                        console.log(`form_formats[b].list==>`,form_formats[b].list)
+                                                                                        form_formats[b].list=form_formats[b].list ?? []
                                                                                         form_formats[b].list.map((dd: any) => {
                                                                                             dd.toggle = false;
                                                                                         });

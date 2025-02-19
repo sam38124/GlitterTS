@@ -35,7 +35,9 @@ export class ShoppingSettingBasic {
         }
         const start = gvc.glitter.ut.clock();
         function updateVariants() {
-            console.log(`start-time`, start.stop());
+            postMD.specs = postMD.specs.filter((dd) => {
+                return dd.option && dd.option.length;
+            });
             const specs = {};
             function getCombinations(specs) {
                 const keys = Object.keys(specs);

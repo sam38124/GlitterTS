@@ -1817,6 +1817,7 @@ export class ShoppingProductSetting {
             enterId: Tool.randomString(7),
         };
         let keyboard = '';
+        let saveKeyEvent = undefined;
         return html `
             <div class="bg-white w-100">
                 ${[
@@ -1835,10 +1836,11 @@ export class ShoppingProductSetting {
             })}"
                             />
                         </div>`,
-            gvc.bindView({
-                bind: vm.viewId,
-                view: () => {
-                    return html `
+            gvc.bindView(() => {
+                return {
+                    bind: vm.viewId,
+                    view: () => {
+                        return html `
                                 <div class="w-100" style="background-color:white !important;margin-top: 8px;">選項
                                     (輸入完請按enter)
                                 </div>
@@ -1849,9 +1851,9 @@ export class ShoppingProductSetting {
                                     <div class="d-flex align-items-center"
                                          style="gap: 10px; flex-wrap: wrap;background-color:white !important;">
                                         ${(() => {
-                        const tempHTML = [];
-                        temp.option.map((data, index) => {
-                            tempHTML.push(html `
+                            const tempHTML = [];
+                            temp.option.map((data, index) => {
+                                tempHTML.push(html `
                                                             <div
                                                                     class="d-flex align-items-center"
                                                                     style="height: 24px;border-radius: 5px;background: #F2F2F2;display: flex;padding: 1px 6px;justify-content: center;align-items: center;gap: 4px;"
@@ -1860,76 +1862,87 @@ export class ShoppingProductSetting {
                                                                     class="fa-solid fa-xmark ms-1 fs-5"
                                                                     style="font-size: 12px;cursor: pointer;"
                                                                     onclick="${gvc.event(() => {
-                                temp.option.splice(index, 1);
-                                gvc.notifyDataChange(vm.viewId);
-                            })}"
+                                    temp.option.splice(index, 1);
+                                    gvc.notifyDataChange(vm.viewId);
+                                })}"
                                                             ></i>
                                                             </div>
                                                         `);
-                        });
-                        tempHTML.push(html `<input
+                            });
+                            tempHTML.push(html `<input
                                                     id="${vm.enterId}"
                                                     class="flex-fill d-flex align-items-center border specInput-${vm.enterId} h-100 p-2"
                                                     value=""
                                                     style="background-color:white !important;"
                                                     placeholder="${temp.option.length > 0 ? '請繼續輸入' : ''}"
                                             />`);
-                        return tempHTML.join('');
-                    })()}
+                            return tempHTML.join('');
+                        })()}
                                     </div>
                                     <div
                                             class="d-flex align-items-center ${temp.option.length > 0 ? 'd-none' : ''} ps-2"
                                             style="color: #8D8D8D;width: 100%;height:100%;position: absolute;left: 18px;top: 0;"
                                             onclick="${gvc.event((e) => {
-                        e.classList.add('d-none');
-                        setTimeout(() => {
-                            document.querySelector(`.specInput-${vm.enterId}`).focus();
-                        }, 100);
-                    })}"
+                            e.classList.add('d-none');
+                            setTimeout(() => {
+                                document.querySelector(`.specInput-${vm.enterId}`).focus();
+                            }, 100);
+                        })}"
                                     >
                                         例如 : 黑色、S號
                                     </div>
                                 </div>
                             `;
-                },
-                divCreate: {
-                    class: 'w-100 bg-white',
-                    style: 'display: flex;gap: 8px;flex-direction: column;',
-                },
-                onCreate: () => {
-                    var _b;
-                    let enterPass = true;
-                    const inputElement = document.getElementById(vm.enterId);
-                    gvc.glitter.share.keyDownEvent = (_b = gvc.glitter.share.keyDownEvent) !== null && _b !== void 0 ? _b : {};
-                    keyboard === 'Enter' && inputElement && inputElement.focus();
-                    inputElement.addEventListener('compositionupdate', function () {
-                        enterPass = false;
-                    });
-                    inputElement.addEventListener('compositionend', function () {
-                        enterPass = true;
-                    });
-                    document.removeEventListener('keydown', gvc.glitter.share.keyDownEvent[vm.enterId]);
-                    gvc.glitter.share.keyDownEvent[vm.enterId] = (event) => {
-                        keyboard = event.key;
-                        if (enterPass && inputElement && inputElement.value.length > 0 && event.key === 'Enter') {
-                            setTimeout(() => {
-                                temp.option.push({
-                                    title: inputElement.value,
-                                });
-                                inputElement.value = '';
-                                temp.option = temp.option.reduce((acc, current) => {
-                                    const isTitleExist = acc.find((item) => item.title === current.title);
-                                    if (!isTitleExist) {
-                                        acc.push(current);
+                    },
+                    divCreate: {
+                        class: 'w-100 bg-white',
+                        style: 'display: flex;gap: 8px;flex-direction: column;',
+                    },
+                    onCreate: () => {
+                        var _b;
+                        let enterPass = true;
+                        const inputElement = document.getElementById(vm.enterId);
+                        gvc.glitter.share.keyDownEvent = (_b = gvc.glitter.share.keyDownEvent) !== null && _b !== void 0 ? _b : {};
+                        keyboard === 'Enter' && inputElement && inputElement.focus();
+                        inputElement.addEventListener('compositionupdate', function () {
+                            enterPass = false;
+                        });
+                        inputElement.addEventListener('compositionend', function () {
+                            enterPass = true;
+                        });
+                        saveKeyEvent = () => {
+                            return new Promise((resolve, reject) => {
+                                setTimeout(() => {
+                                    if (!inputElement.value) {
+                                        resolve(true);
+                                        return;
                                     }
-                                    return acc;
-                                }, []);
-                                gvc.notifyDataChange(vm.viewId);
-                            }, 30);
-                        }
-                    };
-                    document.addEventListener('keydown', gvc.glitter.share.keyDownEvent[vm.enterId]);
-                },
+                                    temp.option.push({
+                                        title: inputElement.value,
+                                    });
+                                    inputElement.value = '';
+                                    temp.option = temp.option.reduce((acc, current) => {
+                                        const isTitleExist = acc.find((item) => item.title === current.title);
+                                        if (!isTitleExist) {
+                                            acc.push(current);
+                                        }
+                                        return acc;
+                                    }, []);
+                                    resolve(true);
+                                    gvc.notifyDataChange(vm.viewId);
+                                }, 30);
+                            });
+                        };
+                        document.removeEventListener('keydown', gvc.glitter.share.keyDownEvent[vm.enterId]);
+                        gvc.glitter.share.keyDownEvent[vm.enterId] = (event) => {
+                            keyboard = event.key;
+                            if (enterPass && inputElement && inputElement.value.length > 0 && event.key === 'Enter') {
+                                saveKeyEvent();
+                            }
+                        };
+                        document.addEventListener('keydown', gvc.glitter.share.keyDownEvent[vm.enterId]);
+                    },
+                };
             }),
             html `
                         <div class="d-flex w-100 justify-content-end align-items-center w-100 bg-white"
@@ -1938,7 +1951,9 @@ export class ShoppingProductSetting {
                 cb.cancel();
             }))}
                             ${BgWidget.save(gvc.event(() => {
-                cb.save();
+                saveKeyEvent().then(() => {
+                    cb.save();
+                });
             }), '完成')}
                         </div>`,
         ].join('')}

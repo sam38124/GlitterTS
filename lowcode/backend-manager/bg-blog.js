@@ -1331,13 +1331,13 @@ function detail(gvc, cf, vm, cVm, page_tab) {
                                                         html `
                                                                                 <div>
                                                                                     <div class="tx_normal">
-                                                                                        社群分享縮圖
+                                                                                        社群分享縮圖${BgWidget.languageInsignia(language, 'margin-left:5px;')}
                                                                                     </div>
                                                                                     <div class="mt-1 mb-2">
                                                                                         ${BgWidget.grayNote('建議尺寸為 200px * 200px 以上')}
                                                                                     </div>
-                                                                                    ${BgWidget.imageSelector(gvc, vm.data.content.seo.image || '', (text) => {
-                                                            vm.data.content.seo.image = text;
+                                                                                    ${BgWidget.imageSelector(gvc, language_data.seo.image || '', (text) => {
+                                                            language_data.seo.image = text;
                                                             gvc.notifyDataChange(id);
                                                         })}
                                                                                 </div>`,

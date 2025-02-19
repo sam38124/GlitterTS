@@ -2074,6 +2074,7 @@ export class ShoppingProductSetting {
             enterId: Tool.randomString(7),
         };
         let keyboard = '';
+        let saveKeyEvent:any=undefined
         return html`
             <div class="bg-white w-100">
                 ${[
@@ -2091,10 +2092,13 @@ export class ShoppingProductSetting {
                                     })}"
                             />
                         </div>`,
-                    gvc.bindView({
-                        bind: vm.viewId,
-                        view: () => {
-                            return html`
+                    gvc.bindView(
+                            ()=>{
+                           
+                                return {
+                                    bind: vm.viewId,
+                                    view: () => {
+                                        return html`
                                 <div class="w-100" style="background-color:white !important;margin-top: 8px;">選項
                                     (輸入完請按enter)
                                 </div>
@@ -2117,9 +2121,9 @@ export class ShoppingProductSetting {
                                                                     class="fa-solid fa-xmark ms-1 fs-5"
                                                                     style="font-size: 12px;cursor: pointer;"
                                                                     onclick="${gvc.event(() => {
-                                                                        temp.option.splice(index, 1);
-                                                                        gvc.notifyDataChange(vm.viewId);
-                                                                    })}"
+                                                            temp.option.splice(index, 1);
+                                                            gvc.notifyDataChange(vm.viewId);
+                                                        })}"
                                                             ></i>
                                                             </div>
                                                         `
@@ -2139,69 +2143,82 @@ export class ShoppingProductSetting {
                                             class="d-flex align-items-center ${temp.option.length > 0 ? 'd-none' : ''} ps-2"
                                             style="color: #8D8D8D;width: 100%;height:100%;position: absolute;left: 18px;top: 0;"
                                             onclick="${gvc.event((e) => {
-                                                e.classList.add('d-none');
-                                                setTimeout(() => {
-                                                    (document.querySelector(`.specInput-${vm.enterId}`) as HTMLButtonElement)!.focus();
-                                                }, 100);
-                                            })}"
+                                            e.classList.add('d-none');
+                                            setTimeout(() => {
+                                                (document.querySelector(`.specInput-${vm.enterId}`) as HTMLButtonElement)!.focus();
+                                            }, 100);
+                                        })}"
                                     >
                                         例如 : 黑色、S號
                                     </div>
                                 </div>
                             `;
-                        },
-                        divCreate: {
-                            class: 'w-100 bg-white',
-                            style: 'display: flex;gap: 8px;flex-direction: column;',
-                        },
-                        onCreate: () => {
-                            let enterPass = true;
-                            const inputElement = document.getElementById(vm.enterId) as any;
-                            gvc.glitter.share.keyDownEvent = gvc.glitter.share.keyDownEvent ?? {};
+                                    },
+                                    divCreate: {
+                                        class: 'w-100 bg-white',
+                                        style: 'display: flex;gap: 8px;flex-direction: column;',
+                                    },
+                                    onCreate: () => {
+                                        let enterPass = true;
+                                        const inputElement = document.getElementById(vm.enterId) as any;
+                                        gvc.glitter.share.keyDownEvent = gvc.glitter.share.keyDownEvent ?? {};
 
-                            keyboard === 'Enter' && inputElement && inputElement.focus();
+                                        keyboard === 'Enter' && inputElement && inputElement.focus();
 
-                            inputElement.addEventListener('compositionupdate', function () {
-                                enterPass = false;
-                            });
-
-                            inputElement.addEventListener('compositionend', function () {
-                                enterPass = true;
-                            });
-
-                            document.removeEventListener('keydown', gvc.glitter.share.keyDownEvent[vm.enterId]);
-
-                            gvc.glitter.share.keyDownEvent[vm.enterId] = (event: any) => {
-                                keyboard = event.key;
-                                if (enterPass && inputElement && inputElement.value.length > 0 && event.key === 'Enter') {
-                                    setTimeout(() => {
-                                        temp.option.push({
-                                            title: inputElement.value,
+                                        inputElement.addEventListener('compositionupdate', function () {
+                                            enterPass = false;
                                         });
-                                        inputElement.value = '';
-                                        temp.option = temp.option.reduce(
-                                                (
-                                                        acc: { title: string }[],
-                                                        current: {
-                                                            title: string;
-                                                        }
-                                                ) => {
-                                                    const isTitleExist = acc.find((item) => item.title === current.title);
-                                                    if (!isTitleExist) {
-                                                        acc.push(current);
-                                                    }
-                                                    return acc;
-                                                },
-                                                []
-                                        );
-                                        gvc.notifyDataChange(vm.viewId);
-                                    }, 30);
-                                }
-                            };
 
-                            document.addEventListener('keydown', gvc.glitter.share.keyDownEvent[vm.enterId]);
-                        },
-                    }),
+                                        inputElement.addEventListener('compositionend', function () {
+                                            enterPass = true;
+                                        });
+                                        
+                                        saveKeyEvent=()=>{
+                                            return new Promise((resolve, reject)=>{
+                                                setTimeout(() => {
+                                                    if(!inputElement.value){
+                                                        resolve(true);
+                                                        return
+                                                    }
+                                                    temp.option.push({
+                                                        title: inputElement.value,
+                                                    });
+                                                    inputElement.value = '';
+                                                    temp.option = temp.option.reduce(
+                                                            (
+                                                                    acc: { title: string }[],
+                                                                    current: {
+                                                                        title: string;
+                                                                    }
+                                                            ) => {
+                                                                const isTitleExist = acc.find((item) => item.title === current.title);
+                                                                if (!isTitleExist) {
+                                                                    acc.push(current);
+                                                                }
+                                                                return acc;
+                                                            },
+                                                            []
+                                                    );
+                                                    resolve(true)
+                                                    gvc.notifyDataChange(vm.viewId);
+                                                }, 30);
+                                            })
+                                        
+                                        }
+                                        document.removeEventListener('keydown', gvc.glitter.share.keyDownEvent[vm.enterId]);
+
+
+                                        gvc.glitter.share.keyDownEvent[vm.enterId] = (event: any) => {
+                                            keyboard = event.key;
+                                            if (enterPass && inputElement && inputElement.value.length > 0 && event.key === 'Enter') {
+                                                saveKeyEvent()
+                                            }
+                                        };
+
+                                        document.addEventListener('keydown', gvc.glitter.share.keyDownEvent[vm.enterId]);
+                                    },
+                                }
+                            }),
                     html`
                         <div class="d-flex w-100 justify-content-end align-items-center w-100 bg-white"
                              style="gap:14px; margin-top: 12px;">
@@ -2212,7 +2229,9 @@ export class ShoppingProductSetting {
                             )}
                             ${BgWidget.save(
                                     gvc.event(() => {
-                                        cb.save();
+                                        saveKeyEvent().then(()=>{
+                                            cb.save();
+                                        });
                                     }),
                                     '完成'
                             )}

@@ -525,21 +525,21 @@ export class ShoppingFinanceSetting {
                                                                     }),
                                                                     BgWidget.editeInput({
                                                                         gvc: gvc,
-                                                                        title: 'public key',
+                                                                        title: '串接帳號',
                                                                         default: key_d.public_key,
                                                                         callback: (text) => {
                                                                             key_d.public_key = text;
                                                                         },
-                                                                        placeHolder: '請輸入public key',
+                                                                        placeHolder: '請輸入串接帳號',
                                                                     }),
                                                                     BgWidget.editeInput({
                                                                         gvc: gvc,
-                                                                        title: 'private key',
+                                                                        title: '串接密碼',
                                                                         default: key_d.private_key,
                                                                         callback: (text) => {
                                                                             key_d.private_key = text;
                                                                         },
-                                                                        placeHolder: '請輸入private key',
+                                                                        placeHolder: '請輸入串接密碼',
                                                                     })
                                                                 ].join('');
                                                         }

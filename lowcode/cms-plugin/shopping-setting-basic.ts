@@ -47,7 +47,9 @@ export class ShoppingSettingBasic {
         const start = gvc.glitter.ut.clock()
 
         function updateVariants() {
-            console.log(`start-time`, start.stop())
+            postMD.specs=postMD.specs.filter((dd)=>{
+                return dd.option && dd.option.length
+            })
             const specs: any = {};
 
             function getCombinations(specs: any) {
@@ -168,6 +170,14 @@ export class ShoppingSettingBasic {
             obj.vm.replaceData = postMD;
             console.log(`end-time`, start.stop())
             console.log(`postMD.variants=>`,postMD.variants)
+            // if((postMD.specs.length) && postMD.variants.length===1){
+            //     postMD.specs=[]
+            //     const dialog=new ShareDialog(gvc.glitter)
+            //     dialog.errorMessage({
+            //         text:'設定規格必須包含兩種以上的組合!'
+            //     })
+            //     return
+            // }
             obj.gvc.notifyDataChange(variantsViewID);
         }
 

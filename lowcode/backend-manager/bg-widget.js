@@ -3932,15 +3932,21 @@ ${(_c = obj.default) !== null && _c !== void 0 ? _c : ''}</textarea
                                                     <div
                                                             style="color: #393939; font-size: 16px; font-family: Noto Sans; font-weight: 400; word-wrap: break-word;  "
                                                             onclick="${gvc.event(() => {
-                            EditorElem.uploadFileFunction({
-                                gvc: gvc,
-                                callback: (text) => {
-                                    callback(text);
-                                    image = text;
+                            imageLibrary.selectImageLibrary(gvc, (urlArray) => {
+                                if (urlArray.length > 0) {
+                                    callback(urlArray[0].data);
+                                    image = urlArray[0].data;
                                     gvc.notifyDataChange(id);
-                                },
-                                type: `image/*, video/*`,
-                            });
+                                }
+                                else {
+                                    const dialog = new ShareDialog(gvc.glitter);
+                                    dialog.errorMessage({ text: '請選擇一張圖片' });
+                                }
+                            }, html `
+                                                    <div class="d-flex flex-column"
+                                                         style="border-radius: 10px 10px 0px 0px;background: #F2F2F2;">
+                                                        圖片庫
+                                                    </div>`, { mul: false });
                         })}"
                                                     >
                                                         新增圖片
