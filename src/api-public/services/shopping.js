@@ -474,7 +474,7 @@ class Shopping {
                     return parseInt(`${item.sale_price}`, 10);
                 });
                 product.content.min_price = Math.min(...priceArray);
-                if (product.content.product_category === 'kitchen') {
+                if (product.content.product_category === 'kitchen' && (product.content.variants.length > 1)) {
                     let postMD = product.content;
                     product.content.variants.map((dd) => {
                         var _a, _b, _c, _d;
@@ -1219,7 +1219,7 @@ class Shopping {
                                                     },
                                                 });
                                             }
-                                            if (pd.product_category === 'kitchen') {
+                                            if (pd.product_category === 'kitchen' && (variant.spec && variant.spec.length)) {
                                                 variant.spec.map((d1, index) => {
                                                     var _a;
                                                     const count_s = `${(_a = pd.specs[index].option.find((d2) => {
@@ -2239,7 +2239,7 @@ class Shopping {
                 }
                 if (origin[0].orderData.orderStatus !== '-1' && data.orderData.orderStatus === '-1') {
                     for (const lineItem of origin[0].orderData.lineItems) {
-                        if (lineItem.product_category === 'kitchen') {
+                        if (lineItem.product_category === 'kitchen' && (lineItem.spec && lineItem.spec.length)) {
                             await new Shopping(this.app, this.token).calcVariantsStock(lineItem.count, '', lineItem.id, lineItem.spec);
                         }
                         else {
@@ -2280,7 +2280,7 @@ class Shopping {
                             const og_line_items = origin[0].orderData.lineItems.find((dd) => {
                                 return dd.id === new_line_item.id && dd.spec.join('') === new_line_item.spec.join('');
                             });
-                            if (new_line_item.product_category === 'kitchen') {
+                            if (new_line_item.product_category === 'kitchen' && (new_line_item.spec && new_line_item.spec.length)) {
                                 await new Shopping(this.app, this.token).calcVariantsStock(new_line_item.count, '', new_line_item.id, new_line_item.spec);
                             }
                             else {
@@ -2842,7 +2842,7 @@ OR JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.orderStatus')) NOT IN (-99)) `);
             const variant_s = pd_data.variants.find((dd) => {
                 return dd.spec.join('-') === spec.join('-');
             });
-            if (pd_data.product_category === 'kitchen') {
+            if (pd_data.product_category === 'kitchen' && (pd_data.specs && pd_data.specs.length)) {
                 variant_s.spec.map((d1, index) => {
                     var _a;
                     const count_s = `${(_a = pd_data.specs[index].option.find((d2) => {

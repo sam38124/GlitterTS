@@ -129,7 +129,7 @@ export class ShoppingSettingAdvance {
                     preview_image: '',
                 });
             }
-            if (postMD.product_category === 'kitchen') {
+            if (postMD.product_category === 'kitchen' && (postMD.variants.length>1)) {
                 postMD.variants.map((dd) => {
                     dd.compare_price=0
                     dd.sale_price = dd.spec.map((d1, index) => {

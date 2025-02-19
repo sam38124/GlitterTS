@@ -147,19 +147,30 @@ export class ShoppingSettingBasic {
                 });
             }
             if (postMD.product_category === 'kitchen') {
-                postMD.variants.map((dd) => {
-                    dd.compare_price=0
-                    dd.sale_price = dd.spec.map((d1, index) => {
-                        return parseInt(postMD.specs[index].option.find((d2:any) => {
-                            return d2.title === d1
-                        }).price ?? "0",10)
-                    }).reduce((acc, cur) => acc + cur, 0);
-                    dd.weight=parseFloat(postMD.weight ?? '0');
-                    dd.v_height=parseFloat(postMD.v_height ?? '0');
-                    dd.v_width=parseFloat(postMD.v_width ?? '0');
-                    dd.v_length=parseFloat(postMD.v_length ?? '0');
-                    (dd.shipment_type as any)=postMD.shipment_type!!
-                })
+                if(postMD.variants.length>1){
+                    postMD.variants.map((dd) => {
+                        dd.compare_price=0
+                        dd.sale_price = dd.spec.map((d1, index) => {
+                            return parseInt(postMD.specs[index].option.find((d2:any) => {
+                                return d2.title === d1
+                            }).price ?? "0",10)
+                        }).reduce((acc, cur) => acc + cur, 0);
+                        dd.weight=parseFloat(postMD.weight ?? '0');
+                        dd.v_height=parseFloat(postMD.v_height ?? '0');
+                        dd.v_width=parseFloat(postMD.v_width ?? '0');
+                        dd.v_length=parseFloat(postMD.v_length ?? '0');
+                        (dd.shipment_type as any)=postMD.shipment_type!!
+                    })
+                }else{
+                    postMD.variants.map((dd) => {
+                        dd.weight=parseFloat(postMD.weight ?? '0');
+                        dd.v_height=parseFloat(postMD.v_height ?? '0');
+                        dd.v_width=parseFloat(postMD.v_width ?? '0');
+                        dd.v_length=parseFloat(postMD.v_length ?? '0');
+                        (dd.shipment_type as any)=postMD.shipment_type!!
+                    })
+                }
+
             }
 
             postMD.variants.map((dd: any) => {
@@ -1345,7 +1356,7 @@ export class ShoppingSettingBasic {
                             };
                         })
                     ),
-                    (postMD.variants.length > 1)
+                    (postMD.variants.length > 1 || (postMD.product_category === 'kitchen'))
                         ? (() => {
                             if (postMD.product_category === 'kitchen') {
                                 let map_:string[]=[]
@@ -1461,62 +1472,64 @@ export class ShoppingSettingBasic {
                                                     </div>
                                                 </div>
                                             `))
-                                map_.push(BgWidget.mainCard(`
+                                if(postMD.variants.length>1){
+                                    map_.push(BgWidget.mainCard(`
                                 <div class="d-flex flex-column" style="font-size: 16px;font-weight: 700;color:#393939;${(postMD as any).shopee_id ? `` : `margin-bottom: 10px;`}">組合費用
                                      ${BgWidget.grayNote('購買金額為用戶選擇的選項價格去進行加總，如未輸入庫存數量則不追蹤庫存')}
                                 </div>
                      
                                 ` + obj.gvc.bindView(() => {
-                                    const vm = {
-                                        id: obj.gvc.glitter.getUUID()
-                                    }
-                                    return {
-                                        bind: vm.id,
-                                        view: () => {
-                                            console.log(`postMD.specs==>`, postMD.specs)
-                                            return html`
+                                        const vm = {
+                                            id: obj.gvc.glitter.getUUID()
+                                        }
+                                        return {
+                                            bind: vm.id,
+                                            view: () => {
+                                                console.log(`postMD.specs==>`, postMD.specs)
+                                                return html`
                                                 <div class="w-100 d-flex align-items-center border-bottom py-2 border-top">
                                                     <div class="fw-500" style="flex:1;">名稱</div>
                                                     <div class="fw-500" style="flex:1;">價格</div>
                                                     <div class="fw-500" style="flex:1;">庫存</div>
                                                 </div>
                                             ` + postMD.specs.map((dd) => {
-                                                return dd.option.map((d1: any) => {
-                                                    d1.price = d1.price ?? 0;
-                                                    return `<div class="w-100 d-flex align-items-center py-2">
+                                                    return dd.option.map((d1: any) => {
+                                                        d1.price = d1.price ?? 0;
+                                                        return `<div class="w-100 d-flex align-items-center py-2">
                                                     <div class="fw-500" style="flex:1;">${dd.title} / ${d1.title}</div>
                                                     <div class="fw-50 pe-3" style="flex:1;">${
-                                                        BgWidget.editeInput({
-                                                            gvc: gvc,
-                                                            title: '',
-                                                            default: `${d1.price}`,
-                                                            callback: (text) => {
-                                                                d1.price = parseInt(text,10);
-                                                                updateVariants()
-                                                            },
-                                                            placeHolder: '價格',
-                                                            type: 'number'
-                                                        })
-                                                    }</div>
+                                                            BgWidget.editeInput({
+                                                                gvc: gvc,
+                                                                title: '',
+                                                                default: `${d1.price}`,
+                                                                callback: (text) => {
+                                                                    d1.price = parseInt(text,10);
+                                                                    updateVariants()
+                                                                },
+                                                                placeHolder: '價格',
+                                                                type: 'number'
+                                                            })
+                                                        }</div>
                                                         <div class="fw-50 " style="flex:1;">${
-                                                        BgWidget.editeInput({
-                                                            gvc: gvc,
-                                                            title: '',
-                                                            default: `${d1.stock}`,
-                                                            callback: (text) => {
-                                                                d1.stock = text;
-                                                            },
-                                                            placeHolder: '不追蹤庫存',
-                                                            type: 'number'
-                                                        })
-                                                    }</div>
+                                                            BgWidget.editeInput({
+                                                                gvc: gvc,
+                                                                title: '',
+                                                                default: `${d1.stock}`,
+                                                                callback: (text) => {
+                                                                    d1.stock = text;
+                                                                },
+                                                                placeHolder: '不追蹤庫存',
+                                                                type: 'number'
+                                                            })
+                                                        }</div>
                                                 </div>`
+                                                    }).join('')
                                                 }).join('')
-                                            }).join('')
-                                        },
-                                        divCreate: {}
-                                    }
-                                })))
+                                            },
+                                            divCreate: {}
+                                        }
+                                    })))
+                                }
                                 return map_.join(BgWidget.mbContainer(18))
                             } else {
                                 return BgWidget.mainCard(

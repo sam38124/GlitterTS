@@ -703,7 +703,7 @@ export class Shopping {
                         return parseInt(`${item.sale_price}`, 10);
                     });
                 product.content.min_price = Math.min(...priceArray);
-                if (product.content.product_category === 'kitchen') {
+                if (product.content.product_category === 'kitchen' && (product.content.variants.length>1)) {
                     let postMD = product.content as any
                     product.content.variants.map((dd: any) => {
                         dd.compare_price = 0
@@ -1706,7 +1706,7 @@ export class Shopping {
                                                     },
                                                 });
                                             }
-                                            if(pd.product_category === 'kitchen'){
+                                            if(pd.product_category === 'kitchen' && (variant.spec && variant.spec.length)){
                                                  //如果是餐廳的話扣庫存的方式不太相同
                                                 variant.spec.map((d1: any, index: number) => {
                                                     const count_s=`${pd.specs[index].option.find((d2: any) => {
@@ -2949,7 +2949,7 @@ export class Shopping {
                 if (origin[0].orderData.orderStatus !== '-1' && data.orderData.orderStatus === '-1') {
                     for (const lineItem of origin[0].orderData.lineItems) {
                         //回填所有庫存點數量
-                        if(lineItem.product_category==='kitchen'){
+                        if(lineItem.product_category==='kitchen' && (lineItem.spec && lineItem.spec.length)){
                             await new Shopping(this.app, this.token).calcVariantsStock(lineItem.count, '', lineItem.id, lineItem.spec);
                         }else {
                             for (const b of Object.keys(lineItem.deduction_log)) {
@@ -2992,7 +2992,7 @@ export class Shopping {
                             const og_line_items = origin[0].orderData.lineItems.find((dd: any) => {
                                 return dd.id === new_line_item.id && dd.spec.join('') === new_line_item.spec.join('');
                             });
-                            if(new_line_item.product_category==='kitchen'){
+                            if(new_line_item.product_category==='kitchen' && (new_line_item.spec && new_line_item.spec.length)){
                                 await new Shopping(this.app, this.token).calcVariantsStock(new_line_item.count, '', new_line_item.id, new_line_item.spec);
                             }else {
                                 for (const key of Object.keys(new_line_item.deduction_log)) {
@@ -3716,7 +3716,7 @@ OR JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.orderStatus')) NOT IN (-99)) `);
                 return dd.spec.join('-') === spec.join('-');
             });
             //如果是餐飲組合扣除庫存方式不同
-            if(pd_data.product_category==='kitchen'){
+            if(pd_data.product_category==='kitchen' && (pd_data.specs && pd_data.specs.length)){
                 variant_s.spec.map((d1: any, index: number) => {
                     const count_s=`${pd_data.specs[index].option.find((d2: any) => {
                         return d2.title === d1

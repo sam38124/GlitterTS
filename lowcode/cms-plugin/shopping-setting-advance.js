@@ -114,7 +114,7 @@ export class ShoppingSettingAdvance {
                     preview_image: '',
                 });
             }
-            if (postMD.product_category === 'kitchen') {
+            if (postMD.product_category === 'kitchen' && (postMD.variants.length > 1)) {
                 postMD.variants.map((dd) => {
                     var _a, _b, _c, _d;
                     dd.compare_price = 0;
