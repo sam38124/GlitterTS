@@ -500,11 +500,13 @@ export class BgWidget {
         }
     }
 
-    static horizontalLine(css?: { color?: string; size?: number; margin?: number }) {
-        return html`
-            <div class="w-100"
-                 style="margin: ${css?.margin ?? 1}rem 0; border-bottom: ${css?.size ?? 1}px solid ${css?.color ?? '#DDD'}"></div>`;
+    static horizontalLine(css: { color?: string; size?: number; margin?: number | string } = {}) {
+        const { color = '#DDD', size = 1, margin = '1rem 0' } = css;
+        const marginValue = typeof margin === 'number' ? `${margin}rem 0` : margin;
+    
+        return html`<div class="w-100" style="margin: ${marginValue}; border-bottom: ${size}px solid ${color};"></div>`;
     }
+    
 
     static isValidEmail(email: string) {
         const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;

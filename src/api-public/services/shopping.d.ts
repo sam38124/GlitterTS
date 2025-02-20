@@ -178,6 +178,7 @@ export declare class Shopping {
         id_list?: string;
         with_hide_index?: string;
         is_manger?: boolean;
+        setUserID?: string;
         show_hidden?: string;
         productType?: string;
         filter_visible?: string;

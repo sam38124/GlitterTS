@@ -64,7 +64,6 @@ export class Schedule {
 
     async autoCancelOrder(sec: number) {
         try {
-
             for (const app of Schedule.app) {
                 if (await this.perload(app)) {
                     const config = await new User(app).getConfigV2({ key: 'login_config', user_id: 'manager' });
@@ -85,12 +84,11 @@ export class Schedule {
                             orders.map(async (order: any) => {
                                 order.orderData.orderStatus = '-1';
                                 order.orderData.archived = 'true';
-                                console.log(order.token)
-                                return  new Shopping(app).putOrder({
+                                return new Shopping(app).putOrder({
                                     id: order.id,
                                     orderData: order.orderData,
-                                    status:'0'
-                                })
+                                    status: '0',
+                                });
                             })
                         );
                     }

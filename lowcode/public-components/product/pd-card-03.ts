@@ -3,7 +3,6 @@ import { ApiShop } from '../../glitter-base/route/shopping.js';
 import { GlobalUser } from '../../glitter-base/global/global-user.js';
 import { CheckInput } from '../../modules/checkInput.js';
 import { PdClass } from './pd-class.js';
-import { Tool } from '../../modules/tool.js';
 import { ApiUser } from '../../glitter-base/route/user.js';
 import { Language } from '../../glitter-base/global/language.js';
 import { Currency } from '../../glitter-base/global/currency.js';
@@ -300,7 +299,7 @@ export class ProductCard03 {
                                         }) ?? {}
                                     ).compare_price ?? 0;
                                 if (comparePrice > 0 && minPrice < comparePrice) {
-                                    return html` <div class="text-decoration-line-through card-cost-price">NT.$ ${Currency.convertCurrencyText(comparePrice)}</div>`;
+                                    return html` <div class="text-decoration-line-through card-cost-price">${Currency.convertCurrencyText(comparePrice)}</div>`;
                                 }
                                 return '';
                             })()}

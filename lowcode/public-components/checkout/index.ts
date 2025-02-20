@@ -700,9 +700,11 @@ export class CheckoutIndex {
                                                                                     return ``;
                                                                                 }
                                                                             })();
+
                                                                             if (vm.cartData.lineItems.length === index + 1) {
                                                                                 gvc.notifyDataChange(ids.shipping);
                                                                             }
+
                                                                             return html`
                                                                                 <div class="d-flex flex-column border-bottom p-lg-3 px-1 py-3 gap-3">
                                                                                     <div class="d-flex w-100 position-relative" style="gap:20px;">
@@ -726,7 +728,15 @@ export class CheckoutIndex {
                                                                                             >
                                                                                             <div class="${gClass('td')}">${spec ? spec.join(' / ') : ''}</div>
                                                                                             <div class="${gClass('td')} d-flex flex-column align-items-start align-items-sm-center" style="gap:10px;">
-                                                                                                <div class="">
+                                                                                                ${(() => {
+                                                                                                    if (item.is_gift || item.sale_price >= item.origin_price ) {
+                                                                                                        return '';
+                                                                                                    }
+                                                                                                    return html`<div style="text-decoration: line-through; font-size: 14px;">
+                                                                                                        ${Currency.convertCurrencyText(parseFloat(item.origin_price))}
+                                                                                                    </div>`
+                                                                                                })()}
+                                                                                                <div>
                                                                                                     ${(() => {
                                                                                                         if (item.is_gift) {
                                                                                                             return Currency.convertCurrencyText(0);

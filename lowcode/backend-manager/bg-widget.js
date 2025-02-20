@@ -373,11 +373,10 @@ export class BgWidget {
                 })}</div>`;
         }
     }
-    static horizontalLine(css) {
-        var _a, _b, _c;
-        return html `
-            <div class="w-100"
-                 style="margin: ${(_a = css === null || css === void 0 ? void 0 : css.margin) !== null && _a !== void 0 ? _a : 1}rem 0; border-bottom: ${(_b = css === null || css === void 0 ? void 0 : css.size) !== null && _b !== void 0 ? _b : 1}px solid ${(_c = css === null || css === void 0 ? void 0 : css.color) !== null && _c !== void 0 ? _c : '#DDD'}"></div>`;
+    static horizontalLine(css = {}) {
+        const { color = '#DDD', size = 1, margin = '1rem 0' } = css;
+        const marginValue = typeof margin === 'number' ? `${margin}rem 0` : margin;
+        return html `<div class="w-100" style="margin: ${marginValue}; border-bottom: ${size}px solid ${color};"></div>`;
     }
     static isValidEmail(email) {
         const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;

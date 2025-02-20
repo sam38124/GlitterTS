@@ -630,9 +630,15 @@ export class PdClass {
                 vertical-align: baseline;
             }
 
-            .insignia-gray {
-                background: #dddddd;
-                color: #393939;
+            .insignia-voucher {
+                display: flex;
+                height: 22px;
+                padding: 4px 6px;
+                justify-content: center;
+                align-items: center;
+                gap: 4px;
+                border-radius: 7px;
+                background: #FFE9B2;
             }
         `);
         let changePage = (index: string, type: 'page' | 'home', subData: any) => {};
@@ -664,7 +670,7 @@ export class PdClass {
                           .map((v) => {
                               return html`
                                   <div class="d-flex gap-2 align-items-center">
-                                      <div class="insignia insignia-gray rounded-0 fw-bold" style="font-size: 13px;">${eventName(v.reBackType)}</div>
+                                      <div class="insignia insignia-voucher rounded-0 fw-bold" style="font-size: 13px;">${eventName(v.reBackType)}</div>
                                       <div style="font-size: 13px; font-weight: 500;">${v.title}</div>
                                   </div>
                               `;
@@ -711,17 +717,30 @@ export class PdClass {
                           </div>`
                         : ``}
                     ${language_data && language_data.sub_title ? html` <div class="mb-3">${language_data.sub_title}</div> ` : ``}
-                    <h2 style="color: ${titleFontColor};font-size: 24px;">
-                        ${gvc.bindView({
-                            bind: ids.price,
-                            view: () => {
-                                const v = prod.variants.find((variant) => {
-                                    return PdClass.ObjCompare(variant.spec, vm.specs, true);
-                                });
-                                return v ? Currency.convertCurrencyText(v.sale_price) : '錯誤';
-                            },
-                        })}
-                    </h2>
+                    ${gvc.bindView({
+                        bind: ids.price,
+                        view: () => {
+                            const v = prod.variants.find((variant) => PdClass.ObjCompare(variant.spec, vm.specs, true));
+
+                            if (!v) return '錯誤';
+
+                            const comparePrice = parseInt(`${v.compare_price ?? 0}`, 10);
+                            const originPrice = parseInt(`${v.origin_price ?? 0}`, 10);
+                            const lineThroughPrice = comparePrice > originPrice ? originPrice : comparePrice;
+
+                            return html`
+                                <div class="d-flex align-items-end" style="font-family: 'Noto Sans'; gap: 8px;">
+                                    <div style="color: ${titleFontColor}; font-size: 26px; font-weight: 700; line-height: normal">${Currency.convertCurrencyText(v.sale_price)}</div>
+                                    ${lineThroughPrice > 0 && lineThroughPrice > v.sale_price
+                                        ? html`<div style="color: #8D8D8D; font-size: 18px; text-decoration: line-through;">${Currency.convertCurrencyText(lineThroughPrice)}</div> `
+                                        : ''}
+                                </div>
+                            `;
+                        },
+                        divCreate: {
+                            style: 'margin-bottom: 12px;'
+                        }
+                    })}
                     ${gvc.map(
                         prod.specs.map((spec, index1) => {
                             return html` <div>

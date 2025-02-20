@@ -287,7 +287,7 @@ export class ProductCard03 {
                 return dd.sale_price === minPrice;
             })) !== null && _a !== void 0 ? _a : {}).compare_price) !== null && _b !== void 0 ? _b : 0;
             if (comparePrice > 0 && minPrice < comparePrice) {
-                return html ` <div class="text-decoration-line-through card-cost-price">NT.$ ${Currency.convertCurrencyText(comparePrice)}</div>`;
+                return html ` <div class="text-decoration-line-through card-cost-price">${Currency.convertCurrencyText(comparePrice)}</div>`;
             }
             return '';
         })()}

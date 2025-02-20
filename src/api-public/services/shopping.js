@@ -61,11 +61,11 @@ class Shopping {
         this.token = token;
     }
     async getProduct(query) {
-        var _a, _b, _c, _d, _e;
+        var _a, _b, _c, _d, _e, _f;
         try {
             const start = new Date().getTime();
             const userClass = new user_js_1.User(this.app);
-            const userID = this.token ? `${this.token.userID}` : '';
+            const userID = (_a = query.setUserID) !== null && _a !== void 0 ? _a : (this.token ? `${this.token.userID}` : '');
             const store_info = await userClass.getConfigV2({
                 key: 'store-information',
                 user_id: 'manager',
@@ -79,8 +79,8 @@ class Shopping {
                 user_id: 'manager',
             });
             const querySql = [`(content->>'$.type'='product')`];
-            query.language = (_a = query.language) !== null && _a !== void 0 ? _a : store_info.language_setting.def;
-            query.show_hidden = (_b = query.show_hidden) !== null && _b !== void 0 ? _b : 'true';
+            query.language = (_b = query.language) !== null && _b !== void 0 ? _b : store_info.language_setting.def;
+            query.show_hidden = (_c = query.show_hidden) !== null && _c !== void 0 ? _c : 'true';
             const orderMapping = {
                 title: `ORDER BY JSON_EXTRACT(content, '$.title')`,
                 max_price: `ORDER BY CAST(JSON_UNQUOTE(JSON_EXTRACT(content, '$.max_price')) AS SIGNED) DESC`,
@@ -415,13 +415,20 @@ class Shopping {
             if ((query.domain || query.id) && products.data !== undefined) {
                 products.data.json_ld = await seo_config_js_1.SeoConfig.getProductJsonLd(this.app, products.data.content);
             }
-            const viewSource = (_c = query.view_source) !== null && _c !== void 0 ? _c : 'normal';
-            const distributionCode = (_d = query.distribution_code) !== null && _d !== void 0 ? _d : '';
-            const userData = (_e = (await userClass.getUserData(userID, 'userID'))) !== null && _e !== void 0 ? _e : { userID: -1 };
+            const viewSource = (_d = query.view_source) !== null && _d !== void 0 ? _d : 'normal';
+            const distributionCode = (_e = query.distribution_code) !== null && _e !== void 0 ? _e : '';
+            const userData = (_f = (await userClass.getUserData(userID, 'userID'))) !== null && _f !== void 0 ? _f : { userID: -1 };
             const allVoucher = await this.getAllUseVoucher(userData.userID);
             const recommendData = await this.getDistributionRecommend(distributionCode);
             console.log(`get-product-voucher-finish`, (new Date().getTime() - start) / 1000);
+            const getPrice = (priceMap, key, specKey) => {
+                var _a;
+                return (_a = priceMap[key]) === null || _a === void 0 ? void 0 : _a.get(specKey);
+            };
             const processProduct = async (product) => {
+                const createPriceMap = (type) => {
+                    return Object.fromEntries(product.content.multi_sale_price.filter((item) => item.type === type).map((item) => [item.key, new Map(item.variants.map((v) => [v.spec.join('-'), v.price]))]));
+                };
                 product.content.about_vouchers = await this.aboutProductVoucher({
                     product,
                     userID,
@@ -446,7 +453,7 @@ class Shopping {
                                 return [a.variant_content.spec.join(','), a.id];
                             }));
                             product.content.variants.forEach((pv) => {
-                                var _a;
+                                var _a, _b;
                                 const specString = pv.spec.join(',');
                                 const variantID = variantsList.get(specString);
                                 if (variantID) {
@@ -454,7 +461,7 @@ class Shopping {
                                     pv.variant_id = variantID;
                                     pv.exhibition_type = true;
                                     pv.exhibition_active_stock = (_a = vData === null || vData === void 0 ? void 0 : vData.activeSaleStock) !== null && _a !== void 0 ? _a : 0;
-                                    pv.sale_price = vData === null || vData === void 0 ? void 0 : vData.salePrice;
+                                    pv.sale_price = (_b = vData === null || vData === void 0 ? void 0 : vData.salePrice) !== null && _b !== void 0 ? _b : 0;
                                 }
                                 else {
                                     pv.exhibition_type = false;
@@ -463,6 +470,25 @@ class Shopping {
                         }
                     }
                 }
+                product.content.variants.forEach((pv) => {
+                    var _a, _b;
+                    const vPriceList = [pv.sale_price];
+                    if ((_a = product.content.multi_sale_price) === null || _a === void 0 ? void 0 : _a.length) {
+                        const storeMaps = createPriceMap('store');
+                        const levelMaps = createPriceMap('level');
+                        const specKey = pv.spec.join('-');
+                        if (query.whereStore) {
+                            const storePrice = getPrice(storeMaps, query.whereStore, specKey);
+                            storePrice && vPriceList.push(storePrice);
+                        }
+                        if ((_b = userData === null || userData === void 0 ? void 0 : userData.member_level) === null || _b === void 0 ? void 0 : _b.id) {
+                            const levelPrice = getPrice(levelMaps, userData.member_level.id, specKey);
+                            levelPrice && vPriceList.push(levelPrice);
+                        }
+                    }
+                    pv.origin_price = parseInt(`${pv.sale_price}`, 10);
+                    pv.sale_price = Math.min(...vPriceList);
+                });
                 const priceArray = product.content.variants
                     .filter((item) => {
                     if (query.channel && query.channel === 'exhibition') {
@@ -479,33 +505,33 @@ class Shopping {
                     product.content.variants.map((dd) => {
                         var _a, _b, _c, _d;
                         dd.compare_price = 0;
-                        dd.sale_price = dd.spec.map((d1, index) => {
-                            var _a;
-                            return parseInt((_a = postMD.specs[index].option.find((d2) => {
-                                return d2.title === d1;
-                            }).price) !== null && _a !== void 0 ? _a : "0", 10);
-                        }).reduce((acc, cur) => acc + cur, 0);
+                        dd.sale_price = dd.spec.reduce((sum, specValue, index) => {
+                            var _a, _b;
+                            const spec = postMD.specs[index];
+                            const option = (_a = spec === null || spec === void 0 ? void 0 : spec.option) === null || _a === void 0 ? void 0 : _a.find((opt) => opt.title === specValue);
+                            const priceStr = (_b = option === null || option === void 0 ? void 0 : option.price) !== null && _b !== void 0 ? _b : '0';
+                            const price = parseInt(priceStr, 10);
+                            return isNaN(price) ? sum : sum + price;
+                        }, 0);
                         dd.weight = parseFloat((_a = postMD.weight) !== null && _a !== void 0 ? _a : '0');
                         dd.v_height = parseFloat((_b = postMD.v_height) !== null && _b !== void 0 ? _b : '0');
                         dd.v_width = parseFloat((_c = postMD.v_width) !== null && _c !== void 0 ? _c : '0');
                         dd.v_length = parseFloat((_d = postMD.v_length) !== null && _d !== void 0 ? _d : '0');
                         dd.shipment_type = postMD.shipment_type;
                         dd.show_understocking = 'true';
-                        dd.stock = Math.min(...dd.spec.map((d1, index) => {
-                            var _a, _b;
-                            if (!`${(_a = postMD.specs[index].option.find((d2) => {
-                                return d2.title === d1;
-                            }).stock) !== null && _a !== void 0 ? _a : ''}`) {
+                        dd.stock = Math.min(...dd.spec.map((specValue, index) => {
+                            var _a;
+                            const spec = postMD.specs[index];
+                            const option = (_a = spec === null || spec === void 0 ? void 0 : spec.option) === null || _a === void 0 ? void 0 : _a.find((opt) => opt.title === specValue);
+                            const stockStr = option === null || option === void 0 ? void 0 : option.stock;
+                            if (!stockStr) {
                                 return Infinity;
                             }
-                            else {
-                                return parseInt((_b = postMD.specs[index].option.find((d2) => {
-                                    return d2.title === d1;
-                                }).stock) !== null && _b !== void 0 ? _b : "0", 10);
-                            }
+                            const stock = parseInt(stockStr, 10);
+                            return isNaN(stock) ? Infinity : stock;
                         }));
                         if (dd.stock === Infinity) {
-                            dd.show_understocking = "false";
+                            dd.show_understocking = 'false';
                         }
                     });
                 }
@@ -1126,6 +1152,7 @@ class Shopping {
                         status: 'inRange',
                         channel: data.checkOutType === 'POS' ? (data.isExhibition ? 'exhibition' : 'pos') : undefined,
                         whereStore: data.checkOutType === 'POS' ? data.pos_store : undefined,
+                        setUserID: `${userData.userID || ''}`
                     })).data;
                     if (pdDqlData) {
                         const pd = pdDqlData.content;
@@ -1155,6 +1182,7 @@ class Shopping {
                                     preview_image: variant.preview_image || pd.preview_image[0],
                                     title: pd.title,
                                     sale_price: variant.sale_price,
+                                    origin_price: variant.origin_price,
                                     collection: pd.collection,
                                     sku: variant.sku,
                                     stock: variant.stock,
@@ -3189,12 +3217,13 @@ OR JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.orderStatus')) NOT IN (-99)) `);
         }
     }
     checkVariantDataType(variants) {
-        variants.map((dd) => {
-            dd.stock && (dd.stock = parseInt(dd.stock, 10));
-            dd.product_id && (dd.product_id = parseInt(dd.product_id, 10));
-            dd.sale_price && (dd.sale_price = parseInt(dd.sale_price, 10));
-            dd.compare_price && (dd.compare_price = parseInt(dd.compare_price, 10));
-            dd.shipment_weight && (dd.shipment_weight = parseInt(dd.shipment_weight, 10));
+        const propertiesToParse = ['stock', 'product_id', 'sale_price', 'compare_price', 'shipment_weight'];
+        variants.forEach((variant) => {
+            propertiesToParse.forEach((prop) => {
+                if (variant[prop] != null) {
+                    variant[prop] = parseInt(variant[prop], 10);
+                }
+            });
         });
     }
     async postProduct(content) {

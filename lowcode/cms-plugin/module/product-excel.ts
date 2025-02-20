@@ -276,6 +276,7 @@ export class ProductExcel {
                     return {
                         barcode: '',
                         compare_price: 0,
+                        origin_price: 0,
                         cost: 0,
                         preview_image: '',
                         profit: 0,

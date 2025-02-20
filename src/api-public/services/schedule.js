@@ -75,11 +75,10 @@ class Schedule {
                         await Promise.all(orders.map(async (order) => {
                             order.orderData.orderStatus = '-1';
                             order.orderData.archived = 'true';
-                            console.log(order.token);
                             return new shopping_1.Shopping(app).putOrder({
                                 id: order.id,
                                 orderData: order.orderData,
-                                status: '0'
+                                status: '0',
                             });
                         }));
                     }

@@ -1084,6 +1084,28 @@ h6 {
     color: var(--main-black);
 }
 
+.textbox {
+    display: flex;
+    height: 34px;
+    padding: 10px;
+    justify-content: center;
+    align-items: center;
+    gap: 10px;
+    border-radius: 10px;
+}
+
+.textbox-uncheck {
+    color: var(--main-gray-3);
+    border: 1px solid var(--main-gray-1);
+    background: #fff;
+}
+
+.textbox-checked {
+    color: var(--main-black);
+    border: 2px solid var(--main-black);
+    background: #fff;
+}
+
 /* 行動端頁面 */
 @media (max-width: 768px) {
     .c_select_w_100 {

@@ -1,4 +1,5 @@
 import { BgWidget } from './bg-widget.js';
+import { ApiUser } from '../glitter-base/route/user.js';
 import { ApiShop } from '../glitter-base/route/shopping.js';
 import { FilterOptions } from '../cms-plugin/filter-options.js';
 import { StockList } from '../cms-plugin/shopping-product-stock.js';
@@ -316,6 +317,147 @@ export class BgProduct {
     }
     static replaceAngle(text) {
         return text.replace(/\//g, html `<i class="fa-solid fa-angle-right mx-1"></i>`);
+    }
+    static setMemberPriceSetting(obj) {
+        const { gvc, postData, callback } = obj;
+        const isDesktop = document.body.clientWidth > 768;
+        const [baseWidth, baseHeight, mainHeight] = isDesktop ? ['800px', '600px', 'calc(600px - 120px) !important'] : ['95vw', '70vh', 'calc(70vh - 120px) !important'];
+        const vm = {
+            dataList: [],
+            postData: [...postData],
+            loading: true,
+        };
+        return gvc.glitter.innerDialog((gvc) => {
+            const id = gvc.glitter.getUUID();
+            ApiUser.getUserGroupList('level').then((r) => {
+                var _a;
+                if (r.result && Array.isArray((_a = r.response) === null || _a === void 0 ? void 0 : _a.data)) {
+                    vm.dataList = r.response.data.map((d) => ({
+                        key: d.tag || 'default',
+                        name: d.title.replace('會員等級 - ', ''),
+                    }));
+                }
+                vm.loading = false;
+                gvc.notifyDataChange(id);
+            });
+            return gvc.bindView({
+                bind: id,
+                view: () => html ` <div class="bg-white shadow ${isDesktop ? 'rounded-3' : ''}" style="overflow-y: auto; width: ${baseWidth}; height: ${baseHeight};">
+                        <div class="h-100">
+                            ${vm.loading
+                    ? html `<div class="h-100 d-flex">${BgWidget.spinner()}</div>`
+                    : html ` <div class="bg-white shadow rounded-3" style="width: 100%; max-height: 100%; overflow-y: auto; position: relative;">
+                                      <div class="w-100 d-flex align-items-center p-3 border-bottom" style="position: sticky; top: 0; z-index: 2; background: #fff;">
+                                          <div class="tx_700">會員專屬價格設定</div>
+                                          <div class="flex-fill"></div>
+                                          <i class="fa-regular fa-circle-xmark fs-5 text-dark cursor_pointer" onclick="${gvc.event(() => gvc.closeDialog())}"></i>
+                                      </div>
+                                      <div class="c_dialog h-100">
+                                          <div class="c_dialog_body h-100">
+                                              <div class="c_dialog_main h-100" style="min-height: ${mainHeight}; padding: 20px; gap: 0;">
+                                                  ${BgWidget.multiCheckboxContainer(gvc, [
+                        {
+                            key: 'all',
+                            name: '會員階級',
+                        },
+                    ], vm.postData.length === vm.dataList.length ? ['all'] : [], (text) => {
+                        vm.postData = text[0] === 'all' ? vm.dataList.map(({ key }) => key) : [];
+                        gvc.notifyDataChange(id);
+                    })}
+                                                  ${BgWidget.horizontalLine()}
+                                                  ${BgWidget.multiCheckboxContainer(gvc, vm.dataList, vm.postData, (text) => {
+                        vm.postData = text;
+                        gvc.notifyDataChange(id);
+                    })}
+                                                  ${BgWidget.grayNote('※只有被選取的會員才能設置專屬價格，其餘依售價計算', 'margin-top: 12px;')}
+                                              </div>
+                                              <div class="c_dialog_bar" style="z-index: 2;">
+                                                  ${BgWidget.cancel(gvc.event(() => gvc.closeDialog()))}
+                                                  ${BgWidget.save(gvc.event(() => {
+                        callback(vm.postData);
+                        gvc.closeDialog();
+                    }), '確認')}
+                                              </div>
+                                          </div>
+                                      </div>
+                                  </div>`}
+                        </div>
+                    </div>`,
+                divCreate: {},
+            });
+        }, 'setMemberPriceSetting');
+    }
+    static setStorePriceSetting(obj) {
+        const { gvc, postData, callback } = obj;
+        const isDesktop = document.body.clientWidth > 768;
+        const [baseWidth, baseHeight, mainHeight] = isDesktop ? ['800px', '600px', 'calc(600px - 120px) !important'] : ['95vw', '70vh', 'calc(70vh - 120px) !important'];
+        const vm = {
+            dataList: [],
+            postData: [...postData],
+            loading: true,
+        };
+        return gvc.glitter.innerDialog((gvc) => {
+            const id = gvc.glitter.getUUID();
+            ApiUser.getPublicConfig('store_manager', 'manager').then((r) => {
+                if (r.result && Array.isArray(r.response.value.list)) {
+                    vm.dataList = r.response.value.list.map((d) => ({
+                        key: d.id,
+                        name: d.name,
+                    }));
+                }
+                vm.loading = false;
+                gvc.notifyDataChange(id);
+            });
+            return gvc.bindView({
+                bind: id,
+                view: () => html ` <div class="bg-white shadow ${isDesktop ? 'rounded-3' : ''}" style="overflow-y: auto; width: ${baseWidth}; height: ${baseHeight};">
+                        <div class="h-100">
+                            ${vm.loading
+                    ? html `<div class="h-100 d-flex">${BgWidget.spinner()}</div>`
+                    : html ` <div class="bg-white shadow rounded-3" style="width: 100%; max-height: 100%; overflow-y: auto; position: relative;">
+                                      <div class="w-100 d-flex align-items-center p-3 border-bottom" style="position: sticky; top: 0; z-index: 2; background: #fff;">
+                                          <div class="tx_700">門市專屬價格設定 (三選一)</div>
+                                          <div class="flex-fill"></div>
+                                          <i class="fa-regular fa-circle-xmark fs-5 text-dark cursor_pointer" onclick="${gvc.event(() => gvc.closeDialog())}"></i>
+                                      </div>
+                                      <div class="c_dialog h-100">
+                                          <div class="c_dialog_body h-100">
+                                              <div class="c_dialog_main h-100" style="min-height: ${mainHeight}; padding: 20px; gap: 0;">
+                                                  <div class="d-none gap-2 mb-3">
+                                                      <div class="textbox textbox-uncheck">依照門市</div>
+                                                      <div class="textbox textbox-checked">依照門市標籤</div>
+                                                  </div>
+                                                  ${BgWidget.multiCheckboxContainer(gvc, [
+                        {
+                            key: 'all',
+                            name: '門市名稱',
+                        },
+                    ], vm.postData.length === vm.dataList.length ? ['all'] : [], (text) => {
+                        vm.postData = text[0] === 'all' ? vm.dataList.map(({ key }) => key) : [];
+                        gvc.notifyDataChange(id);
+                    })}
+                                                  ${BgWidget.horizontalLine()}
+                                                  ${BgWidget.multiCheckboxContainer(gvc, vm.dataList, vm.postData, (text) => {
+                        vm.postData = text;
+                        gvc.notifyDataChange(id);
+                    })}
+                                                  ${BgWidget.grayNote('※只有被選取的門市/標籤才能設置專屬價格，其餘依售價計算', 'margin-top: 12px;')}
+                                              </div>
+                                              <div class="c_dialog_bar" style="z-index: 2;">
+                                                  ${BgWidget.cancel(gvc.event(() => gvc.closeDialog()))}
+                                                  ${BgWidget.save(gvc.event(() => {
+                        callback(vm.postData);
+                        gvc.closeDialog();
+                    }), '確認')}
+                                              </div>
+                                          </div>
+                                      </div>
+                                  </div>`}
+                        </div>
+                    </div>`,
+                divCreate: {},
+            });
+        }, 'setMemberPriceSetting');
     }
 }
 BgProduct.getProductOpts = (def, product_type) => {

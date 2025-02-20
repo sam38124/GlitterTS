@@ -4,6 +4,7 @@ export interface Variant {
     save_stock?: string;
     sale_price: number;
     compare_price: number;
+    origin_price: number;
     cost: number;
     spec: string[];
     profit: number;
@@ -19,6 +20,7 @@ export interface Variant {
     preview_image: string;
     show_understocking: string;
     type: string;
+    checked?: any;
 }
 
 export interface LanguageData {
@@ -45,10 +47,10 @@ export interface Product {
     shopee_id: number;
     label: any;
     shipment_type?: string;
-    v_length?:string;
-    v_width?:string;
-    v_height?:string;
-    weight?:string;
+    v_length?: string;
+    v_width?: string;
+    v_height?: string;
+    weight?: string;
     id?: string;
     title: string;
     ai_description: string;
@@ -117,7 +119,19 @@ export interface Product {
     };
     about_vouchers: VoucherContent[];
     comments: any[];
+    multi_sale_price?: MultiSalePrice[];
 }
+
+export type MultiSaleType = 'store' | 'level' | 'tag';
+
+export type MultiSalePrice = {
+    type: MultiSaleType;
+    key: string;
+    variants: {
+        spec: string[];
+        price: number;
+    }[];
+};
 
 export class ProductInitial {
     public static initial(postMD: any) {

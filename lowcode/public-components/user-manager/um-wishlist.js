@@ -12,6 +12,7 @@ import { ApiShop } from '../../glitter-base/route/shopping.js';
 import { GlobalUser } from '../../glitter-base/global/global-user.js';
 import { CheckInput } from '../../modules/checkInput.js';
 import { Language } from '../../glitter-base/global/language.js';
+import { Currency } from '../../glitter-base/global/currency.js';
 const html = String.raw;
 export class UMWishList {
     static main(gvc, widget, subData) {
@@ -129,7 +130,7 @@ export class UMWishList {
                                     return dd.sale_price === minPrice;
                                 })) !== null && _a !== void 0 ? _a : {}).compare_price) !== null && _b !== void 0 ? _b : 0;
                                 if (comparePrice > 0 && minPrice < comparePrice) {
-                                    return html `<div class="text-decoration-line-through card-cost-price mb-1">NT.$ ${comparePrice.toLocaleString()}</div>`;
+                                    return html `<div class="text-decoration-line-through card-cost-price mb-1">${Currency.convertCurrencyText(comparePrice)}</div>`;
                                 }
                                 return '';
                             })()}
