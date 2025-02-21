@@ -265,27 +265,26 @@ export class BgProduct {
         }, 'productsDialog');
     }
 
-    static getProductOpts = (def: (number | string)[], product_type?: 'product' | 'addProduct' | 'giveaway') => {
+    static getProductOpts = (def: (number | string)[], productType?: 'product' | 'addProduct' | 'giveaway'): Promise<OptionsItem[]> => {
         return new Promise<OptionsItem[]>((resolve) => {
             if (!def || def.length === 0) {
                 resolve([]);
                 return;
             }
+
+            const idList = def.map(String).join(',');
             ApiShop.getProduct({
                 page: 0,
                 limit: 99999,
-                productType: product_type,
-                id_list: def.map((d) => `${d}`).join(','),
+                productType: productType,
+                id_list: idList,
             }).then((data) => {
-                resolve(
-                    data.response.data.map((product: { content: { id: number; title: string; preview_image: string[] } }) => {
-                        return {
-                            key: product.content.id,
-                            value: product.content.title,
-                            image: product.content.preview_image[0] ?? BgWidget.noImageURL,
-                        };
-                    })
-                );
+                const options = data.response.data.map((product: { content: { id: number; title: string; preview_image: string[] } }) => ({
+                    key: product.content.id,
+                    value: product.content.title,
+                    image: product.content.preview_image[0] ?? BgWidget.noImageURL,
+                }));
+                resolve(options);
             });
         });
     };

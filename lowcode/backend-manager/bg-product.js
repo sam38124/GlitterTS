@@ -460,26 +460,28 @@ export class BgProduct {
         }, 'setMemberPriceSetting');
     }
 }
-BgProduct.getProductOpts = (def, product_type) => {
+BgProduct.getProductOpts = (def, productType) => {
     return new Promise((resolve) => {
         if (!def || def.length === 0) {
             resolve([]);
             return;
         }
+        const idList = def.map(String).join(',');
         ApiShop.getProduct({
             page: 0,
             limit: 99999,
-            productType: product_type,
-            id_list: def.map((d) => `${d}`).join(','),
+            productType: productType,
+            id_list: idList,
         }).then((data) => {
-            resolve(data.response.data.map((product) => {
+            const options = data.response.data.map((product) => {
                 var _a;
-                return {
+                return ({
                     key: product.content.id,
                     value: product.content.title,
                     image: (_a = product.content.preview_image[0]) !== null && _a !== void 0 ? _a : BgWidget.noImageURL,
-                };
-            }));
+                });
+            });
+            resolve(options);
         });
     });
 };

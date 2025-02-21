@@ -1264,7 +1264,6 @@ ${hr}
         return BgWidget.settingDialog({
             gvc,
             title: '通知設定',
-            height: 800,
             innerHTML: () => {
                 return gvc.bindView((() => {
                     return {
@@ -1279,7 +1278,7 @@ ${hr}
                                         vm.select = text;
                                         vm.selectId = notifyType.findIndex((item) => item.key === vm.select);
                                         gvc.notifyDataChange(ids.container);
-                                    }, 'margin: 8px 0'),
+                                    }, 'margin: 0 !important; position: sticky; top: 0; background-color: #fff; z-index: 2;'),
                                     BgWidget.tableV3({
                                         gvc,
                                         getData: (vmi) => {
