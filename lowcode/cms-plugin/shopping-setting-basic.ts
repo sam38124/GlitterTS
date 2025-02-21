@@ -3289,20 +3289,23 @@ ${language_data.seo.content ?? ''}</textarea
                                                     const id = gvc.glitter.getUUID();
                                                     const inputStyle = 'display: block; width: 200px;';
                                                     let options: any[] = [];
-                                                    ApiUser.getPublicConfig('promo-label', 'manager').then((data: any) => {
-                                                        options = data.response.value
-                                                                .map((label: any) => {
-                                                                    return {
-                                                                        key: label.id,
-                                                                        value: label.title,
-                                                                    };
-                                                                })
-                                                                .concat([
-                                                                    {
-                                                                        key: '',
-                                                                        value: '不設定',
-                                                                    },
-                                                                ]);
+                                                    ApiUser.getPublicConfig('promo-label', 'manager').then((data) => {
+                                                        if(data.result && Array.isArray(data.response.value)){
+                                                            options = data.response.value
+                                                            .map((label: any) => {
+                                                                return {
+                                                                    key: label.id,
+                                                                    value: label.title,
+                                                                };
+                                                            })
+                                                            .concat([
+                                                                {
+                                                                    key: '',
+                                                                    value: '不設定',
+                                                                },
+                                                            ]);
+                                                        }
+                                                        
                                                         gvc.notifyDataChange(id);
                                                     });
                                                     return {

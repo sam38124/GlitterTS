@@ -228,6 +228,9 @@ text-transform: uppercase;"
                                                                         $${parseInt(data.sale_price, 10).toLocaleString()}
                                                                     </div>
                                                                     <div class="col-3 col-lg-2 d-flex align-items-center justify-content-center">
+                                                                        ${parseInt((data.count), 10).toLocaleString()}
+                                                                    </div>
+                                                                    <div class="col-3 col-lg-2 d-flex align-items-center justify-content-center">
                                                                         $${parseInt((data.sale_price * data.count), 10).toLocaleString()}
                                                                     </div>
                                                                 </div>

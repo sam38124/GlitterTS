@@ -355,13 +355,12 @@ export class BgProduct {
                                       <div class="c_dialog h-100">
                                           <div class="c_dialog_body h-100">
                                               <div class="c_dialog_main h-100" style="min-height: ${mainHeight}; padding: 20px; gap: 0;">
-                                                  ${BgWidget.multiCheckboxContainer(gvc, [
-                        {
-                            key: 'all',
-                            name: '會員階級',
-                        },
-                    ], vm.postData.length === vm.dataList.length ? ['all'] : [], (text) => {
-                        vm.postData = text[0] === 'all' ? vm.dataList.map(({ key }) => key) : [];
+                                                  ${BgWidget.tripletCheckboxContainer(gvc, '會員階級', (() => {
+                        if (vm.postData.length === 0)
+                            return -1;
+                        return vm.postData.length === vm.dataList.length ? 1 : 0;
+                    })(), (r) => {
+                        vm.postData = r === 1 ? vm.dataList.map(({ key }) => key) : [];
                         gvc.notifyDataChange(id);
                     })}
                                                   ${BgWidget.horizontalLine()}
@@ -400,7 +399,9 @@ export class BgProduct {
             const id = gvc.glitter.getUUID();
             ApiUser.getPublicConfig('store_manager', 'manager').then((r) => {
                 if (r.result && Array.isArray(r.response.value.list)) {
-                    vm.dataList = r.response.value.list.map((d) => ({
+                    vm.dataList = r.response.value.list
+                        .filter((d) => d.is_shop)
+                        .map((d) => ({
                         key: d.id,
                         name: d.name,
                     }));
@@ -416,7 +417,7 @@ export class BgProduct {
                     ? html `<div class="h-100 d-flex">${BgWidget.spinner()}</div>`
                     : html ` <div class="bg-white shadow rounded-3" style="width: 100%; max-height: 100%; overflow-y: auto; position: relative;">
                                       <div class="w-100 d-flex align-items-center p-3 border-bottom" style="position: sticky; top: 0; z-index: 2; background: #fff;">
-                                          <div class="tx_700">門市專屬價格設定 (三選一)</div>
+                                          <div class="tx_700">門市專屬價格設定</div>
                                           <div class="flex-fill"></div>
                                           <i class="fa-regular fa-circle-xmark fs-5 text-dark cursor_pointer" onclick="${gvc.event(() => gvc.closeDialog())}"></i>
                                       </div>
@@ -427,13 +428,12 @@ export class BgProduct {
                                                       <div class="textbox textbox-uncheck">依照門市</div>
                                                       <div class="textbox textbox-checked">依照門市標籤</div>
                                                   </div>
-                                                  ${BgWidget.multiCheckboxContainer(gvc, [
-                        {
-                            key: 'all',
-                            name: '門市名稱',
-                        },
-                    ], vm.postData.length === vm.dataList.length ? ['all'] : [], (text) => {
-                        vm.postData = text[0] === 'all' ? vm.dataList.map(({ key }) => key) : [];
+                                                  ${BgWidget.tripletCheckboxContainer(gvc, '門市名稱', (() => {
+                        if (vm.postData.length === 0)
+                            return -1;
+                        return vm.postData.length === vm.dataList.length ? 1 : 0;
+                    })(), (r) => {
+                        vm.postData = r === 1 ? vm.dataList.map(({ key }) => key) : [];
                         gvc.notifyDataChange(id);
                     })}
                                                   ${BgWidget.horizontalLine()}

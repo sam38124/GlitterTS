@@ -727,7 +727,7 @@ export class Shopping {
                         }
                     }
 
-                    pv.origin_price = parseInt(`${pv.sale_price}`, 10);
+                    pv.origin_price = parseInt(`${pv.compare_price || pv.sale_price}`, 10);
                     pv.sale_price = Math.min(...vPriceList);
                 });
 
@@ -1644,7 +1644,7 @@ export class Shopping {
                             status: 'inRange',
                             channel: data.checkOutType === 'POS' ? (data.isExhibition ? 'exhibition' : 'pos') : undefined,
                             whereStore: data.checkOutType === 'POS' ? data.pos_store : undefined,
-                            setUserID: `${userData.userID || ''}`
+                            setUserID: `${userData?.userID || ''}`
                         })
                     ).data;
                     if (pdDqlData) {

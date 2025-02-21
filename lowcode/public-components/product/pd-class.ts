@@ -639,6 +639,7 @@ export class PdClass {
                 gap: 4px;
                 border-radius: 7px;
                 background: #FFE9B2;
+                font-size: 14px;
             }
         `);
         let changePage = (index: string, type: 'page' | 'home', subData: any) => {};
@@ -665,13 +666,13 @@ export class PdClass {
 
         const aboutVoucherHTML =
             vm.data && vm.data.content.about_vouchers && vm.data.content.about_vouchers.length > 0
-                ? html`<div class="d-flex flex-column gap-1 mt-3">
+                ? html`<div class="d-flex flex-column gap-2 mt-3">
                       ${vm.data.content.about_vouchers
                           .map((v) => {
                               return html`
                                   <div class="d-flex gap-2 align-items-center">
-                                      <div class="insignia insignia-voucher rounded-0 fw-bold" style="font-size: 13px;">${eventName(v.reBackType)}</div>
-                                      <div style="font-size: 13px; font-weight: 500;">${v.title}</div>
+                                      <div class="insignia insignia-voucher">${eventName(v.reBackType)}</div>
+                                      <div style="font-size: 14px; font-weight: 500;">${v.title}</div>
                                   </div>
                               `;
                           })

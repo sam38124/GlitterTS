@@ -198,8 +198,9 @@ export class ShoppingSettingAdvance {
                                             (() => {
                                                 const id = gvc.glitter.getUUID();
                                                 let options: any[] = [];
-                                                ApiUser.getPublicConfig('promo-label', 'manager').then((data: any) => {
-                                                    options = data.response.value
+                                                ApiUser.getPublicConfig('promo-label', 'manager').then((data) => {
+                                                    if(data.result && Array.isArray(data.response.value)){
+                                                        options = (data.response?.value ?? [])
                                                         .map((label: any) => {
                                                             return {
                                                                 key: label.id,
@@ -212,6 +213,8 @@ export class ShoppingSettingAdvance {
                                                                 value: '不設定',
                                                             },
                                                         ]);
+                                                    }
+                                                    
                                                     gvc.notifyDataChange(id);
                                                 });
                                                 return {
@@ -571,7 +574,7 @@ export class ShoppingSettingAdvance {
                                             event: () => {
                                                 BgProduct.setMemberPriceSetting({
                                                     gvc,
-                                                    postData: postMD.multi_sale_price ? postMD.multi_sale_price.map((item) => item.key) : [],
+                                                    postData: postMD.multi_sale_price ? postMD.multi_sale_price.filter(item => item.type === 'level').map((item) => item.key) : [],
                                                     callback: (result) => resetPostList(result, 'level'),
                                                 });
                                             },
@@ -583,7 +586,7 @@ export class ShoppingSettingAdvance {
                                             event: () => {
                                                 BgProduct.setStorePriceSetting({
                                                     gvc,
-                                                    postData: postMD.multi_sale_price ? postMD.multi_sale_price.map((item) => item.key) : [],
+                                                    postData: postMD.multi_sale_price ? postMD.multi_sale_price.filter(item => item.type === 'store').map((item) => item.key) : [],
                                                     callback: (result) => resetPostList(result, 'store'),
                                                 });
                                             },
@@ -616,7 +619,9 @@ export class ShoppingSettingAdvance {
                                                 ...priceVM.storeData.filter((item: any) => postMD.multi_sale_price?.some((m) => m.type === 'store' && m.key === item.key)),
                                             ];
 
-                                            return html`
+
+                                            try {
+                                                return html`
                                                 <div class="title-container px-0 mb-2">
                                                     <div style="color:#393939;font-weight: 700;">專屬價格</div>
                                                     <div class="flex-fill"></div>
@@ -670,7 +675,8 @@ export class ShoppingSettingAdvance {
                                                           <div class="w-100 d-flex flex-column">
                                                               ${postMD.variants
                                                                   .map((variant) => {
-                                                                      const { spec, cost, sale_price, preview_image, compare_price } = variant;
+                                                                      const { spec, cost = 0, sale_price, preview_image, compare_price } = variant;
+                                                                      
                                                                       return html` <div class="d-flex align-items-center">
                                                                           ${[
                                                                               html`
@@ -720,6 +726,10 @@ export class ShoppingSettingAdvance {
                                                       </div>`
                                                     : ''}
                                             `;
+                                            } catch (error) {
+                                                console.error(error);
+                                                return ''
+                                            }
                                         },
                                         onCreate: () => {
                                             if (priceVM.loading) {
@@ -750,7 +760,6 @@ export class ShoppingSettingAdvance {
                                         },
                                     });
                                 })(),
-                                'd-none'
                             ),
                             postMD.product_category === 'commodity'
                                 ? BgWidget.mainCard(

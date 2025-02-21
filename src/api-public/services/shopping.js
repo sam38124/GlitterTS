@@ -486,7 +486,7 @@ class Shopping {
                             levelPrice && vPriceList.push(levelPrice);
                         }
                     }
-                    pv.origin_price = parseInt(`${pv.sale_price}`, 10);
+                    pv.origin_price = parseInt(`${pv.compare_price || pv.sale_price}`, 10);
                     pv.sale_price = Math.min(...vPriceList);
                 });
                 const priceArray = product.content.variants
@@ -1152,7 +1152,7 @@ class Shopping {
                         status: 'inRange',
                         channel: data.checkOutType === 'POS' ? (data.isExhibition ? 'exhibition' : 'pos') : undefined,
                         whereStore: data.checkOutType === 'POS' ? data.pos_store : undefined,
-                        setUserID: `${userData.userID || ''}`
+                        setUserID: `${(userData === null || userData === void 0 ? void 0 : userData.userID) || ''}`
                     })).data;
                     if (pdDqlData) {
                         const pd = pdDqlData.content;

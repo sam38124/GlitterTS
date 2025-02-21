@@ -840,8 +840,7 @@ export class ShoppingOrderManager {
 
 
                                                                                     </div>
-                                                                                    <div class="d-flex flex-column"
-                                                                                         style="">
+                                                                                    <div class="d-flex flex-column">
                                                                                         ${dd.is_hidden ? `<div style="width:auto;">${BgWidget.secondaryInsignia('隱形商品')}</div>` : ``}
                                                                                         <div class="tx_700 d-flex align-items-center"
                                                                                              style="gap:4px;">
@@ -855,12 +854,15 @@ export class ShoppingOrderManager {
                                                                                     </div>
                                                                                     <div class="flex-fill"></div>
                                                                                     <div class="tx_normal_16 d-none d-lg-flex justify-content-end" style="min-width: 80px;">
-                                                                                            $${dd.sale_price.toLocaleString()}
-                                                                                        × ${dd.count}
+                                                                                            ${dd.origin_price && dd.origin_price > dd.sale_price ? html `<div style="margin-right: 8px; text-decoration: line-through;">$${dd.origin_price.toLocaleString()}</div>` : ''}
+                                                                                            <div>$${dd.sale_price.toLocaleString()}
+                                                                                        × ${dd.count}</div>
                                                                                     </div>
-                                                                                    <div class="tx_normal d-sm-none d-flex"
-                                                                                         style="display: flex;justify-content: end;${document.body.clientWidth > 800 ? `width: 110px` : ``}">
-                                                                                            $${dd.sale_price.toLocaleString()}×${dd.count}
+                                                                                    <div class="tx_normal d-sm-none d-flex flex-column"
+                                                                                         style="display: flex;justify-content: end;${document.body.clientWidth > 800 ? `width: 110px` : `width: 140px;`}">
+                                                                                         ${dd.origin_price && dd.origin_price > dd.sale_price ? html `<div style="margin-right: 6px; text-decoration: line-through;">$${dd.origin_price.toLocaleString()}</div>` : ''}
+                                                                                            <div>$${dd.sale_price.toLocaleString()}
+                                                                                        × ${dd.count}</div>
                                                                                     </div>
                                                                                    
                                                                                     <div class="tx_normal d-none d-sm-flex"
