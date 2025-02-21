@@ -120,22 +120,6 @@ export class ShoppingSettingAdvance {
                     return (_a = specs[index]) === null || _a === void 0 ? void 0 : _a.option.some((dd) => dd.title === value);
                 }));
         }
-        function updateKitchenVariant(variant, postMD) {
-            var _a, _b, _c, _d;
-            variant.compare_price = 0;
-            variant.sale_price = variant.spec
-                .map((value, index) => {
-                var _a;
-                const option = postMD.specs[index].option.find((dd) => dd.title === value);
-                return parseInt((_a = option === null || option === void 0 ? void 0 : option.price) !== null && _a !== void 0 ? _a : '0', 10);
-            })
-                .reduce((acc, cur) => acc + cur, 0);
-            variant.weight = parseFloat((_a = postMD.weight) !== null && _a !== void 0 ? _a : '0');
-            variant.v_height = parseFloat((_b = postMD.v_height) !== null && _b !== void 0 ? _b : '0');
-            variant.v_width = parseFloat((_c = postMD.v_width) !== null && _c !== void 0 ? _c : '0');
-            variant.v_length = parseFloat((_d = postMD.v_length) !== null && _d !== void 0 ? _d : '0');
-            variant.shipment_type = postMD.shipment_type || 'weight';
-        }
         updateVariants();
         const categoryTitles = {
             commodity: '商品',

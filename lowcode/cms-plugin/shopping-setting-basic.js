@@ -1239,7 +1239,7 @@ export class ShoppingSettingBasic {
                 })),
                 (postMD.variants.length > 1 || (postMD.product_category === 'kitchen'))
                     ? (() => {
-                        var _a;
+                        var _a, _b;
                         if (postMD.product_category === 'kitchen') {
                             let map_ = [];
                             postMD.shipment_type = (_a = postMD.shipment_type) !== null && _a !== void 0 ? _a : 'volume';
@@ -1407,7 +1407,8 @@ export class ShoppingSettingBasic {
                         else {
                             return BgWidget.mainCard(html `
                                         <div style="font-size: 16px;font-weight: 700;color:#393939;${postMD.shopee_id ? `` : `margin-bottom: 18px;`}">
-                                            規格設定
+                                            <span class="me-2">規格設定<span>
+                                            ${((_b = postMD.multi_sale_price) === null || _b === void 0 ? void 0 : _b.some(m => m.variants.length > 0)) ? html ` ${BgWidget.infoInsignia('已啟用專屬價格')}` : ''}
                                         </div>
                                         <div class="w-100 ${postMD.shopee_id ? `` : `d-none`}"
                                              style="font-size: 14px;font-weight: 400;color: #8D8D8D;margin-bottom: 18px;">

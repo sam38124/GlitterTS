@@ -1554,7 +1554,10 @@ export class ShoppingSettingBasic {
                                 return BgWidget.mainCard(
                                     html`
                                         <div style="font-size: 16px;font-weight: 700;color:#393939;${(postMD as any).shopee_id ? `` : `margin-bottom: 18px;`}">
-                                            規格設定
+                                            <span class="me-2">規格設定<span>
+                                            ${
+                                                postMD.multi_sale_price?.some(m => m.variants.length > 0) ? html` ${BgWidget.infoInsignia('已啟用專屬價格')}` : ''
+                                            }
                                         </div>
                                         <div class="w-100 ${(postMD as any).shopee_id ? `` : `d-none`}"
                                              style="font-size: 14px;font-weight: 400;color: #8D8D8D;margin-bottom: 18px;">

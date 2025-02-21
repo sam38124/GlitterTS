@@ -2527,8 +2527,9 @@ class Shopping {
             query.id && querySql.push(`(content->>'$.id'=${query.id})`);
             if (query.filter_type === 'true' || query.archived) {
                 if (query.archived === 'true') {
-                    querySql.push(`(orderData->>'$.archived'="${query.archived}") AND (JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.orderStatus')) IS NULL 
-OR JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.orderStatus')) NOT IN (-99)) `);
+                    querySql.push(`(orderData->>'$.archived'="${query.archived}") 
+                    AND (JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.orderStatus')) IS NULL 
+                    OR JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.orderStatus')) NOT IN (-99)) `);
                 }
                 else {
                     querySql.push(`((orderData->>'$.archived'="${query.archived}") or (orderData->>'$.archived' is null))`);
@@ -3387,7 +3388,7 @@ OR JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.orderStatus')) NOT IN (-99)) `);
                 }),
             ]);
             let insertIDStart = data.insertId;
-            await new Shopping(this.app, this.token).processProducts(productArray, insertIDStart);
+            await new Shopping(this.app, this.token).promisesProducts(productArray, insertIDStart);
             return insertIDStart;
         }
         catch (e) {
@@ -3395,7 +3396,7 @@ OR JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.orderStatus')) NOT IN (-99)) `);
             throw exception_js_1.default.BadRequestError('BAD_REQUEST', 'postMulProduct Error:' + e, null);
         }
     }
-    async processProducts(productArray, insertIDStart) {
+    async promisesProducts(productArray, insertIDStart) {
         const promises = productArray.map((product) => {
             product.id = product.id || insertIDStart++;
             return new Shopping(this.app, this.token).postVariantsAndPriceValue(product);

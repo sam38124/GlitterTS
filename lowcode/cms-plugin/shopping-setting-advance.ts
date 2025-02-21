@@ -3,7 +3,7 @@ import { GVC } from '../glitterBundle/GVController.js';
 import { QuestionInfo } from './module/question-info.js';
 import { ApiUser } from '../glitter-base/route/user.js';
 import { BgProduct, OptionsItem } from '../backend-manager/bg-product.js';
-import { Product, MultiSalePrice, MultiSaleType } from '../public-models/product.js';
+import { Product, MultiSaleType } from '../public-models/product.js';
 import { ApiPageConfig } from '../api/pageConfig.js';
 import { ShipmentConfig } from '../glitter-base/global/shipment-config.js';
 
@@ -154,22 +154,6 @@ export class ShoppingSettingAdvance {
                     return specs[index]?.option.some((dd: any) => dd.title === value);
                 })
             );
-        }
-
-        // 更新特定產品類別的變體
-        function updateKitchenVariant(variant: any, postMD: any) {
-            variant.compare_price = 0;
-            variant.sale_price = variant.spec
-                .map((value: string, index: number) => {
-                    const option = postMD.specs[index].option.find((dd: any) => dd.title === value);
-                    return parseInt(option?.price ?? '0', 10);
-                })
-                .reduce((acc: number, cur: number) => acc + cur, 0);
-            variant.weight = parseFloat(postMD.weight ?? '0');
-            variant.v_height = parseFloat(postMD.v_height ?? '0');
-            variant.v_width = parseFloat(postMD.v_width ?? '0');
-            variant.v_length = parseFloat(postMD.v_length ?? '0');
-            variant.shipment_type = postMD.shipment_type || 'weight';
         }
 
         updateVariants();

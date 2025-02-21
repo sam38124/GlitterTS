@@ -440,7 +440,7 @@ export declare class Shopping {
     postProduct(content: any): Promise<any>;
     updateCollectionFromUpdateProduct(collection: string[]): Promise<void>;
     postMulProduct(content: any): Promise<any>;
-    processProducts(productArray: any, insertIDStart: any): Promise<void>;
+    promisesProducts(productArray: any, insertIDStart: any): Promise<void>;
     putProduct(content: any): Promise<any>;
     deleteCollection(dataArray: Collection[]): Promise<{
         result: boolean;
