@@ -191,6 +191,23 @@ export class ShoppingSettingBasic {
             //     })
             //     return
             // }
+
+
+            if (postMD.multi_sale_price) {
+                postMD.multi_sale_price.forEach((m) => {
+                    const variantMaps = new Map(m.variants.map((v) => [v.spec.join(','), v]));
+                    const temp = postMD.variants.map((item) => {
+                        return (
+                            variantMaps.get(item.spec.join(',')) ?? {
+                                spec: item.spec,
+                                price: Number(postMD.variants[0]?.sale_price) || 0,
+                            }
+                        );
+                    });
+                    m.variants = temp;
+                });
+            }
+
             obj.gvc.notifyDataChange(variantsViewID);
         }
 

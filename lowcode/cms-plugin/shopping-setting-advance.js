@@ -59,6 +59,19 @@ export class ShoppingSettingAdvance {
             obj.vm.replaceData = postMD;
             console.log(`end-time`, start.stop());
             console.log(`postMD.variants=>`, postMD.variants);
+            if (postMD.multi_sale_price) {
+                postMD.multi_sale_price.forEach((m) => {
+                    const variantMaps = new Map(m.variants.map((v) => [v.spec.join(','), v]));
+                    const temp = postMD.variants.map((item) => {
+                        var _a, _b;
+                        return ((_a = variantMaps.get(item.spec.join(','))) !== null && _a !== void 0 ? _a : {
+                            spec: item.spec,
+                            price: Number((_b = postMD.variants[0]) === null || _b === void 0 ? void 0 : _b.sale_price) || 0,
+                        });
+                    });
+                    m.variants = temp;
+                });
+            }
             obj.gvc.notifyDataChange(variantsViewID);
         }
         function getCombinations(specs) {
