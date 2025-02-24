@@ -1,32 +1,32 @@
 import db from '../../modules/database';
 import exception from '../../modules/exception';
-import tool, {getUUID} from '../../services/tool';
+import tool, { getUUID } from '../../services/tool';
 import UserUtil from '../../utils/UserUtil';
 import config from '../../config.js';
-import {sendmail} from '../../services/ses.js';
+import { sendmail } from '../../services/ses.js';
 import App from '../../app.js';
 import redis from '../../modules/redis.js';
 import Tool from '../../modules/tool.js';
 import process from 'process';
-import {UtDatabase} from '../utils/ut-database.js';
-import {CustomCode} from './custom-code.js';
-import {IToken} from '../models/Auth.js';
+import { UtDatabase } from '../utils/ut-database.js';
+import { CustomCode } from './custom-code.js';
+import { IToken } from '../models/Auth.js';
 import axios from 'axios';
-import {AutoSendEmail} from './auto-send-email.js';
+import { AutoSendEmail } from './auto-send-email.js';
 import qs from 'qs';
 import jwt from 'jsonwebtoken';
-import {OAuth2Client} from 'google-auth-library';
-import {Rebate} from './rebate.js';
+import { OAuth2Client } from 'google-auth-library';
+import { Rebate } from './rebate.js';
 import moment from 'moment';
-import {ManagerNotify} from './notify.js';
-import {saasConfig} from '../../config';
-import {SMS} from './sms.js';
-import {FormCheck} from './form-check.js';
-import {LoginTicket} from 'google-auth-library/build/src/auth/loginticket.js';
-import {AiRobot} from './ai-robot.js';
-import {UtPermission} from "../utils/ut-permission.js";
-import {SharePermission} from "./share-permission.js";
-import {TermsCheck} from "./terms-check.js";
+import { ManagerNotify } from './notify.js';
+import { saasConfig } from '../../config';
+import { SMS } from './sms.js';
+import { FormCheck } from './form-check.js';
+import { LoginTicket } from 'google-auth-library/build/src/auth/loginticket.js';
+import { AiRobot } from './ai-robot.js';
+import { UtPermission } from '../utils/ut-permission.js';
+import { SharePermission } from './share-permission.js';
+import { TermsCheck } from './terms-check.js';
 
 interface UserQuery {
     page?: number;
@@ -153,8 +153,7 @@ export class User {
             data.content = data.content.replace(`@{{code}}`, code);
 
             const sns = new SMS(this.app, this.token);
-            await sns.sendSNS({data: data.content as string, phone: account}, () => {
-            });
+            await sns.sendSNS({ data: data.content as string, phone: account }, () => {});
             return {
                 result: true,
             };
@@ -227,7 +226,7 @@ export class User {
                 }
             }
             if (userData && userData.email) {
-                userData.email = userData.email.toLowerCase()
+                userData.email = userData.email.toLowerCase();
             }
             userData.verify_code = undefined;
             userData.verify_code_phone = undefined;
@@ -280,7 +279,7 @@ export class User {
         }
 
         //發送購物金
-        const getRS = await this.getConfig({key: 'rebate_setting', user_id: 'manager'});
+        const getRS = await this.getConfig({ key: 'rebate_setting', user_id: 'manager' });
         const rgs = getRS[0] && getRS[0].value.register ? getRS[0].value.register : {};
         if (rgs && rgs.switch && rgs.value) {
             await new Rebate(this.app).insertRebate(userID, rgs.value, '新加入會員', {
@@ -290,7 +289,7 @@ export class User {
         }
 
         //發送用戶註冊通知
-        new ManagerNotify(this.app).userRegister({user_id: userID});
+        new ManagerNotify(this.app).userRegister({ user_id: userID });
     }
 
     public async updateAccount(account: string, userID: string): Promise<any> {
@@ -488,25 +487,21 @@ export class User {
             if (!line_profile.email) {
                 throw exception.BadRequestError('BAD_REQUEST', 'Line Register Error', null);
             }
-            const app=this.app
-            async function getUsData(){
-               return  (
-                    (await db.execute(
-                        `select *
+            const app = this.app;
+            async function getUsData() {
+                return (await db.execute(
+                    `select *
                      from \`${app}\`.t_user
                      where (userData ->>'$.email' = ?) or (userData ->>'$.lineID' = ?)
                      ORDER BY CASE WHEN (userData ->>'$.lineID' = ?)  THEN 1
                                   ELSE 3
                                   END
                     `,
-                        [line_profile.email,(userData as any).sub,(userData as any).sub]
-                    )) as any
-                )
+                    [line_profile.email, (userData as any).sub, (userData as any).sub]
+                )) as any;
             }
             let findList: any = await getUsData();
-            if (
-                !findList[0]
-            ) {
+            if (!findList[0]) {
                 const findAuth = await this.findAuthUser(line_profile.email);
                 const userID = findAuth ? findAuth.user : User.generateUserID();
                 await db.execute(
@@ -525,9 +520,9 @@ export class User {
                     ]
                 );
                 await this.createUserHook(userID);
-                findList=await getUsData();
+                findList = await getUsData();
             }
-            const data = findList[0]
+            const data = findList[0];
             const usData: any = await this.getUserData(data.userID, 'userID');
             data.userData.lineID = (userData as any).sub;
             await db.execute(
@@ -571,7 +566,7 @@ export class User {
                     } else {
                         const oauth2Client = new OAuth2Client(config.id, config.secret, redirect);
                         // 使用授权码交换令牌
-                        const {tokens} = await oauth2Client.getToken(code);
+                        const { tokens } = await oauth2Client.getToken(code);
                         oauth2Client.setCredentials(tokens);
                         resolve(
                             await oauth2Client.verifyIdToken({
@@ -642,14 +637,18 @@ export class User {
     public async loginWithPin(user_id: string, pin: string) {
         try {
             if (await UtPermission.isManagerTokenCheck(this.app, `${this.token!!.userID}`)) {
-                const per_c = new SharePermission(this.app, this.token!!)
-                const permission: any = ((await per_c.getPermission({
-                    page: 0,
-                    limit: 1000
-                })) as any).data;
-                if (permission.find((dd: any) => {
-                    return `${dd.user}` === `${user_id}` && `${dd.config.pin}` === pin
-                })) {
+                const per_c = new SharePermission(this.app, this.token!!);
+                const permission: any = (
+                    (await per_c.getPermission({
+                        page: 0,
+                        limit: 1000,
+                    })) as any
+                ).data;
+                if (
+                    permission.find((dd: any) => {
+                        return `${dd.user}` === `${user_id}` && `${dd.config.pin}` === pin;
+                    })
+                ) {
                     const user_ = new User((await per_c.getBaseData())?.brand);
                     const usData: any = await user_.getUserData(user_id, 'userID');
                     usData.pwd = undefined;
@@ -658,7 +657,7 @@ export class User {
                         account: usData['account'],
                         userData: {},
                     });
-                    return usData
+                    return usData;
                 } else {
                     throw exception.BadRequestError('BAD_REQUEST', 'Auth failed', null);
                 }
@@ -702,7 +701,7 @@ export class User {
                     console.error(e);
                     throw exception.BadRequestError('BAD_REQUEST', 'Verify False', null);
                 });
-            const decoded = jwt.decode(res['id_token'], {complete: true}) as unknown as {
+            const decoded = jwt.decode(res['id_token'], { complete: true }) as unknown as {
                 payload: { sub: string; email: string };
             };
             const uid = decoded.payload.sub;
@@ -792,7 +791,7 @@ export class User {
             if (data) {
                 data.pwd = undefined;
                 data.member = await this.checkMember(data, true);
-                const userLevel = (await this.getUserLevel([{userId: data.userID}]))[0];
+                const userLevel = (await this.getUserLevel([{ userId: data.userID }]))[0];
                 data.member_level = userLevel.data;
                 data.member_level_status = userLevel.status;
                 const n = data.member.findIndex((item: { id: string; trigger: boolean }) => {
@@ -849,19 +848,19 @@ export class User {
                     `SELECT orderData ->> '$.total' as total, created_time
                      FROM \`${this.app}\`.t_checkout
                      where email in (${[userData.userData.email, userData.userData.phone]
-                             .filter((dd) => {
-                                 return dd;
-                             })
-                             .map((dd) => {
-                                 return db.escape(dd);
-                             })
-                             .join(',')})
+                         .filter((dd) => {
+                             return dd;
+                         })
+                         .map((dd) => {
+                             return db.escape(dd);
+                         })
+                         .join(',')})
                        and status = 1
                      order by id desc`,
                     []
                 )
             ).map((dd: any) => {
-                return {total_amount: parseInt(`${dd.total}`, 10), date: dd.created_time};
+                return { total_amount: parseInt(`${dd.total}`, 10), date: dd.created_time };
             });
 
             // 判斷是否符合上個等級
@@ -1189,7 +1188,7 @@ export class User {
                                 userID: -(index + 1),
                                 email: user.email,
                                 account: user.email,
-                                userData: {email: user.email},
+                                userData: { email: user.email },
                                 status: 1,
                             });
                         }
@@ -1197,10 +1196,10 @@ export class User {
 
                     const ids = query.id
                         ? query.id.split(',').filter((id) => {
-                            return users.find((item) => {
-                                return item.userID === parseInt(`${id}`, 10);
-                            });
-                        })
+                              return users.find((item) => {
+                                  return item.userID === parseInt(`${id}`, 10);
+                              });
+                          })
                         : users.map((item: { userID: number }) => item.userID).filter((item) => item);
 
                     query.id = ids.length > 0 ? ids.filter((id) => id).join(',') : '0,0';
@@ -1222,10 +1221,10 @@ export class User {
                 if (rebateData && rebateData.total > 0) {
                     const ids = query.id
                         ? query.id.split(',').filter((id) => {
-                            return rebateData.data.find((item) => {
-                                return item.user_id === parseInt(`${id}`, 10);
-                            });
-                        })
+                              return rebateData.data.find((item) => {
+                                  return item.user_id === parseInt(`${id}`, 10);
+                              });
+                          })
                         : rebateData.data.map((item) => item.user_id);
                     query.id = ids.join(',');
                 } else {
@@ -1246,10 +1245,10 @@ export class User {
                     if (levelIds.length > 0) {
                         const ids = query.id
                             ? query.id.split(',').filter((id) => {
-                                return levelIds.find((item) => {
-                                    return item === parseInt(`${id}`, 10);
-                                });
-                            })
+                                  return levelIds.find((item) => {
+                                      return item === parseInt(`${id}`, 10);
+                                  });
+                              })
                             : levelIds;
                         query.id = ids.join(',');
                     } else {
@@ -1336,11 +1335,11 @@ export class User {
                  FROM \`${this.app}\`.t_user_public_config
                  where \`key\` = 'member_update'
                    and user_id in (${userData
-                         .map((dd: any) => {
-                             return dd.userID;
-                         })
-                         .concat([-21211])
-                         .join(',')}) `,
+                       .map((dd: any) => {
+                           return dd.userID;
+                       })
+                       .concat([-21211])
+                       .join(',')}) `,
                 []
             )) {
                 if (b.value.value[0]) {
@@ -1371,9 +1370,9 @@ export class User {
     ): Promise<
         | { result: false }
         | {
-        result: true;
-        data: GroupsItem[];
-    }
+              result: true;
+              data: GroupsItem[];
+          }
     > {
         try {
             const pass = (text: string) => type === undefined || type.includes(text);
@@ -1388,7 +1387,7 @@ export class User {
                           \`${this.app}\`.t_user AS u ON s.email = JSON_EXTRACT(u.userData, '$.email');`,
                     []
                 );
-                dataList.push({type: 'subscriber', title: '電子郵件訂閱者', users: subscriberList});
+                dataList.push({ type: 'subscriber', title: '電子郵件訂閱者', users: subscriberList });
             }
 
             // 購買者清單
@@ -1405,7 +1404,7 @@ export class User {
                 buyingData.map((item1: { userID: number; email: string }) => {
                     const index = buyingList.findIndex((item2) => item2.userID === item1.userID);
                     if (index === -1) {
-                        buyingList.push({userID: item1.userID, email: item1.email, count: 1});
+                        buyingList.push({ userID: item1.userID, email: item1.email, count: 1 });
                     } else {
                         buyingList[index].count++;
                     }
@@ -1419,15 +1418,15 @@ export class User {
                     `SELECT userID, JSON_UNQUOTE(JSON_EXTRACT(userData, '$.email')) AS email
                      FROM \`${this.app}\`.t_user
                      WHERE userID not in (${buyingList
-                             .map((item) => item.userID)
-                             .concat([-1312])
-                             .join(',')})`,
+                         .map((item) => item.userID)
+                         .concat([-1312])
+                         .join(',')})`,
                     []
                 );
 
                 dataList = dataList.concat([
-                    {type: 'neverBuying', title: '尚未購買過的顧客', users: neverBuyingData},
-                    {type: 'usuallyBuying', title: '已購買多次的顧客', users: usuallyBuyingList},
+                    { type: 'neverBuying', title: '尚未購買過的顧客', users: neverBuyingData },
+                    { type: 'usuallyBuying', title: '已購買多次的顧客', users: usuallyBuyingList },
                 ]);
             }
 
@@ -1436,7 +1435,7 @@ export class User {
                 const levelData = await this.getLevelConfig();
                 const levels = levelData
                     .map((item: any) => {
-                        return {id: item.id, name: item.tag_name};
+                        return { id: item.id, name: item.tag_name };
                     })
                     .filter((item: any) => {
                         return tag ? item.id === tag : true;
@@ -1459,7 +1458,7 @@ export class User {
 
                 const levelItems = await this.getUserLevel(
                     users.map((item: { userID: number }) => {
-                        return {userId: item.userID};
+                        return { userId: item.userID };
                     })
                 );
                 for (const levelItem of levelItems) {
@@ -1493,15 +1492,15 @@ export class User {
 
     public normalMember = {
         id: '',
-        duration: {type: 'noLimit', value: 0},
+        duration: { type: 'noLimit', value: 0 },
         tag_name: '一般會員',
-        condition: {type: 'total', value: 0},
-        dead_line: {type: 'noLimit'},
+        condition: { type: 'total', value: 0 },
+        dead_line: { type: 'noLimit' },
         create_date: '2024-01-01T00:00:00.000Z',
     };
 
     public async getLevelConfig() {
-        const levelData = await this.getConfigV2({key: 'member_level_config', user_id: 'manager'});
+        const levelData = await this.getConfigV2({ key: 'member_level_config', user_id: 'manager' });
         const levelList = levelData.levels || [];
         levelList.push(this.normalMember);
         return levelList;
@@ -1708,7 +1707,7 @@ export class User {
             query.limit = query.limit ?? 50;
             const querySql: any = [];
             query.search &&
-            querySql.push([`(userID in (select userID from \`${this.app}\`.t_user where (UPPER(JSON_UNQUOTE(JSON_EXTRACT(userData, '$.name')) LIKE UPPER('%${query.search}%')))))`].join(` || `));
+                querySql.push([`(userID in (select userID from \`${this.app}\`.t_user where (UPPER(JSON_UNQUOTE(JSON_EXTRACT(userData, '$.name')) LIKE UPPER('%${query.search}%')))))`].join(` || `));
             const data = await new UtDatabase(this.app, `t_fcm`).querySql(querySql, query as any);
             for (const b of data.data) {
                 let userData = (
@@ -1776,9 +1775,12 @@ export class User {
             //更改密碼
             if (par.userData.pwd) {
                 if ((await redis.getValue(`verify-${userData.userData.email}`)) === par.userData.verify_code) {
-                    await db.query(`update \`${this.app}\`.\`t_user\`
+                    await db.query(
+                        `update \`${this.app}\`.\`t_user\`
                                     set pwd=?
-                                    where userID = ${db.escape(userID)}`, [await tool.hashPwd(par.userData.pwd)]);
+                                    where userID = ${db.escape(userID)}`,
+                        [await tool.hashPwd(par.userData.pwd)]
+                    );
                 } else {
                     throw exception.BadRequestError('BAD_REQUEST', 'Verify code error.', {
                         msg: 'email-verify-false',
@@ -1916,7 +1918,7 @@ export class User {
                 !config.find((d2: any) => {
                     return d2.key === dd && (d2.auth !== 'manager' || manager);
                 }) &&
-                !['level_status', 'level_default', 'contact_phone', 'contact_name'].includes(dd)
+                !['level_status', 'level_default', 'contact_phone', 'contact_name', 'tags'].includes(dd)
             ) {
                 delete userData[dd];
             }
@@ -2162,14 +2164,21 @@ export class User {
             const data_ = await db.execute(
                 `select *
                  from \`${this.app}\`.t_user_public_config
-                 where ${(config.key.includes(',')) ? `\`key\` in (${config.key.split(',').map((dd) => {
-                     return db.escape(dd)
-                 }).join(',')})` : `\`key\` = ${db.escape(config.key)}`}
+                 where ${
+                     config.key.includes(',')
+                         ? `\`key\` in (${config.key
+                               .split(',')
+                               .map((dd) => {
+                                   return db.escape(dd);
+                               })
+                               .join(',')})`
+                         : `\`key\` = ${db.escape(config.key)}`
+                 }
                    and user_id = ${db.escape(config.user_id)}
                 `,
                 []
             );
-            const that = this
+            const that = this;
 
             async function loop(data: any) {
                 if (!data && config.user_id === 'manager') {
@@ -2180,19 +2189,19 @@ export class User {
                                 key: config.key,
                                 user_id: config.user_id,
                                 value: {
-                                    country: []
-                                }
-                            })
-                            return await that.getConfigV2(config)
+                                    country: [],
+                                },
+                            });
+                            return await that.getConfigV2(config);
                         case 'store_version':
                             await that.setConfig({
                                 key: config.key,
                                 user_id: config.user_id,
                                 value: {
-                                    version: 'v1'
-                                }
-                            })
-                            return await that.getConfigV2(config)
+                                    version: 'v1',
+                                },
+                            });
+                            return await that.getConfigV2(config);
                         case 'store_manager':
                             await that.setConfig({
                                 key: config.key,
@@ -2200,17 +2209,17 @@ export class User {
                                 value: {
                                     list: [
                                         {
-                                            "id": "store_default",
-                                            "name": "庫存點1(預設)",
-                                            "note": "",
-                                            "address": "",
-                                            "manager_name": "",
-                                            "manager_phone": ""
-                                        }
-                                    ]
-                                }
-                            })
-                            return await that.getConfigV2(config)
+                                            id: 'store_default',
+                                            name: '庫存點1(預設)',
+                                            note: '',
+                                            address: '',
+                                            manager_name: '',
+                                            manager_phone: '',
+                                        },
+                                    ],
+                                },
+                            });
+                            return await that.getConfigV2(config);
                         case 'member_level_config':
                             await that.setConfig({
                                 key: config.key,
@@ -2225,7 +2234,7 @@ export class User {
                                 key: config.key,
                                 user_id: config.user_id,
                                 value: {
-                                    "label": []
+                                    label: [],
                                 },
                             });
                             return await that.getConfigV2(config);
@@ -2239,7 +2248,6 @@ export class User {
                                 value: TermsCheck.check(config.key),
                             });
                             return await that.getConfigV2(config);
-
                     }
                 }
                 if (data && data.value) {
@@ -2256,16 +2264,20 @@ export class User {
             }
 
             if (config.key.includes(',')) {
-                return (await Promise.all(config.key.split(',').map(async (dd: any) => {
-                    return {
-                        key: dd,
-                        value: await loop(data_.find((d1: any) => {
-                            return d1.key === dd
-                        }))
-                    }
-                })))
+                return await Promise.all(
+                    config.key.split(',').map(async (dd: any) => {
+                        return {
+                            key: dd,
+                            value: await loop(
+                                data_.find((d1: any) => {
+                                    return d1.key === dd;
+                                })
+                            ),
+                        };
+                    })
+                );
             } else {
-                return await loop(data_[0])
+                return await loop(data_[0]);
             }
         } catch (e) {
             console.error(e);
@@ -2288,15 +2300,14 @@ export class User {
         } else if (key === 'store_manager') {
             value.list = value.list ?? [
                 {
-                    "id": "store_default",
-                    "name": "庫存點1(預設)",
-                    "note": "",
-                    "address": "",
-                    "manager_name": "",
-                    "manager_phone": ""
-                }
-            ]
-
+                    id: 'store_default',
+                    name: '庫存點1(預設)',
+                    note: '',
+                    address: '',
+                    manager_name: '',
+                    manager_phone: '',
+                },
+            ];
         }
     }
 
@@ -2378,8 +2389,7 @@ export class User {
             return {
                 result: result[0]['count(1)'] === 1,
             };
-        } catch (e) {
-        }
+        } catch (e) {}
     }
 
     public async getNotice(cf: { query: any }) {
@@ -2397,7 +2407,7 @@ export class User {
                 await db.query(
                     `insert into \`${this.app}\`.t_user_public_config (user_id, \`key\`, value, updated_at)
                      values (?, ?, ?, ?)`,
-                    [this.token?.userID, 'notice_last_read', JSON.stringify({time: new Date()}), new Date()]
+                    [this.token?.userID, 'notice_last_read', JSON.stringify({ time: new Date() }), new Date()]
                 );
             } else {
                 last_time_read = new Date(last_read_time[0].value.time).getTime();
@@ -2406,7 +2416,7 @@ export class User {
                      set \`value\`=?
                      where user_id = ?
                        and \`key\` = ?`,
-                    [JSON.stringify({time: new Date()}), `${this.token?.userID}`, 'notice_last_read']
+                    [JSON.stringify({ time: new Date() }), `${this.token?.userID}`, 'notice_last_read']
                 );
             }
             const response: any = await new UtDatabase(this.app, `t_notice`).querySql(query, cf.query);
@@ -2432,23 +2442,31 @@ export class User {
                 method: 'get',
                 maxBodyLength: Infinity,
                 url: `https://ipinfo.io/${ip}?token=` + process.env.ip_info_auth,
-                headers: {}
+                headers: {},
             };
 
-            const db_data = (await db.query(`select *
+            const db_data = (
+                await db.query(
+                    `select *
                                              from ${saasConfig.SAAS_NAME}.t_ip_info
-                                             where ip = ?`, [ip]))[0];
+                                             where ip = ?`,
+                    [ip]
+                )
+            )[0];
             let ip_data = db_data && db_data.data;
             if (!ip_data) {
                 ip_data = (await axios.request(config)).data;
-                await db.query(`insert into ${saasConfig.SAAS_NAME}.t_ip_info (ip, data)
-                                values (?, ?)`, [ip, JSON.stringify(ip_data)])
+                await db.query(
+                    `insert into ${saasConfig.SAAS_NAME}.t_ip_info (ip, data)
+                                values (?, ?)`,
+                    [ip, JSON.stringify(ip_data)]
+                );
             }
-            return ip_data
+            return ip_data;
         } catch (e) {
             return {
-                country: 'TW'
-            }
+                country: 'TW',
+            };
         }
     }
 

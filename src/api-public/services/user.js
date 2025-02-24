@@ -104,8 +104,7 @@ class User {
             await redis_js_1.default.setValue(`verify-phone-${account}`, code);
             data.content = data.content.replace(`@{{code}}`, code);
             const sns = new sms_js_1.SMS(this.app, this.token);
-            await sns.sendSNS({ data: data.content, phone: account }, () => {
-            });
+            await sns.sendSNS({ data: data.content, phone: account }, () => { });
             return {
                 result: true,
             };
@@ -515,7 +514,7 @@ class User {
                 const per_c = new share_permission_js_1.SharePermission(this.app, this.token);
                 const permission = (await per_c.getPermission({
                     page: 0,
-                    limit: 1000
+                    limit: 1000,
                 })).data;
                 if (permission.find((dd) => {
                     return `${dd.user}` === `${user_id}` && `${dd.config.pin}` === pin;
@@ -1568,7 +1567,7 @@ class User {
             if (!config.find((d2) => {
                 return d2.key === dd && (d2.auth !== 'manager' || manager);
             }) &&
-                !['level_status', 'level_default', 'contact_phone', 'contact_name'].includes(dd)) {
+                !['level_status', 'level_default', 'contact_phone', 'contact_name', 'tags'].includes(dd)) {
                 delete userData[dd];
             }
         });
@@ -1747,9 +1746,14 @@ class User {
         try {
             const data_ = await database_1.default.execute(`select *
                  from \`${this.app}\`.t_user_public_config
-                 where ${(config.key.includes(',')) ? `\`key\` in (${config.key.split(',').map((dd) => {
-                return database_1.default.escape(dd);
-            }).join(',')})` : `\`key\` = ${database_1.default.escape(config.key)}`}
+                 where ${config.key.includes(',')
+                ? `\`key\` in (${config.key
+                    .split(',')
+                    .map((dd) => {
+                    return database_1.default.escape(dd);
+                })
+                    .join(',')})`
+                : `\`key\` = ${database_1.default.escape(config.key)}`}
                    and user_id = ${database_1.default.escape(config.user_id)}
                 `, []);
             const that = this;
@@ -1761,8 +1765,8 @@ class User {
                                 key: config.key,
                                 user_id: config.user_id,
                                 value: {
-                                    country: []
-                                }
+                                    country: [],
+                                },
                             });
                             return await that.getConfigV2(config);
                         case 'store_version':
@@ -1770,8 +1774,8 @@ class User {
                                 key: config.key,
                                 user_id: config.user_id,
                                 value: {
-                                    version: 'v1'
-                                }
+                                    version: 'v1',
+                                },
                             });
                             return await that.getConfigV2(config);
                         case 'store_manager':
@@ -1781,15 +1785,15 @@ class User {
                                 value: {
                                     list: [
                                         {
-                                            "id": "store_default",
-                                            "name": "庫存點1(預設)",
-                                            "note": "",
-                                            "address": "",
-                                            "manager_name": "",
-                                            "manager_phone": ""
-                                        }
-                                    ]
-                                }
+                                            id: 'store_default',
+                                            name: '庫存點1(預設)',
+                                            note: '',
+                                            address: '',
+                                            manager_name: '',
+                                            manager_phone: '',
+                                        },
+                                    ],
+                                },
                             });
                             return await that.getConfigV2(config);
                         case 'member_level_config':
@@ -1806,7 +1810,7 @@ class User {
                                 key: config.key,
                                 user_id: config.user_id,
                                 value: {
-                                    "label": []
+                                    label: [],
                                 },
                             });
                             return await that.getConfigV2(config);
@@ -1836,14 +1840,14 @@ class User {
                 return (data && data.value) || {};
             }
             if (config.key.includes(',')) {
-                return (await Promise.all(config.key.split(',').map(async (dd) => {
+                return await Promise.all(config.key.split(',').map(async (dd) => {
                     return {
                         key: dd,
                         value: await loop(data_.find((d1) => {
                             return d1.key === dd;
-                        }))
+                        })),
                     };
-                })));
+                }));
             }
             else {
                 return await loop(data_[0]);
@@ -1872,13 +1876,13 @@ class User {
         else if (key === 'store_manager') {
             value.list = (_b = value.list) !== null && _b !== void 0 ? _b : [
                 {
-                    "id": "store_default",
-                    "name": "庫存點1(預設)",
-                    "note": "",
-                    "address": "",
-                    "manager_name": "",
-                    "manager_phone": ""
-                }
+                    id: 'store_default',
+                    name: '庫存點1(預設)',
+                    note: '',
+                    address: '',
+                    manager_name: '',
+                    manager_phone: '',
+                },
             ];
         }
     }
@@ -1942,8 +1946,7 @@ class User {
                 result: result[0]['count(1)'] === 1,
             };
         }
-        catch (e) {
-        }
+        catch (e) { }
     }
     async getNotice(cf) {
         var _a, _b, _c, _d;
@@ -1987,7 +1990,7 @@ class User {
                 method: 'get',
                 maxBodyLength: Infinity,
                 url: `https://ipinfo.io/${ip}?token=` + process_1.default.env.ip_info_auth,
-                headers: {}
+                headers: {},
             };
             const db_data = (await database_1.default.query(`select *
                                              from ${config_1.saasConfig.SAAS_NAME}.t_ip_info
@@ -2002,7 +2005,7 @@ class User {
         }
         catch (e) {
             return {
-                country: 'TW'
+                country: 'TW',
             };
         }
     }
