@@ -189,13 +189,15 @@ export class UserList {
                                 return BgWidget.title('顧客列表');
                             })()}
                             <div class="flex-fill"></div>
-                            ${BgWidget.darkButton(
-                                '新增',
-                                obj?.createUserEvent ??
-                                    gvc.event(() => {
-                                        vm.type = 'create';
-                                    })
-                            )}
+                            <div class="d-flex align-items-center" style="gap: 10px;">
+                                ${BgWidget.darkButton(
+                                    '新增',
+                                    obj?.createUserEvent ??
+                                        gvc.event(() => {
+                                            vm.type = 'create';
+                                        })
+                                )}
+                            </div>
                             <button
                                 class="btn hoverBtn me-2 px-3 d-none"
                                 style="height:35px !important;font-size: 14px;color:black;border:1px solid black;"
@@ -1796,11 +1798,12 @@ export class UserList {
                                                                                         },
                                                                                     });
                                                                                 })()}
-                                                                                <div class="d-none">
-                                                                                    <div class="tx_700">所屬分群</div>
-                                                                                    <div style="display: flex; gap: 12px; margin-top: 12px; flex-direction: column;">
-                                                                                        <div>電子郵件訂閱者</div>
-                                                                                        <div>已購買多次的顧客</div>
+                                                                                <div class="d-block">
+                                                                                    <div class="tx_700">標籤</div>
+                                                                                    <div style="display: flex; gap: 12px; margin-top: 12px; flex-direction: row; flex-wrap: wrap;">
+                                                                                        ${Array.isArray(vm.data.userData.tags) && vm.data.userData.tags.length > 0
+                                                                                            ? vm.data.userData.tags.map((item: string) => BgWidget.secondaryInsignia(item)).join('')
+                                                                                            : '無標籤'}
                                                                                     </div>
                                                                                 </div>
                                                                             `;
