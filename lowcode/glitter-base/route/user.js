@@ -11,8 +11,7 @@ import { BaseApi } from '../../glitterBundle/api/base.js';
 import { GlobalUser } from '../global/global-user.js';
 import { ApiShop } from './shopping.js';
 export class ApiUser {
-    constructor() {
-    }
+    constructor() { }
     static register(json) {
         return BaseApi.create({
             url: getBaseUrl() + `/api-public/v1/user/register`,
@@ -342,6 +341,9 @@ export class ApiUser {
         if (obj.level && obj.level.length > 0) {
             list.push(`level=${obj.level.join(',')}`);
         }
+        if (obj.tags && obj.tags.length > 0) {
+            list.push(`tags=${obj.tags.join(',')}`);
+        }
         if (obj.rebate && obj.rebate.key && obj.rebate.value) {
             list.push(`rebate=${obj.rebate.key},${obj.rebate.value}`);
         }
@@ -589,7 +591,7 @@ export class ApiUser {
             headers: {
                 'Content-Type': 'application/json',
                 'g-app': json.app_name || getConfig().config.appName,
-                Authorization: json.token
+                Authorization: json.token,
             },
             data: JSON.stringify(json),
         });

@@ -43,6 +43,7 @@ interface UserQuery {
     groupType?: string;
     groupTag?: string;
     filter_type?: string;
+    tags?: string;
 }
 
 interface GroupUserItem {
@@ -1276,6 +1277,14 @@ export class User {
                 const birthMap = birth.map((month) => parseInt(`${month}`, 10));
                 if (birthMap.every((n) => typeof n === 'number' && !isNaN(n))) {
                     querySql.push(`(MONTH(JSON_EXTRACT(u.userData, '$.birth')) IN (${birthMap.join(',')}))`);
+                }
+            }
+
+            if (query.tags && query.tags.length > 0) {
+                const tags = query.tags.split(',');
+                if (Array.isArray(tags) && tags.length > 0) {
+                    const tagConditions = tags.map((tag) => `JSON_CONTAINS(u.userData->'$.tags', ${db.escape(`"${tag}"`)})`).join(' OR ');
+                    querySql.push(`(${tagConditions})`);
                 }
             }
 

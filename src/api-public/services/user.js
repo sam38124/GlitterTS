@@ -1078,6 +1078,13 @@ class User {
                     querySql.push(`(MONTH(JSON_EXTRACT(u.userData, '$.birth')) IN (${birthMap.join(',')}))`);
                 }
             }
+            if (query.tags && query.tags.length > 0) {
+                const tags = query.tags.split(',');
+                if (Array.isArray(tags) && tags.length > 0) {
+                    const tagConditions = tags.map((tag) => `JSON_CONTAINS(u.userData->'$.tags', ${database_1.default.escape(`"${tag}"`)})`).join(' OR ');
+                    querySql.push(`(${tagConditions})`);
+                }
+            }
             if (query.total_amount) {
                 const totalAmount = query.total_amount.split(',');
                 if (totalAmount.length > 1) {

@@ -14,6 +14,7 @@ interface UserQuery {
     groupType?: string;
     groupTag?: string;
     filter_type?: string;
+    tags?: string;
 }
 interface GroupUserItem {
     userID: number;

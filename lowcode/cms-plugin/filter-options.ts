@@ -1,4 +1,4 @@
-import {ShipmentConfig} from "../glitter-base/global/shipment-config.js";
+import { ShipmentConfig } from '../glitter-base/global/shipment-config.js';
 
 export class FilterOptions {
     static userFilterFrame = {
@@ -157,8 +157,8 @@ export class FilterOptions {
             key: 'shipment',
             type: 'multi_checkbox',
             name: '運送方式',
-            data: ShipmentConfig.list.map((dd)=>{
-                return  { key: dd.value, name: dd.title }
+            data: ShipmentConfig.list.map((dd) => {
+                return { key: dd.value, name: dd.title };
             }),
         },
         {
@@ -470,10 +470,10 @@ export class FilterOptions {
         { key: 'customers', value: '指定會員' },
         { key: 'level', value: '會員等級' },
         { key: 'group', value: '顧客分群' },
+        { key: 'tags', value: '顧客標籤' },
         { key: 'birth', value: '顧客生日月份' },
         // { key: 'expiry', value: '購物金到期日' },
         { key: 'remain', value: '購物金剩餘點數' },
-        // { key: 'uncheckout', value: '購物車裡的商品未結帳' },
     ];
 
     static emailFunnel = [

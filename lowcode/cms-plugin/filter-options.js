@@ -1,4 +1,4 @@
-import { ShipmentConfig } from "../glitter-base/global/shipment-config.js";
+import { ShipmentConfig } from '../glitter-base/global/shipment-config.js';
 export class FilterOptions {
 }
 FilterOptions.userFilterFrame = {
@@ -425,6 +425,7 @@ FilterOptions.emailOptions = [
     { key: 'customers', value: '指定會員' },
     { key: 'level', value: '會員等級' },
     { key: 'group', value: '顧客分群' },
+    { key: 'tags', value: '顧客標籤' },
     { key: 'birth', value: '顧客生日月份' },
     { key: 'remain', value: '購物金剩餘點數' },
 ];

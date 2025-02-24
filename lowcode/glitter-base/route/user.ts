@@ -1,10 +1,9 @@
-import {BaseApi} from '../../glitterBundle/api/base.js';
-import {GlobalUser} from '../global/global-user.js';
-import {ApiShop} from './shopping.js';
+import { BaseApi } from '../../glitterBundle/api/base.js';
+import { GlobalUser } from '../global/global-user.js';
+import { ApiShop } from './shopping.js';
 
 export class ApiUser {
-    constructor() {
-    }
+    constructor() {}
 
     public static register(json: { account: string; pwd: string; userData: any }) {
         return BaseApi.create({
@@ -124,7 +123,6 @@ export class ApiUser {
             },
         });
     }
-
 
     public static getSaasUserData(token: string, type: 'list' | 'me') {
         return BaseApi.create({
@@ -329,13 +327,7 @@ export class ApiUser {
         });
     }
 
-    public static getUserList(json: {
-        limit: number;
-        page: number;
-        search?: string;
-        id?: string;
-        search_type?: string
-    }) {
+    public static getUserList(json: { limit: number; page: number; search?: string; id?: string; search_type?: string }) {
         return BaseApi.create({
             url:
                 getBaseUrl() +
@@ -366,6 +358,9 @@ export class ApiUser {
         }
         if (obj.level && obj.level.length > 0) {
             list.push(`level=${obj.level.join(',')}`);
+        }
+        if (obj.tags && obj.tags.length > 0) {
+            list.push(`tags=${obj.tags.join(',')}`);
         }
         if (obj.rebate && obj.rebate.key && obj.rebate.value) {
             list.push(`rebate=${obj.rebate.key},${obj.rebate.value}`);
@@ -653,7 +648,7 @@ export class ApiUser {
             headers: {
                 'Content-Type': 'application/json',
                 'g-app': json.app_name || getConfig().config.appName,
-                Authorization: json.token
+                Authorization: json.token,
             },
             data: JSON.stringify(json),
         });
@@ -691,7 +686,7 @@ export class ApiUser {
         });
     }
 
-    public static getting_config: { key: string, array: ((res: any) => void)[] }[] = []
+    public static getting_config: { key: string; array: ((res: any) => void)[] }[] = [];
 
     public static getPublicConfig(key: string, user_id: string, appName: string = getConfig().config.appName) {
         return new Promise<{ result: boolean; response: any }>((resolve, reject) => {
@@ -713,12 +708,12 @@ export class ApiUser {
                         if ((window.parent as any).glitter.getUrlParameter('function') !== 'backend-manger') {
                             config[key + user_id] = res;
                         }
-                        break
+                        break;
                     case 'image-manager':
                         if (!Array.isArray(res.response.value)) {
-                            res.response.value = []
+                            res.response.value = [];
                         }
-                        break
+                        break;
                 }
                 if (key.indexOf('alt_') === 0) {
                     config[key + user_id] = res;
@@ -727,12 +722,12 @@ export class ApiUser {
             }
 
             const find_ = this.getting_config.find((dd) => {
-                return dd.key === key
-            })
+                return dd.key === key;
+            });
             if (find_) {
-                find_.array.push(callback)
+                find_.array.push(callback);
             } else {
-                this.getting_config.push({key: key, array: [callback]})
+                this.getting_config.push({ key: key, array: [callback] });
                 BaseApi.create({
                     url: getBaseUrl() + `/api-public/v1/user/public/config?key=${key}&user_id=${user_id}`,
                     type: 'GET',
@@ -745,16 +740,15 @@ export class ApiUser {
                     this.getting_config = this.getting_config.filter((d1) => {
                         if (d1.key === key) {
                             d1.array.map((dd) => {
-                                return dd(res)
-                            })
-                            return false
+                                return dd(res);
+                            });
+                            return false;
                         } else {
-                            return true
+                            return true;
                         }
-                    })
+                    });
                 });
             }
-
         });
     }
 
@@ -800,15 +794,7 @@ export class ApiUser {
         return list;
     }
 
-    public static getPermission(json: {
-        page: number;
-        limit: number;
-        self?: boolean;
-        queryType?: string;
-        query?: string;
-        orderBy?: string;
-        filter?: any
-    }) {
+    public static getPermission(json: { page: number; limit: number; self?: boolean; queryType?: string; query?: string; orderBy?: string; filter?: any }) {
         return BaseApi.create({
             url:
                 getBaseUrl() +
@@ -839,10 +825,10 @@ export class ApiUser {
             title: string;
             phone: string;
             auth: any;
-            member_id: any,
-            pin: any,
-            is_manager?: boolean
-            support_shop?: string[]
+            member_id: any;
+            pin: any;
+            is_manager?: boolean;
+            support_shop?: string[];
         };
         status: number;
     }) {
@@ -867,7 +853,7 @@ export class ApiUser {
                 'Content-Type': 'application/json',
                 Authorization: getConfig().config.token,
             },
-            data: JSON.stringify({email: email || ''}),
+            data: JSON.stringify({ email: email || '' }),
         });
     }
 
@@ -880,7 +866,7 @@ export class ApiUser {
                 'Content-Type': 'application/json',
                 Authorization: getConfig().config.token,
             },
-            data: JSON.stringify({email: email}),
+            data: JSON.stringify({ email: email }),
         });
     }
 }

@@ -1,5 +1,6 @@
 import mysql from 'mysql2/promise';
 export declare const limit: (map: any) => string;
+declare const query: (sql: string, params: unknown[]) => Promise<any>;
 export declare const queryLambada: (cf: {
     database?: string;
 }, fun: (v: {
@@ -23,7 +24,7 @@ declare const _default: {
     getPagination: (sql: string, page: number, pageCount: number) => string;
     escape: (parameter: any) => string;
     queryLambada: (cf: {
-        database?: string;
+        database?: string | undefined;
     }, fun: (v: {
         query(sql: string, params: unknown[]): Promise<any>;
     }) => any) => Promise<any>;
