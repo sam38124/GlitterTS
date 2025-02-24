@@ -223,6 +223,9 @@ SELECT * FROM  \`${config_1.saasConfig.SAAS_NAME}\`.page_config where  1=1 ${whe
         if (query_page === 'voucher-list') {
             page = 'rebate';
         }
+        if (query_page === 'shopnex-line-oauth') {
+            page = 'official-router';
+        }
         return page;
     }
     async getPage(config) {

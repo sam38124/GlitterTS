@@ -1,3 +1,4 @@
+/// <reference types="node" />
 import { Encoding } from 'crypto';
 import axios from "axios";
 interface KeyData {
@@ -247,6 +248,7 @@ export declare class JKO {
         user_email: string;
         method: string;
     }): Promise<"" | undefined>;
+    refundOrder(platform_order_id: string, refund_amount: number): Promise<void>;
     private generateDigest;
 }
 export {};

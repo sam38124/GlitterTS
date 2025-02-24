@@ -45,7 +45,7 @@ export class TermsRelated {
                             });
                         });
                     }
-                    else if (['blog_tag_setting', 'blog_global_setting'].includes(glitter.getUrlParameter('page'))) {
+                    else if (['blog_tag_setting', 'blog_global_setting', 'shopnex-line-oauth'].includes(glitter.getUrlParameter('page'))) {
                         return yield new Promise((resolve, reject) => {
                             glitter.getModule(new URL('./cms-plugin/cms-router.js', gvc.glitter.root_path).href, (res) => {
                                 document.querySelector(`.${id}`).outerHTML = res.main(gvc);

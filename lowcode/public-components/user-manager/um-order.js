@@ -15,6 +15,7 @@ import { ShareDialog } from '../../glitterBundle/dialog/ShareDialog.js';
 import { FormWidget } from '../../official_view_component/official/form.js';
 import { Language } from '../../glitter-base/global/language.js';
 import { CheckInput } from '../../modules/checkInput.js';
+import { ApiLiveInteraction } from "../../glitter-base/route/live-purchase-interactions.js";
 const html = String.raw;
 const css = String.raw;
 export class UMOrder {
@@ -226,6 +227,8 @@ export class UMOrder {
             data: {},
             type: '',
             formList: [],
+            interaction: {},
+            cartData: {},
         };
         return html ` <div class="container py-4">
             ${gvc.bindView({
@@ -915,23 +918,52 @@ export class UMOrder {
                 style: 'min-height: 50vh;',
             },
             onCreate: () => {
+                const source = glitter.getUrlParameter('source');
                 if (loadings.view) {
-                    ApiShop.getOrder({
-                        limit: 1,
-                        page: 0,
-                        data_from: 'user',
-                        search: glitter.getUrlParameter('cart_token'),
-                        searchType: 'cart_token',
-                    }).then((res) => {
-                        if (res.result && res.response.data) {
-                            vm.data = res.response.data[0];
-                        }
-                        else {
-                            vm.data = {};
-                        }
-                        loadings.view = false;
-                        gvc.notifyDataChange(ids.view);
-                    });
+                    if (source) {
+                        const cart_id = glitter.getUrlParameter('cart_id');
+                        ApiLiveInteraction.getOnlineCart(cart_id).then(r => {
+                            vm.data = {
+                                id: 1,
+                                cart_token: r.response.preview_order.orderID,
+                                status: 0,
+                                email: "",
+                                orderData: r.response.preview_order,
+                                created_time: ""
+                            };
+                            vm.interaction = r.response.interaction;
+                            vm.cartData = r.response.cartData;
+                            console.log("getCheckout -- ", r.response.preview_order);
+                            let newTotal = 0;
+                            r.response.preview_order.lineItems.forEach((lineItem) => {
+                                let product = vm.interaction.content.item_list.find((item) => { return item.id == lineItem.id; });
+                                let variant = product.content.variants.find((item) => { return item.spec.join(',') == lineItem.spec.join(','); });
+                                lineItem.sale_price = parseInt(variant.live_model.live_price);
+                                newTotal += lineItem.sale_price * lineItem.count;
+                            });
+                            vm.data.orderData.total = newTotal + vm.data.orderData.shipment_fee;
+                            loadings.view = false;
+                            gvc.notifyDataChange(ids.view);
+                        });
+                    }
+                    else {
+                        ApiShop.getOrder({
+                            limit: 1,
+                            page: 0,
+                            data_from: 'user',
+                            search: glitter.getUrlParameter('cart_token'),
+                            searchType: 'cart_token',
+                        }).then((res) => {
+                            if (res.result && res.response.data) {
+                                vm.data = res.response.data[0];
+                            }
+                            else {
+                                vm.data = {};
+                            }
+                            loadings.view = false;
+                            gvc.notifyDataChange(ids.view);
+                        });
+                    }
                 }
             },
         })}

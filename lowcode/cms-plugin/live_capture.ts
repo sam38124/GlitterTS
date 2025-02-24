@@ -24,7 +24,7 @@ interface ViewModel {
 const html = String.raw;
 
 export class LiveCapture {
-    public static main(gvc: GVC) {
+    public static main(gvc: GVC, group_buy?: boolean) {
         const glitter = gvc.glitter;
         const dialog = new ShareDialog(gvc.glitter);
 
@@ -49,7 +49,7 @@ export class LiveCapture {
                     return BgWidget.container(
                         html`
                             <div class="title-container">
-                                ${BgWidget.title('直播列表')}
+                                ${BgWidget.title(group_buy ? '團購列表' : '直播列表')}
                                 <div class="flex-fill"></div>
                                 <div style="display: flex; gap: 14px;">
                                     ${BgWidget.darkButton(
@@ -68,6 +68,7 @@ export class LiveCapture {
                                             return gvc.bindView({
                                                 bind: id,
                                                 view: () => {
+                                                    const selectFilterDefault = vm.queryType || (group_buy) ? `group_buy_name` : 'fb_live_name'
                                                     const filterList = [
                                                         BgWidget.selectFilter({
                                                             gvc,
@@ -84,7 +85,7 @@ export class LiveCapture {
                                                                     gvc.notifyDataChange(vm.id);
                                                                 }),
                                                                 vm.query || '',
-                                                                '搜尋直播'
+                                                                group_buy ? '搜尋團購' : '搜尋直播'
                                                         ),
                                                     ];
 
@@ -121,6 +122,9 @@ export class LiveCapture {
                                                 const limit = 20;
                                                 vmi.loading = false;
                                                 vmi.callback();
+                                                ApiLiveInteraction.getScheduled({}).then((res) => {
+                                                    console.log(res)
+                                                })
                                                 // ApiShop.getInvoice({
                                                 //     page: vmi.page - 1,
                                                 //     limit: limit,
@@ -175,7 +179,6 @@ export class LiveCapture {
                                                 //                 {
                                                 //                     key: '開立方式',
                                                 //                     value: (() => {
-                                                //                         console.log('dd.invoice_data.remark --', dd.invoice_data.remark);
                                                 //                         switch (dd.invoice_data.remark?.issueType ?? 'auto') {
                                                 //                             case 'auto':
                                                 //                                 return html`
@@ -235,14 +238,14 @@ export class LiveCapture {
                         `
                     );
                 } else if (vm.type === 'add') {
-                    return this.create(gvc, vm);
+                    return this.create(gvc, vm, group_buy);
                 }
                 return ``
             },
         });
     }
 
-    public static create(gvc: GVC, vm: any,) {
+    public static create(gvc: GVC, vm: any, group_buy?: boolean) {
         let newOrder: any = {
             id: gvc.glitter.getUUID(),
             productArray: [],
@@ -267,10 +270,19 @@ export class LiveCapture {
         }
 
         const dialog = new ShareDialog(gvc.glitter);
+        // let group_buy_data:{
+        //     use:"self"|"collaboration",
+        //     name:string,
+        // }={
+        //     use:"self",
+        // }
         let viewModel: {
+            lineGroupLoading: boolean,
+            lineGroup: any,
             formData: {
                 type: string,
-                stream_name: string,
+                purpose: string,
+                name: string,
                 streamer: string,
                 platform: string,
                 item_list: any[],
@@ -280,14 +292,25 @@ export class LiveCapture {
                     period: string,
                 },
                 discount_set: string,
+                lineGroup: {
+                    groupId: string,
+                    groupName: string,
+                },
+                start_date: any,
+                start_time: any,
+                end_date: any,
+                end_time: any,
             },
-            summaryType : "normal" | "prepare" | "streaming"
+            summaryType: "normal" | "prepare" | "streaming"
         } = {
+            lineGroupLoading: true,
+            lineGroup: [],
             formData: {
-                type: "stream_shout",
-                stream_name: "",
+                type: (group_buy)?"group_buy":"stream_shout",
+                purpose: "self",
+                name: "",
                 streamer: "",
-                platform: "Facebook",
+                platform: (group_buy)?"LINE":"Facebook",
                 item_list: [],
                 stock: {
                     reserve: true,
@@ -295,8 +318,16 @@ export class LiveCapture {
                     period: "1",
                 },
                 discount_set: "false",
+                lineGroup: {
+                    groupId: "",
+                    groupName: "",
+                },
+                start_date: new Date().toISOString().split("T")[0],
+                start_time: new Date().toTimeString().split(" ")[0].slice(0, 5),
+                end_date: new Date().toISOString().split("T")[0],
+                end_time: new Date().toTimeString().split(" ")[0].slice(0, 5)
             },
-            summaryType : "normal"
+            summaryType: "normal"
         }
         let options: { value: any; title: any; }[] = [];
         let collectLoading = true;
@@ -315,7 +346,55 @@ export class LiveCapture {
                 title: "自定到期日",
                 value: "-1"
             },
-        ]
+        ];
+        const htmlText = {
+            title: group_buy ? '建立團購' : '建立直播',
+            section: {
+                title: group_buy ? '團購設定' : '直播設定',
+            }
+        }
+
+        function drawPurposeSelect() {
+            return BgWidget.mainCard(html`
+                <div class="" style="display: flex;flex-direction: column;align-items: flex-start;gap: 18px;">
+                    ${gvc.bindView({
+                        bind: `purposeSelect`,
+                        view: () => {
+                            const dataArray = [
+                                {
+                                    text: "商家自用",
+                                    hint: "自行進行團購",
+                                    value: "self"
+                                },
+                                {
+                                    text: "合作推廣",
+                                    hint: "與網紅、KOL及創作者等合作推廣並提升銷售",
+                                    value: "collaboration"
+                                }
+                            ]
+                            const icon = ""
+                            return dataArray.map((data) => {
+                                return html`
+                                    <div style="display: flex;flex-direction: column;align-items: flex-start;gap: 4px;">
+                                        <div style="display: flex;align-items: center;gap: 6px;">
+                                            <div style="width: 16px;height: 16px;border-radius: 20px;border: 1px solid #DDD;background: #FFF;cursor: pointer;"></div>
+                                            <div>${data.text}</div>
+                                        </div>
+                                        <div style="color: #8D8D8D;display: flex;padding-left: 22px;align-items: flex-start;gap: 14px;align-self: stretch;">
+                                            ${data.hint}
+                                        </div>
+                                    </div>
+
+                                `
+                            }).join('')
+                        }, divCreate: {
+                            style: `display: flex;flex-direction: column;align-items: flex-start;gap: 12px;`
+                        }
+                    })}
+                </div>
+            `) + `<div style="margin-top:24px"></div>`
+        }
+
         return BgWidget.container(html`
             <div class="title-container">
                 ${BgWidget.goBack(
@@ -323,55 +402,273 @@ export class LiveCapture {
                             vm.type = 'list';
                         })
                 )}
-                ${BgWidget.title('建立直播')}
+                ${BgWidget.title(htmlText.title)}
             </div>
             ${BgWidget.container1x2({
                         html: html`
                             ${BgWidget.mainCard(html`
-                                <div class="d-flex flex-column" style="padding: 20px;gap: 18px;">
-                                    <div style="font-size: 16px;font-weight: 700;">直播設定</div>
-                                    <div style="display: flex;align-items: flex-start;gap: 18px;">
-                                        ${(() => {
-                                            const data = [
-                                                {
-                                                    title: "直播名稱",
-                                                    name: "stream_name",
-                                                    placeholder: "請輸入直播名稱"
-                                                },
-                                                {
-                                                    title: "直播主",
-                                                    name: "streamer",
-                                                    placeholder: "請輸入直播主"
-                                                },
-                                            ]
-                                            return data.map((dd) => {
-                                                return html`
+                                ${gvc.bindView({
+                                    bind: `setting`,
+                                    view: () => {
+                                        if (group_buy) {
+                                            return html`
+                                                <div style="font-size: 16px;font-weight: 700;">${htmlText.section.title}</div>
+                                                <div style="display: flex;align-items: flex-start;gap: 18px;align-self: stretch;">
                                                     <div style="display: flex;flex-direction: column;align-items: flex-start;gap: 8px;flex: 1 0 0;">
-                                                        <div style="font-size: 16px;font-weight: 400;">
-                                                            ${dd.title}
+                                                        <div style="font-size: 16px;font-style: normal;font-weight: 400;">
+                                                            團購名稱
                                                         </div>
                                                         <input style="display: flex;padding:9px 18px;align-items: center;align-self: stretch;border-radius: 10px;border: 1px solid #DDD;"
-                                                               placeholder="${dd.placeholder}" onchange="${gvc.event((e) => {
-                                                            (viewModel.formData as any)[dd.name] = e.value;
+                                                               value="${viewModel.formData.name ?? ""}"
+                                                               placeholder="請輸入團購名稱" onchange="${gvc.event((e) => {
+                                                            viewModel.formData.name = e.value;
                                                             gvc.notifyDataChange('summary')
-
                                                         })}">
                                                     </div>
-                                                `
-                                            })
-                                        })()}
-                                    </div>
-                                    <div style="display: flex;flex-direction: column;align-items: flex-start;gap: 18px;">
-                                        <div style="font-size: 16px;font-style: normal;font-weight: 700;">直播平台</div>
-                                        <div class="w-100"
-                                             style="padding: 9px 18px;border-radius: 10px;border: 1px solid #DDD;">
-                                            <select class="w-100 border-0">
-                                                <option value="Facebook">Facebook</option>
-                                            </select>
-                                        </div>
-                                    </div>
-                                </div>
+                                                    <div style="display: flex;flex-direction: column;align-items: flex-start;gap: 8px;flex: 1 0 0;">
+                                                        <div style="font-size: 16px;font-style: normal;">團購平台</div>
+                                                        <div class="w-100"
+                                                             style="padding: 9px 18px;border-radius: 10px;border: 1px solid #DDD;">
+                                                            <select class="w-100 border-0">
+                                                                <option value="LINE">LINE</option>
+                                                            </select>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <div style="display: flex;flex-direction: column;justify-content: center;align-items: flex-start;gap: 8px;">
+                                                    <div style="display: flex;flex-direction: column;align-items: flex-start;gap: 4px;align-self: stretch;">
+                                                        <div style="color:#393939;font-size: 16px;font-weight: 400;">團購群組
+                                                        </div>
+                                                        <div style="display: flex;align-items: flex-start;gap: 4px;align-self: stretch;">
+                                                            <div class="w-100"
+                                                                 style="display: flex;align-items: flex-start;gap: 4px;align-self: stretch;">
+                                                                <div style="flex: 1 0 0;color: #8D8D8D;font-size: 14px; font-weight: 400; line-height: normal;">
+                                                                    請先將團購小幫手新增至欲進行團購的群組並完成綁定
+                                                                </div>
+                                                                <div style="color: #4D86DB;font-size: 14px;font-weight: 400; line-height: normal;cursor: pointer;"
+                                                                     onclick="${gvc.event(() => {
+                                                                         let code = "搜尋中..."
+                                                                         gvc.glitter.innerDialog((gvc: GVC) => {
+                                                                             ApiShop.getVerificationCode().then((r: any) => {
+                                                                                 code = r.response;
+                                                                                 gvc.notifyDataChange('oauth')
+                                                                             })
+                                                                             return gvc.bindView({
+                                                                                 bind: `oauth`,
+                                                                                 view: () => {
+                                                                                     return html`
+                                                                                         <div class="position-relative d-flex align-items-center justify-content-center"
+                                                                                              style="width: 499px;height: 411px;border-radius: 10px;background: #FFF;">
+                                                                                             <svg style="position: absolute;right: 20px;top:17px;"
+                                                                                                  xmlns="http://www.w3.org/2000/svg"
+                                                                                                  width="14" height="14"
+                                                                                                  viewBox="0 0 14 14"
+                                                                                                  fill="none"
+                                                                                                  onclick="${gvc.event(() => {
+                                                                                                      gvc.closeDialog()
+                                                                                                  })}">
+                                                                                                 <path d="M1 1L13 13"
+                                                                                                       stroke="#393939"
+                                                                                                       stroke-linecap="round"/>
+                                                                                                 <path d="M13 1L1 13"
+                                                                                                       stroke="#393939"
+                                                                                                       stroke-linecap="round"/>
+                                                                                             </svg>
+                                                                                             <div style="display: flex;width: 247px;flex-direction: column;align-items: center;gap: 24px;">
+                                                                                                 <div style="font-size: 24px;font-weight: 700;">
+                                                                                                     團購小幫手QRcode
+                                                                                                 </div>
+                                                                                                 <img src="https://qr-official.line.me/sid/L/413ehous.png"
+                                                                                                      , alt="QRCode">
+                                                                                                 <div style="display: flex;flex-direction: column;justify-content: center;align-items: center;gap: 2px;">
+                                                                                                     <div style="display: flex;align-items: center;gap: 6px;">
+                                                                                                         <div style="font-size: 16px;font-weight: 400;">
+                                                                                                             驗證碼 : ${code}
+                                                                                                         </div>
+                                                                                                         <svg xmlns="http://www.w3.org/2000/svg"
+                                                                                                              width="15"
+                                                                                                              height="17"
+                                                                                                              viewBox="0 0 15 17"
+                                                                                                              fill="none"
+                                                                                                              onclick="${gvc.event(() => {
+                                                                                                                  navigator.clipboard.writeText(
+                                                                                                                          `Qdeqwe2`
+                                                                                                                  );
+                                                                                                                  dialog.successMessage({text: '已複製至剪貼簿'});
+                                                                                                              })}">
+                                                                                                             <g clip-path="url(#clip0_17404_206209)">
+                                                                                                                 <path d="M10.6277 2.3825L10.621 2.37581H10.6115H6.28145C5.99691 2.37581 5.76386 2.60663 5.76386 2.88927V10.7354C5.76386 11.0181 5.99691 11.2489 6.28145 11.2489H12.2155C12.5001 11.2489 12.7331 11.0181 12.7331 10.7354V4.47996V4.47034L12.7263 4.46357L10.6277 2.3825ZM13.7415 3.45733L13.7415 3.45734C14.0154 3.72892 14.1705 4.09696 14.1705 4.47996V10.7354C14.1705 11.8044 13.294 12.6739 12.2155 12.6739H6.28145C5.20301 12.6739 4.3265 11.8044 4.3265 10.7354V2.88927C4.3265 1.82029 5.20301 0.950811 6.28145 0.950811H10.6146C11.0009 0.950811 11.3722 1.10469 11.646 1.37627L13.7415 3.45733ZM0.370459 6.81235C0.370459 5.74336 1.24696 4.87389 2.3254 4.87389H3.29134V6.29889H2.3254C2.04086 6.29889 1.80782 6.52971 1.80782 6.81235V14.6585C1.80782 14.9411 2.04086 15.172 2.3254 15.172H8.25947C8.54401 15.172 8.77705 14.9411 8.77705 14.6585V13.7008H10.2144V14.6585C10.2144 15.7275 9.33791 16.597 8.25947 16.597H2.3254C1.24696 16.597 0.370459 15.7275 0.370459 14.6585V6.81235Z"
+                                                                                                                       fill="#393939"
+                                                                                                                       stroke="white"
+                                                                                                                       stroke-width="0.0461539"/>
+                                                                                                             </g>
+                                                                                                             <defs>
+                                                                                                                 <clipPath
+                                                                                                                         id="clip0_17404_206209">
+                                                                                                                     <rect width="13.8462"
+                                                                                                                           height="15.6923"
+                                                                                                                           fill="white"
+                                                                                                                           transform="translate(0.346542 0.925781)"/>
+                                                                                                                 </clipPath>
+                                                                                                             </defs>
+                                                                                                         </svg>
+                                                                                                     </div>
+                                                                                                     <div style="color: #8D8D8D;font-size: 14px;font-weight: 400;">
+                                                                                                         將用於綁定LINE群組和商店的驗證碼
+                                                                                                     </div>
+                                                                                                 </div>
+                                                                                             </div>
+                                                                                         </div>
+                                                                                     `
+                                                                                 }, divCreate: {
+                                                                                     class: `h-100 w-100 d-flex align-items-center justify-content-center`
+                                                                                 }
+                                                                             })
+                                                                         }, 'oauth')
+                                                                     })}">
+                                                                    團購小幫手QRcode
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                    ${gvc.bindView({
+                                                        bind: 'getLineGroup',
+                                                        view: () => {
+                                                            if (viewModel.lineGroupLoading) {
+                                                                ApiShop.getLineGroup().then((r: any) => {
+                                                                    viewModel.lineGroup = r.response;
+                                                                    viewModel.lineGroupLoading = false;
+                                                                    viewModel.formData.lineGroup.groupId = viewModel.lineGroup[0].group_id;
+                                                                    viewModel.formData.lineGroup.groupName = viewModel.lineGroup[0].group_name;
+                                                                    gvc.notifyDataChange(['getLineGroup' , 'summary']);
+                                                                })
+                                                                return html`
+                                                                    <select class="border-0 w-100" style="">
+                                                                        <option>團購群組搜尋中</option>
+                                                                    </select>
+                                                                `
+                                                            } else {
+                                                                return html`
+                                                                    <select class="border-0 w-100" style=""
+                                                                            onchange="${gvc.event((e) => {
+                                                                                viewModel.formData.lineGroup.groupId = viewModel.lineGroup[e.value].group_id;
+                                                                                viewModel.formData.lineGroup.groupName = viewModel.lineGroup[e.value].group_name;
+                                                                                gvc.notifyDataChange('summary')
+                                                                            })}">
+                                                                        ${(() => {
+                                                                            if (viewModel.lineGroup.length == 0) {
+                                                                                return html`
+                                                                                    <option>此商店尚未綁定LINE群組</option>`
+                                                                            }
+                                                                            return viewModel.lineGroup.map((group: any, index: number) => {
+                                                                                return html`
+                                                                                    <option value="${index}">
+                                                                                        ${group.group_name}
+                                                                                    </option>
+                                                                                `
+                                                                            }).join('')
+                                                                        })()}
 
+                                                                    </select>
+                                                                `
+                                                            }
+
+
+                                                        }, divCreate: {
+                                                            style: "display: flex;padding: 9px 18px;align-items: flex-start;gap: 10px;align-self: stretch;border-radius: 10px;border: 1px solid #DDD;"
+                                                        }
+                                                    })}
+                                                </div>
+                                                <div style="display: flex;flex-direction: column;justify-content: center;align-items: flex-start;gap: 18px;flex: 1 0 0;">
+                                                    <div style="display: flex;flex-direction: column;align-items: flex-start;gap: 4px;font-size: 16px;font-weight: 700;">
+                                                        團購時間
+                                                    </div>
+                                                    <div style="display: flex;flex-direction: column;align-items: flex-start;gap: 8px;align-self: stretch;">
+                                                        <div style="font-size: 16px;font-weight: 400;">開始時間</div>
+                                                        <div style="display: flex;align-items: flex-start;gap: 18px;align-self: stretch;">
+                                                            <input style="display: flex;padding: 9px 18px;align-items: center;flex: 1 0 0;border-radius: 10px;border: 1px solid #DDD;"
+                                                                   value="${viewModel.formData.start_date}" type="date"
+                                                                   onchange="${gvc.event((e) => {
+                                                                       viewModel.formData.start_date = e.value;
+                                                                       gvc.notifyDataChange('summary');
+                                                                   })}">
+                                                            <input style="display: flex;padding: 9px 18px;align-items: center;flex: 1 0 0;border-radius: 10px;border: 1px solid #DDD;"
+                                                                   value="${viewModel.formData.start_time}" type="time"
+                                                                   onchange="${gvc.event((e) => {
+                                                                       viewModel.formData.start_time = e.value;
+                                                                       gvc.notifyDataChange('summary')
+                                                                   })}">
+                                                        </div>
+                                                    </div>
+                                                    <div style="display: flex;flex-direction: column;align-items: flex-start;gap: 8px;align-self: stretch;">
+                                                        <div style="font-size: 16px;font-weight: 400;">結束時間</div>
+                                                        <div style="display: flex;align-items: flex-start;gap: 18px;align-self: stretch;">
+                                                            <input style="display: flex;padding: 9px 18px;align-items: center;flex: 1 0 0;border-radius: 10px;border: 1px solid #DDD;"
+                                                                   value="${viewModel.formData.end_date}" type="date"
+                                                                   onchange="${gvc.event((e) => {
+                                                                       viewModel.formData.end_date = e.value;
+                                                                       gvc.notifyDataChange('summary')
+                                                                   })}">
+                                                            <input style="display: flex;padding: 9px 18px;align-items: center;flex: 1 0 0;border-radius: 10px;border: 1px solid #DDD;"
+                                                                   value="${viewModel.formData.end_time}" type="time"
+                                                                   onchange="${gvc.event((e) => {
+                                                                       viewModel.formData.end_time = e.value;
+                                                                       gvc.notifyDataChange('summary')
+                                                                   })}">
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            `
+                                        } else {
+                                            return html`
+                                                <div style="font-size: 16px;font-weight: 700;">${htmlText.section.title}</div>
+                                                <div style="display: flex;align-items: flex-start;gap: 18px;">
+                                                    ${(() => {
+                                                        const data = [
+                                                            {
+                                                                title: "直播名稱",
+                                                                name: "stream_name",
+                                                                placeholder: "請輸入直播名稱"
+                                                            },
+                                                            {
+                                                                title: "直播主",
+                                                                name: "streamer",
+                                                                placeholder: "請輸入直播主"
+                                                            },
+                                                        ]
+                                                        return data.map((dd) => {
+                                                            return html`
+                                                                <div style="display: flex;flex-direction: column;align-items: flex-start;gap: 8px;flex: 1 0 0;">
+                                                                    <div style="font-size: 16px;font-weight: 400;">
+                                                                        ${dd.title}
+                                                                    </div>
+                                                                    <input style="display: flex;padding:9px 18px;align-items: center;align-self: stretch;border-radius: 10px;border: 1px solid #DDD;"
+                                                                           placeholder="${dd.placeholder}"
+                                                                           onchange="${gvc.event((e) => {
+                                                                               (viewModel.formData as any)[dd.name] = e.value;
+                                                                               gvc.notifyDataChange('summary')
+
+                                                                           })}">
+                                                                </div>
+                                                            `
+                                                        })
+                                                    })()}
+                                                </div>
+                                                <div style="display: flex;flex-direction: column;align-items: flex-start;gap: 18px;">
+                                                    <div style="font-size: 16px;font-style: normal;">直播平台</div>
+                                                    <div class="w-100"
+                                                         style="padding: 9px 18px;border-radius: 10px;border: 1px solid #DDD;">
+                                                        <select class="w-100 border-0">
+                                                            <option value="Facebook">Facebook</option>
+                                                        </select>
+                                                    </div>
+                                                </div>`
+                                        }
+                                    }, divCreate: {
+                                        class: `d-flex flex-column`,
+                                        style: `gap: 18px;`
+                                    }
+                                })}
                             `)}
                             <div style="margin-top:24px"></div>
                             ${BgWidget.mainCard(gvc.bindView({
@@ -379,7 +676,9 @@ export class LiveCapture {
                                 view: () => {
                                     return html`
                                         <div style="display: flex;flex-direction: column;align-items: flex-start;gap: 4px;">
-                                            <div style="font-size: 16px;font-style: normal;font-weight: 700;">直播商品</div>
+                                            <div style="font-size: 16px;font-style: normal;font-weight: 700;">
+                                                ${(group_buy) ? `團購商品` : `直播商品`}
+                                            </div>
                                             <div style="color: #8D8D8D;font-size: 14px;font-weight: 400; line-height: normal;">
                                                 若想為此次直播建立獨家商品，請先前往「隱形商品」新增
                                             </div>
@@ -487,12 +786,29 @@ export class LiveCapture {
                                                                                                 case 3: {
                                                                                                     let autoGenerate = false;
                                                                                                     let gap = window.innerWidth > 1100 ? "70" : "50";
-                                                                                                    console.log("newOrder.productTemp -- ", newOrder.productTemp);
                                                                                                     return html`
                                                                                                         <div style="display: flex;width: ${width};flex-direction: column;align-items: flex-start;gap: 18px;border-radius: 10px;background: #FFF;">
                                                                                                             <div class="w-100"
                                                                                                                  style="display: flex;height: 46px;padding: 20px 20px 12px;align-items: center;align-self: stretch;color: #393939;font-size: 16px;font-weight: 700;">
                                                                                                                 步驟3. 新增關鍵字
+                                                                                                                <div class="ms-auto"
+                                                                                                                     style="cursor: pointer;"
+                                                                                                                     onclick="${gvc.event(() => {
+                                                                                                                         gvc.glitter.closeDiaLog()
+                                                                                                                     })}">
+                                                                                                                    <svg xmlns="http://www.w3.org/2000/svg"
+                                                                                                                         width="14"
+                                                                                                                         height="14"
+                                                                                                                         viewBox="0 0 14 14"
+                                                                                                                         fill="none">
+                                                                                                                        <path d="M1 1L13 13"
+                                                                                                                              stroke="#393939"
+                                                                                                                              stroke-linecap="round"/>
+                                                                                                                        <path d="M13 1L1 13"
+                                                                                                                              stroke="#393939"
+                                                                                                                              stroke-linecap="round"/>
+                                                                                                                    </svg>
+                                                                                                                </div>
                                                                                                             </div>
                                                                                                             <div class="w-100 d-flex align-items-center justify-content-between"
                                                                                                                  style="padding: 0 20px;">
@@ -609,7 +925,7 @@ export class LiveCapture {
                                                                                                                                         <div class="d-flex w-100 align-items-center flex-column"
                                                                                                                                              style="height: 40px;padding: 9px 4px;gap: 18px;flex-shrink: 0;">
                                                                                                                                             <div class="d-flex w-100 align-items-center"
-                                                                                                                                                 style="padding: 0 4px;gap: ${gap}px;">
+                                                                                                                                                 style="padding: 12px 4px;gap: ${gap}px;border-bottom: 1px solid #DDD;">
                                                                                                                                                 ${titleRow.map((item, index) => {
                                                                                                                                                     return html`
                                                                                                                                                         <div class="flex-shrink-0 ${(index == 2) ? `flex-fill ms-2` : ``}"
@@ -649,7 +965,7 @@ export class LiveCapture {
                                                                                                                                                                                         if (product.expand) {
                                                                                                                                                                                             return html`
                                                                                                                                                                                                 <div class="h-100 flex-shrink-0 d-flex align-items-center"
-                                                                                                                                                                                                     style="width:52px;cursor: pointer;"
+                                                                                                                                                                                                     style="width:22px;cursor: pointer;padding-left:8px;"
                                                                                                                                                                                                      onclick="${gvc.event(() => {
                                                                                                                                                                                                          product.expand = false;
                                                                                                                                                                                                          gvc.notifyDataChange(`product${productIndex}`)
@@ -670,7 +986,7 @@ export class LiveCapture {
                                                                                                                                                                                         } else {
                                                                                                                                                                                             return html`
                                                                                                                                                                                                 <div class="h-100 flex-shrink-0 d-flex align-items-center"
-                                                                                                                                                                                                     style="width:52px;cursor: pointer;"
+                                                                                                                                                                                                     style="width:22px;cursor: pointer;padding-left:8px;"
                                                                                                                                                                                                      onclick="${gvc.event(() => {
                                                                                                                                                                                                          product.expand = true;
 
@@ -757,7 +1073,6 @@ export class LiveCapture {
                                                                                                                                                                                                placeholder=" 例如 : A01 , a01 , 商品名稱"
                                                                                                                                                                                                onkeydown="${gvc.event((e, event) => {
                                                                                                                                                                                                    if (event.key === 'Enter' && e.value.length > 1) {
-                                                                                                                                                                                                       console.log("enter OK ")
                                                                                                                                                                                                        if (variant) {
                                                                                                                                                                                                            if (!variant?.live_keyword) {
                                                                                                                                                                                                                variant.live_keyword = [];
@@ -792,7 +1107,7 @@ export class LiveCapture {
                                                                                                                                                                             return variants.map((variant: any) => {
                                                                                                                                                                                 return html`
                                                                                                                                                                                     <div class="d-flex w-100"
-                                                                                                                                                                                         style="margin-top:12px;gap:${gap}px;">
+                                                                                                                                                                                         style="margin-top:18px;gap:${gap}px;">
                                                                                                                                                                                         ${drawRow(variant)}
                                                                                                                                                                                     </div>
                                                                                                                                                                                 `
@@ -851,6 +1166,24 @@ export class LiveCapture {
                                                                                                             <div class="w-100"
                                                                                                                  style="display: flex;height: 46px;padding: 20px 20px 12px;align-items: center;align-self: stretch;color: #393939;font-size: 16px;font-weight: 700;">
                                                                                                                 步驟2. 選擇直播商品
+                                                                                                                <div class="ms-auto"
+                                                                                                                     style="cursor: pointer;"
+                                                                                                                     onclick="${gvc.event(() => {
+                                                                                                                         gvc.glitter.closeDiaLog()
+                                                                                                                     })}">
+                                                                                                                    <svg xmlns="http://www.w3.org/2000/svg"
+                                                                                                                         width="14"
+                                                                                                                         height="14"
+                                                                                                                         viewBox="0 0 14 14"
+                                                                                                                         fill="none">
+                                                                                                                        <path d="M1 1L13 13"
+                                                                                                                              stroke="#393939"
+                                                                                                                              stroke-linecap="round"/>
+                                                                                                                        <path d="M13 1L1 13"
+                                                                                                                              stroke="#393939"
+                                                                                                                              stroke-linecap="round"/>
+                                                                                                                    </svg>
+                                                                                                                </div>
                                                                                                             </div>
                                                                                                             <div class="w-100"
                                                                                                                  style="display: flex;flex-direction: column;align-items: flex-start;gap: 12px;">
@@ -908,7 +1241,7 @@ export class LiveCapture {
                                                                                                                                         <div class="d-flex w-100 align-items-center flex-column"
                                                                                                                                              style="height: 40px;padding: 9px 4px;gap: 18px;flex-shrink: 0;">
                                                                                                                                             <div class="d-flex w-100 align-items-center"
-                                                                                                                                                 style="padding: 0 4px;gap: ${gap}px;">
+                                                                                                                                                 style="padding: 12px 4px;gap: ${gap}px;border-bottom: 1px solid #DDD;">
                                                                                                                                                 ${titleRow.map((item, index) => {
                                                                                                                                                     return html`
                                                                                                                                                         <div class="${(index == 0) ? 'flex-fill' : 'flex-shrink-0'}"
@@ -937,10 +1270,8 @@ export class LiveCapture {
 
 
                                                                                                                                                                 function drawRow(variant?: any) {
-                                                                                                                                                                    // 
-                                                                                                                                                                    console.log("product.content.live_model -- ", product.content.live_model);
                                                                                                                                                                     let showModel: any = variant ? variant.live_model : (variants.length > 1) ? product.content.live_model : variants[0].live_model;
-                                                                                                                                                                    console.log("here OK", showModel)
+                                                                                                                                                                    //單一規格 或是規格的細項走
                                                                                                                                                                     if (!variant && variants.length > 1) {
 
                                                                                                                                                                         showModel.stock = 0;
@@ -971,7 +1302,7 @@ export class LiveCapture {
                                                                                                                                                                     }
                                                                                                                                                                     return html`
                                                                                                                                                                         ${variant ? html`
-                                                                                                                                                                            <div style="margin-left:38px;"></div>` : ``}
+                                                                                                                                                                            <div style="margin-left:6px;"></div>` : ``}
                                                                                                                                                                         <div class="flex-fill text-left d-flex align-items-center"
                                                                                                                                                                              style="">
                                                                                                                                                                             <div class="flex-shrink-0"
@@ -986,7 +1317,7 @@ export class LiveCapture {
                                                                                                                                                                                         if (product.expand) {
                                                                                                                                                                                             return html`
                                                                                                                                                                                                 <div class="h-100 flex-shrink-0 d-flex align-items-center"
-                                                                                                                                                                                                     style="width:52px;cursor: pointer;"
+                                                                                                                                                                                                     style="width:22px;cursor: pointer;padding-left:8px;"
                                                                                                                                                                                                      onclick="${gvc.event(() => {
                                                                                                                                                                                                          product.expand = false;
                                                                                                                                                                                                          gvc.notifyDataChange(`product${productIndex}`)
@@ -1007,7 +1338,7 @@ export class LiveCapture {
                                                                                                                                                                                         } else {
                                                                                                                                                                                             return html`
                                                                                                                                                                                                 <div class="h-100 flex-shrink-0 d-flex align-items-center"
-                                                                                                                                                                                                     style="width:52px;cursor: pointer;"
+                                                                                                                                                                                                     style="width:22px;cursor: pointer;padding-left:8px;"
                                                                                                                                                                                                      onclick="${gvc.event(() => {
                                                                                                                                                                                                          product.expand = true;
 
@@ -1127,7 +1458,7 @@ export class LiveCapture {
                                                                                                                                                                                    ${showModel.live_price ? '' : 'disabled'}
                                                                                                                                                                                    onchange="${gvc.event((e) => {
                                                                                                                                                                                        showModel.live_price = e.value
-                                                                                                                                                                                   })}}">
+                                                                                                                                                                                   })}">
 
                                                                                                                                                                         </div>
                                                                                                                                                                         <!--   每人限購                                                                                                                                             庫存-->
@@ -1146,7 +1477,6 @@ export class LiveCapture {
                                                                                                                                                                 }
 
                                                                                                                                                                 return html`
-
                                                                                                                                                                     <div class="d-flex w-100"
                                                                                                                                                                          style="gap:${gap}px;">
                                                                                                                                                                         ${drawRow()}
@@ -1158,7 +1488,7 @@ export class LiveCapture {
                                                                                                                                                                             return variants.map((variant: any) => {
                                                                                                                                                                                 return html`
                                                                                                                                                                                     <div class="d-flex w-100"
-                                                                                                                                                                                         style="margin-top:12px;gap:${gap}px;">
+                                                                                                                                                                                         style="margin-top:18px;gap:${gap}px;">
                                                                                                                                                                                         ${drawRow(variant)}
                                                                                                                                                                                     </div>
                                                                                                                                                                                 `
@@ -1199,12 +1529,21 @@ export class LiveCapture {
                                                                                                                             , "上一步")}
                                                                                                                     ${BgWidget.save(
                                                                                                                             gvc.event(() => {
-                                                                                                                                newOrder.productTemp.forEach((product: any) => {
-                                                                                                                                    if (product.content.variants.length > 1) {
-                                                                                                                                        product.expand = true;
-                                                                                                                                    }
-                                                                                                                                })
-                                                                                                                                viewModel.step = 3;
+                                                                                                                                if (group_buy){
+                                                                                                                                    newOrder.productTemp.forEach((product: any) => {
+                                                                                                                                        product.selected = false;
+                                                                                                                                    })
+                                                                                                                                    setItemList(newOrder.productTemp);
+                                                                                                                                    gvc.closeDialog();
+                                                                                                                                }else{
+                                                                                                                                    newOrder.productTemp.forEach((product: any) => {
+                                                                                                                                        if (product.content.variants.length > 1) {
+                                                                                                                                            product.expand = true;
+                                                                                                                                        }
+                                                                                                                                    })
+                                                                                                                                    viewModel.step = 3;
+                                                                                                                                }
+                                                                                                                                
                                                                                                                             })
                                                                                                                             , "下一步"
                                                                                                                     )}
@@ -1217,8 +1556,26 @@ export class LiveCapture {
                                                                                                     return html`
                                                                                                         <div style="display: flex;width: ${width};flex-direction: column;align-items: flex-start;gap: 18px;border-radius: 10px;background: #FFF;">
                                                                                                             <div class="w-100"
-                                                                                                                 style="display: flex;height: 46px;padding: 20px 20px 12px;align-items: center;align-self: stretch;color: #393939;font-size: 16px;font-weight: 700;">
+                                                                                                                 style="display: flex;height: 46px;padding: 20px 20px 12px;align-items: center;align-self: stretch;color: #393939;font-size: 16px;font-weight: 700;background: #F2F2F2;border-radius: 10px 10px 0px 0px;">
                                                                                                                 步驟1. 選擇直播商品
+                                                                                                                <div class="ms-auto"
+                                                                                                                     style="cursor: pointer;"
+                                                                                                                     onclick="${gvc.event(() => {
+                                                                                                                         gvc.glitter.closeDiaLog()
+                                                                                                                     })}">
+                                                                                                                    <svg xmlns="http://www.w3.org/2000/svg"
+                                                                                                                         width="14"
+                                                                                                                         height="14"
+                                                                                                                         viewBox="0 0 14 14"
+                                                                                                                         fill="none">
+                                                                                                                        <path d="M1 1L13 13"
+                                                                                                                              stroke="#393939"
+                                                                                                                              stroke-linecap="round"/>
+                                                                                                                        <path d="M13 1L1 13"
+                                                                                                                              stroke="#393939"
+                                                                                                                              stroke-linecap="round"/>
+                                                                                                                    </svg>
+                                                                                                                </div>
                                                                                                             </div>
                                                                                                             <div class="w-100"
                                                                                                                  style="display: flex;flex-direction: column;align-items: flex-start;gap: 12px;">
@@ -1375,7 +1732,7 @@ export class LiveCapture {
                                                                                                                                         <div class="d-flex w-100 align-items-center flex-column"
                                                                                                                                              style="height: 40px;padding: 9px 4px;gap: 18px;flex-shrink: 0;">
                                                                                                                                             <div class="d-flex w-100 align-items-center"
-                                                                                                                                                 style="padding: 0 4px;">
+                                                                                                                                                 style="padding: 12px 4px;border-bottom: 1px solid #DDD;">
                                                                                                                                                 ${(() => {
                                                                                                                                                     if (step1Check) {
                                                                                                                                                         return html`
@@ -1522,7 +1879,7 @@ export class LiveCapture {
                                                                                                                                                                                         if (product.expand) {
                                                                                                                                                                                             return html`
                                                                                                                                                                                                 <div class="h-100 flex-shrink-0 d-flex align-items-center"
-                                                                                                                                                                                                     style="width:52px;cursor: pointer;"
+                                                                                                                                                                                                     style="width:22px;cursor: pointer;padding-left:8px;"
                                                                                                                                                                                                      onclick="${gvc.event(() => {
                                                                                                                                                                                                          product.expand = false;
                                                                                                                                                                                                          gvc.notifyDataChange(`product${productIndex}`)
@@ -1543,7 +1900,7 @@ export class LiveCapture {
                                                                                                                                                                                         } else {
                                                                                                                                                                                             return html`
                                                                                                                                                                                                 <div class="h-100 flex-shrink-0 d-flex align-items-center"
-                                                                                                                                                                                                     style="width:52px;cursor: pointer;"
+                                                                                                                                                                                                     style="width:22px;cursor: pointer;padding-left:8px;"
                                                                                                                                                                                                      onclick="${gvc.event(() => {
                                                                                                                                                                                                          product.expand = true;
 
@@ -1699,10 +2056,11 @@ export class LiveCapture {
                                                                                                                                 newOrder.productTemp = [];
                                                                                                                                 newOrder.productArray.map((product: any) => {
                                                                                                                                     let localTemp = JSON.parse(JSON.stringify(product));
-                                                                                                                                    localTemp.content.variants = [];
+                                                                                                                                    localTemp.expand = true;
                                                                                                                                     if (product.selected) {
-                                                                                                                                        newOrder.productTemp.push(product);
+                                                                                                                                        newOrder.productTemp.push(localTemp);
                                                                                                                                     } else {
+                                                                                                                                        localTemp.content.variants = [];
                                                                                                                                         product.content.variants.forEach((data: any) => {
                                                                                                                                             if (data.selected) {
                                                                                                                                                 localTemp.content.variants.push(data);
@@ -1884,15 +2242,6 @@ export class LiveCapture {
                                                                                 return ``;
                                                                             }
                                                                         })()}
-                                                                        <svg class="flex-shrink-0 ms-auto"
-                                                                             style="cursor: pointer;"
-                                                                             width="15" height="4" viewBox="0 0 15 4"
-                                                                             fill="none"
-                                                                             xmlns="http://www.w3.org/2000/svg">
-                                                                            <circle cx="1.5" cy="2" r="1.5" fill="#393939"/>
-                                                                            <circle cx="7.5" cy="2" r="1.5" fill="#393939"/>
-                                                                            <circle cx="13.5" cy="2" r="1.5" fill="#393939"/>
-                                                                        </svg>
                                                                     </div>
 
                                                                 </div>
@@ -1902,7 +2251,7 @@ export class LiveCapture {
                                                                         return item.content.variants.map((variant: any) => {
                                                                             return html`
                                                                                 <div class="w-100 "
-                                                                                     style="display: flex;padding-left: 100px;align-items: center;align-self: stretch;gap:4px;">
+                                                                                     style="display: flex;padding-left: 100px;align-items: center;align-self: stretch;gap:4px;margin-top:8px;">
                                                                                     <div class="d-flex flex-column flex-shrink-0"
                                                                                          style="font-size: 16px;font-style: normal;font-weight: 400;width:250px;gap:4px;">
                                                                                         <div>${variant.spec.join(',')}</div>
@@ -1930,12 +2279,12 @@ export class LiveCapture {
                                     `
                                 }, divCreate: {
                                     class: 'd-flex',
-                                    style: 'padding: 20px;flex-direction: column;align-items: flex-start;gap: 18px;'
+                                    style: 'flex-direction: column;align-items: flex-start;gap: 18px;'
                                 }
                             }))}
                             <div style="margin-top:24px"></div>
                             ${BgWidget.mainCard(html`
-                                <div style="display: flex;padding: 20px;flex-direction: column;">
+                                <div style="display: flex;flex-direction: column;">
                                     <div style="font-size: 16px;font-weight: 700;">庫存設定</div>
                                     <div style="display: flex;flex-direction: column;align-items: flex-start;gap: 12px;">
                                         <div style="display: flex;flex-direction: column;align-items: flex-start;gap: 4px;">
@@ -1948,7 +2297,7 @@ export class LiveCapture {
                                                             type="checkbox"
                                                             onchange="${gvc.event((e, event) => {
                                                                 viewModel.formData.stock.reserve = e.value;
-                                                                gvc.notifyDataChange(['datePicker' , 'summary']);
+                                                                gvc.notifyDataChange(['datePicker', 'summary']);
                                                             })}"
                                                             checked
                                                     />
@@ -1971,7 +2320,7 @@ export class LiveCapture {
                                                             viewModel.formData.stock.expiry_date = getFutureDate(parseInt(e.value))
                                                         }
 
-                                                        gvc.notifyDataChange(['datePicker' , 'summary']);
+                                                        gvc.notifyDataChange(['datePicker', 'summary']);
                                                     })}">
                                                         ${(() => {
                                                             return stockExpired.map((dd) => {
@@ -2026,10 +2375,11 @@ export class LiveCapture {
                                                     }]
                                                     return data.map((dd) => {
                                                         return html`
-                                                            <div class="d-flex align-items-center" style="gap: 6px;cursor: pointer;"
+                                                            <div class="d-flex align-items-center"
+                                                                 style="gap: 6px;cursor: pointer;"
                                                                  onclick="${gvc.event(() => {
                                                                      viewModel.formData.discount_set = dd.value;
-                                                                     gvc.notifyDataChange(['summary' , 'discount']);
+                                                                     gvc.notifyDataChange(['summary', 'discount']);
                                                                  })}}">
                                                                 ${viewModel.formData.discount_set == dd.value ? html`
                                                                             <div style="width: 16px;height: 16px;border-radius: 20px;border:solid 4px #393939"></div>`
@@ -2051,32 +2401,52 @@ export class LiveCapture {
                                 }, divCreate: {}
                             })}
                             <div class="w-100" style="margin-bottom: 120px;"></div>
-                            
                         `, ratio: 70
                     }
                     , {
                         html: html`
                             ${gvc.bindView({
                                 bind: "summary",
-                                dataList:[{
-                                    obj:viewModel,
-                                    key:"summary",
+                                dataList: [{
+                                    obj: viewModel,
+                                    key: "summary",
                                 }],
                                 view: () => {
+
                                     return BgWidget.mainCard(html`
                                         <div style="display: flex;flex-direction: column;align-items: flex-start;gap: 18px;font-size: 16px;font-weight: 400;">
                                             <div style="font-size: 16px;font-weight: 700;">摘要</div>
-                                            <div style="display: flex;flex-direction: column;gap: 8px;">
-                                                <div>直播名稱 :
-                                                    ${(viewModel.formData.stream_name.length > 0) ? viewModel.formData.stream_name : html`
-                                                        <span style="color: #8D8D8D;">尚未輸入直播名稱</span>`}
-                                                </div>
-                                                <div>直播主 :
-                                                    ${(viewModel.formData.streamer.length > 0) ? viewModel.formData.streamer : html`
-                                                        <span style="color: #8D8D8D;">尚未輸入直播主</span>`}
-                                                </div>
-                                                <div>直播平台 : ${viewModel.formData.platform}</div>
-                                            </div>
+                                            ${group_buy ? html`
+                                                        <div style="display: flex;flex-direction: column;gap: 8px;">
+                                                            <div>團購名稱 :
+                                                                ${(viewModel.formData.name.length > 0) ? viewModel.formData.name : html`
+                                                                    <span style="color: #8D8D8D;">尚未輸入團購名稱</span>`}
+                                                            </div>
+                                                            <div>團購平台 : ${viewModel.formData.platform}</div>
+                                                            <div>團購群組 :
+                                                                ${(viewModel.formData.lineGroup.groupName) ? viewModel.formData.lineGroup.groupName : html`
+                                                                    <span style="color: #8D8D8D;">尚未選擇團購群組</span>`}
+                                                            </div>
+                                                            <div>團購時間 :
+                                                                ${viewModel.formData.start_date}-${viewModel.formData.start_time}~${viewModel.formData.end_date}-${viewModel.formData.end_time}
+                                                            </div>
+                                                            
+                                                        </div>
+                                                    ` :
+                                                    html`
+                                                        <div style="display: flex;flex-direction: column;gap: 8px;">
+                                                            <div>直播名稱 :
+                                                                ${(viewModel.formData.name.length > 0) ? viewModel.formData.name : html`
+                                                                    <span style="color: #8D8D8D;">尚未輸入直播名稱</span>`}
+                                                            </div>
+                                                            <div>直播主 :
+                                                                ${(viewModel.formData.streamer.length > 0) ? viewModel.formData.streamer : html`
+                                                                    <span style="color: #8D8D8D;">尚未輸入直播主</span>`}
+                                                            </div>
+                                                            <div>直播平台 : ${viewModel.formData.platform}</div>
+                                                        </div>
+                                                    `}
+
                                             <div class="w-100 " style="height: 1px; background-color: #DDD"></div>
                                             <div style="display: flex;flex-direction: column;gap: 8px;">
                                                 ${(() => {
@@ -2107,13 +2477,79 @@ export class LiveCapture {
                 }))}
                 ${BgWidget.save(
                         gvc.event(async () => {
+                            dialog.dataLoading({
+                                visible:true
+                            })
                             ApiLiveInteraction.createScheduled(viewModel.formData).then((response) => {
-                                console.log("response -- " , response.response.insertID)
+                              
+                                dialog.dataLoading({
+                                    visible:false
+                                })
                             });
-                        }),"下一步"
+                        }), "下一步"
                 )}
             </div>,
         `)
+    }
+
+    public static inputVerificationCode(gvc: GVC) {
+        const glitter = gvc.glitter;
+        const dialog = new ShareDialog(gvc.glitter);
+        let code = ""
+        gvc.addStyle(`.verification-container {
+            max-width: 400px;
+            margin: 80px auto;
+            padding: 30px;
+            background: #ffffff;
+            border-radius: 12px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+        }
+        .btn-primary {
+            background-color: #007bff;
+            border: none;
+        }
+        .btn-primary:hover {
+            background-color: #0056b3;
+        }`)
+        return html`
+            <div class="container">
+                <div class="verification-container text-center">
+                    <h2 class="mb-3">🔐 驗證您的帳號</h2>
+                    <p class="text-muted">請輸入您的 <strong>Shopnex</strong> 驗證碼以完成綁定。</p>
+
+                    <input type="text" id="verificationCode" class="form-control text-center mb-3"
+                           maxlength="8" placeholder="輸入 8 碼驗證碼"
+                           onchange="${gvc.event((e) => {
+                               code = e.value;
+
+                           })}"
+                    >
+
+                    <p id="errorMessage" class="text-danger" style="display: none;">請輸入 8 碼驗證碼</p>
+
+                    <button class="btn btn-primary w-100" onclick="${gvc.event(() => {
+                        const groupId = glitter.getUrlParameter('groupId');
+                        ApiShop.verifyVerificationCode({
+                            code: code,
+                            groupId: groupId
+                        }).then(r => {
+                            if (r.response.result == "error") {
+                                dialog.errorMessage({
+                                    text: r.response.data,
+                                    callback: () => {
+
+                                    }
+                                })
+                            } else {
+                                dialog.successMessage({
+                                    text: "綁定成功，已可關閉視窗",
+                                })
+                            }
+                        })
+                    })}">確認驗證
+                    </button>
+                </div>
+            </div>`
     }
 }
 

@@ -25,6 +25,12 @@ export class CmsRouter {
                                     resolve(cl.main(gvc));
                                 });
                                 break;
+                            case 'shopnex-line-oauth':
+                                console.log("glitter.getUrlParameter('page') -- ", gvc.glitter.getUrlParameter('groupId'));
+                                gvc.glitter.getModule(new URL('./cms-plugin/live_capture.js', gvc.glitter.root_path).href, (cl) => {
+                                    resolve(cl.inputVerificationCode(gvc));
+                                });
+                                break;
                             default:
                                 resolve('no page');
                         }

@@ -1100,7 +1100,7 @@ Setting_editor.menuItems = () => {
         },
         {
             icon: '',
-            page: 'live_list',
+            page: 'group_buy',
             group: '社群電商',
             title: 'LINE團購',
             appName: 'cms_system',

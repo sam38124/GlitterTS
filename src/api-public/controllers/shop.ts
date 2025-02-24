@@ -15,6 +15,7 @@ import { Shopping, VoucherData } from '../services/shopping';
 import { DataAnalyze } from '../services/data-analyze';
 import { Rebate, IRebateSearch } from '../services/rebate';
 import { Pos } from '../services/pos.js';
+import {ShopnexLineMessage} from "../services/model/shopnex-line-message";
 
 const router: express.Router = express.Router();
 export = router;
@@ -661,16 +662,17 @@ async function redirect_link(req: express.Request, resp: express.Response) {
             }
         }
         if (req.query.jkopay && req.query.jkopay === 'true') {
+            console.log("req -- " , req)
             let kd = {
                 ReturnURL: '',
                 NotifyURL: '',
             };
 
-            const jko = new JKO(req.query.appName as string, kd);
-            const data: any = jko.confirmAndCaptureOrder(req.query.orderID as string);
-            if (data.tranactions[0].status == 'success') {
-                await new Shopping(req.query.appName as string).releaseCheckout(1, req.query.orderID as string);
-            }
+            // const jko = new JKO(req.query.appName as string, kd);
+            // const data: any = jko.confirmAndCaptureOrder(req.query.orderID as string);
+            // if (data.tranactions[0].status == 'success') {
+            //     await new Shopping(req.query.appName as string).releaseCheckout(1, req.query.orderID as string);
+            // }
         }
         const html = String.raw;
         return resp.send(
@@ -1471,6 +1473,30 @@ router.post('/pos/work-status', async (req: express.Request, resp: express.Respo
         return response.succ(resp, {
             status: await new Pos(req.get('g-app') as string, req.body.token).setWorkStatus(req.body),
         });
+    } catch (err) {
+        return response.fail(resp, err);
+    }
+});
+
+router.get('/verification-code', async (req: express.Request, resp: express.Response) => {
+    try {
+        return response.succ(resp, await ShopnexLineMessage.generateVerificationCode(req.get('g-app') as string));
+    } catch (err) {
+        return response.fail(resp, err);
+    }
+});
+
+router.post('/verification-code', async (req: express.Request, resp: express.Response) => {
+    try {
+        return response.succ(resp, await ShopnexLineMessage.verifyVerificationCode(req.body));
+    } catch (err) {
+        return response.fail(resp, err);
+    }
+});
+
+router.get('/line_group', async (req: express.Request, resp: express.Response) => {
+    try {
+        return response.succ(resp, await ShopnexLineMessage.getLineGroup(req.get('g-app') as string));
     } catch (err) {
         return response.fail(resp, err);
     }

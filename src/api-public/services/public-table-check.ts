@@ -1,11 +1,11 @@
 import db from '../../modules/database';
-import { saasConfig } from '../../config.js';
-import { compare_sql_table } from '../../services/saas-table-check.js';
+import {saasConfig} from '../../config.js';
+import {compare_sql_table} from '../../services/saas-table-check.js';
 import tool from '../../services/tool.js';
-import { AiRobot } from './ai-robot.js';
-import { User } from './user.js';
-import { Shopping } from './shopping.js';
-import { UpdatedTableChecked } from './updated-table-checked.js';
+import {AiRobot} from './ai-robot.js';
+import {User} from './user.js';
+import {Shopping} from './shopping.js';
+import {UpdatedTableChecked} from './updated-table-checked.js';
 
 export class ApiPublic {
     public static checkApp: { app_name: string; refer_app: string }[] = [];
@@ -258,7 +258,6 @@ export class ApiPublic {
   KEY \`index2\` (\`userID\`)
 ) ENGINE=InnoDB AUTO_INCREMENT=287 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci`,
                 },
-
                 {
                     scheme: appName,
                     table: 't_user',
@@ -524,15 +523,58 @@ export class ApiPublic {
                     sql: `(
   \`id\` int NOT NULL AUTO_INCREMENT,
   \`type\` varchar(50) COLLATE utf8mb4_unicode_ci NOT NULL,
-  \`permalink_url\` TEXT,  
-  \`stream_name\` varchar(200) NOT NULL,
-  \`streamer\` varchar(200) NOT NULL,
+  \`name\` varchar(200) NOT NULL,
   \`status\` int NOT NULL DEFAULT 1,
   \`content\` json DEFAULT NULL,
   \`created_time\` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (\`id\`),
-  KEY \`index2\` (\`stream_name\`),
-  KEY \`index3\` (\`streamer\`)
+  KEY \`index2\` (\`name\`)
+)  ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+ `,
+                },
+                {
+                    scheme: appName,
+                    table: `t_line_group_inf`,
+                    sql: `(
+  \`id\` int NOT NULL AUTO_INCREMENT,
+  \`group_id\` VARCHAR(50) NOT NULL, 
+  \`group_name\` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL,  
+  \`shopnex_user_name\` VARCHAR(255) NOT NULL,
+  \`shopnex_app\` VARCHAR(255) NOT NULL, 
+  \`shopnex_user_id\` VARCHAR(50) NOT NULL, 
+  \`created_time\` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (\`id\`),
+  KEY \`index2\` (\`group_id\`),
+  KEY \`index3\` (\`shopnex_user_id\`)
+)  ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+ `,
+                },
+                {
+                    scheme: appName,
+                    table: `t_app_line_group_verification`,
+                    sql: `(
+  \`id\` int NOT NULL AUTO_INCREMENT,
+  \`app_name\` VARCHAR(255) COLLATE utf8mb4_unicode_ci NOT NULL, 
+  \`verification_code\` VARCHAR(255) NOT NULL,  
+  \`created_time\` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (\`id\`),
+  KEY \`index2\` (\`app_name\`),
+  KEY \`index3\` (\`verification_code\`),
+  UNIQUE KEY \`unique_verification_code\` (\`verification_code\`)
+)  ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+ `,
+                },
+                {
+                    scheme: appName,
+                    table: `t_temporary_cart`,
+                    sql: `(
+                    \`id\` int NOT NULL AUTO_INCREMENT,
+  \`cart_id\` VARCHAR(255) NOT NULL ,
+  \`content\` json DEFAULT NULL,
+  \`created_time\` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (\`id\`),
+  KEY \`index2\` (\`cart_id\`),
+  UNIQUE KEY \`unique_cart_id\` (\`cart_id\`)
 )  ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
  `,
                 },
@@ -649,7 +691,8 @@ export class ApiPublic {
                 await trans.execute(`GRANT ALL PRIVILEGES ON \`${appName}\`.* TO '${sql_info.sql_admin}'@'*';`, []);
                 await trans.commit();
                 await trans.release();
-            } catch (e) {}
+            } catch (e) {
+            }
         }
     }
 

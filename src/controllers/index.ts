@@ -34,7 +34,7 @@ const whiteList:{}[] = [
     { url: config.getRoute(config.route.fileManager)+"/upload", method: 'POST' },
     { url: config.getRoute(config.route.app)+"/official/plugin", method: 'GET' },
     { url: config.getRoute(config.route.globalEvent), method: 'GET' },
-    { url: config.getRoute(config.route.page), method: 'GET' }
+    { url: config.getRoute(config.route.page), method: 'GET' },
 ];
 
 async function doAuthAction(req: express.Request, resp: express.Response, next: express.NextFunction) {

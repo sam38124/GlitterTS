@@ -527,6 +527,7 @@ export class App {
         }
     }
 
+
     public static async checkBrandAndMemberType(app: string) {
         let base = (
             await db.query(

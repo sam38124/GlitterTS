@@ -1,3 +1,4 @@
+/// <reference types="node" />
 import { IToken } from '../models/Auth.js';
 export interface ChatRoom {
     chat_id: string;
@@ -54,6 +55,8 @@ export declare class LineMessage {
     sendMessage(token: string, userId: string, message: string): Promise<void>;
     getImageContent(messageId: string, accessToken: string): Promise<string>;
     uploadFile(file_name: string, fileData: Buffer): Promise<string>;
+    getGroupInf(groupId: string): Promise<void>;
+    handleJoinEvent(event: any, token?: string): Promise<void>;
     checkPoints(message: string, user_count: number): Promise<boolean>;
     usePoints(obj: {
         message: string;
@@ -62,4 +65,5 @@ export declare class LineMessage {
         phone: string;
     }): Promise<number>;
     getUsePoints(text: string, user_count: number): number;
+    getUserProfile(userId: string, token?: string): Promise<any>;
 }

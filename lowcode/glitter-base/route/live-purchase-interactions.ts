@@ -19,19 +19,7 @@ export type PostData = {
 
 
 export class ApiLiveInteraction extends BaseApi {
-    public static async createScheduled(json:{
-        stream_name: string,
-        streamer: string,
-        platform: string,
-        item_list: any[],
-        stock: {
-            reserve: boolean,
-            expiry_date: string,
-            period: string,
-        },
-        discount_set: string,
-    }){
-        // t_live_purchase_interactions
+    public static async createScheduled(json:any){
         return BaseApi.create({
             url: getBaseUrl() + `/api-public/v1/customer_sessions`,
             type: 'POST',
@@ -43,20 +31,22 @@ export class ApiLiveInteraction extends BaseApi {
             data: JSON.stringify({ data: json }),
         });
     }
-    public static history(json: { page: number; limit: number; search: string; searchType: string; sendTime?: { date: string; time: string }; status?: number[]; mailType?: string[] }) {
+    public static async getScheduled(json:any){
         return BaseApi.create({
-            url:
-                getBaseUrl() +
-                `/api-public/v1/line_message?${(() => {
-                    let par = [`type=list`, `limit=${json.limit}`, `page=${json.page}`];
-                    json.search && par.push(`search=${json.search}`);
-                    json.searchType && par.push(`searchType=${json.searchType}`);
-                    json.sendTime && par.push(`sendDate=${json.sendTime.date}&sendTime=${json.sendTime.time}`);
-                    json.status && par.push(`status=${json.status.join(',')}`);
-                    json.mailType && par.push(`mailType=${json.mailType.join(',')}`);
-                    return par.join('&');
-                })()}`,
+            url: getBaseUrl() + `/api-public/v1/customer_sessions`,
             type: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+                'g-app': getConfig().config.appName,
+                Authorization: getConfig().config.token,
+            },
+            data: JSON.stringify({ data: json }),
+        });
+    }
+    public static async getOnlineCart(cartID:string){
+        return BaseApi.create({
+            url: getBaseUrl() + `/api-public/v1/customer_sessions/online_cart?cartID=${cartID}`,
+            type: 'get',
             headers: {
                 'Content-Type': 'application/json',
                 'g-app': getConfig().config.appName,

@@ -125,6 +125,7 @@ interface CartOrder {
 
 export class UMOrderList {
     static main(gvc: GVC, widget: any, subData: any) {
+
         const glitter = gvc.glitter;
         const vm = {
             dataList: [] as CartOrder[],

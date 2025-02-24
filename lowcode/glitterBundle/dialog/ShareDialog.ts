@@ -12,6 +12,7 @@ interface MessageOptions {
 
 interface ErrorMessageOptions extends MessageOptions {
     tag?: string;
+    text?: string;
     callback?: () => void;
 }
 

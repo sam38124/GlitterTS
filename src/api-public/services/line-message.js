@@ -17,6 +17,8 @@ const logger_js_1 = __importDefault(require("../../modules/logger.js"));
 const AWSLib_js_1 = __importDefault(require("../../modules/AWSLib.js"));
 const jimp_1 = require("jimp");
 const redis_js_1 = __importDefault(require("../../modules/redis.js"));
+const process_1 = __importDefault(require("process"));
+const shopnex_line_message_1 = require("./model/shopnex-line-message");
 const mime = require('mime');
 class LineMessage {
     constructor(app, token) {
@@ -317,6 +319,33 @@ class LineMessage {
     async listenMessage(data) {
         var _a, _b;
         try {
+            const events = data.events;
+            if (data.destination == process_1.default.env.line_destination) {
+                console.log("處理shopnex官方機器人事件");
+                for (const event of events) {
+                    switch (event.type) {
+                        case "message":
+                            let data = await this.getUserProfile("U152cb05f49499386f506867cb6adff96");
+                            console.log("data -- ", data);
+                            break;
+                        case "postback":
+                            console.log("收到 Postback 事件");
+                            await shopnex_line_message_1.ShopnexLineMessage.handlePostbackEvent(event, this.app);
+                            break;
+                        case "join":
+                            console.log("機器人被加入群組/聊天室");
+                            await shopnex_line_message_1.ShopnexLineMessage.handleJoinEvent(event, this.app);
+                            break;
+                        case "leave":
+                            console.log("機器人被移出群組/聊天室");
+                            break;
+                        default:
+                            console.log("未知事件類型:", event.type);
+                            break;
+                    }
+                }
+                return { result: true, message: 'accept message' };
+            }
             let message = data.events[0].message;
             let userID = 'line_' + data.events[0].source.userId;
             let chatData = {
@@ -332,328 +361,375 @@ class LineMessage {
                 user_id: 'manager',
             });
             let token = `${tokenData[0].value.message_token}`;
-            if (data.events[0].source.type == 'group') {
-                if ((_b = (_a = data.events[0]) === null || _a === void 0 ? void 0 : _a.postback) === null || _b === void 0 ? void 0 : _b.data) {
-                    console.log("data.events[0] -- ", JSON.stringify(data.events[0]));
-                    const replyToken = data.events[0].replyToken;
-                    await this.createOrderWithLineFlexMessage(data.events[0], "您已經購買了商品");
+            for (const event of events) {
+                if (event.source.type == 'group') {
+                    await this.getGroupInf(data.events[0].source.groupId);
+                    if ((_b = (_a = data.events[0]) === null || _a === void 0 ? void 0 : _a.postback) === null || _b === void 0 ? void 0 : _b.data) {
+                        console.log("data.events[0] -- ", JSON.stringify(data.events[0]));
+                        const replyToken = data.events[0].replyToken;
+                        await this.createOrderWithLineFlexMessage(data.events[0], "您已經購買了商品");
+                        return { result: true, message: 'accept message' };
+                    }
+                    if (message.text == "product + 1") {
+                    }
+                    if (message.text == "test") {
+                        const replyToken = data.events[0].replyToken;
+                        const multiPageMessage = {
+                            type: 'flex',
+                            altText: '這是多頁圖文訊息',
+                            contents: {
+                                type: 'carousel',
+                                contents: [
+                                    {
+                                        type: 'bubble',
+                                        hero: {
+                                            type: 'image',
+                                            url: 'https://d3jnmi1tfjgtti.cloudfront.net/file/122538856/DALL·E2024-11-0514.18.59-AnelegantElizabethsolidwoodwardrobewithaclassic,timelessdesign.Thewardrobefeatureshigh-qualitywoodconstructionwithapolishedfinis.webp',
+                                            size: 'full',
+                                            aspectRatio: '20:13',
+                                            aspectMode: 'cover',
+                                        },
+                                        body: {
+                                            type: 'box',
+                                            layout: 'vertical',
+                                            contents: [
+                                                {
+                                                    type: 'text',
+                                                    text: '伊麗莎白 實木衣櫃',
+                                                    weight: 'bold',
+                                                    size: 'xl',
+                                                },
+                                                {
+                                                    type: 'text',
+                                                    text: '伊麗莎白 實木衣櫃完美結合了實用與美觀，適合多種室內風格，提供黑色、白色及胡桃木色供您選擇。',
+                                                    size: 'sm',
+                                                    wrap: true,
+                                                },
+                                                {
+                                                    type: "text",
+                                                    text: "NT 3500",
+                                                    size: "sm",
+                                                    color: "#111111",
+                                                    align: "end"
+                                                }
+                                            ],
+                                        },
+                                        footer: {
+                                            type: 'box',
+                                            layout: 'vertical',
+                                            spacing: 'sm',
+                                            contents: [
+                                                {
+                                                    type: 'button',
+                                                    style: 'primary',
+                                                    action: {
+                                                        type: 'postback',
+                                                        label: '我要購買商品一',
+                                                        data: JSON.stringify({
+                                                            "id": 709,
+                                                            "spec": [
+                                                                "深棕",
+                                                                "100cm"
+                                                            ],
+                                                            "title": "伊麗莎白 實木衣櫃"
+                                                        }),
+                                                    },
+                                                },
+                                            ],
+                                        },
+                                    },
+                                    {
+                                        type: 'bubble',
+                                        hero: {
+                                            type: 'image',
+                                            url: 'https://d3jnmi1tfjgtti.cloudfront.net/file/122538856/DALL·E2024-11-0514.20.13-AsophisticatedWindermerecoffeetablewithamodernyetclassicdesign.Thetablefeaturesasolidwoodconstructionwithasmooth,polishedsurfa.webp',
+                                            size: 'full',
+                                            aspectRatio: '20:13',
+                                            aspectMode: 'cover',
+                                        },
+                                        body: {
+                                            type: 'box',
+                                            layout: 'vertical',
+                                            contents: [
+                                                {
+                                                    type: 'text',
+                                                    text: '溫德米爾 茶几"',
+                                                    weight: 'bold',
+                                                    size: 'xl',
+                                                },
+                                                {
+                                                    type: 'text',
+                                                    text: '選擇溫德米爾茶几，讓您的居家生活更具格調。擁有多種顏色和尺寸，適合各種家庭裝飾需求。',
+                                                    size: 'sm',
+                                                    wrap: true,
+                                                },
+                                                {
+                                                    type: "text",
+                                                    text: "NT 5200",
+                                                    size: "sm",
+                                                    color: "#111111",
+                                                    align: "end"
+                                                }
+                                            ],
+                                        },
+                                        footer: {
+                                            type: 'box',
+                                            layout: 'vertical',
+                                            spacing: 'sm',
+                                            contents: [
+                                                {
+                                                    type: 'button',
+                                                    style: 'primary',
+                                                    action: {
+                                                        type: 'postback',
+                                                        label: '我要購買商品二',
+                                                        data: JSON.stringify({
+                                                            "id": 710,
+                                                            "sku": "",
+                                                            "count": 1,
+                                                            "spec": [
+                                                                "黑色",
+                                                                "小號"
+                                                            ],
+                                                            "title": "溫德米爾 茶几",
+                                                            "sale_price": 5200,
+                                                        }),
+                                                    },
+                                                },
+                                            ],
+                                        },
+                                    },
+                                    {
+                                        type: 'bubble',
+                                        hero: {
+                                            type: 'image',
+                                            url: 'https://d3jnmi1tfjgtti.cloudfront.net/file/122538856/DALL·E2024-11-0514.20.13-AsophisticatedWindermerecoffeetablewithamodernyetclassicdesign.Thetablefeaturesasolidwoodconstructionwithasmooth,polishedsurfa.webp',
+                                            size: 'full',
+                                            aspectRatio: '20:13',
+                                            aspectMode: 'cover',
+                                        },
+                                        body: {
+                                            type: 'box',
+                                            layout: 'vertical',
+                                            contents: [
+                                                {
+                                                    type: 'text',
+                                                    text: '溫德米爾 茶几2"',
+                                                    weight: 'bold',
+                                                    size: 'xl',
+                                                },
+                                                {
+                                                    type: 'text',
+                                                    text: '選擇溫德米爾茶几，讓您的居家生活更具格調。擁有多種顏色和尺寸，適合各種家庭裝飾需求。',
+                                                    size: 'sm',
+                                                    wrap: true,
+                                                },
+                                                {
+                                                    type: "text",
+                                                    text: "NT 5200",
+                                                    size: "sm",
+                                                    color: "#111111",
+                                                    align: "end"
+                                                }
+                                            ],
+                                        },
+                                        footer: {
+                                            type: 'box',
+                                            layout: 'vertical',
+                                            spacing: 'sm',
+                                            contents: [
+                                                {
+                                                    type: 'button',
+                                                    style: 'primary',
+                                                    action: {
+                                                        type: 'postback',
+                                                        label: '我要購買商品二',
+                                                        data: JSON.stringify({
+                                                            "id": 710,
+                                                            "sku": "",
+                                                            "count": 1,
+                                                            "spec": [
+                                                                "黑色",
+                                                                "小號"
+                                                            ],
+                                                            "title": "溫德米爾 茶几",
+                                                            "sale_price": 5200,
+                                                        }),
+                                                    },
+                                                },
+                                            ],
+                                        },
+                                    },
+                                    {
+                                        type: 'bubble',
+                                        hero: {
+                                            type: 'image',
+                                            url: 'https://d3jnmi1tfjgtti.cloudfront.net/file/122538856/DALL·E2024-11-0514.20.13-AsophisticatedWindermerecoffeetablewithamodernyetclassicdesign.Thetablefeaturesasolidwoodconstructionwithasmooth,polishedsurfa.webp',
+                                            size: 'full',
+                                            aspectRatio: '20:13',
+                                            aspectMode: 'cover',
+                                        },
+                                        body: {
+                                            type: 'box',
+                                            layout: 'vertical',
+                                            contents: [
+                                                {
+                                                    type: 'text',
+                                                    text: '溫德米爾 茶几"',
+                                                    weight: 'bold',
+                                                    size: 'xl',
+                                                },
+                                                {
+                                                    type: 'text',
+                                                    text: '選擇溫德米爾茶几，讓您的居家生活更具格調。擁有多種顏色和尺寸，適合各種家庭裝飾需求。',
+                                                    size: 'sm',
+                                                    wrap: true,
+                                                },
+                                                {
+                                                    type: "text",
+                                                    text: "NT 5200",
+                                                    size: "sm",
+                                                    color: "#111111",
+                                                    align: "end"
+                                                }
+                                            ],
+                                        },
+                                        footer: {
+                                            type: 'box',
+                                            layout: 'vertical',
+                                            spacing: 'sm',
+                                            contents: [
+                                                {
+                                                    type: 'button',
+                                                    style: 'primary',
+                                                    action: {
+                                                        type: 'postback',
+                                                        label: '我要購買商品二',
+                                                        data: JSON.stringify({
+                                                            "id": 710,
+                                                            "sku": "",
+                                                            "count": 1,
+                                                            "spec": [
+                                                                "黑色",
+                                                                "小號"
+                                                            ],
+                                                            "title": "溫德米爾 茶几",
+                                                            "sale_price": 5200,
+                                                        }),
+                                                    },
+                                                },
+                                            ],
+                                        },
+                                    },
+                                ],
+                            },
+                        };
+                        try {
+                            await axios_1.default.post('https://api.line.me/v2/bot/message/reply', {
+                                replyToken: replyToken,
+                                messages: [
+                                    multiPageMessage
+                                ]
+                            }, {
+                                headers: {
+                                    'Content-Type': 'application/json',
+                                    'Authorization': `Bearer ${token}`
+                                }
+                            });
+                        }
+                        catch (e) {
+                            console.log("e -- ", e.response.data);
+                        }
+                    }
                     return { result: true, message: 'accept message' };
                 }
-                if (message.text == "product + 1") {
-                }
-                if (message.text == "test") {
-                    const replyToken = data.events[0].replyToken;
-                    const multiPageMessage = {
-                        type: 'flex',
-                        altText: '這是多頁圖文訊息',
-                        contents: {
-                            type: 'carousel',
-                            contents: [
-                                {
-                                    type: 'bubble',
-                                    hero: {
-                                        type: 'image',
-                                        url: 'https://d3jnmi1tfjgtti.cloudfront.net/file/122538856/DALL·E2024-11-0514.18.59-AnelegantElizabethsolidwoodwardrobewithaclassic,timelessdesign.Thewardrobefeatureshigh-qualitywoodconstructionwithapolishedfinis.webp',
-                                        size: 'full',
-                                        aspectRatio: '20:13',
-                                        aspectMode: 'cover',
-                                    },
-                                    body: {
-                                        type: 'box',
-                                        layout: 'vertical',
-                                        contents: [
-                                            {
-                                                type: 'text',
-                                                text: '伊麗莎白 實木衣櫃',
-                                                weight: 'bold',
-                                                size: 'xl',
-                                            },
-                                            {
-                                                type: 'text',
-                                                text: '伊麗莎白 實木衣櫃完美結合了實用與美觀，適合多種室內風格，提供黑色、白色及胡桃木色供您選擇。',
-                                                size: 'sm',
-                                                wrap: true,
-                                            },
-                                            {
-                                                type: "text",
-                                                text: "NT 3500",
-                                                size: "sm",
-                                                color: "#111111",
-                                                align: "end"
-                                            }
-                                        ],
-                                    },
-                                    footer: {
-                                        type: 'box',
-                                        layout: 'vertical',
-                                        spacing: 'sm',
-                                        contents: [
-                                            {
-                                                type: 'button',
-                                                style: 'primary',
-                                                action: {
-                                                    type: 'postback',
-                                                    label: '我要購買商品一',
-                                                    data: JSON.stringify({
-                                                        "id": 709,
-                                                        "spec": [
-                                                            "深棕",
-                                                            "100cm"
-                                                        ],
-                                                        "title": "伊麗莎白 實木衣櫃"
-                                                    }),
-                                                },
-                                            },
-                                        ],
-                                    },
-                                },
-                                {
-                                    type: 'bubble',
-                                    hero: {
-                                        type: 'image',
-                                        url: 'https://d3jnmi1tfjgtti.cloudfront.net/file/122538856/DALL·E2024-11-0514.20.13-AsophisticatedWindermerecoffeetablewithamodernyetclassicdesign.Thetablefeaturesasolidwoodconstructionwithasmooth,polishedsurfa.webp',
-                                        size: 'full',
-                                        aspectRatio: '20:13',
-                                        aspectMode: 'cover',
-                                    },
-                                    body: {
-                                        type: 'box',
-                                        layout: 'vertical',
-                                        contents: [
-                                            {
-                                                type: 'text',
-                                                text: '溫德米爾 茶几"',
-                                                weight: 'bold',
-                                                size: 'xl',
-                                            },
-                                            {
-                                                type: 'text',
-                                                text: '選擇溫德米爾茶几，讓您的居家生活更具格調。擁有多種顏色和尺寸，適合各種家庭裝飾需求。',
-                                                size: 'sm',
-                                                wrap: true,
-                                            },
-                                            {
-                                                type: "text",
-                                                text: "NT 5200",
-                                                size: "sm",
-                                                color: "#111111",
-                                                align: "end"
-                                            }
-                                        ],
-                                    },
-                                    footer: {
-                                        type: 'box',
-                                        layout: 'vertical',
-                                        spacing: 'sm',
-                                        contents: [
-                                            {
-                                                type: 'button',
-                                                style: 'primary',
-                                                action: {
-                                                    type: 'postback',
-                                                    label: '我要購買商品二',
-                                                    data: JSON.stringify({
-                                                        "id": 710,
-                                                        "sku": "",
-                                                        "count": 1,
-                                                        "spec": [
-                                                            "黑色",
-                                                            "小號"
-                                                        ],
-                                                        "title": "溫德米爾 茶几",
-                                                        "sale_price": 5200,
-                                                    }),
-                                                },
-                                            },
-                                        ],
-                                    },
-                                },
-                                {
-                                    type: 'bubble',
-                                    hero: {
-                                        type: 'image',
-                                        url: 'https://d3jnmi1tfjgtti.cloudfront.net/file/122538856/DALL·E2024-11-0514.20.13-AsophisticatedWindermerecoffeetablewithamodernyetclassicdesign.Thetablefeaturesasolidwoodconstructionwithasmooth,polishedsurfa.webp',
-                                        size: 'full',
-                                        aspectRatio: '20:13',
-                                        aspectMode: 'cover',
-                                    },
-                                    body: {
-                                        type: 'box',
-                                        layout: 'vertical',
-                                        contents: [
-                                            {
-                                                type: 'text',
-                                                text: '溫德米爾 茶几2"',
-                                                weight: 'bold',
-                                                size: 'xl',
-                                            },
-                                            {
-                                                type: 'text',
-                                                text: '選擇溫德米爾茶几，讓您的居家生活更具格調。擁有多種顏色和尺寸，適合各種家庭裝飾需求。',
-                                                size: 'sm',
-                                                wrap: true,
-                                            },
-                                            {
-                                                type: "text",
-                                                text: "NT 5200",
-                                                size: "sm",
-                                                color: "#111111",
-                                                align: "end"
-                                            }
-                                        ],
-                                    },
-                                    footer: {
-                                        type: 'box',
-                                        layout: 'vertical',
-                                        spacing: 'sm',
-                                        contents: [
-                                            {
-                                                type: 'button',
-                                                style: 'primary',
-                                                action: {
-                                                    type: 'postback',
-                                                    label: '我要購買商品二',
-                                                    data: JSON.stringify({
-                                                        "id": 710,
-                                                        "sku": "",
-                                                        "count": 1,
-                                                        "spec": [
-                                                            "黑色",
-                                                            "小號"
-                                                        ],
-                                                        "title": "溫德米爾 茶几",
-                                                        "sale_price": 5200,
-                                                    }),
-                                                },
-                                            },
-                                        ],
-                                    },
-                                },
-                                {
-                                    type: 'bubble',
-                                    hero: {
-                                        type: 'image',
-                                        url: 'https://d3jnmi1tfjgtti.cloudfront.net/file/122538856/DALL·E2024-11-0514.20.13-AsophisticatedWindermerecoffeetablewithamodernyetclassicdesign.Thetablefeaturesasolidwoodconstructionwithasmooth,polishedsurfa.webp',
-                                        size: 'full',
-                                        aspectRatio: '20:13',
-                                        aspectMode: 'cover',
-                                    },
-                                    body: {
-                                        type: 'box',
-                                        layout: 'vertical',
-                                        contents: [
-                                            {
-                                                type: 'text',
-                                                text: '溫德米爾 茶几"',
-                                                weight: 'bold',
-                                                size: 'xl',
-                                            },
-                                            {
-                                                type: 'text',
-                                                text: '選擇溫德米爾茶几，讓您的居家生活更具格調。擁有多種顏色和尺寸，適合各種家庭裝飾需求。',
-                                                size: 'sm',
-                                                wrap: true,
-                                            },
-                                            {
-                                                type: "text",
-                                                text: "NT 5200",
-                                                size: "sm",
-                                                color: "#111111",
-                                                align: "end"
-                                            }
-                                        ],
-                                    },
-                                    footer: {
-                                        type: 'box',
-                                        layout: 'vertical',
-                                        spacing: 'sm',
-                                        contents: [
-                                            {
-                                                type: 'button',
-                                                style: 'primary',
-                                                action: {
-                                                    type: 'postback',
-                                                    label: '我要購買商品二',
-                                                    data: JSON.stringify({
-                                                        "id": 710,
-                                                        "sku": "",
-                                                        "count": 1,
-                                                        "spec": [
-                                                            "黑色",
-                                                            "小號"
-                                                        ],
-                                                        "title": "溫德米爾 茶几",
-                                                        "sale_price": 5200,
-                                                    }),
-                                                },
-                                            },
-                                        ],
-                                    },
-                                },
-                            ],
-                        },
-                    };
-                    try {
-                        await axios_1.default.post('https://api.line.me/v2/bot/message/reply', {
-                            replyToken: replyToken,
-                            messages: [
-                                multiPageMessage
-                            ]
-                        }, {
-                            headers: {
-                                'Content-Type': 'application/json',
-                                'Authorization': `Bearer ${token}`
-                            }
-                        });
-                    }
-                    catch (e) {
-                        console.log("e -- ", e.response.data);
-                    }
-                }
-                return { result: true, message: 'accept message' };
-            }
-            await this.getLineInf({ lineID: data.events[0].source.userId }, (data) => {
-                chatData.info = {
-                    line: {
-                        name: data.displayName,
-                        head: data.pictureUrl,
-                    },
-                };
-                chatData.info = JSON.stringify(chatData.info);
-            });
-            let result = await new chat_js_1.Chat(this.app).addChatRoom(chatData);
-            if (!result.create) {
-                await database_js_1.default.query(`
+                else if (event.source.type == 'user') {
+                    await this.getLineInf({ lineID: data.events[0].source.userId }, (data) => {
+                        chatData.info = {
+                            line: {
+                                name: data.displayName,
+                                head: data.pictureUrl,
+                            },
+                        };
+                        chatData.info = JSON.stringify(chatData.info);
+                    });
+                    let result = await new chat_js_1.Chat(this.app).addChatRoom(chatData);
+                    if (!result.create) {
+                        await database_js_1.default.query(`
                         UPDATE \`${this.app}\`.\`t_chat_list\`
                         SET ?
                         WHERE ?
                     `, [
-                    {
-                        info: chatData.info,
-                    },
-                    {
-                        chat_id: chatData.chat_id,
-                    },
-                ]);
+                            {
+                                info: chatData.info,
+                            },
+                            {
+                                chat_id: chatData.chat_id,
+                            },
+                        ]);
+                    }
+                    if (message.type == 'image') {
+                        const post = new user_js_1.User(this.app, this.token);
+                        let tokenData = await post.getConfig({
+                            key: 'login_line_setting',
+                            user_id: 'manager',
+                        });
+                        let token = `${tokenData[0].value.message_token}`;
+                        let imageUrl = await this.getImageContent(message.id, token);
+                        chatData.message = {
+                            image: imageUrl,
+                        };
+                    }
+                    else {
+                        chatData.message = {
+                            text: message.text,
+                        };
+                    }
+                    await new chat_js_1.Chat(this.app).addMessage(chatData);
+                }
+                switch (event.type) {
+                    case "message":
+                        console.log("收到訊息事件");
+                        console.log("event -- ", event);
+                        break;
+                    case "postback":
+                        console.log("收到 Postback 事件");
+                        break;
+                    case "follow":
+                        console.log("用戶開始追蹤機器人");
+                        break;
+                    case "unfollow":
+                        console.log("用戶取消追蹤機器人");
+                        break;
+                    case "join":
+                        console.log("機器人被加入群組/聊天室");
+                        break;
+                    case "leave":
+                        console.log("機器人被移出群組/聊天室");
+                        break;
+                    case "memberJoined":
+                        console.log("新成員加入群組/聊天室");
+                        break;
+                    case "memberLeft":
+                        console.log("成員離開群組/聊天室");
+                        break;
+                    case "reaction":
+                        console.log("收到 Reaction 事件");
+                        break;
+                    case "videoPlayComplete":
+                        console.log("影片播放完畢");
+                        break;
+                    case "unsend":
+                        console.log("用戶撤回訊息");
+                        break;
+                    case "things":
+                        console.log("收到 LINE Things 物聯網事件");
+                        break;
+                    default:
+                        console.log("未知事件類型:", event.type);
+                        break;
+                }
             }
-            if (message.type == 'image') {
-                const post = new user_js_1.User(this.app, this.token);
-                let tokenData = await post.getConfig({
-                    key: 'login_line_setting',
-                    user_id: 'manager',
-                });
-                let token = `${tokenData[0].value.message_token}`;
-                let imageUrl = await this.getImageContent(message.id, token);
-                chatData.message = {
-                    image: imageUrl,
-                };
-            }
-            else {
-                chatData.message = {
-                    text: message.text,
-                };
-            }
-            await new chat_js_1.Chat(this.app).addMessage(chatData);
             return { result: true, message: 'accept message' };
         }
         catch (e) {
@@ -800,6 +876,58 @@ class LineMessage {
             });
         });
     }
+    async getGroupInf(groupId) {
+        var _a;
+        const post = new user_js_1.User(this.app, this.token);
+        let tokenData = await post.getConfig({
+            key: 'login_line_setting',
+            user_id: 'manager',
+        });
+        let token = `${tokenData[0].value.message_token}`;
+        const url = `https://api.line.me/v2/bot/group/${groupId}/summary`;
+        const headers = {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${token}`,
+        };
+        try {
+            const response = await axios_1.default.get(url, { headers });
+            console.log('取得群組資訊:', response.data);
+        }
+        catch (error) {
+            console.error('取得群組資訊錯誤:', ((_a = error.response) === null || _a === void 0 ? void 0 : _a.data) || error.message);
+        }
+    }
+    async handleJoinEvent(event, token) {
+        const replyToken = event.replyToken;
+        const groupId = event.source.groupId;
+        console.log(`機器人加入群組: ${groupId}`);
+        await axios_1.default.post("https://api.line.me/v2/bot/message/reply", {
+            replyToken: replyToken,
+            messages: [
+                {
+                    type: "text",
+                    text: "👋 大家好，我是你的 LINE 機器人！請讓管理員點擊驗證按鈕以啟用機器人功能。"
+                },
+                {
+                    type: "template",
+                    altText: "請點擊驗證按鈕來完成綁定",
+                    template: {
+                        type: "buttons",
+                        text: "請點擊驗證按鈕",
+                        actions: [
+                            {
+                                type: "postback",
+                                label: "驗證群組",
+                                data: "action=verify"
+                            }
+                        ]
+                    }
+                }
+            ]
+        }, {
+            headers: { Authorization: `Bearer ${process_1.default.env.LINE_CHANNEL_ACCESS_TOKEN}` }
+        });
+    }
     async checkPoints(message, user_count) {
         const brandAndMemberType = await app_js_1.App.checkBrandAndMemberType(this.app);
         const sum = (await database_js_1.default.query(`SELECT sum(money)
@@ -850,6 +978,28 @@ class LineMessage {
             pointCount = Math.ceil(totalSize / longSMS);
         }
         return pointCount * 15 * user_count;
+    }
+    async getUserProfile(userId, token) {
+        if (!token) {
+            const post = new user_js_1.User(this.app, this.token);
+            let tokenData = await post.getConfig({
+                key: 'login_line_setting',
+                user_id: 'manager',
+            });
+            token = `${tokenData[0].value.message_token}`;
+        }
+        const url = `https://api.line.me/v2/bot/profile/${userId}`;
+        const headers = {
+            "Authorization": `Bearer ${token}`
+        };
+        try {
+            const response = await axios_1.default.get(url, { headers });
+            return response.data;
+        }
+        catch (error) {
+            console.error("無法獲取使用者資訊:", error);
+            return null;
+        }
     }
 }
 exports.LineMessage = LineMessage;

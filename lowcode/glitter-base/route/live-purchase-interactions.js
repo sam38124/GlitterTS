@@ -23,24 +23,31 @@ export class ApiLiveInteraction extends BaseApi {
             });
         });
     }
-    static history(json) {
-        return BaseApi.create({
-            url: getBaseUrl() +
-                `/api-public/v1/line_message?${(() => {
-                    let par = [`type=list`, `limit=${json.limit}`, `page=${json.page}`];
-                    json.search && par.push(`search=${json.search}`);
-                    json.searchType && par.push(`searchType=${json.searchType}`);
-                    json.sendTime && par.push(`sendDate=${json.sendTime.date}&sendTime=${json.sendTime.time}`);
-                    json.status && par.push(`status=${json.status.join(',')}`);
-                    json.mailType && par.push(`mailType=${json.mailType.join(',')}`);
-                    return par.join('&');
-                })()}`,
-            type: 'GET',
-            headers: {
-                'Content-Type': 'application/json',
-                'g-app': getConfig().config.appName,
-                Authorization: getConfig().config.token,
-            },
+    static getScheduled(json) {
+        return __awaiter(this, void 0, void 0, function* () {
+            return BaseApi.create({
+                url: getBaseUrl() + `/api-public/v1/customer_sessions`,
+                type: 'GET',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'g-app': getConfig().config.appName,
+                    Authorization: getConfig().config.token,
+                },
+                data: JSON.stringify({ data: json }),
+            });
+        });
+    }
+    static getOnlineCart(cartID) {
+        return __awaiter(this, void 0, void 0, function* () {
+            return BaseApi.create({
+                url: getBaseUrl() + `/api-public/v1/customer_sessions/online_cart?cartID=${cartID}`,
+                type: 'get',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'g-app': getConfig().config.appName,
+                    Authorization: getConfig().config.token,
+                },
+            });
         });
     }
     static send(json) {

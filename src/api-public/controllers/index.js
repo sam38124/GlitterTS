@@ -66,6 +66,7 @@ router.use(config_1.config.getRoute(config_1.config.public_route.ai_chat, 'publi
 router.use(config_1.config.getRoute(config_1.config.public_route.ai_points, 'public'), require('./ai-points'));
 router.use(config_1.config.getRoute(config_1.config.public_route.sms_points, 'public'), require('./sms-points'));
 const whiteList = [
+    { url: config_1.config.getRoute(config_1.config.public_route.customer_sessions + '/online_cart', 'public'), method: 'GET' },
     { url: config_1.config.getRoute(config_1.config.public_route.shopee, 'public'), method: 'POST' },
     { url: config_1.config.getRoute(config_1.config.public_route.shopee + '/listenMessage', 'public'), method: 'POST' },
     { url: config_1.config.getRoute(config_1.config.public_route.shopee + '/listenMessage', 'public'), method: 'GET' },
@@ -130,6 +131,7 @@ const whiteList = [
     { url: config_1.config.getRoute(config_1.config.public_route.ec + '/payment/method', 'public'), method: 'GET' },
     { url: config_1.config.getRoute(config_1.config.public_route.ec + '/currency-covert', 'public'), method: 'GET' },
     { url: config_1.config.getRoute(config_1.config.public_route.ec + '/check-login-for-order', 'public'), method: 'GET' },
+    { url: config_1.config.getRoute(config_1.config.public_route.ec + '/verification-code', 'public'), method: 'POST' },
     { url: config_1.config.getRoute(config_1.config.public_route.sms_points + '/notify', 'public'), method: 'POST' },
     { url: config_1.config.getRoute(config_1.config.public_route.wallet + '/notify', 'public'), method: 'POST' },
     { url: config_1.config.getRoute(config_1.config.public_route.manager + '/config', 'public'), method: 'GET' },

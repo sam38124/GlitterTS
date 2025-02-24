@@ -1,6 +1,39 @@
 import { GlobalUser } from '../global/global-user.js';
 import { BaseApi } from '../../glitterBundle/api/base.js';
 export class ApiShop {
+    static getLineGroup() {
+        return BaseApi.create({
+            url: getBaseUrl() + `/api-public/v1/ec/line_group`,
+            type: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+                'g-app': getConfig().config.appName,
+                Authorization: getConfig().config.token,
+            },
+        });
+    }
+    static verifyVerificationCode(data) {
+        return BaseApi.create({
+            url: getBaseUrl() + `/api-public/v1/ec/verification-code`,
+            type: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'g-app': getConfig().config.appName,
+            },
+            data: JSON.stringify(data),
+        });
+    }
+    static getVerificationCode() {
+        return BaseApi.create({
+            url: getBaseUrl() + `/api-public/v1/ec/verification-code`,
+            type: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+                'g-app': getConfig().config.appName,
+                Authorization: getConfig().config.token,
+            },
+        });
+    }
     static getGuideable() {
         return BaseApi.create({
             url: getBaseUrl() + `/api-public/v1/manager/config?key=guideable`,

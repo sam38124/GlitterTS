@@ -1035,6 +1035,8 @@ export class JKO {
     async confirmAndCaptureOrder(transactionId?: string) {
         const secret = this.keyData.SECRET_KEY;
         const digest = this.generateDigest(`platform_order_ids=${transactionId}` , secret);
+        console.log("digest -- " , digest)
+        return
         let config = {
             method: 'get',
             url: `${this.BASE_URL}/platform/inquiry?platform_order_ids=${transactionId}`,
@@ -1070,40 +1072,46 @@ export class JKO {
         user_email: string;
         method: string;
     }) {
-        function transProduct(lineItems: {
-            id: string;
-            spec: string[];
-            count: number;
-            sale_price: number;
-            preview_image:string;
-            title: string;
-        }[]){
-            return lineItems.map((item)=>{
-                return {
-                    'name' : item.title+' '+item.spec.join(','),
-                    'img' : item.preview_image,
-                    'unit_count' : item.count,
-                    'unit_price' : item.sale_price,
-                    'unit_final_price' : item.sale_price
-                }
-            })
-        }
-        // console.log(transProduct(orderData.lineItems));
-        // console.log("orderData.lineItems -- " , orderData.lineItems)
-        const payload = {
+
+        await this.refundOrder("1740299355493" ,10000)
+        return
+        const payload = JSON.stringify({
+            "store_id": this.keyData.STORE_ID,
+            "platform_order_id": orderData.orderID,
             "currency": "TWD",
-            "final_price": 3000,
-            "platform_order_id": "1738832151154",
-            "result_url": "https://60de85c1b841.ngrok.app/api-public/v1/ec/redirect?g-app=t_1725992531001&jkopay=true&orderid=1738832151154",
-            "store_id": "8057a6ef-b2ba-11ef-94d5-005056b665e9",
-            "total_price": 3000,
-            "unredeem": 0
-        }
+            "total_price":orderData.total,
+            "final_price": orderData.total,
+            "result_url":this.keyData.ReturnURL + `&orderID=${orderData.orderID}`,})
+        const apiKey = "689c57cd9d5b5ec80f5d5451d18fe24cfe855d21b25c7ff30bcd07829a902f7a";
 
+// 設定 Secret Key
+        const secretKey = "8ec78345a13e3d376452d9c89c66b543ef1516c0ef1a05f0adf654c37ac8edac";
 
-        const secret = this.keyData.SECRET_KEY;
-        const digest = this.generateDigest(JSON.stringify(payload) , secret);
+        console.log("payload -- " , payload)
 
+// 使用 HMAC-SHA256 生成 `digest`
+        const digest = crypto.createHmac('sha256', secretKey)
+            .update(payload, 'utf8')
+            .digest('hex');
+
+// 設定 Headers
+        const headers = {
+            'api-key': apiKey,
+            'digest': digest,
+            'Content-Type': 'application/json'
+        };
+
+// 顯示結果
+        console.log("API Key:", apiKey);
+        console.log("Digest:", digest);
+        console.log("Headers:", headers);
+
+        // const secret = this.keyData.SECRET_KEY;
+        // const digest = this.generateDigest(JSON.stringify(payload) , secret);
+        // console.log("response -- " , secret)
+        // console.log("digest -- " , digest)
+        // console.log("API-KEY -- " , this.keyData.API_KEY)
+        // console.log("this.keyData.STORE_ID -- " , this.keyData.STORE_ID)
         return
         const url = `${this.BASE_URL}platform/entry`;
         const config = {
@@ -1132,18 +1140,48 @@ export class JKO {
         }
     }
 
+    async refundOrder(platform_order_id:string , refund_amount:number){
+        const payload = JSON.stringify({
+            "platform_order_id":"1740299355493",
+            "refund_amount":10000
+        })
+        const apiKey = "689c57cd9d5b5ec80f5d5451d18fe24cfe855d21b25c7ff30bcd07829a902f7a";
+
+// 設定 Secret Key
+        const secretKey = "8ec78345a13e3d376452d9c89c66b543ef1516c0ef1a05f0adf654c37ac8edac";
+
+        console.log("payload -- " , payload)
+
+// 使用 HMAC-SHA256 生成 `digest`
+        const digest = crypto.createHmac('sha256', secretKey)
+            .update(payload, 'utf8')
+            .digest('hex');
+
+// 設定 Headers
+        const headers = {
+            'api-key': apiKey,
+            'digest': digest,
+            'Content-Type': 'application/json'
+        };
+
+// 顯示結果
+        console.log("API Key:", apiKey);
+        console.log("Digest:", digest);
+        console.log("Headers:", headers);
+    }
+
     private generateDigest(data: string, apiSecret: string): string {
         // 轉換 data 和 apiSecret 為 UTF-8 Byte Array
-        const dataBytes = Buffer.from(data, 'utf8');
-        const keyBytes = Buffer.from(apiSecret, 'utf8');
-
+        console.log("data --" , data)
+        console.log("apiSecret -- " , apiSecret)
         // 使用 HMAC-SHA256 進行雜湊
-        const hmac = crypto.createHmac('sha256', keyBytes);
-        hmac.update(dataBytes);
+        const hmac = crypto.createHmac('sha256', apiSecret);
+        hmac.update(data);
 
         // 轉換為 16 進位字串 (與 C# 的 Convert.ToHexString(hash).ToLower() 等效)
         return hmac.digest('hex');
     }
+
 }
 
 // 8057a6ef-b2ba-11ef-94d5-005056b665e9

@@ -1535,8 +1535,8 @@ class Shopping {
                         return await new financial_service_js_1.PayNow(this.app, kd).createOrder(carData);
                     }
                     case 'jkopay': {
-                        kd.ReturnURL = `${process.env.DOMAIN}/api-public/v1/ec/redirect?g-app=${this.app}&jkopay=true&orderid=${carData.orderID}`;
-                        kd.NotifyURL = `${process.env.DOMAIN}/api-public/v1/ec/notify?g-app=${this.app}&jkopay=true`;
+                        kd.ReturnURL = `https://05a5e246af3b.ngrok.app/api-public/v1/ec/redirect?g-app=${this.app}&jkopay=true&orderid=${carData.orderID}`;
+                        kd.NotifyURL = `https://05a5e246af3b.ngrok.app/api-public/v1/ec/notify?g-app=${this.app}&jkopay=true`;
                         return await new financial_service_js_1.JKO(this.app, kd).createOrder(carData);
                         break;
                     }
@@ -2441,7 +2441,7 @@ OR JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.orderStatus')) NOT IN (-99)) `);
                 const brandAndMemberType = await app_js_1.App.checkBrandAndMemberType(this.app);
                 const store_info = await new user_js_1.User(this.app).getConfigV2({ key: 'store-information', user_id: 'manager' });
                 for (const b of order_data['orderData'].lineItems) {
-                    this.calcSoldOutStock(b.count, b.id, b.spec);
+                    await this.calcSoldOutStock(b.count, b.id, b.spec);
                     this.soldMailNotice({
                         brand_domain: brandAndMemberType.domain,
                         shop_name: store_info.shop_name,
@@ -2506,7 +2506,7 @@ OR JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.orderStatus')) NOT IN (-99)) `);
                 catch (e) {
                     console.error(e);
                 }
-                new invoice_js_1.Invoice(this.app).postCheckoutInvoice(order_id, false);
+                await new invoice_js_1.Invoice(this.app).postCheckoutInvoice(order_id, false);
             }
         }
         catch (error) {

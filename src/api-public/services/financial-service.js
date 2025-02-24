@@ -755,6 +755,8 @@ class JKO {
         var _a;
         const secret = this.keyData.SECRET_KEY;
         const digest = this.generateDigest(`platform_order_ids=${transactionId}`, secret);
+        console.log("digest -- ", digest);
+        return;
         let config = {
             method: 'get',
             url: `${this.BASE_URL}/platform/inquiry?platform_order_ids=${transactionId}`,
@@ -775,28 +777,30 @@ class JKO {
     }
     async createOrder(orderData) {
         var _a;
-        function transProduct(lineItems) {
-            return lineItems.map((item) => {
-                return {
-                    'name': item.title + ' ' + item.spec.join(','),
-                    'img': item.preview_image,
-                    'unit_count': item.count,
-                    'unit_price': item.sale_price,
-                    'unit_final_price': item.sale_price
-                };
-            });
-        }
-        const payload = {
+        await this.refundOrder("1740299355493", 10000);
+        return;
+        const payload = JSON.stringify({
+            "store_id": this.keyData.STORE_ID,
+            "platform_order_id": orderData.orderID,
             "currency": "TWD",
-            "final_price": 3000,
-            "platform_order_id": "1738832151154",
-            "result_url": "https://60de85c1b841.ngrok.app/api-public/v1/ec/redirect?g-app=t_1725992531001&jkopay=true&orderid=1738832151154",
-            "store_id": "8057a6ef-b2ba-11ef-94d5-005056b665e9",
-            "total_price": 3000,
-            "unredeem": 0
+            "total_price": orderData.total,
+            "final_price": orderData.total,
+            "result_url": this.keyData.ReturnURL + `&orderID=${orderData.orderID}`,
+        });
+        const apiKey = "689c57cd9d5b5ec80f5d5451d18fe24cfe855d21b25c7ff30bcd07829a902f7a";
+        const secretKey = "8ec78345a13e3d376452d9c89c66b543ef1516c0ef1a05f0adf654c37ac8edac";
+        console.log("payload -- ", payload);
+        const digest = crypto_1.default.createHmac('sha256', secretKey)
+            .update(payload, 'utf8')
+            .digest('hex');
+        const headers = {
+            'api-key': apiKey,
+            'digest': digest,
+            'Content-Type': 'application/json'
         };
-        const secret = this.keyData.SECRET_KEY;
-        const digest = this.generateDigest(JSON.stringify(payload), secret);
+        console.log("API Key:", apiKey);
+        console.log("Digest:", digest);
+        console.log("Headers:", headers);
         return;
         const url = `${this.BASE_URL}platform/entry`;
         const config = {
@@ -821,11 +825,31 @@ class JKO {
             throw error;
         }
     }
+    async refundOrder(platform_order_id, refund_amount) {
+        const payload = JSON.stringify({
+            "platform_order_id": "1740299355493",
+            "refund_amount": 10000
+        });
+        const apiKey = "689c57cd9d5b5ec80f5d5451d18fe24cfe855d21b25c7ff30bcd07829a902f7a";
+        const secretKey = "8ec78345a13e3d376452d9c89c66b543ef1516c0ef1a05f0adf654c37ac8edac";
+        console.log("payload -- ", payload);
+        const digest = crypto_1.default.createHmac('sha256', secretKey)
+            .update(payload, 'utf8')
+            .digest('hex');
+        const headers = {
+            'api-key': apiKey,
+            'digest': digest,
+            'Content-Type': 'application/json'
+        };
+        console.log("API Key:", apiKey);
+        console.log("Digest:", digest);
+        console.log("Headers:", headers);
+    }
     generateDigest(data, apiSecret) {
-        const dataBytes = Buffer.from(data, 'utf8');
-        const keyBytes = Buffer.from(apiSecret, 'utf8');
-        const hmac = crypto_1.default.createHmac('sha256', keyBytes);
-        hmac.update(dataBytes);
+        console.log("data --", data);
+        console.log("apiSecret -- ", apiSecret);
+        const hmac = crypto_1.default.createHmac('sha256', apiSecret);
+        hmac.update(data);
         return hmac.digest('hex');
     }
 }

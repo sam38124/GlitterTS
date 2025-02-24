@@ -2101,8 +2101,10 @@ export class Shopping {
                         return await new PayNow(this.app, kd).createOrder(carData);
                     }
                     case 'jkopay': {
-                        kd.ReturnURL = `${process.env.DOMAIN}/api-public/v1/ec/redirect?g-app=${this.app}&jkopay=true&orderid=${carData.orderID}`;
-                        kd.NotifyURL = `${process.env.DOMAIN}/api-public/v1/ec/notify?g-app=${this.app}&jkopay=true`;
+                        // kd.ReturnURL = `${process.env.DOMAIN}/api-public/v1/ec/redirect?g-app=${this.app}&jkopay=true&orderid=${carData.orderID}`;
+                        kd.ReturnURL = `https://05a5e246af3b.ngrok.app/api-public/v1/ec/redirect?g-app=${this.app}&jkopay=true&orderid=${carData.orderID}`;
+                        // kd.NotifyURL = `${process.env.DOMAIN}/api-public/v1/ec/notify?g-app=${this.app}&jkopay=true`;
+                        kd.NotifyURL = `https://05a5e246af3b.ngrok.app/api-public/v1/ec/notify?g-app=${this.app}&jkopay=true`;
                         return await new JKO(this.app, kd).createOrder(carData);
                         break;
                     }
@@ -3241,7 +3243,7 @@ OR JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.orderStatus')) NOT IN (-99)) `);
                 const store_info = await new User(this.app).getConfigV2({key: 'store-information', user_id: 'manager'});
                 for (const b of order_data['orderData'].lineItems) {
                     // 更改為已付款
-                    this.calcSoldOutStock(b.count, b.id, b.spec);
+                    await this.calcSoldOutStock(b.count, b.id, b.spec);
                     // 確認是否有商品信件通知
                     this.soldMailNotice({
                         brand_domain: brandAndMemberType.domain,
@@ -3318,7 +3320,7 @@ OR JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.orderStatus')) NOT IN (-99)) `);
                 } catch (e) {
                     console.error(e);
                 }
-                new Invoice(this.app).postCheckoutInvoice(order_id, false);
+                await new Invoice(this.app).postCheckoutInvoice(order_id, false);
             }
         } catch (error) {
             throw exception.BadRequestError('BAD_REQUEST', 'Release Checkout Error:' + e, null);
