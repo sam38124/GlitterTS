@@ -56,6 +56,14 @@ export declare class Stock {
         total: any;
         data: any;
     } | undefined>;
+    productStock(json: {
+        page: string;
+        limit: string;
+        variant_id_list: string;
+    }): Promise<{
+        total: any;
+        data: any;
+    } | undefined>;
     deleteStoreProduct(store_id: string): Promise<{
         data: boolean;
         process: string;

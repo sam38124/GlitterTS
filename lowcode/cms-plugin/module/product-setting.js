@@ -136,9 +136,15 @@ export class ProductSetting {
                             }
                             return titleArray;
                         }
-                        titleArray = insertSubStocks(titleArray, stockList.map((item) => {
+                        titleArray = insertSubStocks(titleArray, stockList.map((item, index) => {
+                            if (postMD.shopee_id && index) {
+                                return ``;
+                            }
+                            if (postMD.shopee_id) {
+                                return `蝦皮庫存`;
+                            }
                             return item.name;
-                        }));
+                        }).filter((dd) => { return dd; }));
                         return titleArray.map((title) => {
                             return html `
                                                 <div class="d-flex flex-shrink-0"
@@ -265,8 +271,11 @@ export class ProductSetting {
                                                                                                                     </select>
                                                                                                                 </div>
                                                                                                             `;
-                                                        returnHTML += stockList.map((item) => {
+                                                        returnHTML += stockList.map((item, index) => {
                                                             var _a;
+                                                            if (postMD.shopee_id && index) {
+                                                                return ``;
+                                                            }
                                                             if (!data['stockList']) {
                                                                 data['stockList'] = {};
                                                             }
@@ -301,7 +310,6 @@ export class ProductSetting {
                                                                 data['stock'] = count;
                                                                 gvc.notifyDataChange(vm.id);
                                                             })}"
-${postMD.shopee_id ? `readonly` : ``}
                                                                                                                         />
                                                                                                                     </div>`;
                                                         }).join('');
@@ -516,31 +524,35 @@ ${postMD.shopee_id ? `readonly` : ``}
                                     ${selected.map((item, index) => {
                         return item.content.variants.map((variant) => {
                             return html `
-                                            <div class="d-flex" style="gap:24px;">
-                                                ${titleArray.map((title, index) => {
+                                                <div class="d-flex" style="gap:24px;">
+                                                    ${titleArray.map((title, index) => {
                                 return html `
-                                                <div class="d-flex flex-shrink-0"
-                                                     style="width:${title.width};font-size: 16px;font-style: normal;font-weight: 400;">
-                                                    ${(() => {
+                                                            <div class="d-flex flex-shrink-0"
+                                                                 style="width:${title.width};font-size: 16px;font-style: normal;font-weight: 400;">
+                                                                ${(() => {
                                     var _a, _b;
                                     switch (index) {
                                         case 0:
                                             return html `
-                                                                    <div class="d-flex">
-                                                                        <div style="width: 40px;height: 40px;border-radius: 5px;background: url('${getPreviewImage(item.content.preview_image[0])}') lightgray 50% / cover no-repeat;"></div>
-                                                                        <div>${item.content.title}</div>
-                                                                    </div>
-                                                                `;
+                                                                                <div class="d-flex">
+                                                                                    <div style="width: 40px;height: 40px;border-radius: 5px;background: url('${getPreviewImage(item.content.preview_image[0])}') lightgray 50% / cover no-repeat;"></div>
+                                                                                    <div>${item.content.title}</div>
+                                                                                </div>
+                                                                            `;
                                         case 1:
                                             return (variant.spec.length == 0) ? '單一規格' : variant.spec.join(',');
                                         case 3:
                                         case 5:
                                             return html `
-                                                                    <input class="w-100" value="${variant.live_model[(_a = title.key) !== null && _a !== void 0 ? _a : ""]}" style="height: 40px;padding: 0 18px;border-radius: 10px;border: 1px solid #DDD;" onchange="${gvc.event((e) => {
+                                                                                <input class="w-100"
+                                                                                       value="${variant.live_model[(_a = title.key) !== null && _a !== void 0 ? _a : ""]}"
+                                                                                       style="height: 40px;padding: 0 18px;border-radius: 10px;border: 1px solid #DDD;"
+                                                                                       onchange="${gvc.event((e) => {
                                                 var _a;
                                                 variant.live_model[(_a = title.key) !== null && _a !== void 0 ? _a : ""] = e.value;
-                                            })}" ${index == 5 ? `max=${variant.stock}` : ''}>
-                                                                `;
+                                            })}"
+                                                                                       ${index == 5 ? `max=${variant.stock}` : ''}>
+                                                                            `;
                                         case 4:
                                             return variant.stock;
                                         default: {
@@ -548,10 +560,10 @@ ${postMD.shopee_id ? `readonly` : ``}
                                         }
                                     }
                                 })()}
-                                                </div>
-                                            `;
+                                                            </div>
+                                                        `;
                             }).join('')}
-                                            </div>
+                                                </div>
                                             `;
                         }).join('');
                     }).join('')}
@@ -570,7 +582,7 @@ ${postMD.shopee_id ? `readonly` : ``}
                     }))}
                             </div>
                         </div>
-                        
+
                     `;
                 },
                 divCreate: {},

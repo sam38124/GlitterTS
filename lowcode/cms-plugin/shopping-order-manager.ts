@@ -18,6 +18,7 @@ import {Language} from "../glitter-base/global/language.js";
 import {OrderSetting} from "./module/order-setting.js";
 import {CountryTw} from "../modules/country-language/country-tw.js";
 import {PaymentPage} from "./pos-pages/payment-page.js";
+import {ShipmentConfig} from "../glitter-base/global/shipment-config.js";
 
 interface VoucherData {
     id: number;
@@ -129,7 +130,7 @@ interface OrderData {
             phone: string;
             address: string;
             custom_form_delivery?: any;
-            shipment: 'normal' | 'FAMIC2C' | 'UNIMARTC2C' | 'HILIFEC2C' | 'OKMARTC2C' | 'now' | 'shop' | 'global_express';
+            shipment: 'normal' | 'FAMIC2C' | 'UNIMARTC2C' | 'HILIFEC2C' | 'OKMARTC2C' | 'now' | 'shop' | 'global_express' | 'UNIMARTFREEZE' | 'black_cat_freezing';
             CVSStoreName: string;
             CVSStoreID: string;
             CVSTelephone: string;
@@ -726,7 +727,7 @@ export class ShoppingOrderManager {
 
                                                         const strArray = checkArray.map((dd: any) => {
                                                             try {
-                                                                return dd.orderData.deliveryData.LogisticsSubType;
+                                                                return dd.orderData.user_info.shipment;
                                                             } catch (error) {
                                                                 return undefined;
                                                             }
@@ -871,45 +872,11 @@ export class ShoppingOrderManager {
     }
 
     public static supportShipmentMethod() {
-        return [
-            {
-                title: '門市立即取貨',
-                value: 'now',
-                name: '',
-            },
-            {
-                title: '一般宅配',
-                value: 'normal',
-                name: '',
-            },
-            {
-                title: '全家店到店',
-                value: 'FAMIC2C',
-                name: '',
-            },
-            {
-                title: '萊爾富店到店',
-                value: 'HILIFEC2C',
-                name: '',
-            },
-            {
-                title: 'OK超商店到店',
-                value: 'OKMARTC2C',
-                name: '',
-            },
-            {
-                title: '7-ELEVEN超商交貨便',
-                value: 'UNIMARTC2C',
-                name: '',
-            },
-            {
-                title: '實體門市取貨',
-                value: 'shop',
-                name: '',
-            },
-        ].map((dd) => {
-            dd.name = dd.title;
-            return dd;
+        return ShipmentConfig.list.map((dd) => {
+            return {
+                name:dd.title,
+                value:dd.value
+            };
         });
     }
 
@@ -1120,8 +1087,7 @@ export class ShoppingOrderManager {
 
 
                                                                                     </div>
-                                                                                    <div class="d-flex flex-column"
-                                                                                         style="">
+                                                                                    <div class="d-flex flex-column">
                                                                                         ${dd.is_hidden ? `<div style="width:auto;">${BgWidget.secondaryInsignia('隱形商品')}</div>` : ``}
                                                                                         <div class="tx_700 d-flex align-items-center"
                                                                                              style="gap:4px;">
@@ -1134,13 +1100,20 @@ export class ShoppingOrderManager {
                                                                                         ${BgWidget.grayNote(`存貨單位 (SKU)：${dd.sku && dd.sku.length > 0 ? dd.sku : '無'}`)}
                                                                                     </div>
                                                                                     <div class="flex-fill"></div>
-                                                                                    <div class="tx_normal_16 d-none d-lg-flex">
-                                                                                            $${dd.sale_price.toLocaleString()}
-                                                                                        × ${dd.count}
+                                                                                    <div class="tx_normal_16 d-none d-lg-flex justify-content-end" style="min-width: 80px;">
+                                                                                            ${
+                                                                                              dd.origin_price && dd.origin_price > dd.sale_price ? html`<div style="margin-right: 8px; text-decoration: line-through;">$${dd.origin_price.toLocaleString()}</div>` : ''
+                                                                                            }
+                                                                                            <div>$${dd.sale_price.toLocaleString()}
+                                                                                        × ${dd.count}</div>
                                                                                     </div>
-                                                                                    <div class="tx_normal d-sm-none d-flex"
-                                                                                         style="display: flex;justify-content: end;${document.body.clientWidth>800 ? `width: 110px`:``}">
-                                                                                            $${dd.sale_price.toLocaleString()}×${dd.count}
+                                                                                    <div class="tx_normal d-sm-none d-flex flex-column"
+                                                                                         style="display: flex;justify-content: end;${document.body.clientWidth>800 ? `width: 110px`:`width: 140px;`}">
+                                                                                         ${
+                                                                                              dd.origin_price && dd.origin_price > dd.sale_price ? html`<div style="margin-right: 6px; text-decoration: line-through;">$${dd.origin_price.toLocaleString()}</div>` : ''
+                                                                                            }
+                                                                                            <div>$${dd.sale_price.toLocaleString()}
+                                                                                        × ${dd.count}</div>
                                                                                     </div>
                                                                                    
                                                                                     <div class="tx_normal d-none d-sm-flex"
@@ -1148,7 +1121,7 @@ export class ShoppingOrderManager {
                                                                                             $${(dd.sale_price * dd.count).toLocaleString()}
                                                                                     </div>`;
                                                                             },
-                                                                            divCreate: {class: `d-flex align-items-center`},
+                                                                            divCreate: {class: `d-flex align-items-center gap-1`},
                                                                         });
                                                                     })
                                                                     .join(html`
@@ -1201,31 +1174,39 @@ export class ShoppingOrderManager {
                                                                     }
                                                                 })(),
                                                                 ...orderData.orderData.voucherList.map((dd: any) => {
-                                                                    if (dd.reBackType === 'add_on_items') {
-                                                                        return {
+                                                                    const descHTML = html`<div style="color: #8D8D8D; font-size: 14px; white-space: nowrap; text-overflow: ellipsis;">
+                                                                        ${dd.title}
+                                                                    </div>`;
+                                                                    const localString = dd.discount_total.toLocaleString();
+                                                                    const rebackMaps: Record<string, { title: string; description: string; total: string }> = {
+                                                                        add_on_items: {
                                                                             title: '加購優惠',
-                                                                            description: `<div style="color: #8D8D8D;font-size: 14px;white-space:nowrap;text-overflow:ellipsis;">${dd.title}</div>`,
-                                                                            total: `--`,
-                                                                        };
-                                                                    }
-                                                                    if (dd.reBackType === 'giveaway') {
-                                                                        return {
+                                                                            description: descHTML,
+                                                                            total: '－',
+                                                                        },
+                                                                        giveaway: {
                                                                             title: '滿額贈送',
-                                                                            description: `<div style="color: #8D8D8D;font-size: 14px;white-space:nowrap;text-overflow:ellipsis;">${dd.title}</div>`,
-                                                                            total: `--`,
-                                                                        };
-                                                                    }
-                                                                    return {
-                                                                        title: '折扣',
-                                                                        description: `<div style="color: #8D8D8D;font-size: 14px;white-space:nowrap;text-overflow:ellipsis;">${dd.title}</div>`,
-                                                                        total: `- $${dd.discount_total.toLocaleString()}`,
+                                                                            description: descHTML,
+                                                                            total: '－',
+                                                                        },
+                                                                        rebate: {
+                                                                            title: '回饋購物金',
+                                                                            description: descHTML,
+                                                                            total: `${localString} 點`,
+                                                                        },
+                                                                        default: {
+                                                                            title: '折扣',
+                                                                            description: descHTML,
+                                                                            total: `- $${localString}`,
+                                                                        },
                                                                     };
+
+                                                                    return rebackMaps[dd.reBackType] ?? rebackMaps.default;
                                                                 }),
                                                                 {
                                                                     title: html`<span class="tx_700">總金額</span>`,
                                                                     description: '',
-                                                                    total: html`<span
-                                                                            class="tx_700">$${orderData.orderData.total.toLocaleString()}</span>`,
+                                                                    total: html`<span class="tx_700">$${orderData.orderData.total.toLocaleString()}</span>`,
                                                                 },
                                                             ]
                                                                     .map((dd) => {
@@ -1453,7 +1434,7 @@ export class ShoppingOrderManager {
                                                                                     return dd.value === orderData.orderData.user_info.shipment;
                                                                                 }) || {name: '門市取貨'})!.name)}
                                                                             </div>
-                                                                            ${['FAMIC2C', 'UNIMARTC2C', 'HILIFEC2C', 'OKMARTC2C', 'normal', 'black_cat'].includes(orderData.orderData.user_info.shipment)
+                                                                            ${ShipmentConfig.supportPrintList.includes(orderData.orderData.user_info.shipment)
                                                                                     ? BgWidget.customButton({
                                                                                         button: {
                                                                                             color: 'gray',
@@ -1470,18 +1451,16 @@ export class ShoppingOrderManager {
                                                                                         }),
                                                                                     })
                                                                                     : ''}
-                                                                            ${deliveryConfig.toggle === 'true'
-                                                                                    ? BgWidget.customButton({
-                                                                                        button: {
-                                                                                            color: 'gray',
-                                                                                            size: 'sm'
-                                                                                        },
-                                                                                        text: {name: '列印出貨單'},
-                                                                                        event: gvc.event(() => {
-                                                                                            DeliveryHTML.print(gvc, [orderData], 'shipment');
-                                                                                        }),
-                                                                                    })
-                                                                                    : ''}
+                                                                            ${BgWidget.customButton({
+                                                                                button: {
+                                                                                    color: 'gray',
+                                                                                    size: 'sm'
+                                                                                },
+                                                                                text: {name: '列印出貨單'},
+                                                                                event: gvc.event(() => {
+                                                                                    DeliveryHTML.print(gvc, [orderData], 'shipment');
+                                                                                }),
+                                                                            })}
                                                                             ${BgWidget.customButton({
                                                                                 button: {color: 'gray', size: 'sm'},
                                                                                 text: {name: '列印揀貨單'},
@@ -1490,7 +1469,7 @@ export class ShoppingOrderManager {
                                                                                 }),
                                                                             })}
                                                                         </div>`,
-                                                                    html` ${['UNIMARTC2C', 'FAMIC2C', 'OKMARTC2C', 'HILIFEC2C', 'normal'].includes(orderData.orderData.user_info.shipment)
+                                                                    html` ${['UNIMARTC2C', 'FAMIC2C', 'OKMARTC2C', 'HILIFEC2C', 'normal','UNIMARTFREEZE','black_cat','black_cat_freezing'].includes(orderData.orderData.user_info.shipment)
                                                                             ? html`
                                                                                 <div class="tx_700">配送資訊</div>
                                                                                 ${BgWidget.mbContainer(12)}`
@@ -1498,21 +1477,33 @@ export class ShoppingOrderManager {
                                                                     <div class="d-flex flex-column tx_normal"
                                                                          style="gap: 4px;">
                                                                         ${(() => {
-                                                                            if (['normal', 'black_cat', 'global_express'].includes(orderData.orderData.user_info.shipment)) {
+                                                                            if (['normal', 'black_cat', 'global_express','black_cat_freezing'].includes(orderData.orderData.user_info.shipment)) {
                                                                                 let map: any = []
-                                                                                map.push(`國家 : ${CountryTw.find((dd) => {
+                                                                                if(CountryTw.find((dd) => {
                                                                                     return dd.countryCode === (orderData.orderData.user_info as any).country
-                                                                                })?.countryName}`)
-                                                                                map.push(`城市 : ${(orderData.orderData.user_info as any).city}`)
-                                                                                map.push(`州/省 : ${(orderData.orderData.user_info as any).state}`)
-                                                                                map.push(`郵遞區號 : ${(orderData.orderData.user_info as any).postal_code}`)
-                                                                                map.push(`地址 : ${orderData.orderData.user_info.address}`)
+                                                                                })?.countryName){
+                                                                                    map.push(`國家 : ${CountryTw.find((dd) => {
+                                                                                        return dd.countryCode === (orderData.orderData.user_info as any).country
+                                                                                    })?.countryName}`)
+                                                                                }
+                                                                              if ((orderData.orderData.user_info as any).city){
+                                                                                  map.push(`城市 : ${(orderData.orderData.user_info as any).city}`)
+                                                                              }
+                                                                                if ((orderData.orderData.user_info as any).state){
+                                                                                    map.push(`州/省 : ${(orderData.orderData.user_info as any).state}`)
+                                                                                }
+                                                                                if ((orderData.orderData.user_info as any).postal_code){
+                                                                                    map.push(`郵遞區號 : ${(orderData.orderData.user_info as any).postal_code}`)
+                                                                                }
+                                                                                if ((orderData.orderData.user_info as any).address){
+                                                                                    map.push(`地址 : ${(orderData.orderData.user_info as any).address}`)
+                                                                                }
                                                                                 return map.join('<div class="w-100 border-top my-1"></div>');
                                                                             }
                                                                             const formData: any = (orderData.orderData.shipment_selector || ShoppingOrderManager.supportShipmentMethod()).find((dd) => {
                                                                                 return dd.value === orderData.orderData.user_info.shipment;
                                                                             });
-                                                                            if (['UNIMARTC2C', 'FAMIC2C', 'OKMARTC2C', 'HILIFEC2C'].includes(orderData.orderData.user_info.shipment)) {
+                                                                            if (['UNIMARTC2C', 'FAMIC2C', 'OKMARTC2C', 'HILIFEC2C','UNIMARTFREEZE'].includes(orderData.orderData.user_info.shipment)) {
                                                                                 return html`
                                                                                     <div class="d-flex flex-wrap">
                                                                                         <span class="me-2">門市名稱:</span>
@@ -2036,6 +2027,7 @@ export class ShoppingOrderManager {
                                                                                                 case 'HILIFEC2C':
                                                                                                 case 'OKMARTC2C':
                                                                                                 case 'UNIMARTC2C':
+                                                                                                case 'UNIMARTFREEZE':
                                                                                                     return [
                                                                                                         html`
                                                                                                             <div class="d-flex flex-wrap w-100">
@@ -2058,6 +2050,7 @@ export class ShoppingOrderManager {
                                                                                                             </div>`,
                                                                                                     ].join('');
                                                                                                 case 'global_express':
+                                                                                                case 'black_cat_freezing':
                                                                                                 case 'normal':
                                                                                                     return [
                                                                                                         html`
@@ -4133,8 +4126,12 @@ export class ShoppingOrderManager {
             if (res.result && res.response.data) {
                 const data = res.response.data;
                 if (data.result) {
-                    const url = ApiDelivery.getFormURL(data.id);
-                    glitter.openNewTab(url);
+                    if(data.link){
+                        glitter.openNewTab(data.link);
+                    }else{
+                        const url = ApiDelivery.getFormURL(data.id);
+                        glitter.openNewTab(url);
+                    }
                 } else {
                     dialog.errorMessage({text: data.message ?? '發生錯誤'});
                 }

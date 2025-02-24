@@ -109,6 +109,7 @@ export class OrderSetting {
             '0': BgWidget.warningInsignia('處理中'),
         };
 
+        orderData.orderData.orderStatus=orderData.orderData.orderStatus??'0'
         return {
             paymentBadge: () => paymentBadges[`${orderData.status}`] || BgWidget.notifyInsignia('付款失敗'),
             outShipBadge: () => outShipBadges[orderData.orderData.progress ?? 'wait'] || BgWidget.notifyInsignia('未知狀態'),

@@ -45,7 +45,7 @@ export declare class Shopee {
     } | undefined>;
     getProductDetail(id: number, option?: {
         skip_image_load: boolean;
-    }): Promise<{
+    }): Promise<false | {
         template: string;
         visible: string;
         preview_image: any[];

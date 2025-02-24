@@ -194,7 +194,7 @@ SELECT * FROM  \`${config_1.saasConfig.SAAS_NAME}\`.page_config where  1=1 ${whe
     static async getRealPage(query_page, appName) {
         query_page = query_page || 'index';
         let page = query_page;
-        if (['privacy', 'term', 'refund', 'delivery', 'blogs', 'blog_tag_setting', 'blog_global_setting'].includes(query_page)) {
+        if (['privacy', 'term', 'refund', 'delivery', 'blogs', 'blog_tag_setting', 'blog_global_setting', 'checkout'].includes(query_page)) {
             return 'official-router';
         }
         if (['blogs', 'pages', 'shop', 'hidden'].includes(query_page.split('/')[0]) && query_page.split('/')[1]) {
@@ -215,7 +215,7 @@ SELECT * FROM  \`${config_1.saasConfig.SAAS_NAME}\`.page_config where  1=1 ${whe
             page = 'all-product';
         }
         if (query_page.split('/')[0] === 'products' && query_page.split('/')[1]) {
-            page = 'products';
+            page = 'official-router';
         }
         if (query_page === 'cms') {
             page = 'index';

@@ -140,7 +140,6 @@ export class UMLogin {
                                 ${vm.registerConfig
                             .map((item: any) => {
                                 if (item.hidden) return '';
-
                                 const title = ['name', 'email', 'phone', 'birth'].includes(item.key) ? Language.text(`form_${item.key}`) : item.title;
                                 const placeholder = Language.text(`please_enter_${item.key}`) || item.form_config.place_holder || '';
                                 const cell = html`<div class="position-relative">
@@ -149,8 +148,8 @@ export class UMLogin {
                                                 class="bgw-input"
                                                 type="${item.form_config.type}"
                                                 id="reg-${item.key}"
-                                                placeholder="${placeholder}"
-                                                data-placeholder="${placeholder}"
+                                               ${(item.form_config.type==='date') ? ``:` placeholder="${placeholder}"
+                                                data-placeholder="${placeholder}"`}
                                                 onchange="${gvc.event((e) => {
                                     if (CheckInput.isEmpty(e.value)) {
                                         e.style.color = 'rgba(0,0,0,0)';
@@ -419,13 +418,17 @@ export class UMLogin {
         gvc.glitter.share.public_api.GlobalUser = GlobalUser;
         GlobalUser.token = response.token;
         GlobalUser.userInfo = response;
+
         GlobalUser.updateUserData = JSON.parse(JSON.stringify(response));
         widget.event('success', { title: text ?? Language.text('login_success') });
         setTimeout(() => {
-            if (localStorage.getItem('redirect_cart') === 'true') {
-                gvc.glitter.href = '/checkout';
+            if( GlobalUser.loginRedirect){
+                const red=GlobalUser.loginRedirect
+                GlobalUser.loginRedirect='';
+                gvc.glitter.href = red;
+            }else {
+                gvc.glitter.href = '/account_userinfo';
             }
-            gvc.glitter.href = '/account_userinfo';
         }, 700);
     }
 

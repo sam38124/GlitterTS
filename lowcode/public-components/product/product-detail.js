@@ -57,14 +57,6 @@ export class ProductDetail {
         var _a;
         ProductDetail.titleFontColor = (_a = gvc.glitter.share.globalValue['theme_color.0.title']) !== null && _a !== void 0 ? _a : '#333333';
         const css = String.raw;
-        gvc.addStyle(css `
-            .pd_detail_content iframe {
-                max-width: 100%;
-            }
-            .pd_detail_content img {
-                max-width: 100%;
-            }
-        `);
         const product_id = gvc.glitter.getUrlParameter('product_id');
         const url = new URL(location.href);
         for (const b of url.searchParams.keys()) {
@@ -101,7 +93,7 @@ export class ProductDetail {
         return gvc.bindView({
             bind: ids.page,
             view: () => __awaiter(this, void 0, void 0, function* () {
-                var _b;
+                var _b, _c;
                 if (loadings.page) {
                     return spinner();
                 }
@@ -167,7 +159,7 @@ export class ProductDetail {
                         book_mark.push(getCollectionLink(dd));
                     });
                 }
-                return html ` <div class="container mx-auto" style="max-width:1100px;">
+                return html ` <div class="container mx-auto" style="max-width:1100px;word-break: break-all;white-space: normal;">
                     <div class="breadcrumb mb-0 d-flex align-items-center py-3" style="cursor:pointer; gap:10px;">
                         ${book_mark
                     .map((dd) => {
@@ -434,13 +426,13 @@ export class ProductDetail {
                                 return '';
                             }
                             return 'margin: 0 10%;';
-                        })() + `max-width:100%;`,
+                        })() + `max-width:100%;word-break: break-all;white-space: normal;`,
                         class: `pd_detail_content fr-view`,
                     },
                 })}
                     </div>
                     <div style="margin-top: 150px;"></div>
-                    ${prod.relative_product.length
+                    ${((_c = prod.relative_product) !== null && _c !== void 0 ? _c : []).length
                     ? gvc.bindView(() => {
                         const swipID = gvc.glitter.getUUID();
                         return {
@@ -506,7 +498,7 @@ export class ProductDetail {
                 </div>`;
             }),
             divCreate: {
-                style: 'min-height: 1000px;',
+                style: css `min-height: 1000px;word-break: break-all;white-space: normal;`, class: `container`
             },
             onCreate: () => {
                 var _a;
@@ -540,11 +532,6 @@ export class ProductDetail {
                                         vm.data = productData.response.data;
                                     }
                                     glitter.setUrlParameter('page', 'products/' + encodeURIComponent(vm.data.content.seo.domain || vm.data.content.title), [(_a = window.home_seo.title_prefix) !== null && _a !== void 0 ? _a : '', vm.data.content.seo.domain || vm.data.content.title, (_b = window.home_seo.title_suffix) !== null && _b !== void 0 ? _b : ''].join(''));
-                                    const json_ld = document.querySelector('script[type="application/ld+json"]');
-                                    if (json_ld) {
-                                        json_ld.remove();
-                                    }
-                                    document.querySelector('head').innerHTML += vm.data.json_ld;
                                 }
                                 catch (e) {
                                     vm.data = {};

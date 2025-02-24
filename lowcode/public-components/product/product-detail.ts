@@ -65,14 +65,6 @@ export class ProductDetail {
     public static main(gvc: GVC, widget: any, subData: any) {
         ProductDetail.titleFontColor = gvc.glitter.share.globalValue['theme_color.0.title'] ?? '#333333';
         const css = String.raw;
-        gvc.addStyle(css`
-            .pd_detail_content iframe {
-                max-width: 100%;
-            }
-            .pd_detail_content img {
-                max-width: 100%;
-            }
-        `);
         const product_id = gvc.glitter.getUrlParameter('product_id');
 
         //移除所有查詢
@@ -186,7 +178,7 @@ export class ProductDetail {
                     });
                 }
 
-                return html` <div class="container mx-auto" style="max-width:1100px;">
+                return html` <div class="container mx-auto" style="max-width:1100px;word-break: break-all;white-space: normal;">
                     <div class="breadcrumb mb-0 d-flex align-items-center py-3" style="cursor:pointer; gap:10px;">
                         ${book_mark
                             .map((dd) => {
@@ -468,13 +460,13 @@ export class ProductDetail {
                                             return '';
                                         }
                                         return 'margin: 0 10%;';
-                                    })() + `max-width:100%;`,
+                                    })() + `max-width:100%;word-break: break-all;white-space: normal;`,
                                 class: `pd_detail_content fr-view`,
                             },
                         })}
                     </div>
                     <div style="margin-top: 150px;"></div>
-                    ${prod.relative_product.length
+                    ${(prod.relative_product ?? []).length
                         ? gvc.bindView(() => {
                               const swipID = gvc.glitter.getUUID();
                               return {
@@ -548,7 +540,7 @@ export class ProductDetail {
                 </div>`;
             },
             divCreate: {
-                style: 'min-height: 1000px;',
+                style: css`min-height: 1000px;word-break: break-all;white-space: normal;`,class:`container`
             },
             onCreate: () => {
                 if (loadings.page) {
@@ -602,11 +594,13 @@ export class ProductDetail {
                                         [(window as any).home_seo.title_prefix ?? '', vm.data.content.seo.domain || vm.data.content.title, (window as any).home_seo.title_suffix ?? ''].join('')
                                     );
                                     //如有原先的JSON LD
-                                    const json_ld = document.querySelector('script[type="application/ld+json"]');
-                                    if (json_ld) {
-                                        json_ld.remove();
-                                    }
-                                    (document.querySelector('head') as any).innerHTML += (vm.data as any).json_ld;
+                                    // setTimeout(()=>{
+                                    //     const json_ld = document.querySelector('script[type="application/ld+json"]');
+                                    //     if (json_ld) {
+                                    //         json_ld.remove();
+                                    //     };
+                                    //     (document.querySelector('head') as any).innerHTML += (vm.data as any).json_ld;
+                                    // },1000)
                                 } catch (e) {
                                     (vm.data as any) = {};
                                 }

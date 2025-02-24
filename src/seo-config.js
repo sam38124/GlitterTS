@@ -162,13 +162,18 @@ class SeoConfig {
                 cf.data.page_config.seo.title = article.data[0].content.language_data[cf.language].seo.title;
                 cf.data.page_config.seo.content = article.data[0].content.language_data[cf.language].seo.content;
                 cf.data.page_config.seo.keywords = article.data[0].content.language_data[cf.language].seo.keywords;
+                cf.data.page_config.seo.image = article.data[0].content.language_data[cf.language].seo.image;
             }
             else {
                 cf.data.page_config.seo.title = article.data[0].content.seo.title;
                 cf.data.page_config.seo.content = article.data[0].content.seo.content;
                 cf.data.page_config.seo.keywords = article.data[0].content.seo.keywords;
+                cf.data.page_config.seo.image = article.data[0].content.seo.image;
             }
         }
+        cf.data.page_config.seo.image = cf.data.page_config.seo.image || article.data[0].content.preview_image;
+        console.log(`cf.data.page_config.seo==>`, article.data[0].content);
+        return cf.data.page_config.seo;
     }
     static async language(store_info, req) {
         function checkIncludes(lan) {

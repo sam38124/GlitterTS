@@ -288,7 +288,10 @@ export class MarketShopee {
                                 }, onCreate: () => {
                                     ApiShopee.syncStatus().then((res) => {
                                         loading = res.response.result;
-                                        setTimeout(() => {
+                                        if (gvc.glitter.share.shopee_interval) {
+                                            clearInterval(gvc.glitter.share.shopee_interval);
+                                        }
+                                        gvc.glitter.share.shopee_interval = setTimeout(() => {
                                             gvc.notifyDataChange(id);
                                         }, 1000);
                                     });

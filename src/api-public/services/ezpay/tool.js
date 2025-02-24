@@ -102,8 +102,10 @@ class Tool {
         while (key.length % 32 !== 0) {
             key += '\0';
         }
-        while (iv.length % 16 !== 0) {
-            iv += '\0';
+        if (typeof iv === 'string') {
+            while (iv.length % 16 !== 0) {
+                iv += '\0';
+            }
         }
         const cipher = crypto_1.default.createCipheriv(method, key, iv);
         let encrypted = cipher.update(data, input, output);

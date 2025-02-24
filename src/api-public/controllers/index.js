@@ -65,6 +65,7 @@ router.use(config_1.config.getRoute(config_1.config.public_route.graph_api, 'pub
 router.use(config_1.config.getRoute(config_1.config.public_route.ai_chat, 'public'), require('./ai-chat'));
 router.use(config_1.config.getRoute(config_1.config.public_route.ai_points, 'public'), require('./ai-points'));
 router.use(config_1.config.getRoute(config_1.config.public_route.sms_points, 'public'), require('./sms-points'));
+router.use(config_1.config.getRoute(config_1.config.public_route.track, 'public'), require('./track'));
 const whiteList = [
     { url: config_1.config.getRoute(config_1.config.public_route.customer_sessions + '/online_cart', 'public'), method: 'GET' },
     { url: config_1.config.getRoute(config_1.config.public_route.shopee, 'public'), method: 'POST' },
@@ -119,6 +120,7 @@ const whiteList = [
     { url: config_1.config.getRoute(config_1.config.public_route.ec + '/checkout/repay', 'public'), method: 'POST' },
     { url: config_1.config.getRoute(config_1.config.public_route.ec + '/checkout/preview', 'public'), method: 'POST' },
     { url: config_1.config.getRoute(config_1.config.public_route.ec + '/redirect', 'public'), method: 'POST' },
+    { url: config_1.config.getRoute(config_1.config.public_route.ec + '/logistics/redirect', 'public'), method: 'POST' },
     { url: config_1.config.getRoute(config_1.config.public_route.ec + '/order', 'public'), method: 'GET' },
     { url: config_1.config.getRoute(config_1.config.public_route.ec + '/order/cancel', 'public'), method: 'PUT' },
     { url: config_1.config.getRoute(config_1.config.public_route.ec + '/order/proof-purchase', 'public'), method: 'PUT' },
@@ -146,6 +148,7 @@ const whiteList = [
     { url: config_1.config.getRoute(config_1.config.public_route.graph_api, 'public'), method: 'PUT' },
     { url: config_1.config.getRoute(config_1.config.public_route.graph_api, 'public'), method: 'DELETE' },
     { url: config_1.config.getRoute(config_1.config.public_route.graph_api, 'public'), method: 'PATCH' },
+    { url: config_1.config.getRoute(config_1.config.public_route.track, 'public'), method: 'POST' },
     { url: config_1.config.getRoute(config_1.config.public_route.ai_chat + '/ask-order', 'public'), method: 'GET' },
     { url: config_1.config.getRoute(config_1.config.public_route.ai_chat + '/search-product', 'public'), method: 'POST' },
 ];

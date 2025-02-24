@@ -1,4 +1,3 @@
-/// <reference types="node" />
 import { Encoding } from 'crypto';
 interface IData {
     [key: string]: string | string[] | number;
@@ -11,7 +10,7 @@ export default class Tool {
     CSVtoArray(text: string): string[];
     JsonToQueryString(data: IData): string;
     queryStringToJSON(queryString: string): QueryParams;
-    aesEncrypt(data: string, key: string, iv: string, input?: Encoding, output?: Encoding, method?: string): string;
+    aesEncrypt(data: string, key: string, iv: string | null, input?: Encoding, output?: Encoding, method?: string): string;
     aesDecrypt: (data: string, key: string, iv: string, input?: Encoding, output?: Encoding, method?: string) => string;
     compareHash: (pwd: string, has: string) => Promise<boolean>;
     nowTime: () => string;

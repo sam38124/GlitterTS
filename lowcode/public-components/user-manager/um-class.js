@@ -48,7 +48,7 @@ export class UmClass {
                         },
                         {
                             key: 'rebate',
-                            title: `${Language.text('my')} ${glitter.share.rebateConfig.title}`,
+                            title: `${Language.text('my')}${glitter.share.rebateConfig.title}`,
                         },
                         {
                             key: 'order_list',
@@ -619,6 +619,7 @@ export class UmClass {
             }
 
             .card-sale-price {
+                font-family: 'Noto Sans';
                 font-style: normal;
                 line-height: normal;
                 font-size: 16px;
@@ -627,13 +628,13 @@ export class UmClass {
             }
 
             .card-cost-price {
+                font-family: 'Noto Sans';
                 color: #d45151;
                 font-style: normal;
                 font-weight: 400;
                 line-height: normal;
                 font-size: 14px;
                 margin-right: 4px;
-                letter-spacing: -0.98px;
             }
             .gray-line {
                 border-bottom: 1px solid #dddddd;

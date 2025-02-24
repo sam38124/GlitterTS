@@ -33,7 +33,7 @@ export default class FinancialService {
         use_wallet: number;
         user_email: string;
         method: string;
-    }): Promise<any>;
+    }): Promise<string | void>;
     saveWallet(orderData: {
         total: number;
         userID: number;
@@ -164,7 +164,7 @@ export declare class LinePay {
     LinePay_SECRET: string;
     LinePay_BASE_URL: string;
     constructor(appName: string, keyData: any);
-    confirmAndCaptureOrder(transactionId: string): Promise<axios.AxiosResponse<any, any>>;
+    confirmAndCaptureOrder(transactionId: string, total: number): Promise<axios.AxiosResponse<any, any>>;
     createOrder(orderData: {
         lineItems: {
             id: string;
@@ -195,6 +195,7 @@ export declare class PayNow {
     PrivateKey: string;
     BASE_URL: string;
     constructor(appName: string, keyData: any);
+    executePaymentIntent(transactionId: string, secret: string, paymentNo: string): Promise<any>;
     confirmAndCaptureOrder(transactionId?: string): Promise<any>;
     createOrder(orderData: {
         lineItems: {

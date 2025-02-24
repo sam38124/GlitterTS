@@ -124,6 +124,7 @@ export class ProductCard03 {
                 justify-content: start;
             }
             .card-sale-price {
+                font-family: 'Noto Sans';
                 text-align: center;
                 font-style: normal;
                 line-height: normal;
@@ -132,6 +133,7 @@ export class ProductCard03 {
                 color: #322b25;
             }
             .card-cost-price {
+                font-family: 'Noto Sans';
                 text-align: center;
                 color: #d45151;
                 font-style: normal;
@@ -139,7 +141,6 @@ export class ProductCard03 {
                 line-height: normal;
                 font-size: 14px;
                 margin-right: 4px;
-                letter-spacing: -0.98px;
             }
         `);
         const labelID = glitter.getUUID();
@@ -287,7 +288,7 @@ export class ProductCard03 {
                 return dd.sale_price === minPrice;
             })) !== null && _a !== void 0 ? _a : {}).compare_price) !== null && _b !== void 0 ? _b : 0;
             if (comparePrice > 0 && minPrice < comparePrice) {
-                return html ` <div class="text-decoration-line-through card-cost-price">NT.$ ${Currency.convertCurrencyText(comparePrice)}</div>`;
+                return html ` <div class="text-decoration-line-through card-cost-price">${Currency.convertCurrencyText(comparePrice)}</div>`;
             }
             return '';
         })()}

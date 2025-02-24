@@ -19,9 +19,9 @@ class Private_config {
                 post_1.Post.lambda_function[config.appName] = undefined;
             }
             await database_js_1.default.execute(`replace
-            into \`${config_js_1.saasConfig.SAAS_NAME}\`.private_config (app_name,\`key\`,\`value\`,updated_at)
+                into \`${config_js_1.saasConfig.SAAS_NAME}\`.private_config (app_name,\`key\`,\`value\`,updated_at)
             values (?,?,?,?)
-            `, [config.appName, config.key, config.value, (0, moment_js_1.default)(new Date()).format('YYYY-MM-DD HH:mm:ss')]);
+                `, [config.appName, config.key, config.value, (0, moment_js_1.default)(new Date()).format('YYYY-MM-DD HH:mm:ss')]);
         }
         catch (e) {
             console.error(e);
@@ -33,9 +33,11 @@ class Private_config {
             throw exception_js_1.default.BadRequestError('Forbidden', 'No Permission.', null);
         }
         try {
-            const data = await database_js_1.default.execute(`select * from \`${config_js_1.saasConfig.SAAS_NAME}\`.private_config where app_name=${database_js_1.default.escape(config.appName)} and 
-                                             \`key\`=${database_js_1.default.escape(config.key)}
-            `, []);
+            const data = await database_js_1.default.execute(`select *
+                 from \`${config_js_1.saasConfig.SAAS_NAME}\`.private_config
+                 where app_name = ${database_js_1.default.escape(config.appName)}
+                   and \`key\` = ${database_js_1.default.escape(config.key)}
+                `, []);
             if (data[0] && data[0].value) {
                 Private_config.checkConfigUpdate(data[0].value, config.key);
             }
@@ -48,9 +50,11 @@ class Private_config {
     }
     static async getConfig(config) {
         try {
-            const data = await database_js_1.default.execute(`select * from \`${config_js_1.saasConfig.SAAS_NAME}\`.private_config where app_name=${database_js_1.default.escape(config.appName)} and 
-                                             \`key\`=${database_js_1.default.escape(config.key)}
-            `, []);
+            const data = await database_js_1.default.execute(`select *
+                 from \`${config_js_1.saasConfig.SAAS_NAME}\`.private_config
+                 where app_name = ${database_js_1.default.escape(config.appName)}
+                   and \`key\` = ${database_js_1.default.escape(config.key)}
+                `, []);
             if (data[0] && data[0].value) {
                 this.checkConfigUpdate(data[0].value, config.key);
             }
@@ -62,14 +66,16 @@ class Private_config {
         }
     }
     async verifyPermission(appName) {
-        const result = await database_js_1.default.query(`SELECT count(1) 
-            FROM ${config_js_1.saasConfig.SAAS_NAME}.app_config
-            WHERE 
-                (user = ? and appName = ?)
+        const result = await database_js_1.default.query(`SELECT count(1)
+             FROM ${config_js_1.saasConfig.SAAS_NAME}.app_config
+             WHERE (user = ? and appName = ?)
                 OR appName in (
-                    (SELECT appName FROM \`${config_js_1.saasConfig.SAAS_NAME}\`.app_auth_config
-                    WHERE user = ? AND status = 1 AND invited = 1 AND appName = ?)
-                );
+                 (SELECT appName
+                  FROM \`${config_js_1.saasConfig.SAAS_NAME}\`.app_auth_config
+                  WHERE user = ?
+                    AND status = 1
+                    AND invited = 1
+                    AND appName = ?));
             `, [this.token.userID, appName, this.token.userID, appName]);
         return result[0]['count(1)'] === 1;
     }
@@ -165,6 +171,29 @@ class Private_config {
                     keyData[dd] = undefined;
                 });
                 keyData.payment_info_custom = keyData.payment_info_custom || [];
+                break;
+            case 'glitter_delivery':
+                if (!keyData.ec_pay) {
+                    const og = JSON.parse(JSON.stringify(keyData));
+                    Object.keys(keyData).map((dd) => {
+                        delete keyData[dd];
+                    });
+                    keyData.ec_pay = og;
+                }
+                if (!keyData.pay_now) {
+                    keyData.pay_now = {
+                        Action: 'test',
+                        toggle: false,
+                        account: '',
+                        pwd: ''
+                    };
+                }
+                if (typeof keyData.pay_now.toggle === 'string') {
+                    keyData.pay_now.toggle = false;
+                }
+                if (typeof keyData.ec_pay.toggle === 'string') {
+                    keyData.ec_pay.toggle = false;
+                }
                 break;
         }
     }

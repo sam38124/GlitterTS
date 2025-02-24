@@ -1033,14 +1033,14 @@ h6 {
 
 .insignia {
     border-radius: 0.5rem;
-    height: 26px;
+    min-height: 26px;
     padding: 6px 8px;
     font-size: 14px;
     display: inline-block;
     font-weight: 500;
-    line-height: 1;
+    line-height: 1.2;
     text-align: center;
-    white-space: nowrap;
+    white-space: normal;
     vertical-align: baseline;
 }
 
@@ -1082,6 +1082,28 @@ h6 {
 .insignia-normal {
     background: var(--item-normal);
     color: var(--main-black);
+}
+
+.textbox {
+    display: flex;
+    height: 34px;
+    padding: 10px;
+    justify-content: center;
+    align-items: center;
+    gap: 10px;
+    border-radius: 10px;
+}
+
+.textbox-uncheck {
+    color: var(--main-gray-3);
+    border: 1px solid var(--main-gray-1);
+    background: #fff;
+}
+
+.textbox-checked {
+    color: var(--main-black);
+    border: 2px solid var(--main-black);
+    background: #fff;
 }
 
 /* 行動端頁面 */

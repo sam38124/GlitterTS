@@ -9,7 +9,7 @@ import { EditorConfig } from '../../editor-config.js';
 import { ApiUser } from '../../glitter-base/route/user.js';
 import { BgWidget } from '../../backend-manager/bg-widget.js';
 import { GlobalUser } from '../../glitter-base/global/global-user.js';
-import {imageLibrary} from "../../modules/image-library.js";
+import { imageLibrary } from '../../modules/image-library.js';
 
 export class Setting_editor {
     static pluginUrl = '';
@@ -76,7 +76,7 @@ export class Setting_editor {
                 icon: '',
                 page: 'shippment_setting',
                 group: '商店設定',
-                title: '配送設定',
+                title: '物流設定',
                 appName: 'cms_system',
                 groupIcon: 'https://d3jnmi1tfjgtti.cloudfront.net/file/252530754/1716566571091-Property 1=gear-regular.svg',
                 moduleName: '金流 / 物流 / 發票',
@@ -746,6 +746,14 @@ export class Setting_editor {
             },
             {
                 icon: '',
+                page: 'exhibition_list',
+                group: 'POS實體門市',
+                title: '展場列表',
+                appName: 'cms_system',
+                groupIcon: 'https://d3jnmi1tfjgtti.cloudfront.net/file/122538856/cash-register-regular (1).svg',
+            },
+            {
+                icon: '',
                 page: 'member_plan',
                 group: `方案與加值中心`,
                 title: '開店方案',
@@ -1073,22 +1081,20 @@ export class Setting_editor {
                                                                         ''} ${dd.type === 'container' ? `mainRow${index}` : ''}"
                                                                         style="gap:7px; color:#393939; ${dd.toggle ? `border-radius: 5px; background: #F2F2F2;` : ``}"
                                                                         onclick="${gvc.event(async () => {
-                                                                         try {
-                                                                             if(items[parseInt(dd.index)].page==='image_manager'){
-                                                                                 imageLibrary.selectImageLibrary(
-                                                                                         gvc,
-                                                                                         (urlArray) => {
-
-                                                                                         },
-                                                                                         html` <div class="d-flex flex-column" style="border-radius: 10px 10px 0px 0px;background: #F2F2F2;">圖片庫</div>`,
-                                                                                         { mul: true },
-                                                                                         true
-                                                                                 )
-                                                                                 return
-                                                                             }
-                                                                         }catch (e) {
-                                                                             
-                                                                         }
+                                                                            try {
+                                                                                if (items[parseInt(dd.index)].page === 'image_manager') {
+                                                                                    imageLibrary.selectImageLibrary(
+                                                                                        gvc,
+                                                                                        (urlArray) => {},
+                                                                                        html` <div class="d-flex flex-column" style="border-radius: 10px 10px 0px 0px;background: #F2F2F2;">
+                                                                                            圖片庫
+                                                                                        </div>`,
+                                                                                        { mul: true },
+                                                                                        true
+                                                                                    );
+                                                                                    return;
+                                                                                }
+                                                                            } catch (e) {}
                                                                             gvc.glitter.setUrlParameter('page-id');
                                                                             if (dd.type === 'container') {
                                                                                 list.forEach((item: any, index2: number) => {
@@ -1500,7 +1506,7 @@ export class Setting_editor {
                             }
 
                             return html`
-                                <div class=" position-relative bgf6 d-flex align-items-center p-2 border-bottom shadow">
+                                <div class="position-relative bgf6 d-flex align-items-center p-2 border-bottom shadow">
                                     <span class="fs-6 fw-bold " style="color:black;">插件設定</span>
                                     <div class="flex-fill"></div>
                                     <button

@@ -4,6 +4,11 @@ import moment from 'moment-timezone';
 import axios, {AxiosRequestConfig} from "axios";
 import redis from "../../modules/redis";
 import process from "process";
+import CryptoJS from "crypto-js";
+import {createCipheriv, randomBytes, createHash} from 'crypto';
+import Tool from "./ezpay/tool.js";
+import tool from "../../modules/tool.js";
+import {OrderEvent} from "./order-event.js";
 
 interface KeyData {
     MERCHANT_ID: string;
@@ -75,12 +80,12 @@ export default class FinancialService {
         } else if (this.keyData.TYPE === 'ecPay') {
             return await new EcPay(this.appName, this.keyData).createOrderPage(orderData);
         }
-        return await db.execute(
-            `INSERT INTO \`${this.appName}\`.t_checkout (cart_token, status, email, orderData)
-             VALUES (?, ?, ?, ?)
-            `,
-            [orderData.orderID, 0, orderData.user_email, orderData]
-        );
+
+        return   await OrderEvent.insertOrder({
+            cartData:orderData,
+            status:0,
+            app:this.appName
+        });
 
         // //todo 修改付款方式 to paypal
         // return await new PayPal(this.appName, this.keyData).checkout(orderData);
@@ -199,13 +204,11 @@ export class EzPay {
                 }
             });
         }
-        const appName = this.appName;
-        await db.execute(
-            `INSERT INTO \`${appName}\`.t_checkout (cart_token, status, email, orderData)
-             VALUES (?, ?, ?, ?)
-            `,
-            [params.MerchantOrderNo, 0, orderData.user_email, orderData]
-        );
+        await OrderEvent.insertOrder({
+            cartData:orderData,
+            status:0,
+            app:this.appName
+        })
 
         // 2. 產生 Query String
         const qs = FinancialService.JsonToQueryString(params);
@@ -406,12 +409,11 @@ export class EcPay {
 
         const chkSum = EcPay.generateCheckMacValue(params, this.keyData.HASH_KEY, this.keyData.HASH_IV);
         orderData.CheckMacValue = chkSum;
-        await db.execute(
-            `INSERT INTO \`${this.appName}\`.t_checkout (cart_token, status, email, orderData)
-             VALUES (?, ?, ?, ?)
-            `,
-            [params.MerchantTradeNo, 0, orderData.user_email, orderData]
-        );
+        await OrderEvent.insertOrder({
+            cartData:orderData,
+            status:0,
+            app:this.appName
+        })
 
         // 5. 回傳物件
         return html`
@@ -672,12 +674,11 @@ export class PayPal {
             };
 
             const response = await axios.request(config);
-            await db.execute(
-                `INSERT INTO \`${this.appName}\`.t_checkout (cart_token, status, email, orderData)
-                 VALUES (?, ?, ?, ?)
-                `,
-                [orderData.orderID, 0, orderData.user_email, orderData]
-            );
+            await OrderEvent.insertOrder({
+                cartData:orderData,
+                status:0,
+                app:this.appName
+            })
             await redis.setValue('paypal' + orderData.orderID, response.data.id)
             return response.data;
         } catch (error: any) {
@@ -791,15 +792,19 @@ export class LinePay {
         // const PAYPAL_BASE_URL = "https://api-pay.line.me"; // 正式環境
     }
 
-    async confirmAndCaptureOrder(transactionId: string) {
-        const body: any = {};
-        const uri = `/payments/requests/${transactionId}/check`;
-        const nonce = new Date().getTime() / 1000;
-        const head = `${this.LinePay_SECRET}/v3${uri}${nonce}`;
-        const signature = crypto.createHmac('sha256', this.LinePay_SECRET).update(head).digest('base64');
+    async confirmAndCaptureOrder(transactionId: string,total:number) {
+        const body: any = {
+            amount:parseInt(`${total}`,10),
+            currency:'TWD'
+        };
+        const uri = `/payments/${transactionId}/confirm`;
+        const nonce = new Date().getTime().toString();
         const url = `${this.LinePay_BASE_URL}/v3${uri}`;
+        const head = [this.LinePay_SECRET,`/v3${uri}`,JSON.stringify(body),nonce].join('');
+        const signature = crypto.createHmac('sha256', this.LinePay_SECRET).update(head).digest('base64');
+
         const config: AxiosRequestConfig = {
-            method: "GET",
+            method: "POST",
             url: url,
             headers: {
                 "Content-Type": "application/json",
@@ -807,7 +812,13 @@ export class LinePay {
                 "X-LINE-Authorization-Nonce": nonce,
                 "X-LINE-Authorization": signature
             },
+            data:body
         };
+        console.log(`line-conform->
+        URL:${url}
+        X-LINE-ChannelId:${this.LinePay_CLIENT_ID}
+        LinePay_SECRET:${this.LinePay_SECRET}
+        `)
         try {
             const response = await axios.request(config);
             return response;
@@ -874,12 +885,11 @@ export class LinePay {
             ],
         })
         const uri = "/payments/request";
-        const nonce = new Date().getTime() / 1000;
-
-        const head = `${this.LinePay_SECRET}/v3${uri}${JSON.stringify(body)}${nonce}`;
+        const nonce = new Date().getTime().toString();
+        const url = `${this.LinePay_BASE_URL}/v3${uri}`;
+        const head = [this.LinePay_SECRET,`/v3${uri}`,JSON.stringify(body),nonce].join('');
         //sha256加密
         const signature = crypto.createHmac('sha256', this.LinePay_SECRET).update(head).digest('base64');
-        const url = `${this.LinePay_BASE_URL}/v3${uri}`;
         const config: AxiosRequestConfig = {
             method: "POST",
             url: url,
@@ -891,15 +901,21 @@ export class LinePay {
             },
             data: body
         };
+        console.log(`line-request->
+        URL:${url}
+        X-LINE-ChannelId:${this.LinePay_CLIENT_ID}
+        LinePay_SECRET:${this.LinePay_SECRET}
+        `)
         try {
             const response = await axios.request(config);
-            await db.execute(
-                `INSERT INTO \`${this.appName}\`.t_checkout (cart_token, status, email, orderData)
-                 VALUES (?, ?, ?, ?)
-                `,
-                [orderData.orderID, 0, orderData.user_email, orderData]
-            );
-            await redis.setValue('linepay' + orderData.orderID, response.data.info.transactionId)
+            await OrderEvent.insertOrder({
+                cartData:orderData,
+                status:0,
+                app:this.appName
+            })
+            console.log(`response.data===>`,response.data)
+            await redis.setValue('linepay' + orderData.orderID, response.data.info.transactionId);
+
             return response.data;
         } catch (error: any) {
             console.error("Error linePay:", error.response?.data || error.message);
@@ -930,6 +946,66 @@ export class PayNow {
         this.BASE_URL = (keyData.BETA == 'true') ? "https://sandboxapi.paynow.com.tw" : "https://api.paynow.com.tw"; // 沙箱環境
     }
 
+    async executePaymentIntent(transactionId: string, secret: string, paymentNo: string) {
+        console.log(`json=>`, {
+            "paymentNo": paymentNo,
+            "usePayNowSdk": true,
+            "key": this.PublicKey,
+            "secret": secret,
+            "paymentMethodType": "CreditCard",
+            "paymentMethodData": {},
+            "otpFlag": false,
+            "meta": {
+                "client": {
+                    "height": 0,
+                    "width": 0
+                },
+                "iframe": {
+                    "height": 0,
+                    "width": 0
+                }
+            },
+            "owlpay_session": "string"
+        })
+        let config = {
+            method: 'POST',
+            maxBodyLength: Infinity,
+            url: `${this.BASE_URL}/api/v1/payment-intents/${transactionId}/checkout`,
+            headers: {
+                'Accept': 'application/json',
+                'Authorization': `Bearer ` + this.PrivateKey
+            },
+            data: JSON.stringify({
+                "paymentNo": paymentNo,
+                "usePayNowSdk": true,
+                "key": this.PublicKey,
+                "secret": secret,
+                "paymentMethodType": "CreditCard",
+                "paymentMethodData": {},
+                "otpFlag": false,
+                "meta": {
+                    "client": {
+                        "height": 0,
+                        "width": 0
+                    },
+                    "iframe": {
+                        "height": 0,
+                        "width": 0
+                    }
+                }
+            })
+        };
+
+        try {
+            const response = await axios.request(config);
+            return response.data;
+        } catch (error: any) {
+            console.error("Error paynow:", error.response?.data.data || error.message);
+            throw error;
+        }
+    }
+
+    //確認付款資訊
     async confirmAndCaptureOrder(transactionId?: string) {
         let config = {
             method: 'get',
@@ -949,6 +1025,9 @@ export class PayNow {
         }
     }
 
+
+
+
     async createOrder(orderData: {
         lineItems: {
             id: string;
@@ -965,15 +1044,13 @@ export class PayNow {
         user_email: string;
         method: string;
     }) {
+
         const data = JSON.stringify({
             "amount": orderData.total,
             "currency": "TWD",
             "description": orderData.orderID,
             "resultUrl": this.keyData.ReturnURL + `&orderID=${orderData.orderID}`,
             "webhookUrl": this.keyData.NotifyURL + `&orderID=${orderData.orderID}`,
-            "allowedPaymentMethods": [
-                "CreditCard",
-            ],
             "expireDays": 3,
         });
         const url = `${this.BASE_URL}/api/v1/payment-intents`;
@@ -991,12 +1068,11 @@ export class PayNow {
         try {
             const response = await axios.request(config);
             (orderData as any).paynow_id = response.data.result.id;
-            await db.execute(
-                `INSERT INTO \`${this.appName}\`.t_checkout (cart_token, status, email, orderData)
-                 VALUES (?, ?, ?, ?)
-                `,
-                [orderData.orderID, 0, orderData.user_email, orderData]
-            );
+           await OrderEvent.insertOrder({
+                cartData:orderData,
+                status:0,
+                app:this.appName
+            })
             await redis.setValue('paynow' + orderData.orderID, response.data.result.id)
             return {
                 data: response.data,
@@ -1008,6 +1084,8 @@ export class PayNow {
             throw error;
         }
     }
+
+
 }
 
 // 街口
@@ -1036,14 +1114,13 @@ export class JKO {
         const secret = this.keyData.SECRET_KEY;
         const digest = this.generateDigest(`platform_order_ids=${transactionId}` , secret);
         console.log("digest -- " , digest)
-        return
         let config = {
             method: 'get',
             url: `${this.BASE_URL}/platform/inquiry?platform_order_ids=${transactionId}`,
             headers: {
                 'Content-Type': 'application/json',
                 'DIGEST': digest,
-                'API-KEY' : this.keyData.API_KEY
+                'API-KEY': this.keyData.API_KEY
             },
         };
         try {
@@ -1061,7 +1138,7 @@ export class JKO {
             spec: string[];
             count: number;
             sale_price: number;
-            preview_image:string;
+            preview_image: string;
             title: string;
         }[];
         total: number;
@@ -1072,26 +1149,43 @@ export class JKO {
         user_email: string;
         method: string;
     }) {
+        function transProduct(lineItems: {
+            id: string;
+            spec: string[];
+            count: number;
+            sale_price: number;
+            preview_image: string;
+            title: string;
+        }[]) {
+            return lineItems.map((item) => {
+                return {
+                    'name': item.title + ' ' + item.spec.join(','),
+                    'img': item.preview_image,
+                    'unit_count': item.count,
+                    'unit_price': item.sale_price,
+                    'unit_final_price': item.sale_price
+                }
+            })
+        }
 
-        await this.refundOrder("1740299355493" ,10000)
-        return
-        const payload = JSON.stringify({
-            "store_id": this.keyData.STORE_ID,
-            "platform_order_id": orderData.orderID,
+        // console.log(transProduct(orderData.lineItems));
+        // console.log("orderData.lineItems -- " , orderData.lineItems)
+        const payload = {
             "currency": "TWD",
             "total_price":orderData.total,
             "final_price": orderData.total,
-            "result_url":this.keyData.ReturnURL + `&orderID=${orderData.orderID}`,})
+            "result_url":this.keyData.ReturnURL + `&orderID=${orderData.orderID}`,}
         const apiKey = "689c57cd9d5b5ec80f5d5451d18fe24cfe855d21b25c7ff30bcd07829a902f7a";
 
 // 設定 Secret Key
         const secretKey = "8ec78345a13e3d376452d9c89c66b543ef1516c0ef1a05f0adf654c37ac8edac";
 
-        console.log("payload -- " , payload)
+        const secret = this.keyData.SECRET_KEY;
+        // const digest = this.generateDigest(JSON.stringify(payload), secret);
 
 // 使用 HMAC-SHA256 生成 `digest`
         const digest = crypto.createHmac('sha256', secretKey)
-            .update(payload, 'utf8')
+            .update(JSON.stringify(payload), 'utf8')
             .digest('hex');
 
 // 設定 Headers
@@ -1112,7 +1206,6 @@ export class JKO {
         // console.log("digest -- " , digest)
         // console.log("API-KEY -- " , this.keyData.API_KEY)
         // console.log("this.keyData.STORE_ID -- " , this.keyData.STORE_ID)
-        return
         const url = `${this.BASE_URL}platform/entry`;
         const config = {
             method: 'post',
@@ -1120,7 +1213,7 @@ export class JKO {
             headers: {
                 'Content-Type': 'application/json',
                 'DIGEST': digest,
-                'API-KEY' : this.keyData.API_KEY
+                'API-KEY': this.keyData.API_KEY
             },
             data: payload
         };
@@ -1128,11 +1221,13 @@ export class JKO {
             const response = await axios.request(config);
 
             await db.execute(
-                `INSERT INTO \`${this.appName}\`.t_checkout (cart_token, status, email, orderData) VALUES (?, ?, ?, ?)
-            `,
-                [orderData.orderID, 0, orderData.user_email, orderData]
+                `INSERT INTO \`${this.appName}\`.t_checkout (cart_token, status, email, orderData)
+                 VALUES (?, ?, ?, ?)
+                `,
+                [orderData.orderID, 0, orderData.email, orderData]
             );
-            await redis.setValue('paynow'+orderData.orderID, response.data.result.id)
+
+            await redis.setValue('paynow' + orderData.orderID, response.data.result.id)
             return ``
         } catch (error: any) {
             console.error("Error payNow:", error.response?.data || error.message);

@@ -16,6 +16,7 @@ import { DataAnalyze } from '../services/data-analyze';
 import { Rebate, IRebateSearch } from '../services/rebate';
 import { Pos } from '../services/pos.js';
 import {ShopnexLineMessage} from "../services/model/shopnex-line-message";
+import {FbApi} from "../services/fb-api.js";
 
 const router: express.Router = express.Router();
 export = router;
@@ -135,31 +136,59 @@ router.delete('/rebate', async (req: express.Request, resp: express.Response) =>
 // 結帳付款
 router.post('/checkout', async (req: express.Request, resp: express.Response) => {
     try {
+        const result=await new Shopping(req.get('g-app') as string, req.body.token).toCheckout({
+            line_items: req.body.line_items as any,
+            email: (req.body.token && req.body.token.account) || req.body.email,
+            return_url: req.body.return_url,
+            user_info: req.body.user_info,
+            code: req.body.code,
+            customer_info: req.body.customer_info,
+            checkOutType: req.body.checkOutType,
+            use_rebate: (() => {
+                if (req.body.use_rebate && typeof req.body.use_rebate === 'number') {
+                    return req.body.use_rebate;
+                } else {
+                    return 0;
+                }
+            })(),
+            custom_receipt_form: req.body.custom_receipt_form,
+            custom_form_format: req.body.custom_form_format,
+            custom_form_data: req.body.custom_form_data,
+            distribution_code: req.body.distribution_code,
+            code_array: req.body.code_array,
+            give_away: req.body.give_away,
+            language: req.headers['language'] as any,
+            client_ip_address:(req.query.ip || req.headers['x-real-ip'] || req.ip) as string,
+            fbc:req.cookies._fbc,
+            fbp:req.cookies._fbp
+        });
+
+        //
+        // const fb_data=new FbApi(req.get('g-app') as string)
+        // fb_data.checkOut({
+        //     "event_name": "Purchase",
+        //     "event_time": 1740037377,
+        //     "action_source": "website",
+        //     "user_data": {
+        //         "em": [
+        //             "309a0a5c3e211326ae75ca18196d301a9bdbd1a882a4d2569511033da23f0abd"
+        //         ],
+        //         "ph": [
+        //             "254aa248acb47dd654ca3ea53f48c2c26d641d23d7e2e93a1ec56258df7674c4",
+        //             "6f4fcb9deaeadc8f9746ae76d97ce1239e98b404efe5da3ee0b7149740f89ad6"
+        //         ],
+        //         "client_ip_address": "123.123.123.123",
+        //         "fbc": "fb.1.1554763741205.AbCdEfGhIjKlMnOpQrStUvWxYz1234567890",
+        //         "fbp": "fb.1.1558571054389.1098115397"
+        //     },
+        //     "custom_data": {
+        //         "currency": "TWD",
+        //         "value": 100.0
+        //     }
+        // })
         return response.succ(
             resp,
-            await new Shopping(req.get('g-app') as string, req.body.token).toCheckout({
-                line_items: req.body.line_items as any,
-                email: (req.body.token && req.body.token.account) || req.body.email,
-                return_url: req.body.return_url,
-                user_info: req.body.user_info,
-                code: req.body.code,
-                customer_info: req.body.customer_info,
-                checkOutType: req.body.checkOutType,
-                use_rebate: (() => {
-                    if (req.body.use_rebate && typeof req.body.use_rebate === 'number') {
-                        return req.body.use_rebate;
-                    } else {
-                        return 0;
-                    }
-                })(),
-                custom_receipt_form: req.body.custom_receipt_form,
-                custom_form_format: req.body.custom_form_format,
-                custom_form_data: req.body.custom_form_data,
-                distribution_code: req.body.distribution_code,
-                code_array: req.body.code_array,
-                give_away: req.body.give_away,
-                language: req.headers['language'] as any,
-            })
+            result
         );
     } catch (err) {
         return response.fail(resp, err);
@@ -616,10 +645,22 @@ router.delete('/voucher', async (req: express.Request, resp: express.Response) =
 // 重導向
 async function redirect_link(req: express.Request, resp: express.Response) {
     try {
+        //預防沒有APPName
+        req.query.appName = req.query.appName || (req.get('g-app') as string) || (req.query['g-app'] as string);
         // 判斷paypal進來 做capture
         let return_url = new URL((await redis.getValue(req.query.return as string)) as any);
         if (req.query.LinePay && req.query.LinePay === 'true') {
             const check_id = await redis.getValue(`linepay` + req.query.orderID);
+
+            const order_data = (
+                await db.query(
+                    `SELECT *
+                     FROM \`${req.query.appName}\`.t_checkout
+                     WHERE cart_token = ?
+                    `,
+                    [req.query.orderID]
+                )
+            )[0];
             const keyData = (
                 await Private_config.getConfig({
                     appName: req.query.appName as string,
@@ -628,7 +669,10 @@ async function redirect_link(req: express.Request, resp: express.Response) {
             )[0].value.line_pay;
             const linePay = new LinePay(req.query.appName as string, keyData);
 
-            const data: any = linePay.confirmAndCaptureOrder(check_id as string);
+            console.log(`check_id===>${req.query.orderID}===>${req.query.transactionId}`)
+            console.log(`req.query=>`,req.query)
+            const data: any = (await linePay.confirmAndCaptureOrder(req.query.transactionId as string,order_data['orderData'].total)).data;
+            console.log(`line-response==>`,data)
             if (data.returnCode == '0000') {
                 await new Shopping(req.query.appName as string).releaseCheckout(1, req.query.orderID as string);
             }
@@ -648,19 +692,22 @@ async function redirect_link(req: express.Request, resp: express.Response) {
             }
         }
         if (req.query.paynow && req.query.paynow === 'true') {
+            // const check_id = '1234555'
+            const keyData = (
+                await Private_config.getConfig({
+                    appName: req.query.appName as string,
+                    key: 'glitter_finance',
+                })
+            )[0].value.paynow;
             const check_id = await redis.getValue(`paynow` + req.query.orderID);
-            let kd = {
-                ReturnURL: '',
-                NotifyURL: '',
-            };
-
-            const payNow = new PayNow(req.query.appName as string, kd);
-            const data: any = payNow.confirmAndCaptureOrder(check_id as string);
+            const payNow = new PayNow(req.query.appName as string, keyData);
+            const data: any = await payNow.confirmAndCaptureOrder(check_id as string);
 
             if (data.type == 'success') {
                 await new Shopping(req.query.appName as string).releaseCheckout(1, req.query.orderID as string);
             }
         }
+        //pp_1bed7f12879241198832063d5e091976
         if (req.query.jkopay && req.query.jkopay === 'true') {
             console.log("req -- " , req)
             let kd = {
@@ -701,6 +748,7 @@ async function redirect_link(req: express.Request, resp: express.Response) {
                 </html> `
         );
     } catch (err) {
+        console.error(err);
         return response.fail(resp, err);
     }
 }
@@ -725,6 +773,7 @@ router.get('/testRelease', async (req: express.Request, resp: express.Response) 
 });
 router.post('/notify', upload.single('file'), async (req: express.Request, resp: express.Response) => {
     try {
+        console.log(`notify-order-result`);
         let decodeData = undefined;
         const appName = req.query['g-app'] as string;
         const type = req.query['type'] as string;
@@ -758,6 +807,14 @@ router.post('/notify', upload.single('file'), async (req: express.Request, resp:
                     TYPE: keyData.TYPE,
                 }).decode(req.body.TradeInfo)
             );
+        }
+        if (type === 'paynow') {
+            const check_id = await redis.getValue(`paynow` + req.query.orderID);
+            const payNow = new PayNow(req.query.appName as string, keyData);
+            const data: any = await payNow.confirmAndCaptureOrder(check_id as string);
+            console.log(`paynow-notify1`, req.body);
+            console.log(`paynow-notify2`, check_id);
+            console.log(`paynow-notify3`, data);
         }
 
         // 執行付款完成之訂單事件
@@ -963,12 +1020,14 @@ router.get('/product', async (req: express.Request, resp: express.Response) => {
             max_price: req.query.max_price as string,
             status: req.query.status as string,
             channel: req.query.channel as string,
+            whereStore: req.query.whereStore as string,
             id_list: req.query.id_list as string,
             order_by: req.query.order_by as string,
             with_hide_index: req.query.with_hide_index as string,
             is_manger: (await UtPermission.isManager(req)) as any,
             show_hidden: `${req.query.show_hidden as any}`,
             productType: req.query.productType as any,
+            product_category:req.query.product_category as any,
             filter_visible: req.query.filter_visible as any,
             view_source: req.query.view_source as string,
             distribution_code: req.query.distribution_code as string,
@@ -1209,15 +1268,15 @@ router.post('/apple-webhook', async (req: express.Request, resp: express.Respons
             const count = (
                 await db.query(
                     `select count(1)
-                                           from \`${req.get('g-app')}\`.t_ai_points
-                                           where orderID = ?`,
+                     from \`${req.get('g-app')}\`.t_ai_points
+                     where orderID = ?`,
                     [b.transaction_id]
                 )
             )[0]['count(1)'];
             if (!count) {
                 await db.query(
                     `insert into \`${req.get('g-app')}\`.t_ai_points
-                                set ?`,
+                     set ?`,
                     [
                         {
                             orderID: b.transaction_id,
@@ -1239,15 +1298,15 @@ router.post('/apple-webhook', async (req: express.Request, resp: express.Respons
             const count = (
                 await db.query(
                     `select count(1)
-                                           from \`${req.get('g-app')}\`.t_sms_points
-                                           where orderID = ?`,
+                     from \`${req.get('g-app')}\`.t_sms_points
+                     where orderID = ?`,
                     [b.transaction_id]
                 )
             )[0]['count(1)'];
             if (!count) {
                 await db.query(
                     `insert into \`${req.get('g-app')}\`.t_sms_points
-                                set ?`,
+                     set ?`,
                     [
                         {
                             orderID: b.transaction_id,
@@ -1266,20 +1325,29 @@ router.post('/apple-webhook', async (req: express.Request, resp: express.Respons
         for (const b of receipt.receipt.in_app.filter((dd: any) => {
             return ['light_year_apple', 'basic_year_apple', 'omo_year_apple', 'app_year_apple', 'flagship_year_apple'].includes(`${dd.product_id}`) && dd.in_app_ownership_type === 'PURCHASED';
         })) {
-            if (!(await db.query(`select count(1) from shopnex.t_checkout where cart_token=?`, [b.transaction_id]))[0]['count(1)']) {
+            if (
+                !(
+                    await db.query(
+                        `select count(1)
+                                  from shopnex.t_checkout
+                                  where cart_token = ?`,
+                        [b.transaction_id]
+                    )
+                )[0]['count(1)']
+            ) {
                 const app_info = (
                     await db.query(
                         `select dead_line, user
-                                              from glitter.app_config
-                                              where appName = ?`,
+                         from glitter.app_config
+                         where appName = ?`,
                         [req.body.app_name]
                     )
                 )[0];
                 const user = (
                     await db.query(
                         `SELECT *
-                                          FROM shopnex.t_user
-                                          where userID = ?`,
+                         FROM shopnex.t_user
+                         where userID = ?`,
                         [app_info.user]
                     )
                 )[0];
@@ -1293,9 +1361,9 @@ router.post('/apple-webhook', async (req: express.Request, resp: express.Respons
                 start.setDate(start.getDate() + 365);
                 await db.query(
                     `update glitter.app_config
-                            set dead_line=?,
-                                plan=?
-                            where appName = ?`,
+                     set dead_line=?,
+                         plan=?
+                     where appName = ?`,
                     [start, `${b.product_id}`.replace('_apple', '').replace(/_/g, '-'), req.body.app_name]
                 );
                 const index = ['light_year_apple', 'basic_year_apple', 'omo_year_apple', 'app_year_apple', 'flagship_year_apple'].findIndex((d1) => {
@@ -1304,7 +1372,7 @@ router.post('/apple-webhook', async (req: express.Request, resp: express.Respons
                 const money = ([13200, 26400, 52800, 52800, 66000] as any)[index];
                 await db.query(
                     `insert into shopnex.t_checkout
-                            set ? `,
+                     set ? `,
                     [
                         {
                             cart_token: b.transaction_id,
@@ -1478,9 +1546,40 @@ router.post('/pos/work-status', async (req: express.Request, resp: express.Respo
     }
 });
 
-router.get('/verification-code', async (req: express.Request, resp: express.Response) => {
+router.post('/verification-code', async (req: express.Request, resp: express.Response) => {
     try {
         return response.succ(resp, await ShopnexLineMessage.generateVerificationCode(req.get('g-app') as string));
+    } catch (err) {
+        return response.fail(resp, err);
+    }
+});
+
+
+
+router.post('/logistics/redirect', async (req: express.Request, resp: express.Response) => {
+    try {
+        const re_:string=req.query['return'] as string;
+        const return_url=new URL((await redis.getValue(`redirect_${re_}`)) as string);
+        console.log(`logistics/redirect/body`,req.body)
+        console.log(`logistics/redirect/query`,req.query)
+        return_url.searchParams.set('CVSStoreID',req.body.storeid);
+        return_url.searchParams.set('CVSStoreName',req.body.storename);
+        return_url.searchParams.set('CVSAddress',req.body.storeaddress);
+        const html = String.raw;
+        return resp.send(
+            html`<!DOCTYPE html>
+            <html lang="en">
+            <head>
+                <meta charset="UTF-8"/>
+                <title>Title</title>
+            </head>
+            <body>
+            <script>
+                location.href = '${return_url.toString()}';
+            </script>
+            </body>
+            </html> `
+        );
     } catch (err) {
         return response.fail(resp, err);
     }

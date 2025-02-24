@@ -124,6 +124,7 @@ exports.config = {
         rebate: '/rebate',
         recommend: '/recommend',
         graph_api: '/graph_api',
+        track: '/track',
         ai_chat: '/ai',
         sms: '/sms',
         line_message: '/line_message',

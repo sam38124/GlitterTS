@@ -4,6 +4,7 @@ import {UmClass} from '../user-manager/um-class.js';
 import {Language} from '../../glitter-base/global/language.js';
 import {ApiCart} from "../../glitter-base/route/api-cart.js";
 import {Article} from "../../glitter-base/route/article.js";
+import {GlobalUser} from "../../glitter-base/global/global-user.js";
 
 export class Blogs01 {
     static main(gvc: GVC, subData: any) {
@@ -121,12 +122,23 @@ ${(dd.language_data && dd.language_data[Language.getLanguage()].text) || dd.text
                                         if (subData.content.show_auth.value.includes(mem.id)) {
                                             document.querySelector(`#${rid}`)!.outerHTML = startRender();
                                         } else {
-                                            dialog.errorMessage({text: Language.text('no_access_permission')});
-                                            gvc.glitter.href = '/index';
+
+                                            if(GlobalUser.token){
+                                                dialog.errorMessage({text: Language.text('no_access_permission')});
+                                                gvc.glitter.href = '/index';
+                                            }else{
+                                                GlobalUser.loginRedirect=location.href;
+                                                gvc.glitter.href = '/login';
+                                            }
                                         }
                                     } catch (e) {
-                                        dialog.errorMessage({text: Language.text('no_access_permission')});
-                                        gvc.glitter.href = '/index';
+                                        if(GlobalUser.token){
+                                            dialog.errorMessage({text: Language.text('no_access_permission')});
+                                            gvc.glitter.href = '/index';
+                                        }else{
+                                            GlobalUser.loginRedirect=location.href;
+                                            gvc.glitter.href = '/login';
+                                        }
                                     }
                                 });
                             },

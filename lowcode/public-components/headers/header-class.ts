@@ -1,9 +1,9 @@
-import { GVC } from '../../glitterBundle/GVController.js';
-import { ApiShop } from '../../glitter-base/route/shopping.js';
-import { ApiCart } from '../../glitter-base/route/api-cart.js';
-import { Tool } from '../../modules/tool.js';
-import { Language } from '../../glitter-base/global/language.js';
-import { Currency } from '../../glitter-base/global/currency.js';
+import {GVC} from '../../glitterBundle/GVController.js';
+import {ApiShop} from '../../glitter-base/route/shopping.js';
+import {ApiCart} from '../../glitter-base/route/api-cart.js';
+import {Tool} from '../../modules/tool.js';
+import {Language} from '../../glitter-base/global/language.js';
+import {Currency} from '../../glitter-base/global/currency.js';
 
 const html = String.raw;
 
@@ -13,6 +13,7 @@ export class HeaderClass {
             return ['shop', 'teaching'].includes(dd);
         });
     }
+
     static spinner(obj?: {
         container?: {
             class?: string;
@@ -44,14 +45,17 @@ export class HeaderClass {
             visible: obj?.text?.visible === false ? false : true,
             fontSize: obj?.text?.fontSize ?? 16,
         };
-        return html` <div class="d-flex align-items-center justify-content-center flex-column w-100 mx-auto ${container.class}" style="${container.style}">
-            <div
-                class="spinner-border ${circleAttr.visible ? '' : 'd-none'}"
-                style="font-size: ${circleAttr.borderSize}px; width: ${circleAttr.width}px; height: ${circleAttr.width}px;"
-                role="status"
-            ></div>
-            <span class="mt-3 ${textAttr.visible ? '' : 'd-none'}" style="font-size: ${textAttr.fontSize}px;">${textAttr.value}</span>
-        </div>`;
+        return html`
+            <div class="d-flex align-items-center justify-content-center flex-column w-100 mx-auto ${container.class}"
+                 style="${container.style}">
+                <div
+                        class="spinner-border ${circleAttr.visible ? '' : 'd-none'}"
+                        style="font-size: ${circleAttr.borderSize}px; width: ${circleAttr.width}px; height: ${circleAttr.width}px;"
+                        role="status"
+                ></div>
+                <span class="mt-3 ${textAttr.visible ? '' : 'd-none'}"
+                      style="font-size: ${textAttr.fontSize}px;">${textAttr.value}</span>
+            </div>`;
     }
 
     static isImageUrlValid(url: string): Promise<boolean> {
@@ -100,7 +104,7 @@ export class HeaderClass {
                         loading: true,
                     };
 
-                    const classPrefix = Tool.randomString(6);
+                    const classPrefix = `header-checkout`;
 
                     gvc.addStyle(`
                         .${classPrefix}-wh {
@@ -199,16 +203,17 @@ export class HeaderClass {
                     }
 
                     function goToCheckoutButton(id: string) {
-                        return html`<button
-                            class="${classPrefix}-button"
-                            type="button"
-                            onclick="${gvc.event(() => {
-                                (window as any).drawer.close();
-                                ApiCart.toCheckOutPage(id);
-                            })}"
-                        >
-                            ${Language.text('proceed_to_checkout')}
-                        </button>`;
+                        return html`
+                            <button
+                                    class="${classPrefix}-button"
+                                    type="button"
+                                    onclick="${gvc.event(() => {
+                                        (window as any).drawer.close();
+                                        ApiCart.toCheckOutPage(id);
+                                    })}"
+                            >
+                                ${Language.text('proceed_to_checkout')}
+                            </button>`;
                     }
 
                     return {
@@ -216,149 +221,170 @@ export class HeaderClass {
                         view: () => {
                             try {
                                 if (vm.loading) {
-                                    return html`<div class="w-100 vh-100 bg-white">${this.spinner()}</div>`;
+                                    return html`
+                                        <div class="w-100 vh-100 bg-white">${this.spinner()}</div>`;
                                 } else {
-                                    return html` <div class="" style="position: relative;">
-                                        <div class="${classPrefix}-cart-container align-items-center">
-                                            <div
-                                                class="d-flex align-items-center justify-content-center fs-5 py-3 px-2"
-                                                style="cursor:pointer;"
-                                                onclick="${gvc.event(() => {
-                                                    gvc.glitter.closeDrawer();
-                                                })}"
-                                            >
-                                                <i class="fa-sharp fa-solid fa-angle-left"></i>
+                                    return html`
+                                        <div class="" style="position: relative;">
+                                            <div class="${classPrefix}-cart-container align-items-center">
+                                                <div
+                                                        class="d-flex align-items-center justify-content-center fs-5 py-3 px-2"
+                                                        style="cursor:pointer;"
+                                                        onclick="${gvc.event(() => {
+                                                            gvc.glitter.closeDrawer();
+                                                        })}"
+                                                >
+                                                    <i class="fa-sharp fa-solid fa-angle-left"></i>
+                                                </div>
+                                                <div class="${classPrefix}-cart-title">${Language.text('cart')}</div>
+                                                <div class="flex-fill"></div>
+                                                ${vm.dataList.length === 1 ? goToCheckoutButton(ApiCart.globalCart) : ''}
                                             </div>
-                                            <div class="${classPrefix}-cart-title">${Language.text('cart')}</div>
-                                            <div class="flex-fill"></div>
-                                            ${vm.dataList.length === 1 ? goToCheckoutButton(ApiCart.globalCart) : ''}
-                                        </div>
-                                        ${(() => {
-                                            if (vm.dataList.length === 0) {
-                                                return html`<div class="container d-flex align-items-center justify-content-center flex-column">
-                                                    <lottie-player
-                                                        style="max-width: 100%; width: 300px; height: 300px;"
-                                                        src="https://lottie.host/38ba8340-3414-41b8-b068-bba18d240bb3/h7e1Q29IQJ.json"
-                                                        speed="1"
-                                                        loop=""
-                                                        autoplay=""
-                                                        background="transparent"
-                                                    ></lottie-player>
-                                                    <div class="mt-3 fw-bold">${Language.text('empty_cart_message')}</div>
-                                                </div>`;
-                                            } else {
-                                                return vm.dataList
-                                                    .map((data) => {
-                                                        const logistic = vm.shippings.find((item) => item.value === data.logistic);
-                                                        const logiCartID = `${ApiCart.cartPrefix}_${logistic?.value}`;
-                                                        const logiCart = new ApiCart(logiCartID);
-                                                        logiCart.clearCart();
-
-                                                        return html`
-                                                            <div class="${classPrefix}-card">
-                                                                ${vm.dataList.length !== 1
-                                                                    ? html`
-                                                                          <div class="d-flex justify-content-between align-items-center px-3 mb-2">
-                                                                              <div class="${classPrefix}-shipping-title">${logistic?.name}</div>
-                                                                              ${goToCheckoutButton(logiCartID)}
-                                                                          </div>
-                                                                      `
-                                                                    : ''}
-                                                                ${data.cart
-                                                                    .map((item) => {
-                                                                        logiCart.addToCart(`${item.id}`, item.spec, item.count);
-                                                                        return html` <div class="d-flex align-items-center px-3 position-relative" style="gap: 12px;">
-                                                                            <div
-                                                                                class="position-absolute"
-                                                                                style="right:13px;top:0px;cursor:pointer;"
-                                                                                onclick="${gvc.event(() => {
-                                                                                    new ApiCart().setCart((cartItem) => {
-                                                                                        cartItem.line_items = cartItem.line_items.filter((dd) => {
-                                                                                            return !(dd.id === item.id && item.spec.join('') === dd.spec.join(''));
-                                                                                        });
-                                                                                        refreshView();
-                                                                                    });
-                                                                                })}"
-                                                                            >
-                                                                                <i class="fa-regular fa-trash-can"></i>
-                                                                            </div>
-                                                                            <div class="d-none" style="width: 10%">
-                                                                                <i
-                                                                                    class="fa-solid fa-xmark-large"
-                                                                                    style="cursor: pointer;"
-                                                                                    onclick="${gvc.event(() => {
-                                                                                        new ApiCart().setCart((cartItem) => {
-                                                                                            cartItem.line_items = cartItem.line_items.filter((dd) => {
-                                                                                                return !(dd.id === item.id && item.spec.join('') === dd.spec.join(''));
-                                                                                            });
-                                                                                            refreshView();
-                                                                                        });
-                                                                                    })}"
-                                                                                ></i>
-                                                                            </div>
-                                                                            <div class="d-flex" style="">
-                                                                                <img src="${item.image}" class="${classPrefix}-wh rounded-3" />
-                                                                            </div>
-                                                                            <div class="d-flex flex-column gap-1 flex-fill">
-                                                                                <div class="${classPrefix}-title">${item.title}</div>
-                                                                                <div class="${classPrefix}-spec ">
-                                                                                    ${(() => {
-                                                                                        const spec: any = (() => {
-                                                                                            if (item.spec) {
-                                                                                                return item.spec.map((dd: string, index: number) => {
-                                                                                                    try {
-                                                                                                        return (
-                                                                                                            (item.specs[index] as any).option.find((d1: any) => {
-                                                                                                                return d1.title === dd;
-                                                                                                            }).language_title[Language.getLanguage()] || dd
-                                                                                                        );
-                                                                                                    } catch (e) {
-                                                                                                        return dd;
-                                                                                                    }
-                                                                                                });
-                                                                                            } else {
-                                                                                                return [];
-                                                                                            }
-                                                                                        })();
-                                                                                        return spec.join(' / ');
-                                                                                    })()}
-                                                                                </div>
-                                                                                <div class="d-flex align-items-center justify-content-between">
-                                                                                    <div class="d-flex align-items-center gap-1" style="font-size:14px;">
-                                                                                        ${Language.text('quantity')}：<select
-                                                                                            class="${classPrefix}-select"
-                                                                                            style="width: 100px;"
-                                                                                            onchange="${gvc.event((e) => {
-                                                                                                new ApiCart().setCart((cartItem) => {
-                                                                                                    cartItem.line_items.find((dd) => {
-                                                                                                        return `${dd.id}` === `${item.id}` && item.spec.join('') === dd.spec.join('');
-                                                                                                    })!.count = parseInt(e.value, 10);
-                                                                                                    refreshView();
-                                                                                                });
-                                                                                            })}"
-                                                                                        >
-                                                                                            ${[...new Array(99)]
-                                                                                                .map((_, index) => {
-                                                                                                    return html` <option value="${index + 1}" ${index + 1 === item.count ? `selected` : ``}>
-                                                                                                        ${index + 1}
-                                                                                                    </option>`;
-                                                                                                })
-                                                                                                .join('')}
-                                                                                        </select>
-                                                                                    </div>
-                                                                                    ${Currency.convertCurrencyText(item.price * item.count)}
-                                                                                </div>
-                                                                            </div>
-                                                                        </div>`;
-                                                                    })
-                                                                    .join(html`<div class="w-100 border-top my-3"></div>`)}
+                                            ${(() => {
+                                                if (vm.dataList.length === 0) {
+                                                    return html`
+                                                        <div class="container d-flex align-items-center justify-content-center flex-column">
+                                                            <lottie-player
+                                                                    style="max-width: 100%; width: 300px; height: 300px;"
+                                                                    src="https://lottie.host/38ba8340-3414-41b8-b068-bba18d240bb3/h7e1Q29IQJ.json"
+                                                                    speed="1"
+                                                                    loop=""
+                                                                    autoplay=""
+                                                                    background="transparent"
+                                                            ></lottie-player>
+                                                            <div class="mt-3 fw-bold">
+                                                                ${Language.text('empty_cart_message')}
                                                             </div>
-                                                        `;
-                                                    })
-                                                    .join(html`<div class="w-100 my-3"></div>`);
-                                            }
-                                        })()}
-                                    </div>`;
+                                                        </div>`;
+                                                } else {
+                                                    return vm.dataList
+                                                            .map((data) => {
+                                                                const logistic = vm.shippings.find((item) => item.value === data.logistic);
+                                                                const logiCartID = `${ApiCart.cartPrefix}_${logistic?.value}`;
+                                                                const logiCart = new ApiCart(logiCartID);
+                                                                logiCart.clearCart();
+
+                                                                return html`
+                                                                    <div class="${classPrefix}-card">
+                                                                        ${vm.dataList.length !== 1
+                                                                                ? html`
+                                                                                    <div class="d-flex justify-content-between align-items-center px-3 mb-2">
+                                                                                        <div class="${classPrefix}-shipping-title">
+                                                                                            ${logistic?.name}
+                                                                                        </div>
+                                                                                        ${goToCheckoutButton(logiCartID)}
+                                                                                    </div>
+                                                                                `
+                                                                                : ''}
+                                                                        ${data.cart
+                                                                                .map((item) => {
+                                                                                    logiCart.addToCart(`${item.id}`, item.spec, item.count);
+                                                                                    return html`
+                                                                                        <div class="d-flex align-items-center px-3 position-relative"
+                                                                                             style="gap: 12px;">
+                                                                                            <div
+                                                                                                    class="position-absolute"
+                                                                                                    style="right:13px;top:0px;cursor:pointer;"
+                                                                                                    onclick="${gvc.event(() => {
+                                                                                                        new ApiCart().setCart((cartItem) => {
+                                                                                                            cartItem.line_items = cartItem.line_items.filter((dd) => {
+                                                                                                                return !(dd.id === item.id && item.spec.join('') === dd.spec.join(''));
+                                                                                                            });
+                                                                                                            refreshView();
+                                                                                                        });
+                                                                                                    })}"
+                                                                                            >
+                                                                                                <i class="fa-regular fa-trash-can"></i>
+                                                                                            </div>
+                                                                                            <div class="d-none"
+                                                                                                 style="width: 10%">
+                                                                                                <i
+                                                                                                        class="fa-solid fa-xmark-large"
+                                                                                                        style="cursor: pointer;"
+                                                                                                        onclick="${gvc.event(() => {
+                                                                                                            new ApiCart().setCart((cartItem) => {
+                                                                                                                cartItem.line_items = cartItem.line_items.filter((dd) => {
+                                                                                                                    return !(dd.id === item.id && item.spec.join('') === dd.spec.join(''));
+                                                                                                                });
+                                                                                                                refreshView();
+                                                                                                            });
+                                                                                                        })}"
+                                                                                                ></i>
+                                                                                            </div>
+                                                                                            <div class="d-flex"
+                                                                                                 style="">
+                                                                                                <img src="${item.image}"
+                                                                                                     class="${classPrefix}-wh rounded-3"/>
+                                                                                            </div>
+                                                                                            <div class="d-flex flex-column gap-1 flex-fill">
+                                                                                                <div class="${classPrefix}-title pe-3"
+                                                                                                     style="">
+                                                                                                    ${item.title}
+                                                                                                </div>
+                                                                                                <div class="${classPrefix}-spec ">
+                                                                                                    ${(() => {
+                                                                                                        const spec: any = (() => {
+                                                                                                            if (item.spec) {
+                                                                                                                return item.spec.map((dd: string, index: number) => {
+                                                                                                                    try {
+                                                                                                                        return (
+                                                                                                                                (item.specs[index] as any).option.find((d1: any) => {
+                                                                                                                                    return d1.title === dd;
+                                                                                                                                }).language_title[Language.getLanguage()] || dd
+                                                                                                                        );
+                                                                                                                    } catch (e) {
+                                                                                                                        return dd;
+                                                                                                                    }
+                                                                                                                });
+                                                                                                            } else {
+                                                                                                                return [];
+                                                                                                            }
+                                                                                                        })();
+                                                                                                        return spec.join(' / ');
+                                                                                                    })()}
+                                                                                                </div>
+                                                                                                <div class="d-flex align-items-center justify-content-between">
+                                                                                                    <div class="d-flex align-items-center gap-1"
+                                                                                                         style="font-size:14px;">
+                                                                                                        ${Language.text('quantity')}
+                                                                                                            ：<select
+                                                                                                            class="${classPrefix}-select"
+                                                                                                            style="width: 100px;"
+                                                                                                            onchange="${gvc.event((e) => {
+                                                                                                                new ApiCart().setCart((cartItem) => {
+                                                                                                                    cartItem.line_items.find((dd) => {
+                                                                                                                        return `${dd.id}` === `${item.id}` && item.spec.join('') === dd.spec.join('');
+                                                                                                                    })!.count = parseInt(e.value, 10);
+                                                                                                                    refreshView();
+                                                                                                                });
+                                                                                                            })}"
+                                                                                                    >
+                                                                                                        ${[...new Array(99)]
+                                                                                                                .map((_, index) => {
+                                                                                                                    return html`
+                                                                                                                        <option value="${index + 1}"
+                                                                                                                                ${index + 1 === item.count ? `selected` : ``}>
+                                                                                                                            ${index + 1}
+                                                                                                                        </option>`;
+                                                                                                                })
+                                                                                                                .join('')}
+                                                                                                    </select>
+                                                                                                    </div>
+                                                                                                    ${Currency.convertCurrencyText(item.price * item.count)}
+                                                                                                </div>
+                                                                                            </div>
+                                                                                        </div>`;
+                                                                                })
+                                                                                .join(html`
+                                                                                    <div class="w-100 border-top my-3"></div>`)}
+                                                                    </div>
+                                                                `;
+                                                            })
+                                                            .join(html`
+                                                                <div class="w-100 my-3"></div>`);
+                                                }
+                                            })()}
+                                        </div>`;
                                 }
                             } catch (e) {
                                 console.error(e);
@@ -402,15 +428,19 @@ export class HeaderClass {
                                                 };
                                             }),
                                         ];
+                                        console.log(`vm.shippings=>`, vm.shippings)
+                                        console.log(`vm.dataList=>`, vm.dataList);
 
                                         const data = dataArray[1];
                                         if (data.result && data.response) {
                                             const products = data.response.data;
 
                                             for (const item of cart.line_items) {
-                                                const product = products.find((p: { id: number }) => `${p.id}` === `${item.id}`);
-
+                                                const product = products.find((p: {
+                                                    id: number
+                                                }) => `${p.id}` === `${item.id}`);
                                                 if (product) {
+                                                    console.log(`product===>`, product)
                                                     const variant = product.content.variants.find((v: any) => {
                                                         return v.spec.join(',') === item.spec.join(',');
                                                     });
@@ -448,6 +478,7 @@ export class HeaderClass {
                                             if (hasFullShipping) {
                                                 vm.dataList = [hasFullShipping];
                                             }
+                                            console.log(`vm.dataList ==>`, vm.dataList)
                                         }
                                     })
                                     .then(() => {

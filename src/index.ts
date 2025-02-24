@@ -44,6 +44,7 @@ import { Readable } from 'stream';
 import AWS from 'aws-sdk';
 import { extractCols, extractProds, SeoConfig } from './seo-config.js';
 import {Language} from "./Language.js";
+import {FbApi} from "./api-public/services/fb-api.js";
 
 export const app = express();
 const logger = new Logger();
@@ -146,6 +147,8 @@ export async function createAPP(dd: any) {
                 seoManager: async (req) => {
                     const og_url = req.headers['x-original-url'];
                     const custom_heads:string[]=[];
+
+                    console.log(`req.query.page=>`,req.query.page)
                     try {
                         if (req.query.state === 'google_login') {
                             req.query.page = 'login';
@@ -167,6 +170,7 @@ export async function createAPP(dd: any) {
                         req.headers['g-app'] = appName;
                         const start = new Date().getTime();
                         console.log(`getPageInfo==>`, (new Date().getTime() - start) / 1000);
+
                         //SEO內容
                         let seo_content: string[] = [];
                         let [customCode, FBCode, store_info, language_label, check_schema, brandAndMemberType, login_config, ip_country] = await Promise.all([
@@ -219,7 +223,7 @@ export async function createAPP(dd: any) {
                                     product_id: req.query.product_id as any,
                                     page: req.query.page as any,
                                 });
-                            } else if (`${req.query.page}`.startsWith('blogs')) {
+                            } else if (`${req.query.page}` === ('blogs')) {
                                 //網誌目錄
                                 const seo=await new User(req.get('g-app') as string, req.body.token).getConfigV2({
                                     key: 'article_seo_data_'+language,
@@ -232,7 +236,7 @@ export async function createAPP(dd: any) {
                                 data.page_config.seo.logo = seo.logo || data.page_config.seo.logo;
                             }else if (`${req.query.page}`.startsWith('blogs/')) {
                                 //網誌搜索
-                                await SeoConfig.articleSeo({
+                                data.page_config.seo = await SeoConfig.articleSeo({
                                     article: req.query.article as any,
                                     page: req.query.page as any,
                                     language,
@@ -334,7 +338,16 @@ export async function createAPP(dd: any) {
                                                     <meta property="og:image" content="${d.image || home_seo.image || ''}" />
                                                     <meta property="og:title" content="${(d.title ?? '').replace(/\n/g, '').replace(/"/g, '&quot;')}" />
                                                     <meta name="description" content="${(d.content ?? '').replace(/\n/g, '').replace(/"/g, '&quot;')}" />
-                                                    <meta name="og:description" content="${(d.content ?? '').replace(/\n/g, '').replace(/"/g, '&quot;')}" />`;
+                                                    <meta name="og:description" content="${(d.content ?? '').replace(/\n/g, '').replace(/"/g, '&quot;')}" />
+                                             
+                                                ${[
+                                                    { src: 'css/front-end.css', type: 'text/css' }
+                                                ]
+                                                        .map((dd) => {
+                                                            return html` <link src="/${link_prefix && `${link_prefix}/`}${dd.src}" type="${dd.type}" rel="stylesheet"></link>`;
+                                                        })
+                                                        .join('')}
+                                                `;
                                             }
                                         })()}
                                         ${d.code ?? ''}
@@ -562,7 +575,6 @@ export async function createAPP(dd: any) {
                                         })
                                     );
                                 });
-                                console.log(array);
                                 return array;
                             })(),
                             ...(() => {
@@ -571,7 +583,6 @@ export async function createAPP(dd: any) {
                                     dd = dd.content;
                                     array = array.concat(
                                         language_setting.support.map((d1: any) => {
-                                            // console.log(`products=>`,dd)
                                             const seo = (dd.language_data && dd.language_data[d1] && dd.language_data[d1].seo && dd.language_data[d1].seo.domain) || dd.seo.domain;
                                             if (d1 === language_setting.def) {
                                                 return { url: `https://${domain}/products/${seo}`, changefreq: 'weekly' };

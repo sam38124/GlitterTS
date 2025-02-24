@@ -6,6 +6,7 @@ const express_1 = __importDefault(require("express"));
 const response_1 = __importDefault(require("../../modules/response"));
 const delivery_js_1 = require("../services/delivery.js");
 const redis_js_1 = __importDefault(require("../../modules/redis.js"));
+const paynow_logistics_js_1 = require("../services/paynow-logistics.js");
 const router = express_1.default.Router();
 router.post('/c2cRedirect', async (req, resp) => {
     try {
@@ -50,8 +51,7 @@ router.post('/c2cNotify', async (req, resp) => {
 });
 router.post('/storeMaps', async (req, resp) => {
     try {
-        const formString = await new delivery_js_1.Delivery(req.get('g-app')).getC2CMap(req.body.returnURL, req.body.logistics);
-        return response_1.default.succ(resp, { form: formString });
+        return response_1.default.succ(resp, { form: await (new paynow_logistics_js_1.PayNowLogistics(req.get('g-app')).choseLogistics(req.body.logistics, req.body.returnURL)) });
     }
     catch (err) {
         return response_1.default.fail(resp, err);

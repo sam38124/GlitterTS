@@ -16,6 +16,7 @@ import { Ad } from '../public/ad.js';
 import { Language } from '../../glitter-base/global/language.js';
 import { Currency } from '../../glitter-base/global/currency.js';
 import { ProductInitial } from '../../public-models/product.js';
+import { ApiTrack } from "../../glitter-base/route/api-track.js";
 const html = String.raw;
 const css = String.raw;
 export class PdClass {
@@ -259,6 +260,7 @@ export class PdClass {
                 src: `https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js`,
             },
         ], () => { }, () => { });
+        console.log(`obj.prod.preview_image=>`, JSON.stringify(obj.prod.preview_image));
         obj.prod.variants.forEach((variant) => {
             variant.preview_image = variant[`preview_image_${Language.getLanguage()}`] || variant.preview_image;
             if (variant.preview_image && !obj.prod.preview_image.includes(variant.preview_image)) {
@@ -266,74 +268,15 @@ export class PdClass {
             }
         });
         PdClass.addSpecStyle(obj.gvc);
-        obj.gvc.glitter.addStyle(css `
-            .swiper {
-                width: 100%;
-                height: 100%;
-            }
-
-            .swiper-slide {
-                text-align: center;
-                font-size: 18px;
-                background: #fff;
-                display: flex;
-                justify-content: center;
-                align-items: center;
-            }
-
-            .swiper-slide img {
-                display: block;
-                width: 100%;
-                height: 100%;
-                object-fit: cover;
-            }
-
-            .swiper {
-                width: 100%;
-                height: 300px;
-                margin-left: auto;
-                margin-right: auto;
-            }
-
-            .swiper-slide {
-                background-size: cover;
-                background-position: center;
-            }
-
-            .mySwiper2 {
-                height: 80%;
-                width: 100%;
-            }
-
-            .mySwiper {
-                height: 20%;
-                box-sizing: border-box;
-                padding: 10px 0;
-            }
-
-            .mySwiper .swiper-slide {
-                width: 25%;
-                height: 100%;
-                opacity: 0.4;
-            }
-
-            .mySwiper .swiper-slide-thumb-active {
-                opacity: 1;
-            }
-
-            .swiper-slide img {
-                display: block;
-                width: 100%;
-                height: 100%;
-                object-fit: cover;
-            }
-        `);
         if (obj.vm.specs.length === 0) {
             obj.vm.specs = obj.vm.specs.map((spec) => spec.option[0].title);
         }
         obj.prod.preview_image = obj.prod.preview_image.filter((image) => {
             return image !== 'https://d3jnmi1tfjgtti.cloudfront.net/file/234285319/1722936949034-default_image.jpg';
         });
+        if (obj.prod.preview_image.length === 0) {
+            obj.prod.preview_image = ['https://d3jnmi1tfjgtti.cloudfront.net/file/234285319/1722936949034-default_image.jpg'];
+        }
         return obj.gvc.bindView(() => {
             const id = obj.gvc.glitter.getUUID();
             return {
@@ -469,9 +412,16 @@ export class PdClass {
                 vertical-align: baseline;
             }
 
-            .insignia-gray {
-                background: #dddddd;
-                color: #393939;
+            .insignia-voucher {
+                display: flex;
+                height: 22px;
+                padding: 4px 6px;
+                justify-content: center;
+                align-items: center;
+                gap: 4px;
+                border-radius: 7px;
+                background: #FFE9B2;
+                font-size: 14px;
             }
         `);
         let changePage = (index, type, subData) => { };
@@ -495,13 +445,13 @@ export class PdClass {
             }
         }
         const aboutVoucherHTML = vm.data && vm.data.content.about_vouchers && vm.data.content.about_vouchers.length > 0
-            ? html `<div class="d-flex flex-column gap-1 mt-3">
+            ? html `<div class="d-flex flex-column gap-2 mt-3">
                       ${vm.data.content.about_vouchers
                 .map((v) => {
                 return html `
                                   <div class="d-flex gap-2 align-items-center">
-                                      <div class="insignia insignia-gray rounded-0 fw-bold" style="font-size: 13px;">${eventName(v.reBackType)}</div>
-                                      <div style="font-size: 13px; font-weight: 500;">${v.title}</div>
+                                      <div class="insignia insignia-voucher">${eventName(v.reBackType)}</div>
+                                      <div style="font-size: 14px; font-weight: 500;">${v.title}</div>
                                   </div>
                               `;
             })
@@ -547,17 +497,29 @@ export class PdClass {
                           </div>`
             : ``}
                     ${language_data && language_data.sub_title ? html ` <div class="mb-3">${language_data.sub_title}</div> ` : ``}
-                    <h2 style="color: ${titleFontColor};font-size: 24px;">
-                        ${gvc.bindView({
+                    ${gvc.bindView({
             bind: ids.price,
             view: () => {
-                const v = prod.variants.find((variant) => {
-                    return PdClass.ObjCompare(variant.spec, vm.specs, true);
-                });
-                return v ? Currency.convertCurrencyText(v.sale_price) : '錯誤';
+                var _a, _b;
+                const v = prod.variants.find((variant) => PdClass.ObjCompare(variant.spec, vm.specs, true));
+                if (!v)
+                    return '錯誤';
+                const comparePrice = parseInt(`${(_a = v.compare_price) !== null && _a !== void 0 ? _a : 0}`, 10);
+                const originPrice = parseInt(`${(_b = v.origin_price) !== null && _b !== void 0 ? _b : 0}`, 10);
+                const lineThroughPrice = comparePrice > originPrice ? originPrice : comparePrice;
+                return html `
+                                <div class="d-flex align-items-end" style="font-family: 'Noto Sans'; gap: 8px;">
+                                    <div style="color: ${titleFontColor}; font-size: 26px; font-weight: 700; line-height: normal">${Currency.convertCurrencyText(v.sale_price)}</div>
+                                    ${lineThroughPrice > 0 && lineThroughPrice > v.sale_price
+                    ? html `<div style="color: #8D8D8D; font-size: 18px; text-decoration: line-through;">${Currency.convertCurrencyText(lineThroughPrice)}</div> `
+                    : ''}
+                                </div>
+                            `;
             },
+            divCreate: {
+                style: 'margin-bottom: 12px;'
+            }
         })}
-                    </h2>
                     ${gvc.map(prod.specs.map((spec, index1) => {
             return html ` <div>
                                     <h5 class="mb-2" style="color: ${titleFontColor};font-size:14px;">
@@ -687,20 +649,50 @@ export class PdClass {
                         ],
                     });
                     Ad.fbqEvent('ViewContent', {
-                        content_ids: [prod.id],
+                        content_ids: [variant.sku || prod.id],
                         content_type: 'product',
-                        contents: [
-                            {
-                                id: prod.id,
-                                quantity: 1,
-                            },
-                        ],
                         value: variant.sale_price,
                         currency: 'TWD',
                     });
                     if ((variant.stock < parseInt(vm.quantity, 10) || (cartItem && variant.stock < cartItem.count + parseInt(vm.quantity, 10))) &&
                         `${variant.show_understocking}` !== 'false') {
                         return html ` <button class="no-stock w-100" disabled>${Language.text('out_of_stock')}</button>`;
+                    }
+                    if (obj.is_gift) {
+                        return `<button
+                                        class="add-cart-imd-btn fw-bold h-100"
+                                        style="width:calc(100% - 10px);cursor: pointer;"
+                                        onclick="${gvc.event(() => {
+                            if (obj.only_select) {
+                                obj.only_select({ id: prod.id, specs: vm.specs });
+                            }
+                            else {
+                                new ApiCart(ApiCart.checkoutCart).addToCart(`${prod.id}`, vm.specs, vm.quantity);
+                                gvc.glitter.recreateView('.js-cart-count');
+                                gvc.glitter.recreateView('.shopping-cart');
+                                PdClass.jumpAlert({
+                                    gvc,
+                                    text: html `${Language.text('add_to_cart_success')}`,
+                                    justify: 'top',
+                                    align: 'center',
+                                    width: 300,
+                                });
+                                ApiTrack.track({
+                                    event_name: "AddToCart",
+                                    custom_data: {
+                                        currency: "TWD",
+                                        value: variant.sale_price,
+                                        content_ids: [variant.sku || `${prod.id}-${vm.specs.join('-')}`],
+                                        content_name: prod.title,
+                                        content_type: "product"
+                                    }
+                                });
+                                obj.callback && obj.callback();
+                            }
+                        })}"
+                                    >
+                                        ${Language.text('confirm_select')}
+                                    </button>`;
                     }
                     return html `
                                     <div
@@ -712,6 +704,16 @@ export class PdClass {
                         buy_it.addToCart(`${prod.id}`, vm.specs, vm.quantity);
                         ApiCart.toCheckOutPage(ApiCart.buyItNow);
                         gvc.closeDialog();
+                        ApiTrack.track({
+                            event_name: "AddToCart",
+                            custom_data: {
+                                currency: "TWD",
+                                value: variant.sale_price,
+                                content_ids: [variant.sku || `${prod.id}-${vm.specs.join('-')}`],
+                                content_name: prod.title,
+                                content_type: "product"
+                            }
+                        });
                     })}"
                                     >
                                         ${Language.text('buy_it_now')}
@@ -734,6 +736,16 @@ export class PdClass {
                                 justify: 'top',
                                 align: 'center',
                                 width: 300,
+                            });
+                            ApiTrack.track({
+                                event_name: "AddToCart",
+                                custom_data: {
+                                    currency: "TWD",
+                                    value: variant.sale_price,
+                                    content_ids: [variant.sku || `${prod.id}-${vm.specs.join('-')}`],
+                                    content_name: prod.title,
+                                    content_type: "product"
+                                }
                             });
                             obj.callback && obj.callback();
                         }

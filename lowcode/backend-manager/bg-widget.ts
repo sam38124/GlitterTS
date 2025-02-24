@@ -500,11 +500,13 @@ export class BgWidget {
         }
     }
 
-    static horizontalLine(css?: { color?: string; size?: number; margin?: number }) {
-        return html`
-            <div class="w-100"
-                 style="margin: ${css?.margin ?? 1}rem 0; border-bottom: ${css?.size ?? 1}px solid ${css?.color ?? '#DDD'}"></div>`;
+    static horizontalLine(css: { color?: string; size?: number; margin?: number | string } = {}) {
+        const { color = '#DDD', size = 1, margin = '1rem 0' } = css;
+        const marginValue = typeof margin === 'number' ? `${margin}rem 0` : margin;
+    
+        return html`<div class="w-100" style="margin: ${marginValue}; border-bottom: ${size}px solid ${color};"></div>`;
     }
+    
 
     static isValidEmail(email: string) {
         const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -2384,49 +2386,101 @@ ${obj.default ?? ''}</textarea
                     checkboxHTML += html`
                         <div>
                             <div
-                                    class="form-check ${item?.customerClass ?? ''}"
-                                    onclick="${gvc.event((e, evt) => {
-                                        if (obj && obj.readonly) {
-                                            evt.preventDefault();
-                                            return;
-                                        }
-                                        if (obj && obj.single) {
-                                            def = def[0] === item.key && obj.zeroOption ? [] : [item.key];
+                                class="form-check ${item?.customerClass ?? ''}"
+                                onclick="${gvc.event((e, evt) => {
+                                    if (obj && obj.readonly) {
+                                        evt.preventDefault();
+                                        return;
+                                    }
+                                    if (obj && obj.single) {
+                                        def = def[0] === item.key && obj.zeroOption ? [] : [item.key];
+                                    } else {
+                                        if (!def.find((d) => d === item.key)) {
+                                            def.push(item.key);
                                         } else {
-                                            if (!def.find((d) => d === item.key)) {
-                                                def.push(item.key);
-                                            } else {
-                                                def = def.filter((d) => d !== item.key);
-                                            }
-                                            def = def.filter((d) => data.map((item2) => item2.key).includes(d));
+                                            def = def.filter((d) => d !== item.key);
                                         }
-                                        callback(def);
-                                        gvc.notifyDataChange(viewId);
-                                    })}"
+                                        def = def.filter((d) => data.map((item2) => item2.key).includes(d));
+                                    }
+                                    callback(def);
+                                    gvc.notifyDataChange(viewId);
+                                })}"
                             >
                                 <input
-                                        class="form-check-input ${randomString} cursor_pointer"
-                                        style="margin-top: 0.35rem; margin-right: 0.5rem;"
-                                        type="${obj && obj.single ? 'radio' : 'checkbox'}"
-                                        id="${id}_${item.key}"
-                                        ${def.includes(item.key) ? 'checked' : ''}
+                                    class="form-check-input ${randomString} cursor_pointer"
+                                    style="margin-top: 0.35rem; margin-right: 0.5rem;"
+                                    type="${obj && obj.single ? 'radio' : 'checkbox'}"
+                                    id="${id}_${item.key}"
+                                    ${def.includes(item.key) ? 'checked' : ''}
                                 />
-                                <label class="form-check-label cursor_pointer" for="${id}_${item.key}"
-                                       style="font-size: 16px; color: #393939; margin-top: 0.125rem;">${item.name}</label>
+                                <label class="form-check-label cursor_pointer" for="${id}_${item.key}" style="font-size: 16px; color: #393939; margin-top: 0.125rem;">${item.name}</label>
                             </div>
                             ${def.includes(item.key) && item.innerHtml
-                                    ? html`
-                                        <div class="d-flex position-relative my-2">
-                                            ${item.hiddenLeftLine ? '' : this.leftLineBar()}
-                                            <div class="ms-4 w-100 flex-fill">${item.innerHtml}</div>
-                                        </div>`
-                                    : ``}
+                                ? html` <div class="d-flex position-relative my-2">
+                                      ${item.hiddenLeftLine ? '' : this.leftLineBar()}
+                                      <div class="ms-4 w-100 flex-fill">${item.innerHtml}</div>
+                                  </div>`
+                                : ``}
                         </div>
                     `;
                 });
 
+                return html` <div style="width: 100%; display: flex; flex-direction: column; gap: 6px;">${checkboxHTML}</div> `;
+            },
+        });
+    }
+
+    static tripletCheckboxContainer(
+        gvc: GVC,
+        name: string,
+        def: -1 | 0 | 1,
+        callback: (value: number) => void,
+        obj?: {
+            readonly?: boolean;
+        }
+    ) {
+        const inputColor = undefined;
+        const checkedString = this.getCheckedClass(gvc, inputColor);
+        const squareString = this.getSquareClass(gvc, inputColor);
+        const viewId = Tool.randomString(5);
+        const randomKey = Tool.randomString(5);
+
+        return gvc.bindView({
+            bind: viewId,
+            view: () => {
                 return html`
-                    <div style="width: 100%; display: flex; flex-direction: column; gap: 6px;">${checkboxHTML}</div> `;
+                    <div style="width: 100%; display: flex; flex-direction: column; gap: 6px;">
+                        <div
+                            class="form-check"
+                            onclick="${gvc.event((e, evt) => {
+                                if (obj && obj.readonly) {
+                                    evt.preventDefault();
+                                    return;
+                                }
+                                if (def === 0) {
+                                    callback(1);
+                                } else {
+                                    callback(def * -1);
+                                }
+                                gvc.notifyDataChange(viewId);
+                            })}"
+                        >
+                            ${def !== 0
+                                ? html`
+                                      <input
+                                          class="form-check-input ${checkedString} cursor_pointer"
+                                          style="margin-top: 0.35rem; margin-right: 0.5rem;"
+                                          type="checkbox"
+                                          id="${randomKey}"
+                                          ${def === 1 ? 'checked' : ''}
+                                      />
+                                      <label class="form-check-label cursor_pointer" for="${randomKey}" style="font-size: 16px; color: #393939; margin-top: 0.125rem;">${name}</label>
+                                  `
+                                : html` <input class="form-check-input ${squareString} cursor_pointer" style="margin-top: 0.35rem; margin-right: 0.5rem;" type="checkbox" id="${randomKey}" />
+                                      <label class="form-check-label cursor_pointer" for="${randomKey}" style="font-size: 16px; color: #393939; margin-top: 0.125rem;">${name}</label>`}
+                        </div>
+                    </div>
+                `;
             },
         });
     }
@@ -2545,6 +2599,7 @@ ${obj.default ?? ''}</textarea
     ) {
         return html`
             <div
+                    class="mx-sm-0 mx-2"
                     style="justify-content: flex-start; align-items: flex-start; gap: 22px; display: inline-flex;cursor: pointer;margin-top: 24px;margin-bottom: 24px;font-size: 18px; ${style ?? ''};"
             >
                 ${data
@@ -2941,7 +2996,7 @@ ${obj.default ?? ''}</textarea
         </select>`;
     }
 
-    static searchFilter(event: string, vale: string, placeholder: string, margin?: string) {
+    static searchFilter(event: string, value: string, placeholder: string, margin?: string) {
         return html`
             <div class="w-100 position-relative" style="height: 40px !important; margin: ${margin ?? 0};">
                 <i class="fa-regular fa-magnifying-glass"
@@ -2949,7 +3004,7 @@ ${obj.default ?? ''}</textarea
                    aria-hidden="true"></i>
                 <input class="form-control h-100"
                        style="border-radius: 10px; border: 1px solid #DDD; padding-left: 50px; height: 100%;"
-                       placeholder="${placeholder}" onchange="${event}" value="${vale}"/>
+                       placeholder="${placeholder}" onchange="${event}" value="${value}"/>
             </div>`;
     }
 
@@ -3672,7 +3727,8 @@ ${obj.default ?? ''}</textarea
                             if (vm.loading) {
                                 ApiShop.getVariants({
                                     page: 0,
-                                    limit: 99999,
+                                    limit: 99,
+                                    // limit: 99999,
                                     search: vm.query || undefined,
                                     searchType: 'title',
                                     orderBy: vm.orderString || undefined,
@@ -3712,7 +3768,7 @@ ${obj.default ?? ''}</textarea
                                         if (currentScrollTop > lastScrollTop) {
                                             lastScrollTop = currentScrollTop;
 
-                                            // 檢查是否需要加載更多內容
+                                            // 檢查是否需要載入更多內容
                                             if (currentScrollTop > loadBatch * itemHeight) {
                                                 loadBatch++;
 
@@ -4420,6 +4476,11 @@ ${obj.default ?? ''}</textarea
         return `"data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20'%3e%3cpath fill='none' stroke='${color}' stroke-linecap='round' stroke-linejoin='round' stroke-width='3' d='M6 10l3 3l6-6'/%3e%3c/svg%3e"`;
     }
 
+    static squareDataImage(color: string): string {
+        color = color.replace('#', '%23');
+        return `"data:image/svg+xml,%3Csvg width='16' height='16' viewBox='0 0 16 16' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Crect x='0.5' y='0.5' width='15' height='15' rx='2.5' stroke-width='2.2' stroke='%23DDDDDD'/%3E%3Crect x='4' y='4' width='8' height='8' rx='1' fill='%23393939'/%3E%3C/svg%3E%0A"`;
+    }
+
     static darkDotDataImage(color: string): string {
         color = color.replace('#', '%23');
         return `"data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='-4 -4 8 8'%3e%3ccircle r='2' fill='${color}'/%3e%3c/svg%3e"`;
@@ -4431,7 +4492,7 @@ ${obj.default ?? ''}</textarea
     }
 
     static getCheckedClass(gvc: GVC, color?: string) {
-        const className = Tool.randomString(6);
+        const className = 'checked-image';
         gvc.addStyle(`
             .${className} {
                 min-width: 1.25rem;
@@ -4447,8 +4508,23 @@ ${obj.default ?? ''}</textarea
         return className;
     }
 
+    static getSquareClass(gvc: GVC, color?: string) {
+        const className = 'square-image';
+        gvc.addStyle(`
+            .${className} {
+                min-width: 1.25rem;
+                min-height: 1.25rem;
+                border: 0;
+                background-color: #fff;
+                background-image: url(${this.squareDataImage(color ?? '#000')});
+                background-position: center center;
+            }
+        `);
+        return className;
+    }
+
     static getDarkDotClass(gvc: GVC) {
-        const className = `dark_dot`;
+        const className = 'dark-dot-image';
         gvc.addStyle(`
             .${className} {
                 min-width: 1.15rem;
@@ -4466,7 +4542,7 @@ ${obj.default ?? ''}</textarea
     }
 
     static getWhiteDotClass(gvc: GVC, color?: string) {
-        const className = Tool.randomString(6);
+        const className = 'white-dot-image';
         gvc.addStyle(`
             .${className} {
                 min-width: 1.15rem;
@@ -4613,15 +4689,26 @@ ${obj.default ?? ''}</textarea
                                                     <div
                                                             style="color: #393939; font-size: 16px; font-family: Noto Sans; font-weight: 400; word-wrap: break-word;  "
                                                             onclick="${gvc.event(() => {
-                                                                EditorElem.uploadFileFunction({
-                                                                    gvc: gvc,
-                                                                    callback: (text) => {
-                                                                        callback(text);
-                                                                        image = text;
-                                                                        gvc.notifyDataChange(id);
-                                                                    },
-                                                                    type: `image/*, video/*`,
-                                                                });
+                                                                imageLibrary.selectImageLibrary(
+                                                                        gvc,
+                                                                        (urlArray) => {
+                                                                            if (urlArray.length > 0) {
+                                                                                callback(urlArray[0].data);
+                                                                                image = urlArray[0].data;
+                                                                                gvc.notifyDataChange(id);
+                                                                            } else {
+                                                                                const dialog = new ShareDialog(gvc.glitter);
+                                                                                dialog.errorMessage({text: '請選擇一張圖片'});
+                                                                            }
+                                                                           
+                                                                        },
+                                                                        html`
+                                                    <div class="d-flex flex-column"
+                                                         style="border-radius: 10px 10px 0px 0px;background: #F2F2F2;">
+                                                        圖片庫
+                                                    </div>`,
+                                                                        {mul: false}
+                                                                );
                                                             })}"
                                                     >
                                                         新增圖片

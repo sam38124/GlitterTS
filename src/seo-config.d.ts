@@ -28,7 +28,7 @@ export declare class SeoConfig {
         appName: string;
         data: any;
         language: any;
-    }): Promise<void>;
+    }): Promise<any>;
     static language(store_info: any, req: any): Promise<any>;
     static fbCode(FBCode: any): string;
     static gTag(g_tag: any[]): string;

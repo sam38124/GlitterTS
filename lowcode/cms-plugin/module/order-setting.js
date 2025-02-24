@@ -59,6 +59,7 @@ export class OrderSetting {
         return orderData.user_info.address;
     }
     static getAllStatusBadge(orderData) {
+        var _a;
         const paymentBadges = {
             '0': orderData.orderData.proof_purchase ? BgWidget.warningInsignia('待核款') : BgWidget.notifyInsignia('未付款'),
             '1': BgWidget.infoInsignia('已付款'),
@@ -77,6 +78,7 @@ export class OrderSetting {
             '1': BgWidget.infoInsignia('已完成'),
             '0': BgWidget.warningInsignia('處理中'),
         };
+        orderData.orderData.orderStatus = (_a = orderData.orderData.orderStatus) !== null && _a !== void 0 ? _a : '0';
         return {
             paymentBadge: () => paymentBadges[`${orderData.status}`] || BgWidget.notifyInsignia('付款失敗'),
             outShipBadge: () => { var _a; return outShipBadges[(_a = orderData.orderData.progress) !== null && _a !== void 0 ? _a : 'wait'] || BgWidget.notifyInsignia('未知狀態'); },

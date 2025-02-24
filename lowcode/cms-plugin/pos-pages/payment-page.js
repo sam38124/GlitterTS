@@ -28,10 +28,18 @@ import { PaymentFunction } from './payment-function.js';
 import { UmClass } from '../../public-components/user-manager/um-class.js';
 const html = String.raw;
 export class PaymentPage {
-    static checkout(json) {
+    static checkout(params) {
         return __awaiter(this, void 0, void 0, function* () {
-            const orderDetail = (yield ApiShop.getCheckout(Object.assign(Object.assign({}, json), { checkOutType: 'POS', pos_store: POSSetting.config.where_store }))).response.data;
-            return orderDetail;
+            const { line_items, user_info, code_array, use_rebate } = params;
+            const orderDetail = yield ApiShop.getCheckout({
+                line_items,
+                user_info,
+                code_array,
+                use_rebate,
+                checkOutType: 'POS',
+                pos_store: POSSetting.config.where_store,
+            });
+            return orderDetail.response.data;
         });
     }
     static shipmentSupport(orderDetail) {
@@ -210,13 +218,7 @@ export class PaymentPage {
 
                                                                             ${document.body.clientWidth < 800
                                         ? html `<div
-                                                                                      style="color: #393939;
-font-size: 16px;
-font-style: normal;
-font-weight: 400;
-line-height: normal;
-letter-spacing: 0.64px;
-text-transform: uppercase;"
+                                                                                      style="color: #393939; font-size: 16px; font-style: normal; font-weight: 400; line-height: normal; letter-spacing: 0.64px; text-transform: uppercase;"
                                                                                   >
                                                                                       NT.${parseInt(data.sale_price, 10).toLocaleString()} ${document.body.clientWidth < 800 ? `x` : ``}
                                                                                       ${data.count}
@@ -226,6 +228,9 @@ text-transform: uppercase;"
                                                                     </div>
                                                                     <div class="col-2 d-none d-sm-flex align-items-center justify-content-start">
                                                                         $${parseInt(data.sale_price, 10).toLocaleString()}
+                                                                    </div>
+                                                                    <div class="col-3 col-lg-2 d-flex align-items-center justify-content-center">
+                                                                        ${parseInt(data.count, 10).toLocaleString()}
                                                                     </div>
                                                                     <div class="col-3 col-lg-2 d-flex align-items-center justify-content-center">
                                                                         $${parseInt((data.sale_price * data.count), 10).toLocaleString()}
@@ -264,10 +269,7 @@ text-transform: uppercase;"
                                         html `<div class="w-100 d-flex flex-fill">
                                                         <div
                                                             class="w-100 d-flex align-items-center justify-content-center"
-                                                            style="cursor:pointer;flex:1; height: 65px; ${vm.type === 'old'
-                                            ? `border-radius: 0px 10px 0px 0px;
-background: #FFF;`
-                                            : ``}"
+                                                            style="cursor:pointer;flex:1; height: 65px; ${vm.type === 'old' ? `border-radius: 0px 10px 0px 0px; background: #FFF;` : ``}"
                                                             onclick="${gvc.event(() => {
                                             vm.type = 'old';
                                             gvc.notifyDataChange(vm.id);
@@ -277,10 +279,7 @@ background: #FFF;`
                                                         </div>
                                                         <div
                                                             class="w-100 d-flex align-items-center justify-content-center"
-                                                            style="cursor:pointer;flex:1; height: 65px;${vm.type === 'new'
-                                            ? `border-radius: 10px 10px 0px 0px;
-background: #FFF;`
-                                            : ``}"
+                                                            style="cursor:pointer;flex:1; height: 65px;${vm.type === 'new' ? `border-radius: 10px 10px 0px 0px; background: #FFF;` : ``}"
                                                             onclick="${gvc.event(() => {
                                             vm.type = 'new';
                                             gvc.notifyDataChange(vm.id);
@@ -389,16 +388,7 @@ background: #FFF;`
                                                                             </div>
                                                                             <div
                                                                                 class=""
-                                                                                style="display: flex;
-width: 44px;
-height: 44px;
-padding: 8px 10px;
-border-radius: 10px;
-border: 1px solid #DDD;
-justify-content: center;
-align-items: center;
-gap: 8px;
-flex-shrink: 0;"
+                                                                                style="display: flex; width: 44px; height: 44px; padding: 8px 10px; border-radius: 10px; border: 1px solid #DDD; justify-content: center; align-items: center; gap: 8px; flex-shrink: 0;"
                                                                                 onclick="${gvc.event(() => {
                                                             gvc.glitter.runJsInterFace('start_scan', {}, (res) => __awaiter(this, void 0, void 0, function* () {
                                                                 const dialog = new ShareDialog(gvc.glitter);
@@ -451,13 +441,7 @@ flex-shrink: 0;"
                                                                                                     >
                                                                                                         ${vm.user_data.userData.name}
                                                                                                         <div
-                                                                                                            style="color: #4D86DB;
-font-size: 16px;
-font-style: normal;
-font-weight: 400;
-line-height: normal;
-letter-spacing: 0.72px;
-text-transform: uppercase;cursor:pointer;"
+                                                                                                            style="color: #4D86DB; font-size: 16px; font-style: normal; font-weight: 400; line-height: normal; letter-spacing: 0.72px; text-transform: uppercase;cursor:pointer;"
                                                                                                             onclick="${gvc.event(() => {
                                                                             obj.ogOrderData.use_rebate = 0;
                                                                             obj.ogOrderData.user_info.id = 0;
@@ -881,14 +865,7 @@ text-transform: uppercase;cursor:pointer;"
                                     .map((dd) => {
                                     return html `<div class="mb-2 col-${dd.col} ps-0" style="">
                                                                 <div>
-                                                                    <div
-                                                                        class="fw-normal mb-2 fs-6"
-                                                                        style="color: black;
-margin-bottom: 5px;
-white-space: normal;"
-                                                                    >
-                                                                        ${dd.title}
-                                                                    </div>
+                                                                    <div class="fw-normal mb-2 fs-6" style="color: black; margin-bottom: 5px; white-space: normal;">${dd.title}</div>
                                                                     <input
                                                                         class="form-control"
                                                                         style="form-control"
@@ -1482,6 +1459,20 @@ white-space: normal;"
             };
         });
     }
+    static rmProductHistory(product_id) {
+        const orderDetail = JSON.parse(localStorage.getItem('pos_order_detail'));
+        if (orderDetail && orderDetail.lineItems) {
+            orderDetail.lineItems = orderDetail.lineItems.filter((item) => item.id !== product_id);
+        }
+        this.storeHistory(orderDetail);
+    }
+    static clearProductHistory() {
+        const orderDetail = JSON.parse(localStorage.getItem('pos_order_detail'));
+        if (orderDetail && orderDetail.lineItems) {
+            orderDetail.lineItems = [];
+        }
+        this.storeHistory(orderDetail);
+    }
     static storeHistory(orderDetail) {
         localStorage.setItem('pos_order_detail', JSON.stringify(orderDetail));
     }
@@ -1693,17 +1684,15 @@ white-space: normal;"
         });
     }
     static stripHtmlTags(htmlString) {
-        let tempDiv = document.createElement('div');
+        const tempDiv = document.createElement('div');
         tempDiv.innerHTML = htmlString.replace(/\n/g, '');
-        let items = [];
-        let cont = false;
-        for (const a of tempDiv.querySelector('table tbody').children) {
-            if (!cont) {
-                cont = true;
-                continue;
+        const items = [];
+        const tbody = tempDiv.querySelector('table tbody');
+        if (tbody) {
+            for (let i = 1; i < tbody.children.length; i++) {
+                const cell = tbody.children[i].children[0];
+                items.push(cell ? cell.innerText.trim() : '');
             }
-            const b = a;
-            items.push(b.children[0] ? b.children[0].innerText.trim() : '');
         }
         return items;
     }
@@ -1795,6 +1784,7 @@ white-space: normal;"
                                     }
                                 }
                             }
+                            print('client');
                         }
                         dialog.dataLoading({ visible: false });
                         orderDetail.lineItems = [];

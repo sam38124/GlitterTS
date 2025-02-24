@@ -3,7 +3,6 @@ import { ApiShop } from '../../glitter-base/route/shopping.js';
 import { GlobalUser } from '../../glitter-base/global/global-user.js';
 import { CheckInput } from '../../modules/checkInput.js';
 import { PdClass } from './pd-class.js';
-import { Tool } from '../../modules/tool.js';
 import { ApiUser } from '../../glitter-base/route/user.js';
 import { Language } from '../../glitter-base/global/language.js';
 import { Currency } from '../../glitter-base/global/currency.js';
@@ -128,6 +127,7 @@ export class ProductCard03 {
                 justify-content: start;
             }
             .card-sale-price {
+                font-family: 'Noto Sans';
                 text-align: center;
                 font-style: normal;
                 line-height: normal;
@@ -136,6 +136,7 @@ export class ProductCard03 {
                 color: #322b25;
             }
             .card-cost-price {
+                font-family: 'Noto Sans';
                 text-align: center;
                 color: #d45151;
                 font-style: normal;
@@ -143,7 +144,6 @@ export class ProductCard03 {
                 line-height: normal;
                 font-size: 14px;
                 margin-right: 4px;
-                letter-spacing: -0.98px;
             }
         `);
 
@@ -300,7 +300,7 @@ export class ProductCard03 {
                                         }) ?? {}
                                     ).compare_price ?? 0;
                                 if (comparePrice > 0 && minPrice < comparePrice) {
-                                    return html` <div class="text-decoration-line-through card-cost-price">NT.$ ${Currency.convertCurrencyText(comparePrice)}</div>`;
+                                    return html` <div class="text-decoration-line-through card-cost-price">${Currency.convertCurrencyText(comparePrice)}</div>`;
                                 }
                                 return '';
                             })()}

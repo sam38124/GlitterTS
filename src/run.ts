@@ -33,4 +33,3 @@ initial(4000).then(async () => {
     // ReleaseIos.release()
     // createEC2Instance('')
 });
-

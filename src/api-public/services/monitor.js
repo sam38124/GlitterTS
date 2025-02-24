@@ -12,6 +12,9 @@ class Monitor {
         var _a;
         try {
             const req = obj.req;
+            if (['::ffff:172.17.0.1', 'ffff:127.0.0.1'].includes((req.headers['x-real-ip'] || req.ip))) {
+                return;
+            }
             let mac_address = req.cookies.mac_address;
             if (!mac_address) {
                 mac_address = tool_js_1.default.randomString(10);

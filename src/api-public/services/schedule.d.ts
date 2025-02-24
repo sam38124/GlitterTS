@@ -4,8 +4,9 @@ export declare class Schedule {
     isDatabaseExists(app: string): Promise<boolean>;
     isDatabasePass(app: string): Promise<boolean>;
     isTableExists(table: string, app: string): Promise<boolean>;
-    renewMemberLevel(sec: number): Promise<void>;
     example(sec: number): Promise<void>;
+    autoCancelOrder(sec: number): Promise<void>;
+    renewMemberLevel(sec: number): Promise<void>;
     birthRebate(sec: number): Promise<void>;
     birthBlessMail(sec: number): Promise<void>;
     resetVoucherHistory(sec: number): Promise<void>;

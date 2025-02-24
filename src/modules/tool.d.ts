@@ -18,8 +18,8 @@ declare const _default: {
     compareHash: (pwd: string, has: string) => Promise<boolean>;
     randomNumber: (max: number) => string;
     getCurrentDateTime: (json?: {
-        inputDate?: string | undefined;
-        addSeconds?: number | undefined;
-    } | undefined) => string;
+        inputDate?: string;
+        addSeconds?: number;
+    }) => string;
 };
 export default _default;

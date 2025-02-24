@@ -373,11 +373,10 @@ export class BgWidget {
                 })}</div>`;
         }
     }
-    static horizontalLine(css) {
-        var _a, _b, _c;
-        return html `
-            <div class="w-100"
-                 style="margin: ${(_a = css === null || css === void 0 ? void 0 : css.margin) !== null && _a !== void 0 ? _a : 1}rem 0; border-bottom: ${(_b = css === null || css === void 0 ? void 0 : css.size) !== null && _b !== void 0 ? _b : 1}px solid ${(_c = css === null || css === void 0 ? void 0 : css.color) !== null && _c !== void 0 ? _c : '#DDD'}"></div>`;
+    static horizontalLine(css = {}) {
+        const { color = '#DDD', size = 1, margin = '1rem 0' } = css;
+        const marginValue = typeof margin === 'number' ? `${margin}rem 0` : margin;
+        return html `<div class="w-100" style="margin: ${marginValue}; border-bottom: ${size}px solid ${color};"></div>`;
     }
     static isValidEmail(email) {
         const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -1989,8 +1988,8 @@ ${(_c = obj.default) !== null && _c !== void 0 ? _c : ''}</textarea
                     checkboxHTML += html `
                         <div>
                             <div
-                                    class="form-check ${(_a = item === null || item === void 0 ? void 0 : item.customerClass) !== null && _a !== void 0 ? _a : ''}"
-                                    onclick="${gvc.event((e, evt) => {
+                                class="form-check ${(_a = item === null || item === void 0 ? void 0 : item.customerClass) !== null && _a !== void 0 ? _a : ''}"
+                                onclick="${gvc.event((e, evt) => {
                         if (obj && obj.readonly) {
                             evt.preventDefault();
                             return;
@@ -2012,27 +2011,70 @@ ${(_c = obj.default) !== null && _c !== void 0 ? _c : ''}</textarea
                     })}"
                             >
                                 <input
-                                        class="form-check-input ${randomString} cursor_pointer"
-                                        style="margin-top: 0.35rem; margin-right: 0.5rem;"
-                                        type="${obj && obj.single ? 'radio' : 'checkbox'}"
-                                        id="${id}_${item.key}"
-                                        ${def.includes(item.key) ? 'checked' : ''}
+                                    class="form-check-input ${randomString} cursor_pointer"
+                                    style="margin-top: 0.35rem; margin-right: 0.5rem;"
+                                    type="${obj && obj.single ? 'radio' : 'checkbox'}"
+                                    id="${id}_${item.key}"
+                                    ${def.includes(item.key) ? 'checked' : ''}
                                 />
-                                <label class="form-check-label cursor_pointer" for="${id}_${item.key}"
-                                       style="font-size: 16px; color: #393939; margin-top: 0.125rem;">${item.name}</label>
+                                <label class="form-check-label cursor_pointer" for="${id}_${item.key}" style="font-size: 16px; color: #393939; margin-top: 0.125rem;">${item.name}</label>
                             </div>
                             ${def.includes(item.key) && item.innerHtml
-                        ? html `
-                                        <div class="d-flex position-relative my-2">
-                                            ${item.hiddenLeftLine ? '' : this.leftLineBar()}
-                                            <div class="ms-4 w-100 flex-fill">${item.innerHtml}</div>
-                                        </div>`
+                        ? html ` <div class="d-flex position-relative my-2">
+                                      ${item.hiddenLeftLine ? '' : this.leftLineBar()}
+                                      <div class="ms-4 w-100 flex-fill">${item.innerHtml}</div>
+                                  </div>`
                         : ``}
                         </div>
                     `;
                 });
+                return html ` <div style="width: 100%; display: flex; flex-direction: column; gap: 6px;">${checkboxHTML}</div> `;
+            },
+        });
+    }
+    static tripletCheckboxContainer(gvc, name, def, callback, obj) {
+        const inputColor = undefined;
+        const checkedString = this.getCheckedClass(gvc, inputColor);
+        const squareString = this.getSquareClass(gvc, inputColor);
+        const viewId = Tool.randomString(5);
+        const randomKey = Tool.randomString(5);
+        return gvc.bindView({
+            bind: viewId,
+            view: () => {
                 return html `
-                    <div style="width: 100%; display: flex; flex-direction: column; gap: 6px;">${checkboxHTML}</div> `;
+                    <div style="width: 100%; display: flex; flex-direction: column; gap: 6px;">
+                        <div
+                            class="form-check"
+                            onclick="${gvc.event((e, evt) => {
+                    if (obj && obj.readonly) {
+                        evt.preventDefault();
+                        return;
+                    }
+                    if (def === 0) {
+                        callback(1);
+                    }
+                    else {
+                        callback(def * -1);
+                    }
+                    gvc.notifyDataChange(viewId);
+                })}"
+                        >
+                            ${def !== 0
+                    ? html `
+                                      <input
+                                          class="form-check-input ${checkedString} cursor_pointer"
+                                          style="margin-top: 0.35rem; margin-right: 0.5rem;"
+                                          type="checkbox"
+                                          id="${randomKey}"
+                                          ${def === 1 ? 'checked' : ''}
+                                      />
+                                      <label class="form-check-label cursor_pointer" for="${randomKey}" style="font-size: 16px; color: #393939; margin-top: 0.125rem;">${name}</label>
+                                  `
+                    : html ` <input class="form-check-input ${squareString} cursor_pointer" style="margin-top: 0.35rem; margin-right: 0.5rem;" type="checkbox" id="${randomKey}" />
+                                      <label class="form-check-label cursor_pointer" for="${randomKey}" style="font-size: 16px; color: #393939; margin-top: 0.125rem;">${name}</label>`}
+                        </div>
+                    </div>
+                `;
             },
         });
     }
@@ -2129,6 +2171,7 @@ ${(_c = obj.default) !== null && _c !== void 0 ? _c : ''}</textarea
     static tab(data, gvc, select, callback, style) {
         return html `
             <div
+                    class="mx-sm-0 mx-2"
                     style="justify-content: flex-start; align-items: flex-start; gap: 22px; display: inline-flex;cursor: pointer;margin-top: 24px;margin-bottom: 24px;font-size: 18px; ${style !== null && style !== void 0 ? style : ''};"
             >
                 ${data
@@ -2496,7 +2539,7 @@ ${(_c = obj.default) !== null && _c !== void 0 ? _c : ''}</textarea
                 </option>`))}
         </select>`;
     }
-    static searchFilter(event, vale, placeholder, margin) {
+    static searchFilter(event, value, placeholder, margin) {
         return html `
             <div class="w-100 position-relative" style="height: 40px !important; margin: ${margin !== null && margin !== void 0 ? margin : 0};">
                 <i class="fa-regular fa-magnifying-glass"
@@ -2504,7 +2547,7 @@ ${(_c = obj.default) !== null && _c !== void 0 ? _c : ''}</textarea
                    aria-hidden="true"></i>
                 <input class="form-control h-100"
                        style="border-radius: 10px; border: 1px solid #DDD; padding-left: 50px; height: 100%;"
-                       placeholder="${placeholder}" onchange="${event}" value="${vale}"/>
+                       placeholder="${placeholder}" onchange="${event}" value="${value}"/>
             </div>`;
     }
     static funnelFilter(obj) {
@@ -3135,7 +3178,7 @@ ${(_c = obj.default) !== null && _c !== void 0 ? _c : ''}</textarea
                     if (vm.loading) {
                         ApiShop.getVariants({
                             page: 0,
-                            limit: 99999,
+                            limit: 99,
                             search: vm.query || undefined,
                             searchType: 'title',
                             orderBy: vm.orderString || undefined,
@@ -3754,6 +3797,10 @@ ${(_c = obj.default) !== null && _c !== void 0 ? _c : ''}</textarea
         color = color.replace('#', '%23');
         return `"data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20'%3e%3cpath fill='none' stroke='${color}' stroke-linecap='round' stroke-linejoin='round' stroke-width='3' d='M6 10l3 3l6-6'/%3e%3c/svg%3e"`;
     }
+    static squareDataImage(color) {
+        color = color.replace('#', '%23');
+        return `"data:image/svg+xml,%3Csvg width='16' height='16' viewBox='0 0 16 16' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Crect x='0.5' y='0.5' width='15' height='15' rx='2.5' stroke-width='2.2' stroke='%23DDDDDD'/%3E%3Crect x='4' y='4' width='8' height='8' rx='1' fill='%23393939'/%3E%3C/svg%3E%0A"`;
+    }
     static darkDotDataImage(color) {
         color = color.replace('#', '%23');
         return `"data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='-4 -4 8 8'%3e%3ccircle r='2' fill='${color}'/%3e%3c/svg%3e"`;
@@ -3763,7 +3810,7 @@ ${(_c = obj.default) !== null && _c !== void 0 ? _c : ''}</textarea
         return `"data:image/svg+xml,%3csvg width='16' height='16' viewBox='0 0 16 16' fill='none' xmlns='http://www.w3.org/2000/svg'%3e%3crect width='16' height='16' rx='8' fill='${color}'/%3e%3crect x='4' y='4' width='8' height='8' rx='4' fill='white'/%3e%3c/svg%3e"`;
     }
     static getCheckedClass(gvc, color) {
-        const className = Tool.randomString(6);
+        const className = 'checked-image';
         gvc.addStyle(`
             .${className} {
                 min-width: 1.25rem;
@@ -3778,8 +3825,22 @@ ${(_c = obj.default) !== null && _c !== void 0 ? _c : ''}</textarea
         `);
         return className;
     }
+    static getSquareClass(gvc, color) {
+        const className = 'square-image';
+        gvc.addStyle(`
+            .${className} {
+                min-width: 1.25rem;
+                min-height: 1.25rem;
+                border: 0;
+                background-color: #fff;
+                background-image: url(${this.squareDataImage(color !== null && color !== void 0 ? color : '#000')});
+                background-position: center center;
+            }
+        `);
+        return className;
+    }
     static getDarkDotClass(gvc) {
-        const className = `dark_dot`;
+        const className = 'dark-dot-image';
         gvc.addStyle(`
             .${className} {
                 min-width: 1.15rem;
@@ -3796,7 +3857,7 @@ ${(_c = obj.default) !== null && _c !== void 0 ? _c : ''}</textarea
         return className;
     }
     static getWhiteDotClass(gvc, color) {
-        const className = Tool.randomString(6);
+        const className = 'white-dot-image';
         gvc.addStyle(`
             .${className} {
                 min-width: 1.15rem;
@@ -3931,15 +3992,21 @@ ${(_c = obj.default) !== null && _c !== void 0 ? _c : ''}</textarea
                                                     <div
                                                             style="color: #393939; font-size: 16px; font-family: Noto Sans; font-weight: 400; word-wrap: break-word;  "
                                                             onclick="${gvc.event(() => {
-                            EditorElem.uploadFileFunction({
-                                gvc: gvc,
-                                callback: (text) => {
-                                    callback(text);
-                                    image = text;
+                            imageLibrary.selectImageLibrary(gvc, (urlArray) => {
+                                if (urlArray.length > 0) {
+                                    callback(urlArray[0].data);
+                                    image = urlArray[0].data;
                                     gvc.notifyDataChange(id);
-                                },
-                                type: `image/*, video/*`,
-                            });
+                                }
+                                else {
+                                    const dialog = new ShareDialog(gvc.glitter);
+                                    dialog.errorMessage({ text: '請選擇一張圖片' });
+                                }
+                            }, html `
+                                                    <div class="d-flex flex-column"
+                                                         style="border-radius: 10px 10px 0px 0px;background: #F2F2F2;">
+                                                        圖片庫
+                                                    </div>`, { mul: false });
                         })}"
                                                     >
                                                         新增圖片

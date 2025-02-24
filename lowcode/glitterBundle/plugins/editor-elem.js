@@ -1064,6 +1064,9 @@ ${obj.structEnd ? obj.structEnd : '})()'}`,
                                         events: {
                                             imageMaxSize: 5 * 1024 * 1024,
                                             imageAllowedTypes: ['jpeg', 'jpg', 'png'],
+                                            blur: function () {
+                                                dataChange();
+                                            },
                                             contentChanged: function () {
                                                 dataChange();
                                             },

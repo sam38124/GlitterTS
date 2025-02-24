@@ -136,8 +136,8 @@ export class UMLogin {
                                                 class="bgw-input"
                                                 type="${item.form_config.type}"
                                                 id="reg-${item.key}"
-                                                placeholder="${placeholder}"
-                                                data-placeholder="${placeholder}"
+                                               ${(item.form_config.type === 'date') ? `` : ` placeholder="${placeholder}"
+                                                data-placeholder="${placeholder}"`}
                                                 onchange="${gvc.event((e) => {
                                 if (CheckInput.isEmpty(e.value)) {
                                     e.style.color = 'rgba(0,0,0,0)';
@@ -405,10 +405,14 @@ export class UMLogin {
         GlobalUser.updateUserData = JSON.parse(JSON.stringify(response));
         widget.event('success', { title: text !== null && text !== void 0 ? text : Language.text('login_success') });
         setTimeout(() => {
-            if (localStorage.getItem('redirect_cart') === 'true') {
-                gvc.glitter.href = '/checkout';
+            if (GlobalUser.loginRedirect) {
+                const red = GlobalUser.loginRedirect;
+                GlobalUser.loginRedirect = '';
+                gvc.glitter.href = red;
             }
-            gvc.glitter.href = '/account_userinfo';
+            else {
+                gvc.glitter.href = '/account_userinfo';
+            }
         }, 700);
     }
     static authThirdPartyHTML(gvc, widget, vm) {

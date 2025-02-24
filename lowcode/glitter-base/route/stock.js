@@ -18,6 +18,21 @@ export class ApiStock {
             },
         });
     }
+    static getStoreProductStock(json) {
+        return BaseApi.create({
+            url: getBaseUrl() +
+                `/api-public/v1/stock/productStock?${(() => {
+                    let par = [`page=${json.page}`, `limit=${json.limit}`, `variant_id_list=${json.variant_id_list.join(',')}`];
+                    return par.join('&');
+                })()}`,
+            type: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+                'g-app': getConfig().config.appName,
+                Authorization: getConfig().config.token,
+            },
+        });
+    }
     static deleteStore(json) {
         return BaseApi.create({
             url: getBaseUrl() + `/api-public/v1/stock/store`,

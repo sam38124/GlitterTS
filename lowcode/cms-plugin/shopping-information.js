@@ -276,7 +276,8 @@ export class ShoppingInformation {
                                     </div>
 
                                     <div class="d-flex flex-column" style="gap:8px;">
-                                        <div style="color: #393939;font-size: 16px;">網站類型</div>
+                                        <div style="color: #393939;font-size: 16px;">網站功能</div>
+                                        ${BgWidget.grayNote('系統將根據您勾選的項目，開放相對應的功能')}
                                         <div class="d-flex align-items-center">
                                             ${BgWidget.inlineCheckBox({
                             title: '',
@@ -284,16 +285,20 @@ export class ShoppingInformation {
                             def: vm.data.web_type,
                             array: [
                                 {
-                                    title: '購物網站',
+                                    title: '零售購物',
                                     value: 'shop',
-                                },
-                                {
-                                    title: '形象網站',
-                                    value: 'image',
                                 },
                                 {
                                     title: '授課網站',
                                     value: 'teaching',
+                                },
+                                {
+                                    title: '預約系統',
+                                    value: 'reserve',
+                                },
+                                {
+                                    title: '餐飲組合',
+                                    value: 'kitchen',
                                 }
                             ],
                             callback: (array) => {

@@ -16,6 +16,12 @@ export class ProductService {
             }
             for (const index in postMD['variants']) {
                 const variant = postMD['variants'][index];
+                if ((postMD.product_category === 'kitchen') && postMD.specs.length) {
+                    variant['v_height'] = postMD['v_height'];
+                    variant['v_width'] = postMD['v_width'];
+                    variant['v_length'] = postMD['v_length'];
+                    variant['weight'] = postMD['weight'];
+                }
                 if (postMD.product_category === 'course') {
                     variant['shipment_type'] = 'none';
                 }

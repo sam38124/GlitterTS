@@ -19,7 +19,6 @@ const shopping_1 = require("../services/shopping");
 const data_analyze_1 = require("../services/data-analyze");
 const rebate_1 = require("../services/rebate");
 const pos_js_1 = require("../services/pos.js");
-const shopnex_line_message_1 = require("../services/model/shopnex-line-message");
 const router = express_1.default.Router();
 router.post('/worker', async (req, resp) => {
     try {
@@ -133,7 +132,7 @@ router.delete('/rebate', async (req, resp) => {
 });
 router.post('/checkout', async (req, resp) => {
     try {
-        return response_1.default.succ(resp, await new shopping_1.Shopping(req.get('g-app'), req.body.token).toCheckout({
+        const result = await new shopping_1.Shopping(req.get('g-app'), req.body.token).toCheckout({
             line_items: req.body.line_items,
             email: (req.body.token && req.body.token.account) || req.body.email,
             return_url: req.body.return_url,
@@ -156,7 +155,11 @@ router.post('/checkout', async (req, resp) => {
             code_array: req.body.code_array,
             give_away: req.body.give_away,
             language: req.headers['language'],
-        }));
+            client_ip_address: (req.query.ip || req.headers['x-real-ip'] || req.ip),
+            fbc: req.cookies._fbc,
+            fbp: req.cookies._fbp
+        });
+        return response_1.default.succ(resp, result);
     }
     catch (err) {
         return response_1.default.fail(resp, err);
@@ -550,15 +553,23 @@ router.delete('/voucher', async (req, resp) => {
 });
 async function redirect_link(req, resp) {
     try {
+        req.query.appName = req.query.appName || req.get('g-app') || req.query['g-app'];
         let return_url = new URL((await redis_js_1.default.getValue(req.query.return)));
         if (req.query.LinePay && req.query.LinePay === 'true') {
             const check_id = await redis_js_1.default.getValue(`linepay` + req.query.orderID);
+            const order_data = (await database_js_1.default.query(`SELECT *
+                     FROM \`${req.query.appName}\`.t_checkout
+                     WHERE cart_token = ?
+                    `, [req.query.orderID]))[0];
             const keyData = (await private_config_js_1.Private_config.getConfig({
                 appName: req.query.appName,
                 key: 'glitter_finance',
             }))[0].value.line_pay;
             const linePay = new financial_service_js_1.LinePay(req.query.appName, keyData);
-            const data = linePay.confirmAndCaptureOrder(check_id);
+            console.log(`check_id===>${req.query.orderID}===>${req.query.transactionId}`);
+            console.log(`req.query=>`, req.query);
+            const data = (await linePay.confirmAndCaptureOrder(req.query.transactionId, order_data['orderData'].total)).data;
+            console.log(`line-response==>`, data);
             if (data.returnCode == '0000') {
                 await new shopping_1.Shopping(req.query.appName).releaseCheckout(1, req.query.orderID);
             }
@@ -576,23 +587,27 @@ async function redirect_link(req, resp) {
             }
         }
         if (req.query.paynow && req.query.paynow === 'true') {
+            const keyData = (await private_config_js_1.Private_config.getConfig({
+                appName: req.query.appName,
+                key: 'glitter_finance',
+            }))[0].value.paynow;
             const check_id = await redis_js_1.default.getValue(`paynow` + req.query.orderID);
-            let kd = {
-                ReturnURL: '',
-                NotifyURL: '',
-            };
-            const payNow = new financial_service_js_1.PayNow(req.query.appName, kd);
-            const data = payNow.confirmAndCaptureOrder(check_id);
+            const payNow = new financial_service_js_1.PayNow(req.query.appName, keyData);
+            const data = await payNow.confirmAndCaptureOrder(check_id);
             if (data.type == 'success') {
                 await new shopping_1.Shopping(req.query.appName).releaseCheckout(1, req.query.orderID);
             }
         }
         if (req.query.jkopay && req.query.jkopay === 'true') {
-            console.log("req -- ", req);
             let kd = {
                 ReturnURL: '',
                 NotifyURL: '',
             };
+            const jko = new financial_service_js_1.JKO(req.query.appName, kd);
+            const data = jko.confirmAndCaptureOrder(req.query.orderID);
+            if (data.tranactions[0].status == 'success') {
+                await new shopping_1.Shopping(req.query.appName).releaseCheckout(1, req.query.orderID);
+            }
         }
         const html = String.raw;
         return resp.send(html `<!DOCTYPE html>
@@ -620,6 +635,7 @@ async function redirect_link(req, resp) {
                 </html> `);
     }
     catch (err) {
+        console.error(err);
         return response_1.default.fail(resp, err);
     }
 }
@@ -642,6 +658,7 @@ router.get('/testRelease', async (req, resp) => {
 });
 router.post('/notify', upload.single('file'), async (req, resp) => {
     try {
+        console.log(`notify-order-result`);
         let decodeData = undefined;
         const appName = req.query['g-app'];
         const type = req.query['type'];
@@ -671,6 +688,14 @@ router.post('/notify', upload.single('file'), async (req, resp) => {
                 MERCHANT_ID: keyData.MERCHANT_ID,
                 TYPE: keyData.TYPE,
             }).decode(req.body.TradeInfo));
+        }
+        if (type === 'paynow') {
+            const check_id = await redis_js_1.default.getValue(`paynow` + req.query.orderID);
+            const payNow = new financial_service_js_1.PayNow(req.query.appName, keyData);
+            const data = await payNow.confirmAndCaptureOrder(check_id);
+            console.log(`paynow-notify1`, req.body);
+            console.log(`paynow-notify2`, check_id);
+            console.log(`paynow-notify3`, data);
         }
         if (decodeData['Status'] === 'SUCCESS') {
             await new shopping_1.Shopping(appName).releaseCheckout(1, decodeData['Result']['MerchantOrderNo']);
@@ -860,12 +885,14 @@ router.get('/product', async (req, resp) => {
             max_price: req.query.max_price,
             status: req.query.status,
             channel: req.query.channel,
+            whereStore: req.query.whereStore,
             id_list: req.query.id_list,
             order_by: req.query.order_by,
             with_hide_index: req.query.with_hide_index,
             is_manger: (await ut_permission_1.UtPermission.isManager(req)),
             show_hidden: `${req.query.show_hidden}`,
             productType: req.query.productType,
+            product_category: req.query.product_category,
             filter_visible: req.query.filter_visible,
             view_source: req.query.view_source,
             distribution_code: req.query.distribution_code,
@@ -1091,11 +1118,11 @@ router.post('/apple-webhook', async (req, resp) => {
             return `${dd.product_id}`.includes('ai_points_') && dd.in_app_ownership_type === 'PURCHASED';
         })) {
             const count = (await database_js_1.default.query(`select count(1)
-                                           from \`${req.get('g-app')}\`.t_ai_points
-                                           where orderID = ?`, [b.transaction_id]))[0]['count(1)'];
+                     from \`${req.get('g-app')}\`.t_ai_points
+                     where orderID = ?`, [b.transaction_id]))[0]['count(1)'];
             if (!count) {
                 await database_js_1.default.query(`insert into \`${req.get('g-app')}\`.t_ai_points
-                                set ?`, [
+                     set ?`, [
                     {
                         orderID: b.transaction_id,
                         userID: req.body.token.userID,
@@ -1113,11 +1140,11 @@ router.post('/apple-webhook', async (req, resp) => {
             return `${dd.product_id}`.includes('sms_') && dd.in_app_ownership_type === 'PURCHASED';
         })) {
             const count = (await database_js_1.default.query(`select count(1)
-                                           from \`${req.get('g-app')}\`.t_sms_points
-                                           where orderID = ?`, [b.transaction_id]))[0]['count(1)'];
+                     from \`${req.get('g-app')}\`.t_sms_points
+                     where orderID = ?`, [b.transaction_id]))[0]['count(1)'];
             if (!count) {
                 await database_js_1.default.query(`insert into \`${req.get('g-app')}\`.t_sms_points
-                                set ?`, [
+                     set ?`, [
                     {
                         orderID: b.transaction_id,
                         userID: req.body.token.userID,
@@ -1134,13 +1161,15 @@ router.post('/apple-webhook', async (req, resp) => {
         for (const b of receipt.receipt.in_app.filter((dd) => {
             return ['light_year_apple', 'basic_year_apple', 'omo_year_apple', 'app_year_apple', 'flagship_year_apple'].includes(`${dd.product_id}`) && dd.in_app_ownership_type === 'PURCHASED';
         })) {
-            if (!(await database_js_1.default.query(`select count(1) from shopnex.t_checkout where cart_token=?`, [b.transaction_id]))[0]['count(1)']) {
+            if (!(await database_js_1.default.query(`select count(1)
+                                  from shopnex.t_checkout
+                                  where cart_token = ?`, [b.transaction_id]))[0]['count(1)']) {
                 const app_info = (await database_js_1.default.query(`select dead_line, user
-                                              from glitter.app_config
-                                              where appName = ?`, [req.body.app_name]))[0];
+                         from glitter.app_config
+                         where appName = ?`, [req.body.app_name]))[0];
                 const user = (await database_js_1.default.query(`SELECT *
-                                          FROM shopnex.t_user
-                                          where userID = ?`, [app_info.user]))[0];
+                         FROM shopnex.t_user
+                         where userID = ?`, [app_info.user]))[0];
                 const start = (() => {
                     if (new Date(app_info.dead_line).getTime() > new Date().getTime()) {
                         return new Date(app_info.dead_line);
@@ -1151,15 +1180,15 @@ router.post('/apple-webhook', async (req, resp) => {
                 })();
                 start.setDate(start.getDate() + 365);
                 await database_js_1.default.query(`update glitter.app_config
-                            set dead_line=?,
-                                plan=?
-                            where appName = ?`, [start, `${b.product_id}`.replace('_apple', '').replace(/_/g, '-'), req.body.app_name]);
+                     set dead_line=?,
+                         plan=?
+                     where appName = ?`, [start, `${b.product_id}`.replace('_apple', '').replace(/_/g, '-'), req.body.app_name]);
                 const index = ['light_year_apple', 'basic_year_apple', 'omo_year_apple', 'app_year_apple', 'flagship_year_apple'].findIndex((d1) => {
                     return `${b.product_id}` === d1;
                 });
                 const money = [13200, 26400, 52800, 52800, 66000][index];
                 await database_js_1.default.query(`insert into shopnex.t_checkout
-                            set ? `, [
+                     set ? `, [
                     {
                         cart_token: b.transaction_id,
                         status: 1,
@@ -1324,25 +1353,28 @@ router.post('/pos/work-status', async (req, resp) => {
         return response_1.default.fail(resp, err);
     }
 });
-router.get('/verification-code', async (req, resp) => {
+router.post('/logistics/redirect', async (req, resp) => {
     try {
-        return response_1.default.succ(resp, await shopnex_line_message_1.ShopnexLineMessage.generateVerificationCode(req.get('g-app')));
-    }
-    catch (err) {
-        return response_1.default.fail(resp, err);
-    }
-});
-router.post('/verification-code', async (req, resp) => {
-    try {
-        return response_1.default.succ(resp, await shopnex_line_message_1.ShopnexLineMessage.verifyVerificationCode(req.body));
-    }
-    catch (err) {
-        return response_1.default.fail(resp, err);
-    }
-});
-router.get('/line_group', async (req, resp) => {
-    try {
-        return response_1.default.succ(resp, await shopnex_line_message_1.ShopnexLineMessage.getLineGroup(req.get('g-app')));
+        const re_ = req.query['return'];
+        const return_url = new URL((await redis_js_1.default.getValue(`redirect_${re_}`)));
+        console.log(`logistics/redirect/body`, req.body);
+        console.log(`logistics/redirect/query`, req.query);
+        return_url.searchParams.set('CVSStoreID', req.body.storeid);
+        return_url.searchParams.set('CVSStoreName', req.body.storename);
+        return_url.searchParams.set('CVSAddress', req.body.storeaddress);
+        const html = String.raw;
+        return resp.send(html `<!DOCTYPE html>
+            <html lang="en">
+            <head>
+                <meta charset="UTF-8"/>
+                <title>Title</title>
+            </head>
+            <body>
+            <script>
+                location.href = '${return_url.toString()}';
+            </script>
+            </body>
+            </html> `);
     }
     catch (err) {
         return response_1.default.fail(resp, err);

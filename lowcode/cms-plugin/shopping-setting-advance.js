@@ -12,6 +12,7 @@ import { QuestionInfo } from './module/question-info.js';
 import { ApiUser } from '../glitter-base/route/user.js';
 import { BgProduct } from '../backend-manager/bg-product.js';
 import { ApiPageConfig } from '../api/pageConfig.js';
+import { ShipmentConfig } from '../glitter-base/global/shipment-config.js';
 const html = String.raw;
 export class ShoppingSettingAdvance {
     static main(obj) {
@@ -20,151 +21,113 @@ export class ShoppingSettingAdvance {
         const vm = obj.vm2;
         const shipment_config = obj.shipment_config;
         const variantsViewID = gvc.glitter.getUUID();
+        const start = gvc.glitter.ut.clock();
         function updateVariants() {
-            const remove_indexs = [];
-            let complexity = 1;
             postMD.specs = postMD.specs.filter((dd) => {
-                return dd.option && dd.option.length !== 0;
+                return dd.option && dd.option.length;
             });
-            postMD.specs.map((spec) => {
-                complexity *= spec.option.length;
+            const specs = {};
+            const combinations = getCombinations(specs);
+            combinations.forEach((combination) => {
+                const spec = postMD.specs.map((dd) => combination[dd.title]);
+                if (!postMD.variants.some((variant) => variant.spec.join('') === spec.join(''))) {
+                    postMD.variants.push(createVariant(spec));
+                }
             });
-            const cType = [];
-            function generateCombinations(specs, currentCombination, index = 0) {
-                if (index === specs.length &&
-                    currentCombination.length > 0 &&
-                    cType.findIndex((ct) => {
-                        return JSON.stringify(ct) === JSON.stringify(currentCombination);
-                    }) === -1) {
-                    cType.push(JSON.parse(JSON.stringify(currentCombination)));
-                    return;
-                }
-                const currentSpecOptions = specs[index];
-                if (currentSpecOptions) {
-                    for (const option of currentSpecOptions) {
-                        currentCombination[index] = option;
-                        generateCombinations(specs, currentCombination, index + 1);
-                    }
-                }
-            }
-            function checkSpecInclude(spec, index) {
-                if (postMD.specs[index]) {
-                    for (const { title } of postMD.specs[index].option) {
-                        if (spec === title)
-                            return true;
-                    }
-                    return false;
-                }
-                return false;
-            }
-            for (let n = 0; n < complexity; n++) {
-                let currentCombination = [];
-                generateCombinations(postMD.specs.map((dd) => {
-                    return dd.option.map((dd) => {
-                        return dd.title;
-                    });
-                }), currentCombination);
-                const waitAdd = cType.find((dd) => {
-                    return !postMD.variants.find((d2) => {
-                        return JSON.stringify(d2.spec) === JSON.stringify(dd);
-                    });
-                });
-                if (waitAdd && postMD.variants[0].spec.length == 0) {
-                    postMD.variants[0].spec = waitAdd;
-                }
-                else if (waitAdd) {
-                    postMD.variants.push({
-                        show_understocking: 'true',
-                        type: 'variants',
-                        sale_price: 0,
-                        compare_price: 0,
-                        cost: 0,
-                        spec: waitAdd,
-                        profit: 0,
-                        v_length: 0,
-                        v_width: 0,
-                        v_height: 0,
-                        weight: 0,
-                        shipment_type: shipment_config.selectCalc || 'weight',
-                        sku: '',
-                        barcode: '',
-                        stock: 0,
-                        stockList: {},
-                        preview_image: '',
-                    });
-                }
-            }
-            if (postMD.variants && postMD.variants.length > 0) {
-                postMD.variants.map((variant, index1) => {
-                    if (variant.spec.length !== postMD.specs.length) {
-                        remove_indexs.push(index1);
-                    }
-                    variant.spec.map((sp, index2) => {
-                        if (!checkSpecInclude(sp, index2)) {
-                            remove_indexs.push(index1);
-                        }
-                    });
-                });
-            }
-            postMD.variants = postMD.variants.filter((variant) => {
-                let pass = true;
-                let index = 0;
-                for (const b of variant.spec) {
-                    if (!postMD.specs[index] ||
-                        !postMD.specs[index].option.find((dd) => {
-                            return dd.title === b;
-                        })) {
-                        pass = false;
-                        break;
-                    }
-                    index++;
-                }
-                return pass && variant.spec.length === postMD.specs.length;
-            });
+            postMD.variants = postMD.variants.filter((variant) => isValidVariant(variant, postMD.specs));
             if (postMD.variants.length === 0) {
-                postMD.variants.push({
-                    show_understocking: 'true',
-                    type: 'variants',
-                    sale_price: 0,
-                    compare_price: 0,
-                    cost: 0,
-                    spec: [],
-                    profit: 0,
-                    v_length: 0,
-                    v_width: 0,
-                    v_height: 0,
-                    weight: 0,
-                    shipment_type: shipment_config.selectCalc || 'weight',
-                    sku: '',
-                    barcode: '',
-                    stock: 0,
-                    stockList: {},
-                    preview_image: '',
+                postMD.variants.push(createVariant([]));
+            }
+            if (postMD.product_category === 'kitchen' && (postMD.variants.length > 1)) {
+                postMD.variants.map((dd) => {
+                    var _a, _b, _c, _d;
+                    dd.compare_price = 0;
+                    dd.sale_price = dd.spec.map((d1, index) => {
+                        var _a;
+                        return parseInt((_a = postMD.specs[index].option.find((d2) => {
+                            return d2.title === d1;
+                        }).price) !== null && _a !== void 0 ? _a : "0", 10);
+                    }).reduce((acc, cur) => acc + cur, 0);
+                    dd.weight = parseFloat((_a = postMD.weight) !== null && _a !== void 0 ? _a : '0');
+                    dd.v_height = parseFloat((_b = postMD.v_height) !== null && _b !== void 0 ? _b : '0');
+                    dd.v_width = parseFloat((_c = postMD.v_width) !== null && _c !== void 0 ? _c : '0');
+                    dd.v_length = parseFloat((_d = postMD.v_length) !== null && _d !== void 0 ? _d : '0');
+                    dd.shipment_type = postMD.shipment_type;
                 });
             }
-            postMD.variants.map((dd) => {
-                dd.checked = undefined;
-                return dd;
-            });
+            postMD.variants.forEach((variant) => (variant.checked = undefined));
             obj.vm.replaceData = postMD;
+            console.log(`end-time`, start.stop());
+            console.log(`postMD.variants=>`, postMD.variants);
+            if (postMD.multi_sale_price) {
+                postMD.multi_sale_price.forEach((m) => {
+                    const variantMaps = new Map(m.variants.map((v) => [v.spec.join(','), v]));
+                    const temp = postMD.variants.map((item) => {
+                        var _a, _b;
+                        return ((_a = variantMaps.get(item.spec.join(','))) !== null && _a !== void 0 ? _a : {
+                            spec: item.spec,
+                            price: Number((_b = postMD.variants[0]) === null || _b === void 0 ? void 0 : _b.sale_price) || 0,
+                        });
+                    });
+                    m.variants = temp;
+                });
+            }
             obj.gvc.notifyDataChange(variantsViewID);
         }
-        updateVariants();
-        const cat_title = (() => {
-            switch (postMD.product_category) {
-                case "commodity":
-                    return '商品';
-                case 'course':
-                    return '課程';
-                default:
-                    return '商品';
+        function getCombinations(specs) {
+            const keys = Object.keys(specs);
+            const result = [];
+            function combine(index, current) {
+                if (index === keys.length) {
+                    result.push(Object.assign({}, current));
+                    return;
+                }
+                const key = keys[index];
+                specs[key].forEach((value) => {
+                    current[key] = value;
+                    combine(index + 1, current);
+                });
             }
-        })();
+            combine(0, {});
+            return result;
+        }
+        function createVariant(spec) {
+            return {
+                show_understocking: 'true',
+                type: 'variants',
+                sale_price: 0,
+                compare_price: 0,
+                origin_price: 0,
+                cost: 0,
+                spec: JSON.parse(JSON.stringify(spec)),
+                profit: 0,
+                v_length: 0,
+                v_width: 0,
+                v_height: 0,
+                weight: 0,
+                shipment_type: shipment_config.selectCalc || 'weight',
+                sku: '',
+                barcode: '',
+                stock: 0,
+                stockList: {},
+                preview_image: '',
+            };
+        }
+        function isValidVariant(variant, specs) {
+            return (variant.spec.length === specs.length &&
+                variant.spec.every((value, index) => {
+                    var _a;
+                    return (_a = specs[index]) === null || _a === void 0 ? void 0 : _a.option.some((dd) => dd.title === value);
+                }));
+        }
+        updateVariants();
+        const categoryTitles = {
+            commodity: '商品',
+            course: '課程',
+        };
+        const carTitle = categoryTitles[postMD.product_category] || '商品';
         return BgWidget.container(gvc.bindView(() => {
             const id = gvc.glitter.getUUID();
-            function refresh() {
-                gvc.notifyDataChange(id);
-            }
             return {
                 bind: id,
                 view: () => {
@@ -172,10 +135,8 @@ export class ShoppingSettingAdvance {
                         BgWidget.mainCard([
                             html `
                                         <div class="d-flex flex-column guide5-4">
-                                            <div style="font-weight: 700;" class="mb-1">${cat_title}標籤
-                                                ${BgWidget.languageInsignia(vm.language, 'margin-left:5px;')}
-                                            </div>
-                                            ${BgWidget.grayNote('用戶於前台搜尋標籤，即可搜尋到此' + cat_title)}
+                                            <div style="font-weight: 700;" class="mb-1">${carTitle}標籤 ${BgWidget.languageInsignia(vm.language, 'margin-left:5px;')}</div>
+                                            ${BgWidget.grayNote('用戶於前台搜尋標籤，即可搜尋到此' + carTitle)}
                                             <div class="mb-2"></div>
                                             ${BgWidget.multipleInput(gvc, postMD.product_tag.language[vm.language], {
                                 save: (def) => {
@@ -184,31 +145,32 @@ export class ShoppingSettingAdvance {
                             })}
                                         </div>
                                     `,
-                            html `
-                                        <div class="mt-2 mb-2 position-relative" style="font-weight: 700;">
-                                            ${cat_title}促銷標籤
+                            html ` <div class="mt-2 mb-2 position-relative" style="font-weight: 700;">
+                                            ${carTitle}促銷標籤
                                             ${BgWidget.questionButton(gvc.event(() => {
                                 QuestionInfo.promoteLabel(gvc);
                             }))}
                                         </div>
                                         ${gvc.bindView((() => {
                                 const id = gvc.glitter.getUUID();
-                                const inputStyle = 'display: block; width: 200px;';
                                 let options = [];
                                 ApiUser.getPublicConfig('promo-label', 'manager').then((data) => {
-                                    options = data.response.value
-                                        .map((label) => {
-                                        return {
-                                            key: label.id,
-                                            value: label.title,
-                                        };
-                                    })
-                                        .concat([
-                                        {
-                                            key: '',
-                                            value: '不設定',
-                                        },
-                                    ]);
+                                    var _a, _b;
+                                    if (data.result && Array.isArray(data.response.value)) {
+                                        options = ((_b = (_a = data.response) === null || _a === void 0 ? void 0 : _a.value) !== null && _b !== void 0 ? _b : [])
+                                            .map((label) => {
+                                            return {
+                                                key: label.id,
+                                                value: label.title,
+                                            };
+                                        })
+                                            .concat([
+                                            {
+                                                key: '',
+                                                value: '不設定',
+                                            },
+                                        ]);
+                                    }
                                     gvc.notifyDataChange(id);
                                 });
                                 return {
@@ -226,27 +188,29 @@ export class ShoppingSettingAdvance {
                                     },
                                 };
                             })())}`,
-                            (postMD.product_category === 'course') ? `` : `<div class="d-flex flex-column mt-2">
-                                        <div style="font-weight: 700;" class="mb-1">數量單位 ${BgWidget.languageInsignia(vm.language, 'margin-left:5px;')}</div>
-                                        ${BgWidget.grayNote('例如 : 坪、件、個、打，預設單位為件。')}
-                                        <div class="mb-2"></div>
-                                        ${BgWidget.editeInput({
-                                gvc: obj.gvc,
-                                default: `${postMD.unit[vm.language] || ''}`,
-                                title: '',
-                                type: 'text',
-                                placeHolder: `件`,
-                                callback: (text) => {
-                                    postMD.unit[vm.language] = text;
-                                    gvc.notifyDataChange(id);
-                                },
-                            })}
-                                    </div>`
+                            postMD.product_category === 'course'
+                                ? ``
+                                : html `<div class="d-flex flex-column mt-2">
+                                              <div style="font-weight: 700;" class="mb-1">數量單位 ${BgWidget.languageInsignia(vm.language, 'margin-left:5px;')}</div>
+                                              ${BgWidget.grayNote('例如 : 坪、件、個、打，預設單位為件。')}
+                                              <div class="mb-2"></div>
+                                              ${BgWidget.editeInput({
+                                    gvc: obj.gvc,
+                                    default: `${postMD.unit[vm.language] || ''}`,
+                                    title: '',
+                                    type: 'text',
+                                    placeHolder: `件`,
+                                    callback: (text) => {
+                                        postMD.unit[vm.language] = text;
+                                        gvc.notifyDataChange(id);
+                                    },
+                                })}
+                                          </div>`,
                         ].join('')),
                         BgWidget.mainCard([
                             html `
                                         <div class="d-flex flex-column guide5-4">
-                                            <div style="font-weight: 700;" class="mb-2">${cat_title}購買限制</div>
+                                            <div style="font-weight: 700;" class="mb-2">${carTitle}購買限制</div>
                                         </div>
                                     `,
                             ...(postMD.productType.giveaway
@@ -263,12 +227,12 @@ export class ShoppingSettingAdvance {
                                         checked: postMD.max_qty,
                                     },
                                     {
-                                        title: `需連同特定${cat_title}一併購買`,
+                                        title: `需連同特定${carTitle}一併購買`,
                                         key: 'match_by_with',
                                         checked: postMD.match_by_with,
                                     },
                                     {
-                                        title: `過往購買過特定${cat_title}才能購買此${cat_title}`,
+                                        title: `過往購買過特定${carTitle}才能購買此${carTitle}`,
                                         key: 'legacy_by_with',
                                         checked: postMD.legacy_by_with,
                                     },
@@ -284,35 +248,24 @@ export class ShoppingSettingAdvance {
                                                     value: dd.key,
                                                 },
                                             ],
-                                            callback: (text) => {
+                                            callback: () => {
+                                                const handleToggle = (key, defaultValue) => {
+                                                    if (postMD[key]) {
+                                                        delete postMD[key];
+                                                    }
+                                                    else {
+                                                        postMD[key] = defaultValue;
+                                                    }
+                                                    gvc.notifyDataChange(id);
+                                                };
                                                 switch (dd.key) {
                                                     case 'min_qty':
                                                     case 'max_qty':
-                                                        if (postMD[dd.key]) {
-                                                            delete postMD[dd.key];
-                                                        }
-                                                        else {
-                                                            postMD[dd.key] = 1;
-                                                        }
-                                                        gvc.notifyDataChange(id);
+                                                        handleToggle(dd.key, 1);
                                                         break;
                                                     case 'match_by_with':
-                                                        if (postMD['match_by_with']) {
-                                                            delete postMD['match_by_with'];
-                                                        }
-                                                        else {
-                                                            postMD['match_by_with'] = [];
-                                                        }
-                                                        gvc.notifyDataChange(id);
-                                                        break;
                                                     case 'legacy_by_with':
-                                                        if (postMD['legacy_by_with']) {
-                                                            delete postMD['legacy_by_with'];
-                                                        }
-                                                        else {
-                                                            postMD['legacy_by_with'] = [];
-                                                        }
-                                                        gvc.notifyDataChange(id);
+                                                        handleToggle(dd.key, []);
                                                         break;
                                                 }
                                             },
@@ -323,9 +276,8 @@ export class ShoppingSettingAdvance {
                                         switch (dd.key) {
                                             case 'min_qty':
                                             case 'max_qty':
-                                                text_.push(`<div class="d-flex align-items-center fw-500"
-                                                                                     style="gap:10px;">
-                                                                                    ${BgWidget.editeInput({
+                                                text_.push(html `<div class="d-flex align-items-center fw-500" style="gap:10px;">
+                                                                  ${BgWidget.editeInput({
                                                     gvc: obj.gvc,
                                                     default: `${postMD[dd.key] || ''}`,
                                                     title: '',
@@ -336,8 +288,8 @@ export class ShoppingSettingAdvance {
                                                         gvc.notifyDataChange(id);
                                                     },
                                                 })}
-                                                                                    件
-                                                                                </div>`);
+                                                                  件
+                                                              </div>`);
                                                 break;
                                             case 'match_by_with':
                                                 text_.push(obj.gvc.bindView(() => {
@@ -347,18 +299,14 @@ export class ShoppingSettingAdvance {
                                                         view: () => {
                                                             try {
                                                                 return html `
-                                                                                <div style="font-weight: 700;"
-                                                                                     class=" d-flex flex-column">
-                                                                                    ${BgWidget.grayNote(`購物車必須連同包含以下其中一個${postMD.product_category === 'course' ? `課程或商品` : `商品`}才可結帳`)}
-                                                                                </div>
-                                                                                <div class="d-flex align-items-center gray-bottom-line-18"
-                                                                                     style="gap: 24px; justify-content: space-between;">
-                                                                                    <div class="form-check-label c_updown_label">
-                                                                                        <div class="tx_normal">
-                                                                                            商品列表
-                                                                                        </div>
-                                                                                    </div>
-                                                                                    ${BgWidget.grayButton('選擇商品', gvc.event(() => {
+                                                                                  <div style="font-weight: 700;" class=" d-flex flex-column">
+                                                                                      ${BgWidget.grayNote(`購物車必須連同包含以下其中一個${postMD.product_category === 'course' ? `課程或商品` : `商品`}才可結帳`)}
+                                                                                  </div>
+                                                                                  <div class="d-flex align-items-center gray-bottom-line-18" style="gap: 24px; justify-content: space-between;">
+                                                                                      <div class="form-check-label c_updown_label">
+                                                                                          <div class="tx_normal">商品列表</div>
+                                                                                      </div>
+                                                                                      ${BgWidget.grayButton('選擇商品', gvc.event(() => {
                                                                     BgProduct.productsDialog({
                                                                         gvc: gvc,
                                                                         default: postMD.match_by_with,
@@ -366,13 +314,11 @@ export class ShoppingSettingAdvance {
                                                                             postMD.match_by_with = value;
                                                                             gvc.notifyDataChange(id);
                                                                         }),
-                                                                        filter: (dd) => {
-                                                                            return dd.key !== postMD.id;
-                                                                        },
+                                                                        filter: (dd) => dd.key !== postMD.id,
                                                                     });
                                                                 }), { textStyle: 'font-weight: 400;' })}
-                                                                                </div>
-                                                                                ${gvc.bindView(() => {
+                                                                                  </div>
+                                                                                  ${gvc.bindView(() => {
                                                                     const vm = {
                                                                         id: gvc.glitter.getUUID(),
                                                                         loading: true,
@@ -391,22 +337,16 @@ export class ShoppingSettingAdvance {
                                                                             }
                                                                             return vm.data
                                                                                 .map((opt, index) => {
-                                                                                return html `
-                                                                                                            <div class="d-flex align-items-center form-check-label c_updown_label gap-3">
-                                                                                                                <span class="tx_normal">${index + 1} .</span>
-                                                                                                                ${BgWidget.validImageBox({
+                                                                                return html ` <div class="d-flex align-items-center form-check-label c_updown_label gap-3">
+                                                                                                          <span class="tx_normal">${index + 1} .</span>
+                                                                                                          ${BgWidget.validImageBox({
                                                                                     gvc: gvc,
                                                                                     image: opt.image,
                                                                                     width: 40,
                                                                                 })}
-                                                                                                                <div class="tx_normal ${opt.note ? 'mb-1' : ''}">
-                                                                                                                    ${opt.value}
-                                                                                                                </div>
-                                                                                                                ${opt.note ? html `
-                                                                                                                    <div class="tx_gray_12">
-                                                                                                                        ${opt.note}
-                                                                                                                    </div> ` : ''}
-                                                                                                            </div>`;
+                                                                                                          <div class="tx_normal ${opt.note ? 'mb-1' : ''}">${opt.value}</div>
+                                                                                                          ${opt.note ? html ` <div class="tx_gray_12">${opt.note}</div> ` : ''}
+                                                                                                      </div>`;
                                                                             })
                                                                                 .join('');
                                                                         }),
@@ -416,7 +356,7 @@ export class ShoppingSettingAdvance {
                                                                         },
                                                                     };
                                                                 })}
-                                                                            `;
+                                                                              `;
                                                             }
                                                             catch (e) {
                                                                 console.error(e);
@@ -437,18 +377,14 @@ export class ShoppingSettingAdvance {
                                                         view: () => {
                                                             try {
                                                                 return html `
-                                                                                <div style="font-weight: 700;"
-                                                                                     class=" d-flex flex-column">
-                                                                                    ${BgWidget.grayNote(`已購買過的訂單記錄中，必須包含以下${postMD.product_category === 'course' ? `課程或商品` : `商品`}才可以結帳`)}
-                                                                                </div>
-                                                                                <div class="d-flex align-items-center gray-bottom-line-18"
-                                                                                     style="gap: 24px; justify-content: space-between;">
-                                                                                    <div class="form-check-label c_updown_label">
-                                                                                        <div class="tx_normal">
-                                                                                            商品列表
-                                                                                        </div>
-                                                                                    </div>
-                                                                                    ${BgWidget.grayButton('選擇商品', gvc.event(() => {
+                                                                                  <div style="font-weight: 700;" class=" d-flex flex-column">
+                                                                                      ${BgWidget.grayNote(`已購買過的訂單記錄中，必須包含以下${postMD.product_category === 'course' ? `課程或商品` : `商品`}才可以結帳`)}
+                                                                                  </div>
+                                                                                  <div class="d-flex align-items-center gray-bottom-line-18" style="gap: 24px; justify-content: space-between;">
+                                                                                      <div class="form-check-label c_updown_label">
+                                                                                          <div class="tx_normal">商品列表</div>
+                                                                                      </div>
+                                                                                      ${BgWidget.grayButton('選擇商品', gvc.event(() => {
                                                                     BgProduct.productsDialog({
                                                                         gvc: gvc,
                                                                         default: postMD.match_by_with,
@@ -461,8 +397,8 @@ export class ShoppingSettingAdvance {
                                                                         },
                                                                     });
                                                                 }), { textStyle: 'font-weight: 400;' })}
-                                                                                </div>
-                                                                                ${gvc.bindView(() => {
+                                                                                  </div>
+                                                                                  ${gvc.bindView(() => {
                                                                     const vm = {
                                                                         id: gvc.glitter.getUUID(),
                                                                         loading: true,
@@ -481,22 +417,16 @@ export class ShoppingSettingAdvance {
                                                                             }
                                                                             return vm.data
                                                                                 .map((opt, index) => {
-                                                                                return html `
-                                                                                                            <div class="d-flex align-items-center form-check-label c_updown_label gap-3">
-                                                                                                                <span class="tx_normal">${index + 1} .</span>
-                                                                                                                ${BgWidget.validImageBox({
+                                                                                return html ` <div class="d-flex align-items-center form-check-label c_updown_label gap-3">
+                                                                                                          <span class="tx_normal">${index + 1} .</span>
+                                                                                                          ${BgWidget.validImageBox({
                                                                                     gvc: gvc,
                                                                                     image: opt.image,
                                                                                     width: 40,
                                                                                 })}
-                                                                                                                <div class="tx_normal ${opt.note ? 'mb-1' : ''}">
-                                                                                                                    ${opt.value}
-                                                                                                                </div>
-                                                                                                                ${opt.note ? html `
-                                                                                                                    <div class="tx_gray_12">
-                                                                                                                        ${opt.note}
-                                                                                                                    </div> ` : ''}
-                                                                                                            </div>`;
+                                                                                                          <div class="tx_normal ${opt.note ? 'mb-1' : ''}">${opt.value}</div>
+                                                                                                          ${opt.note ? html ` <div class="tx_gray_12">${opt.note}</div> ` : ''}
+                                                                                                      </div>`;
                                                                             })
                                                                                 .join('');
                                                                         }),
@@ -506,7 +436,7 @@ export class ShoppingSettingAdvance {
                                                                         },
                                                                     };
                                                                 })}
-                                                                            `;
+                                                                              `;
                                                             }
                                                             catch (e) {
                                                                 console.error(e);
@@ -524,177 +454,360 @@ export class ShoppingSettingAdvance {
                                     return text_.join('');
                                 })),
                         ].join(``)),
-                        (postMD.product_category === 'commodity') ? BgWidget.mainCard(obj.gvc.bindView(() => {
-                            var _a;
-                            let loading = true;
-                            let dataList = [];
-                            postMD.designated_logistics = (_a = postMD.designated_logistics) !== null && _a !== void 0 ? _a : {
-                                type: 'all',
-                                list: [],
+                        BgWidget.mainCard((() => {
+                            const priceVM = {
+                                id: gvc.glitter.getUUID(),
+                                loading: true,
+                                levelData: [],
+                                storeData: [],
                             };
-                            return {
-                                bind: 'designatedLogistics',
+                            const getIndexStyle = (index) => index === 0
+                                ? 'height: 100%; padding: 8px 0 0; min-width: 216px; position: sticky; left: 0; background: #fff; box-shadow: 2px 0px 0px 0px rgba(0, 0, 0, 0.10);'
+                                : 'height: 100%; padding: 8px 0 0; text-align: center; justify-content: center; min-width: 126px;';
+                            const resetPostList = (result, type) => {
+                                var _a, _b, _c;
+                                const existingPrices = new Map((_a = postMD.multi_sale_price) === null || _a === void 0 ? void 0 : _a.filter((m) => {
+                                    return m.type === type;
+                                }).map((m) => {
+                                    return [m.key, new Map(m.variants.map((v) => [v.spec.join(','), v.price]))];
+                                }));
+                                postMD.multi_sale_price = [
+                                    ...((_c = (_b = postMD.multi_sale_price) === null || _b === void 0 ? void 0 : _b.filter((item) => item.type !== type)) !== null && _c !== void 0 ? _c : []),
+                                    ...result.map((key) => ({
+                                        type,
+                                        key,
+                                        variants: postMD.variants.map((v) => {
+                                            var _a, _b;
+                                            return ({
+                                                spec: v.spec,
+                                                price: (_b = (_a = existingPrices.get(key)) === null || _a === void 0 ? void 0 : _a.get(v.spec.join(','))) !== null && _b !== void 0 ? _b : 0,
+                                            });
+                                        }),
+                                    })),
+                                ];
+                                gvc.notifyDataChange(priceVM.id);
+                            };
+                            const createToggleList = () => [
+                                {
+                                    title: '會員等級價格開啟',
+                                    note: '開啟後即可為各個會員等級設置專屬的價格',
+                                    type: 'level',
+                                    event: () => {
+                                        BgProduct.setMemberPriceSetting({
+                                            gvc,
+                                            postData: postMD.multi_sale_price ? postMD.multi_sale_price.filter(item => item.type === 'level').map((item) => item.key) : [],
+                                            callback: (result) => resetPostList(result, 'level'),
+                                        });
+                                    },
+                                },
+                                {
+                                    title: '門市專屬價格開啟',
+                                    note: '開啟後即可為各個門市設置專屬的價格',
+                                    type: 'store',
+                                    event: () => {
+                                        BgProduct.setStorePriceSetting({
+                                            gvc,
+                                            postData: postMD.multi_sale_price ? postMD.multi_sale_price.filter(item => item.type === 'store').map((item) => item.key) : [],
+                                            callback: (result) => resetPostList(result, 'store'),
+                                        });
+                                    },
+                                },
+                            ];
+                            return gvc.bindView({
+                                bind: priceVM.id,
                                 view: () => {
-                                    if (loading) {
-                                        return '';
+                                    if (priceVM.loading) {
+                                        return BgWidget.spinner();
                                     }
-                                    return html `
-                                                <div class="tx_700">指定物流配送方式</div>
-                                                ${BgWidget.mbContainer(18)}
-                                                ${gvc.bindView(() => {
-                                        const id = gvc.glitter.getUUID();
-                                        return {
-                                            bind: id,
-                                            view: () => {
-                                                return html `
-                                                                <div style="display: flex; flex-direction: column; gap: 8px;">
-                                                                    ${BgWidget.selectFilter({
-                                                    gvc: gvc,
-                                                    callback: (text) => {
-                                                        postMD.designated_logistics.type = text;
-                                                        gvc.notifyDataChange(id);
-                                                    },
-                                                    default: postMD.designated_logistics.type,
-                                                    options: [
-                                                        {
-                                                            key: 'all',
-                                                            value: '全部',
-                                                        },
-                                                        {
-                                                            key: 'designated',
-                                                            value: '指定物流',
-                                                        },
-                                                    ],
-                                                    style: 'width: 100%;',
-                                                })}
-                                                                    <div>
-                                                                        ${(() => {
-                                                    switch (postMD.designated_logistics.type) {
-                                                        case 'designated':
-                                                            return (() => {
-                                                                const designatedVM = {
-                                                                    id: gvc.glitter.getUUID(),
-                                                                    loading: true,
-                                                                    dataList: [],
-                                                                };
-                                                                return gvc.bindView({
-                                                                    bind: designatedVM.id,
-                                                                    view: () => {
-                                                                        var _a;
-                                                                        if (designatedVM.loading) {
-                                                                            return BgWidget.spinner({ text: { visible: false } });
+                                    const toggleList = createToggleList();
+                                    const particularKeys = [
+                                        ...priceVM.levelData
+                                            .filter((item) => { var _a; return (_a = postMD.multi_sale_price) === null || _a === void 0 ? void 0 : _a.some((m) => m.type === 'level' && m.key === item.tag); })
+                                            .map((item) => ({
+                                            type: 'level',
+                                            key: item.tag || 'default',
+                                            name: item.title.replace('會員等級 - ', ''),
+                                        })),
+                                        ...priceVM.storeData.filter((item) => { var _a; return (_a = postMD.multi_sale_price) === null || _a === void 0 ? void 0 : _a.some((m) => m.type === 'store' && m.key === item.key); }),
+                                    ];
+                                    try {
+                                        return html `
+                                                <div class="title-container px-0 mb-2">
+                                                    <div style="color:#393939;font-weight: 700;">專屬價格</div>
+                                                    <div class="flex-fill"></div>
+                                                </div>
+                                                ${toggleList
+                                            .map((item) => {
+                                            var _a;
+                                            return html `
+                                                            <div class="d-flex align-items-center">
+                                                                <div>
+                                                                    <div class="d-flex align-items-center gap-2 mb-1">
+                                                                        <span class="tx_normal">${item.title}</span>
+                                                                        <div class="cursor_pointer form-check form-switch m-0">
+                                                                            <input
+                                                                                class="form-check-input"
+                                                                                style="cursor: pointer;"
+                                                                                type="checkbox"
+                                                                                onchange="${gvc.event((e) => {
+                                                var _a;
+                                                if (e.checked) {
+                                                    item.event();
+                                                }
+                                                else {
+                                                    postMD.multi_sale_price = (_a = postMD.multi_sale_price) === null || _a === void 0 ? void 0 : _a.filter((m) => m.type !== item.type);
+                                                    gvc.notifyDataChange(priceVM.id);
+                                                }
+                                            })}"
+                                                                                ${((_a = postMD.multi_sale_price) === null || _a === void 0 ? void 0 : _a.some((m) => m.type === item.type)) ? `checked` : ``}
+                                                                            />
+                                                                        </div>
+                                                                    </div>
+                                                                    ${BgWidget.grayNote(item.note)}
+                                                                </div>
+                                                                <div class="flex-fill"></div>
+                                                                <div style="cursor: pointer;" onclick="${gvc.event(item.event)}">設定<i class="fa-regular fa-gear ms-1"></i></div>
+                                                            </div>
+                                                        `;
+                                        })
+                                            .join(BgWidget.mbContainer(18))}
+                                                ${postMD.multi_sale_price && postMD.multi_sale_price.length > 0
+                                            ? html `<div class="mt-3 d-grid" style="overflow: scroll;">
+                                                          <div class="d-flex">
+                                                              ${['商品名稱', '成本', '原價', '售價', ...particularKeys.map((item) => item.name)]
+                                                .map((item, index) => html `
+                                                                          <div style="${getIndexStyle(index)}">
+                                                                              <div>${item}</div>
+                                                                              ${BgWidget.horizontalLine({ margin: '1rem 0 0;' })}
+                                                                          </div>
+                                                                      `)
+                                                .join('')}
+                                                          </div>
+                                                          <div class="w-100 d-flex flex-column">
+                                                              ${postMD.variants
+                                                .map((variant) => {
+                                                const { spec, cost = 0, sale_price, preview_image, compare_price } = variant;
+                                                return html ` <div class="d-flex align-items-center">
+                                                                          ${[
+                                                    html `
+                                                                                  <div>${BgWidget.validImageBox({ gvc, image: preview_image, width: 40 })}</div>
+                                                                                  <div class="ms-2">${spec.join(' / ')}</div>
+                                                                              `,
+                                                    `$ ${cost.toLocaleString()}`,
+                                                    `$ ${compare_price.toLocaleString()}`,
+                                                    `$ ${sale_price.toLocaleString()}`,
+                                                    ...particularKeys.map((item) => gvc.bindView((() => {
+                                                        const id = gvc.glitter.getUUID();
+                                                        return {
+                                                            bind: id,
+                                                            view: () => {
+                                                                var _a, _b;
+                                                                const priceObj = (_a = postMD.multi_sale_price) === null || _a === void 0 ? void 0 : _a.find((m) => m.type === item.type && m.key === item.key);
+                                                                const variantObj = priceObj === null || priceObj === void 0 ? void 0 : priceObj.variants.find((v) => v.spec.join(',') === spec.join(','));
+                                                                return BgWidget.editeInput({
+                                                                    gvc,
+                                                                    title: '',
+                                                                    default: `${(_b = variantObj === null || variantObj === void 0 ? void 0 : variantObj.price) !== null && _b !== void 0 ? _b : 0}`,
+                                                                    placeHolder: '',
+                                                                    callback: (value) => {
+                                                                        const n = parseInt(`${value !== null && value !== void 0 ? value : 0}`, 10);
+                                                                        if (variantObj && !isNaN(n) && n > 0) {
+                                                                            variantObj.price = n;
                                                                         }
-                                                                        else {
-                                                                            return BgWidget.selectDropList({
-                                                                                gvc: gvc,
-                                                                                callback: (value) => {
-                                                                                    postMD.designated_logistics.list = value;
-                                                                                    gvc.notifyDataChange(id);
-                                                                                },
-                                                                                default: (_a = postMD.designated_logistics.list) !== null && _a !== void 0 ? _a : [],
-                                                                                options: designatedVM.dataList,
-                                                                                style: 'width: 100%;',
-                                                                            });
-                                                                        }
-                                                                    },
-                                                                    divCreate: {
-                                                                        style: 'width: 100%;',
-                                                                    },
-                                                                    onCreate: () => {
-                                                                        if (designatedVM.loading) {
-                                                                            ApiPageConfig.getPrivateConfig(window.parent.appName, 'logistics_setting').then((dd) => {
-                                                                                var _a;
-                                                                                if (dd.result && dd.response.result[0]) {
-                                                                                    const shipment_setting = dd.response.result[0].value;
-                                                                                    designatedVM.dataList = [
-                                                                                        {
-                                                                                            name: '中華郵政',
-                                                                                            value: 'normal'
-                                                                                        },
-                                                                                        {
-                                                                                            name: '黑貓到府',
-                                                                                            value: 'black_cat'
-                                                                                        },
-                                                                                        {
-                                                                                            name: '全家店到店',
-                                                                                            value: 'FAMIC2C'
-                                                                                        },
-                                                                                        {
-                                                                                            name: '萊爾富店到店',
-                                                                                            value: 'HILIFEC2C'
-                                                                                        },
-                                                                                        {
-                                                                                            name: 'OK超商店到店',
-                                                                                            value: 'OKMARTC2C'
-                                                                                        },
-                                                                                        {
-                                                                                            name: '7-ELEVEN超商交貨便',
-                                                                                            value: 'UNIMARTC2C'
-                                                                                        },
-                                                                                        {
-                                                                                            name: '實體門市取貨',
-                                                                                            value: 'shop'
-                                                                                        },
-                                                                                        {
-                                                                                            name: '國際快遞',
-                                                                                            value: 'global_express'
-                                                                                        },
-                                                                                    ]
-                                                                                        .concat(((_a = shipment_setting.custom_delivery) !== null && _a !== void 0 ? _a : []).map((dd) => {
-                                                                                        return {
-                                                                                            form: dd.form,
-                                                                                            name: dd.name,
-                                                                                            value: dd.id,
-                                                                                        };
-                                                                                    }))
-                                                                                        .filter((d1) => {
-                                                                                        return shipment_setting.support.some((d2) => {
-                                                                                            return d2 === d1.value;
-                                                                                        });
-                                                                                    })
-                                                                                        .map((item) => {
-                                                                                        return {
-                                                                                            key: item.value,
-                                                                                            value: item.name,
-                                                                                        };
-                                                                                    });
-                                                                                    designatedVM.loading = false;
-                                                                                    gvc.notifyDataChange(designatedVM.id);
-                                                                                }
-                                                                            });
-                                                                        }
+                                                                        gvc.notifyDataChange(id);
                                                                     },
                                                                 });
-                                                            })();
-                                                        default:
-                                                            return '';
-                                                    }
-                                                })()}
-                                                                    </div>
-                                                                </div>
-                                                            `;
-                                            },
-                                        };
-                                    })}`;
+                                                            },
+                                                            divCreate: {
+                                                                style: 'width: 120px;',
+                                                            },
+                                                        };
+                                                    })())),
+                                                ]
+                                                    .map((item, index) => html ` <div class="d-flex align-items-center" style="${getIndexStyle(index)}">${item}</div> `)
+                                                    .join('')}
+                                                                      </div>`;
+                                            })
+                                                .join('')}
+                                                          </div>
+                                                      </div>`
+                                            : ''}
+                                            `;
+                                    }
+                                    catch (error) {
+                                        console.error(error);
+                                        return '';
+                                    }
                                 },
                                 onCreate: () => {
-                                    if (loading) {
-                                        ApiPageConfig.getPrivateConfig(window.parent.appName, 'glitter_delivery').then((res) => {
-                                            dataList = (() => {
-                                                try {
-                                                    return res.response.result[0].value;
+                                    if (priceVM.loading) {
+                                        Promise.all([
+                                            ApiUser.getUserGroupList('level').then((r) => {
+                                                if (r.result && r.response && Array.isArray(r.response.data)) {
+                                                    return r.response.data;
                                                 }
-                                                catch (error) {
-                                                    return dataList;
+                                                return [];
+                                            }),
+                                            ApiUser.getPublicConfig('store_manager', 'manager').then((r) => {
+                                                if (r.result && Array.isArray(r.response.value.list)) {
+                                                    return r.response.value.list.map((d) => ({
+                                                        type: 'store',
+                                                        key: d.id,
+                                                        name: d.name,
+                                                    }));
                                                 }
-                                            })();
-                                            loading = false;
-                                            gvc.notifyDataChange('designatedLogistics');
+                                                return [];
+                                            }),
+                                        ]).then((dlist) => {
+                                            priceVM.levelData = dlist[0];
+                                            priceVM.storeData = dlist[1];
+                                            priceVM.loading = false;
+                                            gvc.notifyDataChange(priceVM.id);
                                         });
                                     }
                                 },
-                            };
-                        })) : ``,
+                            });
+                        })()),
+                        postMD.product_category === 'commodity'
+                            ? BgWidget.mainCard(obj.gvc.bindView(() => {
+                                var _a;
+                                let loading = true;
+                                let dataList = [];
+                                postMD.designated_logistics = (_a = postMD.designated_logistics) !== null && _a !== void 0 ? _a : { type: 'all', list: [] };
+                                return {
+                                    bind: 'designatedLogistics',
+                                    view: () => {
+                                        if (loading) {
+                                            return '';
+                                        }
+                                        return html ` <div class="tx_700">指定物流配送方式</div>
+                                                      ${BgWidget.mbContainer(18)}
+                                                      ${gvc.bindView(() => {
+                                            const id = gvc.glitter.getUUID();
+                                            return {
+                                                bind: id,
+                                                view: () => {
+                                                    return html `
+                                                                      <div style="display: flex; flex-direction: column; gap: 8px;">
+                                                                          ${BgWidget.selectFilter({
+                                                        gvc: gvc,
+                                                        callback: (text) => {
+                                                            postMD.designated_logistics.type = text;
+                                                            gvc.notifyDataChange(id);
+                                                        },
+                                                        default: postMD.designated_logistics.type,
+                                                        options: [
+                                                            {
+                                                                key: 'all',
+                                                                value: '全部',
+                                                            },
+                                                            {
+                                                                key: 'designated',
+                                                                value: '指定物流',
+                                                            },
+                                                        ],
+                                                        style: 'width: 100%;',
+                                                    })}
+                                                                          <div>
+                                                                              ${(() => {
+                                                        switch (postMD.designated_logistics.type) {
+                                                            case 'designated':
+                                                                return (() => {
+                                                                    const designatedVM = {
+                                                                        id: gvc.glitter.getUUID(),
+                                                                        loading: true,
+                                                                        dataList: [],
+                                                                    };
+                                                                    return gvc.bindView({
+                                                                        bind: designatedVM.id,
+                                                                        view: () => {
+                                                                            var _a;
+                                                                            if (designatedVM.loading) {
+                                                                                return BgWidget.spinner({ text: { visible: false } });
+                                                                            }
+                                                                            else {
+                                                                                return BgWidget.selectDropList({
+                                                                                    gvc: gvc,
+                                                                                    callback: (value) => {
+                                                                                        postMD.designated_logistics.list = value;
+                                                                                        gvc.notifyDataChange(id);
+                                                                                    },
+                                                                                    default: (_a = postMD.designated_logistics.list) !== null && _a !== void 0 ? _a : [],
+                                                                                    options: designatedVM.dataList,
+                                                                                    style: 'width: 100%;',
+                                                                                });
+                                                                            }
+                                                                        },
+                                                                        divCreate: {
+                                                                            style: 'width: 100%;',
+                                                                        },
+                                                                        onCreate: () => {
+                                                                            if (designatedVM.loading) {
+                                                                                ApiPageConfig.getPrivateConfig(window.parent.appName, 'logistics_setting')
+                                                                                    .then((dd) => {
+                                                                                    var _a;
+                                                                                    if (!dd.result || !dd.response.result[0]) {
+                                                                                        throw new Error('Failed to fetch logistics setting or empty result.');
+                                                                                    }
+                                                                                    const shipment_setting = dd.response.result[0].value;
+                                                                                    const combinedList = [
+                                                                                        ...ShipmentConfig.list.map((dd) => ({
+                                                                                            name: dd.title,
+                                                                                            value: dd.value,
+                                                                                        })),
+                                                                                        ...((_a = shipment_setting.custom_delivery) !== null && _a !== void 0 ? _a : []).map((dd) => ({
+                                                                                            form: dd.form,
+                                                                                            name: dd.name,
+                                                                                            value: dd.id,
+                                                                                        })),
+                                                                                    ];
+                                                                                    const supportedList = combinedList.filter((d1) => shipment_setting.support.some((d2) => d2 === d1.value));
+                                                                                    designatedVM.dataList = supportedList.map((item) => ({
+                                                                                        key: item.value,
+                                                                                        value: item.name,
+                                                                                    }));
+                                                                                    designatedVM.loading = false;
+                                                                                    gvc.notifyDataChange(designatedVM.id);
+                                                                                })
+                                                                                    .catch((error) => {
+                                                                                    console.error('Error fetching logistics setting:', error);
+                                                                                    designatedVM.loading = false;
+                                                                                    gvc.notifyDataChange(designatedVM.id);
+                                                                                });
+                                                                            }
+                                                                        },
+                                                                    });
+                                                                })();
+                                                            default:
+                                                                return '';
+                                                        }
+                                                    })()}
+                                                                          </div>
+                                                                      </div>
+                                                                  `;
+                                                },
+                                            };
+                                        })}`;
+                                    },
+                                    onCreate: () => {
+                                        if (loading) {
+                                            ApiPageConfig.getPrivateConfig(window.parent.appName, 'glitter_delivery').then((res) => {
+                                                dataList = (() => {
+                                                    try {
+                                                        return res.response.result[0].value;
+                                                    }
+                                                    catch (error) {
+                                                        return dataList;
+                                                    }
+                                                })();
+                                                loading = false;
+                                                gvc.notifyDataChange('designatedLogistics');
+                                            });
+                                        }
+                                    },
+                                };
+                            }))
+                            : ``,
                         BgWidget.mainCard(obj.gvc.bindView(() => {
                             const id = gvc.glitter.getUUID();
                             return {
@@ -704,11 +817,8 @@ export class ShoppingSettingAdvance {
                                     postMD.relative_product = (_a = postMD.relative_product) !== null && _a !== void 0 ? _a : [];
                                     try {
                                         return html `
-                                                    <div style="font-weight: 700;" class="mb-3 d-flex flex-column">相關商品
-                                                        ${BgWidget.grayNote('相關商品將會顯示於商品頁底部')}
-                                                    </div>
-                                                    <div class="d-flex align-items-center gray-bottom-line-18"
-                                                         style="gap: 24px; justify-content: space-between;">
+                                                    <div style="font-weight: 700;" class="mb-3 d-flex flex-column">相關商品 ${BgWidget.grayNote('相關商品將會顯示於商品頁底部')}</div>
+                                                    <div class="d-flex align-items-center gray-bottom-line-18" style="gap: 24px; justify-content: space-between;">
                                                         <div class="form-check-label c_updown_label">
                                                             <div class="tx_normal">商品列表</div>
                                                         </div>
@@ -745,22 +855,16 @@ export class ShoppingSettingAdvance {
                                                     }
                                                     return vm.data
                                                         .map((opt, index) => {
-                                                        return html `
-                                                                                <div class="d-flex align-items-center form-check-label c_updown_label gap-3">
-                                                                                    <span class="tx_normal">${index + 1} .</span>
-                                                                                    ${BgWidget.validImageBox({
+                                                        return html ` <div class="d-flex align-items-center form-check-label c_updown_label gap-3">
+                                                                            <span class="tx_normal">${index + 1} .</span>
+                                                                            ${BgWidget.validImageBox({
                                                             gvc: gvc,
                                                             image: opt.image,
                                                             width: 40,
                                                         })}
-                                                                                    <div class="tx_normal ${opt.note ? 'mb-1' : ''}">
-                                                                                        ${opt.value}
-                                                                                    </div>
-                                                                                    ${opt.note ? html `
-                                                                                        <div class="tx_gray_12">
-                                                                                            ${opt.note}
-                                                                                        </div> ` : ''}
-                                                                                </div>`;
+                                                                            <div class="tx_normal ${opt.note ? 'mb-1' : ''}">${opt.value}</div>
+                                                                            ${opt.note ? html ` <div class="tx_gray_12">${opt.note}</div> ` : ''}
+                                                                        </div>`;
                                                     })
                                                         .join('');
                                                 }),
@@ -792,8 +896,7 @@ export class ShoppingSettingAdvance {
                                     try {
                                         return html `
                                                     <div style="font-weight: 700;" class="mb-3 d-flex flex-column">
-                                                        ${cat_title}通知
-                                                        ${BgWidget.grayNote(`購買此${cat_title}會收到的通知信，內容為空則不寄送。`)}
+                                                        ${carTitle}通知 ${BgWidget.grayNote(`購買此${carTitle}會收到的通知信，內容為空則不寄送。`)}
                                                     </div>
                                                     ${BgWidget.richTextEditor({
                                             gvc: gvc,
@@ -806,30 +909,30 @@ export class ShoppingSettingAdvance {
                                                 return [
                                                     {
                                                         title: '商家名稱',
-                                                        value: '@{{app_name}}'
+                                                        value: '@{{app_name}}',
                                                     },
                                                     {
                                                         title: '會員姓名',
-                                                        value: '@{{user_name}}'
+                                                        value: '@{{user_name}}',
                                                     },
                                                     {
                                                         title: '姓名',
-                                                        value: '@{{姓名}}'
+                                                        value: '@{{姓名}}',
                                                     },
                                                     {
                                                         title: '電話',
-                                                        value: '@{{電話}}'
+                                                        value: '@{{電話}}',
                                                     },
                                                     {
                                                         title: '地址',
-                                                        value: '@{{地址}}'
+                                                        value: '@{{地址}}',
                                                     },
                                                     {
                                                         title: '信箱',
-                                                        value: '@{{信箱}}'
-                                                    }
+                                                        value: '@{{信箱}}',
+                                                    },
                                                 ];
-                                            })()
+                                            })(),
                                         })}
                                                 `;
                                     }
@@ -849,11 +952,10 @@ export class ShoppingSettingAdvance {
                                 bind: id,
                                 view: () => {
                                     return [
-                                        html `
-                                                    <div class="title-container px-0">
-                                                        <div style="color:#393939;font-weight: 700;">AI 選品</div>
-                                                        <div class="flex-fill"></div>
-                                                        ${BgWidget.grayButton('設定描述語句', gvc.event(() => {
+                                        html ` <div class="title-container px-0">
+                                                    <div style="color:#393939;font-weight: 700;">AI 選品</div>
+                                                    <div class="flex-fill"></div>
+                                                    ${BgWidget.grayButton('設定描述語句', gvc.event(() => {
                                             function refresh() {
                                                 gvc.notifyDataChange(id);
                                             }
@@ -886,7 +988,7 @@ export class ShoppingSettingAdvance {
                                         }), {
                                             textStyle: 'width:100%;',
                                         })}
-                                                    </div>`,
+                                                </div>`,
                                         html `
                                                     <div>
                                                         ${postMD.ai_description
@@ -898,9 +1000,11 @@ export class ShoppingSettingAdvance {
                                 },
                             };
                         })),
-                    ].filter((dd) => {
+                    ]
+                        .filter((dd) => {
                         return dd;
-                    }).join('<div class="my-3"></div>');
+                    })
+                        .join('<div class="my-3"></div>');
                 },
                 divCreate: {
                     class: `w-100`,

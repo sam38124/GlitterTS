@@ -2,11 +2,12 @@ import Tool from '../../modules/tool.js';
 import redis from '../../modules/redis.js';
 import exception from '../../modules/exception.js';
 import db from '../../modules/database.js';
-import { Private_config } from '../../services/private_config.js';
+import {Private_config} from '../../services/private_config.js';
 import crypto from 'crypto';
 import axios from 'axios';
 import moment from 'moment-timezone';
-import { Shopping } from './shopping.js';
+import {Shopping} from './shopping.js';
+import {PayNowLogistics} from "./paynow-logistics.js";
 
 const html = String.raw;
 
@@ -52,6 +53,7 @@ export type DeliveryData = {
 
 export class EcPay {
     appName: string;
+
     constructor(appName: string) {
         this.appName = appName;
     }
@@ -86,13 +88,16 @@ export class EcPay {
     static generateForm(json: { actionURL: string; params: Record<string, any>; checkMacValue?: string }) {
         const formId = `form_ecpay_${Tool.randomString(10)}`;
         const inputHTML = Object.entries(json.params)
-            .map(([key, value]) => html`<input type="hidden" name="${key}" id="${key}" value="${value}" />`)
+            .map(([key, value]) => html`<input type="hidden" name="${key}" id="${key}" value="${value}"/>`)
             .join('\n');
 
         return html`
-            <form id="${formId}" action="${json.actionURL}" method="post" enctype="application/x-www-form-urlencoded" accept="text/html">
-                ${inputHTML} ${json.checkMacValue ? html`<input type="hidden" name="CheckMacValue" id="CheckMacValue" value="${json.checkMacValue}" />` : ''}
-                <button type="submit" class="btn btn-secondary custom-btn beside-btn d-none" id="submit" hidden></button>
+            <form id="${formId}" action="${json.actionURL}" method="post" enctype="application/x-www-form-urlencoded"
+                  accept="text/html">
+                ${inputHTML} ${json.checkMacValue ? html`<input type="hidden" name="CheckMacValue" id="CheckMacValue"
+                                                                value="${json.checkMacValue}"/>` : ''}
+                <button type="submit" class="btn btn-secondary custom-btn beside-btn d-none" id="submit"
+                        hidden></button>
             </form>
         `;
     }
@@ -113,7 +118,7 @@ export class EcPay {
                             'Content-Type': 'application/x-www-form-urlencoded',
                         },
                     })
-                    .then((response:any) => {
+                    .then((response: any) => {
                         resolve(response.data);
                     });
             })
@@ -137,9 +142,10 @@ export class EcPay {
     async notifyOrder(json: any) {
         try {
             const checkouts = await db.query(
-                `SELECT * FROM \`${this.appName}\`.t_checkout 
-                WHERE JSON_EXTRACT(orderData, '$.deliveryData.AllPayLogisticsID') = ?
-                  AND JSON_EXTRACT(orderData, '$.deliveryData.MerchantTradeNo') = ?;`,
+                `SELECT *
+                 FROM \`${this.appName}\`.t_checkout
+                 WHERE JSON_EXTRACT(orderData, '$.deliveryData.AllPayLogisticsID') = ?
+                   AND JSON_EXTRACT(orderData, '$.deliveryData.MerchantTradeNo') = ?;`,
                 [json.AllPayLogisticsID, json.MerchantTradeNo]
             );
             if (checkouts[0]) {
@@ -151,7 +157,9 @@ export class EcPay {
                 }
 
                 await db.query(
-                    `UPDATE \`${this.appName}\`.t_checkout SET ? WHERE id = ?
+                    `UPDATE \`${this.appName}\`.t_checkout
+                     SET ?
+                     WHERE id = ?
                     `,
                     [
                         {
@@ -178,7 +186,12 @@ export class Delivery {
     async getC2CMap(returnURL: string, logistics: string) {
         const id = 'redirect_' + Tool.randomString(10);
         await redis.setValue(id, returnURL);
+        console.log(`process.env.EC_SHIPMENT_ID=>`, process.env.EC_SHIPMENT_ID)
 
+        if (logistics === 'UNIMARTFREEZE') {
+            logistics = 'UNIMARTC2C'
+        }
+        console.log(`logistics=>`, logistics)
         const params = {
             MerchantID: process.env.EC_SHIPMENT_ID,
             MerchantTradeNo: new Date().getTime(),
@@ -200,8 +213,7 @@ export class Delivery {
                 appName: this.appName,
                 key: 'glitter_delivery',
             })
-        )[0].value;
-
+        )[0].value.ec_pay;
         const actionURL = keyData.Action === 'main' ? 'https://logistics.ecpay.com.tw/Express/Create' : 'https://logistics-stage.ecpay.com.tw/Express/Create';
 
         const originParams = {
@@ -212,7 +224,6 @@ export class Delivery {
             SenderCellPhone: keyData.SenderCellPhone,
             ...json,
         };
-
         const params = Delivery.removeUndefined(originParams);
 
         const checkMacValue = EcPay.generateCheckMacValue(params, keyData.HASH_KEY, keyData.HASH_IV);
@@ -286,7 +297,9 @@ export class Delivery {
         const random_id = Tool.randomString(6);
 
         await db.query(
-            `UPDATE \`${this.appName}\`.t_checkout SET ? WHERE id = ?
+            `UPDATE \`${this.appName}\`.t_checkout
+             SET ?
+             WHERE id = ?
             `,
             [
                 {
@@ -309,127 +322,205 @@ export class Delivery {
     }
 
     async getOrderInfo(obj: { cart_token: string }) {
-        const deliveryConfig = (
-            await Private_config.getConfig({
-                appName: this.appName,
-                key: 'glitter_delivery',
-            })
-        )[0];
+        try {
+            const deliveryConfig = (
+                await Private_config.getConfig({
+                    appName: this.appName,
+                    key: 'glitter_delivery',
+                })
+            )[0];
+            console.log(`deliveryConfig=>`, deliveryConfig)
+            //預設走綠界
+            if (!(deliveryConfig && (`${deliveryConfig.value.ec_pay.toggle}` === 'true' || `${deliveryConfig.value.pay_now.toggle}` === 'true'))) {
+                console.error('deliveryConfig 不存在 / 未開啟');
+                return {
+                    result: false,
+                    message: '尚未開啟物流追蹤設定',
+                };
+            }
 
-        if (!(deliveryConfig && deliveryConfig.value.toggle === 'true')) {
-            console.error('deliveryConfig 不存在 / 未開啟');
+            const keyData = deliveryConfig.value.ec_pay;
+            const shoppingClass = new Shopping(this.appName);
+
+            const cart:any = (await Promise.all(obj.cart_token.split(',').map((dd)=>{
+                console.log(`cart_token=>${dd}`)
+                return new Promise(async (resolve, reject)=>{
+                    const data=await shoppingClass.getCheckOut({
+                        page: 0,
+                        limit: 1,
+                        search: dd,
+                        searchType: 'cart_token',
+                    })
+                    resolve(data.data)
+                })
+            }))).filter((dd:any)=>{
+                console.log(`search_result=>`,dd[0])
+                return dd[0]
+            });
+            if (!(cart.length)) {
+                console.error('orderData 不存在');
+                return {
+                    result: false,
+                    message: '此訂單不存在',
+                };
+            }
+
+            if (`${deliveryConfig.value.pay_now.toggle}` === 'true') {
+                const pay_now= new PayNowLogistics(this.appName)
+                await Promise.all(cart.map((dd:any)=>{
+                    return new Promise(async (resolve, reject)=>{
+                        try {
+                            await pay_now.printLogisticsOrder(dd[0].orderData)
+                            resolve(true)
+                        }catch (e){
+                            resolve(true)
+                        }
+                    })
+                }));
+                const carData = cart[0][0].orderData;
+                const config = {
+                    method: 'get',
+                    maxBodyLength: Infinity,
+                    url: `${(await pay_now.config()).link}/${(()=>{
+                        switch (carData.user_info.shipment){
+                            case 'UNIMARTC2C':
+                                return 'api/Order711';
+                            case 'FAMIC2C':
+                                return 'api/OrderFamiC2C';
+                            case 'HILIFEC2C':
+                                return 'api/OrderHiLife';
+                            case 'OKMARTC2C':
+                                return 'api/OKC2C';
+                            case 'UNIMARTFREEZE':
+                                return 'Member/OrderEvent/Print711FreezingC2CLabel'
+                        }
+                        return  ``
+                    })()}?orderNumberStr=${obj.cart_token}&user_account=${(await pay_now.config()).account}`,
+                    headers: {'Content-Type': 'application/json' }
+                };
+                const link_response=await axios(config);
+                const link=link_response.data;
+                return {
+                    result: true,
+                    link: link.replace('S,',''),
+                };
+            } else if (`${deliveryConfig.value.ec_pay.toggle}` === 'true') {
+                const id = cart[0][0].id;
+                const carData = cart[0][0].orderData;
+                carData.deliveryData = carData.deliveryData ?? {};
+
+                let random_id = ''
+                if (carData.deliveryData[keyData.Action] === undefined) {
+                    console.log(`綠界物流單 開始建立（使用${keyData.Action === 'main' ? '正式' : '測試'}環境）`);
+                    console.log(`carData.user_info.LogisticsSubType==>`, carData.user_info.shipment)
+                    if (['FAMIC2C', 'UNIMARTC2C', 'HILIFEC2C', 'OKMARTC2C', 'UNIMARTFREEZE'].includes(carData.user_info.shipment)) {
+                        const delivery_cf = {
+                            LogisticsType: 'CVS',
+                            LogisticsSubType: carData.user_info.shipment,
+                            GoodsAmount: carData.total,
+                            CollectionAmount: carData.user_info.shipment === 'UNIMARTC2C' ? carData.total : undefined,
+                            IsCollection: carData.customer_info.payment_select === 'cash_on_delivery' ? 'Y' : 'N',
+                            GoodsName: `訂單編號 ${carData.orderID}`,
+                            ReceiverName: carData.user_info.name,
+                            ReceiverCellPhone: carData.user_info.phone,
+                            ReceiverStoreID:
+                                keyData.Action === 'main'
+                                    ? carData.user_info.CVSStoreID // 正式門市
+                                    : (() => {
+                                        // 測試門市（萊爾富不開放測試）
+                                        if (carData.user_info.shipment === 'OKMARTC2C') {
+                                            return '1328'; // OK超商
+                                        }
+                                        if (carData.user_info.shipment === 'FAMIC2C') {
+                                            return '006598'; // 全家
+                                        }
+                                        if (carData.user_info.shipment === 'UNIMARTFREEZE') {
+                                            return `896539`
+                                        }
+                                        return '131386'; // 7-11
+                                    })(),
+                        }
+                        const delivery = await this.postStoreOrder(delivery_cf as any);
+                        if (delivery.result) {
+                            carData.deliveryData[keyData.Action] = delivery.data;
+                        } else {
+                            return {
+                                result: false,
+                                message: `建立錯誤: ${delivery.message}`,
+                            };
+                        }
+                    }
+
+                    if (['normal', 'black_cat', 'black_cat_ice', 'black_cat_freezing'].includes(carData.user_info.shipment)) {
+                        const receiverPostData = await shoppingClass.getPostAddressData(carData.user_info.address);
+                        const senderPostData = await new Promise<any>((resolve) => {
+                            setTimeout(() => {
+                                resolve(shoppingClass.getPostAddressData(keyData.SenderAddress));
+                            }, 2000);
+                        });
+                        let goodsWeight = 0;
+                        carData.lineItems.map((item: any) => {
+                            if (item.shipment_obj.type === 'weight') {
+                                goodsWeight += item.shipment_obj.value;
+                            }
+                        });
+                        const delivery_cf = {
+                            LogisticsType: 'HOME',
+                            LogisticsSubType: carData.user_info.shipment === 'normal' ? 'POST' : 'TCAT',
+                            GoodsAmount: carData.total,
+                            GoodsName: `訂單編號 ${carData.orderID}`,
+                            GoodsWeight: carData.user_info.shipment === 'normal' ? goodsWeight : undefined,
+                            ReceiverName: carData.user_info.name,
+                            ReceiverCellPhone: carData.user_info.phone,
+                            ReceiverZipCode: receiverPostData.zipcode6 || receiverPostData.zipcode,
+                            ReceiverAddress: carData.user_info.address,
+                            SenderZipCode: senderPostData.zipcode6 || senderPostData.zipcode,
+                            SenderAddress: keyData.SenderAddress,
+                            Temperature: (() => {
+                                switch (carData.user_info.shipment) {
+                                    case 'black_cat_ice':
+                                        return '0002'
+                                    case 'black_cat_freezing':
+                                        return '0003'
+                                    default:
+                                        return '0001'
+                                }
+                            })()
+                        }
+                        const delivery = await this.postStoreOrder(delivery_cf as any);
+                        if (delivery.result) {
+                            carData.deliveryData[keyData.Action] = delivery.data;
+                            console.info('綠界物流單 郵政/黑貓 建立成功');
+                        } else {
+                            console.error(`綠界物流單 郵政/黑貓 建立錯誤: ${delivery.message}`);
+                            return {
+                                result: false,
+                                message: `建立錯誤: ${delivery.message}`,
+                            };
+                        }
+                    }
+                }
+                random_id = await this.generatorDeliveryId(id, carData, keyData);
+                if (!random_id) {
+                    return {
+                        result: false,
+                        message: '尚未啟用物流追蹤功能',
+                    };
+                }
+
+            }
+
+            return {
+                result: false,
+                message: '尚未啟用物流追蹤功能',
+            };
+        }catch (e) {
+console.error(`error-`,e)
             return {
                 result: false,
                 message: '尚未開啟物流追蹤設定',
             };
         }
-        const keyData = deliveryConfig.value;
-        const shoppingClass = new Shopping(this.appName);
-
-        const cart = await shoppingClass.getCheckOut({
-            page: 0,
-            limit: 1,
-            search: obj.cart_token,
-            searchType: 'cart_token',
-        });
-        if (!(cart.data.length === 1 && cart.data[0].orderData)) {
-            console.error('orderData 不存在');
-            return {
-                result: false,
-                message: '此訂單不存在',
-            };
-        }
-        const id = cart.data[0].id;
-        const carData = cart.data[0].orderData;
-        carData.deliveryData = carData.deliveryData ?? {};
-
-        if (carData.deliveryData[keyData.Action] === undefined) {
-            console.log(`綠界物流單 開始建立（使用${keyData.Action === 'main' ? '正式' : '測試'}環境）`);
-
-            if (['FAMIC2C', 'UNIMARTC2C', 'HILIFEC2C', 'OKMARTC2C'].includes(carData.user_info.LogisticsSubType)) {
-                const delivery = await this.postStoreOrder({
-                    LogisticsType: 'CVS',
-                    LogisticsSubType: carData.user_info.LogisticsSubType,
-                    GoodsAmount: carData.total,
-                    CollectionAmount: carData.user_info.LogisticsSubType === 'UNIMARTC2C' ? carData.total : undefined,
-                    IsCollection: carData.customer_info.payment_select === 'cash_on_delivery' ? 'Y' : 'N',
-                    GoodsName: `訂單編號 ${carData.orderID}`,
-                    ReceiverName: carData.user_info.name,
-                    ReceiverCellPhone: carData.user_info.phone,
-                    ReceiverStoreID:
-                        keyData.Action === 'main'
-                            ? carData.user_info.CVSStoreID // 正式門市
-                            : (() => {
-                                  // 測試門市（萊爾富不開放測試）
-                                  if (carData.user_info.LogisticsSubType === 'OKMARTC2C') {
-                                      return '1328'; // OK超商
-                                  }
-                                  if (carData.user_info.LogisticsSubType === 'FAMIC2C') {
-                                      return '006598'; // 全家
-                                  }
-                                  return '131386'; // 7-11
-                              })(),
-                });
-
-                if (delivery.result) {
-                    carData.deliveryData[keyData.Action] = delivery.data;
-                    console.info('綠界物流單 四大超商 建立成功');
-                } else {
-                    console.error(`綠界物流單 四大超商 建立錯誤: ${delivery.message}`);
-                    return {
-                        result: false,
-                        message: `建立錯誤: ${delivery.message}`,
-                    };
-                }
-            }
-
-            if (['normal', 'black_cat'].includes(carData.user_info.shipment)) {
-                const receiverPostData = await shoppingClass.getPostAddressData(carData.user_info.address);
-                const senderPostData = await new Promise<any>((resolve) => {
-                    setTimeout(() => {
-                        resolve(shoppingClass.getPostAddressData(keyData.SenderAddress));
-                    }, 2000);
-                });
-                let goodsWeight = 0;
-                carData.lineItems.map((item: any) => {
-                    if (item.shipment_obj.type === 'weight') {
-                        goodsWeight += item.shipment_obj.value;
-                    }
-                });
-
-                const delivery = await this.postStoreOrder({
-                    LogisticsType: 'HOME',
-                    LogisticsSubType: carData.user_info.shipment === 'normal' ? 'POST' : 'TCAT',
-                    GoodsAmount: carData.total,
-                    GoodsName: `訂單編號 ${carData.orderID}`,
-                    GoodsWeight: carData.user_info.shipment === 'normal' ? goodsWeight : undefined,
-                    ReceiverName: carData.user_info.name,
-                    ReceiverCellPhone: carData.user_info.phone,
-                    ReceiverZipCode: receiverPostData.zipcode6 || receiverPostData.zipcode,
-                    ReceiverAddress: carData.user_info.address,
-                    SenderZipCode: senderPostData.zipcode6 || senderPostData.zipcode,
-                    SenderAddress: keyData.SenderAddress,
-                });
-
-                if (delivery.result) {
-                    carData.deliveryData[keyData.Action] = delivery.data;
-                    console.info('綠界物流單 郵政/黑貓 建立成功');
-                } else {
-                    console.error(`綠界物流單 郵政/黑貓 建立錯誤: ${delivery.message}`);
-                    return {
-                        result: false,
-                        message: `建立錯誤: ${delivery.message}`,
-                    };
-                }
-            }
-        }
-
-        const random_id = await this.generatorDeliveryId(id, carData, keyData);
-
-        return {
-            result: true,
-            id: random_id,
-        };
     }
 
     static removeUndefined(originParams: any) {
@@ -441,7 +532,9 @@ export class Delivery {
         try {
             // 存入通知紀錄
             const getNotification = await db.query(
-                `SELECT * FROM \`${this.appName}\`.public_config WHERE \`key\` = "ecpay_delivery_notify";
+                `SELECT *
+                 FROM \`${this.appName}\`.public_config
+                 WHERE \`key\` = "ecpay_delivery_notify";
                 `,
                 []
             );
@@ -451,7 +544,9 @@ export class Delivery {
             if (notification) {
                 notification.value.push(json);
                 await db.query(
-                    `UPDATE \`${this.appName}\`.public_config SET ? WHERE \`key\` = "ecpay_delivery_notify";
+                    `UPDATE \`${this.appName}\`.public_config
+                     SET ?
+                     WHERE \`key\` = "ecpay_delivery_notify";
                     `,
                     [
                         {
@@ -462,7 +557,8 @@ export class Delivery {
                 );
             } else {
                 await db.query(
-                    `INSERT INTO \`${this.appName}\`.public_config SET ?;
+                    `INSERT INTO \`${this.appName}\`.public_config
+                     SET ?;
                     `,
                     [
                         {

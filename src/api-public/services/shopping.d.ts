@@ -22,6 +22,7 @@ export interface VoucherData {
     value: string;
     for: 'collection' | 'product' | 'all';
     rule: 'min_price' | 'min_count';
+    productOffStart: 'price_asc' | 'price_desc' | 'price_all';
     conditionType: 'order' | 'item';
     counting: 'each' | 'single';
     forKey: string[];
@@ -100,7 +101,7 @@ type CartItem = {
         list: string[];
     };
 };
-type Cart = {
+export type Cart = {
     archived?: string;
     customer_info: any;
     lineItems: CartItem[];
@@ -144,8 +145,11 @@ type Cart = {
     language?: string;
     pos_info?: any;
     goodsWeight: number;
+    client_ip_address: string;
+    fbc: string;
+    fbp: string;
 };
-type Order = {
+export type Order = {
     id: number;
     cart_token: string;
     status: number;
@@ -172,10 +176,12 @@ export declare class Shopping {
         max_price?: string;
         status?: string;
         channel?: string;
+        whereStore?: string;
         order_by?: string;
         id_list?: string;
         with_hide_index?: string;
         is_manger?: boolean;
+        setUserID?: string;
         show_hidden?: string;
         productType?: string;
         filter_visible?: string;
@@ -184,6 +190,7 @@ export declare class Shopping {
         view_source?: string;
         distribution_code?: string;
         skip_shopee_check?: boolean;
+        product_category?: string;
     }): Promise<{
         data: any;
         result: boolean;
@@ -261,6 +268,7 @@ export declare class Shopping {
         value: string;
     }[]>;
     getPostAddressData(address: string): Promise<any>;
+    updateExhibitionActiveStock(exh_id: string, v_id: number, count: number): Promise<void>;
     toCheckout(data: {
         line_items: {
             deduction_log?: {
@@ -319,6 +327,10 @@ export declare class Shopping {
         invoice_select?: string;
         pre_order?: boolean;
         voucherList?: any;
+        isExhibition?: boolean;
+        client_ip_address?: string;
+        fbc?: string;
+        fbp?: string;
     }, type?: 'add' | 'preview' | 'manual' | 'manual-preview' | 'POS', replace_order_id?: string): Promise<any>;
     getReturnOrder(query: {
         page: number;
@@ -435,7 +447,7 @@ export declare class Shopping {
     postProduct(content: any): Promise<any>;
     updateCollectionFromUpdateProduct(collection: string[]): Promise<void>;
     postMulProduct(content: any): Promise<any>;
-    processProducts(productArray: any, insertIDStart: any): Promise<void>;
+    promisesProducts(productArray: any, insertIDStart: any): Promise<void>;
     putProduct(content: any): Promise<any>;
     deleteCollection(dataArray: Collection[]): Promise<{
         result: boolean;
@@ -452,6 +464,15 @@ export declare class Shopping {
     }): boolean;
     static isComeStore(checkout: any, qData: any): boolean;
     updateProductCollection(content: string[], id: number): Promise<void>;
+    getProductVariants(id_list: string): Promise<{
+        data: any;
+        result: boolean;
+        total?: undefined;
+    } | {
+        data: any;
+        total: any;
+        result?: undefined;
+    }>;
     getVariants(query: {
         page: number;
         limit: number;

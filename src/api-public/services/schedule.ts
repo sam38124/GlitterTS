@@ -1,15 +1,15 @@
 import moment from 'moment';
 import db from '../../modules/database';
 import exception from '../../modules/exception';
+import axios from 'axios';
 import { Rebate } from './rebate';
 import { User } from './user';
 import { Shopping } from './shopping';
 import { Mail } from '../services/mail.js';
 import { AutoSendEmail } from './auto-send-email.js';
 import { saasConfig } from '../../config';
-import {InitialFakeData} from "./initial-fake-data.js";
-import {LineMessage} from "./line-message";
-import axios from "axios";
+import { InitialFakeData } from './initial-fake-data.js';
+import { LineMessage } from './line-message';
 
 type ScheduleItem = {
     second: number;
@@ -48,22 +48,6 @@ export class Schedule {
         return (await db.query(`SHOW TABLES IN \`${app}\` LIKE \'${table}\';`, [])).length > 0;
     }
 
-    async renewMemberLevel(sec: number) {
-        try {
-            for (const app of Schedule.app) {
-                if (await this.perload(app)) {
-                    const users = await db.query(`select * from \`${app}\`.t_user  `, []);
-                    for (const user of users) {
-                        await new User(app).checkMember(user,true);
-                    }
-                }
-            }
-        } catch (e) {
-            console.error('BAD_REQUEST', 'renewMemberLevel Error: ' + e, null);
-        }
-        setTimeout(() => this.renewMemberLevel(sec), sec * 1000);
-    }
-
     async example(sec: number) {
         try {
             for (const app of Schedule.app) {
@@ -76,6 +60,60 @@ export class Schedule {
             throw exception.BadRequestError('BAD_REQUEST', 'Example Error: ' + e, null);
         }
         setTimeout(() => this.example(sec), sec * 1000);
+    }
+
+    async autoCancelOrder(sec: number) {
+        try {
+            for (const app of Schedule.app) {
+                if (await this.perload(app)) {
+                    const config = await new User(app).getConfigV2({ key: 'login_config', user_id: 'manager' });
+                    if (config?.auto_cancel_order_timer && config.auto_cancel_order_timer > 0) {
+                        const orders = await db.query(
+                            `SELECT * FROM \`${app}\`.t_checkout
+                                WHERE 
+                                    status = 0 
+                                    AND created_time < NOW() - INTERVAL ${config.auto_cancel_order_timer} HOUR
+                                    AND (orderData->>'$.proof_purchase' IS NULL)
+                                    AND (orderData->>'$.orderStatus' = 0 OR orderData->>'$.orderStatus' IS NULL)
+                                    AND (orderData->>'$.progress' = 'wait' OR orderData->>'$.progress' IS NULL)
+                                    AND (orderData->>'$.customer_info.payment_select' <> 'cash_on_delivery')
+                                ORDER BY id DESC;`,
+                            []
+                        );
+                        await Promise.all(
+                            orders.map(async (order: any) => {
+                                order.orderData.orderStatus = '-1';
+                                order.orderData.archived = 'true';
+                                return new Shopping(app).putOrder({
+                                    id: order.id,
+                                    orderData: order.orderData,
+                                    status: '0',
+                                });
+                            })
+                        );
+                    }
+                }
+            }
+        } catch (e) {
+            throw exception.BadRequestError('BAD_REQUEST', 'Example Error: ' + e, null);
+        }
+        setTimeout(() => this.autoCancelOrder(sec), sec * 1000);
+    }
+
+    async renewMemberLevel(sec: number) {
+        try {
+            for (const app of Schedule.app) {
+                if (await this.perload(app)) {
+                    const users = await db.query(`select * from \`${app}\`.t_user  `, []);
+                    for (const user of users) {
+                        await new User(app).checkMember(user, true);
+                    }
+                }
+            }
+        } catch (e) {
+            console.error('BAD_REQUEST', 'renewMemberLevel Error: ' + e, null);
+        }
+        setTimeout(() => this.renewMemberLevel(sec), sec * 1000);
     }
 
     async birthRebate(sec: number) {
@@ -151,7 +189,7 @@ export class Schedule {
             try {
                 if (await this.perload(app)) {
                     const mailType = 'auto-email-birthday';
-                    const customerMail = await AutoSendEmail.getDefCompare(app, mailType,'zh-TW');
+                    const customerMail = await AutoSendEmail.getDefCompare(app, mailType, 'zh-TW');
                     if (customerMail.toggle) {
                         // 歷史生日祝福寄件紀錄
                         const mailClass = new Mail(app);
@@ -246,8 +284,8 @@ export class Schedule {
 
         setTimeout(() => this.autoSendMail(sec), sec * 1000);
     }
+
     async autoSendLine(sec: number) {
-        console.log("test")
         for (const app of Schedule.app) {
             try {
                 if (await this.perload(app)) {
@@ -261,11 +299,15 @@ export class Schedule {
 
                     for (const email of emails) {
                         if (email.status === 0) {
-                            new LineMessage(app).chunkSendLine(email.userList ,{
-                                data:{
-                                    text:email.content
-                                }
-                            } , email.id);
+                            new LineMessage(app).chunkSendLine(
+                                email.userList,
+                                {
+                                    data: {
+                                        text: email.content,
+                                    },
+                                },
+                                email.id
+                            );
                         }
                     }
                 }
@@ -277,38 +319,35 @@ export class Schedule {
         setTimeout(() => this.autoSendLine(sec), sec * 1000);
     }
 
-    async initialSampleApp(sec: number){
-        await new InitialFakeData(`t_1725992531001`).run()
+    async initialSampleApp(sec: number) {
+        await new InitialFakeData(`t_1725992531001`).run();
         setTimeout(() => this.initialSampleApp(sec), sec * 1000);
     }
-    async  currenciesUpdate(sec:number){
-        const date=new Date()
-        const date_index=`${date.getFullYear()}-${date.getMonth()+1}-${date.getDate()}`
-        if((await db.query(`select count(1) from \`${saasConfig.SAAS_NAME}\`.currency_config where updated='${date_index}'`,[]))[0]['count(1)']===0){
+
+    async currenciesUpdate(sec: number) {
+        const date = new Date();
+        const date_index = `${date.getFullYear()}-${date.getMonth() + 1}-${date.getDate()}`;
+        if ((await db.query(`select count(1) from \`${saasConfig.SAAS_NAME}\`.currency_config where updated='${date_index}'`, []))[0]['count(1)'] === 0) {
             let config = {
                 method: 'get',
                 maxBodyLength: Infinity,
                 url: 'https://data.fixer.io/api/latest?access_key=0ced797dd1cc136b22d6cfee7e2d6476',
-                headers: { }
+                headers: {},
             };
 
-            axios.request(config)
-                .then(async (response:any) => {
-                    console.log(JSON.stringify(response.data));
-                    await db.query(`insert into \`${saasConfig.SAAS_NAME}\`.currency_config (\`json\`,updated) values (?,?)`,[
-                        JSON.stringify(response.data),
-                        date_index
-                    ])
+            axios
+                .request(config)
+                .then(async (response: any) => {
+                    await db.query(`insert into \`${saasConfig.SAAS_NAME}\`.currency_config (\`json\`,updated) values (?,?)`, [JSON.stringify(response.data), date_index]);
                     setTimeout(() => this.currenciesUpdate(sec), sec * 1000);
                 })
-                .catch((error:any) => {
-                    console.log(error);
+                .catch((error: any) => {
+                    console.error(error);
                     setTimeout(() => this.currenciesUpdate(sec), sec * 1000);
                 });
-        }else{
+        } else {
             setTimeout(() => this.currenciesUpdate(sec), sec * 1000);
         }
-
     }
 
     main() {
@@ -320,8 +359,9 @@ export class Schedule {
             { second: 30, status: true, func: 'resetVoucherHistory', desc: '未付款歷史優惠券重設' },
             { second: 30, status: true, func: 'autoSendMail', desc: '自動排程寄送信件' },
             { second: 30, status: true, func: 'autoSendLine', desc: '自動排程寄送line訊息' },
-            { second: 3600*24, status: true, func: 'currenciesUpdate', desc: '多國貨幣的更新排程' },
-            { second: 3600*24, status: false, func: 'initialSampleApp', desc: '重新刷新示範商店' },
+            { second: 3600 * 24, status: true, func: 'currenciesUpdate', desc: '多國貨幣的更新排程' },
+            { second: 3600 * 24, status: false, func: 'initialSampleApp', desc: '重新刷新示範商店' },
+            { second: 30, status: true, func: 'autoCancelOrder', desc: '自動取消未付款未出貨訂單' },
         ];
         try {
             scheduleList.forEach((schedule) => {

@@ -136,7 +136,7 @@ class DataAnalyze {
             const recentMonthSQL = `
                 SELECT *
                 FROM \`${this.app}\`.t_checkout
-                WHERE MONTH (created_time) = MONTH (NOW()) AND YEAR (created_time) = YEAR (NOW()) AND status = 1;
+                WHERE MONTH (created_time) = MONTH (NOW()) AND YEAR (created_time) = YEAR (NOW())   AND (orderData->>'$.orderStatus' is null or orderData->>'$.orderStatus' != '-1');
             `;
             const recentMonthCheckouts = await database_js_1.default.query(recentMonthSQL, []);
             let recent_month_total = 0;
@@ -151,7 +151,7 @@ class DataAnalyze {
                     , INTERVAL 1 MONTH))
                   AND YEAR (created_time) = YEAR (DATE_SUB(NOW()
                     , INTERVAL 1 MONTH))
-                  AND status = 1;
+                    AND (orderData->>'$.orderStatus' is null or orderData->>'$.orderStatus' != '-1');
             `;
             const previousMonthCheckouts = await database_js_1.default.query(previousMonthSQL, []);
             let previous_month_total = 0;
@@ -195,7 +195,7 @@ class DataAnalyze {
             }
             const checkoutSQL = `
                 SELECT * FROM \`${this.app}\`.t_checkout
-                WHERE status = 1 AND ${duration === 'day'
+                WHERE (orderData->>'$.orderStatus' is null or orderData->>'$.orderStatus' != '-1') AND ${duration === 'day'
                 ? `created_time BETWEEN NOW() AND NOW() + INTERVAL 1 DAY - INTERVAL 1 SECOND`
                 : duration === 'month'
                     ? `created_time BETWEEN DATE_SUB(NOW(), INTERVAL 1 MONTH) AND NOW()`
@@ -257,7 +257,7 @@ class DataAnalyze {
             const recentMonthSQL = `
                 SELECT id
                 FROM \`${this.app}\`.t_checkout
-                WHERE MONTH (created_time) = MONTH (NOW()) AND YEAR (created_time) = YEAR (NOW()) AND status = 1;
+                WHERE MONTH (created_time) = MONTH (NOW()) AND YEAR (created_time) = YEAR (NOW())   AND (orderData->>'$.orderStatus' is null or orderData->>'$.orderStatus' != '-1');
             `;
             const recentMonthCheckouts = await database_js_1.default.query(recentMonthSQL, []);
             let recent_month_total = recentMonthCheckouts.length;
@@ -269,7 +269,7 @@ class DataAnalyze {
                     , INTERVAL 1 MONTH))
                   AND YEAR (created_time) = YEAR (DATE_SUB(NOW()
                     , INTERVAL 1 MONTH))
-                  AND status = 1;
+                    AND (orderData->>'$.orderStatus' is null or orderData->>'$.orderStatus' != '-1');
             `;
             const previousMonthCheckouts = await database_js_1.default.query(previousMonthSQL, []);
             let previous_month_total = previousMonthCheckouts.length;
@@ -303,7 +303,7 @@ class DataAnalyze {
                             , INTERVAL ${index} DAY))
                           AND YEAR (${convertTimeZone('created_time')}) = YEAR (DATE_SUB(${convertTimeZone('NOW()')}
                             , INTERVAL ${index} DAY))
-                          AND status = 1;
+                            AND (orderData->>'$.orderStatus' is null or orderData->>'$.orderStatus' != '-1');
                     `;
                     database_js_1.default.query(monthCheckoutSQL, []).then((data) => {
                         pass++;
@@ -380,7 +380,7 @@ class DataAnalyze {
                             , INTERVAL ${index} DAY))
                           AND YEAR (${convertTimeZone('created_time')}) = YEAR (DATE_SUB(${convertTimeZone('NOW()')}
                             , INTERVAL ${index} DAY))
-                          AND status = 1;
+                            AND (orderData->>'$.orderStatus' is null or orderData->>'$.orderStatus' != '-1');
                     `;
                     database_js_1.default.query(monthCheckoutSQL, []).then((data) => {
                         pass++;
@@ -459,7 +459,7 @@ class DataAnalyze {
                             , INTERVAL ${index} DAY))
                           AND YEAR (${convertTimeZone('created_time')}) = YEAR (DATE_SUB(${formatEndDate}
                             , INTERVAL ${index} DAY))
-                          AND status = 1;
+                            AND (orderData->>'$.orderStatus' is null or orderData->>'$.orderStatus' != '-1');
                     `;
                     database_js_1.default.query(monthCheckoutSQL, []).then((data) => {
                         pass++;
@@ -534,7 +534,7 @@ class DataAnalyze {
                             , INTERVAL ${index} MONTH))
                           AND YEAR (${convertTimeZone('created_time')}) = YEAR (DATE_SUB(${convertTimeZone('NOW()')}
                             , INTERVAL ${index} MONTH))
-                          AND status = 1;
+                            AND (orderData->>'$.orderStatus' is null or orderData->>'$.orderStatus' != '-1');
                     `;
                     database_js_1.default.query(monthCheckoutSQL, []).then((data) => {
                         pass++;
@@ -609,7 +609,7 @@ class DataAnalyze {
                             , INTERVAL ${index} MONTH))
                           AND YEAR (${convertTimeZone('created_time')}) = YEAR (DATE_SUB(${convertTimeZone('NOW()')}
                             , INTERVAL ${index} MONTH))
-                          AND status = 1;
+                            AND (orderData->>'$.orderStatus' is null or orderData->>'$.orderStatus' != '-1');
                     `;
                     database_js_1.default.query(monthCheckoutSQL, []).then((data) => {
                         pass++;
@@ -686,7 +686,7 @@ class DataAnalyze {
                             , INTERVAL ${index} DAY))
                           AND YEAR (${convertTimeZone('created_time')}) = YEAR (DATE_SUB(${convertTimeZone('NOW()')}
                             , INTERVAL ${index} DAY))
-                          AND status = 1;
+                            AND (orderData->>'$.orderStatus' is null or orderData->>'$.orderStatus' != '-1');
                     `;
                     database_js_1.default.query(monthCheckoutSQL, []).then((data) => {
                         pass++;
@@ -763,7 +763,7 @@ class DataAnalyze {
                             , INTERVAL ${index} DAY))
                           AND YEAR (${convertTimeZone('created_time')}) = YEAR (DATE_SUB(${convertTimeZone('NOW()')}
                             , INTERVAL ${index} DAY))
-                          AND status = 1;
+                            AND (orderData->>'$.orderStatus' is null or orderData->>'$.orderStatus' != '-1');
                     `;
                     database_js_1.default.query(monthCheckoutSQL, []).then((data) => {
                         pass++;
@@ -847,7 +847,7 @@ class DataAnalyze {
                             , INTERVAL ${index} DAY))
                           AND YEAR (${convertTimeZone('created_time')}) = YEAR (DATE_SUB(${convertTimeZone(formatEndDate)}
                             , INTERVAL ${index} DAY))
-                          AND status = 1;
+                            AND (orderData->>'$.orderStatus' is null or orderData->>'$.orderStatus' != '-1');
                     `;
                     database_js_1.default.query(monthCheckoutSQL, []).then((data) => {
                         pass++;
@@ -922,7 +922,7 @@ class DataAnalyze {
                             , INTERVAL ${index} MONTH))
                           AND YEAR (${convertTimeZone('created_time')}) = YEAR (DATE_SUB(${convertTimeZone('NOW()')}
                             , INTERVAL ${index} MONTH))
-                          AND status = 1;
+                            AND (orderData->>'$.orderStatus' is null or orderData->>'$.orderStatus' != '-1');
                     `;
                     database_js_1.default.query(monthCheckoutSQL, []).then((data) => {
                         pass++;
@@ -1005,7 +1005,7 @@ class DataAnalyze {
                             , INTERVAL ${index} DAY))
                           AND YEAR (${convertTimeZone('created_time')}) = YEAR (DATE_SUB(${convertTimeZone('NOW()')}
                             , INTERVAL ${index} DAY))
-                          AND status = 1;
+                            AND (orderData->>'$.orderStatus' is null or orderData->>'$.orderStatus' != '-1');
                     `;
                     database_js_1.default.query(monthCheckoutSQL, []).then((data) => {
                         pass++;
@@ -1088,7 +1088,7 @@ class DataAnalyze {
                             , INTERVAL ${index} DAY))
                           AND YEAR (${convertTimeZone('created_time')}) = YEAR (DATE_SUB(${convertTimeZone('NOW()')}
                             , INTERVAL ${index} DAY))
-                          AND status = 1;
+                            AND (orderData->>'$.orderStatus' is null or orderData->>'$.orderStatus' != '-1');
                     `;
                     database_js_1.default.query(monthCheckoutSQL, []).then((data) => {
                         pass++;
@@ -1173,7 +1173,7 @@ class DataAnalyze {
                             , INTERVAL ${index} DAY))
                           AND YEAR (${convertTimeZone('created_time')}) = YEAR (DATE_SUB(${convertTimeZone(formatEndDate)}
                             , INTERVAL ${index} DAY))
-                          AND status = 1;
+                          AND (orderData->>'$.orderStatus' is null or orderData->>'$.orderStatus' != '-1')
                     `;
                     database_js_1.default.query(monthCheckoutSQL, []).then((data) => {
                         pass++;
@@ -1245,7 +1245,6 @@ class DataAnalyze {
             SELECT mac_address, created_time
             FROM \`${config_js_1.saasConfig.SAAS_NAME}\`.t_monitor
             WHERE app_name = ${database_js_1.default.escape(this.app)}
-              AND ip != 'ffff:127.0.0.1'
             AND req_type = 'file'
             AND created_time BETWEEN '${startDate.toISOString()}' AND '${endDate.toISOString()}'
             GROUP BY id, mac_address
@@ -1278,7 +1277,6 @@ class DataAnalyze {
             SELECT mac_address, ${convertTimeZone('created_time')} AS created_time
             FROM \`${config_js_1.saasConfig.SAAS_NAME}\`.t_monitor
             WHERE app_name = ${database_js_1.default.escape(this.app)}
-              AND ip != 'ffff:127.0.0.1'
                 AND req_type = 'file'
                 AND ${convertTimeZone('created_time')} BETWEEN (DATE_SUB(${convertTimeZone('NOW()')}
                 , INTERVAL 14 DAY))
@@ -1316,7 +1314,6 @@ class DataAnalyze {
             SELECT mac_address, ${convertTimeZone('created_time')} AS created_time
             FROM \`${config_js_1.saasConfig.SAAS_NAME}\`.t_monitor
             WHERE app_name = ${database_js_1.default.escape(this.app)}
-              AND ip != 'ffff:127.0.0.1'
                 AND req_type = 'file'
                 AND ${convertTimeZone('created_time')} BETWEEN (DATE_SUB(${convertTimeZone('NOW()')}
                 , INTERVAL 30 DAY))
@@ -1358,7 +1355,6 @@ class DataAnalyze {
             SELECT mac_address, ${convertTimeZone('created_time')} AS created_time
             FROM \`${config_js_1.saasConfig.SAAS_NAME}\`.t_monitor
             WHERE app_name = ${database_js_1.default.escape(this.app)}
-              AND ip != 'ffff:127.0.0.1'
                 AND req_type = 'file'
                 AND ${convertTimeZone('created_time')}
                 BETWEEN ${convertTimeZone(formatStartDate)}
@@ -1578,7 +1574,7 @@ class DataAnalyze {
                 un_shipment: (await database_js_1.default.query(`SELECT count(1)
                          from \`${this.app}\`.t_checkout
                          WHERE (orderData ->> '$.progress' is null || orderData ->> '$.progress' = 'wait')
-                           and status = 1`, []))[0]['count(1)'],
+                           AND (orderData->>'$.orderStatus' is null or orderData->>'$.orderStatus' != '-1')`, []))[0]['count(1)'],
                 un_pay: order.filter((dd) => {
                     return dd.status === 0;
                 }).length,

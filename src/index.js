@@ -152,6 +152,7 @@ async function createAPP(dd) {
                 var _a, _b, _c, _d, _e, _f;
                 const og_url = req.headers['x-original-url'];
                 const custom_heads = [];
+                console.log(`req.query.page=>`, req.query.page);
                 try {
                     if (req.query.state === 'google_login') {
                         req.query.page = 'login';
@@ -222,7 +223,7 @@ async function createAPP(dd) {
                                 page: req.query.page,
                             });
                         }
-                        else if (`${req.query.page}`.startsWith('blogs')) {
+                        else if (`${req.query.page}` === ('blogs')) {
                             const seo = await new user_js_1.User(req.get('g-app'), req.body.token).getConfigV2({
                                 key: 'article_seo_data_' + language,
                                 user_id: 'manager',
@@ -234,7 +235,7 @@ async function createAPP(dd) {
                             data.page_config.seo.logo = seo.logo || data.page_config.seo.logo;
                         }
                         else if (`${req.query.page}`.startsWith('blogs/')) {
-                            await seo_config_js_1.SeoConfig.articleSeo({
+                            data.page_config.seo = await seo_config_js_1.SeoConfig.articleSeo({
                                 article: req.query.article,
                                 page: req.query.page,
                                 language,
@@ -339,7 +340,16 @@ async function createAPP(dd) {
                                                     <meta property="og:image" content="${d.image || home_seo.image || ''}" />
                                                     <meta property="og:title" content="${((_a = d.title) !== null && _a !== void 0 ? _a : '').replace(/\n/g, '').replace(/"/g, '&quot;')}" />
                                                     <meta name="description" content="${((_b = d.content) !== null && _b !== void 0 ? _b : '').replace(/\n/g, '').replace(/"/g, '&quot;')}" />
-                                                    <meta name="og:description" content="${((_c = d.content) !== null && _c !== void 0 ? _c : '').replace(/\n/g, '').replace(/"/g, '&quot;')}" />`;
+                                                    <meta name="og:description" content="${((_c = d.content) !== null && _c !== void 0 ? _c : '').replace(/\n/g, '').replace(/"/g, '&quot;')}" />
+                                             
+                                                ${[
+                                            { src: 'css/front-end.css', type: 'text/css' }
+                                        ]
+                                            .map((dd) => {
+                                            return html ` <link src="/${link_prefix && `${link_prefix}/`}${dd.src}" type="${dd.type}" rel="stylesheet"></link>`;
+                                        })
+                                            .join('')}
+                                                `;
                                     }
                                 })()}
                                         ${(_a = d.code) !== null && _a !== void 0 ? _a : ''}
@@ -549,7 +559,6 @@ async function createAPP(dd) {
                                 }
                             }));
                         });
-                        console.log(array);
                         return array;
                     })(),
                     ...(() => {

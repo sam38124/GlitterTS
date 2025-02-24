@@ -26,6 +26,23 @@ router.get('/store/productList', async (req, resp) => {
         return response_1.default.fail(resp, err);
     }
 });
+router.get('/productStock', async (req, resp) => {
+    try {
+        if (await ut_permission_1.UtPermission.isManager(req)) {
+            return response_1.default.succ(resp, await new stock_js_1.Stock(req.get('g-app'), req.body.token).productStock({
+                page: req.query.page ? `${req.query.page}` : '0',
+                limit: req.query.limit ? `${req.query.limit}` : '20',
+                variant_id_list: req.query.variant_id_list,
+            }));
+        }
+        else {
+            throw exception_1.default.BadRequestError('BAD_REQUEST', 'No permission.', null);
+        }
+    }
+    catch (err) {
+        return response_1.default.fail(resp, err);
+    }
+});
 router.delete('/store', async (req, resp) => {
     try {
         if (await ut_permission_1.UtPermission.isManager(req)) {
