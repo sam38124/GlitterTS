@@ -379,8 +379,8 @@ export class UserList {
                                                                                 : vmt.postData;
                                                                         });
                                                                         dialog.dataLoading({ visible: true });
-                                                                        const results = yield Promise.allSettled(dataArray.map((item) => ApiUser.updateUserDataManager(item, item.userID)));
-                                                                        const failedUpdates = results.filter((r) => r.status === 'rejected');
+                                                                        const results = yield Promise.all(dataArray.map((item) => ApiUser.updateUserDataManager(item, item.userID)));
+                                                                        const failedUpdates = results.filter((r) => !r.result);
                                                                         if (failedUpdates.length > 0) {
                                                                             dialog.errorMessage({ text: `部分用戶更新失敗 (${failedUpdates.length}/${dataArray.length})` });
                                                                         }
@@ -483,8 +483,8 @@ export class UserList {
                                                                                 : [];
                                                                         });
                                                                         dialog.dataLoading({ visible: true });
-                                                                        const results = yield Promise.allSettled(dataArray.map((item) => ApiUser.updateUserDataManager(item, item.userID)));
-                                                                        const failedUpdates = results.filter((r) => r.status === 'rejected');
+                                                                        const results = yield Promise.all(dataArray.map((item) => ApiUser.updateUserDataManager(item, item.userID)));
+                                                                        const failedUpdates = results.filter((r) => !r.result);
                                                                         if (failedUpdates.length > 0) {
                                                                             dialog.errorMessage({ text: `部分用戶更新失敗 (${failedUpdates.length}/${dataArray.length})` });
                                                                         }

@@ -440,12 +440,12 @@ export class UserList {
                                                                                         dialog.dataLoading({ visible: true });
 
                                                                                         // 更新所有用戶數據
-                                                                                        const results = await Promise.allSettled(
+                                                                                        const results = await Promise.all(
                                                                                             dataArray.map((item: any) => ApiUser.updateUserDataManager(item, item.userID))
                                                                                         );
 
                                                                                         // 檢查是否有失敗
-                                                                                        const failedUpdates = results.filter((r) => r.status === 'rejected');
+                                                                                        const failedUpdates = results.filter((r: any) => !r.result);
                                                                                         if (failedUpdates.length > 0) {
                                                                                             dialog.errorMessage({ text: `部分用戶更新失敗 (${failedUpdates.length}/${dataArray.length})` });
                                                                                         } else {
@@ -560,12 +560,12 @@ export class UserList {
                                                                                         dialog.dataLoading({ visible: true });
 
                                                                                         // 更新所有用戶數據
-                                                                                        const results = await Promise.allSettled(
+                                                                                        const results = await Promise.all(
                                                                                             dataArray.map((item: any) => ApiUser.updateUserDataManager(item, item.userID))
                                                                                         );
 
                                                                                         // 檢查是否有失敗
-                                                                                        const failedUpdates = results.filter((r) => r.status === 'rejected');
+                                                                                        const failedUpdates = results.filter((r: any) => !r.result);
                                                                                         if (failedUpdates.length > 0) {
                                                                                             dialog.errorMessage({ text: `部分用戶更新失敗 (${failedUpdates.length}/${dataArray.length})` });
                                                                                         } else {
