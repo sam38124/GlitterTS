@@ -50,7 +50,7 @@ export class CheckoutIndex {
                 title: '購物金',
             },
         };
-        const classPrefix = Tool.randomString(6);
+        const classPrefix = 'wnqij1';
         PdClass.addSpecStyle(gvc);
         function spinner(obj) {
             var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m, _o;
@@ -89,7 +89,7 @@ export class CheckoutIndex {
             </div>`;
         }
         function giftBadge() {
-            return html ` <div class="${gClass('add-item-badge')}" style="background: #95ffe0;">
+            return html ` <div class="${gClass('add-item-badge')}" style="background:  #FFE9B2;">
                 <div class="${gClass('add-item-text')}">${Language.text('gift')}</div>
             </div>`;
         }
@@ -101,7 +101,7 @@ export class CheckoutIndex {
         function addStyle() {
             gvc.addStyle(`
                 .${classPrefix}-container {
-                    max-width: 70% !important;
+                    max-width: 1200px !important;
                     margin: 2.5rem auto !important;
                 }
 
@@ -657,7 +657,7 @@ export class CheckoutIndex {
                                                                                         <div class="d-flex flex-sm-row flex-column w-100 position-relative" style="gap: 8px; position: relative;">
                                                                                             <div class="${gClass('first-td')} justify-content-start d-none d-sm-flex" style="">
                                                                                                 <div
-                                                                                                    style="width: 88px;height: 88px;border-radius: 20px;background: 50%/cover url('${item.preview_image}')"
+                                                                                                    style="min-width: 88px;width: 88px;height: 88px;border-radius: 20px;background: 50%/cover url('${item.preview_image}')"
                                                                                                 ></div>
                                                                                                 <span class="ms-2 d-flex align-items-start flex-column " style="gap:5px;"
                                                                                                     >${getBadgeClass()}${title}</span
@@ -1269,6 +1269,81 @@ export class CheckoutIndex {
                                                                             <button
                                                                                 class="${gClass('button-bgr')} mb-0 mt-2"
                                                                                 onclick="${gvc.event(() => {
+                                                    var _a;
+                                                    const titleFontColor = (_a = glitter.share.globalValue['theme_color.0.title']) !== null && _a !== void 0 ? _a : '#333333';
+                                                    console.log(`dd.content=>`, dd.content);
+                                                    gvc.glitter.innerDialog((gvc) => {
+                                                        var _a, _b;
+                                                        return html ` <div class="bg-white shadow rounded-3" style="overflow-y: auto; ${document.body.clientWidth > 768 ? `min-width: 400px; width: 1000px;` : 'width:calc(100vw - 20px);'}">
+                <div class="bg-white shadow rounded-3" style="width: 100%; overflow-y: auto; position: relative;">
+                    <div class="w-100 d-flex align-items-center p-3 border-bottom" style="position: sticky; top: 0; background: #fff;z-index:12;">
+                        <div class="fw-bold fs-5" style="color:${titleFontColor}; white-space: nowrap;text-overflow: ellipsis;max-width: calc(100% - 40px); overflow: hidden;">
+                            ${dd.content.title}
+                        </div>
+                        <div class="flex-fill"></div>
+                        <i
+                            class="fa-regular fa-circle-xmark fs-5 text-dark"
+                            style="cursor: pointer"
+                            onclick="${gvc.event(() => {
+                                                            gvc.closeDialog();
+                                                        })}"
+                        ></i>
+                    </div>
+                    <div class="c_dialog">
+                        <div class="c_dialog_body">
+                            <div class="c_dialog_main" style="gap: 24px;  max-height: calc(100vh - 100px); ${document.body.clientWidth < 800 ? `padding: 12px 20px;` : `padding: 30px;`}">
+                                ${PdClass.selectSpec({
+                                                            gvc,
+                                                            titleFontColor: (_a = glitter.share.globalValue['theme_color.0.title']) !== null && _a !== void 0 ? _a : '#333333',
+                                                            prod: dd.content,
+                                                            vm: {
+                                                                specs: dd.content.specs.map((spec) => {
+                                                                    return spec.option[0].title;
+                                                                }),
+                                                                quantity: '1',
+                                                                wishStatus: ((_b = glitter.share.wishList) !== null && _b !== void 0 ? _b : []).some((item) => {
+                                                                    return item.id === dd.id;
+                                                                }),
+                                                            },
+                                                            preview: true,
+                                                            with_qty: false,
+                                                            is_gift: true,
+                                                            callback: () => {
+                                                                gvc.closeDialog();
+                                                                console.log(`vm.cartData=>`, vm.cartData);
+                                                                let find = vm.cartData.lineItems.find((d1) => {
+                                                                    return dd.add_on_products.find((d2) => {
+                                                                        return d2.id === d1.id;
+                                                                    });
+                                                                });
+                                                                console.log(`find=>`, find);
+                                                                if (find) {
+                                                                    apiCart.setCart((cartItem) => {
+                                                                        cartItem.line_items.map((dd) => {
+                                                                            if (dd.id === find.id) {
+                                                                                dd.count--;
+                                                                            }
+                                                                        });
+                                                                        cartItem.line_items = cartItem.line_items.filter((dd) => {
+                                                                            return dd.count > 0;
+                                                                        });
+                                                                        refreshCartData();
+                                                                        gvc.closeDialog();
+                                                                    });
+                                                                }
+                                                                else {
+                                                                    refreshCartData();
+                                                                    gvc.closeDialog();
+                                                                }
+                                                            },
+                                                        })}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>`;
+                                                    }, Tool.randomString(7));
+                                                    return;
                                                     return gvc.glitter.innerDialog((gvc) => {
                                                         var _a, _b;
                                                         return html ` <div
@@ -1374,35 +1449,32 @@ export class CheckoutIndex {
                                                                             class="${gClass('button-bgr')} mb-0 mt-2"
                                                                             style="${isSelected ? (isSelected.id === pd.id ? `background: gray !important;` : ``) : ``}"
                                                                             onclick="${gvc.event(() => {
+                                            var _a;
                                             if (isSelected && isSelected.id === pd.id) {
                                                 return;
                                             }
-                                            return gvc.glitter.innerDialog((gvc) => {
+                                            const titleFontColor = (_a = glitter.share.globalValue['theme_color.0.title']) !== null && _a !== void 0 ? _a : '#333333';
+                                            gvc.glitter.innerDialog((gvc) => {
                                                 var _a, _b;
-                                                return html ` <div
-                                                                                        class="bg-white shadow rounded-3"
-                                                                                        style="overflow-y: auto; ${document.body.clientWidth > 768
-                                                    ? `min-width: 400px; width: 600px;`
-                                                    : 'min-width: 90vw; max-width: 92.5vw;'}"
-                                                                                    >
-                                                                                        <div class="bg-white shadow rounded-3" style="width: 100%; overflow-y: auto; position: relative;">
-                                                                                            <div
-                                                                                                class="w-100 d-flex align-items-center p-3 border-bottom"
-                                                                                                style="position: sticky; top: 0; background: #fff;"
-                                                                                            >
-                                                                                                <div class="flex-fill"></div>
-                                                                                                <i
-                                                                                                    class="fa-regular fa-circle-xmark fs-5 text-dark"
-                                                                                                    style="cursor: pointer"
-                                                                                                    onclick="${gvc.event(() => {
+                                                return html ` <div class="bg-white shadow rounded-3" style="overflow-y: auto; ${document.body.clientWidth > 768 ? `min-width: 400px; width: 1000px;` : 'width:calc(100vw - 20px);'}">
+                <div class="bg-white shadow rounded-3" style="width: 100%; overflow-y: auto; position: relative;">
+                    <div class="w-100 d-flex align-items-center p-3 border-bottom" style="position: sticky; top: 0; background: #fff;z-index:12;">
+                        <div class="fw-bold fs-5" style="color:${titleFontColor}; white-space: nowrap;text-overflow: ellipsis;max-width: calc(100% - 40px); overflow: hidden;">
+                            ${pd.title}
+                        </div>
+                        <div class="flex-fill"></div>
+                        <i
+                            class="fa-regular fa-circle-xmark fs-5 text-dark"
+                            style="cursor: pointer"
+                            onclick="${gvc.event(() => {
                                                     gvc.closeDialog();
                                                 })}"
-                                                                                                ></i>
-                                                                                            </div>
-                                                                                            <div class="c_dialog">
-                                                                                                <div class="c_dialog_body">
-                                                                                                    <div class="c_dialog_main" style="gap: 24px; height: auto; max-height: 500px; padding: 12px 20px;">
-                                                                                                        ${PdClass.selectSpec({
+                        ></i>
+                    </div>
+                    <div class="c_dialog">
+                        <div class="c_dialog_body">
+                            <div class="c_dialog_main" style="gap: 24px;  max-height: calc(100vh - 100px); ${document.body.clientWidth < 800 ? `padding: 12px 20px;` : `padding: 30px;`}">
+                                ${PdClass.selectSpec({
                                                     gvc,
                                                     titleFontColor: (_a = glitter.share.globalValue['theme_color.0.title']) !== null && _a !== void 0 ? _a : '#333333',
                                                     prod: pd,
@@ -1415,13 +1487,17 @@ export class CheckoutIndex {
                                                             return item.id === dd.id;
                                                         }),
                                                     },
+                                                    preview: true,
                                                     with_qty: false,
+                                                    is_gift: true,
                                                     callback: () => {
+                                                        console.log(`vm.cartData=>`, vm.cartData);
                                                         let find = vm.cartData.lineItems.find((d1) => {
                                                             return dd.add_on_products.find((d2) => {
                                                                 return d2.id === d1.id;
                                                             });
                                                         });
+                                                        console.log(`find=>`, find);
                                                         if (find) {
                                                             apiCart.setCart((cartItem) => {
                                                                 cartItem.line_items.map((dd) => {
@@ -1442,11 +1518,11 @@ export class CheckoutIndex {
                                                         }
                                                     },
                                                 })}
-                                                                                                    </div>
-                                                                                                </div>
-                                                                                            </div>
-                                                                                        </div>
-                                                                                    </div>`;
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>`;
                                             }, Tool.randomString(7));
                                         })}"
                                                                         >
@@ -1505,6 +1581,14 @@ export class CheckoutIndex {
                                             ${gvc.bindView({
                             bind: ids.shipping,
                             view: () => {
+                                if ((vm.cartData.customer_info.payment_select === 'cash_on_delivery' && (!ShipmentConfig.supermarketList.includes(vm.cartData.user_info.shipment)))) {
+                                    const find = this.getShipmentMethod(vm.cartData).find((d1) => {
+                                        return ShipmentConfig.supermarketList.includes(d1.value);
+                                    });
+                                    vm.cartData.user_info.shipment = find && find.value;
+                                    this.storeLocalData(vm.cartData);
+                                    refreshCartData();
+                                }
                                 return html ` <div>
                                                         <select
                                                             class="w-100 ${gClass('select')}"
@@ -1529,6 +1613,9 @@ export class CheckoutIndex {
                                                         >
                                                             ${(() => {
                                     return this.getShipmentMethod(vm.cartData)
+                                        .filter((dd) => {
+                                        return !(vm.cartData.customer_info.payment_select === 'cash_on_delivery' && !(ShipmentConfig.supermarketList.includes(dd.value)));
+                                    })
                                         .map((dd) => {
                                         return html ` <option value="${dd.value}" ${vm.cartData.user_info.shipment === dd.value ? `selected` : ``}>
                                                                             ${Language.text(`ship_${dd.value}`) || Language.getLanguageCustomText(dd.name)}
@@ -1733,7 +1820,6 @@ export class CheckoutIndex {
                             const vm_info = {
                                 loading: true,
                                 list: [],
-                                login_config: {},
                             };
                             vm_info.list = widget.share.custom_form_checkout;
                             return {
@@ -1857,8 +1943,7 @@ export class CheckoutIndex {
                             const id = 'invoice_place';
                             const vm_info = {
                                 loading: true,
-                                list: [],
-                                login_config: {},
+                                list: []
                             };
                             let method = widget.share.invoice_method || '';
                             if (widget.share.invoice_method) {
@@ -2341,6 +2426,11 @@ export class CheckoutIndex {
                                                         class="${gClass(verify.length > 0 ? 'button-bgr-disable' : 'button-bgr')}"
                                                         onclick="${gvc.event(() => {
                                     var _a;
+                                    if (window.login_config.login_in_to_order && !GlobalUser.token) {
+                                        GlobalUser.loginRedirect = location.href;
+                                        gvc.glitter.href = '/login';
+                                        return;
+                                    }
                                     if (vm.cartData.user_info_same) {
                                         vm.cartData.user_info.name = vm.cartData.customer_info.name;
                                         vm.cartData.user_info.phone = vm.cartData.customer_info.phone;
@@ -2498,7 +2588,7 @@ export class CheckoutIndex {
                                 })}"
                                                         style="width:200px;"
                                                     >
-                                                        <span class="${gClass('button-text')}">${Language.text('next')}</span>
+                                                        <span class="${gClass('button-text')}">${(window.login_config.login_in_to_order && !GlobalUser.token) ? Language.text('login_in_to_checkout') : Language.text('next')}</span>
                                                     </button>
                                                 `,
                             ].join('')}
@@ -2513,7 +2603,7 @@ export class CheckoutIndex {
                     }
                 }),
                 divCreate: {
-                    class: `check_out_cart_data`,
+                    class: `check_out_cart_data text-start`,
                 },
                 onCreate: () => {
                     Ad.gtagEvent('view_cart', {
@@ -2535,7 +2625,7 @@ export class CheckoutIndex {
                         currency: 'TWD',
                         contents: vm.cartData.lineItems.map((item) => {
                             return {
-                                id: item.id,
+                                id: item.sku || (item.id),
                                 quantity: item.count,
                             };
                         }),
@@ -2649,7 +2739,7 @@ export class CheckoutIndex {
                 .map((dd) => {
                 gift += dd.count;
             });
-            return false && gift < gift_need;
+            return gift < gift_need;
         })()) {
             dialog.errorMessage({
                 text: Language.text('please_select_gift'),
@@ -2715,7 +2805,7 @@ export class CheckoutIndex {
             currency: 'TWD',
             contents: cartData.lineItems.map((item) => {
                 return {
-                    id: item.id,
+                    id: item.sku || (item.id),
                     quantity: item.count,
                 };
             }),

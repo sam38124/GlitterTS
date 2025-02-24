@@ -1159,7 +1159,7 @@ export class UMOrder {
                                                 return '';
                                             }
                                             return html` <div
-                                                class="customer-btn ms-3"
+                                                class="customer-btn ms-3 d-none"
                                                 onclick="${gvc.event(() => {
                                                     UMOrder.repay(gvc, vm.data.cart_token);
                                                 })}"

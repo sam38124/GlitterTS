@@ -36,6 +36,17 @@ export class GlobalUser {
     static set language(value) {
         GlobalUser.getWindow().glitter.setCookie(GlobalUser.getTag('language'), value);
     }
+    static get loginRedirect() {
+        return localStorage.getItem('loginRedirect');
+    }
+    static set loginRedirect(value) {
+        if (value) {
+            localStorage.setItem('loginRedirect', value);
+        }
+        else {
+            localStorage.removeItem('loginRedirect');
+        }
+    }
     static parseJWT(token) {
         const parts = token.split(".");
         if (parts.length !== 3) {

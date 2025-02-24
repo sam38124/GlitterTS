@@ -159,23 +159,6 @@ height: 51px;
     }
     static main(gvc) {
         const glitter = gvc.glitter;
-        gvc.glitter.runJsInterFace('pos-device', {}, (res) => {
-            PayConfig.deviceType = res.deviceType === 'neostra' ? 'pos' : 'web';
-            if (PayConfig.deviceType === 'pos') {
-                const script = document.createElement('script');
-                script.type = 'text/javascript';
-                script.src = 'https://cdnjs.cloudflare.com/ajax/libs/mui/3.7.1/js/mui.min.js';
-                script.integrity = 'sha512-5LSZkoyayM01bXhnlp2T6+RLFc+dE4SIZofQMxy/ydOs3D35mgQYf6THIQrwIMmgoyjI+bqjuuj4fQcGLyJFYg==';
-                script.referrerPolicy = 'no-referrer';
-                script.crossOrigin = 'anonymous';
-                document.head.appendChild(script);
-                glitter.addMtScript(['https://oss-sg.imin.sg/web/iMinPartner/js/imin-printer.min.js', 'https://cdn.jsdelivr.net/npm/jsbarcode@3.11.5/dist/JsBarcode.all.min.js'], () => { }, () => { });
-                setTimeout(() => {
-                    window.IminPrintInstance = new IminPrinter();
-                    window.IminPrintInstance.connect();
-                }, 3000);
-            }
-        });
         gvc.addStyle(`
             .dialog-box {
                 width: 100vw;

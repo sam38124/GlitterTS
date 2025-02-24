@@ -15,6 +15,7 @@ import { Shopping, VoucherData } from '../services/shopping';
 import { DataAnalyze } from '../services/data-analyze';
 import { Rebate, IRebateSearch } from '../services/rebate';
 import { Pos } from '../services/pos.js';
+import {FbApi} from "../services/fb-api.js";
 
 const router: express.Router = express.Router();
 export = router;
@@ -134,31 +135,59 @@ router.delete('/rebate', async (req: express.Request, resp: express.Response) =>
 // 結帳付款
 router.post('/checkout', async (req: express.Request, resp: express.Response) => {
     try {
+        const result=await new Shopping(req.get('g-app') as string, req.body.token).toCheckout({
+            line_items: req.body.line_items as any,
+            email: (req.body.token && req.body.token.account) || req.body.email,
+            return_url: req.body.return_url,
+            user_info: req.body.user_info,
+            code: req.body.code,
+            customer_info: req.body.customer_info,
+            checkOutType: req.body.checkOutType,
+            use_rebate: (() => {
+                if (req.body.use_rebate && typeof req.body.use_rebate === 'number') {
+                    return req.body.use_rebate;
+                } else {
+                    return 0;
+                }
+            })(),
+            custom_receipt_form: req.body.custom_receipt_form,
+            custom_form_format: req.body.custom_form_format,
+            custom_form_data: req.body.custom_form_data,
+            distribution_code: req.body.distribution_code,
+            code_array: req.body.code_array,
+            give_away: req.body.give_away,
+            language: req.headers['language'] as any,
+            client_ip_address:(req.query.ip || req.headers['x-real-ip'] || req.ip) as string,
+            fbc:req.cookies._fbc,
+            fbp:req.cookies._fbp
+        });
+
+        //
+        // const fb_data=new FbApi(req.get('g-app') as string)
+        // fb_data.checkOut({
+        //     "event_name": "Purchase",
+        //     "event_time": 1740037377,
+        //     "action_source": "website",
+        //     "user_data": {
+        //         "em": [
+        //             "309a0a5c3e211326ae75ca18196d301a9bdbd1a882a4d2569511033da23f0abd"
+        //         ],
+        //         "ph": [
+        //             "254aa248acb47dd654ca3ea53f48c2c26d641d23d7e2e93a1ec56258df7674c4",
+        //             "6f4fcb9deaeadc8f9746ae76d97ce1239e98b404efe5da3ee0b7149740f89ad6"
+        //         ],
+        //         "client_ip_address": "123.123.123.123",
+        //         "fbc": "fb.1.1554763741205.AbCdEfGhIjKlMnOpQrStUvWxYz1234567890",
+        //         "fbp": "fb.1.1558571054389.1098115397"
+        //     },
+        //     "custom_data": {
+        //         "currency": "TWD",
+        //         "value": 100.0
+        //     }
+        // })
         return response.succ(
             resp,
-            await new Shopping(req.get('g-app') as string, req.body.token).toCheckout({
-                line_items: req.body.line_items as any,
-                email: (req.body.token && req.body.token.account) || req.body.email,
-                return_url: req.body.return_url,
-                user_info: req.body.user_info,
-                code: req.body.code,
-                customer_info: req.body.customer_info,
-                checkOutType: req.body.checkOutType,
-                use_rebate: (() => {
-                    if (req.body.use_rebate && typeof req.body.use_rebate === 'number') {
-                        return req.body.use_rebate;
-                    } else {
-                        return 0;
-                    }
-                })(),
-                custom_receipt_form: req.body.custom_receipt_form,
-                custom_form_format: req.body.custom_form_format,
-                custom_form_data: req.body.custom_form_data,
-                distribution_code: req.body.distribution_code,
-                code_array: req.body.code_array,
-                give_away: req.body.give_away,
-                language: req.headers['language'] as any,
-            })
+            result
         );
     } catch (err) {
         return response.fail(resp, err);
@@ -621,6 +650,16 @@ async function redirect_link(req: express.Request, resp: express.Response) {
         let return_url = new URL((await redis.getValue(req.query.return as string)) as any);
         if (req.query.LinePay && req.query.LinePay === 'true') {
             const check_id = await redis.getValue(`linepay` + req.query.orderID);
+
+            const order_data = (
+                await db.query(
+                    `SELECT *
+                     FROM \`${req.query.appName}\`.t_checkout
+                     WHERE cart_token = ?
+                    `,
+                    [req.query.orderID]
+                )
+            )[0];
             const keyData = (
                 await Private_config.getConfig({
                     appName: req.query.appName as string,
@@ -629,7 +668,10 @@ async function redirect_link(req: express.Request, resp: express.Response) {
             )[0].value.line_pay;
             const linePay = new LinePay(req.query.appName as string, keyData);
 
-            const data: any = linePay.confirmAndCaptureOrder(check_id as string);
+            console.log(`check_id===>${req.query.orderID}===>${req.query.transactionId}`)
+            console.log(`req.query=>`,req.query)
+            const data: any = (await linePay.confirmAndCaptureOrder(req.query.transactionId as string,order_data['orderData'].total)).data;
+            console.log(`line-response==>`,data)
             if (data.returnCode == '0000') {
                 await new Shopping(req.query.appName as string).releaseCheckout(1, req.query.orderID as string);
             }
@@ -983,6 +1025,7 @@ router.get('/product', async (req: express.Request, resp: express.Response) => {
             is_manger: (await UtPermission.isManager(req)) as any,
             show_hidden: `${req.query.show_hidden as any}`,
             productType: req.query.productType as any,
+            product_category:req.query.product_category as any,
             filter_visible: req.query.filter_visible as any,
             view_source: req.query.view_source as string,
             distribution_code: req.query.distribution_code as string,

@@ -26,7 +26,9 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.createAPP = exports.initial = exports.app = void 0;
+exports.app = void 0;
+exports.initial = initial;
+exports.createAPP = createAPP;
 const path_1 = __importDefault(require("path"));
 const express_1 = __importDefault(require("express"));
 const cors_1 = __importDefault(require("cors"));
@@ -120,7 +122,6 @@ async function initial(serverPort) {
         console.log('Starting up the server now.');
     })();
 }
-exports.initial = initial;
 function createContext(req, res, next) {
     const uuid = (0, uuid_1.v4)();
     const ip = req.ip;
@@ -340,7 +341,16 @@ async function createAPP(dd) {
                                                     <meta property="og:image" content="${d.image || home_seo.image || ''}" />
                                                     <meta property="og:title" content="${((_a = d.title) !== null && _a !== void 0 ? _a : '').replace(/\n/g, '').replace(/"/g, '&quot;')}" />
                                                     <meta name="description" content="${((_b = d.content) !== null && _b !== void 0 ? _b : '').replace(/\n/g, '').replace(/"/g, '&quot;')}" />
-                                                    <meta name="og:description" content="${((_c = d.content) !== null && _c !== void 0 ? _c : '').replace(/\n/g, '').replace(/"/g, '&quot;')}" />`;
+                                                    <meta name="og:description" content="${((_c = d.content) !== null && _c !== void 0 ? _c : '').replace(/\n/g, '').replace(/"/g, '&quot;')}" />
+                                             
+                                                ${[
+                                            { src: 'css/front-end.css', type: 'text/css' }
+                                        ]
+                                            .map((dd) => {
+                                            return html ` <link src="/${link_prefix && `${link_prefix}/`}${dd.src}" type="${dd.type}" rel="stylesheet"></link>`;
+                                        })
+                                            .join('')}
+                                                `;
                                     }
                                 })()}
                                         ${(_a = d.code) !== null && _a !== void 0 ? _a : ''}
@@ -667,7 +677,6 @@ async function createAPP(dd) {
         };
     }));
 }
-exports.createAPP = createAPP;
 async function getSeoDetail(appName, req) {
     const sqlData = await private_config_js_1.Private_config.getConfig({
         appName: appName,

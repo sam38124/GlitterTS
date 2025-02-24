@@ -77,6 +77,9 @@ async function hashPwd(pwd) {
         throw err;
     }
 }
+function hashSHA256(value) {
+    return crypto_1.default.createHash('sha256').update(value.trim().toLowerCase()).digest('hex');
+}
 function createOrderId() {
     const orderId = '#' + (0, moment_1.default)(new Date()).format('YYYYMMDD') + crypto_1.default.randomBytes(4).toString('hex');
     return orderId;
@@ -104,6 +107,7 @@ exports.default = {
     createOrderId,
     randomString,
     compareHash,
-    checksum
+    checksum,
+    hashSHA256
 };
 //# sourceMappingURL=tool.js.map

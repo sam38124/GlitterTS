@@ -8,6 +8,7 @@ import CryptoJS from "crypto-js";
 import {createCipheriv, randomBytes, createHash} from 'crypto';
 import Tool from "./ezpay/tool.js";
 import tool from "../../modules/tool.js";
+import {OrderEvent} from "./order-event.js";
 
 interface KeyData {
     MERCHANT_ID: string;
@@ -79,12 +80,12 @@ export default class FinancialService {
         } else if (this.keyData.TYPE === 'ecPay') {
             return await new EcPay(this.appName, this.keyData).createOrderPage(orderData);
         }
-        return await db.execute(
-            `INSERT INTO \`${this.appName}\`.t_checkout (cart_token, status, email, orderData)
-             VALUES (?, ?, ?, ?)
-            `,
-            [orderData.orderID, 0, orderData.user_email, orderData]
-        );
+
+        return   await OrderEvent.insertOrder({
+            cartData:orderData,
+            status:0,
+            app:this.appName
+        });
 
         // //todo 修改付款方式 to paypal
         // return await new PayPal(this.appName, this.keyData).checkout(orderData);
@@ -203,13 +204,11 @@ export class EzPay {
                 }
             });
         }
-        const appName = this.appName;
-        await db.execute(
-            `INSERT INTO \`${appName}\`.t_checkout (cart_token, status, email, orderData)
-             VALUES (?, ?, ?, ?)
-            `,
-            [params.MerchantOrderNo, 0, orderData.user_email, orderData]
-        );
+        await OrderEvent.insertOrder({
+            cartData:orderData,
+            status:0,
+            app:this.appName
+        })
 
         // 2. 產生 Query String
         const qs = FinancialService.JsonToQueryString(params);
@@ -410,12 +409,11 @@ export class EcPay {
 
         const chkSum = EcPay.generateCheckMacValue(params, this.keyData.HASH_KEY, this.keyData.HASH_IV);
         orderData.CheckMacValue = chkSum;
-        await db.execute(
-            `INSERT INTO \`${this.appName}\`.t_checkout (cart_token, status, email, orderData)
-             VALUES (?, ?, ?, ?)
-            `,
-            [params.MerchantTradeNo, 0, orderData.user_email, orderData]
-        );
+        await OrderEvent.insertOrder({
+            cartData:orderData,
+            status:0,
+            app:this.appName
+        })
 
         // 5. 回傳物件
         return html`
@@ -676,12 +674,11 @@ export class PayPal {
             };
 
             const response = await axios.request(config);
-            await db.execute(
-                `INSERT INTO \`${this.appName}\`.t_checkout (cart_token, status, email, orderData)
-                 VALUES (?, ?, ?, ?)
-                `,
-                [orderData.orderID, 0, orderData.user_email, orderData]
-            );
+            await OrderEvent.insertOrder({
+                cartData:orderData,
+                status:0,
+                app:this.appName
+            })
             await redis.setValue('paypal' + orderData.orderID, response.data.id)
             return response.data;
         } catch (error: any) {
@@ -795,15 +792,19 @@ export class LinePay {
         // const PAYPAL_BASE_URL = "https://api-pay.line.me"; // 正式環境
     }
 
-    async confirmAndCaptureOrder(transactionId: string) {
-        const body: any = {};
-        const uri = `/payments/requests/${transactionId}/check`;
-        const nonce = new Date().getTime() / 1000;
-        const head = `${this.LinePay_SECRET}/v3${uri}${nonce}`;
-        const signature = crypto.createHmac('sha256', this.LinePay_SECRET).update(head).digest('base64');
+    async confirmAndCaptureOrder(transactionId: string,total:number) {
+        const body: any = {
+            amount:parseInt(`${total}`,10),
+            currency:'TWD'
+        };
+        const uri = `/payments/${transactionId}/confirm`;
+        const nonce = new Date().getTime().toString();
         const url = `${this.LinePay_BASE_URL}/v3${uri}`;
+        const head = [this.LinePay_SECRET,`/v3${uri}`,JSON.stringify(body),nonce].join('');
+        const signature = crypto.createHmac('sha256', this.LinePay_SECRET).update(head).digest('base64');
+
         const config: AxiosRequestConfig = {
-            method: "GET",
+            method: "POST",
             url: url,
             headers: {
                 "Content-Type": "application/json",
@@ -811,7 +812,13 @@ export class LinePay {
                 "X-LINE-Authorization-Nonce": nonce,
                 "X-LINE-Authorization": signature
             },
+            data:body
         };
+        console.log(`line-conform->
+        URL:${url}
+        X-LINE-ChannelId:${this.LinePay_CLIENT_ID}
+        LinePay_SECRET:${this.LinePay_SECRET}
+        `)
         try {
             const response = await axios.request(config);
             return response;
@@ -878,12 +885,11 @@ export class LinePay {
             ],
         })
         const uri = "/payments/request";
-        const nonce = new Date().getTime() / 1000;
-
-        const head = `${this.LinePay_SECRET}/v3${uri}${JSON.stringify(body)}${nonce}`;
+        const nonce = new Date().getTime().toString();
+        const url = `${this.LinePay_BASE_URL}/v3${uri}`;
+        const head = [this.LinePay_SECRET,`/v3${uri}`,JSON.stringify(body),nonce].join('');
         //sha256加密
         const signature = crypto.createHmac('sha256', this.LinePay_SECRET).update(head).digest('base64');
-        const url = `${this.LinePay_BASE_URL}/v3${uri}`;
         const config: AxiosRequestConfig = {
             method: "POST",
             url: url,
@@ -895,15 +901,21 @@ export class LinePay {
             },
             data: body
         };
+        console.log(`line-request->
+        URL:${url}
+        X-LINE-ChannelId:${this.LinePay_CLIENT_ID}
+        LinePay_SECRET:${this.LinePay_SECRET}
+        `)
         try {
             const response = await axios.request(config);
-            await db.execute(
-                `INSERT INTO \`${this.appName}\`.t_checkout (cart_token, status, email, orderData)
-                 VALUES (?, ?, ?, ?)
-                `,
-                [orderData.orderID, 0, orderData.user_email, orderData]
-            );
-            await redis.setValue('linepay' + orderData.orderID, response.data.info.transactionId)
+            await OrderEvent.insertOrder({
+                cartData:orderData,
+                status:0,
+                app:this.appName
+            })
+            console.log(`response.data===>`,response.data)
+            await redis.setValue('linepay' + orderData.orderID, response.data.info.transactionId);
+
             return response.data;
         } catch (error: any) {
             console.error("Error linePay:", error.response?.data || error.message);
@@ -1056,12 +1068,11 @@ export class PayNow {
         try {
             const response = await axios.request(config);
             (orderData as any).paynow_id = response.data.result.id;
-            await db.execute(
-                `INSERT INTO \`${this.appName}\`.t_checkout (cart_token, status, email, orderData)
-                 VALUES (?, ?, ?, ?)
-                `,
-                [orderData.orderID, 0, orderData.user_email, orderData]
-            );
+           await OrderEvent.insertOrder({
+                cartData:orderData,
+                status:0,
+                app:this.appName
+            })
             await redis.setValue('paynow' + orderData.orderID, response.data.result.id)
             return {
                 data: response.data,
@@ -1191,8 +1202,9 @@ export class JKO {
                 `INSERT INTO \`${this.appName}\`.t_checkout (cart_token, status, email, orderData)
                  VALUES (?, ?, ?, ?)
                 `,
-                [orderData.orderID, 0, orderData.user_email, orderData]
+                [orderData.orderID, 0, orderData.email, orderData]
             );
+
             await redis.setValue('paynow' + orderData.orderID, response.data.result.id)
             return ``
         } catch (error: any) {

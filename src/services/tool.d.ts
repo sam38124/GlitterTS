@@ -7,6 +7,7 @@ interface requestBody {
 }
 declare function getMaskObj(obj: any): requestBody;
 declare function hashPwd(pwd: string): Promise<string>;
+declare function hashSHA256(value: string): string;
 declare function createOrderId(): string;
 declare const _default: {
     isNull: typeof isNull;
@@ -18,5 +19,6 @@ declare const _default: {
     randomString: (max: number) => string;
     compareHash: (pwd: string, has: string) => Promise<boolean>;
     checksum: (message: string) => string;
+    hashSHA256: typeof hashSHA256;
 };
 export default _default;

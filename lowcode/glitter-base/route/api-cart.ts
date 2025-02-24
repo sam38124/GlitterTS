@@ -1,3 +1,5 @@
+import {ApiTrack} from "./api-track.js";
+
 type Product = {
     id: number;
     spec: string[];
@@ -25,7 +27,7 @@ export class ApiCart {
     static buyItNow: string = 'lemnoasewbuyqwji';
     //不同物流購物車前綴
     static cartPrefix: string = 'lemnoasewdvk';
-
+    //現在結帳用的購物車
     static get checkoutCart() {
         return localStorage.getItem('checkoutCart') || ApiCart.globalCart;
     }
@@ -109,6 +111,7 @@ export class ApiCart {
         if ((window.parent as any).glitter.share.reloadCartData) {
             (window.parent as any).glitter.share.reloadCartData();
         }
+
     }
 
     //設定商品與數量至購物車

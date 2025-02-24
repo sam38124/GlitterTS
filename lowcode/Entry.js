@@ -15,6 +15,7 @@ import { GlobalUser } from './glitter-base/global/global-user.js';
 import { EditorConfig } from './editor-config.js';
 import { ShareDialog } from './glitterBundle/dialog/ShareDialog.js';
 import { Language } from './glitter-base/global/language.js';
+import { PayConfig } from "./cms-plugin/pos-pages/pay-config.js";
 export class Entry {
     static onCreate(glitter) {
         var _a, _b;
@@ -89,7 +90,7 @@ export class Entry {
         }
         window.renderClock = (_b = window.renderClock) !== null && _b !== void 0 ? _b : clockF();
         console.log(`Entry-time:`, window.renderClock.stop());
-        glitter.share.editerVersion = 'V_17.8.5';
+        glitter.share.editerVersion = 'V_18.0.9';
         glitter.share.start = new Date();
         const vm = {
             appConfig: [],
@@ -559,6 +560,24 @@ export class Entry {
         });
     }
     static resourceInitial(glitter, vm, callback) {
+        glitter.share.PayConfig = PayConfig;
+        glitter.runJsInterFace('pos-device', {}, (res) => {
+            PayConfig.deviceType = res.deviceType === 'neostra' ? 'pos' : 'web';
+            if (PayConfig.deviceType === 'pos') {
+                const script = document.createElement('script');
+                script.type = 'text/javascript';
+                script.src = 'https://cdnjs.cloudflare.com/ajax/libs/mui/3.7.1/js/mui.min.js';
+                script.integrity = 'sha512-5LSZkoyayM01bXhnlp2T6+RLFc+dE4SIZofQMxy/ydOs3D35mgQYf6THIQrwIMmgoyjI+bqjuuj4fQcGLyJFYg==';
+                script.referrerPolicy = 'no-referrer';
+                script.crossOrigin = 'anonymous';
+                document.head.appendChild(script);
+                glitter.addMtScript(['https://oss-sg.imin.sg/web/iMinPartner/js/imin-printer.min.js', 'https://cdn.jsdelivr.net/npm/jsbarcode@3.11.5/dist/JsBarcode.all.min.js'], () => { }, () => { });
+                setTimeout(() => {
+                    window.IminPrintInstance = new IminPrinter();
+                    window.IminPrintInstance.connect();
+                }, 3000);
+            }
+        });
         glitter.runJsInterFace('getTopInset', {}, (response) => {
             glitter.share.top_inset = response.data;
         }, {

@@ -176,6 +176,16 @@ export class Glitter {
     public getCookieByName(name: string): string {
         return localStorage.getItem(name) as string;
     }
+    public cookie(name:string) {
+        const cookies = document.cookie.split('; ');
+        for (let i = 0; i < cookies.length; i++) {
+            const [key, value] = cookies[i].split('=');
+            if (key === name) {
+                return decodeURIComponent(value);
+            }
+        }
+        return null;
+    }
 
     public setPro(tag: string, data: string = "", callBack: (data: {}) => void, option:
         { defineType?: any, webFunction: (data: any, callback: (data: any) => void) => any }

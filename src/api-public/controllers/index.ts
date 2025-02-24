@@ -65,6 +65,7 @@ router.use(config.getRoute(config.public_route.graph_api, 'public'), require('./
 router.use(config.getRoute(config.public_route.ai_chat, 'public'), require('./ai-chat'));
 router.use(config.getRoute(config.public_route.ai_points, 'public'), require('./ai-points'));
 router.use(config.getRoute(config.public_route.sms_points, 'public'), require('./sms-points'));
+router.use(config.getRoute(config.public_route.track, 'public'), require('./track'));
 
 /******************************/
 const whiteList: {}[] = [
@@ -147,6 +148,7 @@ const whiteList: {}[] = [
     { url: config.getRoute(config.public_route.graph_api, 'public'), method: 'PUT' },
     { url: config.getRoute(config.public_route.graph_api, 'public'), method: 'DELETE' },
     { url: config.getRoute(config.public_route.graph_api, 'public'), method: 'PATCH' },
+    { url: config.getRoute(config.public_route.track, 'public'), method: 'POST' },
     { url: config.getRoute(config.public_route.ai_chat + '/ask-order', 'public'), method: 'GET' },
     { url: config.getRoute(config.public_route.ai_chat + '/search-product', 'public'), method: 'POST' },
 

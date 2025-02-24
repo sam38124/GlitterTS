@@ -42,6 +42,18 @@ export class GlobalUser {
         GlobalUser.getWindow().glitter.setCookie(GlobalUser.getTag('language'), value);
     }
 
+    public static get loginRedirect() {
+        return localStorage.getItem('loginRedirect')
+    }
+
+    public static set loginRedirect(value) {
+        if(value){
+            localStorage.setItem('loginRedirect',value)
+        }else{
+            localStorage.removeItem('loginRedirect')
+        }
+    }
+
     public static userInfo: any = undefined;
 
     public static updateUserData: any = {};

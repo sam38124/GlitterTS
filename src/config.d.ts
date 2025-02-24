@@ -58,6 +58,7 @@ export declare const config: {
         rebate: string;
         recommend: string;
         graph_api: string;
+        track: string;
         ai_chat: string;
         sms: string;
         line_message: string;

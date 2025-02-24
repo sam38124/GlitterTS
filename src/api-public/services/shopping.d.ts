@@ -101,7 +101,7 @@ type CartItem = {
         list: string[];
     };
 };
-type Cart = {
+export type Cart = {
     archived?: string;
     customer_info: any;
     lineItems: CartItem[];
@@ -145,8 +145,11 @@ type Cart = {
     language?: string;
     pos_info?: any;
     goodsWeight: number;
+    client_ip_address: string;
+    fbc: string;
+    fbp: string;
 };
-type Order = {
+export type Order = {
     id: number;
     cart_token: string;
     status: number;
@@ -187,6 +190,7 @@ export declare class Shopping {
         view_source?: string;
         distribution_code?: string;
         skip_shopee_check?: boolean;
+        product_category?: string;
     }): Promise<{
         data: any;
         result: boolean;
@@ -324,6 +328,9 @@ export declare class Shopping {
         pre_order?: boolean;
         voucherList?: any;
         isExhibition?: boolean;
+        client_ip_address?: string;
+        fbc?: string;
+        fbp?: string;
     }, type?: 'add' | 'preview' | 'manual' | 'manual-preview' | 'POS', replace_order_id?: string): Promise<any>;
     getReturnOrder(query: {
         page: number;

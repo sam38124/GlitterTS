@@ -418,13 +418,17 @@ export class UMLogin {
         gvc.glitter.share.public_api.GlobalUser = GlobalUser;
         GlobalUser.token = response.token;
         GlobalUser.userInfo = response;
+
         GlobalUser.updateUserData = JSON.parse(JSON.stringify(response));
         widget.event('success', { title: text ?? Language.text('login_success') });
         setTimeout(() => {
-            if (localStorage.getItem('redirect_cart') === 'true') {
-                gvc.glitter.href = '/checkout';
+            if( GlobalUser.loginRedirect){
+                const red=GlobalUser.loginRedirect
+                GlobalUser.loginRedirect='';
+                gvc.glitter.href = red;
+            }else {
+                gvc.glitter.href = '/account_userinfo';
             }
-            gvc.glitter.href = '/account_userinfo';
         }, 700);
     }
 

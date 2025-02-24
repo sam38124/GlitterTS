@@ -363,6 +363,7 @@ export class ApiShop {
                     json.view_source && par.push(`view_source=${json.view_source}`);
                     json.show_hidden && par.push(`show_hidden=${json.show_hidden}`);
                     json.distribution_code && par.push(`distribution_code=${json.distribution_code}`);
+                    json.product_category && par.push(`product_category=${json.product_category}`);
                     if (location.pathname.includes('/hidden/')) {
                         par.push(`filter_visible=false`);
                     }

@@ -124,4 +124,24 @@ ${tempDiv.querySelector('.invoice-detail-sum').children[2].textContent.replace(/
             }), 1000);
         });
     }
+    static printCode(code) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const IminPrintInstance = window.parent.IminPrintInstance;
+            function generateBarcodeBase64(barcodeString) {
+                const canvas = window.parent.document.createElement("canvas");
+                window.parent.JsBarcode(canvas, barcodeString, {
+                    format: "CODE128",
+                    lineColor: "#000000",
+                    width: 2,
+                    height: 50,
+                    displayValue: false
+                });
+                const base64String = canvas.toDataURL("image/png");
+                console.log("Base64 Barcode:", base64String);
+                return base64String;
+            }
+            IminPrintInstance.printSingleBitmap(generateBarcodeBase64(code));
+            yield IminPrintInstance.printAndFeedPaper(70);
+        });
+    }
 }

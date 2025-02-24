@@ -4,6 +4,7 @@ import exception from '../modules/exception';
 import { IToken } from '../models/Auth.js';
 import process from 'process';
 import { UtDatabase } from '../api-public/utils/ut-database.js';
+import {AbsolutePathCheck} from "./absolute-path-check.js";
 
 export class Template {
     public token?: IToken;
@@ -227,7 +228,7 @@ SELECT * FROM  \`${saasConfig.SAAS_NAME}\`.page_config where  1=1 ${where_};
         query_page = query_page || 'index';
         let page = query_page;
         //判斷是條款頁面或部落格列表頁面時
-        if(['privacy','term','refund','delivery','blogs','blog_tag_setting','blog_global_setting'].includes(query_page)){
+        if(['privacy','term','refund','delivery','blogs','blog_tag_setting','blog_global_setting','checkout'].includes(query_page)){
             return  'official-router'
         }
         //當判斷是Blog時
@@ -257,7 +258,7 @@ SELECT * FROM  \`${saasConfig.SAAS_NAME}\`.page_config where  1=1 ${where_};
         }
         //當判斷是商品頁時
         if (query_page.split('/')[0] === 'products' && query_page.split('/')[1]) {
-            page = 'products';
+            page = 'official-router';
         }
         //當判斷是CMS頁面時
         if (query_page === 'cms') {
@@ -282,6 +283,7 @@ SELECT * FROM  \`${saasConfig.SAAS_NAME}\`.page_config where  1=1 ${where_};
         id?: string;
         language?: 'zh-TW' | 'zh-CN' | 'en-US';
     }): Promise<any> {
+
         if (config.tag) {
             config.tag = await Template.getRealPage(config.tag, config.appName!);
             if(config.tag==='official-router'){

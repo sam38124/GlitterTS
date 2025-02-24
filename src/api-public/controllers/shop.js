@@ -132,7 +132,7 @@ router.delete('/rebate', async (req, resp) => {
 });
 router.post('/checkout', async (req, resp) => {
     try {
-        return response_1.default.succ(resp, await new shopping_1.Shopping(req.get('g-app'), req.body.token).toCheckout({
+        const result = await new shopping_1.Shopping(req.get('g-app'), req.body.token).toCheckout({
             line_items: req.body.line_items,
             email: (req.body.token && req.body.token.account) || req.body.email,
             return_url: req.body.return_url,
@@ -155,7 +155,11 @@ router.post('/checkout', async (req, resp) => {
             code_array: req.body.code_array,
             give_away: req.body.give_away,
             language: req.headers['language'],
-        }));
+            client_ip_address: (req.query.ip || req.headers['x-real-ip'] || req.ip),
+            fbc: req.cookies._fbc,
+            fbp: req.cookies._fbp
+        });
+        return response_1.default.succ(resp, result);
     }
     catch (err) {
         return response_1.default.fail(resp, err);
@@ -553,12 +557,19 @@ async function redirect_link(req, resp) {
         let return_url = new URL((await redis_js_1.default.getValue(req.query.return)));
         if (req.query.LinePay && req.query.LinePay === 'true') {
             const check_id = await redis_js_1.default.getValue(`linepay` + req.query.orderID);
+            const order_data = (await database_js_1.default.query(`SELECT *
+                     FROM \`${req.query.appName}\`.t_checkout
+                     WHERE cart_token = ?
+                    `, [req.query.orderID]))[0];
             const keyData = (await private_config_js_1.Private_config.getConfig({
                 appName: req.query.appName,
                 key: 'glitter_finance',
             }))[0].value.line_pay;
             const linePay = new financial_service_js_1.LinePay(req.query.appName, keyData);
-            const data = linePay.confirmAndCaptureOrder(check_id);
+            console.log(`check_id===>${req.query.orderID}===>${req.query.transactionId}`);
+            console.log(`req.query=>`, req.query);
+            const data = (await linePay.confirmAndCaptureOrder(req.query.transactionId, order_data['orderData'].total)).data;
+            console.log(`line-response==>`, data);
             if (data.returnCode == '0000') {
                 await new shopping_1.Shopping(req.query.appName).releaseCheckout(1, req.query.orderID);
             }
@@ -881,6 +892,7 @@ router.get('/product', async (req, resp) => {
             is_manger: (await ut_permission_1.UtPermission.isManager(req)),
             show_hidden: `${req.query.show_hidden}`,
             productType: req.query.productType,
+            product_category: req.query.product_category,
             filter_visible: req.query.filter_visible,
             view_source: req.query.view_source,
             distribution_code: req.query.distribution_code,

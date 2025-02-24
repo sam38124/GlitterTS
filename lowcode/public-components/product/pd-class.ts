@@ -9,6 +9,7 @@ import { Language } from '../../glitter-base/global/language.js';
 import { Currency } from '../../glitter-base/global/currency.js';
 import { Product, ProductInitial } from '../../public-models/product.js';
 import { VoucherContent } from '../user-manager/um-voucher.js';
+import {ApiTrack} from "../../glitter-base/route/api-track.js";
 
 const html = String.raw;
 const css = String.raw;
@@ -380,6 +381,7 @@ export class PdClass {
             () => {}
         );
 
+        console.log(`obj.prod.preview_image=>`,JSON.stringify(obj.prod.preview_image))
         obj.prod.variants.forEach((variant) => {
             variant.preview_image = (variant as any)[`preview_image_${Language.getLanguage()}`] || variant.preview_image;
             if (variant.preview_image && !obj.prod.preview_image.includes(variant.preview_image)) {
@@ -387,68 +389,6 @@ export class PdClass {
             }
         });
         PdClass.addSpecStyle(obj.gvc);
-        obj.gvc.glitter.addStyle(css`
-            .swiper {
-                width: 100%;
-                height: 100%;
-            }
-
-            .swiper-slide {
-                text-align: center;
-                font-size: 18px;
-                background: #fff;
-                display: flex;
-                justify-content: center;
-                align-items: center;
-            }
-
-            .swiper-slide img {
-                display: block;
-                width: 100%;
-                height: 100%;
-                object-fit: cover;
-            }
-
-            .swiper {
-                width: 100%;
-                height: 300px;
-                margin-left: auto;
-                margin-right: auto;
-            }
-
-            .swiper-slide {
-                background-size: cover;
-                background-position: center;
-            }
-
-            .mySwiper2 {
-                height: 80%;
-                width: 100%;
-            }
-
-            .mySwiper {
-                height: 20%;
-                box-sizing: border-box;
-                padding: 10px 0;
-            }
-
-            .mySwiper .swiper-slide {
-                width: 25%;
-                height: 100%;
-                opacity: 0.4;
-            }
-
-            .mySwiper .swiper-slide-thumb-active {
-                opacity: 1;
-            }
-
-            .swiper-slide img {
-                display: block;
-                width: 100%;
-                height: 100%;
-                object-fit: cover;
-            }
-        `);
 
         // 更新規格
         if (obj.vm.specs.length === 0) {
@@ -460,6 +400,9 @@ export class PdClass {
             return image !== 'https://d3jnmi1tfjgtti.cloudfront.net/file/234285319/1722936949034-default_image.jpg';
         });
 
+        if(obj.prod.preview_image.length===0){
+            obj.prod.preview_image=['https://d3jnmi1tfjgtti.cloudfront.net/file/234285319/1722936949034-default_image.jpg']
+        }
         return obj.gvc.bindView(() => {
             const id = obj.gvc.glitter.getUUID();
             return {
@@ -604,6 +547,7 @@ export class PdClass {
         callback?: () => void;
         preview?: boolean;
         only_select?: (data: any) => void;
+        is_gift?:boolean;
     }) {
         const gvc = obj.gvc;
         const glitter = gvc.glitter;
@@ -887,14 +831,8 @@ export class PdClass {
                                     ],
                                 });
                                 Ad.fbqEvent('ViewContent', {
-                                    content_ids: [prod.id],
+                                    content_ids: [variant.sku || prod.id ],
                                     content_type: 'product',
-                                    contents: [
-                                        {
-                                            id: prod.id,
-                                            quantity: 1,
-                                        },
-                                    ],
                                     value: variant.sale_price,
                                     currency: 'TWD',
                                 });
@@ -906,6 +844,42 @@ export class PdClass {
                                     return html` <button class="no-stock w-100" disabled>${Language.text('out_of_stock')}</button>`;
                                 }
 
+                                //當是贈品一個按鈕就好
+                                if(obj.is_gift ){
+                                    return `<button
+                                        class="add-cart-imd-btn fw-bold h-100"
+                                        style="width:calc(100% - 10px);cursor: pointer;"
+                                        onclick="${gvc.event(() => {
+                                        if (obj.only_select) {
+                                            obj.only_select({ id: prod.id, specs: vm.specs });
+                                        } else {
+                                            new ApiCart(ApiCart.checkoutCart).addToCart(`${prod.id}`, vm.specs, vm.quantity);
+                                            gvc.glitter.recreateView('.js-cart-count');
+                                            gvc.glitter.recreateView('.shopping-cart');
+                                            PdClass.jumpAlert({
+                                                gvc,
+                                                text: html`${Language.text('add_to_cart_success')}`,
+                                                justify: 'top',
+                                                align: 'center',
+                                                width: 300,
+                                            });
+                                            ApiTrack.track({
+                                                event_name: "AddToCart",
+                                                custom_data: {
+                                                    currency: "TWD",
+                                                    value: variant.sale_price,
+                                                    content_ids: [variant.sku || `${prod.id}-${vm.specs.join('-')}`],
+                                                    content_name: prod.title,
+                                                    content_type: "product"
+                                                }
+                                            })
+                                            obj.callback && obj.callback();
+                                        }
+                                    })}"
+                                    >
+                                        ${Language.text('confirm_select')}
+                                    </button>`
+                                }
                                 return html`
                                     <div
                                         class="add-cart-imd-btn fw-bold h-100 "
@@ -916,6 +890,16 @@ export class PdClass {
                                             buy_it.addToCart(`${prod.id}`, vm.specs, vm.quantity);
                                             ApiCart.toCheckOutPage(ApiCart.buyItNow);
                                             gvc.closeDialog();
+                                            ApiTrack.track({
+                                                event_name: "AddToCart",
+                                                custom_data: {
+                                                    currency: "TWD",
+                                                    value: variant.sale_price,
+                                                    content_ids: [variant.sku || `${prod.id}-${vm.specs.join('-')}`],
+                                                    content_name: prod.title,
+                                                    content_type: "product"
+                                                }
+                                            })
                                         })}"
                                     >
                                         ${Language.text('buy_it_now')}
@@ -938,6 +922,16 @@ export class PdClass {
                                                     align: 'center',
                                                     width: 300,
                                                 });
+                                                ApiTrack.track({
+                                                    event_name: "AddToCart",
+                                                    custom_data: {
+                                                        currency: "TWD",
+                                                        value: variant.sale_price,
+                                                        content_ids: [variant.sku || `${prod.id}-${vm.specs.join('-')}`],
+                                                        content_name: prod.title,
+                                                        content_type: "product"
+                                                    }
+                                                })
                                                 obj.callback && obj.callback();
                                             }
                                         })}"

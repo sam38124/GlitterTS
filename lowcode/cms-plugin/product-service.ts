@@ -6,8 +6,8 @@ export class ProductService{
     public static checkData(postMD:any,obj:any,vm:any,refresh:()=>void){
         const gvc=obj.gvc
         const dialog = new ShareDialog(gvc.glitter);
-        function checkEmpty() {
 
+        function checkEmpty() {
             const variantsCheckList = ['sale_price'];
 
 
@@ -23,6 +23,12 @@ export class ProductService{
 
             for (const index in postMD['variants']) {
                 const variant: any = postMD['variants'][index];
+                if((postMD.product_category==='kitchen') && postMD.specs.length){
+                    variant['v_height']=postMD['v_height']
+                    variant['v_width']=postMD['v_width']
+                    variant['v_length']=postMD['v_length']
+                    variant['weight']=postMD['weight']
+                }
                 if(postMD.product_category==='course'){
                     variant['shipment_type']='none'
                 }

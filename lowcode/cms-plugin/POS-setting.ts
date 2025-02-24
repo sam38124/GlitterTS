@@ -189,32 +189,7 @@ height: 51px;
     public static main(gvc: GVC) {
         const glitter = gvc.glitter;
         // https://unpkg.com/html5-qrcode/minified/html5-qrcode.min.js
-        //設定裝置類型
-        gvc.glitter.runJsInterFace('pos-device', {}, (res) => {
-            PayConfig.deviceType = res.deviceType === 'neostra' ? 'pos' : 'web';
-            //POS機台啟用列印功能
-            if (PayConfig.deviceType === 'pos') {
-                const script = document.createElement('script');
-                script.type = 'text/javascript';
-                script.src = 'https://cdnjs.cloudflare.com/ajax/libs/mui/3.7.1/js/mui.min.js';
-                script.integrity = 'sha512-5LSZkoyayM01bXhnlp2T6+RLFc+dE4SIZofQMxy/ydOs3D35mgQYf6THIQrwIMmgoyjI+bqjuuj4fQcGLyJFYg==';
-                script.referrerPolicy = 'no-referrer';
-                script.crossOrigin = 'anonymous';
-                // 当脚本加载完成后执行回调函数
-                document.head.appendChild(script);
-                glitter.addMtScript(
-                    ['https://oss-sg.imin.sg/web/iMinPartner/js/imin-printer.min.js', 'https://cdn.jsdelivr.net/npm/jsbarcode@3.11.5/dist/JsBarcode.all.min.js'],
-                    () => {},
-                    () => {}
-                );
-                setTimeout(() => {
-                    //@ts-ignore
-                    window.IminPrintInstance = new IminPrinter();
-                    //@ts-ignore
-                    window.IminPrintInstance.connect();
-                }, 3000);
-            }
-        });
+
         gvc.addStyle(`
             .dialog-box {
                 width: 100vw;

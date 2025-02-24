@@ -392,7 +392,7 @@ export class Delivery {
                             case 'OKMARTC2C':
                                 return 'api/OKC2C';
                             case 'UNIMARTFREEZE':
-                                return 'Member/Order/Print711FreezingC2CLabel'
+                                return 'Member/OrderEvent/Print711FreezingC2CLabel'
                         }
                         return  ``
                     })()}?orderNumberStr=${obj.cart_token}&user_account=${(await pay_now.config()).account}`,

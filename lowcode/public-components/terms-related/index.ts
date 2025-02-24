@@ -43,14 +43,25 @@ export class TermsRelated {
                                 resolve(res.main(obj));
                             });
                         })
+                    }else if ((`${glitter.getUrlParameter('page')}`.startsWith(`products/`))) {
+                        return await new Promise((resolve, reject) => {
+                            glitter.getModule(new URL('./public-components/product/product-detail.js', gvc.glitter.root_path).href, (res) => {
+                                (document.querySelector(`.${id}`) as any).outerHTML=res.main(gvc)
+                            });
+                        })
                     } else if(['blog_tag_setting','blog_global_setting'].includes(glitter.getUrlParameter('page'))){
-
                         return await new Promise((resolve, reject) => {
                             glitter.getModule(new URL('./cms-plugin/cms-router.js', gvc.glitter.root_path).href, (res) => {
                                 (document.querySelector(`.${id}`) as any).outerHTML=res.main(gvc);
                             });
                         })
-                    }else {
+                    }else if (['checkout'].includes(page)){
+                        return await new Promise((resolve, reject) => {
+                            glitter.getModule(new URL('./public-components/checkout/index.js', gvc.glitter.root_path).href, (res) => {
+                                (document.querySelector(`.${id}`) as any).outerHTML=res.main(gvc,obj.widget,obj.subData);
+                            });
+                        })
+                    }else{
                         //條款頁面
                         let lan_d = (await ApiUser.getPublicConfig(`terms-related-${page}-${Language.getLanguage()}`, 'manager')).response.value.text
                         if (!lan_d) {

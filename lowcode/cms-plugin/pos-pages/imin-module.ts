@@ -138,4 +138,26 @@ ${tempDiv.querySelector('.invoice-detail-sum')!!.children[2].textContent!.replac
             await IminPrintInstance.printAndFeedPaper(100)
         },1000)
     }
+    //列印QRCODE
+    public static async printCode(code:string){
+        const IminPrintInstance:any=(window.parent as any).IminPrintInstance
+        function generateBarcodeBase64(barcodeString:any) {
+            const canvas = (window.parent as any).document.createElement("canvas");
+            // 使用 JsBarcode 將條碼字串渲染到 canvas
+            //@ts-ignore
+            (window.parent as any).JsBarcode(canvas, barcodeString, {
+                format: "CODE128", // 條碼格式，可根據需求更換
+                lineColor: "#000000", // 條碼顏色
+                width: 2,            // 條碼寬度
+                height: 50,          // 條碼高度
+                displayValue: false   // 是否顯示條碼值
+            });
+            // 將 canvas 轉換為 base64 圖片
+            const base64String = canvas.toDataURL("image/png");
+            console.log("Base64 Barcode:", base64String);
+            return base64String;
+        }
+        IminPrintInstance.printSingleBitmap(generateBarcodeBase64(code))
+        await IminPrintInstance.printAndFeedPaper(70)
+    }
 }

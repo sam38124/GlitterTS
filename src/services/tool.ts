@@ -193,6 +193,10 @@ async function hashPwd(pwd: string): Promise<string> {
         throw err;
     }
 }
+function hashSHA256(value:string) {
+    return crypto.createHash('sha256').update(value.trim().toLowerCase()).digest('hex');
+}
+
 
 function createOrderId(): string {
     const orderId = '#' + moment(new Date()).format('YYYYMMDD') + crypto.randomBytes(4).toString('hex');
@@ -227,5 +231,6 @@ export default {
     createOrderId,
     randomString,
     compareHash,
-    checksum
+    checksum,
+    hashSHA256
 };

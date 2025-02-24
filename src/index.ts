@@ -44,6 +44,7 @@ import { Readable } from 'stream';
 import AWS from 'aws-sdk';
 import { extractCols, extractProds, SeoConfig } from './seo-config.js';
 import {Language} from "./Language.js";
+import {FbApi} from "./api-public/services/fb-api.js";
 
 export const app = express();
 const logger = new Logger();
@@ -146,6 +147,7 @@ export async function createAPP(dd: any) {
                 seoManager: async (req) => {
                     const og_url = req.headers['x-original-url'];
                     const custom_heads:string[]=[];
+
                     console.log(`req.query.page=>`,req.query.page)
                     try {
                         if (req.query.state === 'google_login') {
@@ -168,6 +170,7 @@ export async function createAPP(dd: any) {
                         req.headers['g-app'] = appName;
                         const start = new Date().getTime();
                         console.log(`getPageInfo==>`, (new Date().getTime() - start) / 1000);
+
                         //SEO內容
                         let seo_content: string[] = [];
                         let [customCode, FBCode, store_info, language_label, check_schema, brandAndMemberType, login_config, ip_country] = await Promise.all([
@@ -335,7 +338,16 @@ export async function createAPP(dd: any) {
                                                     <meta property="og:image" content="${d.image || home_seo.image || ''}" />
                                                     <meta property="og:title" content="${(d.title ?? '').replace(/\n/g, '').replace(/"/g, '&quot;')}" />
                                                     <meta name="description" content="${(d.content ?? '').replace(/\n/g, '').replace(/"/g, '&quot;')}" />
-                                                    <meta name="og:description" content="${(d.content ?? '').replace(/\n/g, '').replace(/"/g, '&quot;')}" />`;
+                                                    <meta name="og:description" content="${(d.content ?? '').replace(/\n/g, '').replace(/"/g, '&quot;')}" />
+                                             
+                                                ${[
+                                                    { src: 'css/front-end.css', type: 'text/css' }
+                                                ]
+                                                        .map((dd) => {
+                                                            return html` <link src="/${link_prefix && `${link_prefix}/`}${dd.src}" type="${dd.type}" rel="stylesheet"></link>`;
+                                                        })
+                                                        .join('')}
+                                                `;
                                             }
                                         })()}
                                         ${d.code ?? ''}

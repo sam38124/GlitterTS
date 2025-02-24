@@ -1,3 +1,5 @@
+import {ApiTrack} from "../../glitter-base/route/api-track.js";
+
 export class Ad {
     static gtagEvent(name: string, obj: any) {
         const gtag = (window as any).gtag;
@@ -11,5 +13,10 @@ export class Ad {
         if (fbq) {
             fbq('track', name, obj);
         }
+        // alert('12')
+        ApiTrack.track({
+            event_name: name,
+            custom_data: obj
+        })
     }
 }

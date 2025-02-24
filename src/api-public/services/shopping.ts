@@ -24,6 +24,7 @@ import {EcInvoice} from './EcInvoice';
 import {onlinePayArray, paymentInterface} from '../models/glitter-finance.js';
 import {App} from '../../services/app.js';
 import {Stock} from './stock';
+import {OrderEvent} from './order-event.js';
 import {SeoConfig} from '../../seo-config.js';
 import {sendmail} from '../../services/ses.js';
 import {Shopee} from "./shopee";
@@ -139,7 +140,7 @@ type CartItem = {
     };
 };
 
-type Cart = {
+export type Cart = {
     archived?: string;
     customer_info: any;
     lineItems: CartItem[];
@@ -179,9 +180,12 @@ type Cart = {
     language?: string;
     pos_info?: any; //POS結帳資訊
     goodsWeight: number;
+    client_ip_address:string;
+    fbc:string;
+    fbp:string;
 };
 
-type Order = {
+export type Order = {
     id: number;
     cart_token: string;
     status: number;
@@ -229,6 +233,7 @@ export class Shopping {
         view_source?: string;
         distribution_code?: string;
         skip_shopee_check?: boolean;
+        product_category?:string
     }) {
         try {
             const start = new Date().getTime();
@@ -296,6 +301,9 @@ export class Shopping {
                 }
             }
 
+            if(query.product_category){
+                querySql.push(`JSON_EXTRACT(content, '$.product_category') = ${db.escape(query.product_category)}`);
+            }
             if (query.domain) {
                 const decodedDomain = decodeURIComponent(query.domain);
                 const sqlJoinSearch = [
@@ -334,7 +342,7 @@ export class Shopping {
             } else if (!query.is_manger && `${query.show_hidden}` !== 'true') {
                 querySql.push(`(content->>'$.visible' is null || content->>'$.visible' = 'true')`);
             }
-
+            console.log(`is_manger=>`,query.is_manger)
             // 判斷有帶入商品類型時，顯示商品類型，反之預設折是一班商品
             if (query.productType) {
                 query.productType.split(',').map((dd) => {
@@ -408,6 +416,9 @@ export class Shopping {
                 query.order_by = ` order by id in (${query.id_list})`;
             }
 
+            if(!query.is_manger&&!query.status){
+                query.status='inRange'
+            }
             if (query.status) {
                 const statusSplit = query.status.split(',').map((status) => status.trim());
                 const statusJoin = statusSplit.map((status) => `"${status}"`).join(',');
@@ -545,8 +556,16 @@ export class Shopping {
                             let totalSale = 0;
                             const {language} = query;
                             const {content} = product;
+                            content.preview_image=content.preview_image??[]
                             if (language && content?.language_data?.[language]) {
                                 const langData = content.language_data[language];
+                                if((langData.preview_image && langData.preview_image.length===0) || (!langData.preview_image)){
+                                    if(content.preview_image.length){
+                                        langData.preview_image=content.preview_image
+                                    }else{
+                                        langData.preview_image=['https://d3jnmi1tfjgtti.cloudfront.net/file/234285319/1722936949034-default_image.jpg']
+                                    }
+                                }
                                 Object.assign(content, {
                                     seo: langData.seo,
                                     title: langData.title || content.title,
@@ -556,12 +575,18 @@ export class Shopping {
                                     preview_image: langData.preview_image || content.preview_image,
                                 });
                             }
+                            if((content.preview_image && content.preview_image.length===0) || (!content.preview_image)){
+                                content.preview_image=['https://d3jnmi1tfjgtti.cloudfront.net/file/234285319/1722936949034-default_image.jpg']
+                            }
                             content.min_price = Infinity;
                             content.max_price = Number.MIN_VALUE;
                             (content.variants || []).forEach((variant: any) => {
                                 variant.stock = 0;
                                 variant.sold_out = variant.sold_out || 0;
-                                variant.preview_image = variant[`preview_image_${language}`] || variant.preview_image;
+                                if(!variant.preview_image.includes('https://')){
+                                    variant.preview_image= undefined
+                                }
+                                variant.preview_image = variant[`preview_image_${language}`] || variant.preview_image || 'https://d3jnmi1tfjgtti.cloudfront.net/file/234285319/1722936949034-default_image.jpg';
                                 if (content.min_price > variant.sale_price) {
                                     console.log(`content.min_price=>`, variant.sale_price);
                                     content.min_price = variant.sale_price;
@@ -570,7 +595,7 @@ export class Shopping {
                                 if (content.max_price < variant.sale_price) {
                                     content.max_price = variant.sale_price;
                                 }
-                                
+
                                 if (variant.preview_image === 'https://d3jnmi1tfjgtti.cloudfront.net/file/234285319/1722936949034-default_image.jpg') {
                                     variant.preview_image = content.preview_image?.[0];
                                 }
@@ -1291,6 +1316,9 @@ export class Shopping {
             pre_order?: boolean;
             voucherList?: any;
             isExhibition?: boolean;
+            client_ip_address?:string,
+            fbc?:string,
+            fbp?:string
         },
         type: 'add' | 'preview' | 'manual' | 'manual-preview' | 'POS' = 'add',
         replace_order_id?: string
@@ -1600,6 +1628,9 @@ export class Shopping {
                 user_rebate_sum: 0,
                 language: data.language,
                 pos_info: data.pos_info,
+                client_ip_address:data.client_ip_address as string,
+                fbc:data.fbc as string,
+                fbp:data.fbp as string
             };
 
             if (!data.user_info.name && userData && userData.userData) {
@@ -2227,11 +2258,11 @@ export class Shopping {
                 );
 
                 carData.method = 'off_line';
-                await db.execute(
-                    `INSERT INTO \`${this.app}\`.t_checkout (cart_token, status, email, orderData)
-                     values (?, ?, ?, ?)`,
-                    [carData.orderID, 1, carData.email, carData]
-                );
+                await OrderEvent.insertOrder({
+                    cartData:carData,
+                    status:1,
+                    app:this.app
+                })
                 if (carData.use_wallet > 0) {
                     new Invoice(this.app).postCheckoutInvoice(carData.orderID, false);
                 }
@@ -2273,6 +2304,7 @@ export class Shopping {
                                 return dd();
                             })
                         );
+
                         return {
                             form: subMitData,
                         };
@@ -2312,11 +2344,11 @@ export class Shopping {
                     }
                     default:
                         carData.method = 'off_line';
-                        await db.execute(
-                            `INSERT INTO \`${this.app}\`.t_checkout (cart_token, status, email, orderData)
-                             values (?, ?, ?, ?)`,
-                            [carData.orderID, 0, carData.email, carData]
-                        );
+                        await OrderEvent.insertOrder({
+                            cartData:carData,
+                            status:0,
+                            app:this.app
+                        })
                         await Promise.all(
                             saveStockArray.map((dd) => {
                                 return dd();
@@ -2668,7 +2700,7 @@ export class Shopping {
                     case 'collection':
                         return dp.collection.some((d2: string) => caseList.includes(d2));
                     case 'product':
-                        return caseList.includes(`${dp.id}`);
+                        return caseList.map((dd)=>{return `${dd}`}).includes(`${dp.id}`);
                     case 'all':
                         return true;
                 }
@@ -2747,74 +2779,79 @@ export class Shopping {
                 return dd.bind.length > 0;
             })
             .filter((dd) => {
-                // 購物車是否達到優惠條件，與計算優惠觸發次數
-                dd.times = 0;
-                dd.bind_subtotal = 0;
 
-                const ruleValue = parseInt(`${dd.ruleValue}`, 10);
+                const pass=(()=>{
+                    // 購物車是否達到優惠條件，與計算優惠觸發次數
+                    dd.times = 0;
+                    dd.bind_subtotal = 0;
 
-                if (dd.conditionType === 'order') {
-                    let cartValue = 0;
-                    dd.bind.map((item) => {
-                        dd.bind_subtotal += item.count * item.sale_price;
-                    });
-                    if (dd.rule === 'min_price') {
-                        cartValue = dd.bind_subtotal;
-                    }
-                    if (dd.rule === 'min_count') {
+                    const ruleValue = parseInt(`${dd.ruleValue}`, 10);
+
+                    if (dd.conditionType === 'order') {
+                        let cartValue = 0;
                         dd.bind.map((item) => {
-                            cartValue += item.count;
+                            dd.bind_subtotal += item.count * item.sale_price;
                         });
-                    }
-                    if (dd.reBackType === 'shipment_free') {
-                        return cartValue >= ruleValue; // 回傳免運費判斷
-                    }
-                    if (cartValue >= ruleValue) {
-                        if (dd.counting === 'each') {
-                            dd.times = Math.floor(cartValue / ruleValue);
+                        if (dd.rule === 'min_price') {
+                            cartValue = dd.bind_subtotal;
                         }
-                        if (dd.counting === 'single') {
-                            dd.times = 1;
+                        if (dd.rule === 'min_count') {
+                            dd.bind.map((item) => {
+                                cartValue += item.count;
+                            });
                         }
-                    }
-                    // 單位為訂單的優惠觸發
-                    return dd.times > 0;
-                }
-
-                if (dd.conditionType === 'item') {
-                    if (dd.rule === 'min_price') {
-                        dd.bind = dd.bind.filter((item) => {
-                            item.times = 0;
-                            if (item.count * item.sale_price >= ruleValue) {
-                                if (dd.counting === 'each') {
-                                    item.times = Math.floor((item.count * item.sale_price) / ruleValue);
-                                }
-                                if (dd.counting === 'single') {
-                                    item.times = 1;
-                                }
+                        if (dd.reBackType === 'shipment_free') {
+                            return cartValue >= ruleValue; // 回傳免運費判斷
+                        }
+                        if (cartValue >= ruleValue) {
+                            if (dd.counting === 'each') {
+                                dd.times = Math.floor(cartValue / ruleValue);
                             }
-                            return item.times > 0;
-                        });
-                    }
-                    if (dd.rule === 'min_count') {
-                        dd.bind = dd.bind.filter((item) => {
-                            item.times = 0;
-                            if (item.count >= ruleValue) {
-                                if (dd.counting === 'each') {
-                                    item.times = Math.floor(item.count / ruleValue);
-                                }
-                                if (dd.counting === 'single') {
-                                    item.times = 1;
-                                }
+                            if (dd.counting === 'single') {
+                                dd.times = 1;
                             }
-                            return item.times > 0;
-                        });
+                        }
+                        // 單位為訂單的優惠觸發
+                        return dd.times > 0;
                     }
-                    // 計算單位為商品的優惠觸發
-                    return dd.bind.reduce((acc, item) => acc + item.times, 0) > 0;
-                }
 
-                return false;
+                    if (dd.conditionType === 'item') {
+                        if (dd.rule === 'min_price') {
+                            dd.bind = dd.bind.filter((item) => {
+                                item.times = 0;
+                                if (item.count * item.sale_price >= ruleValue) {
+                                    if (dd.counting === 'each') {
+                                        item.times = Math.floor((item.count * item.sale_price) / ruleValue);
+                                    }
+                                    if (dd.counting === 'single') {
+                                        item.times = 1;
+                                    }
+                                }
+                                return item.times > 0;
+                            });
+                        }
+                        if (dd.rule === 'min_count') {
+                            dd.bind = dd.bind.filter((item) => {
+                                item.times = 0;
+                                if (item.count >= ruleValue) {
+                                    if (dd.counting === 'each') {
+                                        item.times = Math.floor(item.count / ruleValue);
+                                    }
+                                    if (dd.counting === 'single') {
+                                        item.times = 1;
+                                    }
+                                }
+                                return item.times > 0;
+                            });
+                        }
+                        // 計算單位為商品的優惠觸發
+                        return dd.bind.reduce((acc, item) => acc + item.times, 0) > 0;
+                    }
+
+                    return false;
+                })()
+
+                return pass ?? false
             })
             .sort(function (a: VoucherData, b: VoucherData) {
                 // 排序折扣金額
@@ -4173,7 +4210,7 @@ export class Shopping {
 
     checkVariantDataType(variants: any[]) {
         const propertiesToParse = ['stock', 'product_id', 'sale_price', 'compare_price', 'shipment_weight'];
-    
+
         variants.forEach((variant) => {
             propertiesToParse.forEach((prop) => {
                 if (variant[prop] != null) { // 檢查屬性是否存在且不為 null 或 undefined
@@ -4378,24 +4415,27 @@ export class Shopping {
             console.log(`productArray==>`, productArray)
 
 
-            const data = await db.query(
-                `replace
+            if(productArray.length){
+                const data = await db.query(
+                    `replace
                 INTO \`${this.app}\`.\`t_manager_post\` (id,userID,content) values ?`,
-                [
-                    productArray.map((product: any) => {
-                        if (!product.id) {
-                            product.id = max_id++;
-                        }
-                        product.type = 'product';
-                        this.checkVariantDataType(product.variants);
-                        return [product.id || null, this.token?.userID, JSON.stringify(product)];
-                    }),
-                ]
-            );
-
-            let insertIDStart = data.insertId;
-            await new Shopping(this.app, this.token).promisesProducts(productArray, insertIDStart);
-            return insertIDStart;
+                    [
+                        productArray.map((product: any) => {
+                            if (!product.id) {
+                                product.id = max_id++;
+                            }
+                            product.type = 'product';
+                            this.checkVariantDataType(product.variants);
+                            return [product.id || null, this.token?.userID, JSON.stringify(product)];
+                        }),
+                    ]
+                );
+                let insertIDStart = data.insertId;
+                await new Shopping(this.app, this.token).promisesProducts(productArray, insertIDStart);
+                return insertIDStart;
+            }else{
+                return  -1
+            }
         } catch (e) {
             console.error(e);
             throw exception.BadRequestError('BAD_REQUEST', 'postMulProduct Error:' + e, null);

@@ -7,6 +7,7 @@ import {GlobalUser} from './glitter-base/global/global-user.js';
 import {EditorConfig} from './editor-config.js';
 import {ShareDialog} from './glitterBundle/dialog/ShareDialog.js';
 import {Language} from './glitter-base/global/language.js';
+import {PayConfig} from "./cms-plugin/pos-pages/pay-config.js";
 
 export class Entry {
     public static onCreate(glitter: Glitter) {
@@ -90,7 +91,7 @@ export class Entry {
         }
         (window as any).renderClock = (window as any).renderClock ?? clockF();
         console.log(`Entry-time:`, (window as any).renderClock.stop());
-        glitter.share.editerVersion = 'V_17.8.5';
+        glitter.share.editerVersion = 'V_18.0.9';
         glitter.share.start = new Date();
         const vm: {
             appConfig: any;
@@ -617,6 +618,33 @@ export class Entry {
 
     // 資源初始化
     public static resourceInitial(glitter: Glitter, vm: any, callback: (data: any) => void) {
+        glitter.share.PayConfig=PayConfig
+        //判斷是否為POS裝置的Initial
+        glitter.runJsInterFace('pos-device', {}, (res) => {
+            PayConfig.deviceType = res.deviceType === 'neostra' ? 'pos' : 'web';
+            //POS機台啟用列印功能
+            if (PayConfig.deviceType === 'pos') {
+                const script = document.createElement('script');
+                script.type = 'text/javascript';
+                script.src = 'https://cdnjs.cloudflare.com/ajax/libs/mui/3.7.1/js/mui.min.js';
+                script.integrity = 'sha512-5LSZkoyayM01bXhnlp2T6+RLFc+dE4SIZofQMxy/ydOs3D35mgQYf6THIQrwIMmgoyjI+bqjuuj4fQcGLyJFYg==';
+                script.referrerPolicy = 'no-referrer';
+                script.crossOrigin = 'anonymous';
+                // 当脚本加载完成后执行回调函数
+                document.head.appendChild(script);
+                glitter.addMtScript(
+                    ['https://oss-sg.imin.sg/web/iMinPartner/js/imin-printer.min.js', 'https://cdn.jsdelivr.net/npm/jsbarcode@3.11.5/dist/JsBarcode.all.min.js'],
+                    () => {},
+                    () => {}
+                );
+                setTimeout(() => {
+                    //@ts-ignore
+                    window.IminPrintInstance = new IminPrinter();
+                    //@ts-ignore
+                    window.IminPrintInstance.connect();
+                }, 3000);
+            }
+        });
         //取得APP的上間隔距離
         glitter.runJsInterFace(
             'getTopInset',
