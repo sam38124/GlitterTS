@@ -10,10 +10,21 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 import { ShareDialog } from '../../glitterBundle/dialog/ShareDialog.js';
 import { ApiUser } from '../../glitter-base/route/user.js';
 export class UserExcel {
+    static loadXLSX(gvc) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const XLSX = yield new Promise((resolve, reject) => {
+                gvc.addMtScript([{ src: 'https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.16.9/xlsx.full.min.js' }], () => {
+                    resolve(window.XLSX);
+                }, reject);
+            });
+            return XLSX;
+        });
+    }
     static export(gvc, vm) {
         return __awaiter(this, void 0, void 0, function* () {
             const dialog = new ShareDialog(gvc.glitter);
             const dateFormat = gvc.glitter.ut.dateFormat;
+            const XLSX = yield this.loadXLSX(gvc);
             function exportUsersToExcel(users) {
                 if (users.length === 0) {
                     dialog.errorMessage({ text: '無會員資料可以匯出' });
@@ -54,15 +65,10 @@ export class UserExcel {
                 });
                 const worksheet = XLSX.utils.json_to_sheet(jsonArray);
                 const workbook = XLSX.utils.book_new();
-                XLSX.utils.book_append_sheet(workbook, worksheet, 'Users');
+                XLSX.utils.book_append_sheet(workbook, worksheet, '顧客列表');
                 const fileName = `顧客列表_${dateFormat(new Date(), 'yyyyMMddhhmmss')}.xlsx`;
                 XLSX.writeFile(workbook, fileName);
             }
-            const XLSX = yield new Promise((resolve, reject) => {
-                gvc.addMtScript([{ src: 'https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.16.9/xlsx.full.min.js' }], () => {
-                    resolve(window.XLSX);
-                }, reject);
-            });
             dialog.checkYesOrNot({
                 text: '系統將會依當前篩選條件匯出會員資料<br/>確定要匯出嗎？',
                 callback: (bool) => {

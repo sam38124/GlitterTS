@@ -46,9 +46,23 @@ interface User {
 }
 
 export class UserExcel {
+    static async loadXLSX(gvc: GVC) {
+        const XLSX = await new Promise<any>((resolve, reject) => {
+            gvc.addMtScript(
+                [{ src: 'https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.16.9/xlsx.full.min.js' }],
+                () => {
+                    resolve((window as any).XLSX);
+                },
+                reject
+            );
+        });
+        return XLSX;
+    }
+
     static async export(gvc: GVC, vm: { query?: string; queryType?: string; orderString?: string; filter_type: string; filter?: any; group?: { type: string; title: string } }) {
         const dialog = new ShareDialog(gvc.glitter);
         const dateFormat = gvc.glitter.ut.dateFormat;
+        const XLSX = await this.loadXLSX(gvc);
 
         function exportUsersToExcel(users: User[]) {
             if (users.length === 0) {
@@ -94,22 +108,12 @@ export class UserExcel {
 
             // 建立工作簿
             const workbook = XLSX.utils.book_new();
-            XLSX.utils.book_append_sheet(workbook, worksheet, 'Users');
+            XLSX.utils.book_append_sheet(workbook, worksheet, '顧客列表');
 
             // 生成 Excel 檔案並下載
             const fileName = `顧客列表_${dateFormat(new Date(), 'yyyyMMddhhmmss')}.xlsx`;
             XLSX.writeFile(workbook, fileName);
         }
-
-        const XLSX = await new Promise<any>((resolve, reject) => {
-            gvc.addMtScript(
-                [{ src: 'https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.16.9/xlsx.full.min.js' }],
-                () => {
-                    resolve((window as any).XLSX);
-                },
-                reject
-            );
-        });
 
         dialog.checkYesOrNot({
             text: '系統將會依當前篩選條件匯出會員資料<br/>確定要匯出嗎？',

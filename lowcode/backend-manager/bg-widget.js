@@ -1472,10 +1472,8 @@ ${(_c = obj.default) !== null && _c !== void 0 ? _c : ''}</textarea
                 tableData: [],
                 originalData: [],
                 callback: () => {
-                    setTimeout(() => {
-                        vm.loading = false;
-                        gvc.notifyDataChange(ids.container);
-                    }, 50);
+                    vm.loading = false;
+                    gvc.notifyDataChange(ids.container);
                 },
             };
             return {
@@ -1624,7 +1622,7 @@ ${(_c = obj.default) !== null && _c !== void 0 ? _c : ''}</textarea
                                                         if (div.classList.contains(ids.headerCell)) {
                                                             const innerHTML = div.innerHTML.replace(/\n/g, '').trim();
                                                             const baseWidth = htmlTags.test(div.innerHTML) ? 0 : Tool.twenLength(innerHTML) * 24;
-                                                            widthList[n] = div.offsetWidth > baseWidth ? div.offsetWidth : baseWidth;
+                                                            widthList[n] = Math.ceil(div.offsetWidth > baseWidth ? div.offsetWidth : baseWidth);
                                                             n++;
                                                         }
                                                     });
@@ -1660,12 +1658,14 @@ ${(_c = obj.default) !== null && _c !== void 0 ? _c : ''}</textarea
                                                     ${dd
                                 .map((d3, tdIndex) => {
                                 const tdClass = Tool.randomString(5);
-                                const style = `  border: none;
+                                const style = `
+                                                                border: none;
                                                                 vertical-align: middle;
                                                                 width: ${widthList[tdIndex]}px;
                                                                 ${dd.length > 1 && tdIndex === 0 ? 'border-radius: 10px 0 0 10px;' : ''}
                                                                 ${dd.length > 1 && tdIndex === dd.length - 1 ? 'border-radius: 0 10px 10px 0;' : ''}
-                                                                ${dd.length === 1 ? 'border-radius: 10px;' : ''}`;
+                                                                ${dd.length === 1 ? 'border-radius: 10px;' : ''}
+                                                            `;
                                 return html ` <td
                                                                 class="${ids.textClass} ${tdClass} tb_v3 tx_normal"
                                                                 style="${style}"
@@ -1695,7 +1695,9 @@ ${(_c = obj.default) !== null && _c !== void 0 ? _c : ''}</textarea
                                 vm.loading = true;
                                 created.checkbox = false;
                                 obj.tab_click && obj.tab_click(vm);
-                                gvc.notifyDataChange(ids.container);
+                                if (created.header && created.table) {
+                                    gvc.notifyDataChange(ids.container);
+                                }
                             }, false)}
                             </div>`;
                     }
@@ -1722,7 +1724,7 @@ ${(_c = obj.default) !== null && _c !== void 0 ? _c : ''}</textarea
                                             widthList[index] = 60;
                                         }
                                         else {
-                                            widthList[index] = td.offsetWidth > widthList[index] ? td.offsetWidth : widthList[index];
+                                            widthList[index] = Math.ceil(td.offsetWidth > widthList[index] ? td.offsetWidth : widthList[index]);
                                         }
                                         defWidth += widthList[index];
                                     });
@@ -1730,7 +1732,7 @@ ${(_c = obj.default) !== null && _c !== void 0 ? _c : ''}</textarea
                                         const extraWidth = (fullWidth - defWidth) / (widthList.length - (checkbox ? 1 : 0));
                                         widthList.map((width, index) => {
                                             if (!(checkbox && index === 0)) {
-                                                widthList[index] = width + extraWidth;
+                                                widthList[index] = Math.ceil(width + extraWidth);
                                             }
                                         });
                                         defWidth = fullWidth;
