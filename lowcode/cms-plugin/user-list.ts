@@ -1428,6 +1428,7 @@ ${[
                                                                                                     gvc2.event(() => {
                                                                                                         vm.data.userData.tags = vmt.postData;
                                                                                                         gvc.notifyDataChange(id);
+                                                                                                        gvc.notifyDataChange('summary-card')
                                                                                                         gvc2.closeDialog();
                                                                                                     })
                                                                                                 ),
@@ -1445,6 +1446,7 @@ ${[
                                                                             {
                                                                                 save: (def) => {
                                                                                     vm.data.userData.tags = [...new Set(def)];
+                                                                                    gvc.notifyDataChange('summary-card')
                                                                                 },
                                                                             },
                                                                             true
@@ -1780,9 +1782,8 @@ ${[
                                         },
                                         {
                                             html: gvc.bindView(() => {
-                                                const id = gvc.glitter.getUUID();
                                                 return {
-                                                    bind: id,
+                                                    bind: 'summary-card',
                                                     view: () => {
                                                         return BgWidget.mainCard(
                                                             gvc.bindView(() => {
@@ -1801,6 +1802,14 @@ ${[
                                                                                     <div class="tx_700">會員等級</div>
                                                                                     <div style="margin-top: 12px">
                                                                                         <div class="badge bg-dark fs-7" style="max-height: 34px;">${vm.data.member_level.tag_name}</div>
+                                                                                    </div>
+                                                                                </div>
+                                                                                <div class="gray-bottom-line-18">
+                                                                                    <div class="tx_700">會員標籤</div>
+                                                                                    <div style="display: flex; gap: 12px; margin-top: 12px; flex-direction: row; flex-wrap: wrap;">
+                                                                                        ${Array.isArray(vm.data.userData.tags) && vm.data.userData.tags.length > 0
+                                                                                                ? vm.data.userData.tags.map((item: string) => BgWidget.secondaryInsignia(item)).join('')
+                                                                                                : '無標籤'}
                                                                                     </div>
                                                                                 </div>
                                                                                 <div class="gray-bottom-line-18">
@@ -1909,14 +1918,6 @@ ${dd.value ? `<div class="fw-500 " style="font-size: 14px; font-weight: 400; col
                                                                                         },
                                                                                     });
                                                                                 })()}
-                                                                                <div class="d-block">
-                                                                                    <div class="tx_700">標籤</div>
-                                                                                    <div style="display: flex; gap: 12px; margin-top: 12px; flex-direction: row; flex-wrap: wrap;">
-                                                                                        ${Array.isArray(vm.data.userData.tags) && vm.data.userData.tags.length > 0
-                                                                                            ? vm.data.userData.tags.map((item: string) => BgWidget.secondaryInsignia(item)).join('')
-                                                                                            : '無標籤'}
-                                                                                    </div>
-                                                                                </div>
                                                                             `;
                                                                             resolve(html` <div style="display:flex; gap: 18px; flex-direction: column;">${h}</div>`);
                                                                         });

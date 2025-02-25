@@ -1116,7 +1116,6 @@ class User {
                 })
                     .join(` || `));
             }
-            console.log(query.filter_type);
             if (query.filter_type !== 'excel') {
                 querySql.push(`status = ${query.filter_type === 'block' ? 0 : 1}`);
             }
@@ -1138,6 +1137,8 @@ class User {
                 return dd;
             });
             const userMap = new Map(userData.map((user) => [String(user.userID), user]));
+            const levels = await this.getUserLevel(userData.map((user) => ({ userId: user.userID })));
+            const levelMap = new Map(levels.map((lv) => { var _a; return [lv.id, (_a = lv.data.dead_line) !== null && _a !== void 0 ? _a : '']; }));
             const queryResult = await database_1.default.query(`
                         SELECT * 
                         FROM \`${this.app}\`.t_user_public_config
@@ -1153,14 +1154,12 @@ class User {
                     }
                 }
             }
-            const levels = await this.getUserLevel(userData.map((user) => ({ userId: user.userID })));
-            const levelMaps = new Map(levels.map((lv) => { var _a; return [lv.id, (_a = lv.data.dead_line) !== null && _a !== void 0 ? _a : '']; }));
             const processUserData = async (user) => {
                 var _a;
                 const _rebate = new rebate_js_1.Rebate(this.app);
                 const userRebate = await _rebate.getOneRebate({ user_id: user.userID });
                 user.rebate = userRebate ? userRebate.point : 0;
-                user.member_deadline = (_a = levelMaps.get(user.userID)) !== null && _a !== void 0 ? _a : '';
+                user.member_deadline = (_a = levelMap.get(user.userID)) !== null && _a !== void 0 ? _a : '';
             };
             if (Array.isArray(userData) && userData.length > 0) {
                 const chunkSize = 20;

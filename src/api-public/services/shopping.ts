@@ -53,7 +53,7 @@ export interface VoucherData {
     value: string;
     for: 'collection' | 'product' | 'all';
     rule: 'min_price' | 'min_count';
-    productOffStart:  'price_asc' | 'price_desc' | 'price_all';
+    productOffStart: 'price_asc' | 'price_desc' | 'price_all';
     conditionType: 'order' | 'item';
     counting: 'each' | 'single';
     forKey: string[];
@@ -180,9 +180,9 @@ export type Cart = {
     language?: string;
     pos_info?: any; //POS結帳資訊
     goodsWeight: number;
-    client_ip_address:string;
-    fbc:string;
-    fbp:string;
+    client_ip_address: string;
+    fbc: string;
+    fbp: string;
 };
 
 export type Order = {
@@ -224,7 +224,7 @@ export class Shopping {
         id_list?: string;
         with_hide_index?: string;
         is_manger?: boolean;
-        setUserID?:string;
+        setUserID?: string;
         show_hidden?: string;
         productType?: string;
         filter_visible?: string;
@@ -233,7 +233,7 @@ export class Shopping {
         view_source?: string;
         distribution_code?: string;
         skip_shopee_check?: boolean;
-        product_category?:string
+        product_category?: string
     }) {
         try {
             const start = new Date().getTime();
@@ -301,7 +301,7 @@ export class Shopping {
                 }
             }
 
-            if(query.product_category){
+            if (query.product_category) {
                 querySql.push(`JSON_EXTRACT(content, '$.product_category') = ${db.escape(query.product_category)}`);
             }
             if (query.domain) {
@@ -342,7 +342,7 @@ export class Shopping {
             } else if (!query.is_manger && `${query.show_hidden}` !== 'true') {
                 querySql.push(`(content->>'$.visible' is null || content->>'$.visible' = 'true')`);
             }
-            console.log(`is_manger=>`,query.is_manger)
+            console.log(`is_manger=>`, query.is_manger)
             // 判斷有帶入商品類型時，顯示商品類型，反之預設折是一班商品
             if (query.productType) {
                 query.productType.split(',').map((dd) => {
@@ -416,8 +416,8 @@ export class Shopping {
                 query.order_by = ` order by id in (${query.id_list})`;
             }
 
-            if(!query.is_manger&&!query.status){
-                query.status='inRange'
+            if (!query.is_manger && !query.status) {
+                query.status = 'inRange'
             }
             if (query.status) {
                 const statusSplit = query.status.split(',').map((status) => status.trim());
@@ -556,14 +556,14 @@ export class Shopping {
                             let totalSale = 0;
                             const {language} = query;
                             const {content} = product;
-                            content.preview_image=content.preview_image??[]
+                            content.preview_image = content.preview_image ?? []
                             if (language && content?.language_data?.[language]) {
                                 const langData = content.language_data[language];
-                                if((langData.preview_image && langData.preview_image.length===0) || (!langData.preview_image)){
-                                    if(content.preview_image.length){
-                                        langData.preview_image=content.preview_image
-                                    }else{
-                                        langData.preview_image=['https://d3jnmi1tfjgtti.cloudfront.net/file/234285319/1722936949034-default_image.jpg']
+                                if ((langData.preview_image && langData.preview_image.length === 0) || (!langData.preview_image)) {
+                                    if (content.preview_image.length) {
+                                        langData.preview_image = content.preview_image
+                                    } else {
+                                        langData.preview_image = ['https://d3jnmi1tfjgtti.cloudfront.net/file/234285319/1722936949034-default_image.jpg']
                                     }
                                 }
                                 Object.assign(content, {
@@ -575,16 +575,16 @@ export class Shopping {
                                     preview_image: langData.preview_image || content.preview_image,
                                 });
                             }
-                            if((content.preview_image && content.preview_image.length===0) || (!content.preview_image)){
-                                content.preview_image=['https://d3jnmi1tfjgtti.cloudfront.net/file/234285319/1722936949034-default_image.jpg']
+                            if ((content.preview_image && content.preview_image.length === 0) || (!content.preview_image)) {
+                                content.preview_image = ['https://d3jnmi1tfjgtti.cloudfront.net/file/234285319/1722936949034-default_image.jpg']
                             }
                             content.min_price = Infinity;
                             content.max_price = Number.MIN_VALUE;
                             (content.variants || []).forEach((variant: any) => {
                                 variant.stock = 0;
                                 variant.sold_out = variant.sold_out || 0;
-                                if(!variant.preview_image.includes('https://')){
-                                    variant.preview_image= undefined
+                                if (!variant.preview_image.includes('https://')) {
+                                    variant.preview_image = undefined
                                 }
                                 variant.preview_image = variant[`preview_image_${language}`] || variant.preview_image || 'https://d3jnmi1tfjgtti.cloudfront.net/file/234285319/1722936949034-default_image.jpg';
                                 if (content.min_price > variant.sale_price) {
@@ -717,7 +717,9 @@ export class Shopping {
                                 const variantID = variantsList.get(specString);
 
                                 if (variantID) {
-                                    const vData = exh.dataList.find((a: { variantID: number }) => a.variantID === variantID);
+                                    const vData = exh.dataList.find((a: {
+                                        variantID: number
+                                    }) => a.variantID === variantID);
                                     pv.variant_id = variantID;
                                     pv.exhibition_type = true;
                                     pv.exhibition_active_stock = vData?.activeSaleStock ?? 0;
@@ -768,7 +770,7 @@ export class Shopping {
                     });
 
                 product.content.min_price = Math.min(...priceArray);
-                if (product.content.product_category === 'kitchen' && (product.content.variants.length>1)) {
+                if (product.content.product_category === 'kitchen' && (product.content.variants.length > 1)) {
                     let postMD = product.content as any
                     product.content.variants.map((dd: any) => {
                         dd.compare_price = 0;
@@ -1039,14 +1041,13 @@ export class Shopping {
         let sql = `SELECT v.id,
                           v.product_id,
                           v.content                                            as variant_content,
-                          p.content                                            as product_content,
                           CAST(JSON_EXTRACT(v.content, '$.stock') AS UNSIGNED) as stock,
                           JSON_EXTRACT(v.content, '$.stockList')               as stockList
-                   FROM \`${this.app}\`.t_variants AS v
-                            JOIN
-                        \`${this.app}\`.t_manager_post AS p ON v.product_id = p.id
-                   WHERE ${querySql.join(' and ')} ${query.order_by || `order by id desc`}
-        `;
+                   from (\`${this.app}\`.t_variants as v)
+                   where product_id  in (select id
+                                            from \`${this.app}\`.t_manager_post
+                                            where ((content ->>'$.product_category' is null) or
+                                                   (content ->>'$.product_category' != 'kitchen'))) and ${querySql.join(' and ')} ${query.order_by || `order by id desc`}`
         query.limit = query.limit && query.limit > 999 ? 999 : query.limit;
         const limitSQL = `limit ${query.page * query.limit} , ${query.limit}`;
         if (query.id) {
@@ -1058,15 +1059,20 @@ export class Shopping {
                     []
                 )
             )[0];
+            data.product_content=(await db.query(`select * from \`${this.app}\`.t_manager_post where id = ${data.product_id}`,[]))[0]['content'];
             return {data: data, result: !!data};
         } else {
-            return {
-                data: await db.query(
-                    `SELECT *
+            const vData=await db.query(
+                `SELECT *
                      FROM (${sql}) as subqyery ${limitSQL}
                     `,
-                    []
-                ),
+                []
+            );
+            await Promise.all(vData.map(async (data:any)=>{
+                data.product_content=(await db.query(`select * from \`${this.app}\`.t_manager_post where id = ${data.product_id}`,[]))[0]['content'];
+            }))
+            return {
+                data: vData,
                 total: (
                     await db.query(
                         `SELECT count(1)
@@ -1316,9 +1322,9 @@ export class Shopping {
             pre_order?: boolean;
             voucherList?: any;
             isExhibition?: boolean;
-            client_ip_address?:string,
-            fbc?:string,
-            fbp?:string
+            client_ip_address?: string,
+            fbc?: string,
+            fbp?: string
         },
         type: 'add' | 'preview' | 'manual' | 'manual-preview' | 'POS' = 'add',
         replace_order_id?: string
@@ -1628,9 +1634,9 @@ export class Shopping {
                 user_rebate_sum: 0,
                 language: data.language,
                 pos_info: data.pos_info,
-                client_ip_address:data.client_ip_address as string,
-                fbc:data.fbc as string,
-                fbp:data.fbp as string
+                client_ip_address: data.client_ip_address as string,
+                fbc: data.fbc as string,
+                fbp: data.fbp as string
             };
 
             if (!data.user_info.name && userData && userData.userData) {
@@ -1708,7 +1714,7 @@ export class Shopping {
                                 Object.assign(b, {
                                     specs: pd.specs,
                                     language_data: pd.language_data,
-                                    product_category:pd.product_category,
+                                    product_category: pd.product_category,
                                     preview_image: variant.preview_image || pd.preview_image[0],
                                     title: pd.title,
                                     sale_price: variant.sale_price,
@@ -1786,16 +1792,16 @@ export class Shopping {
                                                     },
                                                 });
                                             }
-                                            if(pd.product_category === 'kitchen' && (variant.spec && variant.spec.length)){
-                                                 //如果是餐廳的話扣庫存的方式不太相同
+                                            if (pd.product_category === 'kitchen' && (variant.spec && variant.spec.length)) {
+                                                //如果是餐廳的話扣庫存的方式不太相同
                                                 variant.spec.map((d1: any, index: number) => {
-                                                    const count_s=`${pd.specs[index].option.find((d2: any) => {
+                                                    const count_s = `${pd.specs[index].option.find((d2: any) => {
                                                         return d2.title === d1
                                                     }).stock ?? ''}`
                                                     if (count_s) {
                                                         pd.specs[index].option.find((d2: any) => {
                                                             return d2.title === d1
-                                                        }).stock=parseInt(count_s,10) -  b.count
+                                                        }).stock = parseInt(count_s, 10) - b.count
                                                     }
                                                 })
                                                 const store_config = await userClass.getConfigV2({
@@ -1804,8 +1810,8 @@ export class Shopping {
                                                 });
                                                 b.deduction_log = {};
                                                 b.deduction_log[store_config.list[0].id] = b.count;
-                                                console.log(`b.deduction_log==>`,b.deduction_log)
-                                            }else{
+                                                console.log(`b.deduction_log==>`, b.deduction_log)
+                                            } else {
                                                 await this.updateVariantsWithSpec(variant, b.id, b.spec);
                                             }
 
@@ -2259,9 +2265,9 @@ export class Shopping {
 
                 carData.method = 'off_line';
                 await OrderEvent.insertOrder({
-                    cartData:carData,
-                    status:1,
-                    app:this.app
+                    cartData: carData,
+                    status: 1,
+                    app: this.app
                 })
                 if (carData.use_wallet > 0) {
                     new Invoice(this.app).postCheckoutInvoice(carData.orderID, false);
@@ -2345,9 +2351,9 @@ export class Shopping {
                     default:
                         carData.method = 'off_line';
                         await OrderEvent.insertOrder({
-                            cartData:carData,
-                            status:0,
-                            app:this.app
+                            cartData: carData,
+                            status: 0,
+                            app: this.app
                         })
                         await Promise.all(
                             saveStockArray.map((dd) => {
@@ -2700,7 +2706,9 @@ export class Shopping {
                     case 'collection':
                         return dp.collection.some((d2: string) => caseList.includes(d2));
                     case 'product':
-                        return caseList.map((dd)=>{return `${dd}`}).includes(`${dp.id}`);
+                        return caseList.map((dd) => {
+                            return `${dd}`
+                        }).includes(`${dp.id}`);
                     case 'all':
                         return true;
                 }
@@ -2713,7 +2721,7 @@ export class Shopping {
         // 確認用戶資訊
         const userClass = new User(this.app);
 
-        const userData = (await userClass.getUserData(cart.email, 'email_or_phone')) ?? { userID: -1 };
+        const userData = (await userClass.getUserData(cart.email, 'email_or_phone')) ?? {userID: -1};
         // 取得所有可使用優惠券
         const allVoucher = await this.getAllUseVoucher(userData.userID);
 
@@ -2780,7 +2788,7 @@ export class Shopping {
             })
             .filter((dd) => {
 
-                const pass=(()=>{
+                const pass = (() => {
                     // 購物車是否達到優惠條件，與計算優惠觸發次數
                     dd.times = 0;
                     dd.bind_subtotal = 0;
@@ -3035,9 +3043,9 @@ export class Shopping {
                 if (origin[0].orderData.orderStatus !== '-1' && data.orderData.orderStatus === '-1') {
                     for (const lineItem of origin[0].orderData.lineItems) {
                         //回填所有庫存點數量
-                        if(lineItem.product_category==='kitchen' && (lineItem.spec && lineItem.spec.length)){
+                        if (lineItem.product_category === 'kitchen' && (lineItem.spec && lineItem.spec.length)) {
                             await new Shopping(this.app, this.token).calcVariantsStock(lineItem.count, '', lineItem.id, lineItem.spec);
-                        }else {
+                        } else {
                             for (const b of Object.keys(lineItem.deduction_log)) {
                                 await new Shopping(this.app, this.token).calcVariantsStock(lineItem.deduction_log[b] || 0, b, lineItem.id, lineItem.spec);
                             }
@@ -3078,9 +3086,9 @@ export class Shopping {
                             const og_line_items = origin[0].orderData.lineItems.find((dd: any) => {
                                 return dd.id === new_line_item.id && dd.spec.join('') === new_line_item.spec.join('');
                             });
-                            if(new_line_item.product_category==='kitchen' && (new_line_item.spec && new_line_item.spec.length)){
+                            if (new_line_item.product_category === 'kitchen' && (new_line_item.spec && new_line_item.spec.length)) {
                                 await new Shopping(this.app, this.token).calcVariantsStock(new_line_item.count, '', new_line_item.id, new_line_item.spec);
-                            }else {
+                            } else {
                                 for (const key of Object.keys(new_line_item.deduction_log)) {
                                     const u_: number = new_line_item.deduction_log[key];
                                     const o_: number = og_line_items.deduction_log[key];
@@ -3256,7 +3264,7 @@ export class Shopping {
         archived?: string;
         returnSearch?: string;
         distribution_code?: string;
-        valid?:boolean;
+        valid?: boolean;
     }) {
         try {
             let querySql = ['1=1'];
@@ -3289,7 +3297,7 @@ export class Shopping {
                 temp += `JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.orderStatus')) IN (${query.orderStatus})`;
                 querySql.push(`(${temp})`);
             }
-            if(query.valid){
+            if (query.valid) {
                 querySql.push(`(orderData->>'$.orderStatus' is null or orderData->>'$.orderStatus' != '-1')`)
             }
 
@@ -3807,20 +3815,20 @@ export class Shopping {
                 return dd.spec.join('-') === spec.join('-');
             });
             //如果是餐飲組合扣除庫存方式不同
-            if(pd_data.product_category==='kitchen' && (pd_data.specs && pd_data.specs.length)){
+            if (pd_data.product_category === 'kitchen' && (pd_data.specs && pd_data.specs.length)) {
                 variant_s.spec.map((d1: any, index: number) => {
-                    const count_s=`${pd_data.specs[index].option.find((d2: any) => {
+                    const count_s = `${pd_data.specs[index].option.find((d2: any) => {
                         return d2.title === d1
                     }).stock ?? ''}`
                     if (count_s) {
                         pd_data.specs[index].option.find((d2: any) => {
                             return d2.title === d1
-                        }).stock=parseInt(count_s,10) +  calc
+                        }).stock = parseInt(count_s, 10) + calc
                     }
 
                 })
 
-            }else{
+            } else {
                 const store_config = await new User(this.app).getConfigV2({key: 'store_manager', user_id: 'manager'});
                 if (Object.keys(variant_s.stockList).length === 0) {
                     //適應舊版庫存更新
@@ -4419,10 +4427,10 @@ export class Shopping {
             console.log(`productArray==>`, productArray)
 
 
-            if(productArray.length){
+            if (productArray.length) {
                 const data = await db.query(
                     `replace
-                INTO \`${this.app}\`.\`t_manager_post\` (id,userID,content) values ?`,
+                    INTO \`${this.app}\`.\`t_manager_post\` (id,userID,content) values ?`,
                     [
                         productArray.map((product: any) => {
                             if (!product.id) {
@@ -4437,8 +4445,8 @@ export class Shopping {
                 let insertIDStart = data.insertId;
                 await new Shopping(this.app, this.token).promisesProducts(productArray, insertIDStart);
                 return insertIDStart;
-            }else{
-                return  -1
+            } else {
+                return -1
             }
         } catch (e) {
             console.error(e);
@@ -4672,7 +4680,8 @@ export class Shopping {
             if (query.search) {
                 switch (query.searchType) {
                     case 'title':
-                        querySql.push(`(UPPER(JSON_UNQUOTE(JSON_EXTRACT(p.content, '$.title'))) LIKE UPPER('%${query.search}%'))`);
+                        querySql.push(`v.product_id in (select p.id
+                                            from \`${this.app}\`.t_manager_post as p where (UPPER(JSON_UNQUOTE(JSON_EXTRACT(p.content, '$.title'))) LIKE UPPER('%${query.search}%')))`);
                         break;
                     case 'sku':
                         querySql.push(`(UPPER(JSON_EXTRACT(v.content, '$.sku')) LIKE UPPER('%${query.search}%'))`);
@@ -4687,11 +4696,21 @@ export class Shopping {
                 `(${query.collection
                     .split(',')
                     .map((dd) => {
-                        return query.accurate_search_collection ? `(JSON_CONTAINS(p.content->'$.collection', '"${dd}"'))` : `(JSON_EXTRACT(p.content, '$.collection') LIKE '%${dd}%')`;
+                        return query.accurate_search_collection ? `
+                        v.product_id in (select p.id
+                                            from \`${this.app}\`.t_manager_post as p where (JSON_CONTAINS(p.content->'$.collection', '"${dd}"')))
+                        
+                        ` : `
+                         v.product_id in (select p.id
+                                            from \`${this.app}\`.t_manager_post as p where (JSON_EXTRACT(p.content, '$.collection') LIKE '%${dd}%'))
+                        `;
                     })
                     .join(' or ')})`
             );
-            query.status && querySql.push(`(JSON_EXTRACT(p.content, '$.status') = '${query.status}')`);
+            query.status && querySql.push(`
+             v.product_id in (select p.id
+                                            from \`${this.app}\`.t_manager_post as p where (JSON_EXTRACT(p.content, '$.status') = '${query.status}'))
+            `);
             query.min_price && querySql.push(`(v.content->>'$.sale_price' >= ${query.min_price})`);
             query.max_price && querySql.push(`(v.content->>'$.sale_price' <= ${query.min_price})`);
 
@@ -4701,13 +4720,16 @@ export class Shopping {
                 if (query.productType) {
                     query.productType.split(',').map((dd) => {
                         if (dd === 'hidden') {
-                            queryOR.push(`(p.content->>'$.visible' = "false")`);
+                            queryOR.push(` v.product_id in (select p.id
+                                            from \`${this.app}\`.t_manager_post as p where (p.content->>'$.visible' = "false"))`);
                         } else {
-                            queryOR.push(`(p.content->>'$.productType.${dd}' = "true")`);
+                            queryOR.push(`v.product_id in (select p.id
+                                            from \`${this.app}\`.t_manager_post as p where (p.content->>'$.productType.${dd}' = "true"))`);
                         }
                     });
                 } else if (!query.id) {
-                    queryOR.push(`(p.content->>'$.productType.product' = "true")`);
+                    queryOR.push(`v.product_id in (select p.id
+                                            from \`${this.app}\`.t_manager_post as p where (p.content->>'$.productType.product' = "true"))`);
                 }
                 querySql.push(
                     `(${queryOR
@@ -4738,20 +4760,10 @@ export class Shopping {
 
             query.order_by = (() => {
                 switch (query.order_by) {
-                    case 'title':
-                        return `order by JSON_EXTRACT(p.content, '$.title')`;
                     case 'max_price':
-                        return `order by (CAST(JSON_UNQUOTE(JSON_EXTRACT(p.content, '$.max_price')) AS SIGNED)) desc`;
+                        return `order by v->>'$.content.sale_price' desc`;
                     case 'min_price':
-                        return `order by (CAST(JSON_UNQUOTE(JSON_EXTRACT(p.content, '$.min_price')) AS SIGNED)) asc`;
-                    case 'created_time_desc':
-                        return `order by p.created_time desc`;
-                    case 'created_time_asc':
-                        return `order by p.created_time`;
-                    case 'updated_time_desc':
-                        return `order by p.updated_time desc`;
-                    case 'updated_time_asc':
-                        return `order by p.updated_time`;
+                        return `order by v->>'$.content.sale_price' asc`;
                     case 'stock_desc':
                         return `order by stock desc`;
                     case 'stock_asc':

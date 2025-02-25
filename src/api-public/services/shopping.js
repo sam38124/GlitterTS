@@ -717,27 +717,31 @@ class Shopping {
         let sql = `SELECT v.id,
                           v.product_id,
                           v.content                                            as variant_content,
-                          p.content                                            as product_content,
                           CAST(JSON_EXTRACT(v.content, '$.stock') AS UNSIGNED) as stock,
                           JSON_EXTRACT(v.content, '$.stockList')               as stockList
-                   FROM \`${this.app}\`.t_variants AS v
-                            JOIN
-                        \`${this.app}\`.t_manager_post AS p ON v.product_id = p.id
-                   WHERE ${querySql.join(' and ')} ${query.order_by || `order by id desc`}
-        `;
+                   from (\`${this.app}\`.t_variants as v)
+                   where product_id  in (select id
+                                            from \`${this.app}\`.t_manager_post
+                                            where ((content ->>'$.product_category' is null) or
+                                                   (content ->>'$.product_category' != 'kitchen'))) and ${querySql.join(' and ')} ${query.order_by || `order by id desc`}`;
         query.limit = query.limit && query.limit > 999 ? 999 : query.limit;
         const limitSQL = `limit ${query.page * query.limit} , ${query.limit}`;
         if (query.id) {
             const data = (await database_js_1.default.query(`SELECT *
                      FROM (${sql}) as subqyery ${limitSQL}
                     `, []))[0];
+            data.product_content = (await database_js_1.default.query(`select * from \`${this.app}\`.t_manager_post where id = ${data.product_id}`, []))[0]['content'];
             return { data: data, result: !!data };
         }
         else {
-            return {
-                data: await database_js_1.default.query(`SELECT *
+            const vData = await database_js_1.default.query(`SELECT *
                      FROM (${sql}) as subqyery ${limitSQL}
-                    `, []),
+                    `, []);
+            await Promise.all(vData.map(async (data) => {
+                data.product_content = (await database_js_1.default.query(`select * from \`${this.app}\`.t_manager_post where id = ${data.product_id}`, []))[0]['content'];
+            }));
+            return {
+                data: vData,
                 total: (await database_js_1.default.query(`SELECT count(1)
                          FROM (${sql}) as subqyery
                         `, []))[0]['count(1)'],
@@ -2013,7 +2017,9 @@ class Shopping {
                     case 'collection':
                         return dp.collection.some((d2) => caseList.includes(d2));
                     case 'product':
-                        return caseList.map((dd) => { return `${dd}`; }).includes(`${dp.id}`);
+                        return caseList.map((dd) => {
+                            return `${dd}`;
+                        }).includes(`${dp.id}`);
                     case 'all':
                         return true;
                 }
@@ -3415,7 +3421,7 @@ class Shopping {
             console.log(`productArray==>`, productArray);
             if (productArray.length) {
                 const data = await database_js_1.default.query(`replace
-                INTO \`${this.app}\`.\`t_manager_post\` (id,userID,content) values ?`, [
+                    INTO \`${this.app}\`.\`t_manager_post\` (id,userID,content) values ?`, [
                     productArray.map((product) => {
                         var _a;
                         if (!product.id) {
@@ -3624,7 +3630,8 @@ class Shopping {
             if (query.search) {
                 switch (query.searchType) {
                     case 'title':
-                        querySql.push(`(UPPER(JSON_UNQUOTE(JSON_EXTRACT(p.content, '$.title'))) LIKE UPPER('%${query.search}%'))`);
+                        querySql.push(`v.product_id in (select p.id
+                                            from \`${this.app}\`.t_manager_post as p where (UPPER(JSON_UNQUOTE(JSON_EXTRACT(p.content, '$.title'))) LIKE UPPER('%${query.search}%')))`);
                         break;
                     case 'sku':
                         querySql.push(`(UPPER(JSON_EXTRACT(v.content, '$.sku')) LIKE UPPER('%${query.search}%'))`);
@@ -3637,10 +3644,20 @@ class Shopping {
                 querySql.push(`(${query.collection
                     .split(',')
                     .map((dd) => {
-                    return query.accurate_search_collection ? `(JSON_CONTAINS(p.content->'$.collection', '"${dd}"'))` : `(JSON_EXTRACT(p.content, '$.collection') LIKE '%${dd}%')`;
+                    return query.accurate_search_collection ? `
+                        v.product_id in (select p.id
+                                            from \`${this.app}\`.t_manager_post as p where (JSON_CONTAINS(p.content->'$.collection', '"${dd}"')))
+                        
+                        ` : `
+                         v.product_id in (select p.id
+                                            from \`${this.app}\`.t_manager_post as p where (JSON_EXTRACT(p.content, '$.collection') LIKE '%${dd}%'))
+                        `;
                 })
                     .join(' or ')})`);
-            query.status && querySql.push(`(JSON_EXTRACT(p.content, '$.status') = '${query.status}')`);
+            query.status && querySql.push(`
+             v.product_id in (select p.id
+                                            from \`${this.app}\`.t_manager_post as p where (JSON_EXTRACT(p.content, '$.status') = '${query.status}'))
+            `);
             query.min_price && querySql.push(`(v.content->>'$.sale_price' >= ${query.min_price})`);
             query.max_price && querySql.push(`(v.content->>'$.sale_price' <= ${query.min_price})`);
             if (query.productType !== 'all') {
@@ -3648,15 +3665,18 @@ class Shopping {
                 if (query.productType) {
                     query.productType.split(',').map((dd) => {
                         if (dd === 'hidden') {
-                            queryOR.push(`(p.content->>'$.visible' = "false")`);
+                            queryOR.push(` v.product_id in (select p.id
+                                            from \`${this.app}\`.t_manager_post as p where (p.content->>'$.visible' = "false"))`);
                         }
                         else {
-                            queryOR.push(`(p.content->>'$.productType.${dd}' = "true")`);
+                            queryOR.push(`v.product_id in (select p.id
+                                            from \`${this.app}\`.t_manager_post as p where (p.content->>'$.productType.${dd}' = "true"))`);
                         }
                     });
                 }
                 else if (!query.id) {
-                    queryOR.push(`(p.content->>'$.productType.product' = "true")`);
+                    queryOR.push(`v.product_id in (select p.id
+                                            from \`${this.app}\`.t_manager_post as p where (p.content->>'$.productType.product' = "true"))`);
                 }
                 querySql.push(`(${queryOR
                     .map((dd) => {
@@ -3683,20 +3703,10 @@ class Shopping {
             }
             query.order_by = (() => {
                 switch (query.order_by) {
-                    case 'title':
-                        return `order by JSON_EXTRACT(p.content, '$.title')`;
                     case 'max_price':
-                        return `order by (CAST(JSON_UNQUOTE(JSON_EXTRACT(p.content, '$.max_price')) AS SIGNED)) desc`;
+                        return `order by v->>'$.content.sale_price' desc`;
                     case 'min_price':
-                        return `order by (CAST(JSON_UNQUOTE(JSON_EXTRACT(p.content, '$.min_price')) AS SIGNED)) asc`;
-                    case 'created_time_desc':
-                        return `order by p.created_time desc`;
-                    case 'created_time_asc':
-                        return `order by p.created_time`;
-                    case 'updated_time_desc':
-                        return `order by p.updated_time desc`;
-                    case 'updated_time_asc':
-                        return `order by p.updated_time`;
+                        return `order by v->>'$.content.sale_price' asc`;
                     case 'stock_desc':
                         return `order by stock desc`;
                     case 'stock_asc':
