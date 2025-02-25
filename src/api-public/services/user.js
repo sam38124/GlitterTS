@@ -980,7 +980,7 @@ class User {
         return sql;
     }
     async getUserList(query) {
-        var _a, _b, _c, _d;
+        var _a, _b, _c, _d, _e, _f, _g;
         try {
             const querySql = ['1=1'];
             const noRegisterUsers = [];
@@ -1116,11 +1116,9 @@ class User {
                 })
                     .join(` || `));
             }
-            if (query.filter_type === 'block') {
-                querySql.push(`status = 0`);
-            }
-            else {
-                querySql.push(`status = 1`);
+            console.log(query.filter_type);
+            if (query.filter_type !== 'excel') {
+                querySql.push(`status = ${query.filter_type === 'block' ? 0 : 1}`);
             }
             const dataSQL = this.getUserAndOrderSQL({
                 select: 'o.email, o.order_count, o.total_amount, u.*',
@@ -1139,19 +1137,41 @@ class User {
                 dd.tag_name = '一般會員';
                 return dd;
             });
-            for (const b of await database_1.default.query(`SELECT *
-                 FROM \`${this.app}\`.t_user_public_config
-                 where \`key\` = 'member_update'
-                   and user_id in (${userData
-                .map((dd) => {
-                return dd.userID;
-            })
-                .concat([-21211])
-                .join(',')}) `, [])) {
-                if (b.value.value[0]) {
-                    userData.find((dd) => {
-                        return `${dd.userID}` === `${b.user_id}`;
-                    }).tag_name = b.value.value[0].tag_name;
+            const userMap = new Map(userData.map((user) => [String(user.userID), user]));
+            const queryResult = await database_1.default.query(`
+                        SELECT * 
+                        FROM \`${this.app}\`.t_user_public_config
+                        WHERE \`key\` = 'member_update'
+                        AND user_id IN (${[...userMap.keys(), '-21211'].join(',')})
+                    `, []);
+            for (const b of queryResult) {
+                const tagName = (_g = (_f = (_e = b === null || b === void 0 ? void 0 : b.value) === null || _e === void 0 ? void 0 : _e.value) === null || _f === void 0 ? void 0 : _f[0]) === null || _g === void 0 ? void 0 : _g.tag_name;
+                if (tagName) {
+                    const user = userMap.get(String(b.user_id));
+                    if (user) {
+                        user.tag_name = tagName;
+                    }
+                }
+            }
+            const levels = await this.getUserLevel(userData.map((user) => ({ userId: user.userID })));
+            const levelMaps = new Map(levels.map((lv) => { var _a; return [lv.id, (_a = lv.data.dead_line) !== null && _a !== void 0 ? _a : '']; }));
+            const processUserData = async (user) => {
+                var _a;
+                const _rebate = new rebate_js_1.Rebate(this.app);
+                const userRebate = await _rebate.getOneRebate({ user_id: user.userID });
+                user.rebate = userRebate ? userRebate.point : 0;
+                user.member_deadline = (_a = levelMaps.get(user.userID)) !== null && _a !== void 0 ? _a : '';
+            };
+            if (Array.isArray(userData) && userData.length > 0) {
+                const chunkSize = 20;
+                const chunkedUserData = [];
+                for (let i = 0; i < userData.length; i += chunkSize) {
+                    chunkedUserData.push(userData.slice(i, i + chunkSize));
+                }
+                for (const batch of chunkedUserData) {
+                    await Promise.all(batch.map(async (user) => {
+                        await processUserData(user);
+                    }));
                 }
             }
             return {
@@ -1772,6 +1792,15 @@ class User {
             async function loop(data) {
                 if (!data && config.user_id === 'manager') {
                     switch (config.key) {
+                        case 'customer_form_user_setting':
+                            await that.setConfig({
+                                key: config.key,
+                                user_id: config.user_id,
+                                value: {
+                                    list: form_check_js_1.FormCheck.initialUserForm([]),
+                                },
+                            });
+                            return await that.getConfigV2(config);
                         case 'global_express_country':
                             await that.setConfig({
                                 key: config.key,

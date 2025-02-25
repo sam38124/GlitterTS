@@ -40,15 +40,15 @@ export class MemberSetting {
                         return ``;
                     }
                     return BgWidget.container(html `
-                            <div class="title-container">
-                                ${BgWidget.title('顧客設定')}
-                                <div class="flex-fill"></div>
-                            </div>
-                            ${BgWidget.container([
+                        <div class="title-container">
+                            ${BgWidget.title('顧客設定')}
+                            <div class="flex-fill"></div>
+                        </div>
+                        ${BgWidget.container([
                         BgWidget.mainCard([
                             html ` <div class="tx_normal fw-bolder mt-2" style="margin-bottom: 24px;">驗證方式</div>`,
                             html ` <div class="d-flex flex-column" style="gap:18px;">
-                                                ${[
+                                            ${[
                                 BgWidget.multiCheckboxContainer(gvc, [
                                     {
                                         key: 'true',
@@ -61,20 +61,18 @@ export class MemberSetting {
                                 BgWidget.multiCheckboxContainer(gvc, [
                                     {
                                         key: 'true',
-                                        name: `<div class="d-flex flex-column">是否驗證電話
-${BgWidget.grayNote(`電話是否需要驗證才能進行註冊或修改`)}
-</div>`,
+                                        name: html `<div class="d-flex flex-column">是否驗證電話 ${BgWidget.grayNote(`電話是否需要驗證才能進行註冊或修改`)}</div>`,
                                     },
                                 ], [`${(_b = vm.data.phone_verify) !== null && _b !== void 0 ? _b : ''}` || 'false'], () => {
                                     vm.data.phone_verify = !vm.data.phone_verify;
                                     saveEvent();
                                 }),
                             ].join('')}
-                                            </div>`,
+                                        </div>`,
                             html `
-                                                <div class="w-100 border-top my-3"></div>
-                                                <div class="tx_normal fw-bolder mt-2" style="margin-bottom: 12px;">商店顯示</div>
-                                                <div class="d-flex align-items-center w-100" style="gap:4px;margin-bottom: 12px;">
+                                            <div class="w-100 border-top my-3"></div>
+                                            <div class="tx_normal fw-bolder mt-2" style="margin-bottom: 12px;">商店顯示</div>
+                                            <div class="d-flex align-items-center w-100" style="gap:4px;margin-bottom: 12px;">
                                                 <div class="tx_normal  d-flex flex-column">設定商店密碼</div>
                                                 <div class="tx_normal ms-2">${!vm.data.password_to_see ? `關閉` : `開啟`}</div>
                                                 <div class="cursor_pointer form-check form-switch m-0">
@@ -91,34 +89,43 @@ ${BgWidget.grayNote(`電話是否需要驗證才能進行註冊或修改`)}
                                                 </div>
                                                 <div class="flex-fill"></div>
                                             </div>
-                                            ${(vm.data.password_to_see) ? `
-                                                 ${BgWidget.grayNote(`需輸入密碼才可查看商店內容`)}
-                                                ${BgWidget.editeInput({
-                                gvc: gvc,
-                                title: '',
-                                default: (_c = vm.data.shop_pwd) !== null && _c !== void 0 ? _c : '',
-                                placeHolder: '請輸入商店密碼',
-                                callback: (text) => {
-                                    vm.data.shop_pwd = text;
-                                }
-                            })}
-                                            ` : ``}
-                                            `,
+                                            ${vm.data.password_to_see
+                                ? [
+                                    BgWidget.grayNote(`需輸入密碼才可查看商店內容`),
+                                    BgWidget.editeInput({
+                                        gvc: gvc,
+                                        title: '',
+                                        default: (_c = vm.data.shop_pwd) !== null && _c !== void 0 ? _c : '',
+                                        placeHolder: '請輸入商店密碼',
+                                        callback: (text) => {
+                                            vm.data.shop_pwd = text;
+                                        },
+                                    }),
+                                ].join('')
+                                : ``}
+                                        `,
                         ].join('')),
                         ...(() => {
                             const form = BgWidget.customForm(gvc, [
                                 {
                                     key: 'custom_form_register',
                                     title: html ` <div class="tx_normal fw-bolder mt-2 d-flex flex-column" style="margin-bottom: 12px;">
-                                                    註冊頁面表單
-                                                    <span class="" style="color:#8D8D8D;font-size: 12px;">於註冊頁面中設定顧客必須填寫的資料</span>
-                                                </div>`,
+                                                註冊頁面表單
+                                                <span class="" style="color:#8D8D8D;font-size: 12px;">於註冊頁面中設定顧客必須填寫的資料</span>
+                                            </div>`,
+                                },
+                                {
+                                    key: 'customer_form_user_setting',
+                                    title: html ` <div class="tx_normal fw-bolder mt-2 d-flex flex-column" style="margin-bottom: 12px;">
+                                                設定頁面表單
+                                                <span class="" style="color:#8D8D8D;font-size: 12px;">於用戶設定頁面中設定顧客可填寫的額外資料</span>
+                                            </div>`,
                                 },
                             ]);
                             return [
                                 form.view,
                                 html ` <div class="update-bar-container">
-                                                ${BgWidget.save(gvc.event(() => __awaiter(this, void 0, void 0, function* () {
+                                            ${BgWidget.save(gvc.event(() => __awaiter(this, void 0, void 0, function* () {
                                     const dialog = new ShareDialog(gvc.glitter);
                                     dialog.dataLoading({ visible: true });
                                     saveEvent();
@@ -126,12 +133,12 @@ ${BgWidget.grayNote(`電話是否需要驗證才能進行註冊或修改`)}
                                     dialog.dataLoading({ visible: false });
                                     dialog.successMessage({ text: '設定成功' });
                                 })))}
-                                            </div>`,
+                                        </div>`,
                             ];
                         })(),
                         BgWidget.mbContainer(240),
                     ].join(BgWidget.mbContainer(24)))}
-                        `);
+                    `);
                 },
             };
         });

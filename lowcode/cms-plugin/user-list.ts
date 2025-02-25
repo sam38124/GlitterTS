@@ -160,37 +160,42 @@ export class UserList {
                     {
                         key: '社群綁定',
                         value: (() => {
-                           return `<div class="d-flex align-items-center px-2" style="gap:5px;">
+                            return `<div class="d-flex align-items-center px-2" style="gap:5px;">
 ${[
-                               {
-                                   type:'fb',
-                                   src: 'https://d3jnmi1tfjgtti.cloudfront.net/file/234285319/1722847285395-img_facebook.svg',
-                                   value:dd.userData['fb-id']
-                               },
-                               {
-                                   type:'line',
-                                   src: 'https://d3jnmi1tfjgtti.cloudfront.net/file/252530754/LINE_Brand_icon.png',
-                                   value:dd.userData.lineID
-                               },
-                               {
-                                   type:'google',
-                                   src: 'https://d3jnmi1tfjgtti.cloudfront.net/file/252530754/Google__G__logo.svg.webp',
-                                   value:dd.userData['google-id']
-                               },
-                               {
-                                   type:'apple',
-                                   src: 'https://d3jnmi1tfjgtti.cloudfront.net/file/252530754/14776639.png',
-                                   value:dd.userData['apple-id']
-                               }
-                           ].map(((dd)=>{
-                               if(!dd.value){
-                                   return  ``
-                               }
-                               return `<div class="d-flex align-items-center" style="gap:5px;">
+    {
+        type: 'fb',
+        src: 'https://d3jnmi1tfjgtti.cloudfront.net/file/234285319/1722847285395-img_facebook.svg',
+        value: dd.userData['fb-id'],
+    },
+    {
+        type: 'line',
+        src: 'https://d3jnmi1tfjgtti.cloudfront.net/file/252530754/LINE_Brand_icon.png',
+        value: dd.userData.lineID,
+    },
+    {
+        type: 'google',
+        src: 'https://d3jnmi1tfjgtti.cloudfront.net/file/252530754/Google__G__logo.svg.webp',
+        value: dd.userData['google-id'],
+    },
+    {
+        type: 'apple',
+        src: 'https://d3jnmi1tfjgtti.cloudfront.net/file/252530754/14776639.png',
+        value: dd.userData['apple-id'],
+    },
+]
+    .map((dd) => {
+        if (!dd.value) {
+            return ``;
+        }
+        return `<div class="d-flex align-items-center" style="gap:5px;">
 <img src="${dd.src}" style="width:25px;height: 25px;background: whitesmoke;" class="rounded-circle" >
-</div>`
-                           })).filter((dd)=>{return dd}).join('')}
-</div>`
+</div>`;
+    })
+    .filter((dd) => {
+        return dd;
+    })
+    .join('')}
+</div>`;
                         })(),
                     },
                     {
@@ -231,7 +236,7 @@ ${[
                             <div class="d-flex align-items-center" style="gap: 10px;">
                                 ${BgWidget.grayButton(
                                     '匯出',
-                                    gvc.event(() => UserExcel.export(vm))
+                                    gvc.event(() => UserExcel.export(gvc, vm))
                                 )}
                                 ${BgWidget.darkButton(
                                     '新增',
@@ -1628,7 +1633,7 @@ ${[
                                                                                                 data_from: 'manager',
                                                                                                 email: vm.data.userData.email,
                                                                                                 phone: vm.data.userData.phone,
-                                                                                                valid:true
+                                                                                                valid: true,
                                                                                             }).then((data) => {
                                                                                                 vm.dataList = data.response.data;
                                                                                                 vd.pageSize = Math.ceil(data.response.total / limit);
@@ -1800,34 +1805,36 @@ ${[
                                                                                 </div>
                                                                                 <div class="gray-bottom-line-18">
                                                                                     <div class="tx_700 mb-3">社群綁定</div>
-                                                                                   ${[
-                                                                                       {
-                                                                                           type:'fb',
-                                                                                           src: 'https://d3jnmi1tfjgtti.cloudfront.net/file/234285319/1722847285395-img_facebook.svg',
-                                                                                           value:vm.data.userData['fb-id']
-                                                                                       },
-                                                                                       {
-                                                                                           type:'line',
-                                                                                           src: 'https://d3jnmi1tfjgtti.cloudfront.net/file/252530754/LINE_Brand_icon.png',
-                                                                                           value:vm.data.userData.lineID
-                                                                                       },
-                                                                                       {
-                                                                                           type:'google',
-                                                                                           src: 'https://d3jnmi1tfjgtti.cloudfront.net/file/252530754/Google__G__logo.svg.webp',
-                                                                                           value:vm.data.userData['google-id']
-                                                                                       },
-                                                                                       {
-                                                                                           type:'apple',
-                                                                                           src: 'https://d3jnmi1tfjgtti.cloudfront.net/file/252530754/14776639.png',
-                                                                                           value:vm.data.userData['apple-id']
-                                                                                       }
-                                                                                   ].map(((dd)=>{
-                                                                                       return `<div class="d-flex align-items-center" style="gap:5px;">
+                                                                                    ${[
+                                                                                        {
+                                                                                            type: 'fb',
+                                                                                            src: 'https://d3jnmi1tfjgtti.cloudfront.net/file/234285319/1722847285395-img_facebook.svg',
+                                                                                            value: vm.data.userData['fb-id'],
+                                                                                        },
+                                                                                        {
+                                                                                            type: 'line',
+                                                                                            src: 'https://d3jnmi1tfjgtti.cloudfront.net/file/252530754/LINE_Brand_icon.png',
+                                                                                            value: vm.data.userData.lineID,
+                                                                                        },
+                                                                                        {
+                                                                                            type: 'google',
+                                                                                            src: 'https://d3jnmi1tfjgtti.cloudfront.net/file/252530754/Google__G__logo.svg.webp',
+                                                                                            value: vm.data.userData['google-id'],
+                                                                                        },
+                                                                                        {
+                                                                                            type: 'apple',
+                                                                                            src: 'https://d3jnmi1tfjgtti.cloudfront.net/file/252530754/14776639.png',
+                                                                                            value: vm.data.userData['apple-id'],
+                                                                                        },
+                                                                                    ]
+                                                                                        .map((dd) => {
+                                                                                            return `<div class="d-flex align-items-center" style="gap:5px;">
 <img src="${dd.src}" style="width:25px;height: 25px;background: whitesmoke;" class="rounded-circle" >
-${(dd.value) ? `<div class="fw-500 " style="font-size: 14px; font-weight: 400; color: #006621;word-break: break-all;">已綁定: ${dd.value}</div>`:`<div class="fw-500" style="font-size: 14px; font-weight: 400; color: #393939;">未綁定</div>`}
+${dd.value ? `<div class="fw-500 " style="font-size: 14px; font-weight: 400; color: #006621;word-break: break-all;">已綁定: ${dd.value}</div>` : `<div class="fw-500" style="font-size: 14px; font-weight: 400; color: #393939;">未綁定</div>`}
 
-</div>`
-                                                                                   })).join(`<div class="my-3"></div>`)}
+</div>`;
+                                                                                        })
+                                                                                        .join(`<div class="my-3"></div>`)}
                                                                                 </div>
                                                                                 ${(() => {
                                                                                     const id = gvc.glitter.getUUID();
@@ -1841,13 +1848,13 @@ ${(dd.value) ? `<div class="fw-500 " style="font-size: 14px; font-weight: 400; c
                                                                                                     data_from: 'manager',
                                                                                                     email: vm.data.userData.email,
                                                                                                     phone: vm.data.userData.phone,
-                                                                                                    valid:true
+                                                                                                    valid: true,
                                                                                                 }).then((data) => {
                                                                                                     let total_price = 0;
-                                                                                                    let firstData:any=undefined
+                                                                                                    let firstData: any = undefined;
                                                                                                     data.response.data.map((item: any) => {
-                                                                                                        if(!firstData){
-                                                                                                            firstData=item
+                                                                                                        if (!firstData) {
+                                                                                                            firstData = item;
                                                                                                         }
                                                                                                         total_price += item.orderData.total;
                                                                                                     });
@@ -1855,44 +1862,46 @@ ${(dd.value) ? `<div class="fw-500 " style="font-size: 14px; font-weight: 400; c
 
                                                                                                     resolve(
                                                                                                         html` <div class="">
+                                                                                                            ${[
+                                                                                                                `<div class="tx_700">累積消費金額</div>
                                                                                                             ${
-                                                                                                            [`<div class="tx_700">累積消費金額</div>
-                                                                                                            ${total_price === 0
-                                                                                                                    ? html` <div
-                                                                                                                      style="font-size: 14px; font-weight: 400; color: #393939; "
-                                                                                                                  >
-                                                                                                                      此顧客還沒有任何消費紀錄
-                                                                                                                  </div>`
-                                                                                                                    : html` <div
-                                                                                                                      style="font-size: 32px; font-weight: 400; color: #393939; "
-                                                                                                                  >
-                                                                                                                      ${formatNum(total_price)}
-                                                                                                                  </div>`}`,
-                                                                                                            `   <div class="tx_700" style="">累計消費次數</div>
+                                                                                                                total_price === 0
+                                                                                                                    ? html` <div style="font-size: 14px; font-weight: 400; color: #393939; ">
+                                                                                                                          此顧客還沒有任何消費紀錄
+                                                                                                                      </div>`
+                                                                                                                    : html` <div style="font-size: 32px; font-weight: 400; color: #393939; ">
+                                                                                                                          ${formatNum(total_price)}
+                                                                                                                      </div>`
+                                                                                                            }`,
+                                                                                                                `   <div class="tx_700" style="">累計消費次數</div>
                                                                                                             <div style="font-size: 32px; font-weight: 400; color: #393939; ">
                                                                                                                 ${formatNum(data.response.total)}
-                                                                                                            </div>`,`
+                                                                                                            </div>`,
+                                                                                                                `
                                                                                                             <div class="tx_700" style="">最後消費金額</div>
                                                                                                             <div class=""
                                                                                                                     style="font-size: 14px; font-weight: 400; color: #393939; "
                                                                                                             >
-                                                                                                                ${!firstData ? `此顧客還沒有任何消費紀錄`:`<div
+                                                                                                                ${
+                                                                                                                    !firstData
+                                                                                                                        ? `此顧客還沒有任何消費紀錄`
+                                                                                                                        : `<div
                                                                                                                       style="font-size: 32px; font-weight: 400; color: #393939; "
                                                                                                                   >
                                                                                                                       ${formatNum(firstData.orderData.total)}
-                                                                                                                  </div>`}
+                                                                                                                  </div>`
+                                                                                                                }
                                                                                                             </div>
-                                                                                                            `,`
+                                                                                                            `,
+                                                                                                                `
                                                                                                              <div class="tx_700" style="">最後購買日期</div>
                                                                                                             <div class=""
                                                                                                                     style="font-size: 14px; font-weight: 400; color: #393939; "
                                                                                                             >
-                                                                                                                ${!firstData ? `此顧客還沒有任何消費紀錄`:`<div class="fw-500">${gvc.glitter.ut.dateFormat(new Date(firstData.created_time), 'yyyy-MM-dd hh:mm')}</div>`}
+                                                                                                                ${!firstData ? `此顧客還沒有任何消費紀錄` : `<div class="fw-500">${gvc.glitter.ut.dateFormat(new Date(firstData.created_time), 'yyyy-MM-dd hh:mm')}</div>`}
                                                                                                             </div>
-                                                                                                            `].join(`<div class="my-3 w-100 border-top"></div>`)
-                                                                                                            }
-                                                                                                         
-                                                                                                           
+                                                                                                            `,
+                                                                                                            ].join(`<div class="my-3 w-100 border-top"></div>`)}
                                                                                                         </div>`
                                                                                                     );
                                                                                                 });
@@ -1959,8 +1968,7 @@ ${(dd.value) ? `<div class="fw-500 " style="font-size: 14px; font-weight: 400; c
                             );
                     }
                 },
-                onCreate: () => {
-                },
+                onCreate: () => {},
             };
         });
     }

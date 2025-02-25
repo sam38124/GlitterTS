@@ -4720,6 +4720,8 @@ ${obj.default ?? ''}</textarea
                                     FormCheck.initialCheckOutForm(form_formats[b.key].list);
                                 } else if (b.key === 'custom_form_checkout_recipient') {
                                     FormCheck.initialRecipientForm(form_formats[b.key].list);
+                                } else if (b.key === 'customer_form_user_setting') {
+                                    FormCheck.initialUserForm(form_formats[b.key].list);
                                 }
                                 form_formats[b.key].list.map((dd: any) => {
                                     dd.toggle = false;

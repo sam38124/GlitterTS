@@ -625,4 +625,75 @@ export class FormCheck {
 
         return form_formats;
     }
+    public static initialUserForm(form_formats: any[]) {
+        //沒有姓名欄位
+        const userObject = [
+            { key: 'carrier_number', title: '手機載具' },
+            { key: 'gui_number', title: '統一編號' },
+            { key: 'company', title: '公司' },
+            { key: 'consignee_name', title: '收貨人', type: 'consignee' },
+            { key: 'consignee_address', title: '收貨人地址', type: 'consignee' },
+            { key: 'consignee_email', title: '收貨人電子郵件', type: 'consignee' },
+            { key: 'consignee_phone', title: '收貨人手機', type: 'consignee' },
+        ];
+
+        userObject.map((item) => {
+            if (
+                !form_formats.find((dd: any) => {
+                    return dd.key === item.key;
+                })
+            ) {
+                form_formats.push({
+                    col: '12',
+                    key: item.key,
+                    page: 'input',
+                    type: 'form_plugin_v2',
+                    group: '',
+                    title: item.title,
+                    col_sm: '12',
+                    toggle: false,
+                    appName: 'cms_system',
+                    require: false,
+                    readonly: 'write',
+                    formFormat: '{}',
+                    style_data: {
+                        input: {
+                            list: [],
+                            class: '',
+                            style: '',
+                            version: 'v2',
+                        },
+                        label: {
+                            list: [],
+                            class: 'form-label fs-base ',
+                            style: '',
+                            version: 'v2',
+                        },
+                        container: {
+                            list: [],
+                            class: '',
+                            style: '',
+                            version: 'v2',
+                        },
+                    },
+                    form_config: {
+                        type: item.type ?? 'text',
+                        title: '',
+                        input_style: {
+                            list: [],
+                            version: 'v2',
+                        },
+                        title_style: {
+                            list: [],
+                            version: 'v2',
+                        },
+                        place_holder: '',
+                    },
+                    deletable: false,
+                });
+            }
+        });
+
+        return form_formats;
+    }
 }

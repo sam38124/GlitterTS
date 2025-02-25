@@ -500,6 +500,7 @@ export class FilterOptions {
         { key: 'customers', value: '指定會員' },
         { key: 'level', value: '會員等級' },
         { key: 'group', value: '顧客分群' },
+        { key: 'tags', value: '顧客標籤' },
         { key: 'birth', value: '顧客生日月份' },
         // { key: 'expiry', value: '購物金到期日' },
         { key: 'remain', value: '購物金剩餘點數' },

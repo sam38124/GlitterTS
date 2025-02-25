@@ -345,18 +345,34 @@ export class UMInfo {
                                             login_config: {},
                                         };
                                         const update_userData = JSON.parse(JSON.stringify(vm.data.userData));
-                                        ApiUser.getPublicConfig('custom_form_register', 'manager').then((res) => {
-                                            ApiUser.getPublicConfig('login_config', 'manager').then((data) => {
+
+                                        async function loadConfig() {
+                                            try {
+                                                vm_info.loading = true;
+
+                                                const [res, data, userSeeting] = await Promise.all([
+                                                    ApiUser.getPublicConfig('custom_form_register', 'manager'),
+                                                    ApiUser.getPublicConfig('login_config', 'manager'),
+                                                    ApiUser.getPublicConfig('customer_form_user_setting', 'manager'),
+                                                ]);
+
+                                                // 設定回傳結果
+                                                const defaultList = { list: [] };
                                                 vm_info.login_config = data.response.value ?? {};
-                                                vm_info.list = (res.response.value ?? { list: [] }).list;
-                                                vm_info.list=vm_info.list??[]
-                                                vm_info.form_array = FormCheck.initialRegisterForm(vm_info.list).filter((dd: any) => {
-                                                    return !dd.hidden;
-                                                });
+                                                vm_info.list = [...(res.response.value?.list ?? defaultList.list), ...(userSeeting.response.value?.list ?? defaultList.list)];
+                                                vm_info.form_array = FormCheck.initialRegisterForm(vm_info.list).filter((dd: any) => !dd.hidden);
+
                                                 vm_info.loading = false;
                                                 gvc.notifyDataChange(id);
-                                            });
-                                        });
+                                            } catch (error) {
+                                                console.error('載入設定時發生錯誤:', error);
+                                                vm_info.loading = false;
+                                            }
+                                        }
+
+                                        // 呼叫函式
+                                        loadConfig();
+
                                         return {
                                             bind: id,
                                             view: () => {

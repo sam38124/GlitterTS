@@ -23,7 +23,6 @@ import { saasConfig } from '../../config';
 import { SMS } from './sms.js';
 import { FormCheck } from './form-check.js';
 import { LoginTicket } from 'google-auth-library/build/src/auth/loginticket.js';
-import { AiRobot } from './ai-robot.js';
 import { UtPermission } from '../utils/ut-permission.js';
 import { SharePermission } from './share-permission.js';
 import { TermsCheck } from './terms-check.js';
@@ -359,10 +358,10 @@ export class User {
         const fbResponse: any = await new Promise((resolve, reject) => {
             axios
                 .request(config)
-                .then((response:any) => {
+                .then((response: any) => {
                     resolve(response.data);
                 })
-                .catch((error:any) => {
+                .catch((error: any) => {
                     throw exception.BadRequestError('BAD_REQUEST', 'Login Error:' + error, null);
                 });
         });
@@ -1324,10 +1323,9 @@ export class User {
                         .join(` || `)
                 );
             }
-            if (query.filter_type === 'block') {
-                querySql.push(`status = 0`);
-            } else {
-                querySql.push(`status = 1`);
+
+            if (query.filter_type !== 'excel') {
+                querySql.push(`status = ${query.filter_type === 'block' ? 0 : 1}`);
             }
 
             const dataSQL = this.getUserAndOrderSQL({
@@ -1343,29 +1341,70 @@ export class User {
                 where: querySql,
                 orderBy: query.order_string ?? '',
             });
+
             const userData = (await db.query(dataSQL, [])).map((dd: any) => {
                 dd.pwd = undefined;
                 dd.tag_name = '一般會員';
                 return dd;
             });
-            for (const b of await db.query(
-                `SELECT *
-                 FROM \`${this.app}\`.t_user_public_config
-                 where \`key\` = 'member_update'
-                   and user_id in (${userData
-                       .map((dd: any) => {
-                           return dd.userID;
-                       })
-                       .concat([-21211])
-                       .join(',')}) `,
+
+            // 建立 userID 對應的 Map，加快查找
+            const userMap = new Map(userData.map((user: any) => [String(user.userID), user]));
+
+            // 會員等級 Map
+            const levels = await this.getUserLevel(userData.map((user: any) => ({ userId: user.userID })));
+            const levelMap = new Map(levels.map((lv) => [lv.id, lv.data.dead_line ?? '']));
+
+            const queryResult = await db.query(
+                `
+                        SELECT * 
+                        FROM \`${this.app}\`.t_user_public_config
+                        WHERE \`key\` = 'member_update'
+                        AND user_id IN (${[...userMap.keys(), '-21211'].join(',')})
+                    `,
                 []
-            )) {
-                if (b.value.value[0]) {
-                    userData.find((dd: any) => {
-                        return `${dd.userID}` === `${b.user_id}`;
-                    }).tag_name = b.value.value[0].tag_name;
+            );
+
+            // 更新 userData
+            for (const b of queryResult) {
+                const tagName = b?.value?.value?.[0]?.tag_name;
+                if (tagName) {
+                    const user = userMap.get(String(b.user_id)) as any;
+                    if (user) {
+                        user.tag_name = tagName; // 確保 user 不是 undefined，並設定 tag_name
+                    }
                 }
             }
+
+            const processUserData = async (user: any) => {
+                // 取得購物金餘額
+                const _rebate = new Rebate(this.app);
+                const userRebate = await _rebate.getOneRebate({ user_id: user.userID });
+                user.rebate = userRebate ? userRebate.point : 0;
+
+                // 取得會員等級截止日
+                user.member_deadline = levelMap.get(user.userID) ?? '';
+            };
+
+            // 批次處理會員資料
+            if (Array.isArray(userData) && userData.length > 0) {
+                const chunkSize = 20; // 每次最多處理人數
+
+                const chunkedUserData: any[][] = [];
+                for (let i = 0; i < userData.length; i += chunkSize) {
+                    chunkedUserData.push(userData.slice(i, i + chunkSize));
+                }
+
+                // 依序處理每個批次
+                for (const batch of chunkedUserData) {
+                    await Promise.all(
+                        batch.map(async (user: any) => {
+                            await processUserData(user);
+                        })
+                    );
+                }
+            }
+
             return {
                 // 所有註冊會員的詳細資料
                 data: userData,
@@ -1431,7 +1470,6 @@ export class User {
                 // 經常購買者清單
                 const usuallyBuyingStandard = 4.5;
                 const usuallyBuyingList = buyingList.filter((item) => item.count > usuallyBuyingStandard);
-                // 從未購買者清單(Join時要確保至少包含一個值，不然sql會報錯。)
                 const neverBuyingData = await db.query(
                     `SELECT userID, JSON_UNQUOTE(JSON_EXTRACT(userData, '$.email')) AS email
                      FROM \`${this.app}\`.t_user
@@ -2202,6 +2240,15 @@ export class User {
                 if (!data && config.user_id === 'manager') {
                     //特定Key沒有值要補值進去
                     switch (config.key) {
+                        case 'customer_form_user_setting':
+                            await that.setConfig({
+                                key: config.key,
+                                user_id: config.user_id,
+                                value: {
+                                    list: FormCheck.initialUserForm([]),
+                                },
+                            });
+                            return await that.getConfigV2(config);
                         case 'global_express_country':
                             await that.setConfig({
                                 key: config.key,

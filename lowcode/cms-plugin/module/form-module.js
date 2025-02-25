@@ -74,6 +74,8 @@ export class FormModule {
                                             return `<i class="fa-solid fa-phone "></i>`;
                                         case 'date':
                                             return `<i class="fa-solid fa-calendar-days "></i>`;
+                                        case 'consignee':
+                                            return `<i class="fa-solid fa-box-taped"></i>`;
                                         default:
                                             return opc.icon;
                                     }
