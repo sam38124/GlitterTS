@@ -194,7 +194,8 @@ SELECT * FROM  \`${config_1.saasConfig.SAAS_NAME}\`.page_config where  1=1 ${whe
     static async getRealPage(query_page, appName) {
         query_page = query_page || 'index';
         let page = query_page;
-        if (['privacy', 'term', 'refund', 'delivery', 'blogs', 'blog_tag_setting', 'blog_global_setting', 'checkout'].includes(query_page)) {
+        if (['privacy', 'term', 'refund', 'delivery', 'blogs', 'blog_tag_setting', 'blog_global_setting', 'checkout', 'fb_live', 'ig_live', 'line_plus'].includes(query_page)) {
+            console.log('isofficial-router');
             return 'official-router';
         }
         if (['blogs', 'pages', 'shop', 'hidden'].includes(query_page.split('/')[0]) && query_page.split('/')[1]) {

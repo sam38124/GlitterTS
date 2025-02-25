@@ -3256,6 +3256,7 @@ export class Shopping {
         archived?: string;
         returnSearch?: string;
         distribution_code?: string;
+        valid?:boolean;
     }) {
         try {
             let querySql = ['1=1'];
@@ -3287,6 +3288,9 @@ export class Shopping {
                 }
                 temp += `JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.orderStatus')) IN (${query.orderStatus})`;
                 querySql.push(`(${temp})`);
+            }
+            if(query.valid){
+                querySql.push(`(orderData->>'$.orderStatus' is null or orderData->>'$.orderStatus' != '-1')`)
             }
 
             if (query.progress) {

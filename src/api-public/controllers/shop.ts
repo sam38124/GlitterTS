@@ -326,6 +326,7 @@ router.get('/order', async (req: express.Request, resp: express.Response) => {
                     archived: req.query.archived as string,
                     distribution_code: req.query.distribution_code as string,
                     returnSearch: req.query.returnSearch as string,
+                    valid:req.query.valid === 'true'
                 })
             );
         } else if (await UtPermission.isAppUser(req)) {

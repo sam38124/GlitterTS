@@ -484,6 +484,7 @@ export class ApiShop {
                     json.email && par.push(`email=${json.email}`);
                     json.phone && par.push(`phone=${json.phone}`);
                     json.status && par.push(`status=${json.status}`);
+                    json.valid && par.push(`valid=${json.valid}`);
                     json.searchType && par.push(`searchType=${json.searchType}`);
                     json.orderString && par.push(`orderString=${json.orderString}`);
                     json.archived && par.push(`archived=${json.archived}`);

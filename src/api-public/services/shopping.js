@@ -2497,6 +2497,9 @@ class Shopping {
                 temp += `JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.orderStatus')) IN (${query.orderStatus})`;
                 querySql.push(`(${temp})`);
             }
+            if (query.valid) {
+                querySql.push(`(orderData->>'$.orderStatus' is null or orderData->>'$.orderStatus' != '-1')`);
+            }
             if (query.progress) {
                 let newArray = query.progress.split(',');
                 let temp = '';

@@ -307,8 +307,9 @@ export class ShoppingOrderManager {
                             const id = glitter.getUUID();
                             return gvc.bindView({
                                 bind: id,
-                                view: () => {
+                                view: () => __awaiter(this, void 0, void 0, function* () {
                                     var _a;
+                                    const orderFunnel = yield FilterOptions.getOrderFunnel();
                                     const filterList = [
                                         BgWidget.selectFilter({
                                             gvc,
@@ -326,7 +327,7 @@ export class ShoppingOrderManager {
                                         BgWidget.funnelFilter({
                                             gvc,
                                             callback: () => {
-                                                ListComp.showRightMenu(FilterOptions.orderFunnel);
+                                                ListComp.showRightMenu(orderFunnel);
                                             },
                                         }),
                                         BgWidget.updownFilter({
@@ -339,7 +340,7 @@ export class ShoppingOrderManager {
                                             options: FilterOptions.orderOrderBy,
                                         }),
                                     ];
-                                    const filterTags = ListComp.getFilterTags(FilterOptions.orderFunnel);
+                                    const filterTags = ListComp.getFilterTags(yield FilterOptions.getOrderFunnel());
                                     if (document.body.clientWidth < 768) {
                                         return html `
                                                             <div style="display: flex; align-items: center; gap: 10px; width: 100%; justify-content: space-between">
@@ -361,7 +362,7 @@ export class ShoppingOrderManager {
                                                             </div>
                                                             <div>${filterTags}</div>`;
                                     }
-                                },
+                                }),
                             });
                         })(),
                         BgWidget.tableV3({

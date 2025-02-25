@@ -359,10 +359,10 @@ export class User {
         const fbResponse: any = await new Promise((resolve, reject) => {
             axios
                 .request(config)
-                .then((response) => {
+                .then((response:any) => {
                     resolve(response.data);
                 })
-                .catch((error) => {
+                .catch((error:any) => {
                     throw exception.BadRequestError('BAD_REQUEST', 'Login Error:' + error, null);
                 });
         });
@@ -583,6 +583,7 @@ export class User {
             if (!ticket) {
                 throw exception.BadRequestError('BAD_REQUEST', 'Google Register Error', null);
             }
+
             const payload = ticket.getPayload();
             if (
                 (
@@ -621,6 +622,14 @@ export class User {
                     [payload?.email]
                 )) as any
             )[0];
+            data.userData['google-id'] = payload?.sub;
+            await db.execute(
+                `update \`${this.app}\`.t_user
+                 set userData=?
+                 where userID = ?
+                   and id > 0`,
+                [JSON.stringify(data.userData), data.userID]
+            );
             const usData: any = await this.getUserData(data.userID, 'userID');
             usData.pwd = undefined;
             usData.token = await UserUtil.generateToken({

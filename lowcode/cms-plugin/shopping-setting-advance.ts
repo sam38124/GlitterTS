@@ -97,7 +97,7 @@ export class ShoppingSettingAdvance {
                     m.variants = temp;
                 });
             }
-            
+
             obj.gvc.notifyDataChange(variantsViewID);
         }
 
@@ -537,7 +537,7 @@ export class ShoppingSettingAdvance {
 
                                     const getIndexStyle = (index: number) =>
                                         index === 0
-                                            ? 'height: 100%; padding: 8px 0 0; min-width: 216px; position: sticky; left: 0; background: #fff; box-shadow: 2px 0px 0px 0px rgba(0, 0, 0, 0.10);'
+                                            ? 'height: 100%; padding: 8px 0 0; min-width: 216px; position: sticky; left: 0; background: #fff; box-shadow: 1px 0px 0px 0px rgba(0, 0, 0, 0.10);'
                                             : 'height: 100%; padding: 8px 0 0; text-align: center; justify-content: center; min-width: 126px;';
 
                                     const resetPostList = (result: string[], type: MultiSaleType) => {
@@ -657,9 +657,9 @@ export class ShoppingSettingAdvance {
                                                             </div>
                                                         `
                                                     )
-                                                    .join(BgWidget.mbContainer(18))}
+                                                    .join(`<div class="w-100 my-3 border-top"></div>`)}
                                                 ${postMD.multi_sale_price && postMD.multi_sale_price.length > 0
-                                                    ? html`<div class="mt-3 d-grid" style="overflow: scroll;">
+                                                    ? html`<div class="mt-3   d-grid" style="overflow: scroll;">
                                                           <div class="d-flex">
                                                               ${['商品名稱', '成本', '原價', '售價', ...particularKeys.map((item) => item.name)]
                                                                   .map(

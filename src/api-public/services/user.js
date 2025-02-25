@@ -494,6 +494,11 @@ class User {
                      from \`${this.app}\`.t_user
                      where userData ->>'$.email' = ?
                        and status = 1`, [payload === null || payload === void 0 ? void 0 : payload.email]))[0];
+            data.userData['google-id'] = payload === null || payload === void 0 ? void 0 : payload.sub;
+            await database_1.default.execute(`update \`${this.app}\`.t_user
+                 set userData=?
+                 where userID = ?
+                   and id > 0`, [JSON.stringify(data.userData), data.userID]);
             const usData = await this.getUserData(data.userID, 'userID');
             usData.pwd = undefined;
             usData.token = await UserUtil_1.default.generateToken({

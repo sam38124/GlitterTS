@@ -1091,7 +1091,7 @@ Setting_editor.menuItems = () => {
         },
         {
             icon: '',
-            page: 'live_list',
+            page: 'fb_live',
             group: '社群電商',
             title: 'FB直播',
             appName: 'cms_system',
@@ -1100,7 +1100,16 @@ Setting_editor.menuItems = () => {
         },
         {
             icon: '',
-            page: 'live_list',
+            page: 'ig_live',
+            group: '社群電商',
+            title: 'IG直播',
+            appName: 'cms_system',
+            groupIcon: 'https://d3jnmi1tfjgtti.cloudfront.net/file/122538856/webhook-sharp-regular.svg',
+            moduleName: '社群電商',
+        },
+        {
+            icon: '',
+            page: 'line_plus',
             group: '社群電商',
             title: 'LINE團購',
             appName: 'cms_system',

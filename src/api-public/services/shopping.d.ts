@@ -416,6 +416,7 @@ export declare class Shopping {
         archived?: string;
         returnSearch?: string;
         distribution_code?: string;
+        valid?: boolean;
     }): Promise<any>;
     releaseCheckout(status: 1 | 0 | -1, order_id: string): Promise<void>;
     checkVoucherLimited(user_id: number, voucher_id: number): Promise<boolean>;

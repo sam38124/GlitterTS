@@ -528,7 +528,8 @@ export class ShoppingOrderManager {
                                             const id = glitter.getUUID();
                                             return gvc.bindView({
                                                 bind: id,
-                                                view: () => {
+                                                view: async () => {
+                                                    const orderFunnel=await FilterOptions.getOrderFunnel()
                                                     const filterList = [
                                                         BgWidget.selectFilter({
                                                             gvc,
@@ -550,7 +551,7 @@ export class ShoppingOrderManager {
                                                         BgWidget.funnelFilter({
                                                             gvc,
                                                             callback: () => {
-                                                                ListComp.showRightMenu(FilterOptions.orderFunnel);
+                                                                ListComp.showRightMenu(orderFunnel);
                                                             },
                                                         }),
                                                         BgWidget.updownFilter({
@@ -564,7 +565,7 @@ export class ShoppingOrderManager {
                                                         }),
                                                     ];
 
-                                                    const filterTags = ListComp.getFilterTags(FilterOptions.orderFunnel);
+                                                    const filterTags = ListComp.getFilterTags(await FilterOptions.getOrderFunnel());
 
                                                     if (document.body.clientWidth < 768) {
                                                         // 手機版

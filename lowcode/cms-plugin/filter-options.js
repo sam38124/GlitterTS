@@ -1,5 +1,97 @@
-import { ShipmentConfig } from '../glitter-base/global/shipment-config.js';
+var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+};
+import { ShipmentConfig } from "../glitter-base/global/shipment-config.js";
 export class FilterOptions {
+    static getOrderFunnel() {
+        var _a;
+        return __awaiter(this, void 0, void 0, function* () {
+            let vm = {
+                data: undefined
+            };
+            const saasConfig = window.parent.saasConfig;
+            yield new Promise((resolve, reject) => {
+                saasConfig.api.getPrivateConfig(saasConfig.config.appName, 'logistics_setting').then((r) => {
+                    if (r.response.result[0]) {
+                        vm.data = r.response.result[0].value;
+                    }
+                    if (!vm.data.language_data) {
+                        vm.data.language_data = {
+                            'en-US': { info: '' },
+                            'zh-CN': { info: '' },
+                            'zh-TW': { info: vm.data.info || '' },
+                        };
+                    }
+                    resolve(true);
+                });
+            });
+            return [
+                {
+                    key: 'orderStatus',
+                    type: 'multi_checkbox',
+                    name: '訂單狀態',
+                    data: [
+                        { key: '1', name: '已完成' },
+                        { key: '0', name: '處理中' },
+                        { key: '-1', name: '已取消' },
+                    ],
+                },
+                {
+                    key: 'payload',
+                    type: 'multi_checkbox',
+                    name: '付款狀態',
+                    data: [
+                        { key: '-1', name: '付款失敗' },
+                        { key: '1', name: '已付款' },
+                        { key: '3', name: '部分付款' },
+                        { key: '0', name: '未付款' },
+                        { key: '-2', name: '已退款' },
+                    ],
+                },
+                {
+                    key: 'progress',
+                    type: 'multi_checkbox',
+                    name: '出貨狀況',
+                    data: [
+                        { key: 'shipping', name: '配送中' },
+                        { key: 'wait', name: '未出貨' },
+                        { key: 'finish', name: '已取貨' },
+                        { key: 'returns', name: '已退貨' },
+                        { key: 'arrived', name: '已到貨' },
+                        { key: 'pre_order', name: '待預購' },
+                    ],
+                },
+                {
+                    key: 'shipment',
+                    type: 'multi_checkbox',
+                    name: '運送方式',
+                    data: ShipmentConfig.list.map((dd) => {
+                        return { key: dd.value, name: dd.title };
+                    }).concat(((_a = vm.data.custom_delivery) !== null && _a !== void 0 ? _a : []).map((dd) => {
+                        return { key: dd.id, name: dd.name };
+                    })),
+                },
+                {
+                    key: 'created_time',
+                    type: 'during',
+                    name: '訂單日期',
+                    data: {
+                        centerText: '至',
+                        list: [
+                            { key: 'start', type: 'date', placeHolder: '請選擇開始時間' },
+                            { key: 'end', type: 'date', placeHolder: '請選擇結束時間' },
+                        ],
+                    },
+                },
+            ];
+        });
+    }
 }
 FilterOptions.userFilterFrame = {
     created_time: ['', ''],
@@ -108,63 +200,6 @@ FilterOptions.fbLiveFilterFrame = {
     status: [],
     created_time: ['', ''],
 };
-FilterOptions.orderFunnel = [
-    {
-        key: 'orderStatus',
-        type: 'multi_checkbox',
-        name: '訂單狀態',
-        data: [
-            { key: '1', name: '已完成' },
-            { key: '0', name: '處理中' },
-            { key: '-1', name: '已取消' },
-        ],
-    },
-    {
-        key: 'payload',
-        type: 'multi_checkbox',
-        name: '付款狀態',
-        data: [
-            { key: '-1', name: '付款失敗' },
-            { key: '1', name: '已付款' },
-            { key: '3', name: '部分付款' },
-            { key: '0', name: '未付款' },
-            { key: '-2', name: '已退款' },
-        ],
-    },
-    {
-        key: 'progress',
-        type: 'multi_checkbox',
-        name: '出貨狀況',
-        data: [
-            { key: 'shipping', name: '配送中' },
-            { key: 'wait', name: '未出貨' },
-            { key: 'finish', name: '已取貨' },
-            { key: 'returns', name: '已退貨' },
-            { key: 'arrived', name: '已到貨' },
-            { key: 'pre_order', name: '待預購' },
-        ],
-    },
-    {
-        key: 'shipment',
-        type: 'multi_checkbox',
-        name: '運送方式',
-        data: ShipmentConfig.list.map((dd) => {
-            return { key: dd.value, name: dd.title };
-        }),
-    },
-    {
-        key: 'created_time',
-        type: 'during',
-        name: '訂單日期',
-        data: {
-            centerText: '至',
-            list: [
-                { key: 'start', type: 'date', placeHolder: '請選擇開始時間' },
-                { key: 'end', type: 'date', placeHolder: '請選擇結束時間' },
-            ],
-        },
-    },
-];
 FilterOptions.returnOrderFunnel = [
     {
         key: 'progress',
@@ -290,7 +325,7 @@ FilterOptions.orderSelect = [
     { key: 'name', value: '訂購人' },
     { key: 'phone', value: '手機' },
     { key: 'title', value: '商品名稱' },
-    { key: 'sku', value: '商品編號' },
+    { key: 'sku', value: '商品貨號(SKU)' },
     { key: 'invoice_number', value: '發票號碼' },
 ];
 FilterOptions.returnOrderSelect = [
@@ -306,7 +341,7 @@ FilterOptions.invoiceSelect = [
     { key: 'business_number', value: '買受人統編' },
     { key: 'phone', value: '買受人手機' },
     { key: 'product_name', value: '商品名稱' },
-    { key: 'product_number', value: '商品編號' },
+    { key: 'product_number', value: '商品貨號(SKU)' },
 ];
 FilterOptions.allowanceSelect = [
     { key: 'allowance_no', value: '折讓單編號' },
@@ -425,7 +460,6 @@ FilterOptions.emailOptions = [
     { key: 'customers', value: '指定會員' },
     { key: 'level', value: '會員等級' },
     { key: 'group', value: '顧客分群' },
-    { key: 'tags', value: '顧客標籤' },
     { key: 'birth', value: '顧客生日月份' },
     { key: 'remain', value: '購物金剩餘點數' },
 ];

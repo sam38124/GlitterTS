@@ -228,7 +228,8 @@ SELECT * FROM  \`${saasConfig.SAAS_NAME}\`.page_config where  1=1 ${where_};
         query_page = query_page || 'index';
         let page = query_page;
         //判斷是條款頁面或部落格列表頁面時
-        if(['privacy','term','refund','delivery','blogs','blog_tag_setting','blog_global_setting','checkout'].includes(query_page)){
+        if(['privacy','term','refund','delivery','blogs','blog_tag_setting','blog_global_setting','checkout','fb_live','ig_live','line_plus'].includes(query_page)){
+           console.log('isofficial-router')
             return  'official-router'
         }
         //當判斷是Blog時
