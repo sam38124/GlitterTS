@@ -365,101 +365,84 @@ export class ApiUser {
         return list;
     }
     static getUserListOrders(json) {
-        const filterString = this.userListFilterString(json.filter);
-        const groupString = this.userListGroupString(json.group);
-        const userData = BaseApi.create({
-            url: getBaseUrl() +
-                `/api-public/v1/user?${(() => {
-                    let par = [`type=list`, `limit=${json.limit}`, `page=${json.page}`];
-                    json.search && par.push(`search=${json.search}`);
-                    json.id && par.push(`id=${json.id}`);
-                    json.searchType && par.push(`searchType=${json.searchType}`);
-                    json.orderString && par.push(`order_string=${json.orderString}`);
-                    json.filter_type && par.push(`filter_type=${json.filter_type}`);
-                    filterString.length > 0 && par.push(filterString.join('&'));
-                    groupString.length > 0 && par.push(groupString.join('&'));
-                    return par.join('&');
-                })()}`,
-            type: 'GET',
-            headers: {
-                'g-app': getConfig().config.appName,
-                'Content-Type': 'application/json',
-                Authorization: getConfig().config.token,
-            },
-        }).then((data) => __awaiter(this, void 0, void 0, function* () {
-            if (!data.result) {
+        var _a, _b, _c, _d, _e;
+        return __awaiter(this, void 0, void 0, function* () {
+            const filterString = this.userListFilterString(json.filter);
+            const groupString = this.userListGroupString(json.group);
+            const baseQuery = new URLSearchParams({
+                type: 'list',
+                limit: json.limit.toString(),
+                page: json.page.toString(),
+                search: (_a = json.search) !== null && _a !== void 0 ? _a : '',
+                id: (_b = json.id) !== null && _b !== void 0 ? _b : '',
+                searchType: (_c = json.searchType) !== null && _c !== void 0 ? _c : '',
+                order_string: (_d = json.orderString) !== null && _d !== void 0 ? _d : '',
+                filter_type: (_e = json.filter_type) !== null && _e !== void 0 ? _e : '',
+            }).toString();
+            const extraQuery = [...filterString, ...groupString].join('&');
+            const finalQuery = extraQuery ? `${baseQuery}&${extraQuery}` : baseQuery;
+            try {
+                const data = yield BaseApi.create({
+                    url: `${getBaseUrl()}/api-public/v1/user?${finalQuery}`,
+                    type: 'GET',
+                    headers: {
+                        'g-app': getConfig().config.appName,
+                        'Content-Type': 'application/json',
+                        Authorization: getConfig().config.token,
+                    },
+                });
+                if (!data.result) {
+                    return {
+                        response: { data: [], total: 0 },
+                    };
+                }
+                const array = data.response.data;
+                if (array.length > 0) {
+                    yield Promise.allSettled(array.map((item) => __awaiter(this, void 0, void 0, function* () {
+                        var _f, _g;
+                        const [userLevel, userOrders] = yield Promise.allSettled([
+                            ApiUser.getUserLevel(getConfig().config.token, item.userID),
+                            ApiShop.getOrder({
+                                page: 0,
+                                limit: 99999,
+                                data_from: 'manager',
+                                email: item.account,
+                                status: 1,
+                            }),
+                        ]);
+                        if (userLevel.status === 'fulfilled' && userLevel.value.result) {
+                            item.tag_name = (_g = (_f = userLevel.value.response[0]) === null || _f === void 0 ? void 0 : _f.data.tag_name) !== null && _g !== void 0 ? _g : '一般會員';
+                        }
+                        else {
+                            item.tag_name = '一般會員';
+                        }
+                        if (userOrders.status === 'fulfilled' && userOrders.value.result && Array.isArray(userOrders.value.response.data) && userOrders.value.response.data.length > 0) {
+                            item.latest_order_date = userOrders.value.response.data[0].created_time;
+                            item.latest_order_total = userOrders.value.response.data[0].orderData.total;
+                            item.checkout_total = userOrders.value.response.data.reduce((sum, order) => sum + order.orderData.total, 0);
+                            item.checkout_count = userOrders.value.response.total;
+                        }
+                        else {
+                            item.checkout_total = 0;
+                            item.checkout_count = 0;
+                        }
+                    })));
+                }
                 return {
                     response: {
-                        data: [],
-                        total: 0,
+                        data: array,
+                        total: data.response.total,
+                        extra: data.response.extra,
                     },
                 };
             }
-            const array = data.response.data;
-            if (array.length > 0) {
-                yield new Promise((resolve, reject) => {
-                    let pass = 0;
-                    function checkPass() {
-                        pass++;
-                        if (pass === array.length) {
-                            resolve(true);
-                        }
-                    }
-                    for (let index = 0; index < array.length; index++) {
-                        function execute() {
-                            Promise.all([
-                                new Promise((resolve) => {
-                                    ApiUser.getUserLevel(getConfig().config.token, array[index].userID).then((dd) => {
-                                        if (dd.result) {
-                                            array[index].tag_name = dd.response[0] ? dd.response[0].data.tag_name : '一般會員';
-                                            resolve();
-                                        }
-                                        else {
-                                            execute();
-                                        }
-                                    });
-                                }),
-                                new Promise((resolve) => {
-                                    ApiShop.getOrder({
-                                        page: 0,
-                                        limit: 99999,
-                                        data_from: 'manager',
-                                        email: array[index].account,
-                                        status: 1,
-                                    }).then((data) => {
-                                        if (data.result) {
-                                            array[index].checkout_total = (() => {
-                                                let t = 0;
-                                                for (const d of data.response.data) {
-                                                    t += d.orderData.total;
-                                                }
-                                                return t;
-                                            })();
-                                            array[index].checkout_count = data.response.total;
-                                            resolve();
-                                        }
-                                        else {
-                                            execute();
-                                        }
-                                    });
-                                }),
-                            ]).then(() => {
-                                checkPass();
-                            });
-                        }
-                        execute();
-                    }
-                });
+            catch (error) {
+                console.error('Error fetching user list orders:', error);
+                return {
+                    response: { data: [], total: 0 },
+                };
             }
-            return {
-                response: {
-                    data: array,
-                    total: data.response.total,
-                    extra: data.response.extra,
-                },
-            };
-        }));
-        return userData;
+        });
     }
     static deleteUser(json) {
         return BaseApi.create({

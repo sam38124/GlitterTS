@@ -13,6 +13,7 @@ import { ShoppingRebate } from './shopping-rebate.js';
 import { Tool } from '../modules/tool.js';
 import { CheckInput } from '../modules/checkInput.js';
 import { BgNotify } from '../backend-manager/bg-notify.js';
+import { UserExcel } from './module/user-excel.js';
 
 const html = String.raw;
 
@@ -29,6 +30,7 @@ type ViewModel = {
     filter_type: string;
     filter?: any;
     initial_data?: any;
+    group?: { type: string; title: string };
 };
 
 export class UserList {
@@ -120,6 +122,7 @@ export class UserList {
             filterId: glitter.getUUID(),
             tableId: glitter.getUUID(),
             initial_data: {},
+            group: obj && obj.group ? obj.group : undefined,
         };
 
         const ListComp = new BgListComponent(gvc, vm, FilterOptions.userFilterFrame);
@@ -219,13 +222,17 @@ ${[
                     return BgWidget.container(html`
                         <div class="title-container">
                             ${(() => {
-                                if (obj && obj.group && obj.backButtonEvent) {
-                                    return BgWidget.goBack(obj.backButtonEvent) + BgWidget.title(obj.group.title);
+                                if (vm.group && obj?.backButtonEvent) {
+                                    return BgWidget.goBack(obj.backButtonEvent) + BgWidget.title(vm.group.title);
                                 }
                                 return BgWidget.title('顧客列表');
                             })()}
                             <div class="flex-fill"></div>
                             <div class="d-flex align-items-center" style="gap: 10px;">
+                                ${BgWidget.grayButton(
+                                    '匯出',
+                                    gvc.event(() => UserExcel.export(vm))
+                                )}
                                 ${BgWidget.darkButton(
                                     '新增',
                                     obj?.createUserEvent ??
@@ -249,7 +256,7 @@ ${[
                         </div>
                         <div class="title-container">
                             ${BgWidget.tab(
-                                obj?.group?.type === 'subscriber'
+                                vm.group?.type === 'subscriber'
                                     ? [
                                           {
                                               title: '一般列表',
@@ -368,7 +375,7 @@ ${[
                                                             orderString: vm.orderString || '',
                                                             filter: vm.filter,
                                                             filter_type: vm.filter_type,
-                                                            group: obj && obj.group ? obj.group : {},
+                                                            group: vm.group,
                                                         }).then((data) => {
                                                             vm.dataList = data.response.data;
                                                             vmi.pageSize = Math.ceil(data.response.total / limit);
@@ -704,6 +711,7 @@ ${[
             filter_type: `normal`,
             filterId: glitter.getUUID(),
             tableId: glitter.getUUID(),
+            group: obj && obj.group ? obj.group : undefined,
         };
 
         const ListComp = new BgListComponent(gvc, vm, FilterOptions.userFilterFrame);
@@ -834,7 +842,7 @@ ${[
                                             orderString: vm.orderString || '',
                                             filter: vm.filter,
                                             filter_type: vm.filter_type,
-                                            group: obj && obj.group ? obj.group : {},
+                                            group: vm.group,
                                         }).then((data) => {
                                             vm.dataList = data.response.data;
                                             vmi.pageSize = Math.ceil(data.response.total / limit);

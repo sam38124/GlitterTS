@@ -21,6 +21,7 @@ import { ShoppingRebate } from './shopping-rebate.js';
 import { Tool } from '../modules/tool.js';
 import { CheckInput } from '../modules/checkInput.js';
 import { BgNotify } from '../backend-manager/bg-notify.js';
+import { UserExcel } from './module/user-excel.js';
 const html = String.raw;
 export class UserList {
     static setUserTags(gvc, arr) {
@@ -95,6 +96,7 @@ export class UserList {
             filterId: glitter.getUUID(),
             tableId: glitter.getUUID(),
             initial_data: {},
+            group: obj && obj.group ? obj.group : undefined,
         };
         const ListComp = new BgListComponent(gvc, vm, FilterOptions.userFilterFrame);
         vm.filter = ListComp.getFilterObject();
@@ -190,13 +192,14 @@ ${[
                     return BgWidget.container(html `
                         <div class="title-container">
                             ${(() => {
-                        if (obj && obj.group && obj.backButtonEvent) {
-                            return BgWidget.goBack(obj.backButtonEvent) + BgWidget.title(obj.group.title);
+                        if (vm.group && (obj === null || obj === void 0 ? void 0 : obj.backButtonEvent)) {
+                            return BgWidget.goBack(obj.backButtonEvent) + BgWidget.title(vm.group.title);
                         }
                         return BgWidget.title('顧客列表');
                     })()}
                             <div class="flex-fill"></div>
                             <div class="d-flex align-items-center" style="gap: 10px;">
+                                ${BgWidget.grayButton('匯出', gvc.event(() => UserExcel.export(vm)))}
                                 ${BgWidget.darkButton('新增', (_a = obj === null || obj === void 0 ? void 0 : obj.createUserEvent) !== null && _a !== void 0 ? _a : gvc.event(() => {
                         vm.type = 'create';
                     }))}
@@ -215,7 +218,7 @@ ${[
                             </button>
                         </div>
                         <div class="title-container">
-                            ${BgWidget.tab(((_b = obj === null || obj === void 0 ? void 0 : obj.group) === null || _b === void 0 ? void 0 : _b.type) === 'subscriber'
+                            ${BgWidget.tab(((_b = vm.group) === null || _b === void 0 ? void 0 : _b.type) === 'subscriber'
                         ? [
                             {
                                 title: '一般列表',
@@ -321,7 +324,7 @@ ${[
                                                 orderString: vm.orderString || '',
                                                 filter: vm.filter,
                                                 filter_type: vm.filter_type,
-                                                group: obj && obj.group ? obj.group : {},
+                                                group: vm.group,
                                             }).then((data) => {
                                                 vm.dataList = data.response.data;
                                                 vmi.pageSize = Math.ceil(data.response.total / limit);
@@ -612,6 +615,7 @@ ${[
             filter_type: `normal`,
             filterId: glitter.getUUID(),
             tableId: glitter.getUUID(),
+            group: obj && obj.group ? obj.group : undefined,
         };
         const ListComp = new BgListComponent(gvc, vm, FilterOptions.userFilterFrame);
         vm.filter = ListComp.getFilterObject();
@@ -732,7 +736,7 @@ ${[
                                             orderString: vm.orderString || '',
                                             filter: vm.filter,
                                             filter_type: vm.filter_type,
-                                            group: obj && obj.group ? obj.group : {},
+                                            group: vm.group,
                                         }).then((data) => {
                                             vm.dataList = data.response.data;
                                             vmi.pageSize = Math.ceil(data.response.total / limit);

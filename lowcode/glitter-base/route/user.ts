@@ -383,7 +383,7 @@ export class ApiUser {
         return list;
     }
 
-    public static getUserListOrders(json: {
+    public static async getUserListOrders(json: {
         limit: number;
         page: number;
         search?: string;
@@ -397,92 +397,71 @@ export class ApiUser {
     }) {
         const filterString = this.userListFilterString(json.filter);
         const groupString = this.userListGroupString(json.group);
-        const userData = BaseApi.create({
-            url:
-                getBaseUrl() +
-                `/api-public/v1/user?${(() => {
-                    let par = [`type=list`, `limit=${json.limit}`, `page=${json.page}`];
-                    json.search && par.push(`search=${json.search}`);
-                    json.id && par.push(`id=${json.id}`);
-                    json.searchType && par.push(`searchType=${json.searchType}`);
-                    json.orderString && par.push(`order_string=${json.orderString}`);
-                    json.filter_type && par.push(`filter_type=${json.filter_type}`);
-                    filterString.length > 0 && par.push(filterString.join('&'));
-                    groupString.length > 0 && par.push(groupString.join('&'));
-                    return par.join('&');
-                })()}`,
-            type: 'GET',
-            headers: {
-                'g-app': getConfig().config.appName,
-                'Content-Type': 'application/json',
-                Authorization: getConfig().config.token,
-            },
-        }).then(async (data) => {
+
+        const baseQuery = new URLSearchParams({
+            type: 'list',
+            limit: json.limit.toString(),
+            page: json.page.toString(),
+            search: json.search ?? '',
+            id: json.id ?? '',
+            searchType: json.searchType ?? '',
+            order_string: json.orderString ?? '',
+            filter_type: json.filter_type ?? '',
+        }).toString();
+
+        const extraQuery = [...filterString, ...groupString].join('&');
+        const finalQuery = extraQuery ? `${baseQuery}&${extraQuery}` : baseQuery;
+
+        try {
+            const data = await BaseApi.create({
+                url: `${getBaseUrl()}/api-public/v1/user?${finalQuery}`,
+                type: 'GET',
+                headers: {
+                    'g-app': getConfig().config.appName,
+                    'Content-Type': 'application/json',
+                    Authorization: getConfig().config.token,
+                },
+            });
+
             if (!data.result) {
                 return {
-                    response: {
-                        data: [],
-                        total: 0,
-                    },
+                    response: { data: [], total: 0 },
                 };
             }
 
             const array = data.response.data;
+
             if (array.length > 0) {
-                await new Promise((resolve, reject) => {
-                    let pass = 0;
+                await Promise.allSettled(
+                    array.map(async (item: any) => {
+                        const [userLevel, userOrders] = await Promise.allSettled([
+                            ApiUser.getUserLevel(getConfig().config.token, item.userID),
+                            ApiShop.getOrder({
+                                page: 0,
+                                limit: 99999,
+                                data_from: 'manager',
+                                email: item.account,
+                                status: 1,
+                            }),
+                        ]);
 
-                    function checkPass() {
-                        pass++;
-                        if (pass === array.length) {
-                            resolve(true);
-                        }
-                    }
-
-                    for (let index = 0; index < array.length; index++) {
-                        function execute() {
-                            Promise.all([
-                                new Promise<void>((resolve) => {
-                                    ApiUser.getUserLevel(getConfig().config.token, array[index].userID).then((dd) => {
-                                        if (dd.result) {
-                                            array[index].tag_name = dd.response[0] ? dd.response[0].data.tag_name : '一般會員';
-                                            resolve();
-                                        } else {
-                                            execute();
-                                        }
-                                    });
-                                }),
-                                new Promise<void>((resolve) => {
-                                    ApiShop.getOrder({
-                                        page: 0,
-                                        limit: 99999,
-                                        data_from: 'manager',
-                                        email: array[index].account,
-                                        status: 1,
-                                    }).then((data) => {
-                                        if (data.result) {
-                                            array[index].checkout_total = (() => {
-                                                let t = 0;
-                                                for (const d of data.response.data) {
-                                                    t += d.orderData.total;
-                                                }
-                                                return t;
-                                            })();
-                                            array[index].checkout_count = data.response.total as number;
-                                            resolve();
-                                        } else {
-                                            execute();
-                                        }
-                                    });
-                                }),
-                            ]).then(() => {
-                                checkPass();
-                            });
+                        if (userLevel.status === 'fulfilled' && userLevel.value.result) {
+                            item.tag_name = userLevel.value.response[0]?.data.tag_name ?? '一般會員';
+                        } else {
+                            item.tag_name = '一般會員'; // 失敗時提供預設值
                         }
 
-                        execute();
-                    }
-                });
+                        if (userOrders.status === 'fulfilled' && userOrders.value.result && Array.isArray(userOrders.value.response.data) && userOrders.value.response.data.length > 0) {
+                            item.latest_order_date = userOrders.value.response.data[0].created_time;
+                            item.latest_order_total = userOrders.value.response.data[0].orderData.total;
+                            item.checkout_total = userOrders.value.response.data.reduce((sum: number, order: any) => sum + order.orderData.total, 0);
+                            item.checkout_count = userOrders.value.response.total as number;
+                        } else {
+                            item.checkout_total = 0;
+                            item.checkout_count = 0;
+                        }
+                    })
+                );
             }
 
             return {
@@ -492,9 +471,12 @@ export class ApiUser {
                     extra: data.response.extra,
                 },
             };
-        });
-
-        return userData;
+        } catch (error) {
+            console.error('Error fetching user list orders:', error);
+            return {
+                response: { data: [], total: 0 },
+            };
+        }
     }
 
     public static deleteUser(json: { id?: string; email?: string; code?: string; app_name?: string }) {
