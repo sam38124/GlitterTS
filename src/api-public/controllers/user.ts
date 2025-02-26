@@ -179,7 +179,7 @@ router.post('/manager/register', async (req: express.Request, resp: express.Resp
             // 建立顧客資料陣列，開始批次新增
             const createUserPromises = checks.map(async (check) => {
                 const passUser = check.postUser;
-                tempTags = [...new Set([...tempTags, ...(passUser.userData.tags ?? [])])];
+                tempTags = tempTags.concat(passUser.userData.tags ?? []);
                 return user.createUser(passUser.account, Tool.randomString(8), passUser.userData, {}, true);
             });
 

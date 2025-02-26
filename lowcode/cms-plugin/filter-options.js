@@ -7,13 +7,13 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
-import { ShipmentConfig } from "../glitter-base/global/shipment-config.js";
+import { ShipmentConfig } from '../glitter-base/global/shipment-config.js';
 export class FilterOptions {
     static getOrderFunnel() {
         var _a;
         return __awaiter(this, void 0, void 0, function* () {
             let vm = {
-                data: undefined
+                data: undefined,
             };
             const saasConfig = window.parent.saasConfig;
             yield new Promise((resolve, reject) => {
@@ -71,9 +71,11 @@ export class FilterOptions {
                     key: 'shipment',
                     type: 'multi_checkbox',
                     name: '運送方式',
-                    data: ShipmentConfig.list.map((dd) => {
+                    data: ShipmentConfig.list
+                        .map((dd) => {
                         return { key: dd.value, name: dd.title };
-                    }).concat(((_a = vm.data.custom_delivery) !== null && _a !== void 0 ? _a : []).map((dd) => {
+                    })
+                        .concat(((_a = vm.data.custom_delivery) !== null && _a !== void 0 ? _a : []).map((dd) => {
                         return { key: dd.id, name: dd.name };
                     })),
                 },
@@ -173,6 +175,8 @@ FilterOptions.userSelect = [
     { key: 'name', value: '顧客名稱' },
     { key: 'email', value: '電子信箱' },
     { key: 'phone', value: '電話號碼' },
+    { key: 'lineID', value: 'LINE UID' },
+    { key: 'fb-id', value: 'FB UID' },
 ];
 FilterOptions.orderFilterFrame = {
     orderStatus: [],

@@ -156,10 +156,9 @@ export class UserExcel {
     }
 
     static import(gvc: GVC, callback: () => void) {
-        // 動態建立 input
         const dialog = new ShareDialog(gvc.glitter);
         const id = 'import-user-excel';
-        const fileInput = document.createElement('input');
+        const fileInput = document.createElement('input'); // 動態建立 input
         fileInput.id = id;
         fileInput.type = 'file';
         fileInput.accept = '.xlsx, .xls';

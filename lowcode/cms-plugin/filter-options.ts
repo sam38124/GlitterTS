@@ -1,4 +1,4 @@
-import {ShipmentConfig} from "../glitter-base/global/shipment-config.js";
+import { ShipmentConfig } from '../glitter-base/global/shipment-config.js';
 
 export class FilterOptions {
     static userFilterFrame = {
@@ -84,6 +84,8 @@ export class FilterOptions {
         { key: 'name', value: '顧客名稱' },
         { key: 'email', value: '電子信箱' },
         { key: 'phone', value: '電話號碼' },
+        { key: 'lineID', value: 'LINE UID' },
+        { key: 'fb-id', value: 'FB UID' },
     ];
 
     static orderFilterFrame = {
@@ -117,33 +119,30 @@ export class FilterOptions {
         created_time: ['', ''],
     };
 
-    static async getOrderFunnel (){
-        let vm:{
-            data:any
-        }={
-            data:undefined
-        }
+    static async getOrderFunnel() {
+        let vm: {
+            data: any;
+        } = {
+            data: undefined,
+        };
         const saasConfig: {
             config: any;
             api: any;
         } = (window.parent as any).saasConfig;
-        await new Promise((resolve, reject)=>{
-            saasConfig.api.getPrivateConfig(saasConfig.config.appName, 'logistics_setting').then((r: {
-                response: any;
-                result: boolean
-            }) => {
+        await new Promise((resolve, reject) => {
+            saasConfig.api.getPrivateConfig(saasConfig.config.appName, 'logistics_setting').then((r: { response: any; result: boolean }) => {
                 if (r.response.result[0]) {
                     vm.data = r.response.result[0].value;
                 }
                 if (!vm.data.language_data) {
                     vm.data.language_data = {
-                        'en-US': {info: ''},
-                        'zh-CN': {info: ''},
-                        'zh-TW': {info: vm.data.info || ''},
+                        'en-US': { info: '' },
+                        'zh-CN': { info: '' },
+                        'zh-TW': { info: vm.data.info || '' },
                     };
                 }
-                resolve(true)
-            })
+                resolve(true);
+            });
         });
         return [
             {
@@ -185,11 +184,15 @@ export class FilterOptions {
                 key: 'shipment',
                 type: 'multi_checkbox',
                 name: '運送方式',
-                data: ShipmentConfig.list.map((dd)=>{
-                    return  { key: dd.value, name: dd.title }
-                }).concat((vm.data.custom_delivery ?? []).map((dd:any)=>{
-                    return { key: dd.id, name: dd.name }
-                })),
+                data: ShipmentConfig.list
+                    .map((dd) => {
+                        return { key: dd.value, name: dd.title };
+                    })
+                    .concat(
+                        (vm.data.custom_delivery ?? []).map((dd: any) => {
+                            return { key: dd.id, name: dd.name };
+                        })
+                    ),
             },
             {
                 key: 'created_time',
@@ -203,7 +206,7 @@ export class FilterOptions {
                     ],
                 },
             },
-        ]
+        ];
     }
     static returnOrderFunnel = [
         {

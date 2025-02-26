@@ -177,7 +177,7 @@ router.post('/manager/register', async (req, resp) => {
             const createUserPromises = checks.map(async (check) => {
                 var _a;
                 const passUser = check.postUser;
-                tempTags = [...new Set([...tempTags, ...((_a = passUser.userData.tags) !== null && _a !== void 0 ? _a : [])])];
+                tempTags = tempTags.concat((_a = passUser.userData.tags) !== null && _a !== void 0 ? _a : []);
                 return user.createUser(passUser.account, tool_1.default.randomString(8), passUser.userData, {}, true);
             });
             const createResults = await Promise.allSettled(createUserPromises);

@@ -1108,19 +1108,18 @@ class User {
                 }
             }
             if (query.search) {
-                querySql.push([
-                    `(UPPER(JSON_UNQUOTE(JSON_EXTRACT(u.userData, '$.name'))) LIKE UPPER('%${query.search}%'))`,
-                    `(JSON_UNQUOTE(JSON_EXTRACT(u.userData, '$.email')) LIKE '%${query.search}%')`,
-                    `(UPPER(JSON_UNQUOTE(JSON_EXTRACT(u.userData, '$.phone')) LIKE UPPER('%${query.search}%')))`,
-                ]
-                    .filter((text) => {
-                    if (query.searchType === undefined)
-                        return true;
-                    if (text.includes(`$.${query.searchType}`))
-                        return true;
-                    return false;
-                })
-                    .join(` || `));
+                const searchValue = `%${query.search}%`;
+                const searchFields = [
+                    { key: 'name', condition: `UPPER(JSON_UNQUOTE(JSON_EXTRACT(u.userData, '$.name'))) LIKE UPPER('${searchValue}')` },
+                    { key: 'phone', condition: `UPPER(JSON_UNQUOTE(JSON_EXTRACT(u.userData, '$.phone'))) LIKE UPPER('${searchValue}')` },
+                    { key: 'email', condition: `JSON_UNQUOTE(JSON_EXTRACT(u.userData, '$.email')) LIKE '${searchValue}'` },
+                    { key: 'lineID', condition: `JSON_UNQUOTE(JSON_EXTRACT(u.userData, '$.lineID')) LIKE '${searchValue}'` },
+                    { key: 'fb-id', condition: `JSON_UNQUOTE(JSON_EXTRACT(u.userData, '$."fb-id"')) LIKE '${searchValue}'` },
+                ];
+                const filteredConditions = searchFields.filter(({ key }) => !query.searchType || query.searchType === key).map(({ condition }) => condition);
+                if (filteredConditions.length > 0) {
+                    querySql.push(`(${filteredConditions.join(' OR ')})`);
+                }
             }
             if (query.filter_type !== 'excel') {
                 querySql.push(`status = ${query.filter_type === 'block' ? 0 : 1}`);
