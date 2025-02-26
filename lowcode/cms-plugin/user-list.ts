@@ -41,7 +41,7 @@ export class UserList {
     public static setUserTags(gvc: GVC, arr: string[]) {
         const dialog = new ShareDialog(gvc.glitter);
         const list = [...new Set(arr)];
-        dialog.dataLoading({ visible: false });
+        dialog.dataLoading({ visible: true });
         ApiUser.setPublicConfig({
             key: 'user_general_tags',
             value: { list },
@@ -92,11 +92,7 @@ export class UserList {
         if (vmt.dataList.length === 0) {
             return html`<div class="d-flex justify-content-center fs-5">查無標籤</div>`;
         }
-        return vmt.dataList
-            .map((item: any) => {
-                return UserList.printOption(gvc, vmt, { key: item, value: item });
-            })
-            .join('');
+        return vmt.dataList.map((item: any) => UserList.printOption(gvc, vmt, { key: item, value: item })).join('');
     }
 
     public static main(
@@ -160,42 +156,38 @@ export class UserList {
                     {
                         key: '社群綁定',
                         value: (() => {
-                            return `<div class="d-flex align-items-center px-2" style="gap:5px;">
-${[
-    {
-        type: 'fb',
-        src: 'https://d3jnmi1tfjgtti.cloudfront.net/file/234285319/1722847285395-img_facebook.svg',
-        value: dd.userData['fb-id'],
-    },
-    {
-        type: 'line',
-        src: 'https://d3jnmi1tfjgtti.cloudfront.net/file/252530754/LINE_Brand_icon.png',
-        value: dd.userData.lineID,
-    },
-    {
-        type: 'google',
-        src: 'https://d3jnmi1tfjgtti.cloudfront.net/file/252530754/Google__G__logo.svg.webp',
-        value: dd.userData['google-id'],
-    },
-    {
-        type: 'apple',
-        src: 'https://d3jnmi1tfjgtti.cloudfront.net/file/252530754/14776639.png',
-        value: dd.userData['apple-id'],
-    },
-]
-    .map((dd) => {
-        if (!dd.value) {
-            return ``;
-        }
-        return `<div class="d-flex align-items-center" style="gap:5px;">
-<img src="${dd.src}" style="width:25px;height: 25px;background: whitesmoke;" class="rounded-circle" >
-</div>`;
-    })
-    .filter((dd) => {
-        return dd;
-    })
-    .join('')}
-</div>`;
+                            return html`<div class="d-flex align-items-center px-2" style="gap:5px;">
+                                ${[
+                                    {
+                                        type: 'fb',
+                                        src: 'https://d3jnmi1tfjgtti.cloudfront.net/file/234285319/1722847285395-img_facebook.svg',
+                                        value: dd.userData['fb-id'],
+                                    },
+                                    {
+                                        type: 'line',
+                                        src: 'https://d3jnmi1tfjgtti.cloudfront.net/file/252530754/LINE_Brand_icon.png',
+                                        value: dd.userData.lineID,
+                                    },
+                                    {
+                                        type: 'google',
+                                        src: 'https://d3jnmi1tfjgtti.cloudfront.net/file/252530754/Google__G__logo.svg.webp',
+                                        value: dd.userData['google-id'],
+                                    },
+                                    {
+                                        type: 'apple',
+                                        src: 'https://d3jnmi1tfjgtti.cloudfront.net/file/252530754/14776639.png',
+                                        value: dd.userData['apple-id'],
+                                    },
+                                ]
+                                    .map((dd) => {
+                                        if (!dd.value) return '';
+                                        return html`<div class="d-flex align-items-center" style="gap:5px;">
+                                            <img src="${dd.src}" style="width:25px;height: 25px;background: whitesmoke;" class="rounded-circle" />
+                                        </div>`;
+                                    })
+                                    .filter((dd) => dd)
+                                    .join('')}
+                            </div>`;
                         })(),
                     },
                     {
@@ -236,11 +228,7 @@ ${[
                             <div class="d-flex align-items-center" style="gap: 10px;">
                                 ${BgWidget.grayButton(
                                     '匯入',
-                                    gvc.event(() =>
-                                        UserExcel.import(gvc, () => {
-                                            gvc.notifyDataChange(vm.id);
-                                        })
-                                    )
+                                    gvc.event(() => UserExcel.import(gvc, () => gvc.notifyDataChange(vm.id)))
                                 )}
                                 ${BgWidget.grayButton(
                                     '匯出',
@@ -258,9 +246,7 @@ ${[
                                 class="btn hoverBtn me-2 px-3 d-none"
                                 style="height:35px !important;font-size: 14px;color:black;border:1px solid black;"
                                 onclick="${gvc.event(() => {
-                                    UserList.setUserForm(gvc, () => {
-                                        gvc.notifyDataChange(vm.id);
-                                    });
+                                    UserList.setUserForm(gvc, () => gvc.notifyDataChange(vm.id));
                                 })}"
                             >
                                 <i class="fa-regular fa-gear me-2 "></i>
@@ -306,9 +292,7 @@ ${[
                         ${BgWidget.container(
                             (() => {
                                 if (vm.filter_type === 'notRegistered') {
-                                    return BgNotify.email(gvc, 'list', () => {
-                                        return obj?.backButtonEvent;
-                                    });
+                                    return BgNotify.email(gvc, 'list', () => obj?.backButtonEvent);
                                 }
                                 return BgWidget.mainCard(
                                     [
@@ -593,11 +577,7 @@ ${[
                                                                             >
                                                                                 清除全部
                                                                             </div>`,
-                                                                            BgWidget.cancel(
-                                                                                gvc2.event(() => {
-                                                                                    gvc2.closeDialog();
-                                                                                })
-                                                                            ),
+                                                                            BgWidget.cancel(gvc2.event(() => gvc2.closeDialog())),
                                                                             BgWidget.save(
                                                                                 gvc2.event(async () => {
                                                                                     const dialog = new ShareDialog(gvc.glitter);
@@ -653,11 +633,7 @@ ${[
                                                                         if (response) {
                                                                             dialog.dataLoading({ visible: true });
                                                                             ApiUser.deleteUser({
-                                                                                id: checkedData
-                                                                                    .map((dd: any) => {
-                                                                                        return dd.id;
-                                                                                    })
-                                                                                    .join(`,`),
+                                                                                id: checkedData.map((dd: any) => dd.id).join(','),
                                                                             }).then((res) => {
                                                                                 dialog.dataLoading({ visible: false });
                                                                                 if (res.result) {
@@ -917,10 +893,12 @@ ${[
         const saasConfig: { config: any; api: any } = (window.parent as any).saasConfig;
 
         try {
-            let data = ((await saasConfig.api.getPrivateConfig(saasConfig.config.appName, 'glitterUserForm')).response.result[0] ?? {}).value;
-            if (!Array.isArray(data)) {
-                data = [];
-            }
+            // 取得 glitterUserForm 配置
+            const response = await saasConfig.api.getPrivateConfig(saasConfig.config.appName, 'glitterUserForm');
+            const result = response?.response?.result?.[0]?.value;
+
+            // 確保 data 是一個陣列，如果不是則設置為空陣列
+            const data = Array.isArray(result) ? result : [];
 
             EditorElem.openEditorDialog(
                 gvc,
@@ -993,10 +971,7 @@ ${[
                 () =>
                     new Promise((resolve) => {
                         const confirmDialog = new ShareDialog(gvc.glitter);
-                        confirmDialog.checkYesOrNot({
-                            text: '是否取消儲存?',
-                            callback: resolve,
-                        });
+                        confirmDialog.checkYesOrNot({ text: '是否取消儲存?', callback: resolve });
                     }),
                 500,
                 '自訂表單'
@@ -1008,7 +983,6 @@ ${[
     }
 
     public static userInformationDetail(cf: { userID: string; gvc: GVC; callback: () => void; type?: 'readonly' | 'write' }): string {
-        const html = String.raw;
         const gvc = cf.gvc;
         const vm: any = {
             id: gvc.glitter.getUUID(),
@@ -1111,6 +1085,7 @@ ${[
         }
 
         regetData();
+
         return gvc.bindView(() => {
             return {
                 bind: vm.id,
@@ -1126,7 +1101,6 @@ ${[
                     switch (vm.type) {
                         case 'order':
                             return ShoppingOrderManager.replaceOrder(gvc, vm);
-                        case 'list':
                         default:
                             vm.data = JSON.parse(JSON.stringify(vm.userData));
                             function getButtonList() {
@@ -1512,21 +1486,23 @@ ${[
                                                                                                             {
                                                                                                                 key: '有效期限',
                                                                                                                 value: (() => {
+                                                                                                                    const { type, value } = leadData.og.dead_line;
                                                                                                                     let dead_line = '';
-                                                                                                                    if (leadData.og.dead_line.type === 'date') {
-                                                                                                                        const day = [
+
+                                                                                                                    if (type === 'date') {
+                                                                                                                        const deadlines = [
                                                                                                                             { title: '一個月', value: 30 },
                                                                                                                             { title: '三個月', value: 90 },
                                                                                                                             { title: '六個月', value: 180 },
                                                                                                                             { title: '一年', value: 365 },
-                                                                                                                        ].find((item) => {
-                                                                                                                            return item.value == leadData.og.dead_line.value;
-                                                                                                                        });
-                                                                                                                        dead_line = day ? day.title : `${leadData.og.dead_line.value}天`;
-                                                                                                                    }
-                                                                                                                    if (leadData.og.dead_line.type === 'noLimit') {
+                                                                                                                        ];
+
+                                                                                                                        const matchedDeadline = deadlines.find((item) => item.value === value);
+                                                                                                                        dead_line = matchedDeadline ? matchedDeadline.title : `${value}天`;
+                                                                                                                    } else if (type === 'noLimit') {
                                                                                                                         dead_line = '沒有期限';
                                                                                                                     }
+
                                                                                                                     return dead_line;
                                                                                                                 })(),
                                                                                                             },
@@ -1539,6 +1515,7 @@ ${[
                                                                                             },
                                                                                             filter: [],
                                                                                             rowClick: () => {},
+                                                                                            hiddenPageSplit: true,
                                                                                         }),
                                                                                     });
                                                                                 })}"
@@ -1796,11 +1773,8 @@ ${[
                                                                     bind: id,
                                                                     view: () => {
                                                                         return new Promise(async (resolve, reject) => {
-                                                                            let data = ((await saasConfig.api.getPrivateConfig(saasConfig.config.appName, `glitterUserForm`)).response.result[0] ?? {})
-                                                                                .value;
-                                                                            if (!Array.isArray(data)) {
-                                                                                data = [];
-                                                                            }
+                                                                            await saasConfig.api.getPrivateConfig(saasConfig.config.appName, 'glitterUserForm');
+
                                                                             let h = html`
                                                                                 <div class="gray-bottom-line-18">
                                                                                     <div class="tx_700">會員等級</div>
@@ -1841,11 +1815,17 @@ ${[
                                                                                         },
                                                                                     ]
                                                                                         .map((dd) => {
-                                                                                            return `<div class="d-flex align-items-center" style="gap:5px;">
-<img src="${dd.src}" style="width:25px;height: 25px;background: whitesmoke;" class="rounded-circle" >
-${dd.value ? `<div class="fw-500 " style="font-size: 14px; font-weight: 400; color: #006621;word-break: break-all;">已綁定: ${dd.value}</div>` : `<div class="fw-500" style="font-size: 14px; font-weight: 400; color: #393939;">未綁定</div>`}
-
-</div>`;
+                                                                                            return html`<div class="d-flex align-items-center" style="gap:5px;">
+                                                                                                <img src="${dd.src}" style="width:25px;height: 25px;background: whitesmoke;" class="rounded-circle" />
+                                                                                                ${dd.value
+                                                                                                    ? html`<div
+                                                                                                          class="fw-500 "
+                                                                                                          style="font-size: 14px; font-weight: 400; color: #006621;word-break: break-all;"
+                                                                                                      >
+                                                                                                          已綁定: ${dd.value}
+                                                                                                      </div>`
+                                                                                                    : html`<div class="fw-500" style="font-size: 14px; font-weight: 400; color: #393939;">未綁定</div>`}
+                                                                                            </div>`;
                                                                                         })
                                                                                         .join(`<div class="my-3"></div>`)}
                                                                                 </div>
@@ -1874,47 +1854,47 @@ ${dd.value ? `<div class="fw-500 " style="font-size: 14px; font-weight: 400; col
                                                                                                     const formatNum = (n: string | number) => parseInt(`${n}`, 10).toLocaleString();
 
                                                                                                     resolve(
-                                                                                                        html` <div class="">
+                                                                                                        html`<div>
                                                                                                             ${[
-                                                                                                                `<div class="tx_700">累積消費金額</div>
-                                                                                                            ${
-                                                                                                                total_price === 0
-                                                                                                                    ? html` <div style="font-size: 14px; font-weight: 400; color: #393939; ">
-                                                                                                                          此顧客還沒有任何消費紀錄
-                                                                                                                      </div>`
-                                                                                                                    : html` <div style="font-size: 32px; font-weight: 400; color: #393939; ">
-                                                                                                                          ${formatNum(total_price)}
-                                                                                                                      </div>`
-                                                                                                            }`,
-                                                                                                                `   <div class="tx_700" style="">累計消費次數</div>
-                                                                                                            <div style="font-size: 32px; font-weight: 400; color: #393939; ">
-                                                                                                                ${formatNum(data.response.total)}
-                                                                                                            </div>`,
-                                                                                                                `
-                                                                                                            <div class="tx_700" style="">最後消費金額</div>
-                                                                                                            <div class=""
-                                                                                                                    style="font-size: 14px; font-weight: 400; color: #393939; "
-                                                                                                            >
-                                                                                                                ${
-                                                                                                                    !firstData
-                                                                                                                        ? `此顧客還沒有任何消費紀錄`
-                                                                                                                        : `<div
-                                                                                                                      style="font-size: 32px; font-weight: 400; color: #393939; "
-                                                                                                                  >
-                                                                                                                      ${formatNum(firstData.orderData.total)}
-                                                                                                                  </div>`
-                                                                                                                }
-                                                                                                            </div>
-                                                                                                            `,
-                                                                                                                `
-                                                                                                             <div class="tx_700" style="">最後購買日期</div>
-                                                                                                            <div class=""
-                                                                                                                    style="font-size: 14px; font-weight: 400; color: #393939; "
-                                                                                                            >
-                                                                                                                ${!firstData ? `此顧客還沒有任何消費紀錄` : `<div class="fw-500">${gvc.glitter.ut.dateFormat(new Date(firstData.created_time), 'yyyy-MM-dd hh:mm')}</div>`}
-                                                                                                            </div>
-                                                                                                            `,
-                                                                                                            ].join(`<div class="my-3 w-100 border-top"></div>`)}
+                                                                                                                // 累積消費金額
+                                                                                                                html`<div class="tx_700">累積消費金額</div>
+                                                                                                                    ${total_price === 0
+                                                                                                                        ? html`<div style="font-size: 14px; font-weight: 400; color: #393939;">
+                                                                                                                              此顧客還沒有任何消費紀錄
+                                                                                                                          </div>`
+                                                                                                                        : html`<div style="font-size: 32px; font-weight: 400; color: #393939;">
+                                                                                                                              ${formatNum(total_price)}
+                                                                                                                          </div>`}`,
+
+                                                                                                                // 累計消費次數
+                                                                                                                html`<div class="tx_700">累計消費次數</div>
+                                                                                                                    <div style="font-size: 32px; font-weight: 400; color: #393939;">
+                                                                                                                        ${formatNum(data.response.total)}
+                                                                                                                    </div>`,
+
+                                                                                                                // 最後消費金額
+                                                                                                                html`<div class="tx_700">最後消費金額</div>
+                                                                                                                    <div style="font-size: 14px; font-weight: 400; color: #393939;">
+                                                                                                                        ${!firstData
+                                                                                                                            ? `此顧客還沒有任何消費紀錄`
+                                                                                                                            : html`<div style="font-size: 32px; font-weight: 400; color: #393939;">
+                                                                                                                                  ${formatNum(firstData.orderData.total)}
+                                                                                                                              </div>`}
+                                                                                                                    </div>`,
+
+                                                                                                                // 最後購買日期
+                                                                                                                html`<div class="tx_700">最後購買日期</div>
+                                                                                                                    <div style="font-size: 14px; font-weight: 400; color: #393939;">
+                                                                                                                        ${!firstData
+                                                                                                                            ? `此顧客還沒有任何消費紀錄`
+                                                                                                                            : html`<div class="fw-500">
+                                                                                                                                  ${gvc.glitter.ut.dateFormat(
+                                                                                                                                      new Date(firstData.created_time),
+                                                                                                                                      'yyyy-MM-dd hh:mm'
+                                                                                                                                  )}
+                                                                                                                              </div>`}
+                                                                                                                    </div>`,
+                                                                                                            ].join(html`<div class="my-3 w-100 border-top"></div>`)}
                                                                                                         </div>`
                                                                                                     );
                                                                                                 });
@@ -2026,59 +2006,59 @@ ${dd.value ? `<div class="fw-500 " style="font-size: 14px; font-weight: 400; col
                                                             bind: id,
                                                             view: () => {
                                                                 return new Promise(async (resolve) => {
-                                                                    let data = ((await saasConfig.api.getPrivateConfig(saasConfig.config.appName, `glitterUserForm`)).response.result[0] ?? {}).value;
-                                                                    if (!Array.isArray(data)) {
-                                                                        data = [];
-                                                                    }
+                                                                    const response = await saasConfig.api.getPrivateConfig(saasConfig.config.appName, 'glitterUserForm');
+                                                                    const result = response?.response?.result?.[0]?.value;
+                                                                    const data = Array.isArray(result) ? result : [];
 
-                                                                    function loopForm(data: any, refer_obj: any) {
-                                                                        let h = '';
-                                                                        data.map((item: any) => {
-                                                                            switch (item.page) {
-                                                                                case 'input':
-                                                                                    h += html` <div>
-                                                                                        <div class="tx_normal">${item.title}</div>
-                                                                                        <div>
-                                                                                            ${BgWidget.editeInput({
-                                                                                                gvc: gvc,
-                                                                                                title: '',
-                                                                                                default: refer_obj[item.key] || '',
-                                                                                                placeHolder: `請輸入${item.title}`,
-                                                                                                callback: (text) => {
-                                                                                                    refer_obj[item.key] = text;
-                                                                                                },
-                                                                                                readonly: vmi.mode !== 'edit',
-                                                                                            })}
-                                                                                        </div>
-                                                                                    </div>`;
-                                                                                    break;
-                                                                                case 'multiple_line_text':
-                                                                                    h += html` <div>
-                                                                                        <div class="tx_normal">${item.title}</div>
-                                                                                        ${BgWidget.textArea({
-                                                                                            gvc: gvc,
-                                                                                            title: '',
-                                                                                            default: refer_obj[item.key] || '',
-                                                                                            placeHolder: `請輸入${item.title}`,
-                                                                                            callback: (text) => {
-                                                                                                refer_obj[item.key] = text;
-                                                                                            },
-                                                                                            readonly: vmi.mode !== 'edit',
-                                                                                        })}
-                                                                                    </div>`;
-                                                                                    break;
-                                                                                default:
-                                                                                    h += FormWidget.editorView({
-                                                                                        gvc: gvc,
-                                                                                        array: [item],
-                                                                                        refresh: () => {},
-                                                                                        formData: refer_obj,
-                                                                                        readonly: vmi.mode === 'edit' ? 'write' : 'read',
-                                                                                    });
-                                                                                    break;
-                                                                            }
-                                                                        });
-                                                                        return h;
+                                                                    function loopForm(data: any[], refer_obj: any): string {
+                                                                        return data
+                                                                            .map((item) => {
+                                                                                const { title, key, page } = item;
+                                                                                const value = refer_obj[key] || '';
+                                                                                const isReadonly = vmi.mode !== 'edit';
+
+                                                                                switch (page) {
+                                                                                    case 'input':
+                                                                                        return html`
+                                                                                            <div>
+                                                                                                <div class="tx_normal">${title}</div>
+                                                                                                <div>
+                                                                                                    ${BgWidget.editeInput({
+                                                                                                        gvc,
+                                                                                                        title: '',
+                                                                                                        default: value,
+                                                                                                        placeHolder: `請輸入${title}`,
+                                                                                                        callback: (text) => (refer_obj[key] = text),
+                                                                                                        readonly: isReadonly,
+                                                                                                    })}
+                                                                                                </div>
+                                                                                            </div>
+                                                                                        `;
+                                                                                    case 'multiple_line_text':
+                                                                                        return html`
+                                                                                            <div>
+                                                                                                <div class="tx_normal">${title}</div>
+                                                                                                ${BgWidget.textArea({
+                                                                                                    gvc,
+                                                                                                    title: '',
+                                                                                                    default: value,
+                                                                                                    placeHolder: `請輸入${title}`,
+                                                                                                    callback: (text) => (refer_obj[key] = text),
+                                                                                                    readonly: isReadonly,
+                                                                                                })}
+                                                                                            </div>
+                                                                                        `;
+                                                                                    default:
+                                                                                        return FormWidget.editorView({
+                                                                                            gvc,
+                                                                                            array: [item],
+                                                                                            refresh: () => {},
+                                                                                            formData: refer_obj,
+                                                                                            readonly: isReadonly ? 'read' : 'write',
+                                                                                        });
+                                                                                }
+                                                                            })
+                                                                            .join('');
                                                                     }
 
                                                                     // 預設用戶表單
@@ -2209,7 +2189,6 @@ ${dd.value ? `<div class="fw-500 " style="font-size: 14px; font-weight: 400; col
             });
         }
 
-        const html = String.raw;
         return gvc.bindView(() => {
             const id = glitter.getUUID();
             return {
