@@ -17,7 +17,7 @@ export class ApiUser {
         });
     }
 
-    public static quickRegister(json: { account: string; pwd: string; userData: any }) {
+    public static quickRegister(json: { account: string; pwd: string; userData: any } | { userArray: { account: string; pwd: string; userData: any }[] }) {
         return BaseApi.create({
             url: getBaseUrl() + `/api-public/v1/user/manager/register`,
             type: 'POST',

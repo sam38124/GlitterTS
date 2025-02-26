@@ -166,7 +166,13 @@ export declare class User {
     updateAccountBack(token: string): Promise<void>;
     verifyPASS(token: string): Promise<any>;
     checkUserExists(account: string): Promise<boolean>;
-    checkMailAndPhoneExists(email?: string, phone?: string): Promise<boolean | "" | undefined>;
+    checkMailAndPhoneExists(email?: string, phone?: string): Promise<{
+        exist: boolean;
+        email?: string;
+        phone?: string;
+        emailExists: boolean;
+        phoneExists: boolean;
+    }>;
     checkUserIdExists(id: number): Promise<any>;
     setConfig(config: {
         key: string;

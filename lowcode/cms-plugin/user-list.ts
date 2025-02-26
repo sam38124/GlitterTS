@@ -235,6 +235,14 @@ ${[
                             <div class="flex-fill"></div>
                             <div class="d-flex align-items-center" style="gap: 10px;">
                                 ${BgWidget.grayButton(
+                                    '匯入',
+                                    gvc.event(() =>
+                                        UserExcel.import(gvc, () => {
+                                            gvc.notifyDataChange(vm.id);
+                                        })
+                                    )
+                                )}
+                                ${BgWidget.grayButton(
                                     '匯出',
                                     gvc.event(() => UserExcel.export(gvc, vm))
                                 )}
@@ -470,11 +478,7 @@ ${[
                                                                             >
                                                                                 清除全部
                                                                             </div>`,
-                                                                            BgWidget.cancel(
-                                                                                gvc2.event(() => {
-                                                                                    gvc2.closeDialog();
-                                                                                })
-                                                                            ),
+                                                                            BgWidget.cancel(gvc2.event(() => gvc2.closeDialog())),
                                                                             BgWidget.save(
                                                                                 gvc2.event(async () => {
                                                                                     const dialog = new ShareDialog(gvc.glitter);
@@ -1152,8 +1156,8 @@ ${[
                                             const dialog = new ShareDialog(gvc.glitter);
                                             dialog.warningMessage({
                                                 text: vm.data.status
-                                                    ? '加入黑名單之後，此顧客將無法再進行登入、購買及使用其他功能。確定要加入黑名單嗎？'
-                                                    : '解除黑名單後，此顧客將恢復正常權限，確定要解除黑名單嗎？',
+                                                    ? '加入黑名單之後，此顧客將無法再進行登入、購買及使用其他功能。<br/>確定要加入黑名單嗎？'
+                                                    : '解除黑名單後，此顧客將恢復正常權限。<br/>確定要解除黑名單嗎？',
                                                 callback: (response) => {
                                                     if (response) {
                                                         dialog.dataLoading({ text: '更新中', visible: true });
@@ -1428,7 +1432,7 @@ ${[
                                                                                                     gvc2.event(() => {
                                                                                                         vm.data.userData.tags = vmt.postData;
                                                                                                         gvc.notifyDataChange(id);
-                                                                                                        gvc.notifyDataChange('summary-card')
+                                                                                                        gvc.notifyDataChange('summary-card');
                                                                                                         gvc2.closeDialog();
                                                                                                     })
                                                                                                 ),
@@ -1446,7 +1450,7 @@ ${[
                                                                             {
                                                                                 save: (def) => {
                                                                                     vm.data.userData.tags = [...new Set(def)];
-                                                                                    gvc.notifyDataChange('summary-card')
+                                                                                    gvc.notifyDataChange('summary-card');
                                                                                 },
                                                                             },
                                                                             true
@@ -1808,8 +1812,8 @@ ${[
                                                                                     <div class="tx_700">會員標籤</div>
                                                                                     <div style="display: flex; gap: 12px; margin-top: 12px; flex-direction: row; flex-wrap: wrap;">
                                                                                         ${Array.isArray(vm.data.userData.tags) && vm.data.userData.tags.length > 0
-                                                                                                ? vm.data.userData.tags.map((item: string) => BgWidget.secondaryInsignia(item)).join('')
-                                                                                                : '無標籤'}
+                                                                                            ? vm.data.userData.tags.map((item: string) => BgWidget.secondaryInsignia(item)).join('')
+                                                                                            : '無標籤'}
                                                                                     </div>
                                                                                 </div>
                                                                                 <div class="gray-bottom-line-18">

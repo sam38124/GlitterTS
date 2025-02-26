@@ -204,6 +204,9 @@ ${[
                     })()}
                             <div class="flex-fill"></div>
                             <div class="d-flex align-items-center" style="gap: 10px;">
+                                ${BgWidget.grayButton('匯入', gvc.event(() => UserExcel.import(gvc, () => {
+                        gvc.notifyDataChange(vm.id);
+                    })))}
                                 ${BgWidget.grayButton('匯出', gvc.event(() => UserExcel.export(gvc, vm)))}
                                 ${BgWidget.darkButton('新增', (_a = obj === null || obj === void 0 ? void 0 : obj.createUserEvent) !== null && _a !== void 0 ? _a : gvc.event(() => {
                         vm.type = 'create';
@@ -413,9 +416,7 @@ ${[
                                                                             >
                                                                                 清除全部
                                                                             </div>`,
-                                                                BgWidget.cancel(gvc2.event(() => {
-                                                                    gvc2.closeDialog();
-                                                                })),
+                                                                BgWidget.cancel(gvc2.event(() => gvc2.closeDialog())),
                                                                 BgWidget.save(gvc2.event(() => __awaiter(this, void 0, void 0, function* () {
                                                                     const dialog = new ShareDialog(gvc.glitter);
                                                                     try {
@@ -1032,8 +1033,8 @@ ${[
                                     const dialog = new ShareDialog(gvc.glitter);
                                     dialog.warningMessage({
                                         text: vm.data.status
-                                            ? '加入黑名單之後，此顧客將無法再進行登入、購買及使用其他功能。確定要加入黑名單嗎？'
-                                            : '解除黑名單後，此顧客將恢復正常權限，確定要解除黑名單嗎？',
+                                            ? '加入黑名單之後，此顧客將無法再進行登入、購買及使用其他功能。<br/>確定要加入黑名單嗎？'
+                                            : '解除黑名單後，此顧客將恢復正常權限。<br/>確定要解除黑名單嗎？',
                                         callback: (response) => {
                                             if (response) {
                                                 dialog.dataLoading({ text: '更新中', visible: true });

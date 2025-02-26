@@ -233,7 +233,16 @@ export class User {
             await db.execute(
                 `INSERT INTO \`${this.app}\`.\`t_user\` (\`userID\`, \`account\`, \`pwd\`, \`userData\`, \`status\`)
                  VALUES (?, ?, ?, ?, ?);`,
-                [userID, account, await tool.hashPwd(pwd), userData ?? {}, 1]
+                [
+                    userID,
+                    account,
+                    await tool.hashPwd(pwd),
+                    {
+                        ...(userData ?? {}),
+                        status: undefined,
+                    },
+                    userData.status === 0 ? 0 : 1,
+                ]
             );
 
             await this.createUserHook(userID);
@@ -2116,29 +2125,45 @@ export class User {
         }
     }
 
-    public async checkMailAndPhoneExists(email?: string, phone?: string) {
+    public async checkMailAndPhoneExists(
+        email?: string,
+        phone?: string
+    ): Promise<{
+        exist: boolean;
+        email?: string;
+        phone?: string;
+        emailExists: boolean;
+        phoneExists: boolean;
+    }> {
         try {
-            const emailExists =
-                email &&
-                (
-                    (await db.execute(
-                        `select count(1)
-                         from \`${this.app}\`.t_user
-                         where userData ->>'$.email'=?`,
-                        [email]
-                    )) as any
-                )[0]['count(1)'] > 0;
-            const phoneExists =
-                phone &&
-                (
-                    (await db.execute(
-                        `select count(1)
-                         from \`${this.app}\`.t_user
-                         where userData ->>'$.phone'=?`,
-                        [phone]
-                    )) as any
-                )[0]['count(1)'] > 0;
-            return emailExists || phoneExists;
+            let emailExists = false;
+            let phoneExists = false;
+
+            if (email) {
+                const emailResult = await db.execute(
+                    `SELECT COUNT(1) AS count FROM \`${this.app}\`.t_user WHERE userData ->>'$.email' = ?
+                    `,
+                    [email]
+                );
+                emailExists = (emailResult as any)[0]?.count > 0;
+            }
+
+            if (phone) {
+                const phoneResult = await db.execute(
+                    `SELECT COUNT(1) AS count FROM \`${this.app}\`.t_user WHERE userData ->>'$.phone' = ?
+                    `,
+                    [phone]
+                );
+                phoneExists = (phoneResult as any)[0]?.count > 0;
+            }
+
+            return {
+                exist: emailExists || phoneExists,
+                email,
+                phone,
+                emailExists,
+                phoneExists,
+            };
         } catch (e) {
             throw exception.BadRequestError('BAD_REQUEST', 'CheckUserExists Error:' + e, null);
         }

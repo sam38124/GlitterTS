@@ -97,4 +97,114 @@ export class UserExcel {
             });
         });
     }
+    static import(gvc, callback) {
+        const dialog = new ShareDialog(gvc.glitter);
+        const id = 'import-user-excel';
+        const fileInput = document.createElement('input');
+        fileInput.id = id;
+        fileInput.type = 'file';
+        fileInput.accept = '.xlsx, .xls';
+        fileInput.style.display = 'none';
+        document.body.appendChild(fileInput);
+        fileInput.addEventListener('change', function (event) {
+            var _a, _b;
+            return __awaiter(this, void 0, void 0, function* () {
+                const target = event.target;
+                if ((_a = target.files) === null || _a === void 0 ? void 0 : _a.length) {
+                    try {
+                        const jsonData = yield UserExcel.parseExcelToJson(gvc, target.files[0]);
+                        const setUserEmails = [...new Set(jsonData.map((user) => user['電子信箱']))];
+                        if (jsonData.length > setUserEmails.length) {
+                            dialog.errorMessage({ text: '會員電子信箱不可重複' });
+                            return;
+                        }
+                        const setUserPhones = [...new Set(jsonData.map((user) => user['電話']))];
+                        if (jsonData.length > setUserPhones.length) {
+                            dialog.errorMessage({ text: '會員電話不可重複' });
+                            return;
+                        }
+                        for (let i = 0; i < jsonData.length; i++) {
+                            const user = jsonData[i];
+                            if (!user['電子信箱']) {
+                                dialog.errorMessage({ text: '會員電子信箱不可為空' });
+                                return;
+                            }
+                            const userData = {
+                                name: user['顧客名稱'],
+                                email: user['電子信箱'],
+                                phone: user['電話'],
+                                birth: user['生日'],
+                                address: user['地址'],
+                                gender: user['性別'],
+                                carrier_number: user['手機載具'],
+                                gui_number: user['統一編號'],
+                                company: user['公司'],
+                                consignee_name: user['收貨人'],
+                                consignee_address: user['收貨人地址'],
+                                consignee_email: user['收貨人電子郵件'],
+                                consignee_phone: user['收貨人手機'],
+                                managerNote: user['顧客備註'],
+                                status: user['黑名單'] === '否' ? 1 : 0,
+                                lineID: user['LINE UID'],
+                                'fb-id': user['FB UID'],
+                                tags: ((_b = user['會員標籤']) !== null && _b !== void 0 ? _b : []).split(','),
+                            };
+                            jsonData[i] = {
+                                account: userData.email,
+                                pwd: gvc.glitter.getUUID(),
+                                userData: userData,
+                            };
+                        }
+                        dialog.dataLoading({ visible: true });
+                        ApiUser.quickRegister({ userArray: jsonData }).then((r) => {
+                            var _a;
+                            dialog.dataLoading({ visible: false });
+                            if (r.result) {
+                                dialog.successMessage({ text: '匯入成功' });
+                                callback();
+                                return;
+                            }
+                            const errorData = (_a = r.response.data) === null || _a === void 0 ? void 0 : _a.data;
+                            if (errorData === null || errorData === void 0 ? void 0 : errorData.emailExists) {
+                                dialog.errorMessage({ text: `匯入失敗，會員信箱已存在<br/>(${errorData.email})` });
+                                return;
+                            }
+                            if (errorData === null || errorData === void 0 ? void 0 : errorData.phoneExists) {
+                                dialog.errorMessage({ text: `匯入失敗，會員電話已存在<br/>(${errorData.phone})` });
+                                return;
+                            }
+                        });
+                    }
+                    catch (error) {
+                        console.error('解析失敗:', error);
+                    }
+                }
+            });
+        });
+        fileInput.click();
+    }
+    static parseExcelToJson(gvc, file) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const XLSX = yield this.loadXLSX(gvc);
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onload = (event) => {
+                    var _a;
+                    try {
+                        const data = new Uint8Array((_a = event.target) === null || _a === void 0 ? void 0 : _a.result);
+                        const workbook = XLSX.read(data, { type: 'array' });
+                        const sheetName = workbook.SheetNames[0];
+                        const sheet = workbook.Sheets[sheetName];
+                        const jsonData = XLSX.utils.sheet_to_json(sheet);
+                        resolve(jsonData);
+                    }
+                    catch (error) {
+                        reject(error);
+                    }
+                };
+                reader.onerror = (error) => reject(error);
+                reader.readAsArrayBuffer(file);
+            });
+        });
+    }
 }

@@ -134,8 +134,9 @@ router.post('/phone-verify', async (req, resp) => {
 router.post('/register', async (req, resp) => {
     try {
         const user = new user_1.User(req.get('g-app'));
-        if (await user.checkMailAndPhoneExists(req.body.userData.email, req.body.userData.phone)) {
-            throw exception_1.default.BadRequestError('BAD_REQUEST', 'user is already exists', null);
+        const checkData = await user.checkMailAndPhoneExists(req.body.userData.email, req.body.userData.phone);
+        if (checkData.exist) {
+            throw exception_1.default.BadRequestError('BAD_REQUEST', 'user is already exists', { data: checkData });
         }
         else {
             const res = await user.createUser(req.body.account, req.body.pwd, req.body.userData, req);
@@ -149,22 +150,54 @@ router.post('/register', async (req, resp) => {
     }
 });
 router.post('/manager/register', async (req, resp) => {
+    var _a, _b;
     try {
-        if (await ut_permission_js_1.UtPermission.isManager(req)) {
-            const user = new user_1.User(req.get('g-app'));
-            if (await user.checkMailAndPhoneExists(req.body.userData.email, req.body.userData.phone)) {
-                throw exception_1.default.BadRequestError('BAD_REQUEST', 'user is already exists', null);
-            }
-            else {
-                const res = await user.createUser(req.body.account, tool_1.default.randomString(8), req.body.userData, {}, true);
-                res.type = res.verify;
-                res.needVerify = res.verify;
-                return response_1.default.succ(resp, res);
-            }
-        }
-        else {
+        if (!(await ut_permission_js_1.UtPermission.isManager(req))) {
             return response_1.default.fail(resp, exception_1.default.BadRequestError('BAD_REQUEST', 'No permission.', null));
         }
+        const user = new user_1.User(req.get('g-app'));
+        const responseList = [];
+        async function checkUser(postUser) {
+            const checkData = await user.checkMailAndPhoneExists(postUser.userData.email, postUser.userData.phone);
+            if (checkData.exist) {
+                return { pass: false, msg: 'User already exists', checkData };
+            }
+            return { pass: true, postUser };
+        }
+        const userArray = Array.isArray(req.body.userArray) ? req.body.userArray : [req.body];
+        const chunkSize = 20;
+        const chunkedUserData = Array.from({ length: Math.ceil(userArray.length / chunkSize) }, (_, i) => userArray.slice(i * chunkSize, (i + 1) * chunkSize));
+        let tempTags = [];
+        for (const batch of chunkedUserData) {
+            const checks = await Promise.all(batch.map(checkUser));
+            const errorResult = checks.find((item) => !item.pass);
+            if (errorResult) {
+                throw exception_1.default.BadRequestError('BAD_REQUEST', (_a = errorResult.msg) !== null && _a !== void 0 ? _a : 'User already exists', { data: errorResult.checkData });
+            }
+            const createUserPromises = checks.map(async (check) => {
+                var _a;
+                const passUser = check.postUser;
+                tempTags = [...new Set([...tempTags, ...((_a = passUser.userData.tags) !== null && _a !== void 0 ? _a : [])])];
+                return user.createUser(passUser.account, tool_1.default.randomString(8), passUser.userData, {}, true);
+            });
+            const createResults = await Promise.allSettled(createUserPromises);
+            createResults.forEach((result) => {
+                if (result.status === 'fulfilled') {
+                    responseList.push({ pass: true, type: result.value.verify, needVerify: result.value.verify });
+                }
+                else {
+                    responseList.push({ pass: false, msg: 'Error processing request' });
+                }
+            });
+        }
+        const userTags = await user.getConfigV2({ key: 'user_general_tags', user_id: 'manager' });
+        userTags.list = [...new Set([...tempTags, ...((_b = userTags.list) !== null && _b !== void 0 ? _b : [])])];
+        await user.setConfig({
+            key: 'user_general_tags',
+            user_id: 'manager',
+            value: userTags,
+        });
+        return response_1.default.succ(resp, responseList[0] || {});
     }
     catch (err) {
         return response_1.default.fail(resp, err);

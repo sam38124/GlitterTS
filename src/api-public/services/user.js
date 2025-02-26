@@ -175,7 +175,13 @@ class User {
             userData.verify_code = undefined;
             userData.verify_code_phone = undefined;
             await database_1.default.execute(`INSERT INTO \`${this.app}\`.\`t_user\` (\`userID\`, \`account\`, \`pwd\`, \`userData\`, \`status\`)
-                 VALUES (?, ?, ?, ?, ?);`, [userID, account, await tool_1.default.hashPwd(pwd), userData !== null && userData !== void 0 ? userData : {}, 1]);
+                 VALUES (?, ?, ?, ?, ?);`, [
+                userID,
+                account,
+                await tool_1.default.hashPwd(pwd),
+                Object.assign(Object.assign({}, (userData !== null && userData !== void 0 ? userData : {})), { status: undefined }),
+                userData.status === 0 ? 0 : 1,
+            ]);
             await this.createUserHook(userID);
             const usData = await this.getUserData(userID, 'userID');
             usData.pwd = undefined;
@@ -1706,16 +1712,27 @@ class User {
         }
     }
     async checkMailAndPhoneExists(email, phone) {
+        var _a, _b;
         try {
-            const emailExists = email &&
-                (await database_1.default.execute(`select count(1)
-                         from \`${this.app}\`.t_user
-                         where userData ->>'$.email'=?`, [email]))[0]['count(1)'] > 0;
-            const phoneExists = phone &&
-                (await database_1.default.execute(`select count(1)
-                         from \`${this.app}\`.t_user
-                         where userData ->>'$.phone'=?`, [phone]))[0]['count(1)'] > 0;
-            return emailExists || phoneExists;
+            let emailExists = false;
+            let phoneExists = false;
+            if (email) {
+                const emailResult = await database_1.default.execute(`SELECT COUNT(1) AS count FROM \`${this.app}\`.t_user WHERE userData ->>'$.email' = ?
+                    `, [email]);
+                emailExists = ((_a = emailResult[0]) === null || _a === void 0 ? void 0 : _a.count) > 0;
+            }
+            if (phone) {
+                const phoneResult = await database_1.default.execute(`SELECT COUNT(1) AS count FROM \`${this.app}\`.t_user WHERE userData ->>'$.phone' = ?
+                    `, [phone]);
+                phoneExists = ((_b = phoneResult[0]) === null || _b === void 0 ? void 0 : _b.count) > 0;
+            }
+            return {
+                exist: emailExists || phoneExists,
+                email,
+                phone,
+                emailExists,
+                phoneExists,
+            };
         }
         catch (e) {
             throw exception_1.default.BadRequestError('BAD_REQUEST', 'CheckUserExists Error:' + e, null);
