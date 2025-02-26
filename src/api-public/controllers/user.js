@@ -5,37 +5,46 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 const express_1 = __importDefault(require("express"));
 const response_1 = __importDefault(require("../../modules/response"));
 const database_1 = __importDefault(require("../../modules/database"));
-const user_1 = require("../services/user");
 const exception_1 = __importDefault(require("../../modules/exception"));
 const config_js_1 = __importDefault(require("../../config.js"));
-const ut_permission_js_1 = require("../utils/ut-permission.js");
 const redis_js_1 = __importDefault(require("../../modules/redis.js"));
 const tool_1 = __importDefault(require("../../modules/tool"));
+const user_1 = require("../services/user");
+const ut_permission_js_1 = require("../utils/ut-permission.js");
 const share_permission_1 = require("../services/share-permission");
 const filter_protect_data_js_1 = require("../services/filter-protect-data.js");
 const router = express_1.default.Router();
 router.get('/', async (req, resp) => {
     try {
-        if (req.query.type === 'list' && (await ut_permission_js_1.UtPermission.isManager(req))) {
-            const user = new user_1.User(req.get('g-app'));
-            return response_1.default.succ(resp, await user.getUserList(req.query));
-        }
-        else if (req.query.type === 'account' && (await ut_permission_js_1.UtPermission.isManager(req))) {
-            const user = new user_1.User(req.get('g-app'));
-            return response_1.default.succ(resp, await user.getUserData(req.query.email, 'account'));
-        }
-        else if (req.query.type === 'email' && (await ut_permission_js_1.UtPermission.isManager(req))) {
-            const user = new user_1.User(req.get('g-app'));
-            return response_1.default.succ(resp, await user.getUserData(req.query.email, 'email_or_phone'));
-        }
-        else if (req.query.type === 'email_or_phone') {
-            const user = new user_1.User(req.get('g-app'));
-            return response_1.default.succ(resp, await user.getUserData(req.query.search, 'email_or_phone'));
-        }
-        else {
-            const user = new user_1.User(req.get('g-app'));
-            return response_1.default.succ(resp, await user.getUserData(req.body.token.userID));
-        }
+        const user = new user_1.User(req.get('g-app'));
+        const isManager = await ut_permission_js_1.UtPermission.isManager(req);
+        const { type, email, search } = req.query;
+        console.log({ type, email, search });
+        const actionMap = {
+            list: async () => {
+                if (!isManager)
+                    throw exception_1.default.BadRequestError('BAD_REQUEST', 'No permission.', null);
+                return await user.getUserList(req.query);
+            },
+            account: async () => {
+                if (!isManager)
+                    throw exception_1.default.BadRequestError('BAD_REQUEST', 'No permission.', null);
+                return await user.getUserData(email, 'account');
+            },
+            email: async () => {
+                if (!isManager)
+                    throw exception_1.default.BadRequestError('BAD_REQUEST', 'No permission.', null);
+                return await user.getUserData(email, 'email_or_phone');
+            },
+            email_or_phone: async () => {
+                return await user.getUserData(search, 'email_or_phone');
+            },
+            default: async () => {
+                return await user.getUserData(req.body.token.userID);
+            },
+        };
+        const result = await (actionMap[type] || actionMap.default)();
+        return response_1.default.succ(resp, result);
     }
     catch (err) {
         return response_1.default.fail(resp, err);
