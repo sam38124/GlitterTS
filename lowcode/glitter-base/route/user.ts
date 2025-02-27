@@ -346,8 +346,11 @@ export class ApiUser {
                 return `${key}=${value.join(',')}`;
             }
 
-            if (typeof value === 'object' && 'key' in value && 'value' in value && value.key && value.value) {
-                return `${key}=${value.key},${value.value}`;
+            if (typeof value === 'object' && value !== null) {
+                const valObj = value as Record<string, any>; // 顯式轉換避免 TS 誤判
+                if ('key' in valObj && 'value' in valObj && valObj.key && valObj.value) {
+                    return `${key}=${valObj.key},${valObj.value}`;
+                }
             }
 
             return [];

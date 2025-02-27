@@ -326,8 +326,11 @@ export class ApiUser {
             if (Array.isArray(value) && value.length > 0 && value.every(Boolean)) {
                 return `${key}=${value.join(',')}`;
             }
-            if (typeof value === 'object' && 'key' in value && 'value' in value && value.key && value.value) {
-                return `${key}=${value.key},${value.value}`;
+            if (typeof value === 'object' && value !== null) {
+                const valObj = value;
+                if ('key' in valObj && 'value' in valObj && valObj.key && valObj.value) {
+                    return `${key}=${valObj.key},${valObj.value}`;
+                }
             }
             return [];
         });
