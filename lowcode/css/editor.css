@@ -699,15 +699,13 @@ h6 {
 }
 
 .bgw-input {
-    display: flex;
-    flex-grow: 1;
-    padding: 9px 12px;
-    align-items: center;
+    width: 100%;
+    height: 40px;
+    padding: 0px 18px;
     border-radius: 10px;
+    appearance: none;
     border: 0px solid var(--background-4);
     background-color: var(--main-white);
-    appearance: none;
-    width: 100%;
 }
 
 .bgw-input:focus {

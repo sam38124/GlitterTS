@@ -670,23 +670,17 @@ export class ShoppingSettingAdvance {
                                                                       .map((variant, index) => {
                                                                           const { spec, cost = 0, sale_price, preview_image, compare_price } = variant;
 
-                                                                          const scrollVM = {
-                                                                              id: `spec-bar-${index}`,
-                                                                          };
-
                                                                           return html` <div class="d-flex align-items-center">
                                                                               ${[
-                                                                                  html`<div class="d-flex align-items-center">
-                                                                                      <div>
-                                                                                          ${BgWidget.validImageBox({
-                                                                                              gvc,
-                                                                                              image: preview_image,
-                                                                                              width: 40,
-                                                                                              style: 'border-radius: 5px;',
-                                                                                          })}
-                                                                                      </div>
-                                                                                      ${gvc.bindView({
-                                                                                          bind: scrollVM.id,
+                                                                                  [
+                                                                                      BgWidget.validImageBox({
+                                                                                          gvc,
+                                                                                          image: preview_image,
+                                                                                          width: 40,
+                                                                                          style: 'border-radius: 5px;',
+                                                                                      }),
+                                                                                      gvc.bindView({
+                                                                                          bind: `spec-bar-${index}`,
                                                                                           dataList: [{ obj: priceVM, key: 'showPriceDetail' }],
                                                                                           view: () => {
                                                                                               return html`
@@ -702,8 +696,8 @@ export class ShoppingSettingAdvance {
                                                                                               class: 'ms-2',
                                                                                               style: 'font-size: 14px;',
                                                                                           },
-                                                                                      })}
-                                                                                  </div>`,
+                                                                                      }),
+                                                                                  ].join(''),
                                                                                   `$ ${cost.toLocaleString()}`,
                                                                                   `$ ${compare_price.toLocaleString()}`,
                                                                                   `$ ${sale_price.toLocaleString()}`,

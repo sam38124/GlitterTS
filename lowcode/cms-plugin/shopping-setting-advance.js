@@ -588,39 +588,34 @@ export class ShoppingSettingAdvance {
                                                                   ${postMD.variants
                                                 .map((variant, index) => {
                                                 const { spec, cost = 0, sale_price, preview_image, compare_price } = variant;
-                                                const scrollVM = {
-                                                    id: `spec-bar-${index}`,
-                                                };
                                                 return html ` <div class="d-flex align-items-center">
                                                                               ${[
-                                                    html `<div class="d-flex align-items-center">
-                                                                                      <div>
-                                                                                          ${BgWidget.validImageBox({
-                                                        gvc,
-                                                        image: preview_image,
-                                                        width: 40,
-                                                        style: 'border-radius: 5px;',
-                                                    })}
-                                                                                      </div>
-                                                                                      ${gvc.bindView({
-                                                        bind: scrollVM.id,
-                                                        dataList: [{ obj: priceVM, key: 'showPriceDetail' }],
-                                                        view: () => {
-                                                            return html `
+                                                    [
+                                                        BgWidget.validImageBox({
+                                                            gvc,
+                                                            image: preview_image,
+                                                            width: 40,
+                                                            style: 'border-radius: 5px;',
+                                                        }),
+                                                        gvc.bindView({
+                                                            bind: `spec-bar-${index}`,
+                                                            dataList: [{ obj: priceVM, key: 'showPriceDetail' }],
+                                                            view: () => {
+                                                                return html `
                                                                                                   <div>${spec && spec.length > 0 ? spec.join(' / ') : Tool.truncateString(postMD.title, 10)}</div>
                                                                                                   ${priceVM.showPriceDetail
-                                                                ? html `<div style="color: #8D8D8D;">
+                                                                    ? html `<div style="color: #8D8D8D;">
                                                                                                             定價 : ${compare_price.toLocaleString()} / 售價 : ${sale_price.toLocaleString()}
                                                                                                         </div>`
-                                                                : ''}
+                                                                    : ''}
                                                                                               `;
-                                                        },
-                                                        divCreate: {
-                                                            class: 'ms-2',
-                                                            style: 'font-size: 14px;',
-                                                        },
-                                                    })}
-                                                                                  </div>`,
+                                                            },
+                                                            divCreate: {
+                                                                class: 'ms-2',
+                                                                style: 'font-size: 14px;',
+                                                            },
+                                                        }),
+                                                    ].join(''),
                                                     `$ ${cost.toLocaleString()}`,
                                                     `$ ${compare_price.toLocaleString()}`,
                                                     `$ ${sale_price.toLocaleString()}`,

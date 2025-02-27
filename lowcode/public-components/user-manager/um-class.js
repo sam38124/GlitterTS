@@ -489,14 +489,12 @@ export class UmClass {
             }
 
             .bgw-input {
-                flex-grow: 1;
-                padding: 9px 12px;
-                border-radius: 10px;
-                border: 1px solid ${borderButtonBgr};
-                background: #ffffff;
-                appearance: none;
                 width: 100%;
-                min-height: 44px;
+                height: 40px;
+                padding: 0px 18px;
+                border-radius: 10px;
+                appearance: none;
+                border: 1px solid ${borderButtonBgr};
             }
 
             .bgw-input[type='date'] {

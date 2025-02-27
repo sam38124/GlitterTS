@@ -631,6 +631,7 @@ export class ShoppingProductSetting {
                                                                                                 return ShoppingProductSetting.getOnboardStatus(dd.content);
                                                                                             },
                                                                                             divCreate: {
+                                                                                                style: 'min-width: 60px;',
                                                                                                 option: [
                                                                                                     {
                                                                                                         key: 'onclick',
