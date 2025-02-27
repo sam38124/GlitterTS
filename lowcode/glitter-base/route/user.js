@@ -252,17 +252,6 @@ export class ApiUser {
             },
         });
     }
-    static getFilterString(obj) {
-        if (!obj)
-            return [];
-        let list = [];
-        if (obj) {
-            if (obj.account && obj.account.length > 0) {
-                list.push(`account=${obj.account}`);
-            }
-        }
-        return list;
-    }
     static getSubScribe(json) {
         return BaseApi.create({
             url: getBaseUrl() +
@@ -270,7 +259,7 @@ export class ApiUser {
                     let par = [`limit=${json.limit}`, `page=${json.page}`];
                     json.search && par.push(`search=${json.search}`);
                     json.id && par.push(`id=${json.id}`);
-                    json.filter && par.push(ApiUser.getFilterString(json.filter).join('&'));
+                    json.filter && par.push(ApiUser.formatFilterString(json.filter).join('&'));
                     return par.join('&');
                 })()}`,
             type: 'GET',
@@ -328,29 +317,20 @@ export class ApiUser {
             },
         });
     }
-    static userListFilterString(obj) {
+    static formatFilterString(obj) {
         if (!obj)
             return [];
-        let list = [];
-        if (obj.created_time && obj.created_time.length > 1 && obj.created_time[0].length > 0 && obj.created_time[1].length > 0) {
-            list.push(`created_time=${obj.created_time[0]},${obj.created_time[1]}`);
-        }
-        if (obj.birth && obj.birth.length > 0) {
-            list.push(`birth=${obj.birth.join(',')}`);
-        }
-        if (obj.level && obj.level.length > 0) {
-            list.push(`level=${obj.level.join(',')}`);
-        }
-        if (obj.tags && obj.tags.length > 0) {
-            list.push(`tags=${obj.tags.join(',')}`);
-        }
-        if (obj.rebate && obj.rebate.key && obj.rebate.value) {
-            list.push(`rebate=${obj.rebate.key},${obj.rebate.value}`);
-        }
-        if (obj.total_amount && obj.total_amount.key && obj.total_amount.value) {
-            list.push(`total_amount=${obj.total_amount.key},${obj.total_amount.value}`);
-        }
-        return list;
+        return Object.entries(obj).flatMap(([key, value]) => {
+            if (!value)
+                return [];
+            if (Array.isArray(value) && value.length > 0 && value.every(Boolean)) {
+                return `${key}=${value.join(',')}`;
+            }
+            if (typeof value === 'object' && 'key' in value && 'value' in value && value.key && value.value) {
+                return `${key}=${value.key},${value.value}`;
+            }
+            return [];
+        });
     }
     static userListGroupString(obj) {
         if (!obj)
@@ -367,7 +347,7 @@ export class ApiUser {
     static getUserListOrders(json) {
         var _a, _b, _c, _d, _e;
         return __awaiter(this, void 0, void 0, function* () {
-            const filterString = this.userListFilterString(json.filter);
+            const filterString = this.formatFilterString(json.filter);
             const groupString = this.userListGroupString(json.group);
             const baseQuery = new URLSearchParams({
                 type: 'list',
@@ -701,17 +681,6 @@ export class ApiUser {
             },
         });
     }
-    static permissionFilterString(obj) {
-        if (!obj)
-            return [];
-        let list = [];
-        if (obj) {
-            if (obj.status.length > 0) {
-                list.push(`status=${obj.status.join(',')}`);
-            }
-        }
-        return list;
-    }
     static getPermission(json) {
         return BaseApi.create({
             url: getBaseUrl() +
@@ -722,7 +691,7 @@ export class ApiUser {
                     json.orderBy && par.push(`orderBy=${json.orderBy}`);
                     json.self && par.push(`self=${json.self}`);
                     if (json.filter) {
-                        par = par.concat(this.permissionFilterString(json.filter));
+                        par = par.concat(this.formatFilterString(json.filter));
                     }
                     return par.join('&');
                 })()}`,

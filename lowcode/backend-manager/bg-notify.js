@@ -763,7 +763,8 @@ export class BgNotify {
                     });
                 }
                 if (tag === 'birth') {
-                    const birthData = FilterOptions.userFunnel.find((data) => data.key === 'birth');
+                    const userFunnel = yield FilterOptions.getUserFunnel();
+                    const birthData = userFunnel.find((data) => data.key === 'birth');
                     if (birthData && Array.isArray(birthData.data)) {
                         return birthData.data.map((item) => {
                             item.value = item.name;

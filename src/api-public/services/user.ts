@@ -35,10 +35,13 @@ interface UserQuery {
     searchType?: string;
     order_string?: string;
     created_time?: string;
+    last_order_time?: string;
     birth?: string;
     level?: string;
     rebate?: string;
+    last_order_total?: string;
     total_amount?: string;
+    total_count?: string;
     groupType?: string;
     groupTag?: string;
     filter_type?: string;
@@ -1147,44 +1150,58 @@ export class User {
     }
 
     getUserAndOrderSQL(obj: { select: string; where: string[]; orderBy: string; page?: number; limit?: number }) {
+        const orderByClause = this.getOrderByClause(obj.orderBy);
+        const whereClause = obj.where.filter((str) => str.length > 0).join(' AND ');
+        const limitClause = obj.page !== undefined && obj.limit !== undefined ? `LIMIT ${obj.page * obj.limit}, ${obj.limit}` : '';
+
         const sql = `
-            SELECT ${obj.select}
-            FROM (SELECT email,
-                         COUNT(*)                                                        AS order_count,
-                         SUM(CAST(JSON_EXTRACT(orderData, '$.total') AS DECIMAL(10, 2))) AS total_amount
-                  FROM \`${this.app}\`.t_checkout
-                  WHERE status = 1
-                  GROUP BY email) as o
-                     RIGHT JOIN
-                 \`${this.app}\`.t_user u ON o.email = u.account
-            WHERE (${obj.where.filter((str) => str.length > 0).join(' AND ')})
-            ORDER BY ${(() => {
-                switch (obj.orderBy) {
-                    case 'order_total_desc':
-                        return 'o.total_amount DESC';
-                    case 'order_total_asc':
-                        return 'o.total_amount';
-                    case 'order_count_desc':
-                        return 'o.order_count DESC';
-                    case 'order_count_asc':
-                        return 'o.order_count';
-                    case 'name':
-                        return 'JSON_EXTRACT(u.userData, "$.name")';
-                    case 'created_time_desc':
-                        return 'u.created_time DESC';
-                    case 'created_time_asc':
-                        return 'u.created_time';
-                    case 'online_time_desc':
-                        return 'u.online_time DESC';
-                    case 'online_time_asc':
-                        return 'u.online_time';
-                    default:
-                        return 'u.id DESC';
-                }
-            })()} ${obj.page !== undefined && obj.limit !== undefined ? `LIMIT ${obj.page * obj.limit}, ${obj.limit}` : ''};
+            SELECT
+                ${obj.select}
+            FROM (
+                SELECT
+                    email,
+                    COUNT(*) AS order_count,
+                    SUM(CAST(JSON_EXTRACT(orderData, '$.total') AS DECIMAL(10, 2))) AS total_amount
+                FROM \`${this.app}\`.t_checkout
+                WHERE (orderData->>'$.orderStatus' is null OR orderData->>'$.orderStatus' != '-1')
+                GROUP BY email
+            ) AS o
+            RIGHT JOIN \`${this.app}\`.t_user u ON o.email = u.account
+            LEFT JOIN (
+                SELECT
+                    email,
+                    JSON_EXTRACT(orderData, '$.total') AS last_order_total,
+                    created_time AS last_order_time,
+                    ROW_NUMBER() OVER(PARTITION BY email ORDER BY created_time DESC) as rn
+                FROM \`${this.app}\`.t_checkout
+                WHERE (orderData->>'$.orderStatus' is null OR orderData->>'$.orderStatus' != '-1')
+            ) AS lo ON o.email = lo.email AND lo.rn = 1
+            WHERE (${whereClause})
+            ORDER BY ${orderByClause}
+            ${limitClause}
         `;
 
         return sql;
+    }
+
+    private getOrderByClause(orderBy: string): string {
+        const orderByMap: { [key: string]: string } = {
+            order_total_desc: 'o.total_amount DESC',
+            order_total_asc: 'o.total_amount',
+            order_count_desc: 'o.order_count DESC',
+            order_count_asc: 'o.order_count',
+            name: 'JSON_EXTRACT(u.userData, "$.name")',
+            created_time_desc: 'u.created_time DESC',
+            created_time_asc: 'u.created_time',
+            online_time_desc: 'u.online_time DESC',
+            online_time_asc: 'u.online_time',
+            last_order_total_desc: 'lo.last_order_total DESC',
+            last_order_total_asc: 'lo.last_order_total',
+            last_order_time_desc: 'lo.last_order_time DESC',
+            last_order_time_asc: 'lo.last_order_time',
+        };
+
+        return orderByMap[orderBy] || 'u.id DESC';
     }
 
     public async getUserList(query: UserQuery) {
@@ -1193,6 +1210,7 @@ export class User {
             const noRegisterUsers: any[] = [];
             query.page = query.page ?? 0;
             query.limit = query.limit ?? 50;
+
             if (query.groupType) {
                 const getGroup = await this.getUserGroups(query.groupType.split(','), query.groupTag);
                 if (getGroup.result && getGroup.data[0]) {
@@ -1289,6 +1307,16 @@ export class User {
                 }
             }
 
+            if (query.last_order_time) {
+                const last_time = query.last_order_time.split(',');
+                if (last_time.length > 1) {
+                    querySql.push(`
+                        (lo.last_order_time BETWEEN ${db.escape(`${last_time[0]} 00:00:00`)} 
+                        AND ${db.escape(`${last_time[1]} 23:59:59`)})
+                    `);
+                }
+            }
+
             if (query.birth && query.birth.length > 0) {
                 const birth = query.birth.split(',');
                 const birthMap = birth.map((month) => parseInt(`${month}`, 10));
@@ -1306,13 +1334,37 @@ export class User {
             }
 
             if (query.total_amount) {
-                const totalAmount = query.total_amount.split(',');
-                if (totalAmount.length > 1) {
-                    if (totalAmount[0] === 'lessThan') {
-                        querySql.push(`(o.total_amount < ${totalAmount[1]} OR o.total_amount is null)`);
+                const arr = query.total_amount.split(',');
+                if (arr.length > 1) {
+                    if (arr[0] === 'lessThan') {
+                        querySql.push(`(o.total_amount < ${arr[1]} OR o.total_amount is null)`);
                     }
-                    if (totalAmount[0] === 'moreThan') {
-                        querySql.push(`(o.total_amount > ${totalAmount[1]})`);
+                    if (arr[0] === 'moreThan') {
+                        querySql.push(`(o.total_amount > ${arr[1]})`);
+                    }
+                }
+            }
+
+            if (query.last_order_total) {
+                const arr = query.last_order_total.split(',');
+                if (arr.length > 1) {
+                    if (arr[0] === 'lessThan') {
+                        querySql.push(`(lo.last_order_total < ${arr[1]} OR lo.last_order_total is null)`);
+                    }
+                    if (arr[0] === 'moreThan') {
+                        querySql.push(`(lo.last_order_total > ${arr[1]})`);
+                    }
+                }
+            }
+
+            if (query.total_count) {
+                const arr = query.total_count.split(',');
+                if (arr.length > 1) {
+                    if (arr[0] === 'lessThan') {
+                        querySql.push(`(o.order_count < ${arr[1]} OR o.order_count is null)`);
+                    }
+                    if (arr[0] === 'moreThan') {
+                        querySql.push(`(o.order_count > ${arr[1]})`);
                     }
                 }
             }
@@ -1341,7 +1393,7 @@ export class User {
             }
 
             const dataSQL = this.getUserAndOrderSQL({
-                select: 'o.email, o.order_count, o.total_amount, u.*',
+                select: 'o.email, o.order_count, o.total_amount, u.*, lo.last_order_total, lo.last_order_time',
                 where: querySql,
                 orderBy: query.order_string ?? '',
                 page: query.page,

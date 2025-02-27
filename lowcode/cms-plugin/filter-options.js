@@ -8,77 +8,155 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 import { ShipmentConfig } from '../glitter-base/global/shipment-config.js';
+import { ApiUser } from '../glitter-base/route/user.js';
 export class FilterOptions {
-    static getOrderFunnel() {
-        var _a;
+    static getUserFunnel() {
         return __awaiter(this, void 0, void 0, function* () {
-            let vm = {
-                data: undefined,
-            };
-            const saasConfig = window.parent.saasConfig;
-            yield new Promise((resolve, reject) => {
-                saasConfig.api.getPrivateConfig(saasConfig.config.appName, 'logistics_setting').then((r) => {
-                    if (r.response.result[0]) {
-                        vm.data = r.response.result[0].value;
+            const generalTags = yield new Promise((resolve) => {
+                ApiUser.getPublicConfig('user_general_tags', 'manager').then((dd) => {
+                    var _a, _b;
+                    if (dd.result && ((_b = (_a = dd.response) === null || _a === void 0 ? void 0 : _a.value) === null || _b === void 0 ? void 0 : _b.list)) {
+                        resolve(dd.response.value.list.map((tag) => ({ key: tag, name: tag })));
                     }
-                    if (!vm.data.language_data) {
-                        vm.data.language_data = {
-                            'en-US': { info: '' },
-                            'zh-CN': { info: '' },
-                            'zh-TW': { info: vm.data.info || '' },
-                        };
+                    else {
+                        resolve([]);
                     }
-                    resolve(true);
                 });
             });
             return [
                 {
-                    key: 'orderStatus',
+                    key: 'created_time',
+                    type: 'during',
+                    name: '註冊日期',
+                    data: {
+                        centerText: '至',
+                        list: [
+                            { key: 'start', type: 'date', placeHolder: '請選擇開始時間' },
+                            { key: 'end', type: 'date', placeHolder: '請選擇結束時間' },
+                        ],
+                    },
+                },
+                {
+                    key: 'birth',
                     type: 'multi_checkbox',
-                    name: '訂單狀態',
+                    name: '生日月份',
                     data: [
-                        { key: '1', name: '已完成' },
-                        { key: '0', name: '處理中' },
-                        { key: '-1', name: '已取消' },
+                        { key: 1, name: '一月' },
+                        { key: 2, name: '二月' },
+                        { key: 3, name: '三月' },
+                        { key: 4, name: '四月' },
+                        { key: 5, name: '五月' },
+                        { key: 6, name: '六月' },
+                        { key: 7, name: '七月' },
+                        { key: 8, name: '八月' },
+                        { key: 9, name: '九月' },
+                        { key: 10, name: '十月' },
+                        { key: 11, name: '十一月' },
+                        { key: 12, name: '十二月' },
                     ],
                 },
                 {
-                    key: 'payload',
+                    key: 'tags',
                     type: 'multi_checkbox',
-                    name: '付款狀態',
+                    name: '顧客標籤',
+                    data: generalTags,
+                },
+                {
+                    key: 'rebate',
+                    type: 'radio_and_input',
+                    name: '持有購物金',
                     data: [
-                        { key: '-1', name: '付款失敗' },
-                        { key: '1', name: '已付款' },
-                        { key: '3', name: '部分付款' },
-                        { key: '0', name: '未付款' },
-                        { key: '-2', name: '已退款' },
+                        { key: 'lessThan', name: '小於', type: 'number', placeHolder: '請輸入數值', unit: '元' },
+                        { key: 'moreThan', name: '大於', type: 'number', placeHolder: '請輸入數值', unit: '元' },
                     ],
                 },
                 {
-                    key: 'progress',
-                    type: 'multi_checkbox',
-                    name: '出貨狀況',
+                    key: 'total_amount',
+                    type: 'radio_and_input',
+                    name: '累積消費金額',
                     data: [
-                        { key: 'shipping', name: '配送中' },
-                        { key: 'wait', name: '未出貨' },
-                        { key: 'finish', name: '已取貨' },
-                        { key: 'returns', name: '已退貨' },
-                        { key: 'arrived', name: '已到貨' },
-                        { key: 'pre_order', name: '待預購' },
+                        { key: 'lessThan', name: '小於', type: 'number', placeHolder: '請輸入數值', unit: '元' },
+                        { key: 'moreThan', name: '大於', type: 'number', placeHolder: '請輸入數值', unit: '元' },
                     ],
                 },
                 {
-                    key: 'shipment',
-                    type: 'multi_checkbox',
-                    name: '運送方式',
-                    data: ShipmentConfig.list
-                        .map((dd) => {
-                        return { key: dd.value, name: dd.title };
-                    })
-                        .concat(((_a = vm.data.custom_delivery) !== null && _a !== void 0 ? _a : []).map((dd) => {
-                        return { key: dd.id, name: dd.name };
-                    })),
+                    key: 'total_count',
+                    type: 'radio_and_input',
+                    name: '累積消費次數',
+                    data: [
+                        { key: 'lessThan', name: '小於', type: 'number', placeHolder: '請輸入次數', unit: '次' },
+                        { key: 'moreThan', name: '大於', type: 'number', placeHolder: '請輸入次數', unit: '次' },
+                    ],
                 },
+                {
+                    key: 'last_order_time',
+                    type: 'during',
+                    name: '最後購買日期',
+                    data: {
+                        centerText: '至',
+                        list: [
+                            { key: 'start', type: 'date', placeHolder: '請選擇開始時間' },
+                            { key: 'end', type: 'date', placeHolder: '請選擇結束時間' },
+                        ],
+                    },
+                },
+                {
+                    key: 'last_order_total',
+                    type: 'radio_and_input',
+                    name: '最後消費金額',
+                    data: [
+                        { key: 'lessThan', name: '小於', type: 'number', placeHolder: '請輸入數值', unit: '元' },
+                        { key: 'moreThan', name: '大於', type: 'number', placeHolder: '請輸入數值', unit: '元' },
+                    ],
+                },
+            ];
+        });
+    }
+    static getOrderFunnel() {
+        var _a, _b;
+        return __awaiter(this, void 0, void 0, function* () {
+            const saasConfig = window.parent.saasConfig;
+            const response = yield saasConfig.api.getPrivateConfig(saasConfig.config.appName, 'logistics_setting');
+            let configData = ((_a = response.response.result[0]) === null || _a === void 0 ? void 0 : _a.value) || {};
+            if (!configData.language_data) {
+                configData.language_data = {
+                    'en-US': { info: '' },
+                    'zh-CN': { info: '' },
+                    'zh-TW': { info: configData.info || '' },
+                };
+            }
+            const shipmentOptions = ShipmentConfig.list
+                .map((dd) => {
+                return { key: dd.value, name: dd.title };
+            })
+                .concat(((_b = configData.custom_delivery) !== null && _b !== void 0 ? _b : []).map((dd) => {
+                return { key: dd.id, name: dd.name };
+            }));
+            const orderStatusOptions = [
+                { key: '1', name: '已完成' },
+                { key: '0', name: '處理中' },
+                { key: '-1', name: '已取消' },
+            ];
+            const payloadStatusOptions = [
+                { key: '-1', name: '付款失敗' },
+                { key: '1', name: '已付款' },
+                { key: '3', name: '部分付款' },
+                { key: '0', name: '未付款' },
+                { key: '-2', name: '已退款' },
+            ];
+            const progressOptions = [
+                { key: 'shipping', name: '配送中' },
+                { key: 'wait', name: '未出貨' },
+                { key: 'finish', name: '已取貨' },
+                { key: 'returns', name: '已退貨' },
+                { key: 'arrived', name: '已到貨' },
+                { key: 'pre_order', name: '待預購' },
+            ];
+            return [
+                { key: 'orderStatus', type: 'multi_checkbox', name: '訂單狀態', data: orderStatusOptions },
+                { key: 'payload', type: 'multi_checkbox', name: '付款狀態', data: payloadStatusOptions },
+                { key: 'progress', type: 'multi_checkbox', name: '出貨狀況', data: progressOptions },
+                { key: 'shipment', type: 'multi_checkbox', name: '運送方式', data: shipmentOptions },
                 {
                     key: 'created_time',
                     type: 'during',
@@ -98,67 +176,13 @@ export class FilterOptions {
 FilterOptions.userFilterFrame = {
     created_time: ['', ''],
     birth: [],
-    level: [],
+    tags: [],
     rebate: { key: '', value: '' },
     total_amount: { key: '', value: '' },
+    total_count: { key: '', value: '' },
+    last_order_time: ['', ''],
+    last_order_total: { key: '', value: '' },
 };
-FilterOptions.userFunnel = [
-    {
-        key: 'created_time',
-        type: 'during',
-        name: '註冊日期',
-        data: {
-            centerText: '至',
-            list: [
-                { key: 'start', type: 'date', placeHolder: '請選擇開始時間' },
-                { key: 'end', type: 'date', placeHolder: '請選擇結束時間' },
-            ],
-        },
-    },
-    {
-        key: 'birth',
-        type: 'multi_checkbox',
-        name: '生日月份',
-        data: [
-            { key: 1, name: '一月' },
-            { key: 2, name: '二月' },
-            { key: 3, name: '三月' },
-            { key: 4, name: '四月' },
-            { key: 5, name: '五月' },
-            { key: 6, name: '六月' },
-            { key: 7, name: '七月' },
-            { key: 8, name: '八月' },
-            { key: 9, name: '九月' },
-            { key: 10, name: '十月' },
-            { key: 11, name: '十一月' },
-            { key: 12, name: '十二月' },
-        ],
-    },
-    {
-        key: 'level',
-        type: 'multi_checkbox',
-        name: '會員等級',
-        data: [],
-    },
-    {
-        key: 'rebate',
-        type: 'radio_and_input',
-        name: '持有購物金',
-        data: [
-            { key: 'lessThan', name: '小於', type: 'number', placeHolder: '請輸入數值', unit: '元' },
-            { key: 'moreThan', name: '大於', type: 'number', placeHolder: '請輸入數值', unit: '元' },
-        ],
-    },
-    {
-        key: 'total_amount',
-        type: 'radio_and_input',
-        name: '累積消費金額',
-        data: [
-            { key: 'lessThan', name: '小於', type: 'number', placeHolder: '請輸入數值', unit: '元' },
-            { key: 'moreThan', name: '大於', type: 'number', placeHolder: '請輸入數值', unit: '元' },
-        ],
-    },
-];
 FilterOptions.userOrderBy = [
     { key: 'default', value: '預設' },
     { key: 'name', value: '顧客名稱' },

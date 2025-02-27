@@ -7,10 +7,13 @@ interface UserQuery {
     searchType?: string;
     order_string?: string;
     created_time?: string;
+    last_order_time?: string;
     birth?: string;
     level?: string;
     rebate?: string;
+    last_order_total?: string;
     total_amount?: string;
+    total_count?: string;
     groupType?: string;
     groupTag?: string;
     filter_type?: string;
@@ -85,6 +88,7 @@ export declare class User {
         page?: number;
         limit?: number;
     }): string;
+    private getOrderByClause;
     getUserList(query: UserQuery): Promise<{
         data: any;
         total: any;

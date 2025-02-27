@@ -443,10 +443,6 @@ export class BgRecommend {
                                                             vm.query || '',
                                                             '搜尋推薦人'
                                                         ),
-                                                        // BgWidget.funnelFilter({
-                                                        //     gvc,
-                                                        //     callback: () => ListComp.showRightMenu(FilterOptions.userFunnel),
-                                                        // }),
                                                         BgWidget.updownFilter({
                                                             gvc,
                                                             callback: (value: any) => {
