@@ -122,7 +122,7 @@ export interface Product {
     multi_sale_price?: MultiSalePrice[];
 }
 
-export type MultiSaleType = 'store' | 'level' | 'tag';
+export type MultiSaleType = 'store' | 'level' | 'tags';
 
 export type MultiSalePrice = {
     type: MultiSaleType;

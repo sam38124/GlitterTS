@@ -139,10 +139,11 @@ class Shopping {
                 if (sqlJoinSearch.length) {
                     querySql.push(`(${sqlJoinSearch.map((condition) => `(${condition})`).join(' OR ')})`);
                 }
-                query.order_by = `ORDER BY CASE 
-    WHEN content->>'$.language_data."zh-TW".seo.domain' = '${decodedDomain}'  THEN 1
-    ELSE 2
-  END`;
+                query.order_by = `
+                    ORDER BY CASE 
+                    WHEN content->>'$.language_data."zh-TW".seo.domain' = '${decodedDomain}' THEN 1
+                        ELSE 2
+                    END`;
             }
             if (query.id) {
                 const ids = `${query.id}`
@@ -444,9 +445,10 @@ class Shopping {
             const allVoucher = await this.getAllUseVoucher(userData.userID);
             const recommendData = await this.getDistributionRecommend(distributionCode);
             console.log(`get-product-voucher-finish`, (new Date().getTime() - start) / 1000);
-            const getPrice = (priceMap, key, specKey) => {
+            const getPrice = (priceMap, key, specKey, priceList) => {
                 var _a;
-                return (_a = priceMap[key]) === null || _a === void 0 ? void 0 : _a.get(specKey);
+                const price = (_a = priceMap[key]) === null || _a === void 0 ? void 0 : _a.get(specKey);
+                price && priceList.push(price);
             };
             const processProduct = async (product) => {
                 const createPriceMap = (type) => {
@@ -494,23 +496,27 @@ class Shopping {
                     }
                 }
                 product.content.variants.forEach((pv) => {
-                    var _a, _b;
-                    const vPriceList = [pv.sale_price];
+                    var _a, _b, _c;
+                    const vPriceList = [];
                     if ((_a = product.content.multi_sale_price) === null || _a === void 0 ? void 0 : _a.length) {
-                        const storeMaps = createPriceMap('store');
-                        const levelMaps = createPriceMap('level');
                         const specKey = pv.spec.join('-');
                         if (query.whereStore) {
-                            const storePrice = getPrice(storeMaps, query.whereStore, specKey);
-                            storePrice && vPriceList.push(storePrice);
+                            const storeMaps = createPriceMap('store');
+                            getPrice(storeMaps, query.whereStore, specKey, vPriceList);
                         }
                         if ((_b = userData === null || userData === void 0 ? void 0 : userData.member_level) === null || _b === void 0 ? void 0 : _b.id) {
-                            const levelPrice = getPrice(levelMaps, userData.member_level.id, specKey);
-                            levelPrice && vPriceList.push(levelPrice);
+                            const levelMaps = createPriceMap('level');
+                            getPrice(levelMaps, userData.member_level.id, specKey, vPriceList);
+                        }
+                        if (Array.isArray((_c = userData === null || userData === void 0 ? void 0 : userData.userData) === null || _c === void 0 ? void 0 : _c.tags) && userData.userData.tags.length > 0) {
+                            const tagsMaps = createPriceMap('tags');
+                            userData.userData.tags.map((tag) => {
+                                getPrice(tagsMaps, tag, specKey, vPriceList);
+                            });
                         }
                     }
                     pv.origin_price = parseInt(`${pv.compare_price || pv.sale_price}`, 10);
-                    pv.sale_price = Math.min(...vPriceList);
+                    pv.sale_price = vPriceList.length > 0 ? Math.min(...vPriceList) : pv.sale_price;
                 });
                 const priceArray = product.content.variants
                     .filter((item) => {

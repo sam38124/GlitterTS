@@ -140,6 +140,8 @@ type CartItem = {
     };
 };
 
+type MultiSaleType = 'store' | 'level' | 'tags';
+
 export type Cart = {
     archived?: string;
     customer_info: any;
@@ -315,12 +317,12 @@ export class Shopping {
                 if (sqlJoinSearch.length) {
                     querySql.push(`(${sqlJoinSearch.map((condition) => `(${condition})`).join(' OR ')})`);
                 }
-                query.order_by = `ORDER BY CASE 
-    WHEN content->>'$.language_data."zh-TW".seo.domain' = '${decodedDomain}'  THEN 1
-    ELSE 2
-  END`;
+                query.order_by = `
+                    ORDER BY CASE 
+                    WHEN content->>'$.language_data."zh-TW".seo.domain' = '${decodedDomain}' THEN 1
+                        ELSE 2
+                    END`;
             }
-//
             if (query.id) {
                 const ids = `${query.id}`
                     .split(',')
@@ -672,12 +674,13 @@ export class Shopping {
             const recommendData = await this.getDistributionRecommend(distributionCode);
             console.log(`get-product-voucher-finish`, (new Date().getTime() - start) / 1000);
 
-            const getPrice = (priceMap: Record<string, Map<string, number>>, key: string, specKey: string) => {
-                return priceMap[key]?.get(specKey);
+            const getPrice = (priceMap: Record<string, Map<string, number>>, key: string, specKey: string, priceList: number[]) => {
+                const price = priceMap[key]?.get(specKey);
+                price && priceList.push(price);
             };
 
             const processProduct = async (product: any) => {
-                const createPriceMap = (type: 'store' | 'level'): Record<string, Map<string, number>> => {
+                const createPriceMap = (type: MultiSaleType): Record<string, Map<string, number>> => {
                     return Object.fromEntries(
                         product.content.multi_sale_price.filter((item: any) => item.type === type).map((item: any) => [item.key, new Map(item.variants.map((v: any) => [v.spec.join('-'), v.price]))])
                     );
@@ -717,9 +720,7 @@ export class Shopping {
                                 const variantID = variantsList.get(specString);
 
                                 if (variantID) {
-                                    const vData = exh.dataList.find((a: {
-                                        variantID: number
-                                    }) => a.variantID === variantID);
+                                    const vData = exh.dataList.find((a: { variantID: number }) => a.variantID === variantID);
                                     pv.variant_id = variantID;
                                     pv.exhibition_type = true;
                                     pv.exhibition_active_stock = vData?.activeSaleStock ?? 0;
@@ -733,29 +734,35 @@ export class Shopping {
                 }
 
                 product.content.variants.forEach((pv: any) => {
-                    const vPriceList = [pv.sale_price];
+                    const vPriceList: number[] = [];
 
                     // 取得門市與會員專屬價格
                     if (product.content.multi_sale_price?.length) {
-                        const storeMaps = createPriceMap('store');
-                        const levelMaps = createPriceMap('level');
                         const specKey = pv.spec.join('-');
 
                         // 門市價格
                         if (query.whereStore) {
-                            const storePrice = getPrice(storeMaps, query.whereStore, specKey);
-                            storePrice && vPriceList.push(storePrice);
+                            const storeMaps = createPriceMap('store');
+                            getPrice(storeMaps, query.whereStore, specKey, vPriceList);
                         }
 
                         // 會員等級價格
                         if (userData?.member_level?.id) {
-                            const levelPrice = getPrice(levelMaps, userData.member_level.id, specKey);
-                            levelPrice && vPriceList.push(levelPrice);
+                            const levelMaps = createPriceMap('level');
+                            getPrice(levelMaps, userData.member_level.id, specKey, vPriceList);
+                        }
+
+                        // 顧客標籤價格
+                        if (Array.isArray(userData?.userData?.tags) && userData.userData.tags.length > 0) {
+                            const tagsMaps = createPriceMap('tags');
+                            userData.userData.tags.map((tag: string) => {
+                                getPrice(tagsMaps, tag, specKey, vPriceList);
+                            });
                         }
                     }
 
                     pv.origin_price = parseInt(`${pv.compare_price || pv.sale_price}`, 10);
-                    pv.sale_price = Math.min(...vPriceList);
+                    pv.sale_price = vPriceList.length > 0 ? Math.min(...vPriceList) : pv.sale_price;
                 });
 
                 const priceArray = product.content.variants
