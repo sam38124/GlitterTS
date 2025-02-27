@@ -605,14 +605,16 @@ export class ShoppingSettingAdvance {
                                                                                       ${gvc.bindView({
                                                         bind: scrollVM.id,
                                                         dataList: [{ obj: priceVM, key: 'showPriceDetail' }],
-                                                        view: () => html `
-                                                                                              <div>${spec ? spec.join(' / ') : Tool.truncateString(postMD.title, 10)}</div>
-                                                                                              ${priceVM.showPriceDetail
-                                                            ? html `<div style="color: #8D8D8D;">
-                                                                                                        定價 : ${compare_price.toLocaleString()} / 售價 : ${sale_price.toLocaleString()}
-                                                                                                    </div>`
-                                                            : ''}
-                                                                                          `,
+                                                        view: () => {
+                                                            return html `
+                                                                                                  <div>${spec && spec.length > 0 ? spec.join(' / ') : Tool.truncateString(postMD.title, 10)}</div>
+                                                                                                  ${priceVM.showPriceDetail
+                                                                ? html `<div style="color: #8D8D8D;">
+                                                                                                            定價 : ${compare_price.toLocaleString()} / 售價 : ${sale_price.toLocaleString()}
+                                                                                                        </div>`
+                                                                : ''}
+                                                                                              `;
+                                                        },
                                                         divCreate: {
                                                             class: 'ms-2',
                                                             style: 'font-size: 14px;',
