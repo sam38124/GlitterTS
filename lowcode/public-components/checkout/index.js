@@ -1105,7 +1105,7 @@ export class CheckoutIndex {
                                                                 </div>
                                                             </div>
                                                             ${(() => {
-                                        if (!GlobalUser.token) {
+                                        if (!GlobalUser.token || !vm.cartData.useRebateInfo.status) {
                                             return ``;
                                         }
                                         else {
@@ -1143,7 +1143,7 @@ export class CheckoutIndex {
                                                                                         <div class="${gClass('group-button')}">
                                                                                             <div
                                                                                                 class="${gClass('button-text')}"
-                                                                                                onclick="${gvc.event((e) => __awaiter(this, void 0, void 0, function* () {
+                                                                                                onclick="${gvc.event(() => __awaiter(this, void 0, void 0, function* () {
                                                     const sum = yield new Promise((resolve, reject) => {
                                                         ApiShop.getRebate({}).then((res) => __awaiter(this, void 0, void 0, function* () {
                                                             if (res.result && res.response.sum) {

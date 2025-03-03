@@ -1490,16 +1490,15 @@ export class Shopping {
             }
 
             // 判斷購物金是否可用
-            if (data.use_rebate && data.use_rebate > 0) {
-                if (userData) {
-                    const userRebate = await rebateClass.getOneRebate({user_id: userData.userID});
-                    const sum = userRebate ? userRebate.point : 0;
-                    if (sum < data.use_rebate) {
-                        data.use_rebate = 0;
-                    }
-                } else {
+            const appStatus = await rebateClass.mainStatus();
+            if (appStatus && userData && data.use_rebate && data.use_rebate > 0) {
+                const userRebate = await rebateClass.getOneRebate({user_id: userData.userID});
+                const sum = userRebate ? userRebate.point : 0;
+                if (sum < data.use_rebate) {
                     data.use_rebate = 0;
                 }
+            } else {
+                data.use_rebate = 0;
             }
 
             console.log(`checkout-time-03=>`, new Date().getTime() - check_time);
@@ -2656,28 +2655,34 @@ export class Shopping {
         total: number,
         useRebate: number
     ): Promise<{
+        status: boolean;
         point: number;
         limit?: number;
         condition?: number;
     }> {
         try {
+            const rebateClass = new Rebate(this.app);
+            const status = await rebateClass.mainStatus();
             const getRS = await new User(this.app).getConfig({key: 'rebate_setting', user_id: 'manager'});
             if (getRS[0] && getRS[0].value) {
                 const configData = getRS[0].value.config;
                 if (configData.condition.type === 'total_price' && configData.condition.value > total) {
                     return {
+                        status,
                         point: 0,
                         condition: configData.condition.value - total,
                     };
                 }
                 if (configData.customize) {
                     return {
+                        status,
                         point: useRebate,
                     };
                 } else {
                     if (configData.use_limit.type === 'price') {
                         const limit = configData.use_limit.value;
                         return {
+                            status,
                             point: useRebate > limit ? limit : useRebate,
                             limit,
                         };
@@ -2685,18 +2690,21 @@ export class Shopping {
                     if (configData.use_limit.type === 'percent') {
                         const limit = parseInt(`${(total * configData.use_limit.value) / 100}`, 10);
                         return {
+                            status,
                             point: useRebate > limit ? limit : useRebate,
                             limit,
                         };
                     }
                     if (configData.use_limit.type === 'none') {
                         return {
+                            status,
                             point: useRebate,
                         };
                     }
                 }
             }
             return {
+                status,
                 point: useRebate,
             };
         } catch (error) {

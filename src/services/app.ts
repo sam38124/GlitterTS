@@ -528,39 +528,45 @@ export class App {
     }
 
     public static async checkBrandAndMemberType(app: string) {
-        let base = (
-            await db.query(
-                `SELECT brand, domain
-                 FROM \`${saasConfig.SAAS_NAME}\`.app_config
-                 where appName = ? `,
-                [app]
-            )
-        )[0];
-
-        const userID = (
-            await db.query(
-                `SELECT user
-                 FROM \`${saasConfig.SAAS_NAME}\`.app_config
-                 where appName = ?`,
-                [app]
-            )
-        )[0]['user'];
-        const userData = (
-            await db.query(
-                `SELECT userData
-                 FROM \`${base.brand}\`.t_user
-                 where userID = ? `,
-                [userID]
-            )
-        )[0];
-        return {
-            memberType: userData.userData.menber_type,
-            brand: base.brand,
-            userData: userData.userData,
-            domain: base.domain,
-            user_id: userID,
-        };
+        try {
+            // 單次查詢取得 app 相關資訊（避免兩次 db.query）
+            const appConfig = (
+                await db.query(
+                    `SELECT brand, domain, plan, user as userId
+                    FROM \`${saasConfig.SAAS_NAME}\`.app_config
+                    WHERE appName = ?`,
+                    [app]
+                )
+            )[0];
+        
+            if (!appConfig) {
+                throw new Error(`App "${app}" not found in app_config`);
+            }
+        
+            // 查詢使用者資料
+            const userData = (
+                await db.query(
+                    `SELECT userData
+                    FROM \`${appConfig.brand}\`.t_user
+                    WHERE userID = ?`,
+                    [appConfig.userId]
+                )
+            )[0];
+        
+            return {
+                memberType: userData?.userData?.menber_type ?? null, // 避免 userData 為 undefined
+                brand: appConfig.brand,
+                userData: userData?.userData ?? {},
+                domain: appConfig.domain,
+                plan: appConfig.plan,
+                user_id: appConfig.userId,
+            };
+        } catch (error) {
+            console.error(error);
+            throw exception.BadRequestError('ERROR', 'checkBrandAndMemberType error' + error, null);
+        }
     }
+    
 
     public static async preloadPageData(appName: string, refer_page: string,language:'zh-TW' | 'zh-CN' | 'en-US') {
         const start = new Date().getTime();

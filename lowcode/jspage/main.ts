@@ -669,16 +669,15 @@ ${Storage.page_setting_item === `${da.index}` ? `background:${EditorConfig.edito
                                                     })()}"
                                                     style="overflow-y: auto;overflow-x:hidden;height:calc(100vh - ${(document.body.clientWidth<800 || document.body.clientWidth>1200) ? 56:(parseInt(glitter.share.top_inset, 10)+56)}px);"
                                             >
-                                                <div class="h-120" style="">
+                                                <div class="h-120">
                                                     ${gvc.bindView(() => {
                                                         return {
                                                             bind: 'MainEditorLeft',
-                                                            view: () => {
-                                                                const view = (() => {
-                                                                  
+                                                            view: async () => {
+                                                                const view = await (async () => {
                                                                     switch (Storage.select_function) {
                                                                         case 'backend-manger':
-                                                                            return Setting_editor.left(gvc, viewModel, editorContainerID, gBundle);
+                                                                            return await Setting_editor.left(gvc, viewModel, editorContainerID, gBundle);
                                                                         case 'server-manager':
                                                                             return ServerEditor.left(gvc);
                                                                         case 'page-editor':

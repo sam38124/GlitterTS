@@ -15,8 +15,8 @@ import { GlobalUser } from './glitter-base/global/global-user.js';
 import { EditorConfig } from './editor-config.js';
 import { ShareDialog } from './glitterBundle/dialog/ShareDialog.js';
 import { Language } from './glitter-base/global/language.js';
-import { PayConfig } from "./cms-plugin/pos-pages/pay-config.js";
-import { ApiCart } from "./glitter-base/route/api-cart.js";
+import { PayConfig } from './cms-plugin/pos-pages/pay-config.js';
+import { ApiCart } from './glitter-base/route/api-cart.js';
 export class Entry {
     static onCreate(glitter) {
         var _a, _b;
@@ -26,18 +26,17 @@ export class Entry {
                 const cartKeys = [ApiCart.cartPrefix, ApiCart.buyItNow, ApiCart.globalCart];
                 for (let i = 0; i < localStorage.length; i++) {
                     const key = localStorage.key(i);
-                    if (key && cartKeys.some((cartKey) => key === null || key === void 0 ? void 0 : key.includes(cartKey))) {
+                    if (key && cartKeys.some(cartKey => key === null || key === void 0 ? void 0 : key.includes(cartKey))) {
                         const formatKey = key === null || key === void 0 ? void 0 : key.replace(window.appName, '');
                         const cart = new ApiCart(formatKey);
-                        cart.setCart((cartItem) => {
-                            cartItem.line_items = cartItem.line_items.filter((item) => !lineItemIds.includes(item.id));
+                        cart.setCart(cartItem => {
+                            cartItem.line_items = cartItem.line_items.filter(item => !lineItemIds.includes(item.id));
                         });
                     }
                 }
                 localStorage.removeItem('clear_cart_items');
             }
-            catch (e) {
-            }
+            catch (e) { }
         }
         const clock = glitter.ut.clock();
         const hashLoop = setInterval(() => {
@@ -90,24 +89,23 @@ export class Entry {
         glitter.share.bottom_inset = 0;
         glitter.share.reload_code_hash = function () {
             const hashCode = window.preloadData.eval_code_hash || {};
-            Object.keys(hashCode).map((dd, index) => {
+            Object.keys(hashCode).map(dd => {
                 if (typeof hashCode[dd] === 'string') {
                     try {
                         hashCode[dd] = new Function(`return {
-                        execute:(gvc,widget,object,subData,element,window,document,glitter,$)=>{
-                         return (() => { ${hashCode[dd]} })()
-                        }
-                        }`)().execute;
+              execute:(gvc,widget,object,subData,element,window,document,glitter,$)=>{
+                return (() => { ${hashCode[dd]} })()
+              }
+            }`)().execute;
                     }
                     catch (e) {
+                        console.error(`reload_code_hash error: ` + e);
                     }
                 }
             });
         };
         glitter.share.reload_code_hash();
-        glitter.share.editor_util = {
-            baseApi: BaseApi,
-        };
+        glitter.share.editor_util = { baseApi: BaseApi };
         glitter.page = window.glitter_page;
         glitter.share.GlobalUser = GlobalUser;
         if (glitter.getUrlParameter('page') !== 'backend_manager') {
@@ -115,28 +113,26 @@ export class Entry {
         }
         glitter.share.logID = glitter.getUUID();
         glitter.addStyle(`
-            @media (prefers-reduced-motion: no-preference) {
-                :root {
-                    scroll-behavior: auto !important;
-                }
-            }
-            .hide-elem {
-                display: none !important;
-            }
-            .hy-drawer-left {
-                left: -1000px !important;
-            }
-        `);
+      @media (prefers-reduced-motion: no-preference) {
+        :root {
+          scroll-behavior: auto !important;
+        }
+      }
+      .hide-elem {
+        display: none !important;
+      }
+      .hy-drawer-left {
+        left: -1000px !important;
+      }
+    `);
         if (glitter.getUrlParameter('appName')) {
             window.appName = glitter.getUrlParameter('appName');
         }
-        window.renderClock = (_b = window.renderClock) !== null && _b !== void 0 ? _b : clockF();
+        window.renderClock = (_b = window.renderClock) !== null && _b !== void 0 ? _b : createClock();
         console.log(`Entry-time:`, window.renderClock.stop());
         glitter.share.editerVersion = 'V_18.3.4';
         glitter.share.start = new Date();
-        const vm = {
-            appConfig: [],
-        };
+        const vm = { appConfig: [] };
         window.saasConfig = {
             config: (window.config = config),
             api: ApiPageConfig,
@@ -145,99 +141,98 @@ export class Entry {
         config.token = GlobalUser.saas_token;
         Entry.resourceInitial(glitter, vm, (dd) => __awaiter(this, void 0, void 0, function* () {
             glitter.addStyle(`
-                ${parseInt(window.parent.glitter.share.bottom_inset, 10)
+        ${parseInt(window.parent.glitter.share.bottom_inset, 10)
                 ? `
-                              .update-bar-container {
-                                  padding-bottom: ${window.parent.glitter.share.bottom_inset}px !important;
-                              }
-                          `
+                .update-bar-container {
+                  padding-bottom: ${window.parent.glitter.share.bottom_inset}px !important;
+                }
+              `
                 : ``}
 
-                .editorParent .editorChild {
-                    display: none;
-                }
+        .editorParent .editorChild {
+          display: none;
+        }
 
-                .editorChild::before {
-                    content: '';
-                    position: absolute;
-                    top: 0;
-                    left: 0;
-                    width: 100%;
-                    height: 100%;
-                    pointer-events: none;
-                    z-index: 99999;
-                }
+        .editorChild::before {
+          content: '';
+          position: absolute;
+          top: 0;
+          left: 0;
+          width: 100%;
+          height: 100%;
+          pointer-events: none;
+          z-index: 99999;
+        }
 
-                .editorParent:hover > .editorChild {
-                    display: block;
-                    border: 2px dashed #ffb400;
-                    position: absolute;
-                    top: 0;
-                    left: 0;
-                    width: 100%;
-                    height: 100%;
-                    pointer-events: none;
-                }
-                .editor_item.active {
-                    background: #ddd;
-                }
-                .editorItemActive {
-                    display: block !important;
-                    border: 2px solid #ffb400 !important;
-                    z-index: 99999;
-                    top: 0;
-                    left: 0;
-                    width: 100%;
-                    height: 100%;
-                    position: absolute;
-                }
+        .editorParent:hover > .editorChild {
+          display: block;
+          border: 2px dashed #ffb400;
+          position: absolute;
+          top: 0;
+          left: 0;
+          width: 100%;
+          height: 100%;
+          pointer-events: none;
+        }
 
-                .editorItemActive > .badge_it {
-                    display: flex;
-                }
+        .editor_item.active {
+          background: #ddd;
+        }
 
-                .editorItemActive > .plus_btn {
-                    display: none;
-                }
+        .editorItemActive {
+          display: block !important;
+          border: 2px solid #ffb400 !important;
+          z-index: 99999;
+          top: 0;
+          left: 0;
+          width: 100%;
+          height: 100%;
+          position: absolute;
+        }
 
-                .editorParent:hover > .editorChild > .plus_btn {
-                    display: block !important;
-                }
+        .editorItemActive > .badge_it {
+          display: flex;
+        }
 
-                .badge_it {
-                    display: none;
-                }
+        .editorItemActive > .plus_btn {
+          display: none;
+        }
 
-                .relativePosition {
-                    position: relative;
-                }
-                .sel_normal {
-                    cursor: pointer;
-                    border-radius: 7px;
-                    border: 1px solid #ddd;
-                    padding: 2px 14px;
-                    background: #fff;
-                    box-shadow: 0px 0px 10px 0px rgba(0, 0, 0, 0.1);
-                }
+        .editorParent:hover > .editorChild > .plus_btn {
+          display: block !important;
+        }
 
-                ul {
-                    list-style: none;
-                }
-                li {
-                    list-style: none;
-                }
-            `);
+        .badge_it {
+          display: none;
+        }
+
+        .relativePosition {
+          position: relative;
+        }
+        .sel_normal {
+          cursor: pointer;
+          border-radius: 7px;
+          border: 1px solid #ddd;
+          padding: 2px 14px;
+          background: #fff;
+          box-shadow: 0px 0px 10px 0px rgba(0, 0, 0, 0.1);
+        }
+
+        ul {
+          list-style: none;
+        }
+        li {
+          list-style: none;
+        }
+      `);
             yield Entry.globalStyle(glitter, dd);
             if (glitter.getUrlParameter('type') === 'editor') {
                 const dialog = new ShareDialog(glitter);
                 dialog.dataLoading({ visible: true, text: '後台載入中' });
-                Entry.toBackendEditor(glitter, () => {
-                });
+                Entry.toBackendEditor(glitter, () => { });
             }
             else if (glitter.getUrlParameter('type') === 'htmlEditor') {
-                Entry.toHtmlEditor(glitter, vm, () => {
-                    Entry.checkIframe(glitter);
-                });
+                Entry.toHtmlEditor(glitter, vm, () => Entry.checkIframe(glitter));
             }
             else if (glitter.getUrlParameter('page') === 'backend_manager') {
                 if (!GlobalUser.token) {
@@ -249,15 +244,12 @@ export class Entry {
                         const appList = (yield ApiPageConfig.getAppList(undefined, GlobalUser.token)).response.result;
                         localStorage.setItem('select_item', '0');
                         if (appList.length === 0) {
-                            glitter.getModule(new URL('./view-model/saas-view-model.js', location.href).href, (SaasViewModel) => {
-                                glitter.innerDialog((gvc) => {
+                            glitter.getModule(new URL('./view-model/saas-view-model.js', location.href).href, SaasViewModel => {
+                                glitter.innerDialog(gvc => {
                                     return gvc.bindView(() => {
-                                        const id = gvc.glitter.getUUID();
                                         return {
-                                            bind: id,
-                                            view: () => {
-                                                return SaasViewModel.createShop(gvc, true);
-                                            },
+                                            bind: gvc.glitter.getUUID(),
+                                            view: () => SaasViewModel.createShop(gvc, true),
                                         };
                                     });
                                 }, 'change_app');
@@ -265,9 +257,7 @@ export class Entry {
                         }
                         else {
                             let appName = appList[0].appName;
-                            if (appList.find((dd) => {
-                                return dd.appName === localStorage.getItem('select_app_name');
-                            })) {
+                            if (appList.find((dd) => dd.appName === localStorage.getItem('select_app_name'))) {
                                 appName = localStorage.getItem('select_app_name');
                             }
                             glitter.setUrlParameter('page', 'index');
@@ -278,36 +268,18 @@ export class Entry {
                         }
                     }
                     catch (e) {
-                        console.log(e);
+                        console.error(e);
                         glitter.setUrlParameter('page', 'login');
                         location.reload();
                     }
                 }
             }
             else {
-                Entry.toNormalRender(glitter, vm, () => {
-                    Entry.checkIframe(glitter);
-                });
+                Entry.toNormalRender(glitter, vm, () => Entry.checkIframe(glitter));
             }
         }));
         glitter.share.LanguageApi = Language;
-        glitter.share.plan_text = () => {
-            const config = window.parent.glitter.share.editorViewModel.app_config_original;
-            let planText = '「  企業電商方案（免費試用30天）」';
-            if (config.plan === 'light-year') {
-                planText = '「 輕便電商方案 」';
-            }
-            else if (config.plan === 'basic-year') {
-                planText = '「 標準電商方案 」';
-            }
-            else if (config.plan === 'omo-year') {
-                planText = '「 企業電商方案 」';
-            }
-            else if (config.plan === 'app-year') {
-                planText = '「 旗艦電商方案 」';
-            }
-            return planText;
-        };
+        glitter.share.plan_text = () => GlobalUser.getPlan().title;
         window.addEventListener('resize', () => {
             const width = window.innerWidth;
             const height = window.innerHeight;
@@ -327,36 +299,35 @@ export class Entry {
                 $(`body`).height(`${document.body.scrollHeight}px`);
             }, 100);
             glitter.addStyle(`
-                html,
-                body {
-                    overflow: hidden !important;
-                }
-            `);
+        html,
+        body {
+          overflow: hidden !important;
+        }
+      `);
         }
         else {
             glitter.addStyle(`
-                html,
-                body {
-                    height: 100vh !important;
-                }
-            `);
+        html,
+        body {
+          height: 100vh !important;
+        }
+      `);
         }
     }
     static toBackendEditor(glitter, callback) {
-        const css = String.raw;
-        glitter.addStyle(css `
-            @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@100..900&family=Noto+Sans:ital,wght@0,100..900;1,100..900&display=swap');
-            @media (prefers-reduced-motion: no-preference) {
-                :root {
-                    scroll-behavior: auto !important;
-                }
-            }
+        glitter.addStyle(`
+      @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@100..900&family=Noto+Sans:ital,wght@0,100..900;1,100..900&display=swap');
+      @media (prefers-reduced-motion: no-preference) {
+        :root {
+          scroll-behavior: auto !important;
+        }
+      }
 
-            ::-webkit-scrollbar {
-                width: 0; /* 滚动条宽度 */
-                height: 0;
-            }
-        `);
+      ::-webkit-scrollbar {
+        width: 0; /* 滚动条宽度 */
+        height: 0;
+      }
+    `);
         glitter.share.EditorMode = true;
         glitter.share.evalPlace = (evals) => eval(evals);
         function running() {
@@ -369,7 +340,7 @@ export class Entry {
                     'https://cdn.jsdelivr.net/npm/@simonwep/pickr/dist/themes/monolith.min.css',
                     'https://cdn.jsdelivr.net/npm/@simonwep/pickr/dist/themes/nano.min.css',
                 ]);
-                yield new Promise((resolve, reject) => {
+                yield new Promise(resolve => {
                     glitter.addMtScript([
                         'jslib/pickr.min.js',
                         'https://cdn.jsdelivr.net/npm/bootstrap@5.3.1/dist/js/bootstrap.bundle.min.js',
@@ -377,11 +348,7 @@ export class Entry {
                         'assets/vendor/swiper/swiper-bundle.min.js',
                         'assets/js/theme.min.js',
                         'https://unpkg.com/@lottiefiles/lottie-player@latest/dist/lottie-player.js',
-                    ], () => {
-                        resolve(true);
-                    }, () => {
-                        resolve(true);
-                    });
+                    ], () => resolve(true), () => resolve(true));
                 });
                 return;
             });
@@ -401,12 +368,14 @@ export class Entry {
                     if (data.response.result.length === 0 && glitter.getUrlParameter('page') !== 'cms') {
                         glitter.setUrlParameter('page', data.response.redirect);
                     }
-                    glitter.addStyle(css `
-                        .page-box {
-                            min-height: ${window.innerHeight}px !important;
-                        }
-                    `);
-                    if (localStorage.getItem('on-pos') === 'true' && glitter.getUrlParameter('page') !== 'pos' && (glitter.getUrlParameter('type') === 'editor')) {
+                    glitter.addStyle(`
+            .page-box {
+              min-height: ${window.innerHeight}px !important;
+            }
+          `);
+                    if (localStorage.getItem('on-pos') === 'true' &&
+                        glitter.getUrlParameter('page') !== 'pos' &&
+                        glitter.getUrlParameter('type') === 'editor') {
                         localStorage.removeItem('on-pos');
                         location.href = glitter.root_path + 'pos?app-id=' + window.appName;
                     }
@@ -428,7 +397,7 @@ export class Entry {
                 'Content-Type': 'application/json',
                 Authorization: GlobalUser.saas_token,
             },
-        }).then((d2) => {
+        }).then(d2 => {
             if (!d2.result) {
                 const url = new URL(glitter.location.href);
                 location.href = `${url.origin}/${window.glitterBase}/login`;
@@ -446,16 +415,14 @@ export class Entry {
             {
                 src: 'https://kit.fontawesome.com/cccedec0f8.js',
             },
-        ], () => {
-        }, () => {
-        });
+        ], () => { }, () => { });
         glitter.addStyle(`
-            @media (prefers-reduced-motion: no-preference) {
-                :root {
-                    scroll-behavior: auto !important;
-                }
-            }
-        `);
+      @media (prefers-reduced-motion: no-preference) {
+        :root {
+          scroll-behavior: auto !important;
+        }
+      }
+    `);
         window.parent.glitter.share.editerGlitter = glitter;
         const clock = glitter.ut.clock();
         function scrollToItem(element) {
@@ -474,17 +441,13 @@ export class Entry {
                 clearInterval(interVal);
             }
         });
-        window.parent.glitter.share.evalPlace = (evals) => {
-            return eval(evals);
-        };
+        window.parent.glitter.share.evalPlace = (evals) => eval(evals);
         glitter.addMtScript(window.parent.editerData.setting.map((dd) => {
             return {
                 src: `${glitter.htmlGenerate.configureCDN(glitter.htmlGenerate.resourceHook(dd.js))}`,
                 type: 'module',
             };
-        }), () => {
-        }, () => {
-        }, [{ key: 'async', value: 'true' }]);
+        }), () => { }, () => { }, [{ key: 'async', value: 'true' }]);
         glitter.htmlGenerate.loadScript(glitter, window.parent.editerData.setting
             .filter((dd) => {
             return ['widget', 'container', 'code'].indexOf(dd.type) === -1;
@@ -495,11 +458,12 @@ export class Entry {
                 type: 'module',
             };
         }));
-        glitter.share.evalPlace = (evals) => {
-            return eval(evals);
-        };
+        glitter.share.evalPlace = (evals) => eval(evals);
         setTimeout(() => {
-            window.parent.glitter.share.loading_dialog.dataLoading({ text: '', visible: false });
+            window.parent.glitter.share.loading_dialog.dataLoading({
+                text: '',
+                visible: false,
+            });
         }, 2000);
         glitter.htmlGenerate.setHome({
             app_config: vm.appConfig,
@@ -521,17 +485,13 @@ export class Entry {
             {
                 src: `https://unpkg.com/@lottiefiles/lottie-player@latest/dist/lottie-player.js`,
             },
-        ], () => {
-        }, () => {
-        });
+        ], () => { }, () => { });
         if (glitter.getUrlParameter('token') && glitter.getUrlParameter('return_type') === 'resetPassword') {
             GlobalUser.token = glitter.getUrlParameter('token');
             glitter.setUrlParameter('token');
             glitter.setUrlParameter('return_type');
         }
-        glitter.share.evalPlace = (evals) => {
-            return eval(evals);
-        };
+        glitter.share.evalPlace = (evals) => eval(evals);
         console.log(`exePlugin-time:`, window.renderClock.stop());
         window.glitterInitialHelper.getPageData(glitter.getUrlParameter('page'), (data) => {
             console.log(`getPageData-time:`, window.renderClock.stop());
@@ -556,8 +516,7 @@ export class Entry {
                 .map((dd) => {
                 return {
                     src: `${glitter.htmlGenerate.configureCDN(glitter.htmlGenerate.resourceHook(dd.js))}`,
-                    callback: () => {
-                    },
+                    callback: () => { },
                 };
             }));
             function authPass() {
@@ -599,7 +558,6 @@ export class Entry {
                     backGroundColor: `transparent;`,
                 });
             }
-            console.log(`(window as any).memberType=>`, window.memberType);
             if (window.memberType !== 'noLimit' &&
                 vm.appConfig.dead_line &&
                 new Date(vm.appConfig.dead_line).getTime() < new Date().getTime() &&
@@ -613,19 +571,21 @@ export class Entry {
     }
     static resourceInitial(glitter, vm, callback) {
         glitter.share.PayConfig = PayConfig;
-        glitter.runJsInterFace('pos-device', {}, (res) => {
+        glitter.runJsInterFace('pos-device', {}, res => {
             PayConfig.deviceType = res.deviceType === 'neostra' ? 'pos' : 'web';
             if (PayConfig.deviceType === 'pos') {
                 const script = document.createElement('script');
                 script.type = 'text/javascript';
                 script.src = 'https://cdnjs.cloudflare.com/ajax/libs/mui/3.7.1/js/mui.min.js';
-                script.integrity = 'sha512-5LSZkoyayM01bXhnlp2T6+RLFc+dE4SIZofQMxy/ydOs3D35mgQYf6THIQrwIMmgoyjI+bqjuuj4fQcGLyJFYg==';
+                script.integrity =
+                    'sha512-5LSZkoyayM01bXhnlp2T6+RLFc+dE4SIZofQMxy/ydOs3D35mgQYf6THIQrwIMmgoyjI+bqjuuj4fQcGLyJFYg==';
                 script.referrerPolicy = 'no-referrer';
                 script.crossOrigin = 'anonymous';
                 document.head.appendChild(script);
-                glitter.addMtScript(['https://oss-sg.imin.sg/web/iMinPartner/js/imin-printer.min.js', 'https://cdn.jsdelivr.net/npm/jsbarcode@3.11.5/dist/JsBarcode.all.min.js'], () => {
-                }, () => {
-                });
+                glitter.addMtScript([
+                    'https://oss-sg.imin.sg/web/iMinPartner/js/imin-printer.min.js',
+                    'https://cdn.jsdelivr.net/npm/jsbarcode@3.11.5/dist/JsBarcode.all.min.js',
+                ], () => { }, () => { });
                 setTimeout(() => {
                     window.IminPrintInstance = new IminPrinter();
                     window.IminPrintInstance.connect();
@@ -662,7 +622,7 @@ export class Entry {
             config.globalValue = (_d = config.globalValue) !== null && _d !== void 0 ? _d : [];
             config.globalStyleTag = (_e = config.globalStyleTag) !== null && _e !== void 0 ? _e : [];
             config.color_theme.map((dd, index) => {
-                EditorConfig.color_setting_config.map((d2) => {
+                EditorConfig.color_setting_config.map(d2 => {
                     glitter.share.globalValue[`theme_color.${index}.${d2.key}`] = dd[d2.key];
                 });
             });
@@ -671,20 +631,20 @@ export class Entry {
             glitter.share.initial_fonts = [];
             if (glitter.share.font_theme[0]) {
                 glitter.addStyle(`
-                    @charset "UTF-8";
-                    ${glitter.share.font_theme
+          @charset "UTF-8";
+          ${glitter.share.font_theme
                     .map((dd) => {
                     glitter.share.initial_fonts.push(dd.value);
                     return `@import url('https://fonts.googleapis.com/css2?family=${dd.value}&display=swap');`;
                 })
                     .join('\n')}
-                    body {
-                        font-family: '${glitter.share.font_theme[0].value}' !important;
-                        font-optical-sizing: auto;
-                        font-style: normal;
-                        color: #393939;
-                    }
-                `);
+          body {
+            font-family: '${glitter.share.font_theme[0].value}' !important;
+            font-optical-sizing: auto;
+            font-style: normal;
+            color: #393939;
+          }
+        `);
             }
             function loopCheckGlobalValue(array, tag) {
                 try {
@@ -725,13 +685,13 @@ export class Entry {
         return new Promise((resolve, reject) => __awaiter(this, void 0, void 0, function* () {
             var _a, _b;
             function loopVersion() {
-                ApiPageConfig.getGlitterVersion().then((res) => {
+                ApiPageConfig.getGlitterVersion().then(res => {
                     console.log('glitterVersion:', res.response.result);
                     if (res.result && !glitter.share.editerVersion.includes(res.response.result)) {
                         const dialog = new ShareDialog(glitter);
                         dialog.checkYesOrNot({
                             text: '新版本已發佈，是否進行更新?',
-                            callback: (response) => {
+                            callback: response => {
                                 if (response) {
                                     location.reload();
                                 }
@@ -809,14 +769,16 @@ export class Entry {
         }
     }
 }
-let clockF = () => {
+const createClock = () => {
+    let startTime = Date.now();
     return {
-        start: new Date(),
+        start: startTime,
         stop: function () {
-            return new Date().getTime() - this.start.getTime();
+            return Date.now() - startTime;
         },
         zeroing: function () {
-            this.start = new Date();
+            startTime = Date.now();
+            this.start = startTime;
         },
     };
 };

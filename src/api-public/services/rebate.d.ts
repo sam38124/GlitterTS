@@ -30,7 +30,7 @@ export declare class Rebate {
     static isValidDateTimeString(dateTimeString: string): boolean;
     static nowTime: (timeZone?: string) => string;
     getConfig(): Promise<any>;
-    mainStatus(): Promise<boolean | undefined>;
+    mainStatus(): Promise<boolean>;
     getOneRebate(obj: {
         user_id?: number;
         email?: string;

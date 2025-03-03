@@ -373,6 +373,7 @@ export declare class Shopping {
         targetID: string;
     }>): Promise<boolean>;
     formatUseRebate(total: number, useRebate: number): Promise<{
+        status: boolean;
         point: number;
         limit?: number;
         condition?: number;

@@ -26,6 +26,7 @@ import { LoginTicket } from 'google-auth-library/build/src/auth/loginticket.js';
 import { UtPermission } from '../utils/ut-permission.js';
 import { SharePermission } from './share-permission.js';
 import { TermsCheck } from './terms-check.js';
+import { App as GeneralApp } from '../../services/app.js';
 
 interface UserQuery {
     page?: number;
@@ -204,7 +205,9 @@ export class User {
                     msg: 'lead data with phone.',
                 });
             }
-            if (!pass_verify) {
+
+            const memberConfig = await GeneralApp.checkBrandAndMemberType(this.app);
+            if (!pass_verify && memberConfig.plan !== 'light-year') {
                 if (
                     login_config.email_verify &&
                     userData.verify_code !== (await redis.getValue(`verify-${userData.email}`)) &&

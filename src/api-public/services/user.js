@@ -53,6 +53,7 @@ const form_check_js_1 = require("./form-check.js");
 const ut_permission_js_1 = require("../utils/ut-permission.js");
 const share_permission_js_1 = require("./share-permission.js");
 const terms_check_js_1 = require("./terms-check.js");
+const app_js_2 = require("../../services/app.js");
 class User {
     static generateUserID() {
         let userID = '';
@@ -149,7 +150,8 @@ class User {
                     msg: 'lead data with phone.',
                 });
             }
-            if (!pass_verify) {
+            const memberConfig = await app_js_2.App.checkBrandAndMemberType(this.app);
+            if (!pass_verify && memberConfig.plan !== 'light-year') {
                 if (login_config.email_verify &&
                     userData.verify_code !== (await redis_js_1.default.getValue(`verify-${userData.email}`)) &&
                     register_form.list.find((dd) => {

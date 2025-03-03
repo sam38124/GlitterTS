@@ -416,22 +416,30 @@ class App {
         }
     }
     static async checkBrandAndMemberType(app) {
-        let base = (await database_1.default.query(`SELECT brand, domain
-                 FROM \`${config_1.saasConfig.SAAS_NAME}\`.app_config
-                 where appName = ? `, [app]))[0];
-        const userID = (await database_1.default.query(`SELECT user
-                 FROM \`${config_1.saasConfig.SAAS_NAME}\`.app_config
-                 where appName = ?`, [app]))[0]['user'];
-        const userData = (await database_1.default.query(`SELECT userData
-                 FROM \`${base.brand}\`.t_user
-                 where userID = ? `, [userID]))[0];
-        return {
-            memberType: userData.userData.menber_type,
-            brand: base.brand,
-            userData: userData.userData,
-            domain: base.domain,
-            user_id: userID,
-        };
+        var _a, _b, _c;
+        try {
+            const appConfig = (await database_1.default.query(`SELECT brand, domain, plan, user as userId
+                    FROM \`${config_1.saasConfig.SAAS_NAME}\`.app_config
+                    WHERE appName = ?`, [app]))[0];
+            if (!appConfig) {
+                throw new Error(`App "${app}" not found in app_config`);
+            }
+            const userData = (await database_1.default.query(`SELECT userData
+                    FROM \`${appConfig.brand}\`.t_user
+                    WHERE userID = ?`, [appConfig.userId]))[0];
+            return {
+                memberType: (_b = (_a = userData === null || userData === void 0 ? void 0 : userData.userData) === null || _a === void 0 ? void 0 : _a.menber_type) !== null && _b !== void 0 ? _b : null,
+                brand: appConfig.brand,
+                userData: (_c = userData === null || userData === void 0 ? void 0 : userData.userData) !== null && _c !== void 0 ? _c : {},
+                domain: appConfig.domain,
+                plan: appConfig.plan,
+                user_id: appConfig.userId,
+            };
+        }
+        catch (error) {
+            console.error(error);
+            throw exception_1.default.BadRequestError('ERROR', 'checkBrandAndMemberType error' + error, null);
+        }
     }
     static async preloadPageData(appName, refer_page, language) {
         const start = new Date().getTime();
