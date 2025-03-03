@@ -896,93 +896,90 @@ color:white;
                         ${gvc.bindView((() => {
                         const chatId = glitter.getUUID();
                         const userPlan = GlobalUser.getPlan().id;
-                        let loading = true;
                         return {
                             bind: chatId,
                             view: () => {
-                                if (loading || userPlan == 0) {
+                                if (userPlan == 0) {
                                     return '';
                                 }
-                                else {
-                                    return html ` <div
+                                return html ` <div
                                       class="me-2 bt_orange_lin_mb position-relative"
                                       style="width:42px;"
                                       onclick="${gvc.event(() => {
-                                        BgCustomerMessage.toggle(true, gvc);
-                                    })}"
+                                    BgCustomerMessage.toggle(true, gvc);
+                                })}"
                                     >
                                       <i class="fa-regular fa-messages"></i>
                                     </div>
                                     ${gvc.bindView(() => {
-                                        const message_notice = gvc.glitter.getUUID();
-                                        let unread = 0;
-                                        let socket = undefined;
-                                        const url = new URL(window.glitterBackend);
-                                        let vm = {
-                                            close: false,
-                                        };
-                                        function loadData() {
-                                            Chat.getUnRead({
+                                    const message_notice = gvc.glitter.getUUID();
+                                    let unread = 0;
+                                    let socket = undefined;
+                                    const url = new URL(window.glitterBackend);
+                                    let vm = {
+                                        close: false,
+                                    };
+                                    function loadData() {
+                                        Chat.getUnRead({
+                                            user_id: 'manager',
+                                        }).then((data) => __awaiter(this, void 0, void 0, function* () {
+                                            unread = data.response.length;
+                                            gvc.notifyDataChange(message_notice);
+                                        }));
+                                    }
+                                    loadData();
+                                    function connect() {
+                                        socket = location.href.includes('https://')
+                                            ? new WebSocket(`wss://${url.hostname}/websocket`)
+                                            : new WebSocket(`ws://${url.hostname}:9003`);
+                                        socket.addEventListener('open', function (event) {
+                                            console.log('Connected to update list server');
+                                            socket.send(JSON.stringify({
+                                                type: 'message-count-change',
                                                 user_id: 'manager',
-                                            }).then((data) => __awaiter(this, void 0, void 0, function* () {
-                                                unread = data.response.length;
-                                                gvc.notifyDataChange(message_notice);
+                                                app_name: window.appName,
                                             }));
-                                        }
-                                        loadData();
-                                        function connect() {
-                                            socket = location.href.includes('https://')
-                                                ? new WebSocket(`wss://${url.hostname}/websocket`)
-                                                : new WebSocket(`ws://${url.hostname}:9003`);
-                                            socket.addEventListener('open', function (event) {
-                                                console.log('Connected to update list server');
-                                                socket.send(JSON.stringify({
-                                                    type: 'message-count-change',
-                                                    user_id: 'manager',
-                                                    app_name: window.appName,
-                                                }));
-                                            });
-                                            socket.addEventListener('message', function (event) {
-                                                return __awaiter(this, void 0, void 0, function* () {
-                                                    console.log(`update_message_count`);
-                                                    const data = JSON.parse(event.data);
-                                                    if (data.type === 'update_message_count') {
-                                                        loadData();
-                                                    }
-                                                });
-                                            });
-                                            socket.addEventListener('close', function (event) {
-                                                console.log('Disconnected from server');
-                                                if (!vm.close) {
-                                                    console.log('Reconnected from server');
-                                                    connect();
+                                        });
+                                        socket.addEventListener('message', function (event) {
+                                            return __awaiter(this, void 0, void 0, function* () {
+                                                console.log(`update_message_count`);
+                                                const data = JSON.parse(event.data);
+                                                if (data.type === 'update_message_count') {
+                                                    loadData();
                                                 }
                                             });
-                                        }
-                                        connect();
-                                        return {
-                                            bind: message_notice,
-                                            view: () => {
-                                                return html ` <div
+                                        });
+                                        socket.addEventListener('close', function (event) {
+                                            console.log('Disconnected from server');
+                                            if (!vm.close) {
+                                                console.log('Reconnected from server');
+                                                connect();
+                                            }
+                                        });
+                                    }
+                                    connect();
+                                    return {
+                                        bind: message_notice,
+                                        view: () => {
+                                            return html ` <div
                                             class="${unread
-                                                    ? `d-flex`
-                                                    : `d-none`} rounded-circle bg-danger text-white  align-items-center justify-content-center fw-500"
+                                                ? `d-flex`
+                                                : `d-none`} rounded-circle bg-danger text-white  align-items-center justify-content-center fw-500"
                                             style="width:15px;height: 15px;color: white !important;"
                                           >
                                             ${unread}
                                           </div>`;
-                                            },
-                                            divCreate: {
-                                                class: `position-absolute`,
-                                                style: `font-size: 10px;right: 13px;top: 3px;`,
-                                            },
-                                            onDestroy: () => {
-                                                vm.close = true;
-                                                socket && socket.close();
-                                            },
-                                        };
-                                    })}`;
-                                }
+                                        },
+                                        divCreate: {
+                                            class: `position-absolute`,
+                                            style: `font-size: 10px;right: 13px;top: 3px;`,
+                                        },
+                                        onDestroy: () => {
+                                            vm.close = true;
+                                            socket && socket.close();
+                                        },
+                                    };
+                                })}`;
                             },
                         };
                     })())}

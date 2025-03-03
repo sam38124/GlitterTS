@@ -323,7 +323,6 @@ ${(!error.message) ? `` : `錯誤訊息:${error.message}`}${(!error.lineNumber) 
        if(title){
            document.title=title
        }
-       console.log(`window.location.hash==>`,window.location.href)
         if (tag === 'page' && value) {
             try {
 

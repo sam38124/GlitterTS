@@ -14,6 +14,7 @@ import { BaseApi } from "../glitterBundle/api/base.js";
 import { config } from "../config.js";
 import { Currency } from "../glitter-base/global/currency.js";
 import { LanguageBackend } from "./language-backend.js";
+import { GlobalUser } from '../glitter-base/global/global-user.js';
 export class ShoppingInformation {
     static main(gvc) {
         const glitter = gvc.glitter;
@@ -515,7 +516,7 @@ ${BgWidget.title('GoDaddy DNS 設定指南')}
                                 : ``}
                                             />
                                         </div>
-                                        <div class="d-flex flex-column" style="gap:8px;">
+                                        ${GlobalUser.getPlan().id > 0 ? html `<div class="d-flex flex-column" style="gap:8px;">
                                             <div style="color: #393939;font-size: 16px;">啟用聊聊功能</div>
                                             <div style="color: #8D8D8D;font-size:13px;">啟用聊聊功能，方便客戶直接於官網前台與您聯繫，並詢問商品詳細內容。
                                             </div>
@@ -530,7 +531,7 @@ ${BgWidget.title('GoDaddy DNS 設定指南')}
                                                         ${vm.data.chat_toggle ? `checked` : ``}
                                                 />
                                             </div>
-                                        </div>
+                                        </div>` : ''}
                                         <div class="d-flex flex-column" style="gap:8px;">
                                             <div style="color: #393939;font-size: 16px;">啟用心願單功能</div>
                                             <div style="color: #8D8D8D;font-size:13px;">啟用心願單功能，方便客戶收藏並管理喜愛的商品清單。<br>

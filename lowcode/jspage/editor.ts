@@ -967,15 +967,14 @@ color:white;
                           (() => {
                             const chatId = glitter.getUUID();
                             const userPlan = GlobalUser.getPlan().id;
-                            let loading = true;
 
                             return {
                               bind: chatId,
                               view: () => {
-                                if (loading || userPlan == 0) {
+                                if (userPlan == 0) {
                                   return '';
-                                } else {
-                                  return html` <div
+                                }
+                                return html` <div
                                       class="me-2 bt_orange_lin_mb position-relative"
                                       style="width:42px;"
                                       onclick="${gvc.event(() => {
@@ -1057,7 +1056,6 @@ color:white;
                                         },
                                       };
                                     })}`;
-                                }
                               },
                             };
                           })()
