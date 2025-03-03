@@ -73,7 +73,7 @@ export class Glitter {
 
     set href(value) {
         const link = new URL(value, location.href);
-        if ((location.origin) === (link.origin)) {
+        if ((location.origin) === (link.origin) && !(value.includes('#'))) {
             if (link.searchParams.get("page")) {
                 const page = link.searchParams.get("page")
                 link.searchParams.delete("page");
@@ -323,20 +323,23 @@ ${(!error.message) ? `` : `錯誤訊息:${error.message}`}${(!error.lineNumber) 
        if(title){
            document.title=title
        }
+       console.log(`window.location.hash==>`,window.location.href)
         if (tag === 'page' && value) {
             try {
+
                 this.page = value;
                 const url = new URL((() => {
                     if (value === 'index') {
-                        return this.root_path.substring(0, this.root_path.length - 1) + Language.getLanguageLinkPrefix(false) + window.location.search
+                        return this.root_path.substring(0, this.root_path.length - 1) + Language.getLanguageLinkPrefix(false)+window.location.hash + window.location.search
                     } else {
-                        return this.root_path + Language.getLanguageLinkPrefix() + value + window.location.search
+                        return this.root_path + Language.getLanguageLinkPrefix() + value + window.location.hash+window.location.search
                     }
                 })())
                 url.searchParams.delete('page')
                 window.history.replaceState({}, title || document.title, url.href);
             } catch (e) {
             }
+
         } else {
             const url = new URL(location.href)
             url.searchParams.delete(tag)
@@ -745,11 +748,19 @@ ${(!error.message) ? `` : `錯誤訊息:${error.message}`}${(!error.lineNumber) 
         queue: {},
         resize_img_url: (link: string) => {
             let rela_link = link;
-            [150, 600, 1200, 1440].reverse().map((dd) => {
-                if (document.body.clientWidth < dd) {
-                    rela_link = link.replace('size1440_s*px$_', `size${dd}_s*px$_`)
+            function findClosestNumbers(arr:any, target:number) {
+                if (arr.length === 0) {
+                    throw new Error('數字陣列不可為空');
                 }
-            })
+
+                const distances = arr.map((num :number) => Math.abs(num - target)); // 計算每個數字與目標的距離
+                const minDistance = Math.min(...distances); // 找到最小距離
+                // 將所有距離符合 minDistance 的數字加入結果
+                return arr.filter((num:number, index:number) => distances[index] === minDistance);
+            }
+            const closestNumbers = findClosestNumbers([150, 600, 1200, 1440], document.body.clientWidth);
+
+            rela_link = link.replace('size1920_s*px$_', `size${closestNumbers}_s*px$_`).replace('size1440_s*px$_', `size${closestNumbers}_s*px$_`)
             return rela_link
         },
         clock() {

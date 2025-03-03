@@ -563,7 +563,7 @@ export const widgetComponent = {
                             array: []
                         },
                         {
-                            title: "開發者設定",
+                            title: "進階設定",
                             key: 'develop',
                             array: []
                         }

@@ -393,7 +393,7 @@ export class ApiPageConfig {
                                                         'Content-Type': s3res.type,
                                                     }
                                                 });
-                                                if (size === 1440) {
+                                                if (size === 1920) {
                                                     links.push(s3res.fullUrl);
                                                 }
                                                 resolve(res.result);
@@ -405,19 +405,19 @@ export class ApiPageConfig {
                             });
                         });
                     }
-                    let chunk_size = [150, 600, 1200, 1440];
+                    let chunk_size = [150, 600, 1200, 1440, 1920];
                     let chunk_count = 0;
-                    yield new Promise((resolve, reject) => {
-                        for (const size of chunk_size) {
-                            loopSize(size).then((res) => {
-                                chunk_count++;
-                                result = res && result;
-                                if (chunk_count === chunk_size.length) {
-                                    resolve(true);
-                                }
-                            });
+                    const s3res = (yield ApiPageConfig.uploadFile(getFileName('original'))).response;
+                    const res = yield BaseApi.create({
+                        url: s3res.url,
+                        type: 'put',
+                        data: file,
+                        headers: {
+                            'Content-Type': s3res.type,
                         }
                     });
+                    links.push(s3res.fullUrl);
+                    result = true;
                     if (!result) {
                         return {
                             result: false

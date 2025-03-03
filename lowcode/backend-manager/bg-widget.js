@@ -1709,7 +1709,9 @@ ${(_c = obj.default) !== null && _c !== void 0 ? _c : ''}</textarea
                 divCreate: {},
                 onCreate: () => {
                     if (vm.loading) {
-                        obj.getData(vm);
+                        setTimeout(() => {
+                            obj.getData(vm);
+                        });
                     }
                     else {
                         if (!created.table) {

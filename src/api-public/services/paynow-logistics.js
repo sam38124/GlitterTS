@@ -12,6 +12,7 @@ const crypto_1 = require("crypto");
 const private_config_js_1 = require("../../services/private_config.js");
 const shipment_config_js_1 = require("../config/shipment-config.js");
 const axios_1 = __importDefault(require("axios"));
+const database_js_1 = __importDefault(require("../../modules/database.js"));
 const html = String.raw;
 class PayNowLogistics {
     constructor(app_name) {
@@ -57,36 +58,133 @@ class PayNowLogistics {
             </form>
         `;
     }
+    async deleteLogOrder(orderNO, logisticNumber, totalAmount) {
+        const l_config = await this.config();
+        const url = `${l_config.link}/api/Orderapi/CancelOrder`;
+        const data = {
+            LogisticNumber: logisticNumber,
+            sno: 1,
+            PassCode: await this.sha1Encrypt([l_config.account, orderNO, totalAmount, l_config.pwd].join(''))
+        };
+        Object.keys(data).map((dd) => {
+            data[dd] = `${data[dd]}`;
+        });
+        const config = {
+            method: 'delete',
+            maxBodyLength: Infinity,
+            url: url,
+            headers: {
+                'Content-Type': 'application/JSON'
+            },
+            data: data
+        };
+        const response = await (0, axios_1.default)(config);
+        console.log(`response_data==>`, response.data);
+        if (response.data && !(response.data.includes('已繳費'))) {
+            const order = (await database_js_1.default.query(`select *
+                                           from \`${this.app_name}\`.t_checkout
+                                           where cart_token = ?`, [orderNO]))[0];
+            delete order.orderData.user_info.shipment_number;
+            delete order.orderData.user_info.shipment_refer;
+            await database_js_1.default.query(`update \`${this.app_name}\`.t_checkout
+                            set orderData=?
+                            where cart_token = ?`, [JSON.stringify(order.orderData), orderNO]);
+        }
+        return response.data;
+    }
+    async getOrderInfo(orderNO) {
+        try {
+            const l_config = await this.config();
+            const url = `${l_config.link}/api/Orderapi/Get_Order_Info_orderno?orderno=${orderNO}&user_account=${l_config.account}&sno=1`;
+            const config = {
+                method: 'get',
+                maxBodyLength: Infinity,
+                url: url,
+                headers: {
+                    'Content-Type': 'application/JSON'
+                }
+            };
+            const response = await (0, axios_1.default)(config);
+            return response.data;
+        }
+        catch (e) {
+            console.log(e);
+            return {
+                status: e.status
+            };
+        }
+    }
     async printLogisticsOrder(carData) {
         const l_config = await this.config();
         const url = `${l_config.link}/api/Orderapi/Add_Order`;
-        const data = {
-            user_account: l_config.account,
-            apicode: l_config.pwd,
-            Logistic_service: shipment_config_js_1.ShipmentConfig.list.find((dd) => {
-                return dd.value === carData.user_info.shipment;
-            }).paynow_id,
-            OrderNo: carData.orderID,
-            DeliverMode: (carData.customer_info.payment_select == 'cash_on_delivery') ? '01' : '02',
-            TotalAmount: carData.total,
-            receiver_storeid: carData.user_info.CVSStoreID,
-            receiver_storename: carData.user_info.CVSStoreName,
-            return_storeid: '',
-            Receiver_Name: carData.user_info.name,
-            Receiver_Phone: carData.user_info.phone,
-            Receiver_Email: carData.user_info.email,
-            Receiver_address: carData.user_info.CVSAddress,
-            Sender_Name: l_config.sender_name,
-            Sender_Phone: l_config.sender_phone,
-            Sender_Email: l_config.sender_email,
-            Sender_address: l_config.sender_address,
-            "Remark": "",
-            "Description": "",
-            PassCode: await this.sha1Encrypt([l_config.account, carData.orderID, carData.total, l_config.pwd].join(''))
-        };
-        if (shipment_config_js_1.ShipmentConfig.list.find((dd) => {
+        const service = shipment_config_js_1.ShipmentConfig.list.find((dd) => {
             return dd.value === carData.user_info.shipment;
-        }).paynow_id === '06') {
+        }).paynow_id;
+        const data = await (async () => {
+            if (service === '36') {
+                return {
+                    user_account: l_config.account,
+                    apicode: l_config.pwd,
+                    Logistic_service: service,
+                    OrderNo: carData.orderID,
+                    DeliverMode: (carData.customer_info.payment_select == 'cash_on_delivery') ? '01' : '02',
+                    TotalAmount: carData.total,
+                    receiver_storeid: carData.user_info.CVSStoreID,
+                    receiver_storename: carData.user_info.CVSStoreName,
+                    return_storeid: '',
+                    Receiver_Name: carData.user_info.name,
+                    Receiver_Phone: carData.user_info.phone,
+                    Receiver_Email: carData.user_info.email,
+                    Receiver_address: carData.user_info.address,
+                    Sender_Name: l_config.sender_name,
+                    Sender_Phone: l_config.sender_phone,
+                    Sender_Email: l_config.sender_email,
+                    Sender_address: l_config.sender_address,
+                    Length: carData.user_info.length,
+                    Wide: carData.user_info.wide,
+                    High: carData.user_info.high,
+                    Weight: carData.user_info.weight,
+                    DeliveryType: (() => {
+                        switch (carData.user_info.shipment) {
+                            case 'black_cat':
+                                return '0001';
+                            case 'black_cat_ice':
+                                return '0002';
+                            case 'black_cat_freezing':
+                                return '0003';
+                        }
+                    })(),
+                    "Remark": "",
+                    "Description": "",
+                    PassCode: await this.sha1Encrypt([l_config.account, carData.orderID, carData.total, l_config.pwd].join(''))
+                };
+            }
+            else {
+                return {
+                    user_account: l_config.account,
+                    apicode: l_config.pwd,
+                    Logistic_service: service,
+                    OrderNo: carData.orderID,
+                    DeliverMode: (carData.customer_info.payment_select == 'cash_on_delivery') ? '01' : '02',
+                    TotalAmount: carData.total,
+                    receiver_storeid: carData.user_info.CVSStoreID,
+                    receiver_storename: carData.user_info.CVSStoreName,
+                    return_storeid: '',
+                    Receiver_Name: carData.user_info.name,
+                    Receiver_Phone: carData.user_info.phone,
+                    Receiver_Email: carData.user_info.email,
+                    Receiver_address: carData.user_info.CVSAddress,
+                    Sender_Name: l_config.sender_name,
+                    Sender_Phone: l_config.sender_phone,
+                    Sender_Email: l_config.sender_email,
+                    Sender_address: l_config.sender_address,
+                    "Remark": "",
+                    "Description": "",
+                    PassCode: await this.sha1Encrypt([l_config.account, carData.orderID, carData.total, l_config.pwd].join(''))
+                };
+            }
+        })();
+        if (service === '36') {
             data.Deadline = '0';
         }
         Object.keys(data).map((dd) => {
@@ -104,7 +202,6 @@ class PayNowLogistics {
             }
         };
         const response = await (0, axios_1.default)(config);
-        console.log(`response==>`, response);
         console.log(`response_data==>`, response.data);
         return response.data;
     }

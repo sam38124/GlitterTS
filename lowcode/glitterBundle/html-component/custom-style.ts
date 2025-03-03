@@ -10,7 +10,18 @@ const html = String.raw;
 export class CustomStyle {
     public static renderThemeEditor(gvc: GVC, widget: any, callback?: () => void) {
         RenderValue.custom_style.initialWidget(widget);
-        return [
+        return `<div class="" style="margin-top:-20px;">
+${[
+            EditorElem.editeInput({
+                gvc: gvc,
+                title: `元件ID`,
+                default: widget.data._component_id,
+                placeHolder: '',
+                callback: (text) => {
+                    widget.data._component_id = text;
+                    (callback || widget.refreshComponent)();
+                },
+            }),
             EditorElem.editeInput({
                 gvc: gvc,
                 title: `元件寬度
@@ -300,28 +311,29 @@ export class CustomStyle {
                         }),
 
                         `<div class="mt-2"></div>` +
-                            EditorElem.editerDialog({
-                                gvc: gvc,
-                                dialog: () => {
-                                    return EditorElem.styleEditor({
-                                        gvc: gvc,
-                                        title: '自訂Style代碼',
-                                        height: 400,
-                                        initial: widget.data._style || '',
-                                        callback: (text) => {
-                                            widget.data._style = text;
-                                        },
-                                    });
-                                },
-                                editTitle: '自訂設計代碼',
-                                callback: () => {
-                                    (callback || widget.refreshComponent)();
-                                },
-                            }),
+                        EditorElem.editerDialog({
+                            gvc: gvc,
+                            dialog: () => {
+                                return EditorElem.styleEditor({
+                                    gvc: gvc,
+                                    title: '自訂Style代碼',
+                                    height: 400,
+                                    initial: widget.data._style || '',
+                                    callback: (text) => {
+                                        widget.data._style = text;
+                                    },
+                                });
+                            },
+                            editTitle: '自訂設計代碼',
+                            callback: () => {
+                                (callback || widget.refreshComponent)();
+                            },
+                        }),
                     ].join('');
                 },
             }),
-        ].join('');
+        ].join('')}
+</div>`;
     }
 
     public static renderMarginEditor(gvc: GVC, widget: any, callback?: () => void) {

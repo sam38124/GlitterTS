@@ -268,6 +268,8 @@ export class ShoppingFinanceSetting {
                                         <div class="row">${onlinePayArray.filter((dd) => {
                                 return dd.type !== 'pos';
                             }).map((dd) => {
+                                var _a;
+                                keyData[dd.key] = (_a = keyData[dd.key]) !== null && _a !== void 0 ? _a : {};
                                 return ` <div class="col-12 col-md-4 p-0 p-md-2">
                                                             <div
                                                                     class="w-100 position-relative main-card"
@@ -291,7 +293,20 @@ export class ShoppingFinanceSetting {
                                             title: '金流設定',
                                             innerHTML: (gvc) => {
                                                 try {
-                                                    return `<div>${(() => {
+                                                    return html `
+                                                                            ${BgWidget.editeInput({
+                                                        gvc: gvc,
+                                                        title: `<div>自訂金流名稱
+${BgWidget.grayNote('未輸入則參照預設')}
+</div>`,
+                                                        default: key_d.custome_name,
+                                                        callback: (text) => {
+                                                            key_d.custome_name = text;
+                                                        },
+                                                        placeHolder: '請輸入自訂顯示名稱',
+                                                        global_language: true
+                                                    })}
+                                                                            <div style="margin-top:-20px;">${(() => {
                                                         switch (payData.key) {
                                                             case 'newWebPay':
                                                             case 'ecPay':
@@ -393,6 +408,15 @@ export class ShoppingFinanceSetting {
                                                                             key_d.HASH_IV = text;
                                                                         },
                                                                         placeHolder: '請輸入HASH_IV',
+                                                                    }),
+                                                                    BgWidget.editeInput({
+                                                                        gvc: gvc,
+                                                                        title: '信用卡授權檢查碼',
+                                                                        default: key_d.CreditCheckCode,
+                                                                        callback: (text) => {
+                                                                            key_d.CreditCheckCode = text;
+                                                                        },
+                                                                        placeHolder: '請輸入信用卡檢查碼',
                                                                     }),
                                                                 ].join('');
                                                             case 'paypal':
@@ -526,25 +550,26 @@ export class ShoppingFinanceSetting {
                                                                     BgWidget.editeInput({
                                                                         gvc: gvc,
                                                                         title: '串接帳號',
-                                                                        default: key_d.public_key,
+                                                                        default: key_d.account,
                                                                         callback: (text) => {
-                                                                            key_d.public_key = text;
+                                                                            key_d.account = text;
                                                                         },
                                                                         placeHolder: '請輸入串接帳號',
                                                                     }),
                                                                     BgWidget.editeInput({
                                                                         gvc: gvc,
                                                                         title: '串接密碼',
-                                                                        default: key_d.private_key,
+                                                                        default: key_d.pwd,
                                                                         callback: (text) => {
-                                                                            key_d.private_key = text;
+                                                                            key_d.pwd = text;
                                                                         },
                                                                         placeHolder: '請輸入串接密碼',
                                                                     })
                                                                 ].join('');
                                                         }
                                                         return ``;
-                                                    })()}</div>`;
+                                                    })()}
+                                                                            </div>`;
                                                 }
                                                 catch (e) {
                                                     console.error(e);
@@ -1956,6 +1981,29 @@ ${BgWidget.greenNote('支援四大超商/黑貓')}
                                                                                                 },
                                                                                                 type: 'single',
                                                                                             }),
+                                                                                            html `
+                                                                                                                                <div
+                                                                                                                                        onclick="${gvc.event(() => {
+                                                                                                const dialog = new ShareDialog(gvc.glitter);
+                                                                                                window.parent.navigator.clipboard.writeText(window.parent.saasConfig.config.url + `/api-public/v1/delivery/notify?g-app=${window.parent.appName}`);
+                                                                                                dialog.successMessage({ text: '已複製至剪貼簿' });
+                                                                                            })}"
+                                                                                                                                >
+                                                                                                                                    ${BgWidget.editeInput({
+                                                                                                readonly: true,
+                                                                                                gvc: gvc,
+                                                                                                title: html `
+                                                                                                                                            <div class="d-flex flex-column"
+                                                                                                                                                 style="gap:5px;">
+                                                                                                                                                物流追蹤通知
+                                                                                                                                                ${BgWidget.grayNote('點擊複製此連結至PAYNOW後台的貨態回傳網址')}
+                                                                                                                                            </div>`,
+                                                                                                default: window.parent.saasConfig.config.url + `/api-public/v1/delivery/notify?g-app=${window.parent.appName}`,
+                                                                                                placeHolder: '',
+                                                                                                callback: (text) => {
+                                                                                                },
+                                                                                            })}
+                                                                                                                                </div>`,
                                                                                             BgWidget.editeInput({
                                                                                                 gvc: gvc,
                                                                                                 title: '串接帳號',
@@ -2009,7 +2057,7 @@ ${BgWidget.greenNote('支援四大超商/黑貓')}
                                                                                                     vm.delivery[dd.value].SenderEmail = text;
                                                                                                 },
                                                                                                 placeHolder: '請輸入寄件人信箱',
-                                                                                            }),
+                                                                                            })
                                                                                         ];
                                                                                         return array;
                                                                                     })(),

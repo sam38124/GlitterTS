@@ -5,6 +5,9 @@ import { Language } from '../../glitter-base/global/language.js';
 const html = String.raw;
 export class Footer01 {
     static main(gvc, widget, subData) {
+        if (gvc.glitter.getUrlParameter('page').startsWith('products/') && document.body.clientWidth < 800) {
+            return ``;
+        }
         const formData = widget.formData;
         const colors = Color.getTheme(gvc, formData);
         const footer = {

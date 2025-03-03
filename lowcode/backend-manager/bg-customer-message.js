@@ -362,17 +362,6 @@ export class BgCustomerMessage {
                                                     </div>
                                                     <div style="margin-top: 10px;" class="p-2">
                                                         ${[
-                                                html `
-                                                                <div class="mb-3"
-                                                                     style="display:flex; align-items: center; gap: 4px; margin-bottom: 8px;">
-                                                                    <div class="fw-500"
-                                                                         style="color: #393939;font-size: 15px;">啟用客服功能
-                                                                    </div>
-                                                                    ${BgWidget.switchButton(gvc, keyData.toggle, (bool) => {
-                                                    keyData.toggle = bool;
-                                                    gvc.notifyDataChange(vO.id);
-                                                })}
-                                                                </div>`,
                                                 ...(() => {
                                                     if (keyData.toggle) {
                                                         return [

@@ -699,6 +699,23 @@ export class ApiShop {
         });
     }
 
+    static ecPayBrushOrders(json: {
+        "tradNo":string,
+        "orderID":string,
+        "total":string
+    }) {
+        return BaseApi.create({
+            url: getBaseUrl() + `/api-public/v1/ec/ec-pay/payments/brush-back`,
+            type: 'DELETE',
+            headers: {
+                'Content-Type': 'application/json',
+                'g-app': getConfig().config.appName,
+                Authorization: getConfig().config.token,
+            },
+            data: JSON.stringify(json),
+        });
+    }
+
     static deleteVoucher(json: { id: string }) {
         return BaseApi.create({
             url: getBaseUrl() + `/api-public/v1/ec/voucher?id=${json.id}`,

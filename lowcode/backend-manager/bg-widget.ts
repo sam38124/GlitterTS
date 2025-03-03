@@ -2010,7 +2010,9 @@ ${obj.default ?? ''}</textarea
                 divCreate: {},
                 onCreate: () => {
                     if (vm.loading) {
-                        obj.getData(vm);
+                        setTimeout(()=>{
+                            obj.getData(vm);
+                        })
                     } else {
                         if (!created.table) {
                             let timer = 0;

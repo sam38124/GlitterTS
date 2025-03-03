@@ -354,7 +354,6 @@ export class Delivery {
                     resolve(data.data)
                 })
             }))).filter((dd:any)=>{
-                console.log(`search_result=>`,dd[0])
                 return dd[0]
             });
             if (!(cart.length)) {
@@ -366,17 +365,56 @@ export class Delivery {
             }
 
             if (`${deliveryConfig.value.pay_now.toggle}` === 'true') {
-                const pay_now= new PayNowLogistics(this.appName)
+                const pay_now= new PayNowLogistics(this.appName);
+                let error_text=''
                 await Promise.all(cart.map((dd:any)=>{
                     return new Promise(async (resolve, reject)=>{
                         try {
-                            await pay_now.printLogisticsOrder(dd[0].orderData)
+                            const data=await pay_now.printLogisticsOrder(dd[0].orderData);
+                            if(data.ErrorMsg&&data.ErrorMsg!=='訂單已成立'){
+                                error_text=data.ErrorMsg
+                            }
                             resolve(true)
                         }catch (e){
                             resolve(true)
                         }
                     })
                 }));
+                await Promise.all( cart.map(async (dd:any)=>{
+                    const carData = dd[0].orderData;
+                    const config = {
+                        method: 'get',
+                        maxBodyLength: Infinity,
+                        url: `${(await pay_now.config()).link}/${(()=>{
+                            switch (carData.user_info.shipment){
+                                case 'UNIMARTC2C':
+                                    return 'api/Order711';
+                                case 'FAMIC2C':
+                                    return 'api/OrderFamiC2C';
+                                case 'HILIFEC2C':
+                                    return 'api/OrderHiLife';
+                                case 'OKMARTC2C':
+                                    return 'api/OKC2C';
+                                case 'UNIMARTFREEZE':
+                                    return 'Member/OrderEvent/Print711FreezingC2CLabel'
+                            }
+                            return  ``
+                        })()}?orderNumberStr=${dd[0].cart_token}&user_account=${(await pay_now.config()).account}`,
+                        headers: {'Content-Type': 'application/json' }
+                    };
+                    const link_response=await axios(config);
+                    try {
+                        const link=link_response.data;
+                        const her_=new URL(link.replace('S,',''));
+                        if(her_.searchParams.get('LogisticNumbers')){
+                            carData.user_info.shipment_number=her_.searchParams.get('LogisticNumbers');
+                            carData.user_info.shipment_refer='paynow'
+                            await db.query(`update \`${this.appName}\`.t_checkout set orderData=? where cart_token=?`,[JSON.stringify(carData),dd[0].cart_token])
+                        }
+                    }catch (e) {
+
+                    }
+                }))
                 const carData = cart[0][0].orderData;
                 const config = {
                     method: 'get',
@@ -400,6 +438,13 @@ export class Delivery {
                 };
                 const link_response=await axios(config);
                 const link=link_response.data;
+
+                if(error_text){
+                    return {
+                        result: false,
+                        message: error_text,
+                    };
+                }
                 return {
                     result: true,
                     link: link.replace('S,',''),
@@ -576,4 +621,6 @@ console.error(`error-`,e)
             throw exception.BadRequestError('BAD_REQUEST', 'Delivery notify error:' + error, null);
         }
     }
+
+
 }

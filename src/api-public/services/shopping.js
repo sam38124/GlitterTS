@@ -56,6 +56,7 @@ const seo_config_js_1 = require("../../seo-config.js");
 const ses_js_1 = require("../../services/ses.js");
 const shopee_1 = require("./shopee");
 const shipment_config_js_1 = require("../config/shipment-config.js");
+const paynow_logistics_js_1 = require("./paynow-logistics.js");
 class Shopping {
     constructor(app, token) {
         this.app = app;
@@ -368,9 +369,10 @@ class Shopping {
                         content.min_price = Infinity;
                         content.max_price = Number.MIN_VALUE;
                         (content.variants || []).forEach((variant) => {
-                            var _a;
+                            var _a, _b;
                             variant.stock = 0;
                             variant.sold_out = variant.sold_out || 0;
+                            variant.preview_image = (_a = variant.preview_image) !== null && _a !== void 0 ? _a : '';
                             if (!variant.preview_image.includes('https://')) {
                                 variant.preview_image = undefined;
                             }
@@ -383,7 +385,7 @@ class Shopping {
                                 content.max_price = variant.sale_price;
                             }
                             if (variant.preview_image === 'https://d3jnmi1tfjgtti.cloudfront.net/file/234285319/1722936949034-default_image.jpg') {
-                                variant.preview_image = (_a = content.preview_image) === null || _a === void 0 ? void 0 : _a[0];
+                                variant.preview_image = (_b = content.preview_image) === null || _b === void 0 ? void 0 : _b[0];
                             }
                             Object.entries(variant.stockList || {}).forEach(([storeId, stockData]) => {
                                 if (!store_config.list.some((store) => store.id === storeId) || !(stockData === null || stockData === void 0 ? void 0 : stockData.count)) {
@@ -675,6 +677,7 @@ class Shopping {
                    FROM \`${this.app}\`.t_manager_post
                    WHERE ${querySql.join(' and ')} ${query.order_by || `order by id desc`}
         `;
+        console.log(`querySqlProduct=>`, sql);
         if (query.id) {
             const data = (await database_js_1.default.query(`SELECT *
                      FROM (${sql}) as subqyery
@@ -1480,6 +1483,7 @@ class Shopping {
                 return keyData[dd.key] && keyData[dd.key].toggle;
             })
                 .filter((dd) => {
+                dd.custome_name = keyData[dd.key].custome_name;
                 if (carData.orderSource === 'POS') {
                     if (dd.key === 'ut_credit_card') {
                         dd.pwd = keyData[dd.key]['pwd'];
@@ -1540,6 +1544,21 @@ class Shopping {
             if (type === 'preview' || type === 'manual-preview')
                 return { data: carData };
             console.log(`checkout-time-12=>`, new Date().getTime() - check_time);
+            if (userData && userData.userID) {
+                await rebateClass.insertRebate(userData.userID, carData.use_rebate * -1, '使用折抵', {
+                    order_id: carData.orderID,
+                });
+                if (carData.voucherList && carData.voucherList.length > 0) {
+                    for (const voucher of carData.voucherList) {
+                        await this.insertVoucherHistory(userData.userID, carData.orderID, voucher.id);
+                    }
+                }
+                const sum = (await database_js_1.default.query(`SELECT sum(money)
+                                 FROM \`${this.app}\`.t_wallet
+                                 WHERE status in (1, 2)
+                                   and userID = ?`, [userData.userID]))[0]['sum(money)'] || 0;
+                carData.use_wallet = sum < carData.total ? sum : carData.total;
+            }
             if (type === 'manual') {
                 carData.orderSource = 'manual';
                 let tempVoucher = {
@@ -1644,23 +1663,6 @@ class Shopping {
                 await new Shopping(this.app).releaseCheckout((_s = data.pay_status) !== null && _s !== void 0 ? _s : 0, carData.orderID);
                 return { result: 'SUCCESS', message: 'POS訂單新增成功', data: carData };
             }
-            else {
-                if (userData && userData.userID) {
-                    await rebateClass.insertRebate(userData.userID, carData.use_rebate * -1, '使用折抵', {
-                        order_id: carData.orderID,
-                    });
-                    if (carData.voucherList && carData.voucherList.length > 0) {
-                        for (const voucher of carData.voucherList) {
-                            await this.insertVoucherHistory(userData.userID, carData.orderID, voucher.id);
-                        }
-                    }
-                    const sum = (await database_js_1.default.query(`SELECT sum(money)
-                                 FROM \`${this.app}\`.t_wallet
-                                 WHERE status in (1, 2)
-                                   and userID = ?`, [userData.userID]))[0]['sum(money)'] || 0;
-                    carData.use_wallet = sum < carData.total ? sum : carData.total;
-                }
-            }
             const id = 'redirect_' + tool_js_1.default.randomString(6);
             const redirect_url = new URL(data.return_url);
             redirect_url.searchParams.set('cart_token', carData.orderID);
@@ -1723,21 +1725,21 @@ class Shopping {
                         };
                     case 'paypal':
                         kd.ReturnURL = `${process.env.DOMAIN}/api-public/v1/ec/redirect?g-app=${this.app}&return=${id}`;
-                        kd.NotifyURL = `${process.env.DOMAIN}/api-public/v1/ec/notify?g-app=${this.app}`;
+                        kd.NotifyURL = `${process.env.DOMAIN}/api-public/v1/ec/notify?g-app=${this.app}&type=${carData.customer_info.payment_select}`;
                         await Promise.all(saveStockArray.map((dd) => {
                             return dd();
                         }));
                         return await new financial_service_js_1.PayPal(this.app, kd).checkout(carData);
                     case 'line_pay':
-                        kd.ReturnURL = `${process.env.DOMAIN}/api-public/v1/ec/redirect?g-app=${this.app}&return=${id}`;
-                        kd.NotifyURL = `${process.env.DOMAIN}/api-public/v1/ec/notify?g-app=${this.app}`;
+                        kd.ReturnURL = `${process.env.DOMAIN}/api-public/v1/ec/redirect?g-app=${this.app}&return=${id}&type=${carData.customer_info.payment_select}`;
+                        kd.NotifyURL = `${process.env.DOMAIN}/api-public/v1/ec/notify?g-app=${this.app}&type=${carData.customer_info.payment_select}`;
                         await Promise.all(saveStockArray.map((dd) => {
                             return dd();
                         }));
                         return await new financial_service_js_1.LinePay(this.app, kd).createOrder(carData);
                     case 'paynow': {
-                        kd.ReturnURL = `${process.env.DOMAIN}/api-public/v1/ec/redirect?g-app=${this.app}&return=${id}&paynow=true`;
-                        kd.NotifyURL = `${process.env.DOMAIN}/api-public/v1/ec/notify?g-app=${this.app}&paynow=true&type=paynow`;
+                        kd.ReturnURL = `${process.env.DOMAIN}/api-public/v1/ec/redirect?g-app=${this.app}&return=${id}&type=${carData.customer_info.payment_select}`;
+                        kd.NotifyURL = `${process.env.DOMAIN}/api-public/v1/ec/notify?g-app=${this.app}&paynow=true&type=${carData.customer_info.payment_select}`;
                         await Promise.all(saveStockArray.map((dd) => {
                             return dd();
                         }));
@@ -2618,22 +2620,80 @@ class Shopping {
                 }
                 return data[0];
             }
-            if (query.id) {
-                const data = (await database_js_1.default.query(`SELECT *
+            const response_data = await new Promise(async (resolve, reject) => {
+                if (query.id) {
+                    const data = (await database_js_1.default.query(`SELECT *
                          FROM (${sql}) as subqyery limit ${query.page * query.limit}, ${query.limit}`, []))[0];
-                return {
-                    data: data,
-                    result: !!data,
-                };
-            }
-            else {
-                return {
-                    data: await database_js_1.default.query(`SELECT *
+                    resolve({
+                        data: data,
+                        result: !!data,
+                    });
+                }
+                else {
+                    resolve({
+                        data: await database_js_1.default.query(`SELECT *
                          FROM (${sql}) as subqyery limit ${query.page * query.limit}, ${query.limit}`, []),
-                    total: (await database_js_1.default.query(`SELECT count(1)
+                        total: (await database_js_1.default.query(`SELECT count(1)
                              FROM (${sql}) as subqyery`, []))[0]['count(1)'],
-                };
-            }
+                    });
+                }
+            });
+            const obMap = (Array.isArray(response_data.data)) ? response_data.data : [response_data.data];
+            const keyData = (await private_config_js_1.Private_config.getConfig({
+                appName: this.app,
+                key: 'glitter_finance',
+            }))[0].value;
+            await Promise.all(obMap.map(async (order) => {
+                try {
+                    if (order.orderData.customer_info.payment_select === 'ecPay') {
+                        order.orderData.cash_flow = await new financial_service_js_1.EcPay(this.app).checkPaymentStatus(order.cart_token);
+                    }
+                    if (order.orderData.customer_info.payment_select === 'paynow') {
+                        order.orderData.cash_flow = (await new financial_service_js_1.PayNow(this.app, keyData['paynow']).confirmAndCaptureOrder(order.orderData.paynow_id)).result;
+                    }
+                    if (order.orderData.user_info.shipment_refer === 'paynow') {
+                        const pay_now = new paynow_logistics_js_1.PayNowLogistics(this.app);
+                        order.orderData.user_info.shipment_detail = await pay_now.getOrderInfo(order.cart_token);
+                        const status = (() => {
+                            switch (order.orderData.user_info.shipment_detail.PayNowLogisticCode) {
+                                case '0000':
+                                case '7101':
+                                case '7201':
+                                    return 'wait';
+                                case '0101':
+                                case '4000':
+                                case '0102':
+                                case '9411':
+                                    return 'shipping';
+                                case '0103':
+                                case '4031':
+                                case '4032':
+                                case '4040':
+                                case '5001':
+                                case '8100':
+                                case '8110':
+                                case '8120':
+                                    return 'returns';
+                                case '5000':
+                                    return 'arrived';
+                                case '8000':
+                                case '8010':
+                                case '8020':
+                                    return 'finish';
+                            }
+                        })();
+                        if (order.orderData.progress !== status) {
+                            order.orderData.progress = status;
+                            await this.putOrder({
+                                status: undefined, orderData: order.orderData, id: order.id,
+                            });
+                        }
+                    }
+                }
+                catch (e) {
+                }
+            }));
+            return response_data;
         }
         catch (e) {
             throw exception_js_1.default.BadRequestError('BAD_REQUEST', 'getCheckOut Error:' + e, null);

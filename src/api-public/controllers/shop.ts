@@ -673,7 +673,8 @@ async function redirect_link(req: express.Request, resp: express.Response) {
             console.log(`req.query=>`,req.query)
             const data: any = (await linePay.confirmAndCaptureOrder(req.query.transactionId as string,order_data['orderData'].total)).data;
             console.log(`line-response==>`,data)
-            if (data.returnCode == '0000') {
+            //判斷付款成功且Receipt單據ID為相同的orderID
+            if ((data.returnCode == '0000') && (data.info.orderId===req.query.orderID)) {
                 await new Shopping(req.query.appName as string).releaseCheckout(1, req.query.orderID as string);
             }
         }
@@ -702,8 +703,8 @@ async function redirect_link(req: express.Request, resp: express.Response) {
             const check_id = await redis.getValue(`paynow` + req.query.orderID);
             const payNow = new PayNow(req.query.appName as string, keyData);
             const data: any = await payNow.confirmAndCaptureOrder(check_id as string);
-
-            if (data.type == 'success') {
+            console.log(`paynow-response=>`,data)
+            if (data.type == 'success' && data.result.status==='success') {
                 await new Shopping(req.query.appName as string).releaseCheckout(1, req.query.orderID as string);
             }
         }
@@ -774,56 +775,64 @@ router.post('/notify', upload.single('file'), async (req: express.Request, resp:
     try {
         console.log(`notify-order-result`);
         let decodeData = undefined;
-        const appName = req.query['g-app'] as string;
+        //預防沒有APPName
+        req.query.appName = req.query.appName || (req.get('g-app') as string) || (req.query['g-app'] as string);
+        const appName:string = req.query.appName as string;
         const type = req.query['type'] as string;
+
         const keyData = (
             await Private_config.getConfig({
                 appName: appName,
                 key: 'glitter_finance',
             })
         )[0].value[type];
-        if (type === 'ecPay') {
-            const responseCheckMacValue = `${req.body.CheckMacValue}`;
-            delete req.body.CheckMacValue;
-            const chkSum = EcPay.generateCheckMacValue(req.body, keyData.HASH_KEY, keyData.HASH_IV);
-            decodeData = {
-                Status: req.body.RtnCode === '1' && responseCheckMacValue === chkSum ? 'SUCCESS' : 'ERROR',
-                Result: {
-                    MerchantOrderNo: req.body.MerchantTradeNo,
-                    CheckMacValue: req.body.CheckMacValue,
-                },
-            };
-        }
-        if (type === 'newWebPay') {
-            decodeData = JSON.parse(
-                new EzPay(appName, {
-                    HASH_IV: keyData.HASH_IV,
-                    HASH_KEY: keyData.HASH_KEY,
-                    ActionURL: keyData.ActionURL,
-                    NotifyURL: '',
-                    ReturnURL: '',
-                    MERCHANT_ID: keyData.MERCHANT_ID,
-                    TYPE: keyData.TYPE,
-                }).decode(req.body.TradeInfo)
-            );
-        }
         if (type === 'paynow') {
             const check_id = await redis.getValue(`paynow` + req.query.orderID);
             const payNow = new PayNow(req.query.appName as string, keyData);
             const data: any = await payNow.confirmAndCaptureOrder(check_id as string);
-            console.log(`paynow-notify1`, req.body);
-            console.log(`paynow-notify2`, check_id);
-            console.log(`paynow-notify3`, data);
+            if (data.type == 'success' && data.result.status==='success') {
+                await new Shopping(req.query.appName as string).releaseCheckout(1, req.query.orderID as string);
+            }
         }
 
-        // 執行付款完成之訂單事件
-        if (decodeData['Status'] === 'SUCCESS') {
-            await new Shopping(appName).releaseCheckout(1, decodeData['Result']['MerchantOrderNo']);
-        } else {
-            await new Shopping(appName).releaseCheckout(-1, decodeData['Result']['MerchantOrderNo']);
+        if(['ecPay','newWebPay'].includes(type)){
+
+            if (type === 'ecPay') {
+                delete req.body.CheckMacValue;
+                decodeData = {
+                    Status:  ((await new EcPay(appName).checkPaymentStatus(req.body.MerchantTradeNo)).TradeStatus === '1') ? 'SUCCESS' : 'ERROR',
+                    Result: {
+                        MerchantOrderNo: req.body.MerchantTradeNo,
+                        CheckMacValue: req.body.CheckMacValue,
+                    },
+                };
+            }
+            if (type === 'newWebPay') {
+                decodeData = JSON.parse(
+                    new EzPay(appName, {
+                        HASH_IV: keyData.HASH_IV,
+                        HASH_KEY: keyData.HASH_KEY,
+                        ActionURL: keyData.ActionURL,
+                        NotifyURL: '',
+                        ReturnURL: '',
+                        MERCHANT_ID: keyData.MERCHANT_ID,
+                        TYPE: keyData.TYPE,
+                    }).decode(req.body.TradeInfo)
+                );
+            }
+            // 執行付款完成之訂單事件
+            if (decodeData['Status'] === 'SUCCESS') {
+                await new Shopping(appName).releaseCheckout(1, decodeData['Result']['MerchantOrderNo']);
+            } else {
+                await new Shopping(appName).releaseCheckout(-1, decodeData['Result']['MerchantOrderNo']);
+            }
         }
+
+
+
         return response.succ(resp, {});
     } catch (err) {
+        console.error(err)
         return response.fail(resp, err);
     }
 });
@@ -1575,3 +1584,22 @@ router.post('/logistics/redirect', async (req: express.Request, resp: express.Re
         return response.fail(resp, err);
     }
 });
+
+
+router.get('/ec-pay/payments/status', async (req: express.Request, resp: express.Response) => {
+    try {
+
+        return response.succ(resp, await new EcPay(req.get('g-app') as string).checkPaymentStatus(req.query.orderID as any));
+    } catch (err) {
+        return response.fail(resp, err);
+    }
+});
+router.delete('/ec-pay/payments/brush-back', async (req: express.Request, resp: express.Response) => {
+    try {
+
+        return response.succ(resp, await new EcPay(req.get('g-app') as string).brushBack(req.body.orderID as string,req.body.tradNo as string,req.body.total as string));
+    } catch (err) {
+        return response.fail(resp, err);
+    }
+});
+

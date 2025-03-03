@@ -373,6 +373,7 @@ export class HtmlGenerate {
                         }));
                     },
                     divCreate: () => {
+                        var _a;
                         const elem_ = JSON.parse(JSON.stringify((() => {
                             if (createOption) {
                                 if (typeof createOption === 'function') {
@@ -397,6 +398,13 @@ export class HtmlGenerate {
                         })()));
                         if (isEditMode()) {
                             elem_.class = `${elem_.class} editor_it_${container_id} `;
+                        }
+                        if (option.id) {
+                            elem_.option = (_a = elem_.option) !== null && _a !== void 0 ? _a : [];
+                            elem_.option.push({
+                                key: 'id',
+                                value: option.id
+                            });
                         }
                         return elem_;
                     },

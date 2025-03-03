@@ -1120,6 +1120,13 @@ export class Setting_editor {
                                                                                     glitter.share.switch_to_web_builder('index-mobile', 'mobile');
                                                                                     return;
                                                                                 }
+                                                                                const url=new URL(location.href);
+                                                                                url.searchParams.forEach((value, key) => {
+                                                                                  if(!['type','appName','function','tab'].includes(key)){
+                                                                                      glitter.setUrlParameter(key)
+                                                                                  }
+                                                                                });
+                                                                              
                                                                                 if ((await click_item(dd.index)) && ['page_layout', 'dev_mode'].indexOf(items[parseInt(dd.index)].page) === -1) {
                                                                                     dd.toggle = true;
                                                                                     refreshContainer();

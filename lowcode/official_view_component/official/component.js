@@ -219,6 +219,7 @@ export const component = Plugin.createComponent(import.meta.url, (glitter, editM
                                                     class: ``,
                                                     style: ``,
                                                     containerID: id,
+                                                    id: widget.data._component_id,
                                                     tag: page_request_config.tag,
                                                     jsFinish: () => {
                                                     },

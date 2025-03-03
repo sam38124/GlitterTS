@@ -5,19 +5,19 @@ export class ShipmentConfig {
             title: '黑貓宅配',
             value: 'black_cat',
             src: 'https://d3jnmi1tfjgtti.cloudfront.net/file/122538856/w644 (1).jpeg',
-            paynow_id:'06'
+            paynow_id:'36'
         },
         {
             title: '黑貓冷藏宅配',
             value: 'black_cat_ice',
             src: 'https://d3jnmi1tfjgtti.cloudfront.net/file/122538856/w644 (1).jpeg',
-            paynow_id:'06'
+            paynow_id:'36'
         },
         {
             title: '黑貓冷凍宅配',
             value: 'black_cat_freezing',
             src: 'https://d3jnmi1tfjgtti.cloudfront.net/file/122538856/w644 (1).jpeg',
-            paynow_id:'06'
+            paynow_id:'36'
         },
         {
             title: '中華郵政',

@@ -33,7 +33,7 @@ export class CmsRouter{
                            case 'ig_live':
                            case 'line_plus':
                                resolve(`<div class="d-flex w-100 align-items-center justify-content-center">
-<div class="insignia insignia-warning">功能優化中，預計於3月2號重新開放!</div>
+<div class="insignia insignia-warning">功能優化中，預計於3月7號重新開放!</div>
 </div>`)
                                break
                            default:

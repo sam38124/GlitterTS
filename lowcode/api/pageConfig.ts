@@ -402,7 +402,7 @@ export class ApiPageConfig {
         for (const file of files){
             const file_id=(window as any).glitter.getUUID()
             //取得檔案名稱
-            function getFileName(size?:number){
+            function getFileName(size?:any){
               let file_name  = (
                     file.name ||
                     `${file_id}.${(() => {
@@ -466,7 +466,7 @@ export class ApiPageConfig {
                                            'Content-Type': s3res.type,
                                        }
                                    })
-                                   if(size===1440){
+                                   if(size===1920){
                                        links.push(s3res.fullUrl)
                                    }
                                    resolve(res.result)
@@ -476,19 +476,31 @@ export class ApiPageConfig {
                        reader.readAsDataURL(file);
                    })
                 }
-                let chunk_size=[150,600,1200,1440]
+                let chunk_size=[150,600,1200,1440,1920]
                 let chunk_count=0
-                await new Promise((resolve, reject)=>{
-                    for (const size of chunk_size){
-                        loopSize(size).then((res:boolean)=>{
-                            chunk_count++
-                            result=res && result
-                            if(chunk_count===chunk_size.length){
-                                resolve(true)
-                            }
-                        })
+                // await new Promise((resolve, reject)=>{
+                //     // for (const size of chunk_size){
+                //     //     loopSize(size).then((res:boolean)=>{
+                //     //         chunk_count++
+                //     //         result=res && result
+                //     //         if(chunk_count===chunk_size.length){
+                //     //             resolve(true)
+                //     //         }
+                //     //     })
+                //     // }
+                //
+                // })
+                const s3res= (await ApiPageConfig.uploadFile(getFileName('original'))).response;
+                const res= await BaseApi.create({
+                    url: s3res.url,
+                    type: 'put',
+                    data: file,
+                    headers: {
+                        'Content-Type': s3res.type,
                     }
                 })
+                links.push(s3res.fullUrl)
+                result=true
                 if(!result){
                     return  {
                         result:false

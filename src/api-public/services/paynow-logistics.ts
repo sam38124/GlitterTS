@@ -6,6 +6,7 @@ import {createHash} from "crypto";
 import {Private_config} from "../../services/private_config.js";
 import {ShipmentConfig} from "../config/shipment-config.js";
 import axios from "axios";
+import db from "../../modules/database.js";
 
 const html = String.raw
 
@@ -28,10 +29,10 @@ export class PayNowLogistics {
             link: deliveryConfig.value.pay_now.Action === 'test' ? `https://testlogistic.paynow.com.tw` : `https://logistic.paynow.com.tw`,
             toggle: deliveryConfig.value.pay_now.toggle,
             account: deliveryConfig.value.pay_now.account,
-            sender_name:deliveryConfig.value.pay_now.SenderName,
-            sender_phone:deliveryConfig.value.pay_now.SenderCellPhone,
-            sender_address:deliveryConfig.value.pay_now.SenderAddress,
-            sender_email:deliveryConfig.value.pay_now.SenderEmail,
+            sender_name: deliveryConfig.value.pay_now.SenderName,
+            sender_phone: deliveryConfig.value.pay_now.SenderCellPhone,
+            sender_address: deliveryConfig.value.pay_now.SenderAddress,
+            sender_email: deliveryConfig.value.pay_now.SenderEmail,
         }
     }
 
@@ -43,8 +44,8 @@ export class PayNowLogistics {
         const cf: any = {
             user_account: process.env.logistic_account,
             apicode: encodeURIComponent(code as string),
-            Logistic_serviceID: ShipmentConfig.list.find((dd)=>{
-                return dd.value===type
+            Logistic_serviceID: ShipmentConfig.list.find((dd) => {
+                return dd.value === type
             })!!.paynow_id,
             returnUrl: `${process.env.DOMAIN}/api-public/v1/ec/logistics/redirect?g-app=${this.app_name}&return=${key}`
         }
@@ -61,57 +62,158 @@ export class PayNowLogistics {
         `
     }
 
+    //取消托運單
+    async deleteLogOrder(orderNO: string, logisticNumber: string, totalAmount: string) {
+
+        const l_config = await this.config()
+        const url = `${l_config.link}/api/Orderapi/CancelOrder`;
+        const data: any = {
+            LogisticNumber: logisticNumber,
+            sno: 1,
+            PassCode: await this.sha1Encrypt([l_config.account, orderNO, totalAmount, l_config.pwd].join(''))
+        }
+        //轉成純字串
+        Object.keys(data).map((dd) => {
+            data[dd] = `${data[dd]}`
+        })
+        const config = {
+            method: 'delete',
+            maxBodyLength: Infinity,
+            url: url,
+            headers: {
+                'Content-Type': 'application/JSON'
+            },
+            data: data
+        };
+        const response = await axios(config)
+        console.log(`response_data==>`, response.data)
+        if (response.data && !(response.data.includes('已繳費'))) {
+            const order = (await db.query(`select *
+                                           from \`${this.app_name}\`.t_checkout
+                                           where cart_token = ?`, [orderNO]))[0]
+            delete order.orderData.user_info.shipment_number;
+            delete order.orderData.user_info.shipment_refer;
+            await db.query(`update \`${this.app_name}\`.t_checkout
+                            set orderData=?
+                            where cart_token = ?`, [JSON.stringify(order.orderData), orderNO])
+        }
+        return response.data;
+    }
+
+    //查詢物流單
+    async getOrderInfo(orderNO: string) {
+        try {
+            const l_config = await this.config()
+            const url = `${l_config.link}/api/Orderapi/Get_Order_Info_orderno?orderno=${orderNO}&user_account=${l_config.account}&sno=1`;
+            const config = {
+                method: 'get',
+                maxBodyLength: Infinity,
+                url: url,
+                headers: {
+                    'Content-Type': 'application/JSON'
+                }
+            };
+            const response = await axios(config)
+            return response.data;
+        } catch (e: any) {
+            console.log(e)
+            return {
+                status: e.status
+            }
+        }
+    }
+
     //列印托運單
     async printLogisticsOrder(carData: any) {
 
         const l_config = await this.config()
         const url = `${l_config.link}/api/Orderapi/Add_Order`;
-        const data:any={
-            user_account:l_config.account,
-            apicode:l_config.pwd,
-            Logistic_service:ShipmentConfig.list.find((dd)=>{
-                return dd.value===carData.user_info.shipment
-            })!!.paynow_id,
-            OrderNo:carData.orderID,
-            DeliverMode:(carData.customer_info.payment_select == 'cash_on_delivery') ? '01':'02',
-            TotalAmount:carData.total,
-            receiver_storeid:carData.user_info.CVSStoreID,
-            receiver_storename:carData.user_info.CVSStoreName,
-            return_storeid:'',
-            Receiver_Name:carData.user_info.name,
-            Receiver_Phone:carData.user_info.phone,
-            Receiver_Email:carData.user_info.email,
-            Receiver_address:carData.user_info.CVSAddress,
-            Sender_Name:l_config.sender_name,
-            Sender_Phone:l_config.sender_phone,
-            Sender_Email:l_config.sender_email,
-            Sender_address:l_config.sender_address,
-            "Remark":"",
-            "Description":"",
-            PassCode:await this.sha1Encrypt([l_config.account,carData.orderID,carData.total,l_config.pwd].join(''))
-        }
-        if(ShipmentConfig.list.find((dd)=>{
-            return dd.value===carData.user_info.shipment
-        })!!.paynow_id==='06'){
-         data.Deadline='0'
+        const service = ShipmentConfig.list.find((dd) => {
+            return dd.value === carData.user_info.shipment
+        })!!.paynow_id
+        const data: any = await (async () => {
+            if (service === '36') {
+                return {
+                    user_account: l_config.account,
+                    apicode: l_config.pwd,
+                    Logistic_service: service,
+                    OrderNo: carData.orderID,
+                    DeliverMode: (carData.customer_info.payment_select == 'cash_on_delivery') ? '01' : '02',
+                    TotalAmount: carData.total,
+                    receiver_storeid: carData.user_info.CVSStoreID,
+                    receiver_storename: carData.user_info.CVSStoreName,
+                    return_storeid: '',
+                    Receiver_Name: carData.user_info.name,
+                    Receiver_Phone: carData.user_info.phone,
+                    Receiver_Email: carData.user_info.email,
+                    Receiver_address: carData.user_info.address,
+                    Sender_Name: l_config.sender_name,
+                    Sender_Phone: l_config.sender_phone,
+                    Sender_Email: l_config.sender_email,
+                    Sender_address: l_config.sender_address,
+                    Length:carData.user_info.length,
+                    Wide:carData.user_info.wide,
+                    High:carData.user_info.high,
+                    Weight:carData.user_info.weight,
+                    DeliveryType:(()=>{
+                        switch (carData.user_info.shipment){
+                            case 'black_cat':
+                                return '0001'
+                            case 'black_cat_ice':
+                                return '0002';
+                            case 'black_cat_freezing':
+                                return '0003';
+                        }
+                    })(),
+                    "Remark": "",
+                    "Description": "",
+                    PassCode: await this.sha1Encrypt([l_config.account, carData.orderID, carData.total, l_config.pwd].join(''))
+                }
+            } else {
+                return {
+                    user_account: l_config.account,
+                    apicode: l_config.pwd,
+                    Logistic_service: service,
+                    OrderNo: carData.orderID,
+                    DeliverMode: (carData.customer_info.payment_select == 'cash_on_delivery') ? '01' : '02',
+                    TotalAmount: carData.total,
+                    receiver_storeid: carData.user_info.CVSStoreID,
+                    receiver_storename: carData.user_info.CVSStoreName,
+                    return_storeid: '',
+                    Receiver_Name: carData.user_info.name,
+                    Receiver_Phone: carData.user_info.phone,
+                    Receiver_Email: carData.user_info.email,
+                    Receiver_address: carData.user_info.CVSAddress,
+                    Sender_Name: l_config.sender_name,
+                    Sender_Phone: l_config.sender_phone,
+                    Sender_Email: l_config.sender_email,
+                    Sender_address: l_config.sender_address,
+                    "Remark": "",
+                    "Description": "",
+                    PassCode: await this.sha1Encrypt([l_config.account, carData.orderID, carData.total, l_config.pwd].join(''))
+                }
+            }
+        })();
+        if (service === '36') {
+            data.Deadline = '0'
         }
         //轉成純字串
-        Object.keys(data).map((dd)=>{
-            data[dd]=`${data[dd]}`
+        Object.keys(data).map((dd) => {
+            data[dd] = `${data[dd]}`
         })
         const config = {
             method: 'post',
             maxBodyLength: Infinity,
             url: url,
             headers: {
-                'Content-Type': 'application/JSON' },
-            data:{
-                JsonOrder:await this.encrypt(JSON.stringify(data))
+                'Content-Type': 'application/JSON'
+            },
+            data: {
+                JsonOrder: await this.encrypt(JSON.stringify(data))
             }
         };
-        const response=await axios(config)
-        console.log(`response==>`,response)
-        console.log(`response_data==>`,response.data)
+        const response = await axios(config)
+        console.log(`response_data==>`, response.data)
         return response.data;
     }
 

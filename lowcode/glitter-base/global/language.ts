@@ -142,6 +142,7 @@ export class Language {
             { key: 'country', tw: '國家', cn: '国家', en: `Country` },
             { key: 'select_country', tw: '選擇國家', cn: '选择国家', en: `Select country` },
             { key: 'stock_count', tw: '商品庫存', cn: '商品库存', en: `Stock quantity` },
+            { key: 'can_buy', tw: '可售數量', cn: '可售数量', en: `Available quantity` },
             { key: 'login_in_to_checkout', tw: '登入後結帳', cn: '登入后结帐', en: `Log in and checkout` },
             { key: 'birth', tw: '生日', cn: '生日', en: `Birth` },
             { key: 'buy_it_now', tw: '立即購買', cn: '立即购买', en: `Buy it now` },
@@ -847,6 +848,11 @@ export class Language {
             { key: 'search_article', tw: '搜尋文章', cn: '搜寻文章', en: 'Search articles' },
             { key: 'blog_list', tw: '網誌列表', cn: '网志列表', en: 'Blog list' },
             { key: 'all_article', tw: '所有文章', cn: '所有文章', en: 'All articles' },
+            { key: 'share', tw: '分享', cn: '分享', en: 'share' },
+            { key: 'copy_link_success', tw: '已成功複製連結', cn: '已成功复制连结', en: 'Link copied successfully' },
+            { key: 'chat', tw: '聊聊', cn: '聊聊', en: 'chat' },
+            { key: 'collect', tw: '收藏', cn: '收藏', en: 'collect' },
+            { key: 'h_collect', tw: '已收藏', cn: '已收藏', en: 'collected' },
         ];
     }
 

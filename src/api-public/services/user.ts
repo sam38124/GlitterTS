@@ -2396,7 +2396,7 @@ export class User {
                     }
                 }
                 if (data && data.value) {
-                    data.value = that.checkLeakData(config.key, data.value) || data.value;
+                    data.value = await that.checkLeakData(config.key, data.value) || data.value;
                 } else if (config.key === 'store-information') {
                     return {
                         language_setting: {
@@ -2430,12 +2430,18 @@ export class User {
         }
     }
 
-    public checkLeakData(key: string, value: any) {
+    public async checkLeakData(key: string, value: any) {
         if (key === 'store-information') {
             value.language_setting = value.language_setting ?? {
                 def: 'zh-TW',
                 support: ['zh-TW'],
             };
+            if(value.chat_toggle===undefined){
+                value.chat_toggle=(await this.getConfigV2({
+                    key:'message_setting',
+                    user_id:'manager'
+                })).toggle
+            }
         } else if (['menu-setting', 'footer-setting'].includes(key) && Array.isArray(value)) {
             return {
                 'zh-TW': value,

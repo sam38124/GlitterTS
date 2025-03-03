@@ -79,11 +79,16 @@ export class Glitter {
             queue: {},
             resize_img_url: (link) => {
                 let rela_link = link;
-                [150, 600, 1200, 1440].reverse().map((dd) => {
-                    if (document.body.clientWidth < dd) {
-                        rela_link = link.replace('size1440_s*px$_', `size${dd}_s*px$_`);
+                function findClosestNumbers(arr, target) {
+                    if (arr.length === 0) {
+                        throw new Error('數字陣列不可為空');
                     }
-                });
+                    const distances = arr.map((num) => Math.abs(num - target));
+                    const minDistance = Math.min(...distances);
+                    return arr.filter((num, index) => distances[index] === minDistance);
+                }
+                const closestNumbers = findClosestNumbers([150, 600, 1200, 1440], document.body.clientWidth);
+                rela_link = link.replace('size1920_s*px$_', `size${closestNumbers}_s*px$_`).replace('size1440_s*px$_', `size${closestNumbers}_s*px$_`);
                 return rela_link;
             },
             clock() {
@@ -551,7 +556,7 @@ export class Glitter {
     }
     set href(value) {
         const link = new URL(value, location.href);
-        if ((location.origin) === (link.origin)) {
+        if ((location.origin) === (link.origin) && !(value.includes('#'))) {
             if (link.searchParams.get("page")) {
                 const page = link.searchParams.get("page");
                 link.searchParams.delete("page");
@@ -745,15 +750,16 @@ ${(!error.message) ? `` : `錯誤訊息:${error.message}`}${(!error.lineNumber) 
         if (title) {
             document.title = title;
         }
+        console.log(`window.location.hash==>`, window.location.href);
         if (tag === 'page' && value) {
             try {
                 this.page = value;
                 const url = new URL((() => {
                     if (value === 'index') {
-                        return this.root_path.substring(0, this.root_path.length - 1) + Language.getLanguageLinkPrefix(false) + window.location.search;
+                        return this.root_path.substring(0, this.root_path.length - 1) + Language.getLanguageLinkPrefix(false) + window.location.hash + window.location.search;
                     }
                     else {
-                        return this.root_path + Language.getLanguageLinkPrefix() + value + window.location.search;
+                        return this.root_path + Language.getLanguageLinkPrefix() + value + window.location.hash + window.location.search;
                     }
                 })());
                 url.searchParams.delete('page');

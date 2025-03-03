@@ -324,6 +324,22 @@ export class ShoppingInformation {
                                             />
                                         </div>
                                         <div class="d-flex flex-column" style="gap:8px;">
+                                            <div style="color: #393939;font-size: 16px;">啟用聊聊功能</div>
+                                            <div style="color: #8D8D8D;font-size:13px;">啟用聊聊功能，方便客戶直接於官網前台與您聯繫，並詢問商品詳細內容。
+                                            </div>
+                                            <div class="cursor_pointer form-check form-switch m-0 p-0"
+                                                 style="margin-top: 10px;">
+                                                <input
+                                                        class="form-check-input m-0"
+                                                        type="checkbox"
+                                                        onchange="${gvc.event((e, event) => {
+                            vm.data.chat_toggle = !vm.data.chat_toggle;
+                        })}"
+                                                        ${vm.data.chat_toggle ? `checked` : ``}
+                                                />
+                                            </div>
+                                        </div>
+                                        <div class="d-flex flex-column" style="gap:8px;">
                                             <div style="color: #393939;font-size: 16px;">啟用心願單功能</div>
                                             <div style="color: #8D8D8D;font-size:13px;">啟用心願單功能，方便客戶收藏並管理喜愛的商品清單。<br>
                                                 隨時查看心儀商品，提升購物體驗與轉換率。

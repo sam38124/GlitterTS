@@ -1259,7 +1259,7 @@ export class ShoppingProductSetting {
                                                                                         style="padding: 9px 18px;border-radius: 10px;border: 1px solid #DDD;"
                                                                                         placeholder="請輸入庫存數量"
                                                                                         onchange="${gvc.event((e) => {
-                                    variant.stock = e.value;
+                                    variant.stockList[stockList[0].id].count = e.value;
                                 })}"
                                                                                 />
                                                                             </div>

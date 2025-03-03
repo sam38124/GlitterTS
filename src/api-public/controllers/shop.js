@@ -571,7 +571,7 @@ async function redirect_link(req, resp) {
             console.log(`req.query=>`, req.query);
             const data = (await linePay.confirmAndCaptureOrder(req.query.transactionId, order_data['orderData'].total)).data;
             console.log(`line-response==>`, data);
-            if (data.returnCode == '0000') {
+            if ((data.returnCode == '0000') && (data.info.orderId === req.query.orderID)) {
                 await new shopping_1.Shopping(req.query.appName).releaseCheckout(1, req.query.orderID);
             }
         }
@@ -595,7 +595,8 @@ async function redirect_link(req, resp) {
             const check_id = await redis_js_1.default.getValue(`paynow` + req.query.orderID);
             const payNow = new financial_service_js_1.PayNow(req.query.appName, keyData);
             const data = await payNow.confirmAndCaptureOrder(check_id);
-            if (data.type == 'success') {
+            console.log(`paynow-response=>`, data);
+            if (data.type == 'success' && data.result.status === 'success') {
                 await new shopping_1.Shopping(req.query.appName).releaseCheckout(1, req.query.orderID);
             }
         }
@@ -661,52 +662,54 @@ router.post('/notify', upload.single('file'), async (req, resp) => {
     try {
         console.log(`notify-order-result`);
         let decodeData = undefined;
-        const appName = req.query['g-app'];
+        req.query.appName = req.query.appName || req.get('g-app') || req.query['g-app'];
+        const appName = req.query.appName;
         const type = req.query['type'];
         const keyData = (await private_config_js_1.Private_config.getConfig({
             appName: appName,
             key: 'glitter_finance',
         }))[0].value[type];
-        if (type === 'ecPay') {
-            const responseCheckMacValue = `${req.body.CheckMacValue}`;
-            delete req.body.CheckMacValue;
-            const chkSum = financial_service_js_1.EcPay.generateCheckMacValue(req.body, keyData.HASH_KEY, keyData.HASH_IV);
-            decodeData = {
-                Status: req.body.RtnCode === '1' && responseCheckMacValue === chkSum ? 'SUCCESS' : 'ERROR',
-                Result: {
-                    MerchantOrderNo: req.body.MerchantTradeNo,
-                    CheckMacValue: req.body.CheckMacValue,
-                },
-            };
-        }
-        if (type === 'newWebPay') {
-            decodeData = JSON.parse(new financial_service_js_1.EzPay(appName, {
-                HASH_IV: keyData.HASH_IV,
-                HASH_KEY: keyData.HASH_KEY,
-                ActionURL: keyData.ActionURL,
-                NotifyURL: '',
-                ReturnURL: '',
-                MERCHANT_ID: keyData.MERCHANT_ID,
-                TYPE: keyData.TYPE,
-            }).decode(req.body.TradeInfo));
-        }
         if (type === 'paynow') {
             const check_id = await redis_js_1.default.getValue(`paynow` + req.query.orderID);
             const payNow = new financial_service_js_1.PayNow(req.query.appName, keyData);
             const data = await payNow.confirmAndCaptureOrder(check_id);
-            console.log(`paynow-notify1`, req.body);
-            console.log(`paynow-notify2`, check_id);
-            console.log(`paynow-notify3`, data);
+            if (data.type == 'success' && data.result.status === 'success') {
+                await new shopping_1.Shopping(req.query.appName).releaseCheckout(1, req.query.orderID);
+            }
         }
-        if (decodeData['Status'] === 'SUCCESS') {
-            await new shopping_1.Shopping(appName).releaseCheckout(1, decodeData['Result']['MerchantOrderNo']);
-        }
-        else {
-            await new shopping_1.Shopping(appName).releaseCheckout(-1, decodeData['Result']['MerchantOrderNo']);
+        if (['ecPay', 'newWebPay'].includes(type)) {
+            if (type === 'ecPay') {
+                delete req.body.CheckMacValue;
+                decodeData = {
+                    Status: ((await new financial_service_js_1.EcPay(appName).checkPaymentStatus(req.body.MerchantTradeNo)).TradeStatus === '1') ? 'SUCCESS' : 'ERROR',
+                    Result: {
+                        MerchantOrderNo: req.body.MerchantTradeNo,
+                        CheckMacValue: req.body.CheckMacValue,
+                    },
+                };
+            }
+            if (type === 'newWebPay') {
+                decodeData = JSON.parse(new financial_service_js_1.EzPay(appName, {
+                    HASH_IV: keyData.HASH_IV,
+                    HASH_KEY: keyData.HASH_KEY,
+                    ActionURL: keyData.ActionURL,
+                    NotifyURL: '',
+                    ReturnURL: '',
+                    MERCHANT_ID: keyData.MERCHANT_ID,
+                    TYPE: keyData.TYPE,
+                }).decode(req.body.TradeInfo));
+            }
+            if (decodeData['Status'] === 'SUCCESS') {
+                await new shopping_1.Shopping(appName).releaseCheckout(1, decodeData['Result']['MerchantOrderNo']);
+            }
+            else {
+                await new shopping_1.Shopping(appName).releaseCheckout(-1, decodeData['Result']['MerchantOrderNo']);
+            }
         }
         return response_1.default.succ(resp, {});
     }
     catch (err) {
+        console.error(err);
         return response_1.default.fail(resp, err);
     }
 });
@@ -1376,6 +1379,22 @@ router.post('/logistics/redirect', async (req, resp) => {
             </script>
             </body>
             </html> `);
+    }
+    catch (err) {
+        return response_1.default.fail(resp, err);
+    }
+});
+router.get('/ec-pay/payments/status', async (req, resp) => {
+    try {
+        return response_1.default.succ(resp, await new financial_service_js_1.EcPay(req.get('g-app')).checkPaymentStatus(req.query.orderID));
+    }
+    catch (err) {
+        return response_1.default.fail(resp, err);
+    }
+});
+router.delete('/ec-pay/payments/brush-back', async (req, resp) => {
+    try {
+        return response_1.default.succ(resp, await new financial_service_js_1.EcPay(req.get('g-app')).brushBack(req.body.orderID, req.body.tradNo, req.body.total));
     }
     catch (err) {
         return response_1.default.fail(resp, err);

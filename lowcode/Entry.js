@@ -16,9 +16,51 @@ import { EditorConfig } from './editor-config.js';
 import { ShareDialog } from './glitterBundle/dialog/ShareDialog.js';
 import { Language } from './glitter-base/global/language.js';
 import { PayConfig } from "./cms-plugin/pos-pages/pay-config.js";
+import { ApiCart } from "./glitter-base/route/api-cart.js";
 export class Entry {
     static onCreate(glitter) {
         var _a, _b;
+        if (glitter.getUrlParameter('EndCheckout') === '1') {
+            try {
+                const lineItemIds = JSON.parse(localStorage.getItem('clear_cart_items'));
+                const cartKeys = [ApiCart.cartPrefix, ApiCart.buyItNow, ApiCart.globalCart];
+                for (let i = 0; i < localStorage.length; i++) {
+                    const key = localStorage.key(i);
+                    if (key && cartKeys.some((cartKey) => key === null || key === void 0 ? void 0 : key.includes(cartKey))) {
+                        const formatKey = key === null || key === void 0 ? void 0 : key.replace(window.appName, '');
+                        const cart = new ApiCart(formatKey);
+                        cart.setCart((cartItem) => {
+                            cartItem.line_items = cartItem.line_items.filter((item) => !lineItemIds.includes(item.id));
+                        });
+                    }
+                }
+                localStorage.removeItem('clear_cart_items');
+            }
+            catch (e) {
+            }
+        }
+        const clock = glitter.ut.clock();
+        const hashLoop = setInterval(() => {
+            try {
+                if (document.querySelector(`${location.hash}`)) {
+                    location.href = `${location.hash}`;
+                    clearInterval(hashLoop);
+                    const clock2 = glitter.ut.clock();
+                    const interVal = setInterval(() => {
+                        location.href = `${location.hash}`;
+                        if (clock2.stop() > 2000) {
+                            clearInterval(interVal);
+                        }
+                    }, 100);
+                }
+                else if (clock.stop() > 5000) {
+                    clearInterval(hashLoop);
+                }
+            }
+            catch (e) {
+                clearInterval(hashLoop);
+            }
+        }, 100);
         window.store_info.web_type = (_a = window.store_info.web_type) !== null && _a !== void 0 ? _a : ['shop'];
         const shopp = localStorage.getItem('shopee');
         if (shopp) {
@@ -90,7 +132,7 @@ export class Entry {
         }
         window.renderClock = (_b = window.renderClock) !== null && _b !== void 0 ? _b : clockF();
         console.log(`Entry-time:`, window.renderClock.stop());
-        glitter.share.editerVersion = 'V_18.1.3';
+        glitter.share.editerVersion = 'V_18.3.2';
         glitter.share.start = new Date();
         const vm = {
             appConfig: [],
@@ -266,6 +308,15 @@ export class Entry {
             }
             return planText;
         };
+        window.addEventListener('resize', () => {
+            const width = window.innerWidth;
+            const height = window.innerHeight;
+            for (const b of document.querySelectorAll(`.glitter-dialog`)) {
+                b.style.height = `${height}px`;
+                b.style.minHeight = `${height}px`;
+            }
+            console.log(`視窗大小變化: 寬度=${width}px, 高度=${height}px`);
+        });
     }
     static checkIframe(glitter) {
         if (glitter.getUrlParameter('isIframe') === 'true') {
@@ -302,7 +353,7 @@ export class Entry {
             }
 
             ::-webkit-scrollbar {
-                width: 0 ; /* 滚动条宽度 */
+                width: 0; /* 滚动条宽度 */
                 height: 0;
             }
         `);
@@ -571,7 +622,9 @@ export class Entry {
                 script.referrerPolicy = 'no-referrer';
                 script.crossOrigin = 'anonymous';
                 document.head.appendChild(script);
-                glitter.addMtScript(['https://oss-sg.imin.sg/web/iMinPartner/js/imin-printer.min.js', 'https://cdn.jsdelivr.net/npm/jsbarcode@3.11.5/dist/JsBarcode.all.min.js'], () => { }, () => { });
+                glitter.addMtScript(['https://oss-sg.imin.sg/web/iMinPartner/js/imin-printer.min.js', 'https://cdn.jsdelivr.net/npm/jsbarcode@3.11.5/dist/JsBarcode.all.min.js'], () => {
+                }, () => {
+                });
                 setTimeout(() => {
                     window.IminPrintInstance = new IminPrinter();
                     window.IminPrintInstance.connect();

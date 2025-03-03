@@ -63,6 +63,8 @@ export class Schedule {
     }
 
     async autoCancelOrder(sec: number) {
+        let clock=new Date()
+        console.log(`autoCancelOrder`)
         try {
             for (const app of Schedule.app) {
                 if (await this.perload(app)) {
@@ -98,9 +100,12 @@ export class Schedule {
             throw exception.BadRequestError('BAD_REQUEST', 'Example Error: ' + e, null);
         }
         setTimeout(() => this.autoCancelOrder(sec), sec * 1000);
+        console.log(`autoCancelOrder-Stop`,(new Date().getTime() - clock.getTime())/1000)
     }
 
     async renewMemberLevel(sec: number) {
+        let clock=new Date()
+        console.log(`renewMemberLevel`)
         try {
             for (const app of Schedule.app) {
                 if (await this.perload(app)) {
@@ -114,9 +119,12 @@ export class Schedule {
             console.error('BAD_REQUEST', 'renewMemberLevel Error: ' + e, null);
         }
         setTimeout(() => this.renewMemberLevel(sec), sec * 1000);
+        console.log(`renewMemberLevel-Stop`,(new Date().getTime() - clock.getTime())/1000)
     }
 
     async birthRebate(sec: number) {
+        let clock=new Date()
+        console.log(`resetVoucherHistory`)
         for (const app of Schedule.app) {
             try {
                 if (await this.perload(app)) {
@@ -182,9 +190,12 @@ export class Schedule {
         }
 
         setTimeout(() => this.birthRebate(sec), sec * 1000);
+        console.log(`birthRebate-Stop`,(new Date().getTime() - clock.getTime())/1000)
     }
 
     async birthBlessMail(sec: number) {
+        let clock=new Date()
+        console.log(`resetVoucherHistory`)
         for (const app of Schedule.app) {
             try {
                 if (await this.perload(app)) {
@@ -244,9 +255,12 @@ export class Schedule {
         }
 
         setTimeout(() => this.birthBlessMail(sec), sec * 1000);
+        console.log(`birthBlessMail-Stop`,(new Date().getTime() - clock.getTime())/1000)
     }
 
     async resetVoucherHistory(sec: number) {
+        let clock=new Date()
+        console.log(`resetVoucherHistory`)
         for (const app of Schedule.app) {
             try {
                 if (await this.perload(app)) {
@@ -257,9 +271,12 @@ export class Schedule {
             }
         }
         setTimeout(() => this.resetVoucherHistory(sec), sec * 1000);
+        console.log(`resetVoucherHistory-Stop`,(new Date().getTime() - clock.getTime())/1000)
     }
 
     async autoSendMail(sec: number) {
+        let clock=new Date()
+        console.log(`autoSendLine`)
         for (const app of Schedule.app) {
             try {
                 if (await this.perload(app)) {
@@ -281,11 +298,13 @@ export class Schedule {
                 throw exception.BadRequestError('BAD_REQUEST', 'autoSendMail Error: ' + e, null);
             }
         }
-
         setTimeout(() => this.autoSendMail(sec), sec * 1000);
+        console.log(`autoSendMail-Stop`,(new Date().getTime() - clock.getTime())/1000)
     }
 
     async autoSendLine(sec: number) {
+        let clock=new Date()
+        console.log(`autoSendLine`)
         for (const app of Schedule.app) {
             try {
                 if (await this.perload(app)) {
@@ -317,6 +336,7 @@ export class Schedule {
         }
 
         setTimeout(() => this.autoSendLine(sec), sec * 1000);
+        console.log(`autoSendLine-Stop`,(new Date().getTime() - clock.getTime())/1000)
     }
 
     async initialSampleApp(sec: number) {
@@ -327,6 +347,8 @@ export class Schedule {
     async currenciesUpdate(sec: number) {
         const date = new Date();
         const date_index = `${date.getFullYear()}-${date.getMonth() + 1}-${date.getDate()}`;
+        let clock=new Date()
+        console.log(`currenciesUpdate-Start`)
         if ((await db.query(`select count(1) from \`${saasConfig.SAAS_NAME}\`.currency_config where updated='${date_index}'`, []))[0]['count(1)'] === 0) {
             let config = {
                 method: 'get',
@@ -347,12 +369,13 @@ export class Schedule {
                 });
         } else {
             setTimeout(() => this.currenciesUpdate(sec), sec * 1000);
+            console.log(`currenciesUpdate-Stop`,(new Date().getTime() - clock.getTime())/1000)
         }
     }
 
     main() {
         const scheduleList: ScheduleItem[] = [
-            { second: 10, status: false, func: 'example', desc: '排程啟用範例' },
+            // { second: 10, status: false, func: 'example', desc: '排程啟用範例' },
             { second: 3600, status: true, func: 'birthRebate', desc: '生日禮發放購物金' },
             { second: 3600, status: true, func: 'birthBlessMail', desc: '生日祝福信件' },
             { second: 600, status: true, func: 'renewMemberLevel', desc: '更新會員分級' },

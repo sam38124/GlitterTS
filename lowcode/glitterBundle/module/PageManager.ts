@@ -181,7 +181,7 @@ export class PageManager {
             {
                 src: PageManager.getRelativeUrl(url),
                 callback: (gvFunction) => {
-                    const original = new URL(glitter.root_path + Language.getLanguageLinkPrefix()+tag + window.location.search)
+                    const original = new URL(glitter.root_path + Language.getLanguageLinkPrefix()+tag +location.hash+ window.location.search)
                     function switchFunction() {
                         glitter.page = tag
                         try {
@@ -204,7 +204,7 @@ export class PageManager {
                             },
                             backGroundColor: option.backGroundColor ?? 'transparent',
                             type: GVCType.Page,
-                            animation: option.animation ?? glitter.animation.none,
+                            animation: option.animation || glitter.defaultSetting.pageAnimation || glitter.animation.none,
                             dismiss: option.dismiss ?? (() => {
                             }),
                             renderFinish: () => {

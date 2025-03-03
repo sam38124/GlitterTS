@@ -7,7 +7,7 @@ import axios from 'axios';
 import app from '../../app';
 import redis from '../../modules/redis.js';
 import Tool from '../../modules/tool.js';
-import FinancialService, {LinePay, PayNow, PayPal, JKO} from './financial-service.js';
+import FinancialService, {LinePay, PayNow, PayPal, JKO, EcPay} from './financial-service.js';
 import {Private_config} from '../../services/private_config.js';
 import {User} from './user.js';
 import {Invoice} from './invoice.js';
@@ -29,6 +29,7 @@ import {SeoConfig} from '../../seo-config.js';
 import {sendmail} from '../../services/ses.js';
 import {Shopee} from "./shopee";
 import {ShipmentConfig as Shipment_support_config} from '../config/shipment-config.js'
+import {PayNowLogistics} from "./paynow-logistics.js";
 
 type BindItem = {
     id: string;
@@ -585,6 +586,7 @@ export class Shopping {
                             (content.variants || []).forEach((variant: any) => {
                                 variant.stock = 0;
                                 variant.sold_out = variant.sold_out || 0;
+                                variant.preview_image=variant.preview_image ?? ''
                                 if (!variant.preview_image.includes('https://')) {
                                     variant.preview_image = undefined
                                 }
@@ -956,6 +958,7 @@ export class Shopping {
                    FROM \`${this.app}\`.t_manager_post
                    WHERE ${querySql.join(' and ')} ${query.order_by || `order by id desc`}
         `;
+        console.log(`querySqlProduct=>`,sql)
         if (query.id) {
             const data = (
                 await db.query(
@@ -1882,7 +1885,6 @@ export class Shopping {
             })();
             carData.total += carData.shipment_fee;
             const f_rebate = await this.formatUseRebate(carData.total, carData.use_rebate);
-
             console.log(`checkout-time-08=>`, new Date().getTime() - check_time);
             carData.useRebateInfo = f_rebate;
             carData.use_rebate = f_rebate.point;
@@ -2031,13 +2033,15 @@ export class Shopping {
                 .filter((dd) => {
                     return (keyData as any)[dd.key] && (keyData as any)[dd.key].toggle;
                 })
-                .filter((dd) => {
+                .filter((dd:any) => {
+                    dd.custome_name=(keyData as any)[dd.key].custome_name;
                     if (carData.orderSource === 'POS') {
                         if (dd.key === 'ut_credit_card') {
                             (dd as any).pwd = (keyData as any)[dd.key]['pwd'];
                         }
                         return dd.type === 'pos';
                     } else {
+
                         return dd.type !== 'pos';
                     }
                 });
@@ -2098,6 +2102,30 @@ export class Shopping {
             // ================================ Add DOWN ================================
             console.log(`checkout-time-12=>`, new Date().getTime() - check_time);
 
+            //購物金與錢包金額移除
+            if (userData && userData.userID) {
+                await rebateClass.insertRebate(userData.userID, carData.use_rebate * -1, '使用折抵', {
+                    order_id: carData.orderID,
+                });
+
+                if (carData.voucherList && (carData as any).voucherList.length > 0) {
+                    for (const voucher of (carData as any).voucherList) {
+                        await this.insertVoucherHistory(userData.userID, carData.orderID, voucher.id);
+                    }
+                }
+                // 判斷錢包是否有餘額
+                const sum =
+                    (
+                        await db.query(
+                            `SELECT sum(money)
+                                 FROM \`${this.app}\`.t_wallet
+                                 WHERE status in (1, 2)
+                                   and userID = ?`,
+                            [userData.userID]
+                        )
+                    )[0]['sum(money)'] || 0;
+                carData.use_wallet = sum < carData.total ? sum : carData.total;
+            }
             // 手動結帳地方判定
             if (type === 'manual') {
                 carData.orderSource = 'manual';
@@ -2221,30 +2249,6 @@ export class Shopping {
                 //通知付款
                 await new Shopping(this.app).releaseCheckout((data.pay_status as any) ?? 0, carData.orderID);
                 return {result: 'SUCCESS', message: 'POS訂單新增成功', data: carData};
-            } else {
-                if (userData && userData.userID) {
-                    await rebateClass.insertRebate(userData.userID, carData.use_rebate * -1, '使用折抵', {
-                        order_id: carData.orderID,
-                    });
-
-                    if (carData.voucherList && (carData as any).voucherList.length > 0) {
-                        for (const voucher of (carData as any).voucherList) {
-                            await this.insertVoucherHistory(userData.userID, carData.orderID, voucher.id);
-                        }
-                    }
-                    // 判斷錢包是否有餘額
-                    const sum =
-                        (
-                            await db.query(
-                                `SELECT sum(money)
-                                 FROM \`${this.app}\`.t_wallet
-                                 WHERE status in (1, 2)
-                                   and userID = ?`,
-                                [userData.userID]
-                            )
-                        )[0]['sum(money)'] || 0;
-                    carData.use_wallet = sum < carData.total ? sum : carData.total;
-                }
             }
 
             // Genetate notify redirect id
@@ -2323,7 +2327,7 @@ export class Shopping {
                         };
                     case 'paypal':
                         kd.ReturnURL = `${process.env.DOMAIN}/api-public/v1/ec/redirect?g-app=${this.app}&return=${id}`;
-                        kd.NotifyURL = `${process.env.DOMAIN}/api-public/v1/ec/notify?g-app=${this.app}`;
+                        kd.NotifyURL = `${process.env.DOMAIN}/api-public/v1/ec/notify?g-app=${this.app}&type=${carData.customer_info.payment_select}`;
                         await Promise.all(
                             saveStockArray.map((dd) => {
                                 return dd();
@@ -2331,8 +2335,8 @@ export class Shopping {
                         );
                         return await new PayPal(this.app, kd).checkout(carData);
                     case 'line_pay':
-                        kd.ReturnURL = `${process.env.DOMAIN}/api-public/v1/ec/redirect?g-app=${this.app}&return=${id}`;
-                        kd.NotifyURL = `${process.env.DOMAIN}/api-public/v1/ec/notify?g-app=${this.app}`;
+                        kd.ReturnURL = `${process.env.DOMAIN}/api-public/v1/ec/redirect?g-app=${this.app}&return=${id}&type=${carData.customer_info.payment_select}`;
+                        kd.NotifyURL = `${process.env.DOMAIN}/api-public/v1/ec/notify?g-app=${this.app}&type=${carData.customer_info.payment_select}`;
                         await Promise.all(
                             saveStockArray.map((dd) => {
                                 return dd();
@@ -2340,8 +2344,8 @@ export class Shopping {
                         );
                         return await new LinePay(this.app, kd).createOrder(carData);
                     case 'paynow': {
-                        kd.ReturnURL = `${process.env.DOMAIN}/api-public/v1/ec/redirect?g-app=${this.app}&return=${id}&paynow=true`;
-                        kd.NotifyURL = `${process.env.DOMAIN}/api-public/v1/ec/notify?g-app=${this.app}&paynow=true&type=paynow`;
+                        kd.ReturnURL = `${process.env.DOMAIN}/api-public/v1/ec/redirect?g-app=${this.app}&return=${id}&type=${carData.customer_info.payment_select}`;
+                        kd.NotifyURL = `${process.env.DOMAIN}/api-public/v1/ec/notify?g-app=${this.app}&paynow=true&type=${carData.customer_info.payment_select}`;
                         await Promise.all(
                             saveStockArray.map((dd) => {
                                 return dd();
@@ -3308,6 +3312,7 @@ export class Shopping {
                 querySql.push(`(orderData->>'$.orderStatus' is null or orderData->>'$.orderStatus' != '-1')`)
             }
 
+
             if (query.progress) {
                 let newArray = query.progress.split(',');
                 let temp = '';
@@ -3426,35 +3431,96 @@ export class Shopping {
                 }
                 return data[0];
             }
-
-            if (query.id) {
-                const data = (
-                    await db.query(
-                        `SELECT *
-                         FROM (${sql}) as subqyery limit ${query.page * query.limit}, ${query.limit}`,
-                        []
-                    )
-                )[0];
-                return {
-                    data: data,
-                    result: !!data,
-                };
-            } else {
-                return {
-                    data: await db.query(
-                        `SELECT *
-                         FROM (${sql}) as subqyery limit ${query.page * query.limit}, ${query.limit}`,
-                        []
-                    ),
-                    total: (
+            const response_data:any  = await  new Promise(async (resolve, reject)=>{
+                if (query.id) {
+                    const data = (
                         await db.query(
-                            `SELECT count(1)
-                             FROM (${sql}) as subqyery`,
+                            `SELECT *
+                         FROM (${sql}) as subqyery limit ${query.page * query.limit}, ${query.limit}`,
                             []
                         )
-                    )[0]['count(1)'],
-                };
-            }
+                    )[0];
+                    resolve({
+                        data: data,
+                        result: !!data,
+                    })
+                } else {
+                    resolve({
+                        data: await db.query(
+                            `SELECT *
+                         FROM (${sql}) as subqyery limit ${query.page * query.limit}, ${query.limit}`,
+                            []
+                        ),
+                        total: (
+                            await db.query(
+                                `SELECT count(1)
+                             FROM (${sql}) as subqyery`,
+                                []
+                            )
+                        )[0]['count(1)'],
+                    })
+                }
+            })
+            const obMap=(Array.isArray(response_data.data)) ? response_data.data:[response_data.data];
+            const keyData = (
+                await Private_config.getConfig({
+                    appName: this.app,
+                    key: 'glitter_finance',
+                })
+            )[0].value;
+            await Promise.all(obMap.map(async (order: any) => {
+               try {
+                   if(order.orderData.customer_info.payment_select === 'ecPay'){
+                       order.orderData.cash_flow=await new EcPay(this.app).checkPaymentStatus(order.cart_token)
+                   }
+                   if(order.orderData.customer_info.payment_select === 'paynow'){
+                       order.orderData.cash_flow=(await new PayNow(this.app,keyData['paynow']).confirmAndCaptureOrder(order.orderData.paynow_id)).result
+                   }
+                   if(order.orderData.user_info.shipment_refer==='paynow'){
+                       const pay_now= new PayNowLogistics(this.app);
+                       order.orderData.user_info.shipment_detail=await pay_now.getOrderInfo(order.cart_token);
+                       const status=(()=>{
+                           switch (order.orderData.user_info.shipment_detail.PayNowLogisticCode){
+                               case '0000':
+                               case '7101':
+                               case '7201':
+                                   return 'wait'
+                               case '0101':
+                               case '4000':
+                               case '0102':
+                               case '9411':
+                                   return 'shipping'
+                               case '0103':
+                               case '4031':
+                               case '4032':
+                               case '4040':
+                               case '5001':
+                               case '8100':
+                               case '8110':
+                               case '8120':
+                                   return 'returns'
+                               case '5000':
+                                   return 'arrived'
+                               case '8000':
+                               case '8010':
+                               case '8020':
+                                   return 'finish'
+                           }
+                       })();
+                       //貨態更新
+                       if(order.orderData.progress!==status){
+                           order.orderData.progress=status
+                           await this.putOrder({
+                               status:undefined,orderData:order.orderData,id:order.id,
+                           })
+                       }
+                   }
+               }catch (e) {
+
+               }
+            }))
+
+            return  response_data
         } catch (e) {
             throw exception.BadRequestError('BAD_REQUEST', 'getCheckOut Error:' + e, null);
         }

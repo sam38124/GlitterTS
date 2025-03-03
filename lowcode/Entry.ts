@@ -8,20 +8,64 @@ import {EditorConfig} from './editor-config.js';
 import {ShareDialog} from './glitterBundle/dialog/ShareDialog.js';
 import {Language} from './glitter-base/global/language.js';
 import {PayConfig} from "./cms-plugin/pos-pages/pay-config.js";
+import {Animation, AnimationConfig} from "./glitterBundle/module/Animation.js";
+import {ApiCart} from "./glitter-base/route/api-cart.js";
 
 export class Entry {
     public static onCreate(glitter: Glitter) {
+        //判斷結帳成功清空購物車紀錄
+        if(glitter.getUrlParameter('EndCheckout')==='1'){
+           try {
+               const lineItemIds = JSON.parse(localStorage.getItem('clear_cart_items') as string);
+               const cartKeys = [ApiCart.cartPrefix, ApiCart.buyItNow, ApiCart.globalCart];
 
+               for (let i = 0; i < localStorage.length; i++) {
+                   const key = localStorage.key(i);
+                   if (key && cartKeys.some((cartKey) => key?.includes(cartKey))) {
+                       const formatKey = key?.replace((window as any).appName, '');
+                       const cart = new ApiCart(formatKey);
+                       cart.setCart((cartItem) => {
+                           cartItem.line_items = cartItem.line_items.filter((item) => !lineItemIds.includes(item.id));
+                       });
+                   }
+               }
+               localStorage.removeItem('clear_cart_items')
+           }catch (e) {
+
+           }
+        }
+
+        //判斷是否有hash則跳轉
+        const clock=glitter.ut.clock()
+        const hashLoop = setInterval(() => {
+           try {
+               if (document.querySelector(`${location.hash}`)) {
+                   location.href = `${location.hash}`
+                   clearInterval(hashLoop)
+                   const clock2=glitter.ut.clock()
+                   const interVal=setInterval(()=>{
+                       location.href = `${location.hash}`
+                       if(clock2.stop()>2000){
+                           clearInterval(interVal)
+                       }
+                   },100)
+               }else if(clock.stop()>5000){
+                   clearInterval(hashLoop)
+               }
+           }catch (e) {
+               clearInterval(hashLoop)
+           }
+        }, 100);
         //預設為購物網站
-        (window as any).store_info.web_type = (window as any).store_info.web_type ?? ['shop']
-        const shopp=localStorage.getItem('shopee')
-        if(shopp){
+        (window as any).store_info.web_type = (window as any).store_info.web_type ?? ['shop'];
+        const shopp = localStorage.getItem('shopee')
+        if (shopp) {
             localStorage.removeItem('shopee')
-            localStorage.setItem('shopeeCode' , JSON.stringify({
-                code : glitter.getUrlParameter('code'),
-                shop_id : glitter.getUrlParameter('shop_id'),
+            localStorage.setItem('shopeeCode', JSON.stringify({
+                code: glitter.getUrlParameter('code'),
+                shop_id: glitter.getUrlParameter('shop_id'),
             }))
-            location.href=shopp
+            location.href = shopp
             return;
         }
         if ((window as any).language !== Language.getLanguage()) {
@@ -37,7 +81,7 @@ export class Entry {
             (window as any).glitter_page = page;
             location.reload();
         };
-        glitter.share.updated_form_data={};
+        glitter.share.updated_form_data = {};
         glitter.share.top_inset = 0;
         glitter.share.bottom_inset = 0;
         glitter.share.reload_code_hash = function () {
@@ -91,7 +135,7 @@ export class Entry {
         }
         (window as any).renderClock = (window as any).renderClock ?? clockF();
         console.log(`Entry-time:`, (window as any).renderClock.stop());
-        glitter.share.editerVersion = 'V_18.1.3';
+        glitter.share.editerVersion = 'V_18.3.2';
         glitter.share.start = new Date();
         const vm: {
             appConfig: any;
@@ -257,7 +301,7 @@ export class Entry {
         });
         glitter.share.LanguageApi = Language;
         //當前方案
-        glitter.share.plan_text=()=>{
+        glitter.share.plan_text = () => {
             const config = (window.parent as any).glitter.share.editorViewModel.app_config_original;
             let planText = '「  企業電商方案（免費試用30天）」'
             if (config.plan === 'light-year') {
@@ -271,6 +315,17 @@ export class Entry {
             }
             return planText
         }
+
+        // 監聽視窗大小變化
+        window.addEventListener('resize', () => {
+            const width = window.innerWidth; // 視窗的寬度
+            const height = window.innerHeight; // 視窗的高度
+            for (const b of document.querySelectorAll(`.glitter-dialog`)){
+                (b as any).style.height=`${height}px`;
+                (b as any).style.minHeight=`${height}px`
+            }
+            console.log(`視窗大小變化: 寬度=${width}px, 高度=${height}px`);
+        });
     }
 
     // 判斷是否為Iframe來覆寫Glitter代碼
@@ -311,7 +366,7 @@ export class Entry {
             }
 
             ::-webkit-scrollbar {
-                width: 0 ; /* 滚动条宽度 */
+                width: 0; /* 滚动条宽度 */
                 height: 0;
             }
         `);
@@ -372,10 +427,10 @@ export class Entry {
                         }
                     `)
 
-                    if (localStorage.getItem('on-pos') === 'true' && glitter.getUrlParameter('page') !== 'pos' && (glitter.getUrlParameter('type')==='editor')) {
+                    if (localStorage.getItem('on-pos') === 'true' && glitter.getUrlParameter('page') !== 'pos' && (glitter.getUrlParameter('type') === 'editor')) {
                         localStorage.removeItem('on-pos');
-                        location.href = glitter.root_path + 'pos?app-id='+(window as any).appName;
-                    }else{
+                        location.href = glitter.root_path + 'pos?app-id=' + (window as any).appName;
+                    } else {
                         glitter.setHome(
                             'jspage/main.js',
                             glitter.getUrlParameter('page'),
@@ -528,7 +583,9 @@ export class Entry {
             return eval(evals);
         };
         console.log(`exePlugin-time:`, (window as any).renderClock.stop());
+
         (window as any).glitterInitialHelper.getPageData(glitter.getUrlParameter('page'), (data: any) => {
+            // return;
             console.log(`getPageData-time:`, (window as any).renderClock.stop());
             if (data.response.result.length === 0) {
                 const url = new URL('./', location.href);
@@ -618,7 +675,7 @@ export class Entry {
 
     // 資源初始化
     public static resourceInitial(glitter: Glitter, vm: any, callback: (data: any) => void) {
-        glitter.share.PayConfig=PayConfig
+        glitter.share.PayConfig = PayConfig
         //判斷是否為POS裝置的Initial
         glitter.runJsInterFace('pos-device', {}, (res) => {
             PayConfig.deviceType = res.deviceType === 'neostra' ? 'pos' : 'web';
@@ -634,8 +691,10 @@ export class Entry {
                 document.head.appendChild(script);
                 glitter.addMtScript(
                     ['https://oss-sg.imin.sg/web/iMinPartner/js/imin-printer.min.js', 'https://cdn.jsdelivr.net/npm/jsbarcode@3.11.5/dist/JsBarcode.all.min.js'],
-                    () => {},
-                    () => {}
+                    () => {
+                    },
+                    () => {
+                    }
                 );
                 setTimeout(() => {
                     //@ts-ignore

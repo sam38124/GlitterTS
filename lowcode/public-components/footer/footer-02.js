@@ -6,6 +6,9 @@ const html = String.raw;
 export class Footer02 {
     static main(gvc, widget, subData) {
         var _a;
+        if (gvc.glitter.getUrlParameter('page').startsWith('products/') && document.body.clientWidth < 800) {
+            return ``;
+        }
         const formData = widget.formData;
         const colors = Color.getTheme(gvc, formData);
         const footer = {

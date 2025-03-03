@@ -17,6 +17,7 @@ import { FakeOrder } from './fake-order.js';
 import { FormCheck } from '../../cms-plugin/module/form-check.js';
 import { Currency } from '../../glitter-base/global/currency.js';
 import {ShipmentConfig} from "../../glitter-base/global/shipment-config.js";
+import {Animation} from "../../glitterBundle/module/Animation.js";
 
 const html = String.raw;
 
@@ -1367,141 +1368,87 @@ export class CheckoutIndex {
                                                                                 class="${gClass('button-bgr')} mb-0 mt-2"
                                                                                 onclick="${gvc.event(() => {
                                                                                     const titleFontColor=glitter.share.globalValue['theme_color.0.title'] ?? '#333333';
-                                                                                    console.log(`dd.content=>`,dd.content)
                                                                                     gvc.glitter.innerDialog((gvc: GVC) => {
-                                                                                        return html` <div class="bg-white shadow rounded-3" style="overflow-y: auto; ${document.body.clientWidth > 768 ? `min-width: 400px; width: 1000px;` : 'width:calc(100vw - 20px);'}">
-                <div class="bg-white shadow rounded-3" style="width: 100%; overflow-y: auto; position: relative;">
-                    <div class="w-100 d-flex align-items-center p-3 border-bottom" style="position: sticky; top: 0; background: #fff;z-index:12;">
-                        <div class="fw-bold fs-5" style="color:${titleFontColor}; white-space: nowrap;text-overflow: ellipsis;max-width: calc(100% - 40px); overflow: hidden;">
-                            ${dd.content.title}
-                        </div>
-                        <div class="flex-fill"></div>
-                        <i
-                            class="fa-regular fa-circle-xmark fs-5 text-dark"
-                            style="cursor: pointer"
-                            onclick="${gvc.event(() => {
-                                                                                            gvc.closeDialog();
-                                                                                        })}"
-                        ></i>
-                    </div>
-                    <div class="c_dialog">
-                        <div class="c_dialog_body">
-                            <div class="c_dialog_main" style="gap: 24px;  max-height: calc(100vh - 100px); ${document.body.clientWidth < 800 ? `padding: 12px 20px;` : `padding: 30px;`}">
-                                ${PdClass.selectSpec({
-                                                                                            gvc,
-                                                                                            titleFontColor: glitter.share.globalValue['theme_color.0.title'] ?? '#333333',
-                                                                                            prod: dd.content,
-                                                                                            vm: {
-                                                                                                specs: dd.content.specs.map(
-                                                                                                        (spec: {
-                                                                                                            option: {
-                                                                                                                title: string;
-                                                                                                            }[];
-                                                                                                        }) => {
-                                                                                                            return spec.option[0].title;
-                                                                                                        }
-                                                                                                ),
-                                                                                                quantity: '1',
-                                                                                                wishStatus: (glitter.share.wishList ?? []).some((item: { id: number }) => {
-                                                                                                    return item.id === dd.id;
-                                                                                                }),
-                                                                                            },
-                                                                                            preview:true,
-                                                                                            with_qty: false,
-                                                                                            is_gift:true,
-                                                                                            callback: () => {
-                                                                                                gvc.closeDialog()
-                                                                                                console.log(`vm.cartData=>`,vm.cartData)
-                                                                                                let find = vm.cartData.lineItems.find((d1: any) => {
-                                                                                                    return dd.add_on_products.find((d2: any) => {
-                                                                                                        return d2.id === d1.id;
-                                                                                                    });
-                                                                                                });
-                                                                                                console.log(`find=>`,find)
-                                                                                                if (find) {
-                                                                                                    apiCart.setCart((cartItem) => {
-                                                                                                        cartItem.line_items.map((dd) => {
-                                                                                                            if (dd.id === find.id) {
-                                                                                                                dd.count--;
-                                                                                                            }
-                                                                                                        });
-                                                                                                        cartItem.line_items = cartItem.line_items.filter((dd) => {
-                                                                                                            return dd.count > 0;
-                                                                                                        });
-                                                                                                        refreshCartData();
-                                                                                                        gvc.closeDialog();
-                                                                                                    });
-                                                                                                } else {
-                                                                                                    refreshCartData();
-                                                                                                    gvc.closeDialog();
-                                                                                                }
-                                                                                            },
-
-                                                                                        })}
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>`;
-                                                                                    }, Tool.randomString(7));
-                                                                                    return 
-                                                                                    return gvc.glitter.innerDialog((gvc: GVC) => {
-                                                                                        return html` <div
-                                                                                            class="bg-white shadow rounded-3"
-                                                                                            style="overflow-y: auto; ${document.body.clientWidth > 768
-                                                                                                ? `min-width: 400px; width: 600px;`
-                                                                                                : 'min-width: 90vw; max-width: 92.5vw;'}"
-                                                                                        >
-                                                                                            <div class="bg-white shadow rounded-3" style="width: 100%; overflow-y: auto; position: relative;">
-                                                                                                <div
-                                                                                                    class="w-100 d-flex align-items-center p-3 border-bottom"
-                                                                                                    style="position: sticky; top: 0; background: #fff;"
-                                                                                                >
+                                                                                        return html`
+                                                                                        <div class=" bg-white shadow  ${document.body.clientWidth > 768 ? `rounded-3` : ` position-absolute bottom-0`}"
+                                                                                             style=" ${document.body.clientWidth > 768 ? `min-width: 400px; width: 1000px;max-height:calc(100% - 150px);overflow-y: auto;` : 'width:calc(100vw);height:100%;'}">
+                                                                                            <div class="bg-white shadow  ${document.body.clientWidth > 768 ? `rounded-3` : `h-100`}" style="
+                width: 100%;  position: relative;${document.body.clientWidth > 768 ? `` : `overflow-y: auto;`}">
+                                                                                                <div class="w-100 d-flex align-items-center p-3 border-bottom"
+                                                                                                     style="position: sticky; top: 0; background: #fff;z-index:12;">
+                                                                                                    <div class="fw-bold fs-5"
+                                                                                                         style="color:${titleFontColor}; white-space: nowrap;text-overflow: ellipsis;max-width: calc(100% - 40px); overflow: hidden;">
+                                                                                                        ${dd.content.title}
+                                                                                                    </div>
                                                                                                     <div class="flex-fill"></div>
                                                                                                     <i
-                                                                                                        class="fa-regular fa-circle-xmark fs-5 text-dark"
-                                                                                                        style="cursor: pointer"
-                                                                                                        onclick="${gvc.event(() => {
-                                                                                                            gvc.closeDialog();
-                                                                                                        })}"
+                                                                                                            class="fa-regular fa-circle-xmark fs-5 text-dark"
+                                                                                                            style="cursor: pointer"
+                                                                                                            onclick="${gvc.event(() => {
+                                                                                            gvc.closeDialog();
+                                                                                        })}"
                                                                                                     ></i>
                                                                                                 </div>
-                                                                                                <div class="c_dialog">
-                                                                                                    <div class="c_dialog_body">
-                                                                                                        <div
-                                                                                                            class="c_dialog_main"
-                                                                                                            style="gap: 24px; height: auto; max-height: 500px; padding: 12px 20px;"
-                                                                                                        >
-                                                                                                            ${PdClass.selectSpec({
-                                                                                                                gvc,
-                                                                                                                titleFontColor: glitter.share.globalValue['theme_color.0.title'] ?? '#333333',
-                                                                                                                prod: dd.content,
-                                                                                                                vm: {
-                                                                                                                    specs: dd.content.specs.map(
-                                                                                                                        (spec: {
-                                                                                                                            option: {
-                                                                                                                                title: string;
-                                                                                                                            }[];
-                                                                                                                        }) => {
-                                                                                                                            return spec.option[0].title;
+                                                                                                <div class="c_dialog_main"
+                                                                                                     style="gap: 24px;  max-height: calc(100% - 100px); ${document.body.clientWidth < 800 ? `padding: 12px 20px;` : `padding: 30px;`}">
+                                                                                                    ${PdClass.selectSpec({
+                                                                                                        gvc,
+                                                                                                        titleFontColor: glitter.share.globalValue['theme_color.0.title'] ?? '#333333',
+                                                                                                        prod: dd.content,
+                                                                                                        vm: {
+                                                                                                            specs: dd.content.specs.map(
+                                                                                                                    (spec: {
+                                                                                                                        option: {
+                                                                                                                            title: string;
+                                                                                                                        }[];
+                                                                                                                    }) => {
+                                                                                                                        return spec.option[0].title;
+                                                                                                                    }
+                                                                                                            ),
+                                                                                                            quantity: '1',
+                                                                                                            wishStatus: (glitter.share.wishList ?? []).some((item: { id: number }) => {
+                                                                                                                return item.id === dd.id;
+                                                                                                            }),
+                                                                                                        },
+                                                                                                        preview:true,
+                                                                                                        with_qty: false,
+                                                                                                        is_gift:true,
+                                                                                                        callback: () => {
+                                                                                                            gvc.closeDialog()
+                                                                                                            console.log(`vm.cartData=>`,vm.cartData)
+                                                                                                            let find = vm.cartData.lineItems.find((d1: any) => {
+                                                                                                                return dd.add_on_products.find((d2: any) => {
+                                                                                                                    return d2.id === d1.id;
+                                                                                                                });
+                                                                                                            });
+                                                                                                            console.log(`find=>`,find)
+                                                                                                            if (find) {
+                                                                                                                apiCart.setCart((cartItem) => {
+                                                                                                                    cartItem.line_items.map((dd) => {
+                                                                                                                        if (dd.id === find.id) {
+                                                                                                                            dd.count--;
                                                                                                                         }
-                                                                                                                    ),
-                                                                                                                    quantity: '1',
-                                                                                                                    wishStatus: (glitter.share.wishList ?? []).some((item: { id: number }) => {
-                                                                                                                        return item.id === dd.id;
-                                                                                                                    }),
-                                                                                                                },
-                                                                                                                callback: () => {
-                                                                                                                    gvc.closeDialog();
+                                                                                                                    });
+                                                                                                                    cartItem.line_items = cartItem.line_items.filter((dd) => {
+                                                                                                                        return dd.count > 0;
+                                                                                                                    });
                                                                                                                     refreshCartData();
-                                                                                                                },
-                                                                                                            })}
-                                                                                                        </div>
-                                                                                                    </div>
+                                                                                                                    gvc.closeDialog();
+                                                                                                                });
+                                                                                                            } else {
+                                                                                                                refreshCartData();
+                                                                                                                gvc.closeDialog();
+                                                                                                            }
+                                                                                                        },
+
+                                                                                                    })}
+                                                                                                    <div class="d-sm-none" style="height:100px;"></div>
                                                                                                 </div>
                                                                                             </div>
                                                                                         </div>`;
-                                                                                    }, Tool.randomString(7));
+                                                                                    }, Tool.randomString(7), {
+                                                                                        animation: (document.body.clientWidth < 768) ? Animation.popup : Animation.fade
+                                                                                    })
                                                                                 })}"
                                                                             >
                                                                                 <span class="${gClass('button-text')}">${Language.text('add_to_cart')}</span>
@@ -1559,80 +1506,85 @@ export class CheckoutIndex {
                                                                                 }
                                                                              const titleFontColor=glitter.share.globalValue['theme_color.0.title'] ?? '#333333';
                                                                                 gvc.glitter.innerDialog((gvc: GVC) => {
-                                                                                    return html` <div class="bg-white shadow rounded-3" style="overflow-y: auto; ${document.body.clientWidth > 768 ? `min-width: 400px; width: 1000px;` : 'width:calc(100vw - 20px);'}">
-                <div class="bg-white shadow rounded-3" style="width: 100%; overflow-y: auto; position: relative;">
-                    <div class="w-100 d-flex align-items-center p-3 border-bottom" style="position: sticky; top: 0; background: #fff;z-index:12;">
-                        <div class="fw-bold fs-5" style="color:${titleFontColor}; white-space: nowrap;text-overflow: ellipsis;max-width: calc(100% - 40px); overflow: hidden;">
-                            ${pd.title}
-                        </div>
-                        <div class="flex-fill"></div>
-                        <i
-                            class="fa-regular fa-circle-xmark fs-5 text-dark"
-                            style="cursor: pointer"
-                            onclick="${gvc.event(() => {
-                                                                                        gvc.closeDialog();
-                                                                                    })}"
-                        ></i>
-                    </div>
-                    <div class="c_dialog">
-                        <div class="c_dialog_body">
-                            <div class="c_dialog_main" style="gap: 24px;  max-height: calc(100vh - 100px); ${document.body.clientWidth < 800 ? `padding: 12px 20px;` : `padding: 30px;`}">
-                                ${PdClass.selectSpec({
-                                    gvc,
-                                    titleFontColor: glitter.share.globalValue['theme_color.0.title'] ?? '#333333',
-                                    prod: pd,
-                                    vm: {
-                                        specs: pd.specs.map(
-                                                (spec: {
-                                                    option: {
-                                                        title: string;
-                                                    }[];
-                                                }) => {
-                                                    return spec.option[0].title;
-                                                }
-                                        ),
-                                        quantity: '1',
-                                        wishStatus: (glitter.share.wishList ?? []).some((item: { id: number }) => {
-                                            return item.id === dd.id;
-                                        }),
-                                    },
-                                    preview:true,
-                                    with_qty: false,
-                                    is_gift:true,
-                                    callback: () => {
-                                        console.log(`vm.cartData=>`,vm.cartData)
-                                        let find = vm.cartData.lineItems.find((d1: any) => {
-                                            return dd.add_on_products.find((d2: any) => {
-                                                return d2.id === d1.id;
-                                            });
-                                        });
-                                        console.log(`find=>`,find)
-                                        if (find) {
-                                            apiCart.setCart((cartItem) => {
-                                                cartItem.line_items.map((dd) => {
-                                                    if (dd.id === find.id) {
-                                                        dd.count--;
-                                                    }
-                                                });
-                                                cartItem.line_items = cartItem.line_items.filter((dd) => {
-                                                    return dd.count > 0;
-                                                });
-                                                refreshCartData();
-                                                gvc.closeDialog();
-                                            });
-                                        } else {
-                                            refreshCartData();
-                                            gvc.closeDialog();
-                                        }
-                                    },
+                                                                                    return html`
+                                                                                        <div class=" bg-white shadow  ${document.body.clientWidth > 768 ? `rounded-3` : ` position-absolute bottom-0`}"
+                                                                                             style=" ${document.body.clientWidth > 768 ? `min-width: 400px; width: 1000px;max-height:calc(100% - 150px);overflow-y: auto;` : 'width:calc(100vw);height:100%;'}">
+                                                                                            <div class="bg-white shadow  ${document.body.clientWidth > 768 ? `rounded-3` : `h-100`}" style="
+                width: 100%;  position: relative;${document.body.clientWidth > 768 ? `` : `overflow-y: auto;`}">
+                                                                                                <div class="w-100 d-flex align-items-center p-3 border-bottom"
+                                                                                                     style="position: sticky; top: 0; background: #fff;z-index:12;">
+                                                                                                    <div class="fw-bold fs-5"
+                                                                                                         style="color:${titleFontColor}; white-space: nowrap;text-overflow: ellipsis;max-width: calc(100% - 40px); overflow: hidden;">
+                                                                                                        ${pd.title}
+                                                                                                    </div>
+                                                                                                    <div class="flex-fill"></div>
+                                                                                                    <i
+                                                                                                            class="fa-regular fa-circle-xmark fs-5 text-dark"
+                                                                                                            style="cursor: pointer"
+                                                                                                            onclick="${gvc.event(() => {
+                                                                                                                gvc.closeDialog();
+                                                                                                            })}"
+                                                                                                    ></i>
+                                                                                                </div>
+                                                                                                <div class="c_dialog_main"
+                                                                                                     style="gap: 24px;  max-height: calc(100% - 100px); ${document.body.clientWidth < 800 ? `padding: 12px 20px;` : `padding: 30px;`}">
+                                                                                                    ${PdClass.selectSpec({
+                                                                                                        gvc,
+                                                                                                        titleFontColor: glitter.share.globalValue['theme_color.0.title'] ?? '#333333',
+                                                                                                        prod: pd,
+                                                                                                        vm: {
+                                                                                                            specs: pd.specs.map(
+                                                                                                                    (spec: {
+                                                                                                                        option: {
+                                                                                                                            title: string;
+                                                                                                                        }[];
+                                                                                                                    }) => {
+                                                                                                                        return spec.option[0].title;
+                                                                                                                    }
+                                                                                                            ),
+                                                                                                            quantity: '1',
+                                                                                                            wishStatus: (glitter.share.wishList ?? []).some((item: { id: number }) => {
+                                                                                                                return item.id === dd.id;
+                                                                                                            }),
+                                                                                                        },
+                                                                                                        preview:true,
+                                                                                                        with_qty: false,
+                                                                                                        is_gift:true,
+                                                                                                        callback: () => {
+                                                                                                            console.log(`vm.cartData=>`,vm.cartData)
+                                                                                                            let find = vm.cartData.lineItems.find((d1: any) => {
+                                                                                                                return dd.add_on_products.find((d2: any) => {
+                                                                                                                    return d2.id === d1.id;
+                                                                                                                });
+                                                                                                            });
+                                                                                                            console.log(`find=>`,find)
+                                                                                                            if (find) {
+                                                                                                                apiCart.setCart((cartItem) => {
+                                                                                                                    cartItem.line_items.map((dd) => {
+                                                                                                                        if (dd.id === find.id) {
+                                                                                                                            dd.count--;
+                                                                                                                        }
+                                                                                                                    });
+                                                                                                                    cartItem.line_items = cartItem.line_items.filter((dd) => {
+                                                                                                                        return dd.count > 0;
+                                                                                                                    });
+                                                                                                                    refreshCartData();
+                                                                                                                    gvc.closeDialog();
+                                                                                                                });
+                                                                                                            } else {
+                                                                                                                refreshCartData();
+                                                                                                                gvc.closeDialog();
+                                                                                                            }
+                                                                                                        },
 
-                                })}
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>`;
-                                                                                }, Tool.randomString(7));
+                                                                                                    })}
+                                                                                                    <div class="d-sm-none" style="height:100px;"></div>
+                                                                                                </div>
+                                                                                            </div>
+                                                                                        </div>`;
+                                                                                }, Tool.randomString(7), {
+                                                                                    animation: (document.body.clientWidth < 768) ? Animation.popup : Animation.fade
+                                                                                });
                                                                             })}"
                                                                         >
                                                                             <span class="${gClass('button-text')}"
@@ -1676,7 +1628,7 @@ export class CheckoutIndex {
                                                         return this.getPaymentMethod(vm.cartData)
                                                             .map((dd: { name: string; value: string }) => {
                                                                 return html` <option value="${dd.value}" ${localStorage.getItem('checkout-payment') === dd.value ? `selected` : ``}>
-                                                                    ${Language.text(dd.value) || Language.getLanguageCustomText(dd.name)}
+                                                                    ${  Language.getLanguageCustomText(dd.name) || Language.text(dd.value)}
                                                                 </option>`;
                                                             })
                                                             .join('');
@@ -2644,37 +2596,47 @@ export class CheckoutIndex {
                                                                         return "paynow API失敗"
                                                                     }
                                                                     glitter.innerDialog((gvc:GVC)=>{
+                                                                        document.body.style.setProperty('overflow-y','hidden','important')
                                                                         return gvc.bindView({
                                                                             bind:`paynow`,
                                                                             view:()=>{
                                                                                 return html`<div class="w-100 h-100 d-flex align-items-center justify-content-center">
-                                                                            <div class="p-3 bg-white position-relative">
+                                                                            ${document.body.clientWidth<800 ? `
+                                                                            <div class="pt-5  bg-white position-relative vw-100" style="height: ${window.innerHeight}px;overflow-y: auto;">
+                                                                            `:`<div class="p-3  bg-white position-relative" style="max-height: calc(100vh - 90px);overflow-y:auto;">`}
                                                                                 <div style="position: absolute; right: 15px;top:15px;z-index:1;" onclick="${gvc.event(()=>{
                                                                                     gvc.closeDialog();
                                                                                 })}">
                                                                                     <i class="fa-regular fa-circle-xmark fs-5 text-dark cursor_pointer"></i>
                                                                                 </div>
-                                                                                <div id="paynow-container">
+                                                                                <div id="paynow-container" class="" style="">
                                                                                     <div style="width:200px;height:200px;">loading...</div>
                                                                                     
                                                                                 </div>
-                                                                                <div class="w-100 btn btn-primary" id="checkoutButton" onclick="${gvc.event(()=>{
+                                                                                <div class="px-3 px-sm-0 w-100"><button class="${gClass(verify.length > 0 ? 'button-bgr-disable' : 'button-bgr')} " id="checkoutButton" onclick="${gvc.event(()=>{
                                                                                     // const inputGroup = document.querySelector('#paynow-container');
                                                                                     // console.log("inputGroup -- " , inputGroup)
                                                                                     const PayNow = (window as any).PayNow;
+                                                                                    const dialog=new ShareDialog(gvc.glitter)
+                                                                                    dialog.dataLoading({visible:true})
                                                                                     PayNow.checkout().then((response:any) => {
+                                                                                        dialog.dataLoading({visible:false})
                                                                                         console.log("response -- " , response);
                                                                                         if (response.error) {
+                                                                                            dialog.errorMessage({
+                                                                                                text:response.error.message
+                                                                                            })
                                                                                             // handle error
                                                                                         }
                                                                                         // handle success
                                                                                     })
 
-                                                                                })}">送出</div>
-                                                                            </div>
+                                                                                })}">
+                                                                                    <span class="${gClass('button-text')}">確認結帳</span>
+                                                                                </button></div>
                                                                         </div>`
                                                                             },divCreate:{
-                                                                                class:`w-100 h-100 d-flex align-items-center justify-content-center`
+                                                                                class:` h-100 d-flex align-items-center justify-content-center`,style:`max-width:100vw;${document.body.clientWidth<800 ? 'width:100%;':'width:400px;'};`
                                                                             },onCreate:()=>{
                                                                                 const publicKey = res.response.publicKey;
                                                                                 const secret = res.response.data.result.secret;
@@ -2703,25 +2665,18 @@ export class CheckoutIndex {
                                                                             }
                                                                         })
 
-                                                                    },`paynow`)
+                                                                    },`paynow`,{
+                                                                        animation:(document.body.clientWidth>800) ? Animation.fade:Animation.popup,
+                                                                        dismiss:()=>{
+                                                                            document.body.style.setProperty('overflow-y','auto')
+                                                                        }
+                                                                    })
                                                                 }
-                                                                const lineItemIds = vm.cartData.lineItems.map((item: any) => item.id);
-                                                                const cartKeys = [ApiCart.cartPrefix, ApiCart.buyItNow, ApiCart.globalCart];
-
-                                                                for (let i = 0; i < localStorage.length; i++) {
-                                                                    const key = localStorage.key(i);
-                                                                    if (key && cartKeys.some((cartKey) => key?.includes(cartKey))) {
-                                                                        const formatKey = key?.replace((window as any).appName, '');
-                                                                        const cart = new ApiCart(formatKey);
-                                                                        cart.setCart((cartItem) => {
-                                                                            cartItem.line_items = cartItem.line_items.filter((item) => !lineItemIds.includes(item.id));
-                                                                        });
-                                                                    }
-                                                                }
-
-                                                                apiCart.clearCart();
-
+                                                               
+                                                                localStorage.setItem('clear_cart_items',JSON.stringify( vm.cartData.lineItems.map((item: any) => item.id)))
+                                                                
                                                                 if (res.response.off_line || res.response.is_free) {
+                                                                    alert(res.response.return_url)
                                                                     location.href = res.response.return_url;
                                                                 } else {
                                                                     if (res.response.returnCode == '0000' && vm.cartData.customer_info.payment_select == 'line_pay') {
@@ -3026,41 +2981,42 @@ export class CheckoutIndex {
     //取得付款方式
     public static getPaymentMethod(cartData: any) {
         let array = [];
+
         cartData.payment_setting.map((dd: any) => {
             switch (dd.key) {
                 case 'newWebPay':
                     array.push({
-                        name: '藍新金流',
+                        name: dd.custome_name || '藍新金流',
                         value: 'newWebPay',
                     });
                     break;
                 case 'ecPay':
                     array.push({
-                        name: '綠界金流',
+                        name: dd.custome_name || '綠界金流',
                         value: 'ecPay',
                     });
                     break;
                 case 'paypal':
                     array.push({
-                        name: 'PayPal',
+                        name: dd.custome_name || 'PayPal',
                         value: 'paypal',
                     });
                     break;
                 case 'line_pay':
                     array.push({
-                        name: 'Line Pay',
+                        name: dd.custome_name || 'Line Pay',
                         value: 'line_pay',
                     });
                     break;
                 case 'jkopay':
                     array.push({
-                        name: '街口支付',
+                        name: dd.custome_name || '街口支付',
                         value: 'jkopay',
                     });
                     break;
                 case 'paynow':
                     array.push({
-                        name: 'PayNow 立吉富',
+                        name: dd.custome_name || 'PayNow 立吉富',
                         value: 'paynow',
                     });
                     break;
