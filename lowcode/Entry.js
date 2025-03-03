@@ -36,7 +36,8 @@ export class Entry {
                 }
                 localStorage.removeItem('clear_cart_items');
             }
-            catch (e) { }
+            catch (e) {
+            }
         }
         const clock = glitter.ut.clock();
         const hashLoop = setInterval(() => {
@@ -139,6 +140,7 @@ export class Entry {
             appConfig: undefined,
         };
         config.token = GlobalUser.saas_token;
+        console.log(3);
         Entry.resourceInitial(glitter, vm, (dd) => __awaiter(this, void 0, void 0, function* () {
             glitter.addStyle(`
         ${parseInt(window.parent.glitter.share.bottom_inset, 10)
@@ -229,7 +231,8 @@ export class Entry {
             if (glitter.getUrlParameter('type') === 'editor') {
                 const dialog = new ShareDialog(glitter);
                 dialog.dataLoading({ visible: true, text: '後台載入中' });
-                Entry.toBackendEditor(glitter, () => { });
+                Entry.toBackendEditor(glitter, () => {
+                });
             }
             else if (glitter.getUrlParameter('type') === 'htmlEditor') {
                 Entry.toHtmlEditor(glitter, vm, () => Entry.checkIframe(glitter));
@@ -415,7 +418,9 @@ export class Entry {
             {
                 src: 'https://kit.fontawesome.com/cccedec0f8.js',
             },
-        ], () => { }, () => { });
+        ], () => {
+        }, () => {
+        });
         glitter.addStyle(`
       @media (prefers-reduced-motion: no-preference) {
         :root {
@@ -447,7 +452,9 @@ export class Entry {
                 src: `${glitter.htmlGenerate.configureCDN(glitter.htmlGenerate.resourceHook(dd.js))}`,
                 type: 'module',
             };
-        }), () => { }, () => { }, [{ key: 'async', value: 'true' }]);
+        }), () => {
+        }, () => {
+        }, [{ key: 'async', value: 'true' }]);
         glitter.htmlGenerate.loadScript(glitter, window.parent.editerData.setting
             .filter((dd) => {
             return ['widget', 'container', 'code'].indexOf(dd.type) === -1;
@@ -485,7 +492,9 @@ export class Entry {
             {
                 src: `https://unpkg.com/@lottiefiles/lottie-player@latest/dist/lottie-player.js`,
             },
-        ], () => { }, () => { });
+        ], () => {
+        }, () => {
+        });
         if (glitter.getUrlParameter('token') && glitter.getUrlParameter('return_type') === 'resetPassword') {
             GlobalUser.token = glitter.getUrlParameter('token');
             glitter.setUrlParameter('token');
@@ -516,7 +525,8 @@ export class Entry {
                 .map((dd) => {
                 return {
                     src: `${glitter.htmlGenerate.configureCDN(glitter.htmlGenerate.resourceHook(dd.js))}`,
-                    callback: () => { },
+                    callback: () => {
+                    },
                 };
             }));
             function authPass() {
@@ -585,7 +595,9 @@ export class Entry {
                 glitter.addMtScript([
                     'https://oss-sg.imin.sg/web/iMinPartner/js/imin-printer.min.js',
                     'https://cdn.jsdelivr.net/npm/jsbarcode@3.11.5/dist/JsBarcode.all.min.js',
-                ], () => { }, () => { });
+                ], () => {
+                }, () => {
+                });
                 setTimeout(() => {
                     window.IminPrintInstance = new IminPrinter();
                     window.IminPrintInstance.connect();

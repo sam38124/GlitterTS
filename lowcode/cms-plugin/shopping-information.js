@@ -10,10 +10,10 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 import { ShareDialog } from '../glitterBundle/dialog/ShareDialog.js';
 import { BgWidget } from '../backend-manager/bg-widget.js';
 import { ApiUser } from '../glitter-base/route/user.js';
-import { BaseApi } from "../glitterBundle/api/base.js";
-import { config } from "../config.js";
-import { Currency } from "../glitter-base/global/currency.js";
-import { LanguageBackend } from "./language-backend.js";
+import { BaseApi } from '../glitterBundle/api/base.js';
+import { config } from '../config.js';
+import { Currency } from '../glitter-base/global/currency.js';
+import { LanguageBackend } from './language-backend.js';
 import { GlobalUser } from '../glitter-base/global/global-user.js';
 export class ShoppingInformation {
     static main(gvc) {
@@ -25,37 +25,37 @@ export class ShoppingInformation {
             filterId: glitter.getUUID(),
             type: 'basic',
             data: {
-                "ubn": "",
-                "email": "",
-                "phone": "",
-                "address": "",
-                "category": "",
-                "pos_type": "retails",
-                "ai_search": false,
-                "shop_name": "",
-                "support_pos_payment": [
-                    "cash",
-                    "creditCard",
-                    "line"
-                ]
+                'ubn': '',
+                'email': '',
+                'phone': '',
+                'address': '',
+                'category': '',
+                'pos_type': 'retails',
+                'ai_search': false,
+                'shop_name': '',
+                'support_pos_payment': [
+                    'cash',
+                    'creditCard',
+                    'line',
+                ],
             },
             SEOData: {
-                "seo": {
-                    "code": "",
-                    "type": "custom",
-                    "image": "",
-                    "logo": "",
-                    "title": "",
-                    "content": "",
-                    "keywords": ""
+                'seo': {
+                    'code': '',
+                    'type': 'custom',
+                    'image': '',
+                    'logo': '',
+                    'title': '',
+                    'content': '',
+                    'keywords': '',
                 },
-                "list": [],
-                "version": "v2",
-                "formData": {},
-                "formFormat": [],
-                "resource_from": "global",
-                "globalStyleTag": [],
-                "support_editor": "true"
+                'list': [],
+                'version': 'v2',
+                'formData': {},
+                'formFormat': [],
+                'resource_from': 'global',
+                'globalStyleTag': [],
+                'support_editor': 'true',
             },
             domain: {},
             dataList: undefined,
@@ -66,72 +66,72 @@ export class ShoppingInformation {
             save_info: () => {
                 return new Promise(() => {
                 });
-            }
+            },
         };
         const dialog = new ShareDialog(gvc.glitter);
         const shopCategory = [
-            { "key": "寵物用品", "value": "寵物用品" },
-            { "key": "服飾販售", "value": "服飾販售" },
-            { "key": "珠寶販售", "value": "珠寶販售" },
-            { "key": "雜貨店", "value": "雜貨店" },
-            { "key": "電子產品", "value": "電子產品" },
-            { "key": "藥局", "value": "藥局" },
-            { "key": "書店", "value": "書店" },
-            { "key": "家具店", "value": "家具店" },
-            { "key": "玩具店", "value": "玩具店" },
-            { "key": "運動用品店", "value": "運動用品店" },
-            { "key": "五金店", "value": "五金店" },
-            { "key": "超市", "value": "超市" },
-            { "key": "百貨公司", "value": "百貨公司" },
-            { "key": "美妝店", "value": "美妝店" },
-            { "key": "鞋店", "value": "鞋店" },
-            { "key": "眼鏡店", "value": "眼鏡店" },
-            { "key": "香水店", "value": "香水店" },
-            { "key": "文具店", "value": "文具店" },
-            { "key": "家電店", "value": "家電店" },
-            { "key": "自行車店", "value": "自行車店" },
-            { "key": "音樂器材店", "value": "音樂器材店" },
-            { "key": "建材店", "value": "建材店" },
-            { "key": "農產品店", "value": "農產品店" },
-            { "key": "咖啡店", "value": "咖啡店" },
-            { "key": "甜品店", "value": "甜品店" },
-            { "key": "鮮花店", "value": "鮮花店" },
-            { "key": "餐具店", "value": "餐具店" },
-            { "key": "床上用品店", "value": "床上用品店" },
-            { "key": "汽車配件店", "value": "汽車配件店" },
-            { "key": "影視產品店", "value": "影視產品店" },
-            { "key": "二手店", "value": "二手店" },
-            { "key": "眼鏡店", "value": "眼鏡店" },
-            { "key": "酒品店", "value": "酒品店" },
-            { "key": "蔬果店", "value": "蔬果店" },
-            { "key": "冰淇淋店", "value": "冰淇淋店" },
-            { "key": "烘焙店", "value": "烘焙店" },
-            { "key": "肉品店", "value": "肉品店" },
-            { "key": "海鮮店", "value": "海鮮店" },
-            { "key": "奶製品店", "value": "奶製品店" },
-            { "key": "文創商品店", "value": "文創商品店" },
-            { "key": "紀念品店", "value": "紀念品店" },
-            { "key": "花藝店", "value": "花藝店" },
-            { "key": "園藝用品店", "value": "園藝用品店" },
-            { "key": "玩具收藏店", "value": "玩具收藏店" },
-            { "key": "手工藝品店", "value": "手工藝品店" },
-            { "key": "茶葉店", "value": "茶葉店" },
-            { "key": "香氛店", "value": "香氛店" },
-            { "key": "健康食品店", "value": "健康食品店" },
-            { "key": "巧克力店", "value": "巧克力店" },
-            { "key": "盆栽店", "value": "盆栽店" },
-            { "key": "其他", "value": "其他" }
+            { 'key': '寵物用品', 'value': '寵物用品' },
+            { 'key': '服飾販售', 'value': '服飾販售' },
+            { 'key': '珠寶販售', 'value': '珠寶販售' },
+            { 'key': '雜貨店', 'value': '雜貨店' },
+            { 'key': '電子產品', 'value': '電子產品' },
+            { 'key': '藥局', 'value': '藥局' },
+            { 'key': '書店', 'value': '書店' },
+            { 'key': '家具店', 'value': '家具店' },
+            { 'key': '玩具店', 'value': '玩具店' },
+            { 'key': '運動用品店', 'value': '運動用品店' },
+            { 'key': '五金店', 'value': '五金店' },
+            { 'key': '超市', 'value': '超市' },
+            { 'key': '百貨公司', 'value': '百貨公司' },
+            { 'key': '美妝店', 'value': '美妝店' },
+            { 'key': '鞋店', 'value': '鞋店' },
+            { 'key': '眼鏡店', 'value': '眼鏡店' },
+            { 'key': '香水店', 'value': '香水店' },
+            { 'key': '文具店', 'value': '文具店' },
+            { 'key': '家電店', 'value': '家電店' },
+            { 'key': '自行車店', 'value': '自行車店' },
+            { 'key': '音樂器材店', 'value': '音樂器材店' },
+            { 'key': '建材店', 'value': '建材店' },
+            { 'key': '農產品店', 'value': '農產品店' },
+            { 'key': '咖啡店', 'value': '咖啡店' },
+            { 'key': '甜品店', 'value': '甜品店' },
+            { 'key': '鮮花店', 'value': '鮮花店' },
+            { 'key': '餐具店', 'value': '餐具店' },
+            { 'key': '床上用品店', 'value': '床上用品店' },
+            { 'key': '汽車配件店', 'value': '汽車配件店' },
+            { 'key': '影視產品店', 'value': '影視產品店' },
+            { 'key': '二手店', 'value': '二手店' },
+            { 'key': '眼鏡店', 'value': '眼鏡店' },
+            { 'key': '酒品店', 'value': '酒品店' },
+            { 'key': '蔬果店', 'value': '蔬果店' },
+            { 'key': '冰淇淋店', 'value': '冰淇淋店' },
+            { 'key': '烘焙店', 'value': '烘焙店' },
+            { 'key': '肉品店', 'value': '肉品店' },
+            { 'key': '海鮮店', 'value': '海鮮店' },
+            { 'key': '奶製品店', 'value': '奶製品店' },
+            { 'key': '文創商品店', 'value': '文創商品店' },
+            { 'key': '紀念品店', 'value': '紀念品店' },
+            { 'key': '花藝店', 'value': '花藝店' },
+            { 'key': '園藝用品店', 'value': '園藝用品店' },
+            { 'key': '玩具收藏店', 'value': '玩具收藏店' },
+            { 'key': '手工藝品店', 'value': '手工藝品店' },
+            { 'key': '茶葉店', 'value': '茶葉店' },
+            { 'key': '香氛店', 'value': '香氛店' },
+            { 'key': '健康食品店', 'value': '健康食品店' },
+            { 'key': '巧克力店', 'value': '巧克力店' },
+            { 'key': '盆栽店', 'value': '盆栽店' },
+            { 'key': '其他', 'value': '其他' },
         ];
         function getSEOData() {
             return __awaiter(this, void 0, void 0, function* () {
                 const appName = window.parent.saasConfig.config.appName;
                 return yield BaseApi.create({
-                    "url": config.url + `/api/v1/template?appName=${appName}&tag=index`,
-                    "type": "GET",
-                    "timeout": 0,
-                    "headers": {
-                        "Content-Type": "application/json",
-                        "Authorization": config.token
+                    'url': config.url + `/api/v1/template?appName=${appName}&tag=index`,
+                    'type': 'GET',
+                    'timeout': 0,
+                    'headers': {
+                        'Content-Type': 'application/json',
+                        'Authorization': config.token,
                     },
                 });
             });
@@ -144,18 +144,18 @@ export class ShoppingInformation {
                     const page_config = (yield getSEOData()).response.result[0].page_config;
                     page_config.seo = passData.seo;
                     yield BaseApi.create({
-                        "url": config.url + `/api/v1/template`,
-                        "type": "PUT",
-                        "headers": {
-                            "Content-Type": "application/json",
+                        'url': config.url + `/api/v1/template`,
+                        'type': 'PUT',
+                        'headers': {
+                            'Content-Type': 'application/json',
                             'g-app': appName,
-                            "Authorization": window.parent.saasConfig.config.token
+                            'Authorization': window.parent.saasConfig.config.token,
                         },
                         data: JSON.stringify({
-                            "page_config": page_config,
-                            "appName": appName,
-                            "tag": "index"
-                        })
+                            'page_config': page_config,
+                            'appName': appName,
+                            'tag': 'index',
+                        }),
                     });
                     resolve(true);
                 }));
@@ -167,13 +167,13 @@ export class ShoppingInformation {
             view: () => {
                 var _a, _b;
                 if (vm.mainLoading) {
-                    ApiUser.getPublicConfig("store-information", "manager").then((r) => {
+                    ApiUser.getPublicConfig('store-information', 'manager').then((r) => {
                         vm.data = r.response.value;
                         const data = r.response.value;
-                        vm.data = Object.assign({ "ubn": "", "email": "", "phone": "", "address": "", "category": "", "pos_type": "retails", "ai_search": false, "wishlist": true, "shop_name": "", "support_pos_payment": [
-                                "cash",
-                                "creditCard",
-                                "line"
+                        vm.data = Object.assign({ 'ubn': '', 'email': '', 'phone': '', 'address': '', 'category': '', 'pos_type': 'retails', 'ai_search': false, 'wishlist': true, 'shop_name': '', 'support_pos_payment': [
+                                'cash',
+                                'creditCard',
+                                'line',
                             ] }, data);
                         vm.mainLoading = false;
                         gvc.notifyDataChange(vm.id);
@@ -189,7 +189,7 @@ export class ShoppingInformation {
                     ${BgWidget.tab([
                     { title: '商店訊息', key: 'basic' },
                     { title: '功能管理', key: 'function' },
-                    { title: '跨境電商', key: 'global' }
+                    { title: '跨境電商', key: 'global' },
                 ], gvc, vm.type, (text) => {
                     vm.type = text;
                 })}
@@ -197,15 +197,15 @@ export class ShoppingInformation {
                     switch (vm.type) {
                         case 'basic':
                             return ` ${gvc.bindView({
-                                bind: "basic",
+                                bind: 'basic',
                                 view: () => {
                                     var _a, _b, _c, _d;
                                     vm.save_info = () => {
                                         return new Promise((resolve, reject) => {
                                             ApiUser.setPublicConfig({
-                                                key: "store-information",
+                                                key: 'store-information',
                                                 value: vm.data,
-                                                user_id: 'manager'
+                                                user_id: 'manager',
                                             }).then(r => {
                                                 resolve(true);
                                                 window.parent.store_info.web_type = vm.data.web_type;
@@ -213,56 +213,56 @@ export class ShoppingInformation {
                                         });
                                     };
                                     return BgWidget.mainCard(html `
-                                <div class="d-flex flex-column " style="gap:18px;">
-                                    <div class="d-flex flex-column guide6-3">
-                                        <div class="d-flex w-100" style="gap:24px;">
-                                            ${BgWidget.editeInput({
+                                            <div class="d-flex flex-column " style="gap:18px;">
+                                                <div class="d-flex flex-column guide6-3">
+                                                    <div class="d-flex w-100" style="gap:24px;">
+                                                        ${BgWidget.editeInput({
                                         gvc: gvc,
                                         title: '商店名稱',
-                                        default: (_a = vm.data.shop_name) !== null && _a !== void 0 ? _a : "",
+                                        default: (_a = vm.data.shop_name) !== null && _a !== void 0 ? _a : '',
                                         callback: (text) => {
                                             vm.data.shop_name = text;
                                         },
                                         placeHolder: '請輸入商店資訊',
-                                        divStyle: "width:100%;"
+                                        divStyle: 'width:100%;',
                                     })}
-                                            <div class="w-100 d-flex flex-column">
-                                                <div class="tx_normal fw-normal">商店類別</div>
-                                                ${BgWidget.select({
+                                                        <div class="w-100 d-flex flex-column">
+                                                            <div class="tx_normal fw-normal">商店類別</div>
+                                                            ${BgWidget.select({
                                         gvc: gvc,
-                                        default: (_b = vm.data.category) !== null && _b !== void 0 ? _b : "",
+                                        default: (_b = vm.data.category) !== null && _b !== void 0 ? _b : '',
                                         callback: (key) => {
                                             vm.data.category = key;
                                         },
                                         options: shopCategory,
                                         style: 'width:100%;margin: 8px 0;',
                                     })}
-                                            </div>
-                                        </div>
-                                        <div class="d-flex w-100" style="gap:24px;">
-                                            ${BgWidget.editeInput({
+                                                        </div>
+                                                    </div>
+                                                    <div class="d-flex w-100" style="gap:24px;">
+                                                        ${BgWidget.editeInput({
                                         gvc: gvc,
                                         title: '電子信箱',
-                                        default: (_c = vm.data.email) !== null && _c !== void 0 ? _c : "",
+                                        default: (_c = vm.data.email) !== null && _c !== void 0 ? _c : '',
                                         callback: (text) => {
                                             vm.data.email = text;
                                         },
                                         placeHolder: '請輸入電子信箱',
-                                        divStyle: "width:100%;"
+                                        divStyle: 'width:100%;',
                                     })}
-                                            ${BgWidget.editeInput({
+                                                        ${BgWidget.editeInput({
                                         gvc: gvc,
                                         title: '聯絡電話',
-                                        default: (_d = vm.data.phone) !== null && _d !== void 0 ? _d : "",
+                                        default: (_d = vm.data.phone) !== null && _d !== void 0 ? _d : '',
                                         callback: (text) => {
                                             vm.data.phone = text;
                                         },
                                         placeHolder: '請輸入聯絡電話',
-                                        divStyle: "width:100%;"
+                                        divStyle: 'width:100%;',
                                     })}
-                                        </div>
-                                        <div class="d-flex w-100" style="gap:24px;">
-                                            ${BgWidget.editeInput({
+                                                    </div>
+                                                    <div class="d-flex w-100" style="gap:24px;">
+                                                        ${BgWidget.editeInput({
                                         gvc: gvc,
                                         title: '店家地址',
                                         default: vm.data.address,
@@ -270,9 +270,9 @@ export class ShoppingInformation {
                                             vm.data.address = text;
                                         },
                                         placeHolder: '請輸入店家地址',
-                                        divStyle: "width:100%;"
+                                        divStyle: 'width:100%;',
                                     })}
-                                            ${BgWidget.editeInput({
+                                                        ${BgWidget.editeInput({
                                         gvc: gvc,
                                         title: '統一編號',
                                         default: vm.data.ubn,
@@ -280,13 +280,13 @@ export class ShoppingInformation {
                                             vm.data.ubn = text;
                                         },
                                         placeHolder: '請輸入統一編號',
-                                        divStyle: "width:100%;"
+                                        divStyle: 'width:100%;',
                                     })}
-                                        </div>
-                                    </div>
-                                </div>
-                            `, ``);
-                                }, divCreate: {}
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        `, ``);
+                                }, divCreate: {},
                             })}
                     <div style="margin-top: 24px;"></div>
                     ${gvc.bindView(() => {
@@ -297,11 +297,11 @@ export class ShoppingInformation {
                                     bind: `domain`,
                                     view: () => {
                                         return BgWidget.mainCard(html `
-                                    <div class="d-flex flex-column" style="gap:24px">
-                                        <div class="d-flex flex-column" style="">
-                                            <div class="tx_normal fw-bold">網域設定</div>
-                                            <div class="d-flex align-items-center" style="gap:8px;">
-                                                ${BgWidget.inlineCheckBox({
+                                                <div class="d-flex flex-column" style="gap:24px">
+                                                    <div class="d-flex flex-column" style="">
+                                                        <div class="tx_normal fw-bold">網域設定</div>
+                                                        <div class="d-flex align-items-center" style="gap:8px;">
+                                                            ${BgWidget.inlineCheckBox({
                                             title: '',
                                             gvc: gvc,
                                             def: domain_from,
@@ -326,7 +326,7 @@ export class ShoppingInformation {
                                                 gvc.notifyDataChange('domain');
                                             },
                                         })}
-                                                ${BgWidget.questionButton(gvc.event(() => {
+                                                            ${BgWidget.questionButton(gvc.event(() => {
                                             BgWidget.settingDialog({
                                                 gvc: gvc,
                                                 title: 'DNS 設定指南',
@@ -394,26 +394,28 @@ ${BgWidget.title('GoDaddy DNS 設定指南')}
                                                 },
                                                 footer_html: (gvc) => {
                                                     return ``;
-                                                }
+                                                },
                                             });
                                         }))}
-                                            </div>
-                                            <div class="d-flex w-100"
-                                                 style="border:1px solid #DDD;border-radius:10px;overflow:hidden;">
-                                                <div style="display: flex;padding: 9px 10px;justify-content: center;align-items: center;gap: 10px;border-radius: 10px 0px 0px 10px;background: #EAEAEA;">
-                                                    https://
-                                                </div>
-                                                <input class="flex-fill border-0 px-2" onchange="${gvc.event((e) => {
+                                                        </div>
+                                                        <div class="d-flex w-100"
+                                                             style="border:1px solid #DDD;border-radius:10px;overflow:hidden;">
+                                                            <div
+                                                                style="display: flex;padding: 9px 10px;justify-content: center;align-items: center;gap: 10px;border-radius: 10px 0px 0px 10px;background: #EAEAEA;">
+                                                                https://
+                                                            </div>
+                                                            <input class="flex-fill border-0 px-2"
+                                                                   onchange="${gvc.event((e) => {
                                             domain_text = e.value;
                                         })}" value="${domain_text}">
-                                                <div class="${domain_from === 'custom' ? `d-none` : ``}"
-                                                     style="padding: 9px 10px;border-radius: 0px 10px 10px 0px;background: #EAEAEA;">
-                                                    .shopnex.tw
-                                                </div>
-                                            </div>
-                                        </div>
-                                        <div class="d-flex justify-content-end">
-                                            ${BgWidget.save(gvc.event(() => {
+                                                            <div class="${domain_from === 'custom' ? `d-none` : ``}"
+                                                                 style="padding: 9px 10px;border-radius: 0px 10px 10px 0px;background: #EAEAEA;">
+                                                                .shopnex.tw
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                    <div class="d-flex justify-content-end">
+                                                        ${BgWidget.save(gvc.event(() => {
                                             const glitter = window.parent.glitter;
                                             if (!domain_text) {
                                                 dialog.errorMessage({ text: '請輸入網域名稱' });
@@ -430,7 +432,7 @@ ${BgWidget.title('GoDaddy DNS 設定指南')}
                                                 saasConfig.api.setDomain({
                                                     domain: domain_text,
                                                     app_name: appName,
-                                                    token: saasConfig.config.token
+                                                    token: saasConfig.config.token,
                                                 }).then((res) => {
                                                     dialog.dataLoading({ visible: false });
                                                     if (res.result) {
@@ -446,7 +448,7 @@ ${BgWidget.title('GoDaddy DNS 設定指南')}
                                                 saasConfig.api.setSubDomain({
                                                     sub_domain: domain_text,
                                                     app_name: appName,
-                                                    token: saasConfig.config.token
+                                                    token: saasConfig.config.token,
                                                 }).then((res) => {
                                                     dialog.dataLoading({ visible: false });
                                                     if (res.result) {
@@ -459,10 +461,10 @@ ${BgWidget.title('GoDaddy DNS 設定指南')}
                                                 });
                                             }
                                         }), '申請')}
-                                        </div>
-                                    </div>
-                                `, 'guide6-5');
-                                    }
+                                                    </div>
+                                                </div>
+                                            `, 'guide6-5');
+                                    },
                                 };
                             })}
           `;
@@ -492,7 +494,7 @@ ${BgWidget.title('GoDaddy DNS 設定指南')}
                                     {
                                         title: '餐飲組合',
                                         value: 'kitchen',
-                                    }
+                                    },
                                 ],
                                 callback: (array) => {
                                     vm.data.web_type = array;
@@ -516,19 +518,21 @@ ${BgWidget.title('GoDaddy DNS 設定指南')}
                                 : ``}
                                             />
                                         </div>
-                                        ${GlobalUser.getPlan().id > 0 ? html `<div class="d-flex flex-column" style="gap:8px;">
+                                        ${GlobalUser.getPlan().id > 0 ? html `
+                                        <div class="d-flex flex-column" style="gap:8px;">
                                             <div style="color: #393939;font-size: 16px;">啟用聊聊功能</div>
-                                            <div style="color: #8D8D8D;font-size:13px;">啟用聊聊功能，方便客戶直接於官網前台與您聯繫，並詢問商品詳細內容。
+                                            <div style="color: #8D8D8D;font-size:13px;">
+                                                啟用聊聊功能，方便客戶直接於官網前台與您聯繫，並詢問商品詳細內容。
                                             </div>
                                             <div class="cursor_pointer form-check form-switch m-0 p-0"
                                                  style="margin-top: 10px;">
                                                 <input
-                                                        class="form-check-input m-0"
-                                                        type="checkbox"
-                                                        onchange="${gvc.event((e, event) => {
+                                                    class="form-check-input m-0"
+                                                    type="checkbox"
+                                                    onchange="${gvc.event((e, event) => {
                                 vm.data.chat_toggle = !vm.data.chat_toggle;
                             })}"
-                                                        ${vm.data.chat_toggle ? `checked` : ``}
+                                                    ${vm.data.chat_toggle ? `checked` : ``}
                                                 />
                                             </div>
                                         </div>` : ''}
@@ -582,7 +586,7 @@ ${BgWidget.title('GoDaddy DNS 設定指南')}
                                         </div>
                                     </div>
                                 `);
-                        case "global":
+                        case 'global':
                             return BgWidget.mainCard(`
    ${gvc.bindView(() => {
                                 const id = gvc.glitter.getUUID();
@@ -598,74 +602,76 @@ ${BgWidget.title('GoDaddy DNS 設定指南')}
                                         const sup = [
                                             {
                                                 key: 'en-US',
-                                                value: '英文'
+                                                value: '英文',
                                             },
                                             {
                                                 key: 'zh-CN',
-                                                value: '簡體中文'
+                                                value: '簡體中文',
                                             },
                                             {
                                                 key: 'zh-TW',
-                                                value: '繁體中文'
-                                            }
+                                                value: '繁體中文',
+                                            },
                                         ].filter((dd) => {
                                             return vm.data.language_setting.support.includes(dd.key);
                                         }).sort((dd) => {
                                             return dd.key === vm.data.language_setting.def ? -1 : 1;
                                         });
                                         return html `
-                                                        <div class="mt-2" style="color: #393939;font-size: 16px;">
-                                                            多國語言
-                                                            <span class="cursor_pointer"
-                                                                  style="font-size: 13px;color:#36B;"
-                                                                  onclick="${gvc.event(() => {
+                                                <div class="mt-2" style="color: #393939;font-size: 16px;">
+                                                    多國語言
+                                                    <span class="cursor_pointer"
+                                                          style="font-size: 13px;color:#36B;"
+                                                          onclick="${gvc.event(() => {
                                             BgWidget.selectLanguage({});
                                         })}"> 
                                                                 管理語言包
                                                             </span>
-                                                        </div>
-                                                        <div style="color: #8D8D8D;font-size:13px;">
-                                                            初次載入時將優先預設為用戶裝置所設定的語言
-                                                        </div>
-                                                        <div class="d-flex mt-3" style="gap:15px;">
-                                                            ${sup.map((dd) => {
+                                                </div>
+                                                <div style="color: #8D8D8D;font-size:13px;">
+                                                    初次載入時將優先預設為用戶裝置所設定的語言
+                                                </div>
+                                                <div class="d-flex mt-3" style="gap:15px;">
+                                                    ${sup.map((dd) => {
                                             return `<div class="px-3 py-1 text-white position-relative d-flex align-items-center justify-content-center" style="border-radius: 20px;background: #393939;cursor: pointer;width:100px;" onclick="${gvc.event(() => {
                                                 BgWidget.settingDialog({
                                                     gvc: gvc,
                                                     title: '語系設定',
                                                     innerHTML: (gvc) => {
                                                         return html `
-                                                                                <div class="w-100 d-flex align-items-center justify-content-end"
-                                                                                     style="gap:10px;">
-                                                                                    ${BgWidget.danger(gvc.event(() => {
+                                                                        <div
+                                                                            class="w-100 d-flex align-items-center justify-content-end"
+                                                                            style="gap:10px;">
+                                                                            ${BgWidget.danger(gvc.event(() => {
                                                             vm.data.language_setting.support = vm.data.language_setting.support.filter((d1) => {
                                                                 return d1 != dd.key;
                                                             });
                                                             refreshLanguage();
                                                             gvc.closeDialog();
                                                         }), '刪除語系')}
-                                                                                    ${BgWidget.save(gvc.event(() => {
+                                                                            ${BgWidget.save(gvc.event(() => {
                                                             vm.data.language_setting.def = dd.key;
                                                             refreshLanguage();
                                                             gvc.closeDialog();
                                                         }), '設為預設語系')}
-                                                                                </div>`;
+                                                                        </div>`;
                                                     },
                                                     footer_html: (gvc) => {
                                                         return ``;
                                                     },
-                                                    width: 400
+                                                    width: 400,
                                                 });
                                             })}">${dd.value}
 <div class="position-absolute  text-white rounded-2 px-2 d-flex align-items-center rounded-3 ${dd.key !== vm.data.language_setting.def ? `d-none` : ``}" style="top: -12px;right: -10px; height:20px;font-size: 11px;background: #ff6c02;">預設</div>
 </div>
 `;
                                         }).join('')}
-                                                            <div class="d-flex align-items-center">
-                                                                ${[((all_lan.length !== vm.data.language_setting.support.length) ? html `
-                                                                    <div class=" d-flex align-items-center justify-content-center cursor_pointer"
-                                                                         style="color: #36B; font-size: 16px; font-weight: 400;"
-                                                                         onclick="${gvc.event(() => {
+                                                    <div class="d-flex align-items-center">
+                                                        ${[((all_lan.length !== vm.data.language_setting.support.length) ? html `
+                                                            <div
+                                                                class=" d-flex align-items-center justify-content-center cursor_pointer"
+                                                                style="color: #36B; font-size: 16px; font-weight: 400;"
+                                                                onclick="${gvc.event(() => {
                                                 let add = '';
                                                 BgWidget.settingDialog({
                                                     gvc: gvc,
@@ -673,15 +679,15 @@ ${BgWidget.title('GoDaddy DNS 設定指南')}
                                                     innerHTML: (gvc) => {
                                                         const can_add = [{
                                                                 key: 'en-US',
-                                                                value: '英文'
+                                                                value: '英文',
                                                             },
                                                             {
                                                                 key: 'zh-CN',
-                                                                value: '簡體中文'
+                                                                value: '簡體中文',
                                                             },
                                                             {
                                                                 key: 'zh-TW',
-                                                                value: '繁體中文'
+                                                                value: '繁體中文',
                                                             }].filter((dd) => {
                                                             return !vm.data.language_setting.support.includes(dd.key);
                                                         });
@@ -694,7 +700,7 @@ ${BgWidget.title('GoDaddy DNS 設定指南')}
                                                                 callback: (text) => {
                                                                     add = text;
                                                                 },
-                                                            })
+                                                            }),
                                                         ].join('');
                                                     },
                                                     footer_html: (gvc) => {
@@ -706,22 +712,23 @@ ${BgWidget.title('GoDaddy DNS 設定指南')}
                                                             }, 100);
                                                         }), '新增');
                                                     },
-                                                    width: 200
+                                                    width: 200,
                                                 });
                                             })}">
-                                                                        <div>新增語系</div>
-                                                                        <div class="d-flex align-items-center justify-content-center p-2">
-                                                                            <i class="fa-solid fa-plus fs-6"
-                                                                               style="font-size: 16px; "
-                                                                               aria-hidden="true"></i>
-                                                                        </div>
-                                                                    </div>
-                                                                ` : ``)].filter((dd) => {
+                                                                <div>新增語系</div>
+                                                                <div
+                                                                    class="d-flex align-items-center justify-content-center p-2">
+                                                                    <i class="fa-solid fa-plus fs-6"
+                                                                       style="font-size: 16px; "
+                                                                       aria-hidden="true"></i>
+                                                                </div>
+                                                            </div>
+                                                        ` : ``)].filter((dd) => {
                                             return dd.trim();
                                         }).join(``)}
-                                                            </div>
-                                                        </div>`;
-                                    }
+                                                    </div>
+                                                </div>`;
+                                    },
                                 };
                             })}
 <div class="d-flex flex-column mt-2" style="gap:8px;">
@@ -739,9 +746,9 @@ ${BgWidget.title('GoDaddy DNS 設定指南')}
                                 options: Currency.code.map((dd) => {
                                     return {
                                         key: dd.currency_code,
-                                        value: dd.currency_title
+                                        value: dd.currency_title,
                                     };
-                                })
+                                }),
                             })}
                                             </div>
                                         </div>
@@ -795,9 +802,9 @@ ${BgWidget.title('GoDaddy DNS 設定指南')}
                                 options: Currency.code.map((dd) => {
                                     return {
                                         key: dd.currency_code,
-                                        value: dd.currency_title
+                                        value: dd.currency_title,
                                     };
-                                })
+                                }),
                             })}
                                             </div>
                                         </div>
@@ -820,14 +827,14 @@ ${BgWidget.title('GoDaddy DNS 設定指南')}
                 })), '儲存', 'guide3-5')}
                     </div>
                 `);
-            }, divCreate: { style: `color:#393939;font-size: 14px;` }
+            }, divCreate: { style: `color:#393939;font-size: 14px;` },
         });
     }
     static policy(gvc) {
         const id = gvc.glitter.getUUID();
         const html = String.raw;
         const vm2 = {
-            language: window.parent.store_info.language_setting.def
+            language: window.parent.store_info.language_setting.def,
         };
         return BgWidget.container(gvc.bindView(() => {
             return {
@@ -844,7 +851,7 @@ ${BgWidget.title('GoDaddy DNS 設定指南')}
                             callback: (language) => {
                                 vm2.language = language;
                                 gvc.notifyDataChange(id);
-                            }
+                            },
                         })}
                             </div>`,
                         gvc.bindView(() => {
@@ -854,16 +861,16 @@ ${BgWidget.title('GoDaddy DNS 設定指南')}
                                     return BgWidget.mainCard(`<div class="d-flex flex-column" style="">${[
                                         ...[{
                                                 key: 'privacy',
-                                                title: '隱私權政策'
+                                                title: '隱私權政策',
                                             }, {
                                                 key: 'term',
-                                                title: '服務條款'
+                                                title: '服務條款',
                                             }, {
                                                 key: 'refund',
-                                                title: '退換貨政策'
+                                                title: '退換貨政策',
                                             }, {
                                                 key: 'delivery',
-                                                title: '購買與配送須知'
+                                                title: '購買與配送須知',
                                             }].map((dd) => {
                                             return html `
                                                     <div style="color: #393939;font-size: 16px;">${dd.title}</div>
@@ -871,14 +878,15 @@ ${BgWidget.title('GoDaddy DNS 設定指南')}
                                                          onclick="${gvc.event(() => {
                                                 window.parent.glitter.openNewTab(`https://${window.parent.glitter.share.editorViewModel.domain}/${dd.key}`);
                                             })}">
-                                                            https://${window.parent.glitter.share.editorViewModel.domain}/${dd.key}
+                                                            https://${window.parent.glitter.share.editorViewModel.domain}
+                                                            /${dd.key}
                                                     </div>
                                                     ${gvc.bindView(() => {
                                                 const key = dd.key;
                                                 const vm = {
                                                     id: gvc.glitter.getUUID(),
                                                     loading: true,
-                                                    data: {}
+                                                    data: {},
                                                 };
                                                 ApiUser.getPublicConfig(`terms-related-${key}-${vm2.language}`, 'manager').then((dd) => {
                                                     dd.response.value && (vm.data = dd.response.value);
@@ -901,22 +909,22 @@ ${BgWidget.title('GoDaddy DNS 設定指南')}
                                                                         yield ApiUser.setPublicConfig({
                                                                             key: `terms-related-${key}-${vm2.language}`,
                                                                             user_id: 'manager',
-                                                                            value: vm.data
+                                                                            value: vm.data,
                                                                         });
                                                                         resolve(true);
                                                                     }));
                                                                 });
                                                             },
-                                                            title: dd.title
+                                                            title: dd.title,
                                                         });
                                                     },
                                                     divCreate: {
-                                                        class: `w-100 mt-2`
-                                                    }
+                                                        class: `w-100 mt-2`,
+                                                    },
                                                 };
                                             })}
                                                 `;
-                                        })
+                                        }),
                                     ].join('<div class="my-1"></div>')}
                     <div class="shadow"
                          style="width: 100%;padding: 14px 16px;background: #FFF; display: flex;justify-content: end;position: fixed;bottom: 0;right: 0;z-index:1;gap:14px;">
@@ -934,13 +942,13 @@ ${BgWidget.title('GoDaddy DNS 設定指南')}
 </div>`);
                                 },
                                 divCreate: {
-                                    class: `mt-3`, style: ``
-                                }
+                                    class: `mt-3`, style: ``,
+                                },
                             };
                         }),
-                        `<div style="margin-top: 300px;"></div>`
+                        `<div style="margin-top: 300px;"></div>`,
                     ].join('');
-                }
+                },
             };
         }));
     }

@@ -8,10 +8,10 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 import { init } from '../GVController.js';
-import { TriggerEvent } from "./trigger-event.js";
-import { GlobalUser } from "../../glitter-base/global/global-user.js";
-import { FirstBanner } from "../../public-components/banner/first-banner.js";
-import { Language } from "../../glitter-base/global/language.js";
+import { TriggerEvent } from './trigger-event.js';
+import { GlobalUser } from '../../glitter-base/global/global-user.js';
+import { FirstBanner } from '../../public-components/banner/first-banner.js';
+import { Language } from '../../glitter-base/global/language.js';
 init(import.meta.url, (gvc, glitter, gBundle) => {
     var _a, _b, _c, _d;
     glitter.share.htmlExtension = (_a = glitter.share.htmlExtension) !== null && _a !== void 0 ? _a : {};
@@ -20,7 +20,7 @@ init(import.meta.url, (gvc, glitter, gBundle) => {
     gBundle.app_config.globalScript = (_d = gBundle.app_config.globalScript) !== null && _d !== void 0 ? _d : [];
     const vm = {
         loading: true,
-        mainView: ''
+        mainView: '',
     };
     console.log(`the-page`, gvc.glitter.getUrlParameter('page'));
     console.log(`waitCreateView-time:`, window.renderClock.stop());
@@ -32,7 +32,7 @@ init(import.meta.url, (gvc, glitter, gBundle) => {
                 for (const b of (_b = gBundle.app_config.initialList) !== null && _b !== void 0 ? _b : []) {
                     try {
                         yield TriggerEvent.trigger({
-                            gvc: gvc, widget: b, clickEvent: b.src.event
+                            gvc: gvc, widget: b, clickEvent: b.src.event,
                         }).then(() => {
                         }).catch(() => {
                         });
@@ -49,7 +49,7 @@ init(import.meta.url, (gvc, glitter, gBundle) => {
                         if (dd.type === 'script') {
                             try {
                                 TriggerEvent.trigger({
-                                    gvc: gvc, widget: undefined, clickEvent: dd
+                                    gvc: gvc, widget: undefined, clickEvent: dd,
                                 });
                             }
                             catch (e) {
@@ -92,18 +92,18 @@ init(import.meta.url, (gvc, glitter, gBundle) => {
         onCreateView: () => {
             var _a, _b, _c, _d, _e, _f, _g, _h, _j;
             FirstBanner.main({ gvc: gvc });
-            if (gBundle.page_config.seo && (gBundle.page_config.seo.type === "custom") && gBundle.page_config.seo.title) {
+            if (gBundle.page_config.seo && (gBundle.page_config.seo.type === 'custom') && gBundle.page_config.seo.title) {
                 glitter.setUrlParameter('', undefined, [
-                    (_a = gBundle.page_config.seo.title_prefix) !== null && _a !== void 0 ? _a : "",
+                    (_a = gBundle.page_config.seo.title_prefix) !== null && _a !== void 0 ? _a : '',
                     (_b = gBundle.page_config.seo.title) !== null && _b !== void 0 ? _b : '',
-                    (_c = gBundle.page_config.seo.title_suffix) !== null && _c !== void 0 ? _c : "",
+                    (_c = gBundle.page_config.seo.title_suffix) !== null && _c !== void 0 ? _c : '',
                 ].join(''));
             }
             else {
                 glitter.setUrlParameter('', undefined, [
-                    (_d = window.home_seo.title_prefix) !== null && _d !== void 0 ? _d : "",
+                    (_d = window.home_seo.title_prefix) !== null && _d !== void 0 ? _d : '',
                     (_e = window.home_seo.title) !== null && _e !== void 0 ? _e : '',
-                    (_f = window.home_seo.title_suffix) !== null && _f !== void 0 ? _f : "",
+                    (_f = window.home_seo.title_suffix) !== null && _f !== void 0 ? _f : '',
                 ].join(''));
             }
             if (gvc.glitter.getUrlParameter('page') === 'account_userinfo' && !GlobalUser.token) {
@@ -127,7 +127,7 @@ init(import.meta.url, (gvc, glitter, gBundle) => {
                                 window.history.replaceState({}, glitter.document.title, location.href);
                             }
                         });
-                    }
+                    },
                 }));
                 let globalStyleLink = ((_h = gBundle.app_config.globalStyle) !== null && _h !== void 0 ? _h : []).filter((dd) => {
                     return dd.data.elem === 'link';
@@ -156,7 +156,7 @@ init(import.meta.url, (gvc, glitter, gBundle) => {
                     page_config: gBundle.page_config,
                     onCreate: () => {
                         console.log(`createRender`);
-                    }
+                    },
                 }));
             }
             else {
@@ -179,7 +179,7 @@ init(import.meta.url, (gvc, glitter, gBundle) => {
                                     set.map((dd, index) => {
                                         var _a;
                                         if (dd.type === 'glitter_article') {
-                                            if (gBundle.page_config.meta_article.view_type === "rich_text") {
+                                            if (gBundle.page_config.meta_article.view_type === 'rich_text') {
                                                 set[index].type = 'widget';
                                                 set[index].data.inner = gBundle.page_config.meta_article.content;
                                             }
@@ -190,19 +190,19 @@ init(import.meta.url, (gvc, glitter, gBundle) => {
                                                         class: ``,
                                                         style: ``,
                                                         app_config: gBundle.app_config,
-                                                        page_config: gBundle.page_config
+                                                        page_config: gBundle.page_config,
                                                     }));
                                                 }
                                                 else {
                                                     set[index].type = 'container';
                                                     set[index].data = {
-                                                        "setting": gBundle.config,
-                                                        "elem": "div",
-                                                        "style_from": set[index].style_from,
-                                                        "class": set[index].class,
-                                                        "style": set[index].style,
-                                                        "classDataType": set[index].classDataType,
-                                                        "dataType": set[index].dataType
+                                                        'setting': gBundle.config,
+                                                        'elem': 'div',
+                                                        'style_from': set[index].style_from,
+                                                        'class': set[index].class,
+                                                        'style': set[index].style,
+                                                        'classDataType': set[index].classDataType,
+                                                        'dataType': set[index].dataType,
                                                     };
                                                 }
                                                 function loopFormData(dd) {
@@ -226,7 +226,7 @@ init(import.meta.url, (gvc, glitter, gBundle) => {
                                     class: ``,
                                     style: ``,
                                     app_config: gBundle.app_config,
-                                    page_config: gBundle.page_config
+                                    page_config: gBundle.page_config,
                                 }));
                             });
                         }
@@ -237,7 +237,7 @@ init(import.meta.url, (gvc, glitter, gBundle) => {
                                     style: ``,
                                     containerID: `MainView`,
                                     app_config: gBundle.app_config,
-                                    page_config: gBundle.page_config
+                                    page_config: gBundle.page_config,
                                 });
                             }
                             resolve(((gBundle.editMode && editorView())
@@ -247,7 +247,7 @@ init(import.meta.url, (gvc, glitter, gBundle) => {
                                         style: ``,
                                         app_config: gBundle.app_config,
                                         page_config: gBundle.page_config,
-                                        is_page: true
+                                        is_page: true,
                                     })));
                         }
                     }));
@@ -255,7 +255,7 @@ init(import.meta.url, (gvc, glitter, gBundle) => {
                 divCreate: () => {
                     return {
                         class: glitter.htmlGenerate.styleEditor(gBundle.page_config).class() + ((toggle_d_none) ? ' d-none' : ''),
-                        style: `overflow-x:hidden;min-height: 100%;min-width: 100%;${glitter.htmlGenerate.styleEditor(gBundle.page_config).style()}`
+                        style: `overflow-x:hidden;min-height: 100%;min-width: 100%;${glitter.htmlGenerate.styleEditor(gBundle.page_config).style()}`,
                     };
                 },
                 onCreate: () => {
@@ -294,6 +294,6 @@ init(import.meta.url, (gvc, glitter, gBundle) => {
             `);
             }
             return map.join('');
-        }
+        },
     };
 });
