@@ -294,8 +294,37 @@ export class FormModule {
                                                                           placeHolder: '請輸入關於這項欄位的描述或指引',
                                                                           global_language:true
                                                                       }),
+                                                                          ...((dd.form_config.type==='date') ? [
+                                                                              BgWidget.editeInput({
+                                                                                  gvc: gvc,
+                                                                                  title: '最小起始日',
+                                                                                  default: dd.form_config.start_time || '',
+                                                                                  callback: (text) => {
+                                                                                      dd.form_config.start_time = text;
+                                                                                      update && update();
+                                                                                      gvc.notifyDataChange(vm.id);
+                                                                                  },
+                                                                                  placeHolder: '幾天前，0為當下，未輸入則不限制',
+                                                                                  global_language:true
+                                                                              }),
+                                                                              BgWidget.editeInput({
+                                                                                  gvc: gvc,
+                                                                                  title: '最大結束日',
+                                                                                  default: dd.form_config.end_time || '',
+                                                                                  callback: (text) => {
+                                                                                      dd.form_config.end_time = text;
+                                                                                      update && update();
+                                                                                      gvc.notifyDataChange(vm.id);
+                                                                                  },
+                                                                                  placeHolder: '幾天後，0為當下，未輸入則不限制',
+                                                                                  global_language:true
+                                                                              })
+                                                                          ]:[]),   
                                                                       ...editor_option,
-                                                                  ].join('<div class="my-2"></div>');
+                                                                          
+                                                                  ].filter((dd)=>{
+                                                                      return dd
+                                                                  }).join('<div class="my-2"></div>');
                                                               case 'form-select':
                                                               case 'check_box':
                                                               case 'mutiple_select':

@@ -132,7 +132,7 @@ export class Entry {
         }
         window.renderClock = (_b = window.renderClock) !== null && _b !== void 0 ? _b : clockF();
         console.log(`Entry-time:`, window.renderClock.stop());
-        glitter.share.editerVersion = 'V_18.3.2';
+        glitter.share.editerVersion = 'V_18.3.4';
         glitter.share.start = new Date();
         const vm = {
             appConfig: [],
@@ -599,6 +599,7 @@ export class Entry {
                     backGroundColor: `transparent;`,
                 });
             }
+            console.log(`(window as any).memberType=>`, window.memberType);
             if (window.memberType !== 'noLimit' &&
                 vm.appConfig.dead_line &&
                 new Date(vm.appConfig.dead_line).getTime() < new Date().getTime() &&

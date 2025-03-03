@@ -11,6 +11,7 @@ import { init } from '../GVController.js';
 import { TriggerEvent } from "./trigger-event.js";
 import { GlobalUser } from "../../glitter-base/global/global-user.js";
 import { FirstBanner } from "../../public-components/banner/first-banner.js";
+import { Language } from "../../glitter-base/global/language.js";
 init(import.meta.url, (gvc, glitter, gBundle) => {
     var _a, _b, _c, _d;
     glitter.share.htmlExtension = (_a = glitter.share.htmlExtension) !== null && _a !== void 0 ? _a : {};
@@ -89,7 +90,7 @@ init(import.meta.url, (gvc, glitter, gBundle) => {
     }
     return {
         onCreateView: () => {
-            var _a, _b, _c, _d, _e, _f, _g, _h;
+            var _a, _b, _c, _d, _e, _f, _g, _h, _j;
             FirstBanner.main({ gvc: gvc });
             if (gBundle.page_config.seo && (gBundle.page_config.seo.type === "custom") && gBundle.page_config.seo.title) {
                 glitter.setUrlParameter('', undefined, [
@@ -275,6 +276,23 @@ init(import.meta.url, (gvc, glitter, gBundle) => {
                     }, 50);
                 },
             }));
+            if ((localStorage.getItem('cookie_accept') != 'true') && ((_j = window.store_info.cookie_check) !== null && _j !== void 0 ? _j : true)) {
+                map.push(`
+            <div class="position-fixed  rounded-3 d-flex align-items-center flex-column flex-sm-row p-3 privacy-notice" style="width:852px;max-width:calc(100vw - 30px);background: ${glitter.share.globalValue['theme_color.0.solid-button-bg']};
+           color: ${glitter.share.globalValue['theme_color.0.solid-button-text']};
+            z-index: 99999;bottom: 30px;transform: translateX(-50%);left: 50%;">
+            <div style="font-size: 14px;
+            ">${Language.text('cookie_use')}</div>
+            <div class="d-sm-none w-100 border-top my-3"></div>
+            <div class="d-flex align-items-center justify-content-center fw-bold" style="min-width: 150px;cursor: pointer;" onclick="${gvc.event(() => {
+                    localStorage.setItem('cookie_accept', 'true');
+                    for (const b of document.querySelectorAll('.privacy-notice')) {
+                        b.remove();
+                    }
+                })}">我知道了</div>
+</div>
+            `);
+            }
             return map.join('');
         }
     };

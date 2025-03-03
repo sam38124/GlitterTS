@@ -1767,9 +1767,27 @@ export class ShoppingOrderManager {
                                                                                                 ],
                                                                                                 readonly: (orderData.orderData.user_info.shipment_refer === 'paynow'),
                                                                                                 callback: (text) => {
-                                                                                                    if (text && text !== `${orderData.orderData.progress}`) {
-                                                                                                        orderData.orderData.progress = text;
+                                                                                                    function next(){
+                                                                                                        if (text && text !== `${orderData.orderData.progress}`) {
+                                                                                                            orderData.orderData.progress = text;
+                                                                                                        }
                                                                                                     }
+                                                                                                    if(['','wait'].includes(orderData.orderData.progress) && !orderData.orderData.user_info.shipment_number){
+                                                                                                        const dialog=new ShareDialog(gvc.glitter)
+                                                                                                        
+                                                                                                        dialog.checkYesOrNot({
+                                                                                                            text:'尚未新增出貨單，是否確認變更狀態?',
+                                                                                                            callback:(response)=>{
+                                                                                                                if (response){
+                                                                                                                    next()
+                                                                                                                }
+                                                                                                                gvc.notifyDataChange('Edit')
+                                                                                                            }
+                                                                                                        })
+                                                                                                    }else{
+                                                                                                        next()
+                                                                                                    } 
+                                                                                                    
                                                                                                 },
                                                                                             })}
                                                                                         </div>`,

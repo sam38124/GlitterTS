@@ -724,7 +724,7 @@ Setting_editor.menuItems = () => {
             icon: '',
             page: 'shop_informationV2',
             group: '商店設定',
-            title: '商店訊息',
+            title: '全站設定',
             appName: 'cms_system',
             groupIcon: 'https://d3jnmi1tfjgtti.cloudfront.net/file/252530754/1716566571091-Property 1=gear-regular.svg',
             moduleName: '商店設計',

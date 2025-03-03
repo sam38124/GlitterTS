@@ -135,7 +135,7 @@ export class Entry {
         }
         (window as any).renderClock = (window as any).renderClock ?? clockF();
         console.log(`Entry-time:`, (window as any).renderClock.stop());
-        glitter.share.editerVersion = 'V_18.3.2';
+        glitter.share.editerVersion = 'V_18.3.4';
         glitter.share.start = new Date();
         const vm: {
             appConfig: any;
@@ -659,6 +659,7 @@ export class Entry {
                 });
             }
 
+            console.log(`(window as any).memberType=>`,(window as any).memberType)
             // 判斷APP是否過期
             if (
                 (window as any).memberType !== 'noLimit' &&

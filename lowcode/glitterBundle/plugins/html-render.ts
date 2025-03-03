@@ -3,6 +3,7 @@ import {TriggerEvent} from "./trigger-event.js";
 import {EditorConfig} from "../../editor-config.js";
 import {GlobalUser} from "../../glitter-base/global/global-user.js";
 import {FirstBanner} from "../../public-components/banner/first-banner.js";
+import {Language} from "../../glitter-base/global/language.js";
 
 init(import.meta.url, (gvc, glitter, gBundle) => {
     glitter.share.htmlExtension = glitter.share.htmlExtension ?? {};
@@ -14,7 +15,7 @@ init(import.meta.url, (gvc, glitter, gBundle) => {
         mainView: ''
     };
 
-    console.log(`the-page`,gvc.glitter.getUrlParameter('page'))
+    console.log(`the-page`, gvc.glitter.getUrlParameter('page'))
     console.log(`waitCreateView-time:`, (window as any).renderClock.stop())
 
     async function load() {
@@ -66,32 +67,32 @@ init(import.meta.url, (gvc, glitter, gBundle) => {
             }
         })
     };
-    if(!gBundle.data){
-        gBundle.data={}
+    if (!gBundle.data) {
+        gBundle.data = {}
     }
     return {
         onCreateView: () => {
-            FirstBanner.main({gvc:gvc})
+            FirstBanner.main({gvc: gvc})
             //定義SEO TITLE
-            if(gBundle.page_config.seo && (gBundle.page_config.seo.type==="custom") && gBundle.page_config.seo.title){
-                glitter.setUrlParameter('',undefined,[
+            if (gBundle.page_config.seo && (gBundle.page_config.seo.type === "custom") && gBundle.page_config.seo.title) {
+                glitter.setUrlParameter('', undefined, [
                     gBundle.page_config.seo.title_prefix ?? "",
                     gBundle.page_config.seo.title ?? '',
                     gBundle.page_config.seo.title_suffix ?? "",
                 ].join(''))
-            }else{
-                glitter.setUrlParameter('',undefined,[
+            } else {
+                glitter.setUrlParameter('', undefined, [
                     (window as any).home_seo.title_prefix ?? "",
                     (window as any).home_seo.title ?? '',
                     (window as any).home_seo.title_suffix ?? "",
                 ].join(''))
             }
             //判斷如果是帳號頁面，且未登入則重新導向
-            if(gvc.glitter.getUrlParameter('page')==='account_userinfo' && !GlobalUser.token){
-                gvc.glitter.href='/login'
+            if (gvc.glitter.getUrlParameter('page') === 'account_userinfo' && !GlobalUser.token) {
+                gvc.glitter.href = '/login'
                 return ``
             }
-            document.querySelector('body')!.style.background=gBundle.app_config._background || glitter.share.globalValue[`theme_color.0.background`];
+            document.querySelector('body')!.style.background = gBundle.app_config._background || glitter.share.globalValue[`theme_color.0.background`];
             console.log(`onCreateView-time:`, (window as any).renderClock.stop())
             const mainId = glitter.getUUID()
             let map = [];
@@ -135,14 +136,14 @@ init(import.meta.url, (gvc, glitter, gBundle) => {
                     style: ``,
                     app_config: gBundle.app_config,
                     page_config: gBundle.page_config,
-                    onCreate:()=>{
+                    onCreate: () => {
                         console.log(`createRender`)
                     }
                 }))
             } else {
                 vm.loading = false
             }
-            let toggle_d_none=true
+            let toggle_d_none = true
             map.push(gvc.bindView({
                 bind: mainId,
                 view: () => {
@@ -155,6 +156,7 @@ init(import.meta.url, (gvc, glitter, gBundle) => {
                         if (gBundle.page_config.template) {
                             (window as any).glitterInitialHelper.getPageData(gBundle.page_config.template, (data: any) => {
                                 const template_config = JSON.parse(JSON.stringify(data.response.result[0].config))
+
                                 function findContainer(set: any) {
                                     set.map((dd: any, index: number) => {
                                         if (dd.type === 'glitter_article') {
@@ -199,6 +201,7 @@ init(import.meta.url, (gvc, glitter, gBundle) => {
                                         }
                                     });
                                 }
+
                                 findContainer(template_config);
                                 resolve(new glitter.htmlGenerate(template_config, [], gBundle.data, true).render(gvc, {
                                     class: ``,
@@ -227,7 +230,7 @@ init(import.meta.url, (gvc, glitter, gBundle) => {
                                     style: ``,
                                     app_config: gBundle.app_config,
                                     page_config: gBundle.page_config,
-is_page:true
+                                    is_page: true
                                 })
                             ));
                         }
@@ -236,9 +239,9 @@ is_page:true
                     })
 
                 },
-                divCreate: ()=>{
+                divCreate: () => {
                     return {
-                        class: glitter.htmlGenerate.styleEditor(gBundle.page_config).class()+((toggle_d_none) ? ' d-none':''),
+                        class: glitter.htmlGenerate.styleEditor(gBundle.page_config).class() + ((toggle_d_none) ? ' d-none' : ''),
                         style: `overflow-x:hidden;min-height: 100%;min-width: 100%;${glitter.htmlGenerate.styleEditor(gBundle.page_config).style()}`
                     }
                 },
@@ -251,13 +254,31 @@ is_page:true
                             }
                         }
                     })
-                    toggle_d_none=false
-                    setTimeout(()=>{
+                    toggle_d_none = false
+                    setTimeout(() => {
                         $('.new_page_loading').addClass('d-none');
                         (document.querySelector(`[gvc-id='${gvc.id(mainId)}']`) as any).classList.remove('d-none')
-                    },50)
+                    }, 50)
                 },
             }))
+            if ((localStorage.getItem('cookie_accept') != 'true') && ( (window as any).store_info.cookie_check ?? true)) {
+                map.push(`
+            <div class="position-fixed  rounded-3 d-flex align-items-center flex-column flex-sm-row p-3 privacy-notice" style="width:852px;max-width:calc(100vw - 30px);background: ${glitter.share.globalValue['theme_color.0.solid-button-bg']};
+           color: ${glitter.share.globalValue['theme_color.0.solid-button-text']};
+            z-index: 99999;bottom: 30px;transform: translateX(-50%);left: 50%;">
+            <div style="font-size: 14px;
+            ">${Language.text('cookie_use')}</div>
+            <div class="d-sm-none w-100 border-top my-3"></div>
+            <div class="d-flex align-items-center justify-content-center fw-bold" style="min-width: 150px;cursor: pointer;" onclick="${gvc.event(() => {
+                    localStorage.setItem('cookie_accept', 'true')
+                    for (const b of document.querySelectorAll('.privacy-notice')) {
+                        b.remove()
+                    }
+                })}">我知道了</div>
+</div>
+            `)
+            }
+
             return map.join('');
 
         }

@@ -845,6 +845,23 @@ export class Language {
             { key: 'chat', tw: '聊聊', cn: '聊聊', en: 'chat' },
             { key: 'collect', tw: '收藏', cn: '收藏', en: 'collect' },
             { key: 'h_collect', tw: '已收藏', cn: '已收藏', en: 'collected' },
+            { key: 'cookie_use', tw: `
+            本網站中使用 cookie，欲查詢有關本網站使用 cookie 方式之詳情，及若您不希望在電腦上使用 cookie 時應如何變更電腦的 cookie 設定，請參閱本網站「 <a class="fw-bold" style="font-size:16px;color:${window.glitter.share.globalValue['theme_color.0.solid-button-text']};" href="/privacy">
+             隱私權條款
+</a> 」之 Cookie 聲明。您繼續使用本網站即表示您同意本公司得按本網站使用條款之 Cookie 聲明使用 cookie。
+            `, en: `
+             This website uses cookies. To learn more about how this website uses cookies and how to change your computer's cookie settings if you do not wish to use cookies, please refer to the Cookie Statement in our <a class="fw-bold"
+              style="color:${window.glitter.share.globalValue['theme_color.0.solid-button-text']};font-size:16px;"
+              href="/privacy">
+             Privacy Policy
+</a>. By continuing to use this website, you agree to our use of cookies as described in the Cookie Statement of our Terms of Use.
+            `, cn: `
+             本网站使用 Cookie。欲了解本网站如何使用 Cookie，以及如果您不希望在计算机上使用 Cookie 时应如何更改计算机的 Cookie 设置，请参阅本网站『
+             <a href="/privacy"
+             style="color:${window.glitter.share.globalValue['theme_color.0.solid-button-text']};font-size:16px;"
+             >隐私政策</a>
+             』**中的 Cookie 声明。您继续使用本网站即表示您同意本公司按照本网站使用条款中的 Cookie 声明使用 Cookie。
+            ` }
         ];
     }
     static getLanguageCustomText(text) {
