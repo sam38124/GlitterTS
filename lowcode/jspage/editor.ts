@@ -255,7 +255,7 @@ export class Editor {
 
       return html`
         <div
-          class="position-relative  vw-100 overflow-auto"
+          class="position-relative vw-100 overflow-auto editor-constructor"
           style="word-break: break-word;white-space: nowrap;background:whitesmoke;height:${window.innerHeight}px;"
         >
           <header
@@ -975,87 +975,87 @@ color:white;
                                   return '';
                                 }
                                 return html` <div
-                                      class="me-2 bt_orange_lin_mb position-relative"
-                                      style="width:42px;"
-                                      onclick="${gvc.event(() => {
-                                        BgCustomerMessage.toggle(true, gvc);
-                                      })}"
-                                    >
-                                      <i class="fa-regular fa-messages"></i>
-                                    </div>
-                                    ${gvc.bindView(() => {
-                                      const message_notice = gvc.glitter.getUUID();
-                                      let unread = 0;
-                                      let socket: any = undefined;
-                                      const url = new URL((window as any).glitterBackend);
-                                      let vm = {
-                                        close: false,
-                                      };
+                                    class="me-2 bt_orange_lin_mb position-relative"
+                                    style="width:42px;"
+                                    onclick="${gvc.event(() => {
+                                      BgCustomerMessage.toggle(true, gvc);
+                                    })}"
+                                  >
+                                    <i class="fa-regular fa-messages"></i>
+                                  </div>
+                                  ${gvc.bindView(() => {
+                                    const message_notice = gvc.glitter.getUUID();
+                                    let unread = 0;
+                                    let socket: any = undefined;
+                                    const url = new URL((window as any).glitterBackend);
+                                    let vm = {
+                                      close: false,
+                                    };
 
-                                      function loadData() {
-                                        Chat.getUnRead({
-                                          user_id: 'manager',
-                                        }).then(async data => {
-                                          unread = data.response.length;
-                                          gvc.notifyDataChange(message_notice);
-                                        });
-                                      }
+                                    function loadData() {
+                                      Chat.getUnRead({
+                                        user_id: 'manager',
+                                      }).then(async data => {
+                                        unread = data.response.length;
+                                        gvc.notifyDataChange(message_notice);
+                                      });
+                                    }
 
-                                      loadData();
+                                    loadData();
 
-                                      function connect() {
-                                        socket = location.href.includes('https://')
-                                          ? new WebSocket(`wss://${url.hostname}/websocket`)
-                                          : new WebSocket(`ws://${url.hostname}:9003`);
-                                        socket.addEventListener('open', function (event: any) {
-                                          console.log('Connected to update list server');
-                                          socket.send(
-                                            JSON.stringify({
-                                              type: 'message-count-change',
-                                              user_id: 'manager',
-                                              app_name: (window as any).appName,
-                                            })
-                                          );
-                                        });
-                                        socket.addEventListener('message', async function (event: any) {
-                                          console.log(`update_message_count`);
-                                          const data = JSON.parse(event.data);
-                                          if (data.type === 'update_message_count') {
-                                            loadData();
-                                          }
-                                        });
-                                        socket.addEventListener('close', function (event: any) {
-                                          console.log('Disconnected from server');
-                                          if (!vm.close) {
-                                            console.log('Reconnected from server');
-                                            connect();
-                                          }
-                                        });
-                                      }
+                                    function connect() {
+                                      socket = location.href.includes('https://')
+                                        ? new WebSocket(`wss://${url.hostname}/websocket`)
+                                        : new WebSocket(`ws://${url.hostname}:9003`);
+                                      socket.addEventListener('open', function (event: any) {
+                                        console.log('Connected to update list server');
+                                        socket.send(
+                                          JSON.stringify({
+                                            type: 'message-count-change',
+                                            user_id: 'manager',
+                                            app_name: (window as any).appName,
+                                          })
+                                        );
+                                      });
+                                      socket.addEventListener('message', async function (event: any) {
+                                        console.log(`update_message_count`);
+                                        const data = JSON.parse(event.data);
+                                        if (data.type === 'update_message_count') {
+                                          loadData();
+                                        }
+                                      });
+                                      socket.addEventListener('close', function (event: any) {
+                                        console.log('Disconnected from server');
+                                        if (!vm.close) {
+                                          console.log('Reconnected from server');
+                                          connect();
+                                        }
+                                      });
+                                    }
 
-                                      connect();
-                                      return {
-                                        bind: message_notice,
-                                        view: () => {
-                                          return html` <div
-                                            class="${unread
-                                              ? `d-flex`
-                                              : `d-none`} rounded-circle bg-danger text-white  align-items-center justify-content-center fw-500"
-                                            style="width:15px;height: 15px;color: white !important;"
-                                          >
-                                            ${unread}
-                                          </div>`;
-                                        },
-                                        divCreate: {
-                                          class: `position-absolute`,
-                                          style: `font-size: 10px;right: 13px;top: 3px;`,
-                                        },
-                                        onDestroy: () => {
-                                          vm.close = true;
-                                          socket && socket.close();
-                                        },
-                                      };
-                                    })}`;
+                                    connect();
+                                    return {
+                                      bind: message_notice,
+                                      view: () => {
+                                        return html` <div
+                                          class="${unread
+                                            ? `d-flex`
+                                            : `d-none`} rounded-circle bg-danger text-white  align-items-center justify-content-center fw-500"
+                                          style="width:15px;height: 15px;color: white !important;"
+                                        >
+                                          ${unread}
+                                        </div>`;
+                                      },
+                                      divCreate: {
+                                        class: `position-absolute`,
+                                        style: `font-size: 10px;right: 13px;top: 3px;`,
+                                      },
+                                      onDestroy: () => {
+                                        vm.close = true;
+                                        socket && socket.close();
+                                      },
+                                    };
+                                  })}`;
                               },
                             };
                           })()

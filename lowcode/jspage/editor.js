@@ -253,7 +253,7 @@ export class Editor {
             }
             return html `
         <div
-          class="position-relative  vw-100 overflow-auto"
+          class="position-relative vw-100 overflow-auto editor-constructor"
           style="word-break: break-word;white-space: nowrap;background:whitesmoke;height:${window.innerHeight}px;"
         >
           <header
@@ -903,15 +903,15 @@ color:white;
                                     return '';
                                 }
                                 return html ` <div
-                                      class="me-2 bt_orange_lin_mb position-relative"
-                                      style="width:42px;"
-                                      onclick="${gvc.event(() => {
+                                    class="me-2 bt_orange_lin_mb position-relative"
+                                    style="width:42px;"
+                                    onclick="${gvc.event(() => {
                                     BgCustomerMessage.toggle(true, gvc);
                                 })}"
-                                    >
-                                      <i class="fa-regular fa-messages"></i>
-                                    </div>
-                                    ${gvc.bindView(() => {
+                                  >
+                                    <i class="fa-regular fa-messages"></i>
+                                  </div>
+                                  ${gvc.bindView(() => {
                                     const message_notice = gvc.glitter.getUUID();
                                     let unread = 0;
                                     let socket = undefined;
@@ -962,13 +962,13 @@ color:white;
                                         bind: message_notice,
                                         view: () => {
                                             return html ` <div
-                                            class="${unread
+                                          class="${unread
                                                 ? `d-flex`
                                                 : `d-none`} rounded-circle bg-danger text-white  align-items-center justify-content-center fw-500"
-                                            style="width:15px;height: 15px;color: white !important;"
-                                          >
-                                            ${unread}
-                                          </div>`;
+                                          style="width:15px;height: 15px;color: white !important;"
+                                        >
+                                          ${unread}
+                                        </div>`;
                                         },
                                         divCreate: {
                                             class: `position-absolute`,
