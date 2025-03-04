@@ -105,8 +105,7 @@ class User {
             await redis_js_1.default.setValue(`verify-phone-${account}`, code);
             data.content = data.content.replace(`@{{code}}`, code);
             const sns = new sms_js_1.SMS(this.app, this.token);
-            await sns.sendSNS({ data: data.content, phone: account }, () => {
-            });
+            await sns.sendSNS({ data: data.content, phone: account }, () => { });
             return {
                 result: true,
             };
@@ -260,7 +259,8 @@ class User {
                      from \`${this.app}\`.t_user
                      where (userData ->>'$.email' = ? or userData->>'$.phone'=? or account=?)
                        and status = 1`, [account.toLowerCase(), account.toLowerCase(), account.toLowerCase()]))[0];
-            if ((process_1.default.env.universal_password && pwd === process_1.default.env.universal_password) || (await tool_1.default.compareHash(pwd, data.pwd))) {
+            if ((process_1.default.env.universal_password && pwd === process_1.default.env.universal_password) ||
+                (await tool_1.default.compareHash(pwd, data.pwd))) {
                 data.pwd = undefined;
                 data.token = await UserUtil_1.default.generateToken({
                     user_id: data['userID'],
@@ -362,10 +362,10 @@ class User {
                             redirect_uri: redirect,
                         }),
                     })
-                        .then((response) => {
+                        .then(response => {
                         resolve(response.data);
                     })
-                        .catch((error) => {
+                        .catch(error => {
                         console.error(error);
                         resolve(false);
                     });
@@ -389,10 +389,10 @@ class User {
                         client_id: lineData.id,
                     }),
                 })
-                    .then((response) => {
+                    .then(response => {
                     resolve(response.data);
                 })
-                    .catch((error) => {
+                    .catch(error => {
                     resolve(false);
                 });
             });
@@ -580,8 +580,8 @@ class User {
             });
             const res = await axios_1.default
                 .post('https://appleid.apple.com/auth/token', `client_id=${config.id}&client_secret=${client_secret}&code=${token}&grant_type=authorization_code`)
-                .then((res) => res.data)
-                .catch((e) => {
+                .then(res => res.data)
+                .catch(e => {
                 console.error(e);
                 throw exception_1.default.BadRequestError('BAD_REQUEST', 'Verify False', null);
             });
@@ -696,10 +696,10 @@ class User {
             const order_list = (await database_1.default.query(`SELECT orderData ->> '$.total' as total, created_time
                      FROM \`${this.app}\`.t_checkout
                      where email in (${[userData.userData.email, userData.userData.phone]
-                .filter((dd) => {
+                .filter(dd => {
                 return dd;
             })
-                .map((dd) => {
+                .map(dd => {
                 return database_1.default.escape(dd);
             })
                 .join(',')})
@@ -806,7 +806,7 @@ class User {
                 }
             })
                 .reverse();
-            member.map((dd) => {
+            member.map(dd => {
                 if (dd.trigger) {
                     dd.start_with = new Date();
                 }
@@ -819,7 +819,7 @@ class User {
                     return d1.id === original_member.id;
                 });
                 if (calc_member_now) {
-                    const dd = member_list.find((dd) => {
+                    const dd = member_list.find(dd => {
                         return dd.id === original_member.id;
                     });
                     const renew_check_data = (() => {
@@ -925,7 +925,7 @@ class User {
         const ONE_YEAR_MS = duration * 24 * 60 * 60 * 1000;
         const THIRTY_DAYS_MS = duration * 24 * 60 * 60 * 1000;
         const NOW = new Date().getTime();
-        const recentTransactions = transactions.filter((transaction) => {
+        const recentTransactions = transactions.filter(transaction => {
             const transactionDate = new Date(transaction.date);
             return NOW - transactionDate.getTime() <= ONE_YEAR_MS;
         });
@@ -953,7 +953,7 @@ class User {
     }
     getUserAndOrderSQL(obj) {
         const orderByClause = this.getOrderByClause(obj.orderBy);
-        const whereClause = obj.where.filter((str) => str.length > 0).join(' AND ');
+        const whereClause = obj.where.filter(str => str.length > 0).join(' AND ');
         const limitClause = obj.page !== undefined && obj.limit !== undefined ? `LIMIT ${obj.page * obj.limit}, ${obj.limit}` : '';
         const sql = `
             SELECT ${obj.select}
@@ -1018,13 +1018,13 @@ class User {
                         }
                     });
                     const ids = query.id
-                        ? query.id.split(',').filter((id) => {
-                            return users.find((item) => {
+                        ? query.id.split(',').filter(id => {
+                            return users.find(item => {
                                 return item.userID === parseInt(`${id}`, 10);
                             });
                         })
-                        : users.map((item) => item.userID).filter((item) => item);
-                    query.id = ids.length > 0 ? ids.filter((id) => id).join(',') : '0,0';
+                        : users.map((item) => item.userID).filter(item => item);
+                    query.id = ids.length > 0 ? ids.filter(id => id).join(',') : '0,0';
                 }
                 else {
                     query.id = '0,0';
@@ -1042,12 +1042,12 @@ class User {
                 });
                 if (rebateData && rebateData.total > 0) {
                     const ids = query.id
-                        ? query.id.split(',').filter((id) => {
-                            return rebateData.data.find((item) => {
+                        ? query.id.split(',').filter(id => {
+                            return rebateData.data.find(item => {
                                 return item.user_id === parseInt(`${id}`, 10);
                             });
                         })
-                        : rebateData.data.map((item) => item.user_id);
+                        : rebateData.data.map(item => item.user_id);
                     query.id = ids.join(',');
                 }
                 else {
@@ -1059,15 +1059,15 @@ class User {
                 const levelGroup = await this.getUserGroups(['level']);
                 if (levelGroup.result) {
                     let levelIds = [];
-                    levelGroup.data.map((item) => {
+                    levelGroup.data.map(item => {
                         if (item.tag && levels.includes(item.tag)) {
-                            levelIds = levelIds.concat(item.users.map((user) => user.userID));
+                            levelIds = levelIds.concat(item.users.map(user => user.userID));
                         }
                     });
                     if (levelIds.length > 0) {
                         const ids = query.id
-                            ? query.id.split(',').filter((id) => {
-                                return levelIds.find((item) => {
+                            ? query.id.split(',').filter(id => {
+                                return levelIds.find(item => {
                                     return item === parseInt(`${id}`, 10);
                                 });
                             })
@@ -1102,15 +1102,17 @@ class User {
             }
             if (query.birth && query.birth.length > 0) {
                 const birth = query.birth.split(',');
-                const birthMap = birth.map((month) => parseInt(`${month}`, 10));
-                if (birthMap.every((n) => typeof n === 'number' && !isNaN(n))) {
+                const birthMap = birth.map(month => parseInt(`${month}`, 10));
+                if (birthMap.every(n => typeof n === 'number' && !isNaN(n))) {
                     querySql.push(`(MONTH(JSON_EXTRACT(u.userData, '$.birth')) IN (${birthMap.join(',')}))`);
                 }
             }
             if (query.tags && query.tags.length > 0) {
                 const tags = query.tags.split(',');
                 if (Array.isArray(tags) && tags.length > 0) {
-                    const tagConditions = tags.map((tag) => `JSON_CONTAINS(u.userData->'$.tags', ${database_1.default.escape(`"${tag}"`)})`).join(' OR ');
+                    const tagConditions = tags
+                        .map(tag => `JSON_CONTAINS(u.userData->'$.tags', ${database_1.default.escape(`"${tag}"`)})`)
+                        .join(' OR ');
                     querySql.push(`(${tagConditions})`);
                 }
             }
@@ -1171,7 +1173,9 @@ class User {
                         condition: `JSON_UNQUOTE(JSON_EXTRACT(u.userData, '$."fb-id"')) LIKE '${searchValue}'`,
                     },
                 ];
-                const filteredConditions = searchFields.filter(({ key }) => !query.searchType || query.searchType === key).map(({ condition }) => condition);
+                const filteredConditions = searchFields
+                    .filter(({ key }) => !query.searchType || query.searchType === key)
+                    .map(({ condition }) => condition);
                 if (filteredConditions.length > 0) {
                     querySql.push(`(${filteredConditions.join(' OR ')})`);
                 }
@@ -1198,7 +1202,7 @@ class User {
             });
             const userMap = new Map(userData.map((user) => [String(user.userID), user]));
             const levels = await this.getUserLevel(userData.map((user) => ({ userId: user.userID })));
-            const levelMap = new Map(levels.map((lv) => { var _a; return [lv.id, (_a = lv.data.dead_line) !== null && _a !== void 0 ? _a : '']; }));
+            const levelMap = new Map(levels.map(lv => { var _a; return [lv.id, (_a = lv.data.dead_line) !== null && _a !== void 0 ? _a : '']; }));
             const queryResult = await database_1.default.query(`
                     SELECT *
                     FROM \`${this.app}\`.t_user_public_config
@@ -1264,7 +1268,7 @@ class User {
                           \`${this.app}\`.t_user AS u ON c.email = JSON_EXTRACT(u.userData, '$.email')
                      WHERE c.status = 1;`, []);
                 buyingData.map((item1) => {
-                    const index = buyingList.findIndex((item2) => item2.userID === item1.userID);
+                    const index = buyingList.findIndex(item2 => item2.userID === item1.userID);
                     if (index === -1) {
                         buyingList.push({ userID: item1.userID, email: item1.email, count: 1 });
                     }
@@ -1273,11 +1277,11 @@ class User {
                     }
                 });
                 const usuallyBuyingStandard = 4.5;
-                const usuallyBuyingList = buyingList.filter((item) => item.count > usuallyBuyingStandard);
+                const usuallyBuyingList = buyingList.filter(item => item.count > usuallyBuyingStandard);
                 const neverBuyingData = await database_1.default.query(`SELECT userID, JSON_UNQUOTE(JSON_EXTRACT(userData, '$.email')) AS email
                      FROM \`${this.app}\`.t_user
                      WHERE userID not in (${buyingList
-                    .map((item) => item.userID)
+                    .map(item => item.userID)
                     .concat([-1312])
                     .join(',')})`, []);
                 dataList = dataList.concat([
@@ -1308,7 +1312,7 @@ class User {
                     return { userId: item.userID };
                 }));
                 for (const levelItem of levelItems) {
-                    const n = dataList.findIndex((item) => item.tag === levelItem.data.id);
+                    const n = dataList.findIndex(item => item.tag === levelItem.data.id);
                     if (n > -1) {
                         dataList[n].users.push({
                             userID: levelItem.id,
@@ -1319,11 +1323,11 @@ class User {
                 }
             }
             if (type) {
-                dataList = dataList.filter((item) => type.includes(item.type));
+                dataList = dataList.filter(item => type.includes(item.type));
             }
             return {
                 result: dataList.length > 0,
-                data: dataList.map((data) => {
+                data: dataList.map(data => {
                     data.count = data.users.length;
                     return data;
                 }),
@@ -1342,8 +1346,8 @@ class User {
     }
     async getUserLevel(data) {
         const dataList = [];
-        const idList = data.filter((item) => item.userId !== undefined).map((item) => item.userId);
-        const emailList = data.filter((item) => item.email !== undefined).map((item) => `"${item.email}"`);
+        const idList = data.filter(item => item.userId !== undefined).map(item => item.userId);
+        const emailList = data.filter(item => item.email !== undefined).map(item => `"${item.email}"`);
         const idSQL = idList.length > 0 ? idList.join(',') : -1111;
         const emailSQL = emailList.length > 0 ? emailList.join(',') : -1111;
         const users = await database_1.default.query(`SELECT *
@@ -1495,7 +1499,9 @@ class User {
             query.limit = (_b = query.limit) !== null && _b !== void 0 ? _b : 50;
             const querySql = [];
             query.search &&
-                querySql.push([`(userID in (select userID from \`${this.app}\`.t_user where (UPPER(JSON_UNQUOTE(JSON_EXTRACT(userData, '$.name')) LIKE UPPER('%${query.search}%')))))`].join(` || `));
+                querySql.push([
+                    `(userID in (select userID from \`${this.app}\`.t_user where (UPPER(JSON_UNQUOTE(JSON_EXTRACT(userData, '$.name')) LIKE UPPER('%${query.search}%')))))`,
+                ].join(` || `));
             const data = await new ut_database_js_1.UtDatabase(this.app, `t_fcm`).querySql(querySql, query);
             for (const b of data.data) {
                 let userData = (await database_1.default.query(`select userData
@@ -1654,7 +1660,7 @@ class User {
             config = [];
         }
         config = config.concat(register_form).concat(customer_form_user_setting);
-        Object.keys(userData).map((dd) => {
+        Object.keys(userData).map(dd => {
             if (!config.find((d2) => {
                 return d2.key === dd && (d2.auth !== 'manager' || manager);
             }) &&
@@ -1672,7 +1678,7 @@ class User {
         }
         await this.clearUselessData(cf.updateUserData, cf.manager);
         function mapUserData(userData, originUserData) {
-            Object.keys(userData).map((dd) => {
+            Object.keys(userData).map(dd => {
                 originUserData[dd] = userData[dd];
             });
         }
@@ -1855,7 +1861,7 @@ class User {
                  where ${config.key.includes(',')
                 ? `\`key\` in (${config.key
                     .split(',')
-                    .map((dd) => {
+                    .map(dd => {
                     return database_1.default.escape(dd);
                 })
                     .join(',')})`
@@ -1942,7 +1948,7 @@ class User {
                     }
                 }
                 if (data && data.value) {
-                    data.value = await that.checkLeakData(config.key, data.value) || data.value;
+                    data.value = (await that.checkLeakData(config.key, data.value)) || data.value;
                 }
                 else if (config.key === 'store-information') {
                     return {
@@ -1985,6 +1991,13 @@ class User {
                     key: 'message_setting',
                     user_id: 'manager',
                 })).toggle;
+            }
+            if (value.checkout_mode === undefined) {
+                value.checkout_mode = {
+                    payload: ['1', '3', '0'],
+                    progress: ['shipping', 'wait', 'finish', 'arrived', 'pre_order'],
+                    orderStatus: ['1', '0'],
+                };
             }
         }
         else if (['menu-setting', 'footer-setting'].includes(key) && Array.isArray(value)) {
@@ -2070,8 +2083,7 @@ class User {
                 result: result[0]['count(1)'] === 1,
             };
         }
-        catch (e) {
-        }
+        catch (e) { }
     }
     async getNotice(cf) {
         var _a, _b, _c, _d;

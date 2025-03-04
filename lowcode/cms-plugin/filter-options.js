@@ -12,7 +12,7 @@ import { ApiUser } from '../glitter-base/route/user.js';
 export class FilterOptions {
     static getUserFunnel() {
         return __awaiter(this, void 0, void 0, function* () {
-            const generalTags = yield new Promise((resolve) => {
+            const generalTags = yield new Promise(resolve => {
                 ApiUser.getPublicConfig('user_general_tags', 'manager').then((dd) => {
                     var _a, _b;
                     if (dd.result && ((_b = (_a = dd.response) === null || _a === void 0 ? void 0 : _a.value) === null || _b === void 0 ? void 0 : _b.list)) {
@@ -126,36 +126,16 @@ export class FilterOptions {
                 };
             }
             const shipmentOptions = ShipmentConfig.list
-                .map((dd) => {
+                .map(dd => {
                 return { key: dd.value, name: dd.title };
             })
                 .concat(((_b = configData.custom_delivery) !== null && _b !== void 0 ? _b : []).map((dd) => {
                 return { key: dd.id, name: dd.name };
             }));
-            const orderStatusOptions = [
-                { key: '1', name: '已完成' },
-                { key: '0', name: '處理中' },
-                { key: '-1', name: '已取消' },
-            ];
-            const payloadStatusOptions = [
-                { key: '-1', name: '付款失敗' },
-                { key: '1', name: '已付款' },
-                { key: '3', name: '部分付款' },
-                { key: '0', name: '未付款' },
-                { key: '-2', name: '已退款' },
-            ];
-            const progressOptions = [
-                { key: 'shipping', name: '配送中' },
-                { key: 'wait', name: '未出貨' },
-                { key: 'finish', name: '已取貨' },
-                { key: 'returns', name: '已退貨' },
-                { key: 'arrived', name: '已到貨' },
-                { key: 'pre_order', name: '待預購' },
-            ];
             return [
-                { key: 'orderStatus', type: 'multi_checkbox', name: '訂單狀態', data: orderStatusOptions },
-                { key: 'payload', type: 'multi_checkbox', name: '付款狀態', data: payloadStatusOptions },
-                { key: 'progress', type: 'multi_checkbox', name: '出貨狀況', data: progressOptions },
+                { key: 'orderStatus', type: 'multi_checkbox', name: '訂單狀態', data: this.orderStatusOptions },
+                { key: 'payload', type: 'multi_checkbox', name: '付款狀態', data: this.payloadStatusOptions },
+                { key: 'progress', type: 'multi_checkbox', name: '出貨狀況', data: this.progressOptions },
                 { key: 'shipment', type: 'multi_checkbox', name: '運送方式', data: shipmentOptions },
                 {
                     key: 'created_time',
@@ -228,6 +208,26 @@ FilterOptions.fbLiveFilterFrame = {
     status: [],
     created_time: ['', ''],
 };
+FilterOptions.orderStatusOptions = [
+    { key: '1', name: '已完成' },
+    { key: '0', name: '處理中' },
+    { key: '-1', name: '已取消' },
+];
+FilterOptions.payloadStatusOptions = [
+    { key: '1', name: '已付款' },
+    { key: '3', name: '部分付款' },
+    { key: '0', name: '未付款' },
+    { key: '-1', name: '付款失敗' },
+    { key: '-2', name: '已退款' },
+];
+FilterOptions.progressOptions = [
+    { key: 'finish', name: '已取貨' },
+    { key: 'arrived', name: '已到貨' },
+    { key: 'shipping', name: '配送中' },
+    { key: 'pre_order', name: '待預購' },
+    { key: 'wait', name: '未出貨' },
+    { key: 'returns', name: '已退貨' },
+];
 FilterOptions.returnOrderFunnel = [
     {
         key: 'progress',
