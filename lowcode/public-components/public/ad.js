@@ -1,4 +1,4 @@
-import { ApiTrack } from "../../glitter-base/route/api-track.js";
+import { ApiTrack } from '../../glitter-base/route/api-track.js';
 export class Ad {
     static gtagEvent(name, obj) {
         const gtag = window.gtag;
@@ -13,7 +13,7 @@ export class Ad {
         }
         ApiTrack.track({
             event_name: name,
-            custom_data: obj
+            custom_data: obj,
         });
     }
 }
