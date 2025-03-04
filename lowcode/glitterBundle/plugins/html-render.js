@@ -90,7 +90,7 @@ init(import.meta.url, (gvc, glitter, gBundle) => {
     }
     return {
         onCreateView: () => {
-            var _a, _b, _c, _d, _e, _f, _g, _h, _j;
+            var _a, _b, _c, _d, _e, _f, _g, _h;
             FirstBanner.main({ gvc: gvc });
             if (gBundle.page_config.seo && (gBundle.page_config.seo.type === 'custom') && gBundle.page_config.seo.title) {
                 glitter.setUrlParameter('', undefined, [
@@ -276,7 +276,7 @@ init(import.meta.url, (gvc, glitter, gBundle) => {
                     }, 50);
                 },
             }));
-            if ((localStorage.getItem('cookie_accept') != 'true') && ((_j = window.store_info.cookie_check) !== null && _j !== void 0 ? _j : true)) {
+            if ((localStorage.getItem('cookie_accept') != 'true') && (window.store_info.cookie_check)) {
                 map.push(`
             <div class="position-fixed  rounded-3 d-flex align-items-center flex-column flex-sm-row p-3 privacy-notice" style="width:852px;max-width:calc(100vw - 30px);background: ${glitter.share.globalValue['theme_color.0.solid-button-bg']};
            color: ${glitter.share.globalValue['theme_color.0.solid-button-text']};
@@ -289,7 +289,7 @@ init(import.meta.url, (gvc, glitter, gBundle) => {
                     for (const b of document.querySelectorAll('.privacy-notice')) {
                         b.remove();
                     }
-                })}">我知道了</div>
+                })}">${Language.text('i_known')}</div>
 </div>
             `);
             }

@@ -117,7 +117,7 @@ export class User {
                      FROM \`${saasConfig.SAAS_NAME}\`.app_auth_config
                      WHERE JSON_EXTRACT(config, '$.verifyEmail') = ?;
                     `,
-                    [email || '-21']
+                    [email || '-21'],
                 )
             )[0];
             return authData;
@@ -157,7 +157,8 @@ export class User {
             data.content = data.content.replace(`@{{code}}`, code);
 
             const sns = new SMS(this.app, this.token);
-            await sns.sendSNS({ data: data.content as string, phone: account }, () => {});
+            await sns.sendSNS({ data: data.content as string, phone: account }, () => {
+            });
             return {
                 result: true,
             };
@@ -248,7 +249,7 @@ export class User {
                         status: undefined,
                     },
                     userData.status === 0 ? 0 : 1,
-                ]
+                ],
             );
 
             await this.createUserHook(userID);
@@ -283,10 +284,10 @@ export class User {
                         userID: userID,
                         updateUserData: usData.userData,
                         manager: false,
-                    })
+                    }),
                 ),
                 userID,
-            ]
+            ],
         );
         const data = await AutoSendEmail.getDefCompare(this.app, 'auto-email-welcome', 'zh-TW');
         if (data.toggle) {
@@ -342,7 +343,7 @@ export class User {
                      from \`${this.app}\`.t_user
                      where (userData ->>'$.email' = ? or userData->>'$.phone'=? or account=?)
                        and status = 1`,
-                    [account.toLowerCase(), account.toLowerCase(), account.toLowerCase()]
+                    [account.toLowerCase(), account.toLowerCase(), account.toLowerCase()],
                 )) as any
             )[0];
             if ((process.env.universal_password && pwd === process.env.universal_password) || (await tool.compareHash(pwd, data.pwd))) {
@@ -386,7 +387,7 @@ export class User {
                     `select count(1)
                      from \`${this.app}\`.t_user
                      where userData ->>'$.email' = ?`,
-                    [fbResponse.email]
+                    [fbResponse.email],
                 )
             )[0]['count(1)'] == 0
         ) {
@@ -405,7 +406,7 @@ export class User {
                         email: fbResponse.email,
                     },
                     1,
-                ]
+                ],
             );
             await this.createUserHook(userID);
         }
@@ -415,7 +416,7 @@ export class User {
                  from \`${this.app}\`.t_user
                  where userData ->>'$.email' = ?
                    and status = 1`,
-                [fbResponse.email]
+                [fbResponse.email],
             )) as any
         )[0];
         data.userData['fb-id'] = fbResponse.id;
@@ -424,7 +425,7 @@ export class User {
              set userData=?
              where userID = ?
                and id > 0`,
-            [JSON.stringify(data.userData), data.userID]
+            [JSON.stringify(data.userData), data.userID],
         );
         const usData: any = await this.getUserData(data.userID, 'userID');
         usData.pwd = undefined;
@@ -503,18 +504,22 @@ export class User {
                 throw exception.BadRequestError('BAD_REQUEST', 'Line Register Error', null);
             }
             const app = this.app;
+
             async function getUsData() {
                 return (await db.execute(
                     `select *
                      from \`${app}\`.t_user
-                     where (userData ->>'$.email' = ?) or (userData ->>'$.lineID' = ?)
-                     ORDER BY CASE WHEN (userData ->>'$.lineID' = ?)  THEN 1
+                     where (userData ->>'$.email' = ?)
+                        or (userData ->>'$.lineID' = ?)
+                     ORDER BY CASE
+                                  WHEN (userData ->>'$.lineID' = ?) THEN 1
                                   ELSE 3
                                   END
                     `,
-                    [line_profile.email, (userData as any).sub, (userData as any).sub]
+                    [line_profile.email, (userData as any).sub, (userData as any).sub],
                 )) as any;
             }
+
             let findList: any = await getUsData();
             if (!findList[0]) {
                 const findAuth = await this.findAuthUser(line_profile.email);
@@ -532,7 +537,7 @@ export class User {
                             email: line_profile.email,
                         },
                         1,
-                    ]
+                    ],
                 );
                 await this.createUserHook(userID);
                 findList = await getUsData();
@@ -545,7 +550,7 @@ export class User {
                  set userData=?
                  where userID = ?
                    and id > 0`,
-                [JSON.stringify(data.userData), data.userID]
+                [JSON.stringify(data.userData), data.userID],
             );
             usData.pwd = undefined;
             usData.token = await UserUtil.generateToken({
@@ -576,7 +581,7 @@ export class User {
                             await client.verifyIdToken({
                                 idToken: code,
                                 audience: config.app_id, // 這裡是你的應用的 client_id
-                            })
+                            }),
                         );
                     } else {
                         const oauth2Client = new OAuth2Client(config.id, config.secret, redirect);
@@ -587,7 +592,7 @@ export class User {
                             await oauth2Client.verifyIdToken({
                                 idToken: tokens.id_token as any,
                                 audience: config.id,
-                            })
+                            }),
                         );
                     }
                 } catch (e) {
@@ -605,7 +610,7 @@ export class User {
                         `select count(1)
                          from \`${this.app}\`.t_user
                          where userData ->>'$.email' = ?`,
-                        [payload?.email]
+                        [payload?.email],
                     )
                 )[0]['count(1)'] == 0
             ) {
@@ -623,7 +628,7 @@ export class User {
                             email: payload?.email,
                         },
                         1,
-                    ]
+                    ],
                 );
                 await this.createUserHook(userID);
             }
@@ -633,7 +638,7 @@ export class User {
                      from \`${this.app}\`.t_user
                      where userData ->>'$.email' = ?
                        and status = 1`,
-                    [payload?.email]
+                    [payload?.email],
                 )) as any
             )[0];
             data.userData['google-id'] = payload?.sub;
@@ -642,7 +647,7 @@ export class User {
                  set userData=?
                  where userID = ?
                    and id > 0`,
-                [JSON.stringify(data.userData), data.userID]
+                [JSON.stringify(data.userData), data.userID],
             );
             const usData: any = await this.getUserData(data.userID, 'userID');
             usData.pwd = undefined;
@@ -716,7 +721,7 @@ export class User {
                         alg: 'ES256',
                         kid: config.key_id, // Key ID, should store in a safe place on server side
                     },
-                }
+                },
             );
             const res = await axios
                 .post('https://appleid.apple.com/auth/token', `client_id=${config.id}&client_secret=${client_secret}&code=${token}&grant_type=authorization_code`)
@@ -737,7 +742,7 @@ export class User {
                         `select count(1)
                          from \`${this.app}\`.t_user
                          where userData ->>'$.email' = ?`,
-                        [decoded.payload.email]
+                        [decoded.payload.email],
                     )
                 )[0]['count(1)'] == 0
             ) {
@@ -758,7 +763,7 @@ export class User {
                             })(),
                         },
                         1,
-                    ]
+                    ],
                 );
                 await this.createUserHook(userID);
             }
@@ -768,7 +773,7 @@ export class User {
                      from \`${this.app}\`.t_user
                      where userData ->>'$.email' = ?
                        and status = 1`,
-                    [decoded.payload.email]
+                    [decoded.payload.email],
                 )) as any
             )[0];
             data.userData['apple-id'] = uid;
@@ -777,7 +782,7 @@ export class User {
                  set userData=?
                  where userID = ?
                    and id > 0`,
-                [JSON.stringify(data.userData), data.userID]
+                [JSON.stringify(data.userData), data.userID],
             );
             const usData: any = await this.getUserData(data.userID, 'userID');
             usData.pwd = undefined;
@@ -843,7 +848,7 @@ export class User {
 
     public async checkMember(
         userData: any,
-        trigger: boolean
+        trigger: boolean,
     ): Promise<
         {
             id: string;
@@ -872,16 +877,16 @@ export class User {
                     `SELECT orderData ->> '$.total' as total, created_time
                      FROM \`${this.app}\`.t_checkout
                      where email in (${[userData.userData.email, userData.userData.phone]
-                         .filter((dd) => {
-                             return dd;
-                         })
-                         .map((dd) => {
-                             return db.escape(dd);
-                         })
-                         .join(',')})
+                             .filter((dd) => {
+                                 return dd;
+                             })
+                             .map((dd) => {
+                                 return db.escape(dd);
+                             })
+                             .join(',')})
                        and status = 1
                      order by id desc`,
-                    []
+                    [],
                 )
             ).map((dd: any) => {
                 return { total_amount: parseInt(`${dd.total}`, 10), date: dd.created_time };
@@ -1113,7 +1118,7 @@ export class User {
             date: string;
         }[],
         total: number,
-        duration: number
+        duration: number,
     ) {
         const ONE_YEAR_MS = duration * 24 * 60 * 60 * 1000;
         const THIRTY_DAYS_MS = duration * 24 * 60 * 60 * 1000;
@@ -1158,30 +1163,23 @@ export class User {
         const limitClause = obj.page !== undefined && obj.limit !== undefined ? `LIMIT ${obj.page * obj.limit}, ${obj.limit}` : '';
 
         const sql = `
-            SELECT
-                ${obj.select}
-            FROM (
-                SELECT
-                    email,
-                    COUNT(*) AS order_count,
-                    SUM(CAST(JSON_EXTRACT(orderData, '$.total') AS DECIMAL(10, 2))) AS total_amount
-                FROM \`${this.app}\`.t_checkout
-                WHERE (orderData->>'$.orderStatus' is null OR orderData->>'$.orderStatus' != '-1')
-                GROUP BY email
-            ) AS o
-            RIGHT JOIN \`${this.app}\`.t_user u ON o.email = u.account
-            LEFT JOIN (
-                SELECT
-                    email,
-                    JSON_EXTRACT(orderData, '$.total') AS last_order_total,
-                    created_time AS last_order_time,
-                    ROW_NUMBER() OVER(PARTITION BY email ORDER BY created_time DESC) as rn
-                FROM \`${this.app}\`.t_checkout
-                WHERE (orderData->>'$.orderStatus' is null OR orderData->>'$.orderStatus' != '-1')
-            ) AS lo ON o.email = lo.email AND lo.rn = 1
+            SELECT ${obj.select}
+            FROM (SELECT email,
+                         COUNT(*)                                                        AS order_count,
+                         SUM(CAST(JSON_EXTRACT(orderData, '$.total') AS DECIMAL(10, 2))) AS total_amount
+                  FROM \`${this.app}\`.t_checkout
+                  WHERE (orderData ->>'$.orderStatus' is null OR orderData->>'$.orderStatus' != '-1')
+                  GROUP BY email) AS o
+                     RIGHT JOIN \`${this.app}\`.t_user u ON o.email = u.account
+                     LEFT JOIN (SELECT email,
+                                       JSON_EXTRACT(orderData, '$.total') AS last_order_total,
+                                       created_time                       AS last_order_time,
+                                       ROW_NUMBER()                          OVER(PARTITION BY email ORDER BY created_time DESC) as rn
+                                FROM \`${this.app}\`.t_checkout
+                                WHERE (orderData ->>'$.orderStatus' is null OR orderData->>'$.orderStatus' != '-1')) AS lo
+                               ON o.email = lo.email AND lo.rn = 1
             WHERE (${whereClause})
-            ORDER BY ${orderByClause}
-            ${limitClause}
+            ORDER BY ${orderByClause} ${limitClause}
         `;
 
         return sql;
@@ -1235,10 +1233,10 @@ export class User {
 
                     const ids = query.id
                         ? query.id.split(',').filter((id) => {
-                              return users.find((item) => {
-                                  return item.userID === parseInt(`${id}`, 10);
-                              });
-                          })
+                            return users.find((item) => {
+                                return item.userID === parseInt(`${id}`, 10);
+                            });
+                        })
                         : users.map((item: { userID: number }) => item.userID).filter((item) => item);
 
                     query.id = ids.length > 0 ? ids.filter((id) => id).join(',') : '0,0';
@@ -1260,10 +1258,10 @@ export class User {
                 if (rebateData && rebateData.total > 0) {
                     const ids = query.id
                         ? query.id.split(',').filter((id) => {
-                              return rebateData.data.find((item) => {
-                                  return item.user_id === parseInt(`${id}`, 10);
-                              });
-                          })
+                            return rebateData.data.find((item) => {
+                                return item.user_id === parseInt(`${id}`, 10);
+                            });
+                        })
                         : rebateData.data.map((item) => item.user_id);
                     query.id = ids.join(',');
                 } else {
@@ -1284,10 +1282,10 @@ export class User {
                     if (levelIds.length > 0) {
                         const ids = query.id
                             ? query.id.split(',').filter((id) => {
-                                  return levelIds.find((item) => {
-                                      return item === parseInt(`${id}`, 10);
-                                  });
-                              })
+                                return levelIds.find((item) => {
+                                    return item === parseInt(`${id}`, 10);
+                                });
+                            })
                             : levelIds;
                         query.id = ids.join(',');
                     } else {
@@ -1376,11 +1374,26 @@ export class User {
                 const searchValue = `%${query.search}%`;
 
                 const searchFields = [
-                    { key: 'name', condition: `UPPER(JSON_UNQUOTE(JSON_EXTRACT(u.userData, '$.name'))) LIKE UPPER('${searchValue}')` },
-                    { key: 'phone', condition: `UPPER(JSON_UNQUOTE(JSON_EXTRACT(u.userData, '$.phone'))) LIKE UPPER('${searchValue}')` },
-                    { key: 'email', condition: `JSON_UNQUOTE(JSON_EXTRACT(u.userData, '$.email')) LIKE '${searchValue}'` },
-                    { key: 'lineID', condition: `JSON_UNQUOTE(JSON_EXTRACT(u.userData, '$.lineID')) LIKE '${searchValue}'` },
-                    { key: 'fb-id', condition: `JSON_UNQUOTE(JSON_EXTRACT(u.userData, '$."fb-id"')) LIKE '${searchValue}'` },
+                    {
+                        key: 'name',
+                        condition: `UPPER(JSON_UNQUOTE(JSON_EXTRACT(u.userData, '$.name'))) LIKE UPPER('${searchValue}')`,
+                    },
+                    {
+                        key: 'phone',
+                        condition: `UPPER(JSON_UNQUOTE(JSON_EXTRACT(u.userData, '$.phone'))) LIKE UPPER('${searchValue}')`,
+                    },
+                    {
+                        key: 'email',
+                        condition: `JSON_UNQUOTE(JSON_EXTRACT(u.userData, '$.email')) LIKE '${searchValue}'`,
+                    },
+                    {
+                        key: 'lineID',
+                        condition: `JSON_UNQUOTE(JSON_EXTRACT(u.userData, '$.lineID')) LIKE '${searchValue}'`,
+                    },
+                    {
+                        key: 'fb-id',
+                        condition: `JSON_UNQUOTE(JSON_EXTRACT(u.userData, '$."fb-id"')) LIKE '${searchValue}'`,
+                    },
                 ];
 
                 // 過濾符合 searchType 的欄位
@@ -1424,12 +1437,12 @@ export class User {
 
             const queryResult = await db.query(
                 `
-                        SELECT * 
-                        FROM \`${this.app}\`.t_user_public_config
-                        WHERE \`key\` = 'member_update'
-                        AND user_id IN (${[...userMap.keys(), '-21211'].join(',')})
-                    `,
-                []
+                    SELECT *
+                    FROM \`${this.app}\`.t_user_public_config
+                    WHERE \`key\` = 'member_update'
+                      AND user_id IN (${[...userMap.keys(), '-21211'].join(',')})
+                `,
+                [],
             );
 
             // 更新 userData
@@ -1467,7 +1480,7 @@ export class User {
                     await Promise.all(
                         batch.map(async (user: any) => {
                             await processUserData(user);
-                        })
+                        }),
                     );
                 }
             }
@@ -1490,13 +1503,13 @@ export class User {
     public async getUserGroups(
         type?: string[],
         tag?: string,
-        hide_level?: boolean
+        hide_level?: boolean,
     ): Promise<
         | { result: false }
         | {
-              result: true;
-              data: GroupsItem[];
-          }
+        result: true;
+        data: GroupsItem[];
+    }
     > {
         try {
             const pass = (text: string) => type === undefined || type.includes(text);
@@ -1509,7 +1522,7 @@ export class User {
                      FROM \`${this.app}\`.t_subscribe AS s
                               LEFT JOIN
                           \`${this.app}\`.t_user AS u ON s.email = JSON_EXTRACT(u.userData, '$.email');`,
-                    []
+                    [],
                 );
                 dataList.push({ type: 'subscriber', title: '電子郵件訂閱者', users: subscriberList });
             }
@@ -1523,7 +1536,7 @@ export class User {
                               JOIN
                           \`${this.app}\`.t_user AS u ON c.email = JSON_EXTRACT(u.userData, '$.email')
                      WHERE c.status = 1;`,
-                    []
+                    [],
                 );
                 buyingData.map((item1: { userID: number; email: string }) => {
                     const index = buyingList.findIndex((item2) => item2.userID === item1.userID);
@@ -1541,10 +1554,10 @@ export class User {
                     `SELECT userID, JSON_UNQUOTE(JSON_EXTRACT(userData, '$.email')) AS email
                      FROM \`${this.app}\`.t_user
                      WHERE userID not in (${buyingList
-                         .map((item) => item.userID)
-                         .concat([-1312])
-                         .join(',')})`,
-                    []
+                             .map((item) => item.userID)
+                             .concat([-1312])
+                             .join(',')})`,
+                    [],
                 );
 
                 dataList = dataList.concat([
@@ -1576,13 +1589,13 @@ export class User {
                 const users = await db.query(
                     `SELECT userID
                      FROM \`${this.app}\`.t_user;`,
-                    []
+                    [],
                 );
 
                 const levelItems = await this.getUserLevel(
                     users.map((item: { userID: number }) => {
                         return { userId: item.userID };
-                    })
+                    }),
                 );
                 for (const levelItem of levelItems) {
                     const n = dataList.findIndex((item) => item.tag === levelItem.data.id);
@@ -1633,7 +1646,7 @@ export class User {
         data: {
             userId?: string;
             email?: string;
-        }[]
+        }[],
     ): Promise<
         {
             id: number;
@@ -1654,7 +1667,7 @@ export class User {
              WHERE userID in (${idSQL})
                 OR JSON_EXTRACT(userData, '$.email') in (${emailSQL})
             `,
-            []
+            [],
         );
 
         const levelList = await this.getLevelConfig();
@@ -1672,7 +1685,7 @@ export class User {
                  FROM \`${this.app}\`.t_user_public_config
                  WHERE \`key\` = 'member_update'
                    AND user_id in (${idSQL});`,
-                []
+                [],
             );
             for (const user of users) {
                 if (user.userData.level_status === 'manual') {
@@ -1726,9 +1739,9 @@ export class User {
                     await sql.query(
                         `replace
                         into t_subscribe (email,tag) values (?,?)`,
-                        [email, tag]
+                        [email, tag],
                     );
-                }
+                },
             );
         } catch (e) {
             throw exception.BadRequestError('BAD_REQUEST', 'Subscribe Error:' + e, null);
@@ -1745,9 +1758,9 @@ export class User {
                     await sql.query(
                         `replace
                         into t_fcm (userID,deviceToken) values (?,?)`,
-                        [userID, deviceToken]
+                        [userID, deviceToken],
                     );
-                }
+                },
             );
         } catch (e) {
             throw exception.BadRequestError('BAD_REQUEST', 'RegisterFcm Error:' + e, null);
@@ -1760,7 +1773,7 @@ export class User {
                 `delete
                  FROM \`${this.app}\`.t_subscribe
                  where email in (?)`,
-                [email.split(',')]
+                [email.split(',')],
             );
             return {
                 result: true,
@@ -1781,7 +1794,7 @@ export class User {
                         `(s.email LIKE '%${query.search}%') && (s.tag != ${db.escape(query.search)})`,
                         `(s.tag = ${db.escape(query.search)})
                         `,
-                    ].join(` || `)
+                    ].join(` || `),
                 );
             }
             if (query.account) {
@@ -1803,7 +1816,7 @@ export class User {
                      , ${query.limit}
 
                 `,
-                []
+                [],
             );
             const subTotal = await db.query(
                 `SELECT count(*) as c
@@ -1813,7 +1826,7 @@ export class User {
                  WHERE ${querySql.length > 0 ? querySql.join(' AND ') : '1 = 1'}
 
                 `,
-                []
+                [],
             );
             return {
                 data: subData,
@@ -1830,7 +1843,7 @@ export class User {
             query.limit = query.limit ?? 50;
             const querySql: any = [];
             query.search &&
-                querySql.push([`(userID in (select userID from \`${this.app}\`.t_user where (UPPER(JSON_UNQUOTE(JSON_EXTRACT(userData, '$.name')) LIKE UPPER('%${query.search}%')))))`].join(` || `));
+            querySql.push([`(userID in (select userID from \`${this.app}\`.t_user where (UPPER(JSON_UNQUOTE(JSON_EXTRACT(userData, '$.name')) LIKE UPPER('%${query.search}%')))))`].join(` || `));
             const data = await new UtDatabase(this.app, `t_fcm`).querySql(querySql, query as any);
             for (const b of data.data) {
                 let userData = (
@@ -1838,7 +1851,7 @@ export class User {
                         `select userData
                          from \`${this.app}\`.t_user
                          where userID = ?`,
-                        [b.userID]
+                        [b.userID],
                     )
                 )[0];
                 b.userData = userData && userData.userData;
@@ -1857,14 +1870,14 @@ export class User {
                     `delete
                      FROM \`${this.app}\`.t_user
                      where id in (?)`,
-                    [query.id.split(',')]
+                    [query.id.split(',')],
                 );
             } else if (query.email) {
                 await db.query(
                     `delete
                      FROM \`${this.app}\`.t_user
                      where userData ->>'$.email'=?`,
-                    [query.email]
+                    [query.email],
                 );
             }
             return {
@@ -1882,7 +1895,7 @@ export class User {
                     `select *
                      from \`${this.app}\`.\`t_user\`
                      where userID = ${db.escape(userID)}`,
-                    []
+                    [],
                 )
             )[0];
             const login_config = await this.getConfigV2({
@@ -1900,9 +1913,9 @@ export class User {
                 if ((await redis.getValue(`verify-${userData.userData.email}`)) === par.userData.verify_code) {
                     await db.query(
                         `update \`${this.app}\`.\`t_user\`
-                                    set pwd=?
-                                    where userID = ${db.escape(userID)}`,
-                        [await tool.hashPwd(par.userData.pwd)]
+                         set pwd=?
+                         where userID = ${db.escape(userID)}`,
+                        [await tool.hashPwd(par.userData.pwd)],
                     );
                 } else {
                     throw exception.BadRequestError('BAD_REQUEST', 'Verify code error.', {
@@ -1917,7 +1930,7 @@ export class User {
                          from \`${this.app}\`.\`t_user\`
                          where (userData ->>'$.email' = ${db.escape(par.userData.email)})
                            and (userID != ${db.escape(userID)}) `,
-                        []
+                        [],
                     )
                 )[0]['count(1)'];
                 if (count) {
@@ -1944,7 +1957,7 @@ export class User {
                          from \`${this.app}\`.\`t_user\`
                          where (userData ->>'$.phone' = ${db.escape(par.userData.phone)})
                            and (userID != ${db.escape(userID)}) `,
-                        []
+                        [],
                     )
                 )[0]['count(1)'];
                 if (count) {
@@ -1972,7 +1985,7 @@ export class User {
                      set email=?
                      where id > 0
                        and email = ?`,
-                    [par.userData.phone, `${userData.userData.phone}`]
+                    [par.userData.phone, `${userData.userData.phone}`],
                 );
                 userData.account = par.userData.phone;
             }
@@ -1982,7 +1995,7 @@ export class User {
                      set email=?
                      where id > 0
                        and email = ?`,
-                    [par.userData.email, `${userData.userData.email}`]
+                    [par.userData.email, `${userData.userData.email}`],
                 );
                 userData.account = par.userData.email;
             }
@@ -2007,7 +2020,7 @@ export class User {
                      SET ?
                      WHERE 1 = 1
                        and userID = ?`,
-                    [par, userID]
+                    [par, userID],
                 )) as any,
             };
         } catch (e: any) {
@@ -2054,7 +2067,7 @@ export class User {
                 `select userData
                  from \`${this.app}\`.\`t_user\`
                  where userID = ${db.escape(cf.userID)}`,
-                []
+                [],
             )
         )[0]['userData'];
         if (typeof originUserData !== 'object') {
@@ -2086,7 +2099,7 @@ export class User {
                         pwd: await tool.hashPwd(newPwd),
                     },
                     user_id_and_account,
-                ]
+                ],
             )) as any;
             return {
                 result: true,
@@ -2104,7 +2117,7 @@ export class User {
                      from \`${this.app}\`.t_user
                      where userID = ?
                        and status = 1`,
-                    [userID]
+                    [userID],
                 )) as any
             )[0];
             if (await tool.compareHash(pwd, data.pwd)) {
@@ -2118,7 +2131,7 @@ export class User {
                             pwd: await tool.hashPwd(newPwd),
                         },
                         userID,
-                    ]
+                    ],
                 )) as any;
                 return {
                     result: true,
@@ -2141,7 +2154,7 @@ export class User {
                 `update \`${this.app}\`.t_user
                  set account=${db.escape(userData.updateAccount)}
                  where JSON_EXTRACT(userData, '$.mailVerify') = ?`,
-                [token]
+                [token],
             );
         } catch (e) {
             throw exception.BadRequestError('BAD_REQUEST', 'updateAccountBack Error:' + e, null);
@@ -2158,7 +2171,7 @@ export class User {
                  SET ?
                  WHERE 1 = 1
                    and JSON_EXTRACT(userData, '$.mailVerify') = ?`,
-                [par, token]
+                [par, token],
             )) as any;
         } catch (e) {
             throw exception.BadRequestError('BAD_REQUEST', 'Verify Error:' + e, null);
@@ -2174,7 +2187,7 @@ export class User {
                          from \`${this.app}\`.t_user
                          where userData ->>'$.email'
                            and status!=0`,
-                        [account]
+                        [account],
                     )) as any
                 )[0]['count(1)'] == 1
             );
@@ -2185,7 +2198,7 @@ export class User {
 
     public async checkMailAndPhoneExists(
         email?: string,
-        phone?: string
+        phone?: string,
     ): Promise<{
         exist: boolean;
         email?: string;
@@ -2199,18 +2212,22 @@ export class User {
 
             if (email) {
                 const emailResult = await db.execute(
-                    `SELECT COUNT(1) AS count FROM \`${this.app}\`.t_user WHERE userData ->>'$.email' = ?
+                    `SELECT COUNT(1) AS count
+                     FROM \`${this.app}\`.t_user
+                     WHERE userData ->>'$.email' = ?
                     `,
-                    [email]
+                    [email],
                 );
                 emailExists = (emailResult as any)[0]?.count > 0;
             }
 
             if (phone) {
                 const phoneResult = await db.execute(
-                    `SELECT COUNT(1) AS count FROM \`${this.app}\`.t_user WHERE userData ->>'$.phone' = ?
+                    `SELECT COUNT(1) AS count
+                     FROM \`${this.app}\`.t_user
+                     WHERE userData ->>'$.phone' = ?
                     `,
-                    [phone]
+                    [phone],
                 );
                 phoneExists = (phoneResult as any)[0]?.count > 0;
             }
@@ -2234,7 +2251,7 @@ export class User {
                     `select count(1)
                      from \`${this.app}\`.t_user
                      where userID = ?`,
-                    [id]
+                    [id],
                 )
             )[0]['count(1)'];
             return count;
@@ -2255,7 +2272,7 @@ export class User {
                          from \`${this.app}\`.t_user_public_config
                          where \`key\` = ?
                            and user_id = ? `,
-                        [config.key, config.user_id ?? this.token!.userID]
+                        [config.key, config.user_id ?? this.token!.userID],
                     )
                 )[0]['count(1)'] === 1
             ) {
@@ -2265,7 +2282,7 @@ export class User {
                          updated_at=?
                      where \`key\` = ?
                        and user_id = ?`,
-                    [config.value, new Date(), config.key, config.user_id ?? this.token!.userID]
+                    [config.value, new Date(), config.key, config.user_id ?? this.token!.userID],
                 );
             } else {
                 await db.query(
@@ -2273,7 +2290,7 @@ export class User {
                      into \`${this.app}\`.t_user_public_config (\`user_id\`, \`key\`, \`value\`, updated_at)
                      values (?, ?, ?, ?)
                     `,
-                    [config.user_id ?? this.token!.userID, config.key, config.value, new Date()]
+                    [config.user_id ?? this.token!.userID, config.key, config.value, new Date()],
                 );
             }
         } catch (e) {
@@ -2290,7 +2307,7 @@ export class User {
                  where \`key\` = ${db.escape(config.key)}
                    and user_id = ${db.escape(config.user_id)}
                 `,
-                []
+                [],
             );
         } catch (e) {
             console.error(e);
@@ -2304,18 +2321,18 @@ export class User {
                 `select *
                  from \`${this.app}\`.t_user_public_config
                  where ${
-                     config.key.includes(',')
-                         ? `\`key\` in (${config.key
-                               .split(',')
-                               .map((dd) => {
-                                   return db.escape(dd);
-                               })
-                               .join(',')})`
-                         : `\`key\` = ${db.escape(config.key)}`
+                         config.key.includes(',')
+                                 ? `\`key\` in (${config.key
+                                         .split(',')
+                                         .map((dd) => {
+                                             return db.escape(dd);
+                                         })
+                                         .join(',')})`
+                                 : `\`key\` = ${db.escape(config.key)}`
                  }
                    and user_id = ${db.escape(config.user_id)}
                 `,
-                []
+                [],
             );
             const that = this;
 
@@ -2419,10 +2436,10 @@ export class User {
                             value: await loop(
                                 data_.find((d1: any) => {
                                     return d1.key === dd;
-                                })
+                                }),
                             ),
                         };
-                    })
+                    }),
                 );
             } else {
                 return await loop(data_[0]);
@@ -2439,11 +2456,11 @@ export class User {
                 def: 'zh-TW',
                 support: ['zh-TW'],
             };
-            if(value.chat_toggle===undefined){
-                value.chat_toggle=(await this.getConfigV2({
-                    key:'message_setting',
-                    user_id:'manager'
-                })).toggle
+            if (value.chat_toggle === undefined) {
+                value.chat_toggle = (await this.getConfigV2({
+                    key: 'message_setting',
+                    user_id: 'manager',
+                })).toggle;
             }
         } else if (['menu-setting', 'footer-setting'].includes(key) && Array.isArray(value)) {
             return {
@@ -2462,6 +2479,8 @@ export class User {
                     manager_phone: '',
                 },
             ];
+        } else if (key === 'customer_form_user_setting') {
+            value.list = FormCheck.initialUserForm(value.list);
         }
     }
 
@@ -2472,7 +2491,7 @@ export class User {
                     `select count(1)
                      from \`${this.app}\`.t_user
                      where userData ->>'$.email' = ?`,
-                    [email]
+                    [email],
                 )
             )[0]['count(1)'];
             return count;
@@ -2488,7 +2507,7 @@ export class User {
                     `select count(1)
                      from \`${this.app}\`.t_user
                      where userData ->>'$.phone' = ?`,
-                    [phone]
+                    [phone],
                 )
             )[0]['count(1)'];
             return count;
@@ -2504,7 +2523,7 @@ export class User {
                  FROM \`${this.app}\`.t_user_public_config
                  where \`key\` = 'notice_last_read'
                    and user_id = ?;`,
-                [this.token?.userID]
+                [this.token?.userID],
             );
             const date = !last_read_time[0] ? new Date('2022-01-29') : new Date(last_read_time[0].value.time);
             const count = (
@@ -2513,7 +2532,7 @@ export class User {
                      from \`${this.app}\`.t_notice
                      where user_id = ?
                        and created_time > ?`,
-                    [this.token?.userID, date]
+                    [this.token?.userID, date],
                 )
             )[0]['count(1)'];
             return {
@@ -2538,12 +2557,13 @@ export class User {
                         AND status = 1
                         AND invited = 1
                         AND appName = ?));`,
-                [this.app, this.token?.userID, this.token?.userID, this.app]
+                [this.app, this.token?.userID, this.token?.userID, this.app],
             );
             return {
                 result: result[0]['count(1)'] === 1,
             };
-        } catch (e) {}
+        } catch (e) {
+        }
     }
 
     public async getNotice(cf: { query: any }) {
@@ -2555,13 +2575,13 @@ export class User {
                  FROM \`${this.app}\`.t_user_public_config
                  where \`key\` = 'notice_last_read'
                    and user_id = ?;`,
-                [this.token?.userID]
+                [this.token?.userID],
             );
             if (!last_read_time[0]) {
                 await db.query(
                     `insert into \`${this.app}\`.t_user_public_config (user_id, \`key\`, value, updated_at)
                      values (?, ?, ?, ?)`,
-                    [this.token?.userID, 'notice_last_read', JSON.stringify({ time: new Date() }), new Date()]
+                    [this.token?.userID, 'notice_last_read', JSON.stringify({ time: new Date() }), new Date()],
                 );
             } else {
                 last_time_read = new Date(last_read_time[0].value.time).getTime();
@@ -2570,7 +2590,7 @@ export class User {
                      set \`value\`=?
                      where user_id = ?
                        and \`key\` = ?`,
-                    [JSON.stringify({ time: new Date() }), `${this.token?.userID}`, 'notice_last_read']
+                    [JSON.stringify({ time: new Date() }), `${this.token?.userID}`, 'notice_last_read'],
                 );
             }
             const response: any = await new UtDatabase(this.app, `t_notice`).querySql(query, cf.query);
@@ -2602,9 +2622,9 @@ export class User {
             const db_data = (
                 await db.query(
                     `select *
-                                             from ${saasConfig.SAAS_NAME}.t_ip_info
-                                             where ip = ?`,
-                    [ip]
+                     from ${saasConfig.SAAS_NAME}.t_ip_info
+                     where ip = ?`,
+                    [ip],
                 )
             )[0];
             let ip_data = db_data && db_data.data;
@@ -2612,8 +2632,8 @@ export class User {
                 ip_data = (await axios.request(config)).data;
                 await db.query(
                     `insert into ${saasConfig.SAAS_NAME}.t_ip_info (ip, data)
-                                values (?, ?)`,
-                    [ip, JSON.stringify(ip_data)]
+                     values (?, ?)`,
+                    [ip, JSON.stringify(ip_data)],
                 );
             }
             return ip_data;

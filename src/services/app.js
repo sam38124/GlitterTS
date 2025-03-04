@@ -170,7 +170,8 @@ class App {
                     dd.value = dd.value && JSON.stringify(dd.value);
                     if (dd.userID !== 'manager' && !['custom_form_checkout', 'custom_form_register', 'customer_form_user_setting', 'robot_auto_reply', 'image-manager', 'message_setting'].includes(dd.key)) {
                         await trans.execute(`
-                                insert ignore into \`${cf.appName}\`.t_user_public_config
+                                insert
+                                ignore into \`${cf.appName}\`.t_user_public_config
                                 SET ?;
                             `, [dd]);
                     }
@@ -224,15 +225,15 @@ class App {
                      where \`key\` = ? `, [`store-information`]))[0];
             if (store_information) {
                 await database_1.default.query(`delete
-                                from \`${cf.appName}\`.t_user_public_config
-                                where \`key\` = ?
-                                  and id > 0`, ['store-information']);
+                     from \`${cf.appName}\`.t_user_public_config
+                     where \`key\` = ?
+                       and id > 0`, ['store-information']);
             }
             for (const b of app_initial_js_1.AppInitial.main(cf.appName)) {
                 await database_1.default.query(b.sql, [b.obj]);
             }
             await database_1.default.query(`insert into \`${cf.appName}\`.t_user_public_config
-                            set ?`, [
+                 set ?`, [
                 {
                     key: 'store-information',
                     user_id: 'manager',
@@ -419,14 +420,15 @@ class App {
         var _a, _b, _c;
         try {
             const appConfig = (await database_1.default.query(`SELECT brand, domain, plan, user as userId
-                    FROM \`${config_1.saasConfig.SAAS_NAME}\`.app_config
-                    WHERE appName = ?`, [app]))[0];
+                     FROM \`${config_1.saasConfig.SAAS_NAME}\`.app_config
+                     WHERE appName = ?`, [app]))[0];
             if (!appConfig) {
                 throw new Error(`App "${app}" not found in app_config`);
             }
             const userData = (await database_1.default.query(`SELECT userData
-                    FROM \`${appConfig.brand}\`.t_user
-                    WHERE userID = ?`, [appConfig.userId]))[0];
+                     FROM \`${appConfig.brand}\`.t_user
+                     WHERE userID = ?`, [appConfig.userId]))[0];
+            appConfig.plan = appConfig.plan || 'omo-year';
             return {
                 memberType: (_b = (_a = userData === null || userData === void 0 ? void 0 : userData.userData) === null || _a === void 0 ? void 0 : _a.menber_type) !== null && _b !== void 0 ? _b : null,
                 brand: appConfig.brand,
@@ -456,7 +458,7 @@ class App {
         const pageData = (await new template_js_1.Template(undefined).getPage({
             appName: appName,
             tag: page,
-            language: language
+            language: language,
         }))[0];
         const event_list = fs_1.default.readFileSync(path_1.default.resolve(__dirname, '../../lowcode/official_event/event.js'), 'utf8');
         const index = `TriggerEvent.create(import.meta.url,`;
@@ -490,7 +492,7 @@ class App {
                             const pageData = (await new template_js_1.Template(undefined).getPage({
                                 appName: dd.data.refer_app || appName,
                                 tag: dd.data.tag,
-                                language: language
+                                language: language,
                             }))[0];
                             if (pageData && pageData.config) {
                                 preloadData.component.push(pageData);
@@ -627,8 +629,8 @@ class App {
             const result = await this.addDNSRecord(domain_name);
             await this.setSubDomain({
                 original_domain: (await database_1.default.query(`SELECT domain
-                                                  FROM \`${config_1.saasConfig.SAAS_NAME}\`.app_config
-                                                  where appName=?;`, [cf.app_name]))[0]['domain'],
+                         FROM \`${config_1.saasConfig.SAAS_NAME}\`.app_config
+                         where appName=?;`, [cf.app_name]))[0]['domain'],
                 appName: cf.app_name,
                 domain: domain_name,
             });
@@ -764,7 +766,8 @@ class App {
             try {
                 await new backend_service_js_1.BackendService(config.appName).stopServer();
             }
-            catch (e) { }
+            catch (e) {
+            }
             await database_1.default.execute(`delete
                  from \`${config_1.saasConfig.SAAS_NAME}\`.app_config
                  where appName = ${database_1.default.escape(config.appName)}

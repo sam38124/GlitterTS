@@ -165,7 +165,7 @@ export class ShoppingInformation {
             bind: vm.id,
             dataList: [{ obj: vm, key: 'type' }],
             view: () => {
-                var _a, _b;
+                var _a;
                 if (vm.mainLoading) {
                     ApiUser.getPublicConfig('store-information', 'manager').then((r) => {
                         vm.data = r.response.value;
@@ -181,7 +181,6 @@ export class ShoppingInformation {
                 }
                 vm.data.web_type = (_a = vm.data.web_type) !== null && _a !== void 0 ? _a : ['shop'];
                 vm.data.currency_code = vm.data.currency_code || 'TWD';
-                vm.data.cookie_check = (_b = vm.data.cookie_check) !== null && _b !== void 0 ? _b : true;
                 return BgWidget.container(html `
                     <div class="title-container">
                         ${BgWidget.title('全站設定')}

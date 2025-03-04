@@ -8,7 +8,6 @@ import { EditorConfig } from './editor-config.js';
 import { ShareDialog } from './glitterBundle/dialog/ShareDialog.js';
 import { Language } from './glitter-base/global/language.js';
 import { PayConfig } from './cms-plugin/pos-pages/pay-config.js';
-import { Animation, AnimationConfig } from './glitterBundle/module/Animation.js';
 import { ApiCart } from './glitter-base/route/api-cart.js';
 
 export class Entry {
@@ -132,7 +131,7 @@ export class Entry {
         }
         (window as any).renderClock = (window as any).renderClock ?? createClock();
         console.log(`Entry-time:`, (window as any).renderClock.stop());
-        glitter.share.editerVersion = 'V_18.3.4';
+        glitter.share.editerVersion = 'V_18.3.9';
         glitter.share.start = new Date();
         const vm = { appConfig: [] };
         (window as any).saasConfig = {

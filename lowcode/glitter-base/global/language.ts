@@ -103,7 +103,7 @@ export class Language {
                         return `en`;
                 }
             })()
-        ];
+            ];
     }
 
     public static checkKeys() {
@@ -429,7 +429,12 @@ export class Language {
             { key: 'new_password', tw: '新密碼', cn: '新密码', en: 'New Password' },
             { key: 'confirm_password', tw: '確認密碼', cn: '确认密码', en: 'Confirm Password' },
             { key: 'please_enter_password', tw: '請輸入密碼', cn: '请输入密码', en: 'Please enter password' },
-            { key: 'please_enter_new_password', tw: '請輸入新密碼', cn: '请输入新密码', en: 'Please enter new password' },
+            {
+                key: 'please_enter_new_password',
+                tw: '請輸入新密碼',
+                cn: '请输入新密码',
+                en: 'Please enter new password',
+            },
             {
                 key: 'please_enter_password_again',
                 tw: '請再次輸入密碼',
@@ -481,7 +486,12 @@ export class Language {
                 en: 'Please enter your bank account name',
             },
             { key: 'enter_five_digits', tw: '請輸入五位數字', cn: '请输入五位数字', en: 'Please enter five digits' },
-            { key: 'new_password_placeholder', tw: '請輸入新密碼', cn: '请输入新密码', en: 'Please enter New Password' },
+            {
+                key: 'new_password_placeholder',
+                tw: '請輸入新密碼',
+                cn: '请输入新密码',
+                en: 'Please enter New Password',
+            },
             {
                 key: 'enter_phone_number',
                 tw: '請輸入手機號碼',
@@ -671,7 +681,12 @@ export class Language {
             { key: 'remittance_account_number', tw: '匯款帳號', cn: '汇款帐号', en: 'Remittance Account Number' },
             { key: 'remittance_amount', tw: '匯款金額', cn: '汇款金额', en: 'Remittance Amount' },
             { key: 'payment_instructions', tw: '付款說明', cn: '付款说明', en: 'Payment Instructions' },
-            { key: 'payment_time_not_filled', tw: '付款時間未填寫', cn: '付款时间未填写', en: 'Payment time not filled' },
+            {
+                key: 'payment_time_not_filled',
+                tw: '付款時間未填寫',
+                cn: '付款时间未填写',
+                en: 'Payment time not filled',
+            },
             { key: 'bank_name_not_filled', tw: '銀行名稱未填寫', cn: '银行名称未填写', en: 'Bank name not filled' },
             {
                 key: 'bank_account_name_not_filled',
@@ -828,7 +843,12 @@ export class Language {
                 en: 'Verification code sent successfully',
             },
             { key: 'system_error', tw: '系統錯誤', cn: '系统错误', en: 'System error' },
-            { key: 'password_change_success', tw: '更換密碼成功', cn: '更换密码成功', en: 'Password change successful' },
+            {
+                key: 'password_change_success',
+                tw: '更換密碼成功',
+                cn: '更换密码成功',
+                en: 'Password change successful',
+            },
             { key: 'password_change_failure', tw: '更換密碼失敗', cn: '更换密码失败', en: 'Password change failed' },
             {
                 key: 'resend_code_timer',
@@ -853,23 +873,26 @@ export class Language {
             { key: 'chat', tw: '聊聊', cn: '聊聊', en: 'chat' },
             { key: 'collect', tw: '收藏', cn: '收藏', en: 'collect' },
             { key: 'h_collect', tw: '已收藏', cn: '已收藏', en: 'collected' },
-            {key: 'cookie_use',tw:`
-            本網站中使用 cookie，欲查詢有關本網站使用 cookie 方式之詳情，及若您不希望在電腦上使用 cookie 時應如何變更電腦的 cookie 設定，請參閱本網站「 <a class="fw-bold" style="font-size:16px;color:${(window as any).glitter.share.globalValue['theme_color.0.solid-button-text']};" href="/privacy">
+            {
+                key: 'cookie_use', tw: `
+            本網站中使用 cookie，欲查詢有關本網站使用 cookie 方式之詳情，及若您不希望在裝置上使用 cookie 時應如何變更裝置的 cookie 設定，請參閱本網站「 <a class="fw-bold" style="font-size:16px;color:${(window as any).glitter.share.globalValue['theme_color.0.solid-button-text']};" href="/privacy">
              隱私權條款
 </a> 」之 Cookie 聲明。您繼續使用本網站即表示您同意本公司得按本網站使用條款之 Cookie 聲明使用 cookie。
-            `,en:`
-             This website uses cookies. To learn more about how this website uses cookies and how to change your computer's cookie settings if you do not wish to use cookies, please refer to the Cookie Statement in our <a class="fw-bold"
+            `, en: `
+             This website uses cookies. To learn more about how this website uses cookies and how to change your device's cookie settings if you do not wish to use cookies, please refer to the Cookie Statement in our <a class="fw-bold"
               style="color:${(window as any).glitter.share.globalValue['theme_color.0.solid-button-text']};font-size:16px;"
               href="/privacy">
              Privacy Policy
 </a>. By continuing to use this website, you agree to our use of cookies as described in the Cookie Statement of our Terms of Use.
-            `,cn: `
-             本网站使用 Cookie。欲了解本网站如何使用 Cookie，以及如果您不希望在计算机上使用 Cookie 时应如何更改计算机的 Cookie 设置，请参阅本网站『
+            `, cn: `
+             本网站使用 Cookie。欲了解本网站如何使用 Cookie，以及如果您不希望在设备上使用 Cookie 时应如何更改计算机的 Cookie 设置，请参阅本网站『
              <a href="/privacy"
              style="color:${(window as any).glitter.share.globalValue['theme_color.0.solid-button-text']};font-size:16px;"
              >隐私政策</a>
              』**中的 Cookie 声明。您继续使用本网站即表示您同意本公司按照本网站使用条款中的 Cookie 声明使用 Cookie。
-            `}
+            `,
+            },
+            { key: 'i_known', tw: '我知道了', cn: '我知道了', en: 'confirm' },
         ];
     }
 

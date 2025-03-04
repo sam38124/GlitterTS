@@ -200,7 +200,6 @@ export class ShoppingInformation {
                 }
                 vm.data.web_type = vm.data.web_type ?? ['shop'];
                 vm.data.currency_code = vm.data.currency_code || 'TWD';
-                vm.data.cookie_check = vm.data.cookie_check ?? true;
                 return BgWidget.container(html`
                     <div class="title-container">
                         ${BgWidget.title('全站設定')}

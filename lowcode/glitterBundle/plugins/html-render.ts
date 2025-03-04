@@ -261,7 +261,7 @@ init(import.meta.url, (gvc, glitter, gBundle) => {
                     }, 50);
                 },
             }));
-            if ((localStorage.getItem('cookie_accept') != 'true') && ((window as any).store_info.cookie_check ?? true)) {
+            if ((localStorage.getItem('cookie_accept') != 'true') && ((window as any).store_info.cookie_check)) {
                 map.push(`
             <div class="position-fixed  rounded-3 d-flex align-items-center flex-column flex-sm-row p-3 privacy-notice" style="width:852px;max-width:calc(100vw - 30px);background: ${glitter.share.globalValue['theme_color.0.solid-button-bg']};
            color: ${glitter.share.globalValue['theme_color.0.solid-button-text']};
@@ -274,9 +274,10 @@ init(import.meta.url, (gvc, glitter, gBundle) => {
                     for (const b of document.querySelectorAll('.privacy-notice')) {
                         b.remove();
                     }
-                })}">我知道了</div>
+                })}">${Language.text('i_known')}</div>
 </div>
             `);
+
             }
 
             return map.join('');

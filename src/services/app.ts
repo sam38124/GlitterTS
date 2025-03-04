@@ -15,7 +15,7 @@ import { Template } from './template.js';
 import Tool from './tool';
 import path from 'path';
 import { AppInitial } from './app-initial.js';
-import {User} from "../api-public/services/user.js";
+import { User } from '../api-public/services/user.js';
 
 export class App {
     public token?: IToken;
@@ -27,7 +27,7 @@ export class App {
                  from \`${config.DB_NAME}\`.private_config
                  where app_name = '${app}'
                    and \`key\` = ${db.escape(key)}`,
-                []
+                [],
             );
             resolve(data[0] ? data[0]['value'] : {});
         });
@@ -59,7 +59,16 @@ export class App {
             throw new Error('package.json not found in the current directory');
         }
     }
-    public async createApp(cf: { appName: string; copyApp: string; copyWith: string[]; brand: string; name?: string; theme?: string; sub_domain: string }) {
+
+    public async createApp(cf: {
+        appName: string;
+        copyApp: string;
+        copyWith: string[];
+        brand: string;
+        name?: string;
+        theme?: string;
+        sub_domain: string
+    }) {
         try {
             cf.copyWith = cf.copyWith ?? [];
             cf.sub_domain = cf.sub_domain.replace(/\./g, '');
@@ -69,7 +78,7 @@ export class App {
                     from \`${saasConfig.SAAS_NAME}\`.app_config
                     where appName = ${db.escape(cf.appName)}
                 `,
-                []
+                [],
             );
             if (count[0]['count(1)'] === 1) {
                 throw exception.BadRequestError('HAVE_APP', 'This app already be used.', null);
@@ -80,7 +89,7 @@ export class App {
                     from \`${saasConfig.SAAS_NAME}\`.app_config
                     where domain = ${db.escape(`${cf.sub_domain}.${config.HostedDomain}`)}
                 `,
-                []
+                [],
             );
             if (domain_count[0]['count(1)'] === 1) {
                 throw exception.BadRequestError('HAVE_DOMAIN', 'This domain already be used.', null);
@@ -96,20 +105,20 @@ export class App {
                         `select *
                          from \`${saasConfig.SAAS_NAME}\`.app_config
                          where appName = ${db.escape(cf.copyApp)}`,
-                        []
+                        [],
                     )
                 )[0];
                 copyPageData = await db.execute(
                     `select *
                      from \`${saasConfig.SAAS_NAME}\`.page_config
                      where appName = ${db.escape(cf.copyApp)}`,
-                    []
+                    [],
                 );
                 privateConfig = await db.execute(
                     `select *
                      from \`${saasConfig.SAAS_NAME}\`.private_config
                      where app_name = ${db.escape(cf.copyApp)} `,
-                    []
+                    [],
                 );
             }
 
@@ -120,11 +129,11 @@ export class App {
                  values (?, ?, ?, ${db.escape(JSON.stringify((copyAppData && copyAppData.config) || {}))},
                          ${db.escape(cf.brand ?? saasConfig.SAAS_NAME)},
                          ${db.escape(
-                             JSON.stringify((copyAppData && copyAppData.theme_config) ?? { name: (copyAppData && copyAppData.template_config && copyAppData.template_config.name) || cf.name })
+                                 JSON.stringify((copyAppData && copyAppData.theme_config) ?? { name: (copyAppData && copyAppData.template_config && copyAppData.template_config.name) || cf.name }),
                          )},
                          ${cf.theme ? db.escape(cf.theme) : 'null'},
                          ${db.escape(JSON.stringify((copyAppData && copyAppData.template_config) || {}))})`,
-                [this.token!.userID, cf.appName, addDays(new Date(), saasConfig.DEF_DEADLINE)]
+                [this.token!.userID, cf.appName, addDays(new Date(), saasConfig.DEF_DEADLINE)],
             );
 
             await this.putSubDomain({
@@ -137,7 +146,7 @@ export class App {
                 for (const dd of await db.query(
                     `SELECT *
                      FROM \`${cf.copyApp}\`.t_manager_post`,
-                    []
+                    [],
                 )) {
                     dd.content = dd.content && JSON.stringify(dd.content);
                     dd.userID = this.token!.userID;
@@ -146,7 +155,7 @@ export class App {
                             insert into \`${cf.appName}\`.t_manager_post
                             SET ?;
                         `,
-                        [dd]
+                        [dd],
                     );
                 }
             }
@@ -154,7 +163,7 @@ export class App {
                 for (const dd of await db.query(
                     `SELECT *
                      FROM \`${cf.copyApp}\`.t_post`,
-                    []
+                    [],
                 )) {
                     dd.content = dd.content && JSON.stringify(dd.content);
                     await trans.execute(
@@ -162,14 +171,14 @@ export class App {
                             insert into \`${cf.appName}\`.t_post
                             SET ?;
                         `,
-                        [dd]
+                        [dd],
                     );
                 }
             }
             for (const dd of await db.query(
                 `SELECT *
                  FROM \`${cf.copyApp}\`.t_global_event`,
-                []
+                [],
             )) {
                 dd.json = dd.json && JSON.stringify(dd.json);
                 await trans.execute(
@@ -177,14 +186,14 @@ export class App {
                         insert into \`${cf.appName}\`.t_global_event
                         SET ?;
                     `,
-                    [dd]
+                    [dd],
                 );
             }
             if (cf.copyWith.indexOf('public_config') !== -1) {
                 for (const dd of await db.query(
                     `SELECT *
                      FROM \`${cf.copyApp}\`.public_config`,
-                    []
+                    [],
                 )) {
                     dd.value = dd.value && JSON.stringify(dd.value);
                     if (!['editorGuide', 'guideable', 'guide'].includes(dd.key)) {
@@ -193,23 +202,24 @@ export class App {
                                 insert into \`${cf.appName}\`.public_config
                                 SET ?;
                             `,
-                            [dd]
+                            [dd],
                         );
                     }
                 }
                 for (const dd of await db.query(
                     `SELECT *
                      FROM \`${cf.copyApp}\`.t_user_public_config`,
-                    []
+                    [],
                 )) {
                     dd.value = dd.value && JSON.stringify(dd.value);
-                    if (dd.userID !== 'manager' && !['custom_form_checkout','custom_form_register','customer_form_user_setting','robot_auto_reply', 'image-manager', 'message_setting'].includes(dd.key)) {
+                    if (dd.userID !== 'manager' && !['custom_form_checkout', 'custom_form_register', 'customer_form_user_setting', 'robot_auto_reply', 'image-manager', 'message_setting'].includes(dd.key)) {
                         await trans.execute(
                             `
-                                insert ignore into \`${cf.appName}\`.t_user_public_config
+                                insert
+                                ignore into \`${cf.appName}\`.t_user_public_config
                                 SET ?;
                             `,
-                            [dd]
+                            [dd],
                         );
                     }
                 }
@@ -237,7 +247,7 @@ export class App {
                             insert into \`${saasConfig.SAAS_NAME}\`.private_config (\`app_name\`, \`key\`, \`value\`, updated_at)
                             values (?, ?, ?, ?);
                         `,
-                        [cf.appName, dd.key, JSON.stringify(dd.value), new Date()]
+                        [cf.appName, dd.key, JSON.stringify(dd.value), new Date()],
                     );
                 }
             }
@@ -251,7 +261,7 @@ export class App {
                             values (?, ?, ?, ?, ?, ${db.escape(JSON.stringify(dd.config))},
                                     ${db.escape(JSON.stringify(dd.page_config))}, ${db.escape(dd.page_type)});
                         `,
-                        [this.token!.userID, cf.appName, dd.tag, dd.group || '未分類', dd.name]
+                        [this.token!.userID, cf.appName, dd.tag, dd.group || '未分類', dd.name],
                     );
                 }
             } else {
@@ -261,7 +271,7 @@ export class App {
                                                                              \`config\`, \`page_config\`)
                         values (?, ?, ?, ?, ?, ${db.escape(JSON.stringify({}))}, ${db.escape(JSON.stringify({}))});
                     `,
-                    [this.token!.userID, cf.appName, 'index', '', '首頁']
+                    [this.token!.userID, cf.appName, 'index', '', '首頁'],
                 );
             }
             await trans.commit();
@@ -270,16 +280,16 @@ export class App {
                     `select *
                      from \`${cf.appName}\`.t_user_public_config
                      where \`key\` = ? `,
-                    [`store-information`]
+                    [`store-information`],
                 )
             )[0];
             if (store_information) {
                 await db.query(
                     `delete
-                                from \`${cf.appName}\`.t_user_public_config
-                                where \`key\` = ?
-                                  and id > 0`,
-                    ['store-information']
+                     from \`${cf.appName}\`.t_user_public_config
+                     where \`key\` = ?
+                       and id > 0`,
+                    ['store-information'],
                 );
             }
             for (const b of AppInitial.main(cf.appName)) {
@@ -287,7 +297,7 @@ export class App {
             }
             await db.query(
                 `insert into \`${cf.appName}\`.t_user_public_config
-                            set ?`,
+                 set ?`,
                 [
                     {
                         key: 'store-information',
@@ -297,7 +307,7 @@ export class App {
                             shop_name: cf.name,
                         }),
                     },
-                ]
+                ],
             );
             await createAPP(cf);
             return true;
@@ -306,7 +316,7 @@ export class App {
                 `delete
                  from \`${saasConfig.SAAS_NAME}\`.app_config
                  where appName = ?`,
-                [cf.appName]
+                [cf.appName],
             );
             console.log(e);
             throw exception.BadRequestError(e.code ?? 'BAD_REQUEST', e, null);
@@ -319,7 +329,7 @@ export class App {
                 `update \`${saasConfig.SAAS_NAME}\`.app_config
                  set theme_config=?
                  where appName = ?`,
-                [JSON.stringify(body.config), body.theme]
+                [JSON.stringify(body.config), body.theme],
             );
             return true;
         } catch (e: any) {
@@ -338,7 +348,7 @@ export class App {
                     `select \`domain\`, \`dead_line\`, \`plan\`
                      from \`${saasConfig.SAAS_NAME}\`.app_config
                      where appName = ${db.escape(config.app_name)}`,
-                    []
+                    [],
                 )
             )[0];
             /*
@@ -351,7 +361,7 @@ export class App {
                      domain=null
                  where appName = ${db.escape(config.app_name)}
                    and user = ?`,
-                [this.token?.userID]
+                [this.token?.userID],
             );
             await tran.execute(
                 `update \`${saasConfig.SAAS_NAME}\`.app_config
@@ -362,7 +372,7 @@ export class App {
                      plan=${cf_app['plan'] ? db.escape(cf_app['plan']) : 'null'}
                  where appName = ${db.escape(config.theme)}
                    and user = ?`,
-                [this.token?.userID]
+                [this.token?.userID],
             );
             /*
              * 將APP name 寫回去
@@ -372,14 +382,14 @@ export class App {
                  set appName=${db.escape(config.app_name)}
                  where appName = ${db.escape(temp_app_theme)}
                    and user = ?`,
-                [this.token?.userID]
+                [this.token?.userID],
             );
             await tran.execute(
                 `update \`${saasConfig.SAAS_NAME}\`.app_config
                  set appName=${db.escape(config.theme)}
                  where appName = ${db.escape(temp_app_name)}
                    and user = ?`,
-                [this.token?.userID]
+                [this.token?.userID],
             );
             /*
              * 交換PageConfig
@@ -389,14 +399,14 @@ export class App {
                  set appName=${db.escape(temp_app_name)}
                  where appName = ${db.escape(config.app_name)}
                 `,
-                []
+                [],
             );
             await tran.execute(
                 `update \`${saasConfig.SAAS_NAME}\`.page_config
                  set appName=${db.escape(temp_app_theme)}
                  where appName = ${db.escape(config.theme)}
                 `,
-                []
+                [],
             );
 
             await tran.execute(
@@ -404,14 +414,14 @@ export class App {
                  set appName=${db.escape(config.app_name)}
                  where appName = ${db.escape(temp_app_theme)}
                 `,
-                []
+                [],
             );
             await tran.execute(
                 `update \`${saasConfig.SAAS_NAME}\`.page_config
                  set appName=${db.escape(config.theme)}
                  where appName = ${db.escape(temp_app_name)}
                 `,
-                []
+                [],
             );
             await tran.commit();
             await tran.release();
@@ -430,7 +440,7 @@ export class App {
                  WHERE user = '${this.token!.userID}'
                    AND status = 1
                    AND invited = 1;`,
-                []
+                [],
             );
             const allStores = await db.query(
                 `SELECT *
@@ -452,7 +462,7 @@ export class App {
                      return sql.join(' and ');
                  })()};
                 `,
-                []
+                [],
             );
             return allStores.map((store: any) => {
                 const type = empStores.find((st: any) => st.appName === store.appName);
@@ -476,13 +486,13 @@ export class App {
                         query.template_from === 'me' && sql.push(`template_type in (3,2)`);
                         query.template_from === 'all' && sql.push(`template_type = 2`);
                         return sql
-                            .map((dd) => {
-                                return `(${dd})`;
-                            })
-                            .join(' and ');
+                                .map((dd) => {
+                                    return `(${dd})`;
+                                })
+                                .join(' and ');
                     })()};
                 `,
-                []
+                [],
             );
         } catch (e: any) {
             throw exception.BadRequestError(e.code ?? 'BAD_REQUEST', e, null);
@@ -498,7 +508,7 @@ export class App {
                         FROM \`${saasConfig.SAAS_NAME}\`.app_config
                         where appName = ${db.escape(config.appName)};
                     `,
-                    []
+                    [],
                 )
             )[0];
             const pluginList = data['config'] ?? {};
@@ -520,7 +530,7 @@ export class App {
                     SELECT *
                     FROM \`${saasConfig.SAAS_NAME}\`.official_component;
                 `,
-                []
+                [],
             );
         } catch (e: any) {
             throw exception.BadRequestError(e.code ?? 'BAD_REQUEST', e, null);
@@ -533,26 +543,27 @@ export class App {
             const appConfig = (
                 await db.query(
                     `SELECT brand, domain, plan, user as userId
-                    FROM \`${saasConfig.SAAS_NAME}\`.app_config
-                    WHERE appName = ?`,
-                    [app]
+                     FROM \`${saasConfig.SAAS_NAME}\`.app_config
+                     WHERE appName = ?`,
+                    [app],
                 )
             )[0];
-        
+
             if (!appConfig) {
                 throw new Error(`App "${app}" not found in app_config`);
             }
-        
+
             // 查詢使用者資料
             const userData = (
                 await db.query(
                     `SELECT userData
-                    FROM \`${appConfig.brand}\`.t_user
-                    WHERE userID = ?`,
-                    [appConfig.userId]
+                     FROM \`${appConfig.brand}\`.t_user
+                     WHERE userID = ?`,
+                    [appConfig.userId],
                 )
             )[0];
-        
+            //試用版本是企業方案
+            appConfig.plan = appConfig.plan || 'omo-year';
             return {
                 memberType: userData?.userData?.menber_type ?? null, // 避免 userData 為 undefined
                 brand: appConfig.brand,
@@ -566,9 +577,9 @@ export class App {
             throw exception.BadRequestError('ERROR', 'checkBrandAndMemberType error' + error, null);
         }
     }
-    
 
-    public static async preloadPageData(appName: string, refer_page: string,language:'zh-TW' | 'zh-CN' | 'en-US') {
+
+    public static async preloadPageData(appName: string, refer_page: string, language: 'zh-TW' | 'zh-CN' | 'en-US') {
         const start = new Date().getTime();
         const page = await Template.getRealPage(refer_page, appName);
         console.log(`preload-0==>`, (new Date().getTime() - start) / 1000);
@@ -588,7 +599,7 @@ export class App {
             await new Template(undefined).getPage({
                 appName: appName,
                 tag: page,
-                language:language
+                language: language,
             })
         )[0];
         const event_list = fs.readFileSync(path.resolve(__dirname, '../../lowcode/official_event/event.js'), 'utf8');
@@ -624,7 +635,7 @@ export class App {
                                 await new Template(undefined).getPage({
                                     appName: dd.data.refer_app || appName,
                                     tag: dd.data.tag,
-                                    language:language
+                                    language: language,
                                 })
                             )[0];
                             if (pageData && pageData.config) {
@@ -641,6 +652,7 @@ export class App {
                     }
                 }
             }
+
             loop(pageData && pageData.config);
             if (checkPass === 0) {
                 resolve(true);
@@ -703,7 +715,7 @@ export class App {
                         `SELECT count(1)
                          FROM \`${saasConfig.SAAS_NAME}\`.t_user
                          where userID = ?`,
-                        [this.token!.userID, 'LION']
+                        [this.token!.userID, 'LION'],
                     )
                 )[0]['count(1)'] == 1;
             if (official) {
@@ -712,7 +724,7 @@ export class App {
                     `delete
                      from \`${saasConfig.SAAS_NAME}\`.official_component
                      where app_name = ?`,
-                    [config.appName]
+                    [config.appName],
                 );
                 for (const b of config.data.lambdaView ?? []) {
                     await trans.execute(
@@ -726,7 +738,7 @@ export class App {
                                 app_name: config.appName,
                                 url: b.path,
                             },
-                        ]
+                        ],
                     );
                 }
                 await trans.commit();
@@ -741,7 +753,7 @@ export class App {
                          where appName = ${db.escape(config.appName)}
                            and user = '${this.token!.userID}'
                         `,
-                        [config.data, new Date()]
+                        [config.data, new Date()],
                     )
                 )['changedRows'] == true
             );
@@ -772,7 +784,7 @@ export class App {
                          where appName = ${db.escape(config.appName)}
                            and user = '${this.token!.userID}'
                         `,
-                        [config.data]
+                        [config.data],
                     )
                 )['changedRows'] == true
             );
@@ -789,7 +801,7 @@ export class App {
                     `SELECT count(1)
                      FROM \`${saasConfig.SAAS_NAME}\`.app_config
                      where domain =${db.escape(domain_name)}`,
-                    []
+                    [],
                 )
             )[0]['count(1)'] === 0
         ) {
@@ -798,9 +810,9 @@ export class App {
                 original_domain: (
                     await db.query(
                         `SELECT domain
-                                                  FROM \`${saasConfig.SAAS_NAME}\`.app_config
-                                                  where appName=?;`,
-                        [cf.app_name]
+                         FROM \`${saasConfig.SAAS_NAME}\`.app_config
+                         where appName=?;`,
+                        [cf.app_name],
                     )
                 )[0]['domain'],
                 appName: cf.app_name,
@@ -837,7 +849,7 @@ export class App {
                 },
                 HostedZoneId: config.AWS_HostedZoneId, // 您的托管區域 ID
             };
-            route53.changeResourceRecordSets(params, function (err, data) {
+            route53.changeResourceRecordSets(params, function(err, data) {
                 resolve(true);
             });
         });
@@ -851,7 +863,7 @@ export class App {
                      from \`${saasConfig.SAAS_NAME}\`.app_config
                      where domain =?
                        and user !=?`,
-                    [config.domain, this.token!.userID]
+                    [config.domain, this.token!.userID],
                 )
             )['count(1)'] > 0;
         if (
@@ -911,7 +923,7 @@ export class App {
                     set domain=?
                     where domain = ?
                 `,
-                [null, config.domain]
+                [null, config.domain],
             );
             return await db.execute(
                 `
@@ -919,7 +931,7 @@ export class App {
                     set domain=?
                     where appName = ?
                 `,
-                [config.domain, config.appName]
+                [config.domain, config.appName],
             );
         } catch (e: any) {
             throw exception.BadRequestError(e.code ?? 'BAD_REQUEST', e, null);
@@ -934,7 +946,7 @@ export class App {
                      from \`${saasConfig.SAAS_NAME}\`.app_config
                      where domain =?
                        and user !=?`,
-                    [config.domain, this.token!.userID]
+                    [config.domain, this.token!.userID],
                 )
             )['count(1)'] > 0;
         if (checkExists) {
@@ -971,7 +983,7 @@ export class App {
                     `sudo certbot --nginx -d ${config.domain} --non-interactive --agree-tos -m sam38124@gmail.com`,
                     `sudo nginx -s reload`,
                 ]).then((res: any) => {
-                    console.log(`response-ssh->`,res && res.join(''))
+                    console.log(`response-ssh->`, res && res.join(''));
                     resolve(res && res.join('').toLowerCase().includes('successfully'));
                 });
             });
@@ -984,7 +996,7 @@ export class App {
                     set domain=?
                     where domain = ?
                 `,
-                [null, config.domain]
+                [null, config.domain],
             );
             return await db.execute(
                 `
@@ -992,10 +1004,10 @@ export class App {
                     set domain=?
                     where appName = ?
                 `,
-                [config.domain, config.appName]
+                [config.domain, config.appName],
             );
         } catch (e: any) {
-            console.log(`error`,e)
+            console.log(`error`, e);
             throw exception.BadRequestError(e.code ?? 'BAD_REQUEST', e, null);
         }
     }
@@ -1004,27 +1016,28 @@ export class App {
         try {
             try {
                 await new BackendService(config.appName).stopServer();
-            } catch (e) {}
+            } catch (e) {
+            }
             await db.execute(
                 `delete
                  from \`${saasConfig.SAAS_NAME}\`.app_config
                  where appName = ${db.escape(config.appName)}
                    and user = '${this.token!.userID}'`,
-                []
+                [],
             );
             await db.execute(
                 `delete
                  from \`${saasConfig.SAAS_NAME}\`.page_config
                  where appName = ${db.escape(config.appName)}
                    and userID = '${this.token!.userID}'`,
-                []
+                [],
             );
             await db.execute(
                 `delete
                  from \`${saasConfig.SAAS_NAME}\`.private_config
                  where app_name = ${db.escape(config.appName)}
                 `,
-                []
+                [],
             );
         } catch (e: any) {
             throw exception.BadRequestError(e.code ?? 'BAD_REQUEST', e, null);
@@ -1035,19 +1048,20 @@ export class App {
         this.token = token;
     }
 
-    public static async getSupportLanguage(appName:string){
+    public static async getSupportLanguage(appName: string) {
         let store_info = await new User(appName).getConfigV2({
             key: 'store-information',
             user_id: 'manager',
         });
-        return store_info.language_setting.support
+        return store_info.language_setting.support;
     }
-    public static async getDefLanguage(appName:string){
+
+    public static async getDefLanguage(appName: string) {
         let store_info = await new User(appName).getConfigV2({
             key: 'store-information',
             user_id: 'manager',
         });
-        return store_info.language_setting.def
+        return store_info.language_setting.def;
     }
 }
 

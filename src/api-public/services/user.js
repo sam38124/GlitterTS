@@ -105,7 +105,8 @@ class User {
             await redis_js_1.default.setValue(`verify-phone-${account}`, code);
             data.content = data.content.replace(`@{{code}}`, code);
             const sns = new sms_js_1.SMS(this.app, this.token);
-            await sns.sendSNS({ data: data.content, phone: account }, () => { });
+            await sns.sendSNS({ data: data.content, phone: account }, () => {
+            });
             return {
                 result: true,
             };
@@ -402,8 +403,10 @@ class User {
             async function getUsData() {
                 return (await database_1.default.execute(`select *
                      from \`${app}\`.t_user
-                     where (userData ->>'$.email' = ?) or (userData ->>'$.lineID' = ?)
-                     ORDER BY CASE WHEN (userData ->>'$.lineID' = ?)  THEN 1
+                     where (userData ->>'$.email' = ?)
+                        or (userData ->>'$.lineID' = ?)
+                     ORDER BY CASE
+                                  WHEN (userData ->>'$.lineID' = ?) THEN 1
                                   ELSE 3
                                   END
                     `, [line_profile.email, userData.sub, userData.sub]));
@@ -953,30 +956,23 @@ class User {
         const whereClause = obj.where.filter((str) => str.length > 0).join(' AND ');
         const limitClause = obj.page !== undefined && obj.limit !== undefined ? `LIMIT ${obj.page * obj.limit}, ${obj.limit}` : '';
         const sql = `
-            SELECT
-                ${obj.select}
-            FROM (
-                SELECT
-                    email,
-                    COUNT(*) AS order_count,
-                    SUM(CAST(JSON_EXTRACT(orderData, '$.total') AS DECIMAL(10, 2))) AS total_amount
-                FROM \`${this.app}\`.t_checkout
-                WHERE (orderData->>'$.orderStatus' is null OR orderData->>'$.orderStatus' != '-1')
-                GROUP BY email
-            ) AS o
-            RIGHT JOIN \`${this.app}\`.t_user u ON o.email = u.account
-            LEFT JOIN (
-                SELECT
-                    email,
-                    JSON_EXTRACT(orderData, '$.total') AS last_order_total,
-                    created_time AS last_order_time,
-                    ROW_NUMBER() OVER(PARTITION BY email ORDER BY created_time DESC) as rn
-                FROM \`${this.app}\`.t_checkout
-                WHERE (orderData->>'$.orderStatus' is null OR orderData->>'$.orderStatus' != '-1')
-            ) AS lo ON o.email = lo.email AND lo.rn = 1
+            SELECT ${obj.select}
+            FROM (SELECT email,
+                         COUNT(*)                                                        AS order_count,
+                         SUM(CAST(JSON_EXTRACT(orderData, '$.total') AS DECIMAL(10, 2))) AS total_amount
+                  FROM \`${this.app}\`.t_checkout
+                  WHERE (orderData ->>'$.orderStatus' is null OR orderData->>'$.orderStatus' != '-1')
+                  GROUP BY email) AS o
+                     RIGHT JOIN \`${this.app}\`.t_user u ON o.email = u.account
+                     LEFT JOIN (SELECT email,
+                                       JSON_EXTRACT(orderData, '$.total') AS last_order_total,
+                                       created_time                       AS last_order_time,
+                                       ROW_NUMBER()                          OVER(PARTITION BY email ORDER BY created_time DESC) as rn
+                                FROM \`${this.app}\`.t_checkout
+                                WHERE (orderData ->>'$.orderStatus' is null OR orderData->>'$.orderStatus' != '-1')) AS lo
+                               ON o.email = lo.email AND lo.rn = 1
             WHERE (${whereClause})
-            ORDER BY ${orderByClause}
-            ${limitClause}
+            ORDER BY ${orderByClause} ${limitClause}
         `;
         return sql;
     }
@@ -1154,11 +1150,26 @@ class User {
             if (query.search) {
                 const searchValue = `%${query.search}%`;
                 const searchFields = [
-                    { key: 'name', condition: `UPPER(JSON_UNQUOTE(JSON_EXTRACT(u.userData, '$.name'))) LIKE UPPER('${searchValue}')` },
-                    { key: 'phone', condition: `UPPER(JSON_UNQUOTE(JSON_EXTRACT(u.userData, '$.phone'))) LIKE UPPER('${searchValue}')` },
-                    { key: 'email', condition: `JSON_UNQUOTE(JSON_EXTRACT(u.userData, '$.email')) LIKE '${searchValue}'` },
-                    { key: 'lineID', condition: `JSON_UNQUOTE(JSON_EXTRACT(u.userData, '$.lineID')) LIKE '${searchValue}'` },
-                    { key: 'fb-id', condition: `JSON_UNQUOTE(JSON_EXTRACT(u.userData, '$."fb-id"')) LIKE '${searchValue}'` },
+                    {
+                        key: 'name',
+                        condition: `UPPER(JSON_UNQUOTE(JSON_EXTRACT(u.userData, '$.name'))) LIKE UPPER('${searchValue}')`,
+                    },
+                    {
+                        key: 'phone',
+                        condition: `UPPER(JSON_UNQUOTE(JSON_EXTRACT(u.userData, '$.phone'))) LIKE UPPER('${searchValue}')`,
+                    },
+                    {
+                        key: 'email',
+                        condition: `JSON_UNQUOTE(JSON_EXTRACT(u.userData, '$.email')) LIKE '${searchValue}'`,
+                    },
+                    {
+                        key: 'lineID',
+                        condition: `JSON_UNQUOTE(JSON_EXTRACT(u.userData, '$.lineID')) LIKE '${searchValue}'`,
+                    },
+                    {
+                        key: 'fb-id',
+                        condition: `JSON_UNQUOTE(JSON_EXTRACT(u.userData, '$."fb-id"')) LIKE '${searchValue}'`,
+                    },
                 ];
                 const filteredConditions = searchFields.filter(({ key }) => !query.searchType || query.searchType === key).map(({ condition }) => condition);
                 if (filteredConditions.length > 0) {
@@ -1189,11 +1200,11 @@ class User {
             const levels = await this.getUserLevel(userData.map((user) => ({ userId: user.userID })));
             const levelMap = new Map(levels.map((lv) => { var _a; return [lv.id, (_a = lv.data.dead_line) !== null && _a !== void 0 ? _a : '']; }));
             const queryResult = await database_1.default.query(`
-                        SELECT * 
-                        FROM \`${this.app}\`.t_user_public_config
-                        WHERE \`key\` = 'member_update'
-                        AND user_id IN (${[...userMap.keys(), '-21211'].join(',')})
-                    `, []);
+                    SELECT *
+                    FROM \`${this.app}\`.t_user_public_config
+                    WHERE \`key\` = 'member_update'
+                      AND user_id IN (${[...userMap.keys(), '-21211'].join(',')})
+                `, []);
             for (const b of queryResult) {
                 const tagName = (_g = (_f = (_e = b === null || b === void 0 ? void 0 : b.value) === null || _e === void 0 ? void 0 : _e.value) === null || _f === void 0 ? void 0 : _f[0]) === null || _g === void 0 ? void 0 : _g.tag_name;
                 if (tagName) {
@@ -1537,8 +1548,8 @@ class User {
             if (par.userData.pwd) {
                 if ((await redis_js_1.default.getValue(`verify-${userData.userData.email}`)) === par.userData.verify_code) {
                     await database_1.default.query(`update \`${this.app}\`.\`t_user\`
-                                    set pwd=?
-                                    where userID = ${database_1.default.escape(userID)}`, [await tool_1.default.hashPwd(par.userData.pwd)]);
+                         set pwd=?
+                         where userID = ${database_1.default.escape(userID)}`, [await tool_1.default.hashPwd(par.userData.pwd)]);
                 }
                 else {
                     throw exception_1.default.BadRequestError('BAD_REQUEST', 'Verify code error.', {
@@ -1760,12 +1771,16 @@ class User {
             let emailExists = false;
             let phoneExists = false;
             if (email) {
-                const emailResult = await database_1.default.execute(`SELECT COUNT(1) AS count FROM \`${this.app}\`.t_user WHERE userData ->>'$.email' = ?
+                const emailResult = await database_1.default.execute(`SELECT COUNT(1) AS count
+                     FROM \`${this.app}\`.t_user
+                     WHERE userData ->>'$.email' = ?
                     `, [email]);
                 emailExists = ((_a = emailResult[0]) === null || _a === void 0 ? void 0 : _a.count) > 0;
             }
             if (phone) {
-                const phoneResult = await database_1.default.execute(`SELECT COUNT(1) AS count FROM \`${this.app}\`.t_user WHERE userData ->>'$.phone' = ?
+                const phoneResult = await database_1.default.execute(`SELECT COUNT(1) AS count
+                     FROM \`${this.app}\`.t_user
+                     WHERE userData ->>'$.phone' = ?
                     `, [phone]);
                 phoneExists = ((_b = phoneResult[0]) === null || _b === void 0 ? void 0 : _b.count) > 0;
             }
@@ -1968,7 +1983,7 @@ class User {
             if (value.chat_toggle === undefined) {
                 value.chat_toggle = (await this.getConfigV2({
                     key: 'message_setting',
-                    user_id: 'manager'
+                    user_id: 'manager',
                 })).toggle;
             }
         }
@@ -1990,6 +2005,9 @@ class User {
                     manager_phone: '',
                 },
             ];
+        }
+        else if (key === 'customer_form_user_setting') {
+            value.list = form_check_js_1.FormCheck.initialUserForm(value.list);
         }
     }
     async checkEmailExists(email) {
@@ -2052,7 +2070,8 @@ class User {
                 result: result[0]['count(1)'] === 1,
             };
         }
-        catch (e) { }
+        catch (e) {
+        }
     }
     async getNotice(cf) {
         var _a, _b, _c, _d;
@@ -2099,13 +2118,13 @@ class User {
                 headers: {},
             };
             const db_data = (await database_1.default.query(`select *
-                                             from ${config_1.saasConfig.SAAS_NAME}.t_ip_info
-                                             where ip = ?`, [ip]))[0];
+                     from ${config_1.saasConfig.SAAS_NAME}.t_ip_info
+                     where ip = ?`, [ip]))[0];
             let ip_data = db_data && db_data.data;
             if (!ip_data) {
                 ip_data = (await axios_1.default.request(config)).data;
                 await database_1.default.query(`insert into ${config_1.saasConfig.SAAS_NAME}.t_ip_info (ip, data)
-                                values (?, ?)`, [ip, JSON.stringify(ip_data)]);
+                     values (?, ?)`, [ip, JSON.stringify(ip_data)]);
             }
             return ip_data;
         }
