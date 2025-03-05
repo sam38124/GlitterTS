@@ -20,7 +20,8 @@ export class UmClass {
             pageName: glitter.getUrlParameter('page'),
         };
 
-        let changePage = (index: string, type: 'page' | 'home', subData: any) => {};
+        let changePage = (index: string, type: 'page' | 'home', subData: any) => {
+        };
         gvc.glitter.getModule(new URL('./official_event/page/change-page.js', gvc.glitter.root_path).href, (cl) => {
             changePage = cl.changePage;
         });
@@ -87,7 +88,10 @@ export class UmClass {
                                                     let get_verify_timer = 0;
                                                     let repeat_pwd = '';
                                                     return [
-                                                        html`<div class="tx_normal fw-normal mb-1">${Language.text('password')}</div>`,
+                                                        html`
+                                                            <div class="tx_normal fw-normal mb-1">
+                                                                ${Language.text('password')}
+                                                            </div>`,
                                                         html`<input
                                                             class="bgw-input"
                                                             type="password"
@@ -97,7 +101,10 @@ export class UmClass {
                                                             })}"
                                                             value="${update_vm.pwd}"
                                                         />`,
-                                                        html`<div class="tx_normal fw-normal mt-2 mb-1">${Language.text('confirm_password')}</div>`,
+                                                        html`
+                                                            <div class="tx_normal fw-normal mt-2 mb-1">
+                                                                ${Language.text('confirm_password')}
+                                                            </div>`,
                                                         html`<input
                                                             class="bgw-input mb-2"
                                                             type="password"
@@ -127,7 +134,7 @@ export class UmClass {
                                                                                     gvc.notifyDataChange(id);
                                                                                 });
                                                                             }
-                                                                        })
+                                                                        }),
                                                                     )}`;
                                                                 },
                                                                 divCreate: {
@@ -153,45 +160,48 @@ export class UmClass {
                                                             })}"
                                                             value="${update_vm.verify_code}"
                                                         />`,
-                                                        html`<div class="d-flex align-items-center justify-content-end pt-2 border-top mx-n3">
+                                                        html`
                                                             <div
-                                                                class="um-nav-btn um-nav-btn-active d-flex align-items-center justify-content-center"
-                                                                style="cursor:pointer;"
-                                                                type="button"
-                                                                onclick="${gvc.event(() => {
-                                                                    if (update_vm.pwd.length < 8) {
-                                                                        dialog.errorMessage({ text: Language.text('password_min_length') });
-                                                                        return;
-                                                                    }
-                                                                    if (repeat_pwd !== update_vm.pwd) {
-                                                                        dialog.errorMessage({ text: Language.text('please_confirm_password_again') });
-                                                                        return;
-                                                                    }
-                                                                    dialog.dataLoading({ visible: true });
-                                                                    ApiUser.updateUserData({
-                                                                        userData: update_vm,
-                                                                    }).then((res) => {
-                                                                        dialog.dataLoading({ visible: false });
-                                                                        if (!res.result && res.response.data.msg === 'email-verify-false') {
-                                                                            dialog.errorMessage({ text: Language.text('email_verification_code_incorrect') });
-                                                                        } else if (!res.result && res.response.data.msg === 'phone-verify-false') {
-                                                                            dialog.errorMessage({ text: Language.text('sms_verification_code_incorrect') });
-                                                                        } else if (!res.result && res.response.data.msg === 'phone-exists') {
-                                                                            dialog.errorMessage({ text: Language.text('phone_number_already_exists') });
-                                                                        } else if (!res.result && res.response.data.msg === 'email-exists') {
-                                                                            dialog.errorMessage({ text: Language.text('email_already_exists') });
-                                                                        } else if (!res.result) {
-                                                                            dialog.errorMessage({ text: Language.text('update_exception') });
-                                                                        } else {
-                                                                            dialog.successMessage({ text: Language.text('change_success') });
-                                                                            gvc.closeDialog();
+                                                                class="d-flex align-items-center justify-content-end pt-2 border-top mx-n3">
+                                                                <div
+                                                                    class="um-nav-btn um-nav-btn-active d-flex align-items-center justify-content-center"
+                                                                    style="cursor:pointer;"
+                                                                    type="button"
+                                                                    onclick="${gvc.event(() => {
+                                                                        if (update_vm.pwd.length < 8) {
+                                                                            dialog.errorMessage({ text: Language.text('password_min_length') });
+                                                                            return;
                                                                         }
-                                                                    });
-                                                                })}"
-                                                            >
-                                                                <span class="tx_700_white">${Language.text('confirm_reset')}</span>
-                                                            </div>
-                                                        </div>`,
+                                                                        if (repeat_pwd !== update_vm.pwd) {
+                                                                            dialog.errorMessage({ text: Language.text('please_confirm_password_again') });
+                                                                            return;
+                                                                        }
+                                                                        dialog.dataLoading({ visible: true });
+                                                                        ApiUser.updateUserData({
+                                                                            userData: update_vm,
+                                                                        }).then((res) => {
+                                                                            dialog.dataLoading({ visible: false });
+                                                                            if (!res.result && res.response.data.msg === 'email-verify-false') {
+                                                                                dialog.errorMessage({ text: Language.text('email_verification_code_incorrect') });
+                                                                            } else if (!res.result && res.response.data.msg === 'phone-verify-false') {
+                                                                                dialog.errorMessage({ text: Language.text('sms_verification_code_incorrect') });
+                                                                            } else if (!res.result && res.response.data.msg === 'phone-exists') {
+                                                                                dialog.errorMessage({ text: Language.text('phone_number_already_exists') });
+                                                                            } else if (!res.result && res.response.data.msg === 'email-exists') {
+                                                                                dialog.errorMessage({ text: Language.text('email_already_exists') });
+                                                                            } else if (!res.result) {
+                                                                                dialog.errorMessage({ text: Language.text('update_exception') });
+                                                                            } else {
+                                                                                dialog.successMessage({ text: Language.text('change_success') });
+                                                                                gvc.closeDialog();
+                                                                            }
+                                                                        });
+                                                                    })}"
+                                                                >
+                                                                    <span
+                                                                        class="tx_700_white">${Language.text('confirm_reset')}</span>
+                                                                </div>
+                                                            </div>`,
                                                     ].join('');
                                                 },
                                             });
@@ -209,18 +219,26 @@ export class UmClass {
                         })
                         .join('');
 
-                    return html` <div class="account-section">
-                        <div class="section-title mb-4 mt-0 pt-lg-3 um-nav-title px-2">${Language.text('my_profile')}</div>
-                        ${document.body.clientWidth > 768
-                            ? html` <div class="mx-auto mt-3 um-nav-container">
-                                  <div class="account-options d-flex gap-3">${buttonHTML}</div>
-                              </div>`
-                            : html` <div class="account-navigation w-100">
-                                  <nav class="nav-links mb-3 mb-md-0">
-                                      <div class="nav-options d-flex flex-wrap  um-nav-mobile-tags-container px-0">${buttonHTML}</div>
-                                  </nav>
-                              </div>`}
-                    </div>`;
+                    return html`
+                        <div class="account-section">
+                            <div class="section-title mb-4 mt-0 pt-lg-3 um-nav-title px-2">
+                                ${Language.text('my_profile')}
+                            </div>
+                            ${document.body.clientWidth > 768
+                                ? html`
+                                    <div class="mx-auto mt-3 um-nav-container">
+                                        <div class="account-options d-flex gap-3">${buttonHTML}</div>
+                                    </div>`
+                                : html`
+                                    <div class="account-navigation w-100">
+                                        <nav class="nav-links mb-3 mb-md-0">
+                                            <div
+                                                class="nav-options d-flex flex-wrap  um-nav-mobile-tags-container px-0">
+                                                ${buttonHTML}
+                                            </div>
+                                        </nav>
+                                    </div>`}
+                        </div>`;
                 }
             },
             divCreate: {},
@@ -266,41 +284,49 @@ export class UmClass {
             visible: obj?.text?.visible === false ? false : true,
             fontSize: obj?.text?.fontSize ?? 16,
         };
-        return html` <div class="d-flex align-items-center justify-content-center flex-column w-100 mx-auto ${container.class}" style="${container.style}">
-            <div
-                class="spinner-border ${circleAttr.visible ? '' : 'd-none'}"
-                style="font-size: ${circleAttr.borderSize}px; width: ${circleAttr.width}px; height: ${circleAttr.width}px;"
-                role="status"
-            ></div>
-            <span class="mt-3 ${textAttr.visible ? '' : 'd-none'}" style="font-size: ${textAttr.fontSize}px;">${textAttr.value}</span>
-        </div>`;
+        return html`
+            <div class="d-flex align-items-center justify-content-center flex-column w-100 mx-auto ${container.class}"
+                 style="${container.style}">
+                <div
+                    class="spinner-border ${circleAttr.visible ? '' : 'd-none'}"
+                    style="font-size: ${circleAttr.borderSize}px; width: ${circleAttr.width}px; height: ${circleAttr.width}px;"
+                    role="status"
+                ></div>
+                <span class="mt-3 ${textAttr.visible ? '' : 'd-none'}"
+                      style="font-size: ${textAttr.fontSize}px;">${textAttr.value}</span>
+            </div>`;
     }
 
     static dialog(obj: { gvc: GVC; tag: string; title?: string; innerHTML: (gvc: GVC) => string; width?: number }) {
         return obj.gvc.glitter.innerDialog((gvc: GVC) => {
-            return html` <div
-                class="bg-white shadow rounded-3"
-                style="overflow-y: auto; ${document.body.clientWidth > 768 ? `width: ${obj.width || 600}px;` : `width:  ${obj.width ? `${obj.width}px` : `90vw`}; max-width: 92.5vw;`}"
-            >
-                <div class="bg-white shadow rounded-3" style="width: 100%; overflow-y: auto; position: relative;">
-                    <div class="w-100 d-flex align-items-center p-3 border-bottom" style="position: sticky; top: 0; background: #fff;">
-                        <div style="font-size: 16px; font-weight: 700; color: #292218;">${obj.title ?? ''}</div>
-                        <div class="flex-fill"></div>
-                        <i
-                            class="fa-regular fa-circle-xmark fs-5 text-dark"
-                            style="cursor: pointer"
-                            onclick="${gvc.event(() => {
-                                gvc.closeDialog();
-                            })}"
-                        ></i>
-                    </div>
-                    <div class="c_dialog">
-                        <div class="c_dialog_body">
-                            <div class="c_dialog_main" style="gap: 24px; height: auto; max-height: 500px; padding: 12px 20px;">${obj.innerHTML(gvc)}</div>
+            return html`
+                <div
+                    class="bg-white shadow rounded-3"
+                    style="overflow-y: auto; ${document.body.clientWidth > 768 ? `width: ${obj.width || 600}px;` : `width:  ${obj.width ? `${obj.width}px` : `90vw`}; max-width: 92.5vw;`}"
+                >
+                    <div class="bg-white shadow rounded-3" style="width: 100%; overflow-y: auto; position: relative;">
+                        <div class="w-100 d-flex align-items-center p-3 border-bottom"
+                             style="position: sticky; top: 0; background: #fff;">
+                            <div style="font-size: 16px; font-weight: 700; color: #292218;">${obj.title ?? ''}</div>
+                            <div class="flex-fill"></div>
+                            <i
+                                class="fa-regular fa-circle-xmark fs-5 text-dark"
+                                style="cursor: pointer"
+                                onclick="${gvc.event(() => {
+                                    gvc.closeDialog();
+                                })}"
+                            ></i>
+                        </div>
+                        <div class="c_dialog">
+                            <div class="c_dialog_body">
+                                <div class="c_dialog_main"
+                                     style="gap: 24px; height: auto; max-height: 500px; padding: 12px 20px;">
+                                    ${obj.innerHTML(gvc)}
+                                </div>
+                            </div>
                         </div>
                     </div>
-                </div>
-            </div>`;
+                </div>`;
         }, obj.tag);
     }
 
@@ -349,7 +375,7 @@ export class UmClass {
                         resolve(false);
                         (gvc.glitter.ut.queue as any)['api-get-user_data'] = undefined;
                     }
-                }
+                },
             );
         }).then((data) => {
             return data;
@@ -712,7 +738,14 @@ export class UmClass {
         `);
     }
 
-    static jumpAlert(obj: { gvc: GVC; text: string; justify: 'top' | 'bottom'; align: 'left' | 'center' | 'right'; timeout?: number; width?: number }) {
+    static jumpAlert(obj: {
+        gvc: GVC;
+        text: string;
+        justify: 'top' | 'bottom';
+        align: 'left' | 'center' | 'right';
+        timeout?: number;
+        width?: number
+    }) {
         const className = 'um-class';
         const fixedStyle = (() => {
             let style = '';
@@ -759,7 +792,8 @@ export class UmClass {
             }
         `);
 
-        const htmlString = html` <div class="bounce-effect-${className}">${obj.text}</div>`;
+        const htmlString = html`
+            <div class="bounce-effect-${className}">${obj.text}</div>`;
         obj.gvc.glitter.document.body.insertAdjacentHTML('beforeend', htmlString);
         setTimeout(() => {
             const element = document.querySelector(`.bounce-effect-${className}`) as HTMLElement;
@@ -769,7 +803,14 @@ export class UmClass {
         }, obj.timeout ?? 2000);
     }
 
-    static validImageBox(obj: { gvc: GVC; image: string; width: number; height?: number; class?: string; style?: string }) {
+    static validImageBox(obj: {
+        gvc: GVC;
+        image: string;
+        width: number;
+        height?: number;
+        class?: string;
+        style?: string
+    }) {
         const imageVM = {
             id: obj.gvc.glitter.getUUID(),
             loading: true,

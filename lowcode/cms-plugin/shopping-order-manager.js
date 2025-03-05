@@ -22,11 +22,11 @@ import { BgRecommend } from '../backend-manager/bg-recommend.js';
 import { ApiRecommend } from '../glitter-base/route/recommend.js';
 import { DeliveryHTML } from './module/delivery-html.js';
 import { ApiPageConfig } from '../api/pageConfig.js';
-import { Language } from "../glitter-base/global/language.js";
-import { OrderSetting } from "./module/order-setting.js";
-import { CountryTw } from "../modules/country-language/country-tw.js";
-import { PaymentPage } from "./pos-pages/payment-page.js";
-import { ShipmentConfig } from "../glitter-base/global/shipment-config.js";
+import { Language } from '../glitter-base/global/language.js';
+import { OrderSetting } from './module/order-setting.js';
+import { CountryTw } from '../modules/country-language/country-tw.js';
+import { PaymentPage } from './pos-pages/payment-page.js';
+import { ShipmentConfig } from '../glitter-base/global/shipment-config.js';
 const html = String.raw;
 export class ShoppingOrderManager {
     static main(gvc, query) {
@@ -47,7 +47,7 @@ export class ShoppingOrderManager {
             filter: {},
             filterId: glitter.getUUID(),
             filter_type: query.isPOS ? 'pos' : 'normal',
-            return_order: false
+            return_order: false,
         };
         const ListComp = new BgListComponent(gvc, vm, FilterOptions.orderFilterFrame);
         let tempOrder = '';
@@ -124,7 +124,7 @@ export class ShoppingOrderManager {
         if (window.parent.glitter.getUrlParameter('orderID')) {
             vm.type = 'replace';
             vm.data = {
-                cart_token: window.parent.glitter.getUrlParameter('orderID')
+                cart_token: window.parent.glitter.getUrlParameter('orderID'),
             };
         }
         return gvc.bindView({
@@ -135,7 +135,7 @@ export class ShoppingOrderManager {
                     if (vm.return_order) {
                         vm.return_order = false;
                         vm.data = {
-                            cart_token: window.parent.glitter.getUrlParameter('orderID')
+                            cart_token: window.parent.glitter.getUrlParameter('orderID'),
                         };
                         setTimeout(() => {
                             vm.type = 'replace';
@@ -155,10 +155,10 @@ export class ShoppingOrderManager {
                                 <div class="flex-fill"></div>
                                 <div style="display: flex; gap: 14px;">
                                     <input
-                                            class="d-none"
-                                            type="file"
-                                            id="upload-excel"
-                                            onchange="${gvc.event((e, event) => {
+                                        class="d-none"
+                                        type="file"
+                                        id="upload-excel"
+                                        onchange="${gvc.event((e, event) => {
                         importDataTo(event);
                     })}"
                                     />
@@ -359,24 +359,25 @@ export class ShoppingOrderManager {
                                     const filterTags = ListComp.getFilterTags(yield FilterOptions.getOrderFunnel());
                                     if (document.body.clientWidth < 768) {
                                         return html `
-                                                            <div style="display: flex; align-items: center; gap: 10px; width: 100%; justify-content: space-between">
-                                                                <div>${filterList[0]}</div>
-                                                                <div style="display: flex;">
-                                                                    ${filterList[2] ? `<div class="me-2">${filterList[2]}</div>` : ''}
-                                                                    ${(_a = filterList[3]) !== null && _a !== void 0 ? _a : ''}
-                                                                </div>
+                                                        <div
+                                                            style="display: flex; align-items: center; gap: 10px; width: 100%; justify-content: space-between">
+                                                            <div>${filterList[0]}</div>
+                                                            <div style="display: flex;">
+                                                                ${filterList[2] ? `<div class="me-2">${filterList[2]}</div>` : ''}
+                                                                ${(_a = filterList[3]) !== null && _a !== void 0 ? _a : ''}
                                                             </div>
-                                                            <div style="display: flex; margin-top: 8px;">
-                                                                ${filterList[1]}
-                                                            </div>
-                                                            <div>${filterTags}</div>`;
+                                                        </div>
+                                                        <div style="display: flex; margin-top: 8px;">
+                                                            ${filterList[1]}
+                                                        </div>
+                                                        <div>${filterTags}</div>`;
                                     }
                                     else {
                                         return html `
-                                                            <div style="display: flex; align-items: center; gap: 10px;">
-                                                                ${filterList.join('')}
-                                                            </div>
-                                                            <div>${filterTags}</div>`;
+                                                        <div style="display: flex; align-items: center; gap: 10px;">
+                                                            ${filterList.join('')}
+                                                        </div>
+                                                        <div>${filterTags}</div>`;
                                     }
                                 }),
                             });
@@ -406,8 +407,8 @@ export class ShoppingOrderManager {
                                                 {
                                                     key: '訂單編號',
                                                     value: html `
-                                                                        <div class="d-flex align-items-center gap-2">
-                                                                            ${dd.cart_token}${(() => {
+                                                                    <div class="d-flex align-items-center gap-2">
+                                                                        ${dd.cart_token}${(() => {
                                                         switch (dd.orderData.orderSource) {
                                                             case 'manual':
                                                                 return BgWidget.primaryInsignia('手動');
@@ -415,7 +416,7 @@ export class ShoppingOrderManager {
                                                                 return '';
                                                         }
                                                     })()}
-                                                                        </div>`,
+                                                                    </div>`,
                                                 },
                                                 {
                                                     key: '訂單日期',
@@ -488,7 +489,7 @@ export class ShoppingOrderManager {
                                                 },
                                             ].map((dd) => {
                                                 dd.value = html `
-                                                                    <div style="line-height:40px;">${dd.value}</div>`;
+                                                                <div style="line-height:40px;">${dd.value}</div>`;
                                                 return dd;
                                             });
                                         });
@@ -526,8 +527,8 @@ export class ShoppingOrderManager {
                                         if (strArray.includes(undefined)) {
                                             dialog.errorMessage({
                                                 text: html `
-                                                                    <div class="text-center">已勾選訂單中不可含有<br/>非超商店到店的配送方式
-                                                                    </div>`,
+                                                                <div class="text-center">已勾選訂單中不可含有<br />非超商店到店的配送方式
+                                                                </div>`,
                                             });
                                             return;
                                         }
@@ -637,7 +638,7 @@ export class ShoppingOrderManager {
         return ShipmentConfig.list.map((dd) => {
             return {
                 name: dd.title,
-                value: dd.value
+                value: dd.value,
             };
         });
     }
@@ -710,7 +711,7 @@ export class ShoppingOrderManager {
                             orderData.orderData.shipment_selector.push({
                                 name: '立即取貨',
                                 value: 'now',
-                                form: undefined
+                                form: undefined,
                             });
                         }
                         let userDataLoading = true;
@@ -753,10 +754,10 @@ export class ShoppingOrderManager {
                         ApiShop.getProduct({
                             limit: 99,
                             page: 0,
-                            productType: "all",
+                            productType: 'all',
                             id_list: orderData.orderData.lineItems.map((dd) => {
                                 return dd.id;
-                            })
+                            }),
                         }).then(r => {
                             productLoading = false;
                             productData = r.response.data;
@@ -822,7 +823,7 @@ export class ShoppingOrderManager {
                                     if (orderData.orderData.method && origData.status == 0 && orderData.status == 1) {
                                         dialog.successMessage({
                                             text: html `
-                                                <div class="text-center">訂單付款完成！<br/>若需要可透過下方按鈕手動建立發票
+                                                <div class="text-center">訂單付款完成！<br />若需要可透過下方按鈕手動建立發票
                                                 </div>`,
                                         });
                                     }
@@ -857,7 +858,7 @@ export class ShoppingOrderManager {
                                             });
                                             resolve(false);
                                         }
-                                    }
+                                    },
                                 });
                             });
                         }
@@ -911,10 +912,11 @@ export class ShoppingOrderManager {
                                             ${BgWidget.container1x2({
                                         html: [
                                             BgWidget.mainCard(html `
-                                                                        <div style="display: flex;flex-direction: column;align-items: flex-start;gap: 12px;align-self: stretch;">
-                                                                            <div class="tx_700">訂單狀態</div>
-                                                                            <div class="ms-auto w-100">
-                                                                                ${EditorElem.select({
+                                                                <div
+                                                                    style="display: flex;flex-direction: column;align-items: flex-start;gap: 12px;align-self: stretch;">
+                                                                    <div class="tx_700">訂單狀態</div>
+                                                                    <div class="ms-auto w-100">
+                                                                        ${EditorElem.select({
                                                 title: ``,
                                                 gvc: gvc,
                                                 def: (_a = orderData.orderData.orderStatus) !== null && _a !== void 0 ? _a : '0',
@@ -931,27 +933,29 @@ export class ShoppingOrderManager {
                                                     }
                                                 },
                                             })}
-                                                                            </div>
-                                                                        </div>
-                                                                        <div class="tx_700 my-3">訂單明細</div>
-                                                                        ${BgWidget.horizontalLine()}
-                                                                        <div class="d-flex flex-column">
-                                                                            ${orderData.orderData.lineItems
+                                                                    </div>
+                                                                </div>
+                                                                <div class="tx_700 my-3">訂單明細</div>
+                                                                ${BgWidget.horizontalLine()}
+                                                                <div class="d-flex flex-column">
+                                                                    ${orderData.orderData.lineItems
                                                 .map((dd) => {
                                                 return gvc.bindView({
                                                     bind: glitter.getUUID(),
                                                     view: () => {
                                                         function showTag(color, text) {
                                                             return html `
-                                                                                                        <div style="background:${color};display: flex;height: 22px;padding: 4px 6px;justify-content: center;align-items: center;gap: 10px;border-radius: 7px;font-size: 14px;font-style: normal;font-weight: 400;white-space: nowrap;">
-                                                                                                            ${text}
-                                                                                                        </div>
-                                                                                                    `;
+                                                                                            <div
+                                                                                                style="background:${color};display: flex;height: 22px;padding: 4px 6px;justify-content: center;align-items: center;gap: 10px;border-radius: 7px;font-size: 14px;font-style: normal;font-weight: 400;white-space: nowrap;">
+                                                                                                ${text}
+                                                                                            </div>
+                                                                                        `;
                                                         }
                                                         return html `
-                                                                                                    <div class="d-flex flex-column align-items-center justify-content-center"
-                                                                                                         style="gap:5px;margin-right:12px;">
-                                                                                                        ${BgWidget.validImageBox({
+                                                                                        <div
+                                                                                            class="d-flex flex-column align-items-center justify-content-center"
+                                                                                            style="gap:5px;margin-right:12px;">
+                                                                                            ${BgWidget.validImageBox({
                                                             gvc,
                                                             image: dd.preview_image,
                                                             width: 60,
@@ -960,59 +964,65 @@ export class ShoppingOrderManager {
                                                         })}
 
 
-                                                                                                    </div>
-                                                                                                    <div class="d-flex flex-column">
-                                                                                                        ${dd.is_hidden ? `<div style="width:auto;">${BgWidget.secondaryInsignia('隱形商品')}</div>` : ``}
-                                                                                                        <div class="tx_700 d-flex align-items-center"
-                                                                                                             style="gap:4px;">
-                                                                                                            <div>
-                                                                                                                ${dd.title}
-                                                                                                            </div>
-                                                                                                            ${dd.is_gift ? `<div class="">${showTag("#FFE9B2", "贈品")}</div>` : ``}
-                                                                                                            ${dd.is_add_on_items ? `<div class="">${showTag("#D8E7EC", "加購品")}</div>` : ``}
-                                                                                                            ${dd.pre_order ? `<div class="">${showTag("#D8E7EC", "預購")}</div>` : ``}
-                                                                                                        </div>
-                                                                                                        ${dd.spec.length > 0 ? BgWidget.grayNote(dd.spec.join(', ')) : ''}
-                                                                                                        ${BgWidget.grayNote(`存貨單位 (SKU)：${dd.sku && dd.sku.length > 0 ? dd.sku : '無'}`)}
-                                                                                                    </div>
-                                                                                                    <div class="flex-fill"></div>
-                                                                                                    <div class="tx_normal_16 d-none d-lg-flex justify-content-end"
-                                                                                                         style="min-width: 80px;">
-                                                                                                        ${dd.origin_price && dd.origin_price > dd.sale_price ? html `
-                                                                                                                    <div style="margin-right: 8px; text-decoration: line-through;">
-                                                                                                                            $${dd.origin_price.toLocaleString()}
-                                                                                                                    </div>` : ''}
-                                                                                                        <div>
-                                                                                                                $${dd.sale_price.toLocaleString()}
-                                                                                                            ×
-                                                                                                            ${dd.count}
-                                                                                                        </div>
-                                                                                                    </div>
-                                                                                                    <div class="tx_normal d-sm-none d-flex flex-column"
-                                                                                                         style="display: flex;justify-content: end;${document.body.clientWidth > 800 ? `width: 110px` : `width: 140px;`}">
-                                                                                                        ${dd.origin_price && dd.origin_price > dd.sale_price ? html `
-                                                                                                                    <div style="margin-right: 6px; text-decoration: line-through;">
-                                                                                                                            $${dd.origin_price.toLocaleString()}
-                                                                                                                    </div>` : ''}
-                                                                                                        <div>
-                                                                                                                $${dd.sale_price.toLocaleString()}
-                                                                                                            ×
-                                                                                                            ${dd.count}
-                                                                                                        </div>
-                                                                                                    </div>
+                                                                                        </div>
+                                                                                        <div class="d-flex flex-column">
+                                                                                            ${dd.is_hidden ? `<div style="width:auto;">${BgWidget.secondaryInsignia('隱形商品')}</div>` : ``}
+                                                                                            <div
+                                                                                                class="tx_700 d-flex align-items-center"
+                                                                                                style="gap:4px;">
+                                                                                                <div>
+                                                                                                    ${dd.title}
+                                                                                                </div>
+                                                                                                ${dd.is_gift ? `<div class="">${showTag('#FFE9B2', '贈品')}</div>` : ``}
+                                                                                                ${dd.is_add_on_items ? `<div class="">${showTag('#D8E7EC', '加購品')}</div>` : ``}
+                                                                                                ${dd.pre_order ? `<div class="">${showTag('#D8E7EC', '預購')}</div>` : ``}
+                                                                                            </div>
+                                                                                            ${dd.spec.length > 0 ? BgWidget.grayNote(dd.spec.join(', ')) : ''}
+                                                                                            ${BgWidget.grayNote(`存貨單位 (SKU)：${dd.sku && dd.sku.length > 0 ? dd.sku : '無'}`)}
+                                                                                        </div>
+                                                                                        <div class="flex-fill"></div>
+                                                                                        <div
+                                                                                            class="tx_normal_16 d-none d-lg-flex justify-content-end"
+                                                                                            style="min-width: 80px;">
+                                                                                            ${dd.origin_price && dd.origin_price > dd.sale_price ? html `
+                                                                                                    <div
+                                                                                                        style="margin-right: 8px; text-decoration: line-through;">
+                                                                                                            $${dd.origin_price.toLocaleString()}
+                                                                                                    </div>` : ''}
+                                                                                            <div>
+                                                                                                    $${dd.sale_price.toLocaleString()}
+                                                                                                ×
+                                                                                                ${dd.count}
+                                                                                            </div>
+                                                                                        </div>
+                                                                                        <div
+                                                                                            class="tx_normal d-sm-none d-flex flex-column"
+                                                                                            style="display: flex;justify-content: end;${document.body.clientWidth > 800 ? `width: 110px` : `width: 140px;`}">
+                                                                                            ${dd.origin_price && dd.origin_price > dd.sale_price ? html `
+                                                                                                    <div
+                                                                                                        style="margin-right: 6px; text-decoration: line-through;">
+                                                                                                            $${dd.origin_price.toLocaleString()}
+                                                                                                    </div>` : ''}
+                                                                                            <div>
+                                                                                                    $${dd.sale_price.toLocaleString()}
+                                                                                                ×
+                                                                                                ${dd.count}
+                                                                                            </div>
+                                                                                        </div>
 
-                                                                                                    <div class="tx_normal d-none d-sm-flex"
-                                                                                                         style="display: flex;justify-content: end;${document.body.clientWidth > 800 ? `width: 110px` : ``}">
-                                                                                                            $${(dd.sale_price * dd.count).toLocaleString()}
-                                                                                                    </div>`;
+                                                                                        <div
+                                                                                            class="tx_normal d-none d-sm-flex"
+                                                                                            style="display: flex;justify-content: end;${document.body.clientWidth > 800 ? `width: 110px` : ``}">
+                                                                                                $${(dd.sale_price * dd.count).toLocaleString()}
+                                                                                        </div>`;
                                                     },
                                                     divCreate: { class: `d-flex align-items-center gap-1` },
                                                 });
                                             })
                                                 .join(html `
-                                                                                        <div style="margin-top: 12px;"></div>`)}
-                                                                            ${BgWidget.horizontalLine()}
-                                                                            ${[
+                                                                            <div style="margin-top: 12px;"></div>`)}
+                                                                    ${BgWidget.horizontalLine()}
+                                                                    ${[
                                                 {
                                                     title: '小計',
                                                     description: `${orderData.orderData.lineItems
@@ -1061,9 +1071,10 @@ export class ShoppingOrderManager {
                                                 ...orderData.orderData.voucherList.map((dd) => {
                                                     var _a;
                                                     const descHTML = html `
-                                                                                        <div style="color: #8D8D8D; font-size: 14px; white-space: nowrap; text-overflow: ellipsis;">
-                                                                                            ${dd.title}
-                                                                                        </div>`;
+                                                                                <div
+                                                                                    style="color: #8D8D8D; font-size: 14px; white-space: nowrap; text-overflow: ellipsis;">
+                                                                                    ${dd.title}
+                                                                                </div>`;
                                                     const localString = dd.discount_total.toLocaleString();
                                                     const rebackMaps = {
                                                         add_on_items: {
@@ -1091,54 +1102,57 @@ export class ShoppingOrderManager {
                                                 }),
                                                 {
                                                     title: html `<span
-                                                                                            class="tx_700">總金額</span>`,
+                                                                                class="tx_700">總金額</span>`,
                                                     description: '',
                                                     total: html `<span
-                                                                                            class="tx_700">$${orderData.orderData.total.toLocaleString()}</span>`,
+                                                                                class="tx_700">$${orderData.orderData.total.toLocaleString()}</span>`,
                                                 },
                                             ]
                                                 .map((dd) => {
                                                 var _a;
                                                 return html `
-                                                                                            <div class="d-flex align-items-center justify-content-end">
-                                                                                                <div class="tx_normal_16 "
-                                                                                                     style="text-align: end;">
-                                                                                                    ${dd.title}
-                                                                                                    ${(_a = dd.description) !== null && _a !== void 0 ? _a : ''}
-                                                                                                </div>
-                                                                                                <div class="tx_normal"
-                                                                                                     style="width: 114px;display: flex;justify-content: end;">
-                                                                                                    ${dd.total}
-                                                                                                </div>
-                                                                                            </div>`;
+                                                                                <div
+                                                                                    class="d-flex align-items-center justify-content-end">
+                                                                                    <div class="tx_normal_16 "
+                                                                                         style="text-align: end;">
+                                                                                        ${dd.title}
+                                                                                        ${(_a = dd.description) !== null && _a !== void 0 ? _a : ''}
+                                                                                    </div>
+                                                                                    <div class="tx_normal"
+                                                                                         style="width: 114px;display: flex;justify-content: end;">
+                                                                                        ${dd.total}
+                                                                                    </div>
+                                                                                </div>`;
                                             })
                                                 .join(BgWidget.mbContainer(18))}
-                                                                        </div>
-                                                                    `),
+                                                                </div>
+                                                            `),
                                             orderData.orderData.lineItems.find((dd) => {
                                                 return dd.deduction_log;
                                             }) ?
                                                 BgWidget.mainCard(html `
-                                                                        <div style="display: flex;flex-direction: column;align-items: flex-start;gap: 12px;align-self: stretch;">
-                                                                            <div class="w-100 d-flex tx_700 align-items-center justify-content-between">
-                                                                                <div class="">分倉出貨</div>
-                                                                                <div class=""
-                                                                                     style="display: flex;padding: 6px 18px;justify-content: center;align-items: center;gap: 8px;border-radius: 10px;border: 1px solid #DDD;background: #FFF;cursor: pointer;"
-                                                                                     onclick="${gvc.event(() => {
+                                                                <div
+                                                                    style="display: flex;flex-direction: column;align-items: flex-start;gap: 12px;align-self: stretch;">
+                                                                    <div
+                                                                        class="w-100 d-flex tx_700 align-items-center justify-content-between">
+                                                                        <div class="">分倉出貨</div>
+                                                                        <div class=""
+                                                                             style="display: flex;padding: 6px 18px;justify-content: center;align-items: center;gap: 8px;border-radius: 10px;border: 1px solid #DDD;background: #FFF;cursor: pointer;"
+                                                                             onclick="${gvc.event(() => {
                                                     OrderSetting.showEditShip({
                                                         gvc: gvc,
                                                         postMD: orderData.orderData.lineItems,
                                                         productData: productData,
                                                         callback: () => {
                                                             gvc.notifyDataChange('storehouseList');
-                                                        }
+                                                        },
                                                     });
                                                 })}">
-                                                                                    編輯
-                                                                                </div>
-                                                                            </div>
-                                                                            ${gvc.bindView({
-                                                    bind: "storehouseList",
+                                                                            編輯
+                                                                        </div>
+                                                                    </div>
+                                                                    ${gvc.bindView({
+                                                    bind: 'storehouseList',
                                                     view: () => {
                                                         try {
                                                             if (storeLoading) {
@@ -1163,18 +1177,19 @@ export class ShoppingOrderManager {
                                                                         try {
                                                                             if (item.deduction_log[store.id]) {
                                                                                 returnHtml += html `
-                                                                                                                <div class="d-flex justify-content-between"
-                                                                                                                     style="font-size: 16px;font-weight: 400;">
-                                                                                                                    <div>
-                                                                                                                        ${item.title}
-                                                                                                                        -
-                                                                                                                        ${item.spec.join(',')}
-                                                                                                                    </div>
-                                                                                                                    <div>
-                                                                                                                        ${item.deduction_log[store.id]}
-                                                                                                                    </div>
-                                                                                                                </div>
-                                                                                                            `;
+                                                                                                        <div
+                                                                                                            class="d-flex justify-content-between"
+                                                                                                            style="font-size: 16px;font-weight: 400;">
+                                                                                                            <div>
+                                                                                                                ${item.title}
+                                                                                                                -
+                                                                                                                ${item.spec.join(',')}
+                                                                                                            </div>
+                                                                                                            <div>
+                                                                                                                ${item.deduction_log[store.id]}
+                                                                                                            </div>
+                                                                                                        </div>
+                                                                                                    `;
                                                                             }
                                                                         }
                                                                         catch (e) {
@@ -1183,22 +1198,26 @@ export class ShoppingOrderManager {
                                                                     });
                                                                     if (returnHtml) {
                                                                         return html `
-                                                                                                        <div class="d-flex flex-column w-100"
-                                                                                                             style="gap:8px;padding: 18px;border-radius: 10px;border: 1px solid #DDD;">
-                                                                                                            <div class="d-flex w-100 align-items-center"
-                                                                                                                 style="gap:8px;">
-                                                                                                                出貨地點
-                                                                                                                <div style="font-size: 14px;color:#333;border-radius: 7px;background: rgba(221, 221, 221, 0.87);padding: 4px 6px;">
-                                                                                                                    ${store.name}
-                                                                                                                </div>
-                                                                                                            </div>
-                                                                                                            <div class="w-100"
-                                                                                                                 style="background-color: #DDD;height: 1px;"></div>
-                                                                                                            <div class="d-flex flex-column">
-                                                                                                                ${returnHtml}
-                                                                                                            </div>
+                                                                                                <div
+                                                                                                    class="d-flex flex-column w-100"
+                                                                                                    style="gap:8px;padding: 18px;border-radius: 10px;border: 1px solid #DDD;">
+                                                                                                    <div
+                                                                                                        class="d-flex w-100 align-items-center"
+                                                                                                        style="gap:8px;">
+                                                                                                        出貨地點
+                                                                                                        <div
+                                                                                                            style="font-size: 14px;color:#333;border-radius: 7px;background: rgba(221, 221, 221, 0.87);padding: 4px 6px;">
+                                                                                                            ${store.name}
                                                                                                         </div>
-                                                                                                    `;
+                                                                                                    </div>
+                                                                                                    <div class="w-100"
+                                                                                                         style="background-color: #DDD;height: 1px;"></div>
+                                                                                                    <div
+                                                                                                        class="d-flex flex-column">
+                                                                                                        ${returnHtml}
+                                                                                                    </div>
+                                                                                                </div>
+                                                                                            `;
                                                                     }
                                                                     else {
                                                                         return ``;
@@ -1213,17 +1232,18 @@ export class ShoppingOrderManager {
                                                     },
                                                     divCreate: {
                                                         class: `w-100 d-flex flex-column`,
-                                                        style: `gap:18px;`
-                                                    }
+                                                        style: `gap:18px;`,
+                                                    },
                                                 })}
-                                                                        </div>
-                                                                    `) : ``,
+                                                                </div>
+                                                            `) : ``,
                                             BgWidget.mainCard([
                                                 html `
-                                                                            <div style="display: flex;flex-direction: column;align-items: flex-start;gap: 12px;align-self: stretch;">
-                                                                                <div class="tx_700">付款狀態</div>
-                                                                                <div class="ms-auto w-100">
-                                                                                    ${EditorElem.select({
+                                                                    <div
+                                                                        style="display: flex;flex-direction: column;align-items: flex-start;gap: 12px;align-self: stretch;">
+                                                                        <div class="tx_700">付款狀態</div>
+                                                                        <div class="ms-auto w-100">
+                                                                            ${EditorElem.select({
                                                     title: ``,
                                                     gvc: gvc,
                                                     def: `${orderData.status}`,
@@ -1263,29 +1283,31 @@ export class ShoppingOrderManager {
                                                                 else {
                                                                     gvc.notifyDataChange(mainViewID);
                                                                 }
-                                                            }
+                                                            },
                                                         });
                                                     },
                                                 })}
-                                                                                </div>
-                                                                            </div>`,
+                                                                        </div>
+                                                                    </div>`,
                                                 html `
-                                                                            <div style="display: flex;flex-direction: column;align-items: flex-start;gap: 12px;align-self: stretch;">
-                                                                                <div class="tx_700">付款方式</div>
-                                                                                <div class="tx_normal">
-                                                                                    ${ShoppingOrderManager.getPaymentMethodText(orderData.orderData.method, orderData.orderData, gvc)}
-                                                                                </div>
-                                                                                ${ShoppingOrderManager.getProofPurchaseString(orderData.orderData, gvc)}
-                                                                            </div>`,
+                                                                    <div
+                                                                        style="display: flex;flex-direction: column;align-items: flex-start;gap: 12px;align-self: stretch;">
+                                                                        <div class="tx_700">付款方式</div>
+                                                                        <div class="tx_normal">
+                                                                            ${ShoppingOrderManager.getPaymentMethodText(orderData.orderData.method, orderData.orderData, gvc)}
+                                                                        </div>
+                                                                        ${ShoppingOrderManager.getProofPurchaseString(orderData.orderData, gvc)}
+                                                                    </div>`,
                                                 (() => {
                                                     var _a, _b;
                                                     if ((orderData.orderData.customer_info.payment_select === 'ecPay')) {
                                                         const cash_flow = orderData.orderData.cash_flow;
                                                         return html `
-                                                                                    <div style="display: flex;flex-direction: column;align-items: flex-start;gap: 12px;align-self: stretch;">
-                                                                                        <div class="tx_700">金流對帳
-                                                                                        </div>
-                                                                                        <div> ${(cash_flow.TradeStatus === '1' ? [
+                                                                            <div
+                                                                                style="display: flex;flex-direction: column;align-items: flex-start;gap: 12px;align-self: stretch;">
+                                                                                <div class="tx_700">金流對帳
+                                                                                </div>
+                                                                                <div> ${(cash_flow.TradeStatus === '1' ? [
                                                             `<div class="d-flex align-items-center">
 金流交易結果: ${(cash_flow.credit_receipt && cash_flow.credit_receipt.status) || '已付款'}  <button class="btn btn-gray rounded-2 ms-2 ${(cash_flow.PaymentType.toLowerCase().includes('credit') && (cash_flow.credit_receipt && cash_flow.credit_receipt.status === '已授權')) ? `` : `d-none`}" type="button" style="height:22px;" onclick="${gvc.event(() => {
                                                                 const doalog = new ShareDialog(gvc.glitter);
@@ -1297,14 +1319,14 @@ export class ShoppingOrderManager {
                                                                             ApiShop.ecPayBrushOrders({
                                                                                 tradNo: cash_flow.TradeNo,
                                                                                 orderID: orderData.cart_token,
-                                                                                total: cash_flow.TradeAmt
+                                                                                total: cash_flow.TradeAmt,
                                                                             }).then((res) => {
                                                                                 doalog.dataLoading({ visible: false });
                                                                                 orderData.status = -2;
                                                                                 saveEvent();
                                                                             });
                                                                         }
-                                                                    }
+                                                                    },
                                                                 });
                                                             })}">
                 <span class=" tx_700" style="font-size:13px;">退刷</span>
@@ -1313,80 +1335,82 @@ export class ShoppingOrderManager {
                                                             `金流交易方式: ${(_a = [
                                                                 {
                                                                     title: 'WebATM',
-                                                                    key: 'WebATM'
+                                                                    key: 'WebATM',
                                                                 },
                                                                 {
                                                                     title: 'ATM',
-                                                                    key: 'ATM'
+                                                                    key: 'ATM',
                                                                 },
                                                                 {
                                                                     title: '超商代碼',
-                                                                    key: 'CVS'
+                                                                    key: 'CVS',
                                                                 },
                                                                 {
                                                                     title: '超商條碼',
-                                                                    key: 'BARCODE'
+                                                                    key: 'BARCODE',
                                                                 },
                                                                 {
                                                                     title: '信用卡',
-                                                                    key: 'Credit'
+                                                                    key: 'Credit',
                                                                 },
                                                                 {
                                                                     title: '未知付款方式',
-                                                                    key: ''
-                                                                }
+                                                                    key: '',
+                                                                },
                                                             ].find((dd) => {
                                                                 return cash_flow.PaymentType.toLowerCase().includes(dd.key.toLowerCase());
                                                             })) === null || _a === void 0 ? void 0 : _a.title}`,
                                                             `交易手續費: ${cash_flow.HandlingCharge}`,
                                                             `交易總金額: ${cash_flow.TradeAmt}`,
-                                                            `交易時間: ${cash_flow.PaymentDate}`
+                                                            `交易時間: ${cash_flow.PaymentDate}`,
                                                         ] : [
-                                                            `金流交易結果: 未付款`
+                                                            `金流交易結果: 未付款`,
                                                         ]).join(`<div class="my-2"></div>`)}
-                                                                                        </div>
-                                                                                    </div>`;
+                                                                                </div>
+                                                                            </div>`;
                                                     }
                                                     else if (orderData.orderData.customer_info.payment_select === 'paynow') {
                                                         const cash_flow = orderData.orderData.cash_flow;
                                                         return html `
-                                                                                    <div style="display: flex;flex-direction: column;align-items: flex-start;gap: 12px;align-self: stretch;">
-                                                                                        <div class="tx_700">金流對帳
-                                                                                        </div>
-                                                                                        <div> ${(cash_flow.status === 'success' ? [
+                                                                            <div
+                                                                                style="display: flex;flex-direction: column;align-items: flex-start;gap: 12px;align-self: stretch;">
+                                                                                <div class="tx_700">金流對帳
+                                                                                </div>
+                                                                                <div> ${(cash_flow.status === 'success' ? [
                                                             html `
-                                                                                                        <div class="d-flex align-items-center">
-                                                                                                            金流交易結果: 已付款
-                                                                                                        </div>`,
+                                                                                            <div
+                                                                                                class="d-flex align-items-center">
+                                                                                                金流交易結果: 已付款
+                                                                                            </div>`,
                                                             html `金流交易方式: ${(_b = [
                                                                 {
                                                                     title: 'ATM',
-                                                                    key: 'ATM'
+                                                                    key: 'ATM',
                                                                 },
                                                                 {
                                                                     title: '信用卡',
-                                                                    key: 'CreditCard'
+                                                                    key: 'CreditCard',
                                                                 },
                                                                 {
                                                                     title: '超商代碼',
-                                                                    key: 'ConvenienceStore'
-                                                                }
+                                                                    key: 'ConvenienceStore',
+                                                                },
                                                             ].find((dd) => {
                                                                 return cash_flow.payment.paymentMethod === dd.key;
                                                             })) === null || _b === void 0 ? void 0 : _b.title}`,
                                                             `交易總金額: ${cash_flow.amount}`,
-                                                            `交易時間: ${gvc.glitter.ut.dateFormat(new Date(cash_flow.payment.paidAt), 'yyyy-MM-dd hh:mm:ss')}`
+                                                            `交易時間: ${gvc.glitter.ut.dateFormat(new Date(cash_flow.payment.paidAt), 'yyyy-MM-dd hh:mm:ss')}`,
                                                         ] : [
-                                                            `金流交易結果: 未付款`
+                                                            `金流交易結果: 未付款`,
                                                         ]).join(`<div class="my-2"></div>`)}
-                                                                                        </div>
-                                                                                    </div>
-                                                                                `;
+                                                                                </div>
+                                                                            </div>
+                                                                        `;
                                                     }
                                                     else {
                                                         return ``;
                                                     }
-                                                })()
+                                                })(),
                                             ].filter((dd) => {
                                                 return dd;
                                             }).join(BgWidget.mbContainer(18))),
@@ -1405,24 +1429,25 @@ export class ShoppingOrderManager {
                                                         }
                                                         return [
                                                             html `
-                                                                                        <div class="tx_700">配送 /
-                                                                                            收件人資訊
-                                                                                        </div>`,
+                                                                                <div class="tx_700">配送 /
+                                                                                    收件人資訊
+                                                                                </div>`,
                                                             html `
-                                                                                        <div class="tx_700 d-flex align-items-center flex-wrap"
-                                                                                             style="gap:10px;">配送狀態
-                                                                                            ${(orderData.orderData.user_info.shipment_refer === 'paynow') ? BgWidget.warningInsignia('已啟用物流追蹤將自動追蹤出貨狀態') : ``}
-                                                                                        </div>
-                                                                                        ${BgWidget.mbContainer(12)}
-                                                                                        <div class="ms-auto w-100">
-                                                                                            ${EditorElem.select({
+                                                                                <div
+                                                                                    class="tx_700 d-flex align-items-center flex-wrap"
+                                                                                    style="gap:10px;">配送狀態
+                                                                                    ${(orderData.orderData.user_info.shipment_refer === 'paynow') ? BgWidget.warningInsignia('已啟用物流追蹤將自動追蹤出貨狀態') : ``}
+                                                                                </div>
+                                                                                ${BgWidget.mbContainer(12)}
+                                                                                <div class="ms-auto w-100">
+                                                                                    ${EditorElem.select({
                                                                 title: ``,
                                                                 gvc: gvc,
                                                                 def: `${orderData.orderData.progress}`,
                                                                 array: [
                                                                     {
                                                                         title: '配送狀態',
-                                                                        value: ''
+                                                                        value: '',
                                                                     },
                                                                     {
                                                                         title: '已出貨',
@@ -1434,19 +1459,19 @@ export class ShoppingOrderManager {
                                                                     },
                                                                     {
                                                                         title: '未出貨',
-                                                                        value: 'wait'
+                                                                        value: 'wait',
                                                                     },
                                                                     {
                                                                         title: '已取貨',
-                                                                        value: 'finish'
+                                                                        value: 'finish',
                                                                     },
                                                                     {
                                                                         title: '已退貨',
-                                                                        value: 'returns'
+                                                                        value: 'returns',
                                                                     },
                                                                     {
                                                                         title: '已到貨',
-                                                                        value: 'arrived'
+                                                                        value: 'arrived',
                                                                     },
                                                                 ],
                                                                 readonly: (orderData.orderData.user_info.shipment_refer === 'paynow'),
@@ -1465,7 +1490,7 @@ export class ShoppingOrderManager {
                                                                                     next();
                                                                                 }
                                                                                 gvc.notifyDataChange('Edit');
-                                                                            }
+                                                                            },
                                                                         });
                                                                     }
                                                                     else {
@@ -1473,38 +1498,39 @@ export class ShoppingOrderManager {
                                                                     }
                                                                 },
                                                             })}
-                                                                                        </div>`,
+                                                                                </div>`,
                                                             html `
-                                                                                        <div class="tx_700">配送方式
-                                                                                        </div>
-                                                                                        ${BgWidget.mbContainer(12)}
-                                                                                        <div class="d-flex w-100 align-items-center gap-2">
-                                                                                            <div style="tx_normal">
-                                                                                                ${Language.getLanguageCustomText(((orderData.orderData.shipment_selector || ShoppingOrderManager.supportShipmentMethod()).find((dd) => {
+                                                                                <div class="tx_700">配送方式
+                                                                                </div>
+                                                                                ${BgWidget.mbContainer(12)}
+                                                                                <div
+                                                                                    class="d-flex w-100 align-items-center gap-2">
+                                                                                    <div style="tx_normal">
+                                                                                        ${Language.getLanguageCustomText(((orderData.orderData.shipment_selector || ShoppingOrderManager.supportShipmentMethod()).find((dd) => {
                                                                 return dd.value === orderData.orderData.user_info.shipment;
                                                             }) || { name: '門市取貨' }).name)}
-                                                                                            </div>
-                                                                                            ${BgWidget.customButton({
+                                                                                    </div>
+                                                                                    ${BgWidget.customButton({
                                                                 button: {
                                                                     color: 'gray',
-                                                                    size: 'sm'
+                                                                    size: 'sm',
                                                                 },
                                                                 text: { name: '列印出貨明細' },
                                                                 event: gvc.event(() => {
                                                                     DeliveryHTML.print(gvc, [orderData], 'shipment');
                                                                 }),
                                                             })}
-                                                                                            ${BgWidget.customButton({
+                                                                                    ${BgWidget.customButton({
                                                                 button: {
                                                                     color: 'gray',
-                                                                    size: 'sm'
+                                                                    size: 'sm',
                                                                 },
                                                                 text: { name: '列印揀貨單' },
                                                                 event: gvc.event(() => {
                                                                     DeliveryHTML.print(gvc, [orderData], 'pick');
                                                                 }),
                                                             })}
-                                                                                        </div>`,
+                                                                                </div>`,
                                                             `<div class="tx_700 d-flex align-items-center" style="gap:5px;">出貨單號碼</div>
                                                                         ${BgWidget.mbContainer(12)}
                                                                         <div class="d-flex align-items-center" style="gap:10px;">
@@ -1547,23 +1573,23 @@ export class ShoppingOrderManager {
                                                                                     ApiDelivery.cancelOrder({
                                                                                         cart_token: orderData.cart_token,
                                                                                         logistic_number: orderData.orderData.user_info.shipment_number,
-                                                                                        total_amount: orderData.orderData.total
+                                                                                        total_amount: orderData.orderData.total,
                                                                                     }).then((res) => {
                                                                                         dialog.dataLoading({ visible: false });
                                                                                         if (res.result && res.response.data.includes('F,')) {
                                                                                             dialog.errorMessage({
-                                                                                                text: res.response.data.replace('F,', '')
+                                                                                                text: res.response.data.replace('F,', ''),
                                                                                             });
                                                                                         }
                                                                                         else {
                                                                                             dialog.successMessage({
-                                                                                                text: '已成功取消配號'
+                                                                                                text: '已成功取消配號',
                                                                                             });
                                                                                         }
                                                                                         gvc.notifyDataChange('orderDetailRefresh');
                                                                                     });
                                                                                 }
-                                                                            }
+                                                                            },
                                                                         });
                                                                     }
                                                                     else {
@@ -1580,8 +1606,8 @@ export class ShoppingOrderManager {
                                                                                         callback: (text) => {
                                                                                             shipnumber = text;
                                                                                         },
-                                                                                        placeHolder: '請輸入托運單號碼'
-                                                                                    })
+                                                                                        placeHolder: '請輸入托運單號碼',
+                                                                                    }),
                                                                                 ].join('');
                                                                             },
                                                                             footer_html: (gvc) => {
@@ -1593,10 +1619,10 @@ export class ShoppingOrderManager {
                                                                                         orderData.orderData.user_info.shipment_number = shipnumber;
                                                                                         gvc.closeDialog();
                                                                                         saveEvent();
-                                                                                    }), '儲存')
+                                                                                    }), '儲存'),
                                                                                 ].join('');
                                                                             },
-                                                                            width: 350
+                                                                            width: 350,
                                                                         });
                                                                     }
                                                                 }),
@@ -1608,17 +1634,18 @@ export class ShoppingOrderManager {
                                                                 try {
                                                                     if (ShipmentConfig.supportPrintList.includes(orderData.orderData.user_info.shipment) && ((orderData.orderData.user_info.shipment_number && orderData.orderData.user_info.shipment_refer === 'paynow'))) {
                                                                         return html `
-                                                                                                    ${BgWidget.mbContainer(12)}
-                                                                                                    <div class="tx_700 d-flex align-items-end"
-                                                                                                         style="gap:5px;">
-                                                                                                        物流追蹤
-                                                                                                    </div>
-                                                                                                    ${BgWidget.mbContainer(12)}
-                                                                                                    ${[
+                                                                                            ${BgWidget.mbContainer(12)}
+                                                                                            <div
+                                                                                                class="tx_700 d-flex align-items-end"
+                                                                                                style="gap:5px;">
+                                                                                                物流追蹤
+                                                                                            </div>
+                                                                                            ${BgWidget.mbContainer(12)}
+                                                                                            ${[
                                                                             `狀態: ${(_a = orderData.orderData.user_info.shipment_detail.Detail_Status_Description) !== null && _a !== void 0 ? _a : '追蹤異常'}`,
-                                                                            `追蹤碼: ${(_b = orderData.orderData.user_info.shipment_detail.paymentno) !== null && _b !== void 0 ? _b : '尚未生成'}`
+                                                                            `追蹤碼: ${(_b = orderData.orderData.user_info.shipment_detail.paymentno) !== null && _b !== void 0 ? _b : '尚未生成'}`,
                                                                         ].join(`<div class="w-100  my-1"></div>`)}
-                                                                                                `;
+                                                                                        `;
                                                                     }
                                                                     else {
                                                                         return ``;
@@ -1632,12 +1659,14 @@ export class ShoppingOrderManager {
                                                                         `,
                                                             html ` ${['UNIMARTC2C', 'FAMIC2C', 'OKMARTC2C', 'HILIFEC2C', 'normal', 'UNIMARTFREEZE', 'black_cat', 'black_cat_freezing'].includes(orderData.orderData.user_info.shipment)
                                                                 ? html `
-                                                                                                <div class="tx_700 d-flex align-items-end"
-                                                                                                     style="gap:5px;">
-                                                                                                    配送資訊
-                                                                                                    <div style="cursor:pointer;color:#4D86DB;font-size: 14px;"
-                                                                                                         class="${ShipmentConfig.supermarketList.includes(orderData.orderData.user_info.shipment) ? `` : `d-none`} fw-500"
-                                                                                                         onclick="${gvc.event(() => {
+                                                                                    <div
+                                                                                        class="tx_700 d-flex align-items-end"
+                                                                                        style="gap:5px;">
+                                                                                        配送資訊
+                                                                                        <div
+                                                                                            style="cursor:pointer;color:#4D86DB;font-size: 14px;"
+                                                                                            class="${ShipmentConfig.supermarketList.includes(orderData.orderData.user_info.shipment) ? `` : `d-none`} fw-500"
+                                                                                            onclick="${gvc.event(() => {
                                                                     const dialog = new ShareDialog(gvc.glitter);
                                                                     if (orderData.orderData.user_info.shipment_number) {
                                                                         dialog.errorMessage({ text: '請先取消配號!' });
@@ -1655,13 +1684,13 @@ export class ShoppingOrderManager {
                                                                         window.parent.document.querySelector('#submit').click();
                                                                     }));
                                                                 })}">更換門市
-                                                                                                    </div>
-                                                                                                </div>
-                                                                                                ${BgWidget.mbContainer(12)}`
+                                                                                        </div>
+                                                                                    </div>
+                                                                                    ${BgWidget.mbContainer(12)}`
                                                                 : ``}
-                                                                                    <div class="d-flex flex-column tx_normal"
-                                                                                         style="gap: 4px;">
-                                                                                        ${(() => {
+                                                                            <div class="d-flex flex-column tx_normal"
+                                                                                 style="gap: 4px;">
+                                                                                ${(() => {
                                                                 var _a, _b;
                                                                 if (['normal', 'black_cat', 'global_express', 'black_cat_freezing'].includes(orderData.orderData.user_info.shipment)) {
                                                                     let map = [];
@@ -1691,44 +1720,51 @@ export class ShoppingOrderManager {
                                                                 });
                                                                 if (['UNIMARTC2C', 'FAMIC2C', 'OKMARTC2C', 'HILIFEC2C', 'UNIMARTFREEZE'].includes(orderData.orderData.user_info.shipment)) {
                                                                     return html `
-                                                                                                    <div class="d-flex flex-wrap">
-                                                                                                        <span class="me-2">門市名稱:</span>
-                                                                                                        <div style="white-space: normal;word-break: break-all;">
-                                                                                                            ${orderData.orderData.user_info.CVSStoreName}
-                                                                                                        </div>
-                                                                                                    </div>
-                                                                                                    <div class="d-flex">
-                                                                                                        門市店號:
-                                                                                                        ${orderData.orderData.user_info.CVSStoreID}
-                                                                                                    </div>
-                                                                                                    <div class="d-flex"
-                                                                                                         style="white-space: normal;word-break: break-all;">
-                                                                                                        地址:
-                                                                                                        ${orderData.orderData.user_info.CVSAddress}
-                                                                                                    </div>
-                                                                                                `;
+                                                                                            <div
+                                                                                                class="d-flex flex-wrap">
+                                                                                                <span
+                                                                                                    class="me-2">門市名稱:</span>
+                                                                                                <div
+                                                                                                    style="white-space: normal;word-break: break-all;">
+                                                                                                    ${orderData.orderData.user_info.CVSStoreName}
+                                                                                                </div>
+                                                                                            </div>
+                                                                                            <div class="d-flex">
+                                                                                                門市店號:
+                                                                                                ${orderData.orderData.user_info.CVSStoreID}
+                                                                                            </div>
+                                                                                            <div class="d-flex"
+                                                                                                 style="white-space: normal;word-break: break-all;">
+                                                                                                地址:
+                                                                                                ${orderData.orderData.user_info.CVSAddress}
+                                                                                            </div>
+                                                                                        `;
                                                                 }
                                                                 else if (formData.form) {
                                                                     return formData.form
                                                                         .map((dd) => {
                                                                         return html `
-                                                                                                                <div class="d-flex flex-wrap">
-                                                                                                                    <span class="me-2">${Language.getLanguageCustomText(dd.title)} :</span>
-                                                                                                                    <div style="white-space: normal;word-break: break-all;">
-                                                                                                                        ${Language.getLanguageCustomText(orderData.orderData.user_info.custom_form_delivery[dd.key])}
-                                                                                                                    </div>
-                                                                                                                </div>`;
+                                                                                                    <div
+                                                                                                        class="d-flex flex-wrap">
+                                                                                                        <span
+                                                                                                            class="me-2">${Language.getLanguageCustomText(dd.title)} :</span>
+                                                                                                        <div
+                                                                                                            style="white-space: normal;word-break: break-all;">
+                                                                                                            ${Language.getLanguageCustomText(orderData.orderData.user_info.custom_form_delivery[dd.key])}
+                                                                                                        </div>
+                                                                                                    </div>`;
                                                                     })
                                                                         .join('');
                                                                 }
                                                                 return '';
                                                             })()}
-                                                                                    </div>`,
+                                                                            </div>`,
                                                             html `
-                                                                                        <div class="d-flex w-100 align-items-center gap-2">
-                                                                                            <div class="tx_700">收件人資訊
-                                                                                            </div>
-                                                                                            ${vm.mode === 'edit'
+                                                                                <div
+                                                                                    class="d-flex w-100 align-items-center gap-2">
+                                                                                    <div class="tx_700">收件人資訊
+                                                                                    </div>
+                                                                                    ${vm.mode === 'edit'
                                                                 ? BgWidget.customButton({
                                                                     button: {
                                                                         color: 'black',
@@ -1754,10 +1790,10 @@ export class ShoppingOrderManager {
                                                                         vm.mode = 'edit';
                                                                     }),
                                                                 })}
-                                                                                        </div>
-                                                                                        ${BgWidget.mbContainer(8)}
-                                                                                        <div class="tx_normal">
-                                                                                            ${(() => {
+                                                                                </div>
+                                                                                ${BgWidget.mbContainer(8)}
+                                                                                <div class="tx_normal">
+                                                                                    ${(() => {
                                                                 let viewModel = [
                                                                     ['姓名', 'name'],
                                                                     ['電話', 'phone'],
@@ -1767,12 +1803,12 @@ export class ShoppingOrderManager {
                                                                     return viewModel
                                                                         .map((item) => {
                                                                         return html `
-                                                                                                                    <div>
-                                                                                                                        ${item[0]}
-                                                                                                                        :
-                                                                                                                        ${orderData.orderData.user_info[item[1]] || '未填寫'}
-                                                                                                                    </div>
-                                                                                                                    ${BgWidget.mbContainer(4)}`;
+                                                                                                        <div>
+                                                                                                            ${item[0]}
+                                                                                                            :
+                                                                                                            ${orderData.orderData.user_info[item[1]] || '未填寫'}
+                                                                                                        </div>
+                                                                                                        ${BgWidget.mbContainer(4)}`;
                                                                     })
                                                                         .join('');
                                                                 }
@@ -1780,51 +1816,53 @@ export class ShoppingOrderManager {
                                                                     return viewModel
                                                                         .map((item) => {
                                                                         return html `
-                                                                                                                    <div class="d-flex flex-column w-100"
-                                                                                                                         style="gap:8px;">
-                                                                                                                        <div style="${item[0] == '姓名' ? '' : 'margin-top:12px;'}">
-                                                                                                                            ${item[0]}
-                                                                                                                        </div>
-                                                                                                                        <input
-                                                                                                                                style="display: flex;padding: 9px 18px;align-items: flex-start;gap: 10px;flex: 1 0 0;border-radius: 10px;border: 1px solid #DDD;"
-                                                                                                                                value="${orderData.orderData.user_info[item[1]]}"
-                                                                                                                                onchange="${gvc.event((e) => {
+                                                                                                        <div
+                                                                                                            class="d-flex flex-column w-100"
+                                                                                                            style="gap:8px;">
+                                                                                                            <div
+                                                                                                                style="${item[0] == '姓名' ? '' : 'margin-top:12px;'}">
+                                                                                                                ${item[0]}
+                                                                                                            </div>
+                                                                                                            <input
+                                                                                                                style="display: flex;padding: 9px 18px;align-items: flex-start;gap: 10px;flex: 1 0 0;border-radius: 10px;border: 1px solid #DDD;"
+                                                                                                                value="${orderData.orderData.user_info[item[1]]}"
+                                                                                                                onchange="${gvc.event((e) => {
                                                                             orderData.orderData.user_info[item[1]] = e.value;
                                                                         })}"
-                                                                                                                        />
-                                                                                                                    </div>
-                                                                                                                `;
+                                                                                                            />
+                                                                                                        </div>
+                                                                                                    `;
                                                                     })
                                                                         .join('');
                                                                 }
                                                             })()}
-                                                                                        </div>`,
+                                                                                </div>`,
                                                             (() => {
                                                                 if (orderData.orderData.custom_receipt_form &&
                                                                     orderData.orderData.custom_receipt_form.filter((dd) => {
                                                                         return orderData.orderData.user_info[dd.key];
                                                                     }).length > 0) {
                                                                     return (html `
-                                                                                                        <div class="tx_700">
-                                                                                                            自訂配送資訊表單
-                                                                                                        </div>
-                                                                                                        ${BgWidget.mbContainer(8)}
-                                                                                                        <div class="tx_normal"
-                                                                                                             style="color: #393939;font-size: 16px;">
-                                                                                                            ${orderData.orderData.custom_receipt_form
+                                                                                            <div class="tx_700">
+                                                                                                自訂配送資訊表單
+                                                                                            </div>
+                                                                                            ${BgWidget.mbContainer(8)}
+                                                                                            <div class="tx_normal"
+                                                                                                 style="color: #393939;font-size: 16px;">
+                                                                                                ${orderData.orderData.custom_receipt_form
                                                                         .filter((dd) => {
                                                                         return orderData.orderData.user_info[dd.key];
                                                                     })
                                                                         .map((dd) => {
                                                                         return html `
-                                                                                                                            <div>
-                                                                                                                                ${Language.getLanguageCustomText(dd.title)}
-                                                                                                                                :
-                                                                                                                                ${orderData.orderData.user_info[dd.key]}
-                                                                                                                            </div>`;
+                                                                                                            <div>
+                                                                                                                ${Language.getLanguageCustomText(dd.title)}
+                                                                                                                :
+                                                                                                                ${orderData.orderData.user_info[dd.key]}
+                                                                                                            </div>`;
                                                                     })
                                                                         .join('')}
-                                                                                                        </div>`);
+                                                                                            </div>`);
                                                                 }
                                                                 else {
                                                                     return ``;
@@ -1836,27 +1874,27 @@ export class ShoppingOrderManager {
                                                                         return orderData.orderData.custom_form_data[dd.key];
                                                                     }).length > 0) {
                                                                     return (html `
-                                                                                                        <div class="tx_700">
-                                                                                                            自訂顧客資料表單
-                                                                                                        </div>
-                                                                                                        ${BgWidget.mbContainer(8)}
-                                                                                                        <div class="tx_normal"
-                                                                                                             style="color: #393939;font-size: 16px;">
-                                                                                                            ${orderData.orderData.custom_form_format
+                                                                                            <div class="tx_700">
+                                                                                                自訂顧客資料表單
+                                                                                            </div>
+                                                                                            ${BgWidget.mbContainer(8)}
+                                                                                            <div class="tx_normal"
+                                                                                                 style="color: #393939;font-size: 16px;">
+                                                                                                ${orderData.orderData.custom_form_format
                                                                         .filter((dd) => {
                                                                         return orderData.orderData.custom_form_data[dd.key];
                                                                     })
                                                                         .map((dd) => {
                                                                         return html `
-                                                                                                                            <div>
-                                                                                                                                ${Language.getLanguageCustomText(dd.title)}
-                                                                                                                                :
-                                                                                                                                ${orderData.orderData.custom_form_data[dd.key]}
-                                                                                                                            </div>
-                                                                                                                        `;
+                                                                                                            <div>
+                                                                                                                ${Language.getLanguageCustomText(dd.title)}
+                                                                                                                :
+                                                                                                                ${orderData.orderData.custom_form_data[dd.key]}
+                                                                                                            </div>
+                                                                                                        `;
                                                                     })
                                                                         .join('')}
-                                                                                                        </div>`);
+                                                                                            </div>`);
                                                                 }
                                                                 else {
                                                                     return ``;
@@ -1912,7 +1950,7 @@ export class ShoppingOrderManager {
                                                                 return map.map((dd) => {
                                                                     return `<div>${dd}</div>`;
                                                                 }).join(BgWidget.mbContainer(8));
-                                                            })()
+                                                            })(),
                                                         ].filter((dd) => {
                                                             return dd;
                                                         }).join(BgWidget.mbContainer(18));
@@ -1939,26 +1977,27 @@ export class ShoppingOrderManager {
                                             BgWidget.mainCard(gvc.bindView(() => {
                                                 const vm = {
                                                     edit_mode: false,
-                                                    id: gvc.glitter.getUUID()
+                                                    id: gvc.glitter.getUUID(),
                                                 };
                                                 return {
                                                     bind: vm.id,
                                                     view: () => {
                                                         return html `
-                                                                            <div class="w-100 d-flex tx_700 align-items-center justify-content-between">
-                                                                                <div class="">顧客備註</div>
-                                                                                <div class=""
-                                                                                     style="display: flex;padding: 6px 18px;justify-content: center;align-items: center;gap: 8px;border-radius: 10px;border: 1px solid #DDD;background: #FFF;cursor: pointer;"
-                                                                                     onclick="${gvc.event(() => {
+                                                                        <div
+                                                                            class="w-100 d-flex tx_700 align-items-center justify-content-between">
+                                                                            <div class="">顧客備註</div>
+                                                                            <div class=""
+                                                                                 style="display: flex;padding: 6px 18px;justify-content: center;align-items: center;gap: 8px;border-radius: 10px;border: 1px solid #DDD;background: #FFF;cursor: pointer;"
+                                                                                 onclick="${gvc.event(() => {
                                                             vm.edit_mode = !vm.edit_mode;
                                                             gvc.notifyDataChange(vm.id);
                                                         })}">
-                                                                                    ${vm.edit_mode ? `取消編輯` : `編輯`}
-                                                                                </div>
+                                                                                ${vm.edit_mode ? `取消編輯` : `編輯`}
                                                                             </div>
-                                                                            ${BgWidget.mbContainer(18)}
-                                                                            <div style="position: relative;">
-                                                                                ${vm.edit_mode ? EditorElem.editeText({
+                                                                        </div>
+                                                                        ${BgWidget.mbContainer(18)}
+                                                                        <div style="position: relative;">
+                                                                            ${vm.edit_mode ? EditorElem.editeText({
                                                             gvc: gvc,
                                                             title: '',
                                                             default: orderData.orderData.user_info.note || '',
@@ -1967,34 +2006,35 @@ export class ShoppingOrderManager {
                                                                 orderData.orderData.user_info.note = text;
                                                             },
                                                         }) : orderData.orderData.user_info.note || '尚未填寫顧客備註'}
-                                                                            </div>
-                                                                        `;
-                                                    }
+                                                                        </div>
+                                                                    `;
+                                                    },
                                                 };
                                             })),
                                             BgWidget.mainCard(gvc.bindView(() => {
                                                 const vm = {
                                                     edit_mode: false,
-                                                    id: gvc.glitter.getUUID()
+                                                    id: gvc.glitter.getUUID(),
                                                 };
                                                 return {
                                                     bind: vm.id,
                                                     view: () => {
                                                         return html `
-                                                                            <div class="w-100 d-flex tx_700 align-items-center justify-content-between">
-                                                                                <div class="">商家備註</div>
-                                                                                <div class=""
-                                                                                     style="display: flex;padding: 6px 18px;justify-content: center;align-items: center;gap: 8px;border-radius: 10px;border: 1px solid #DDD;background: #FFF;cursor: pointer;"
-                                                                                     onclick="${gvc.event(() => {
+                                                                        <div
+                                                                            class="w-100 d-flex tx_700 align-items-center justify-content-between">
+                                                                            <div class="">商家備註</div>
+                                                                            <div class=""
+                                                                                 style="display: flex;padding: 6px 18px;justify-content: center;align-items: center;gap: 8px;border-radius: 10px;border: 1px solid #DDD;background: #FFF;cursor: pointer;"
+                                                                                 onclick="${gvc.event(() => {
                                                             vm.edit_mode = !vm.edit_mode;
                                                             gvc.notifyDataChange(vm.id);
                                                         })}">
-                                                                                    ${vm.edit_mode ? `取消編輯` : `編輯`}
-                                                                                </div>
+                                                                                ${vm.edit_mode ? `取消編輯` : `編輯`}
                                                                             </div>
-                                                                            ${BgWidget.mbContainer(18)}
-                                                                            <div style="position: relative;">
-                                                                                ${vm.edit_mode ? EditorElem.editeText({
+                                                                        </div>
+                                                                        ${BgWidget.mbContainer(18)}
+                                                                        <div style="position: relative;">
+                                                                            ${vm.edit_mode ? EditorElem.editeText({
                                                             gvc: gvc,
                                                             title: '',
                                                             default: orderData.orderData.order_note || '',
@@ -2003,9 +2043,9 @@ export class ShoppingOrderManager {
                                                                 orderData.orderData.order_note = text;
                                                             },
                                                         }) : orderData.orderData.order_note || '尚未填寫商家備註'}
-                                                                            </div>
-                                                                        `;
-                                                    }
+                                                                        </div>
+                                                                    `;
+                                                    },
                                                 };
                                             })),
                                             gvc.bindView({
@@ -2022,59 +2062,63 @@ export class ShoppingOrderManager {
                                                         return '';
                                                     }
                                                     return BgWidget.mainCard(html `
-                                                                        <div class="tx_700">發票資訊</div>
-                                                                        ${BgWidget.mbContainer(18)}
-                                                                        <div class="d-flex"
-                                                                             style="margin-bottom: 12px;">
-                                                                            <div class="col-3">開立日期</div>
-                                                                            <div class="col-3 text-center">發票單號
-                                                                            </div>
-                                                                            <div class="col-3 text-center">發票金額
-                                                                            </div>
-                                                                            <div class="col-2 text-center">狀態</div>
+                                                                    <div class="tx_700">發票資訊</div>
+                                                                    ${BgWidget.mbContainer(18)}
+                                                                    <div class="d-flex"
+                                                                         style="margin-bottom: 12px;">
+                                                                        <div class="col-3">開立日期</div>
+                                                                        <div class="col-3 text-center">發票單號
                                                                         </div>
-                                                                        <div class="d-flex">
-                                                                            <div class="col-3 d-flex align-items-center ">
-                                                                                ${invoiceData.create_date.split('T')[0]}
-                                                                            </div>
-                                                                            <div class="col-3 text-center d-flex align-items-center justify-content-center"
-                                                                                 style="color: #4D86DB;">
-                                                                                ${invoiceData.invoice_no}
-                                                                            </div>
-                                                                            <div class="col-3 text-center d-flex align-items-center justify-content-center">
-                                                                                ${((_a = invoiceData.invoice_data.invoiceAmount) !== null && _a !== void 0 ? _a : orderData.orderData.total)}
-                                                                            </div>
-                                                                            <div class="col-2 text-center d-flex align-items-center justify-content-center">
-                                                                                ${invoiceData.status == 1
+                                                                        <div class="col-3 text-center">發票金額
+                                                                        </div>
+                                                                        <div class="col-2 text-center">狀態</div>
+                                                                    </div>
+                                                                    <div class="d-flex">
+                                                                        <div class="col-3 d-flex align-items-center ">
+                                                                            ${invoiceData.create_date.split('T')[0]}
+                                                                        </div>
+                                                                        <div
+                                                                            class="col-3 text-center d-flex align-items-center justify-content-center"
+                                                                            style="color: #4D86DB;">
+                                                                            ${invoiceData.invoice_no}
+                                                                        </div>
+                                                                        <div
+                                                                            class="col-3 text-center d-flex align-items-center justify-content-center">
+                                                                            ${((_a = invoiceData.invoice_data.invoiceAmount) !== null && _a !== void 0 ? _a : orderData.orderData.total)}
+                                                                        </div>
+                                                                        <div
+                                                                            class="col-2 text-center d-flex align-items-center justify-content-center">
+                                                                            ${invoiceData.status == 1
                                                         ? html `
-                                                                                            <div class=""
-                                                                                                 style="color:#10931D">
-                                                                                                已完成
-                                                                                            </div>`
+                                                                                    <div class=""
+                                                                                         style="color:#10931D">
+                                                                                        已完成
+                                                                                    </div>`
                                                         : html `
-                                                                                            <div class=""
-                                                                                                 style="color:#DA1313">
-                                                                                                已作廢
-                                                                                            </div>`}
-                                                                            </div>
-                                                                            <div class="flex-fill d-flex justify-content-end align-items-center">
-                                                                                <div style="margin-right: 14px;">
-                                                                                    ${BgWidget.grayButton('查閱', gvc.event(() => {
+                                                                                    <div class=""
+                                                                                         style="color:#DA1313">
+                                                                                        已作廢
+                                                                                    </div>`}
+                                                                        </div>
+                                                                        <div
+                                                                            class="flex-fill d-flex justify-content-end align-items-center">
+                                                                            <div style="margin-right: 14px;">
+                                                                                ${BgWidget.grayButton('查閱', gvc.event(() => {
                                                         vm.invoiceData = invoiceData;
                                                         vm.type = 'viewInvoice';
                                                     }), { textStyle: `` })}
-                                                                                </div>
                                                                             </div>
                                                                         </div>
-                                                                    `);
+                                                                    </div>
+                                                                `);
                                                 },
                                                 divCreate: {},
                                             }),
                                             BgWidget.mainCard(html `
-                                                                <div class="tx_700">訂單記錄</div>
-                                                                ${BgWidget.mbContainer(18)}
-                                                                <div class="d-flex flex-column" style="gap: 8px">
-                                                                    ${(() => {
+                                                            <div class="tx_700">訂單記錄</div>
+                                                            ${BgWidget.mbContainer(18)}
+                                                            <div class="d-flex flex-column" style="gap: 8px">
+                                                                ${(() => {
                                                 var _a;
                                                 if (!((_a = orderData.orderData) === null || _a === void 0 ? void 0 : _a.editRecord)) {
                                                     return '';
@@ -2085,38 +2129,38 @@ export class ShoppingOrderManager {
                                                 })
                                                     .map((record) => {
                                                     return html `
-                                                                                                <div class="d-flex"
-                                                                                                     style="gap: 42px">
-                                                                                                    <div>
-                                                                                                        ${formatDateString(record.time)}
-                                                                                                    </div>
-                                                                                                    <div>
-                                                                                                        ${record.record}
-                                                                                                    </div>
-                                                                                                </div>
-                                                                                            `;
+                                                                                    <div class="d-flex"
+                                                                                         style="gap: 42px">
+                                                                                        <div>
+                                                                                            ${formatDateString(record.time)}
+                                                                                        </div>
+                                                                                        <div>
+                                                                                            ${record.record}
+                                                                                        </div>
+                                                                                    </div>
+                                                                                `;
                                                 }));
                                             })()}
-                                                                    <div class="d-flex" style="gap: 42px">
-                                                                        <div>${formatDateString(orderData.created_time)}
-                                                                        </div>
-                                                                        <div>訂單成立</div>
+                                                                <div class="d-flex" style="gap: 42px">
+                                                                    <div>${formatDateString(orderData.created_time)}
                                                                     </div>
+                                                                    <div>訂單成立</div>
                                                                 </div>
-                                                            `),
+                                                            </div>
+                                                        `),
                                         ].join(BgWidget.mbContainer(24)),
                                         ratio: 75,
                                     }, {
                                         html: html `
-                                                            <div class="summary-card">
-                                                                ${[
+                                                        <div class="summary-card">
+                                                            ${[
                                             BgWidget.mainCard(html `
-                                                                        <div class=""
-                                                                             style="font-size: 16px;font-weight: 700;">
-                                                                            訂單來源
-                                                                        </div>
-                                                                        <div>
-                                                                            ${(() => {
+                                                                    <div class=""
+                                                                         style="font-size: 16px;font-weight: 700;">
+                                                                        訂單來源
+                                                                    </div>
+                                                                    <div>
+                                                                        ${(() => {
                                                 var _a;
                                                 if (!orderData.orderData.orderSource) {
                                                     return '線上';
@@ -2127,33 +2171,33 @@ export class ShoppingOrderManager {
                                                 };
                                                 return (_a = source[orderData.orderData.orderSource]) !== null && _a !== void 0 ? _a : '線上';
                                             })()}
-                                                                        </div>
-                                                                    `),
+                                                                    </div>
+                                                                `),
                                             BgWidget.mainCard(html `
-                                                                                <div style="color: #393939;font-size: 16px;">
-                                                                                    <div class="d-flex align-items-center mb-3">
-                                                                                        <div class="tx_700">訂購人資料
-                                                                                        </div>
-                                                                                        <div class="flex-fill"></div>
-                                                                                    </div>
-                                                                                    <div class="w-100 d-flex flex-column mt-2"
-                                                                                         style="gap:12px;">
-                                                                                        ${[
+                                                                        <div style="color: #393939;font-size: 16px;">
+                                                                            <div class="d-flex align-items-center mb-3">
+                                                                                <div class="tx_700">訂購人資料
+                                                                                </div>
+                                                                                <div class="flex-fill"></div>
+                                                                            </div>
+                                                                            <div class="w-100 d-flex flex-column mt-2"
+                                                                                 style="gap:12px;">
+                                                                                ${[
                                                 html `
-                                                                                                <div class="d-flex flex-column"
-                                                                                                     style="gap:8px;">
-                                                                                                    <div
-                                                                                                            class="d-flex align-items-center"
-                                                                                                            style="color: #4D86DB;font-weight: 400; gap:8px;cursor:pointer;"
-                                                                                                            onclick="${gvc.event(() => {
+                                                                                        <div class="d-flex flex-column"
+                                                                                             style="gap:8px;">
+                                                                                            <div
+                                                                                                class="d-flex align-items-center"
+                                                                                                style="color: #4D86DB;font-weight: 400; gap:8px;cursor:pointer;"
+                                                                                                onclick="${gvc.event(() => {
                                                     if (userData.userID) {
                                                         child_vm.userID = userData.userID;
                                                         child_vm.type = 'user';
                                                     }
                                                 })}"
-                                                                                                    >
-                                                                                                        ${(_c = (_b = userData === null || userData === void 0 ? void 0 : userData.userData) === null || _b === void 0 ? void 0 : _b.name) !== null && _c !== void 0 ? _c : '訪客'}
-                                                                                                        ${(() => {
+                                                                                            >
+                                                                                                ${(_c = (_b = userData === null || userData === void 0 ? void 0 : userData.userData) === null || _b === void 0 ? void 0 : _b.name) !== null && _c !== void 0 ? _c : '訪客'}
+                                                                                                ${(() => {
                                                     if (userDataLoading) {
                                                         return BgWidget.secondaryInsignia('讀取中');
                                                     }
@@ -2170,14 +2214,16 @@ export class ShoppingOrderManager {
                                                     }
                                                     return BgWidget.secondaryInsignia('訪客');
                                                 })()}
-                                                                                                    </div>
-                                                                                                    <div style="color: #393939;font-weight: 400;">
-                                                                                                        ${(_f = (_e = (_d = userData === null || userData === void 0 ? void 0 : userData.userData) === null || _d === void 0 ? void 0 : _d.phone) !== null && _e !== void 0 ? _e : orderData.orderData.user_info.phone) !== null && _f !== void 0 ? _f : '此會員未填手機'}
-                                                                                                    </div>
-                                                                                                    <div style="color: #393939;font-weight: 400;word-break:break-all;">
-                                                                                                        ${(_j = (_h = (_g = userData === null || userData === void 0 ? void 0 : userData.userData) === null || _g === void 0 ? void 0 : _g.email) !== null && _h !== void 0 ? _h : orderData.orderData.user_info.email) !== null && _j !== void 0 ? _j : ''}
-                                                                                                    </div>
-                                                                                                </div>`,
+                                                                                            </div>
+                                                                                            <div
+                                                                                                style="color: #393939;font-weight: 400;">
+                                                                                                ${(_f = (_e = (_d = userData === null || userData === void 0 ? void 0 : userData.userData) === null || _d === void 0 ? void 0 : _d.phone) !== null && _e !== void 0 ? _e : orderData.orderData.user_info.phone) !== null && _f !== void 0 ? _f : '此會員未填手機'}
+                                                                                            </div>
+                                                                                            <div
+                                                                                                style="color: #393939;font-weight: 400;word-break:break-all;">
+                                                                                                ${(_j = (_h = (_g = userData === null || userData === void 0 ? void 0 : userData.userData) === null || _g === void 0 ? void 0 : _g.email) !== null && _h !== void 0 ? _h : orderData.orderData.user_info.email) !== null && _j !== void 0 ? _j : ''}
+                                                                                            </div>
+                                                                                        </div>`,
                                                 BgWidget.horizontalLine(),
                                                 gvc.bindView({
                                                     bind: `user_info`,
@@ -2186,36 +2232,40 @@ export class ShoppingOrderManager {
                                                         let view = [];
                                                         if (orderData.orderData.user_info.shipment !== 'now') {
                                                             view.push(html `
-                                                                                                            <div style="font-size: 16px;font-weight: 700;color:#393939">
-                                                                                                                收件人資料
-                                                                                                            </div>
-                                                                                                            <div class="d-flex flex-column"
-                                                                                                                 style="gap:8px;">
-                                                                                                                <div style="color: #4D86DB;font-weight: 400;">
-                                                                                                                    ${orderData.orderData.user_info.name}
-                                                                                                                </div>
-                                                                                                                <div style="color: #393939;font-weight: 400;">
-                                                                                                                    ${orderData.orderData.user_info.phone || '電話未填'}
-                                                                                                                </div>
-                                                                                                            </div>`);
+                                                                                                    <div
+                                                                                                        style="font-size: 16px;font-weight: 700;color:#393939">
+                                                                                                        收件人資料
+                                                                                                    </div>
+                                                                                                    <div
+                                                                                                        class="d-flex flex-column"
+                                                                                                        style="gap:8px;">
+                                                                                                        <div
+                                                                                                            style="color: #4D86DB;font-weight: 400;">
+                                                                                                            ${orderData.orderData.user_info.name}
+                                                                                                        </div>
+                                                                                                        <div
+                                                                                                            style="color: #393939;font-weight: 400;">
+                                                                                                            ${orderData.orderData.user_info.phone || '電話未填'}
+                                                                                                        </div>
+                                                                                                    </div>`);
                                                         }
                                                         view.push(html `
-                                                                                                        <div class="tx_700">
-                                                                                                            付款方式
-                                                                                                        </div>
-                                                                                                        <div>
-                                                                                                            ${ShoppingOrderManager.getPaymentMethodText(orderData.orderData.method, orderData.orderData, gvc)}
-                                                                                                        </div>
-                                                                                                        <div class="tx_700">
-                                                                                                            配送方式
-                                                                                                        </div>
-                                                                                                        <div class="tx_normal"
-                                                                                                             style="line-height: 140%;">
-                                                                                                            ${Language.getLanguageCustomText((_b = (_a = (orderData.orderData.shipment_selector || ShoppingOrderManager.supportShipmentMethod()).find((dd) => {
+                                                                                                <div class="tx_700">
+                                                                                                    付款方式
+                                                                                                </div>
+                                                                                                <div>
+                                                                                                    ${ShoppingOrderManager.getPaymentMethodText(orderData.orderData.method, orderData.orderData, gvc)}
+                                                                                                </div>
+                                                                                                <div class="tx_700">
+                                                                                                    配送方式
+                                                                                                </div>
+                                                                                                <div class="tx_normal"
+                                                                                                     style="line-height: 140%;">
+                                                                                                    ${Language.getLanguageCustomText((_b = (_a = (orderData.orderData.shipment_selector || ShoppingOrderManager.supportShipmentMethod()).find((dd) => {
                                                             return dd.value === orderData.orderData.user_info.shipment;
                                                         })) === null || _a === void 0 ? void 0 : _a.name) !== null && _b !== void 0 ? _b : '')}
-                                                                                                        </div>
-                                                                                                        ${(() => {
+                                                                                                </div>
+                                                                                                ${(() => {
                                                             switch (orderData.orderData.user_info.shipment) {
                                                                 case 'FAMIC2C':
                                                                 case 'HILIFEC2C':
@@ -2224,34 +2274,40 @@ export class ShoppingOrderManager {
                                                                 case 'UNIMARTFREEZE':
                                                                     return [
                                                                         html `
-                                                                                                                            <div class="d-flex flex-wrap w-100">
-                                                                                                                                <span class="me-2 fw-normal fs-6">門市名稱:</span>
-                                                                                                                                <div class="fw-normal fs-6"
-                                                                                                                                     style="white-space: normal;word-break: break-all;">
-                                                                                                                                    ${decodeURI(orderData.orderData.user_info.CVSStoreName)}
-                                                                                                                                </div>
-                                                                                                                            </div>`,
+                                                                                                                    <div
+                                                                                                                        class="d-flex flex-wrap w-100">
+                                                                                                                        <span
+                                                                                                                            class="me-2 fw-normal fs-6">門市名稱:</span>
+                                                                                                                        <div
+                                                                                                                            class="fw-normal fs-6"
+                                                                                                                            style="white-space: normal;word-break: break-all;">
+                                                                                                                            ${decodeURI(orderData.orderData.user_info.CVSStoreName)}
+                                                                                                                        </div>
+                                                                                                                    </div>`,
                                                                         html `
-                                                                                                                            <div class="fw-normal fs-6">
-                                                                                                                                代號:
-                                                                                                                                ${orderData.orderData.user_info.CVSStoreID}
-                                                                                                                            </div>`,
+                                                                                                                    <div
+                                                                                                                        class="fw-normal fs-6">
+                                                                                                                        代號:
+                                                                                                                        ${orderData.orderData.user_info.CVSStoreID}
+                                                                                                                    </div>`,
                                                                         html `
-                                                                                                                            <div class="fw-normal fs-6 w-100"
-                                                                                                                                 style="white-space: normal;word-break: break-all;">
-                                                                                                                                地址:
-                                                                                                                                ${orderData.orderData.user_info.CVSAddress}
-                                                                                                                            </div>`,
+                                                                                                                    <div
+                                                                                                                        class="fw-normal fs-6 w-100"
+                                                                                                                        style="white-space: normal;word-break: break-all;">
+                                                                                                                        地址:
+                                                                                                                        ${orderData.orderData.user_info.CVSAddress}
+                                                                                                                    </div>`,
                                                                     ].join('');
                                                                 case 'global_express':
                                                                 case 'black_cat_freezing':
                                                                 case 'normal':
                                                                     return [
                                                                         html `
-                                                                                                                            <div class="fw-normal fs-6"
-                                                                                                                                 style="white-space: normal;">
-                                                                                                                                ${orderData.orderData.user_info.address}
-                                                                                                                            </div>`,
+                                                                                                                    <div
+                                                                                                                        class="fw-normal fs-6"
+                                                                                                                        style="white-space: normal;">
+                                                                                                                        ${orderData.orderData.user_info.address}
+                                                                                                                    </div>`,
                                                                     ].join('');
                                                                 default:
                                                                     const formData = (orderData.orderData.shipment_selector || ShoppingOrderManager.supportShipmentMethod()).find((dd) => {
@@ -2274,7 +2330,7 @@ export class ShoppingOrderManager {
                                                                     }
                                                             }
                                                         })()}
-                                                                                                        ${(orderData.orderData.orderSource === 'POS') ? `
+                                                                                                ${(orderData.orderData.orderSource === 'POS') ? `
                                                                                         <div class="tx_700">
                                                                                                 結帳人員
                                                                                             </div>
@@ -2295,11 +2351,11 @@ export class ShoppingOrderManager {
                                                                     return (yield ApiUser.getPublicConfig('store_manager', 'manager')).response.value.list.find((dd) => {
                                                                         return dd.id === orderData.orderData.pos_info.where_store;
                                                                     }).name;
-                                                                })
+                                                                }),
                                                             };
                                                         })}
                                                                                         ` : ``}
-                                                                                                    `);
+                                                                                            `);
                                                         return view.join(`<div class="my-2"></div>`);
                                                     },
                                                     divCreate: {
@@ -2308,9 +2364,9 @@ export class ShoppingOrderManager {
                                                     },
                                                 }),
                                             ].join('')}
-                                                                                    </div>
-                                                                                </div>
-                                                                            `),
+                                                                            </div>
+                                                                        </div>
+                                                                    `),
                                             gvc.bindView({
                                                 bind: 'distribution_info',
                                                 view: () => {
@@ -2324,9 +2380,9 @@ export class ShoppingOrderManager {
                                                             {
                                                                 title: '分銷連結名稱',
                                                                 value: (_c = html `
-                                                                                                    <div
-                                                                                                            style="color: #006621; font-weight: 400; cursor:pointer; overflow-wrap: break-word; text-decoration: underline; "
-                                                                                                            onclick="${gvc.event(() => {
+                                                                                            <div
+                                                                                                style="color: #006621; font-weight: 400; cursor:pointer; overflow-wrap: break-word; text-decoration: underline; "
+                                                                                                onclick="${gvc.event(() => {
                                                                     var _a;
                                                                     const dialog = new ShareDialog(glitter);
                                                                     dialog.dataLoading({
@@ -2347,44 +2403,46 @@ export class ShoppingOrderManager {
                                                                         vm.type = 'recommend';
                                                                     });
                                                                 })}"
-                                                                                                    >
-                                                                                                        ${orderData.orderData.distribution_info.title}
-                                                                                                    </div>`) !== null && _c !== void 0 ? _c : '',
+                                                                                            >
+                                                                                                ${orderData.orderData.distribution_info.title}
+                                                                                            </div>`) !== null && _c !== void 0 ? _c : '',
                                                             },
                                                         ];
                                                         return BgWidget.mainCard(html `
-                                                                                    <div class="d-flex flex-column"
-                                                                                         style="gap:12px">
-                                                                                        ${viewArray
+                                                                                <div class="d-flex flex-column"
+                                                                                     style="gap:12px">
+                                                                                    ${viewArray
                                                             .map((data) => {
                                                             var _a;
                                                             return html `
-                                                                                                        <div style="display: flex;flex-direction: column;align-items: flex-start;gap: 12px;align-self: stretch;color:#393939;">
-                                                                                                            <div class="tx_700">
-                                                                                                                ${data.title}
-                                                                                                            </div>
-                                                                                                            <div style="color:#393939;font-size: 16px;font-weight: 400;line-height: 140%;">
-                                                                                                                ${(_a = data.value) !== null && _a !== void 0 ? _a : ''}
-                                                                                                            </div>
-                                                                                                        </div>
-                                                                                                    `;
+                                                                                                <div
+                                                                                                    style="display: flex;flex-direction: column;align-items: flex-start;gap: 12px;align-self: stretch;color:#393939;">
+                                                                                                    <div class="tx_700">
+                                                                                                        ${data.title}
+                                                                                                    </div>
+                                                                                                    <div
+                                                                                                        style="color:#393939;font-size: 16px;font-weight: 400;line-height: 140%;">
+                                                                                                        ${(_a = data.value) !== null && _a !== void 0 ? _a : ''}
+                                                                                                    </div>
+                                                                                                </div>
+                                                                                            `;
                                                         })
                                                             .join('')}
-                                                                                    </div>
-                                                                                `);
+                                                                                </div>
+                                                                            `);
                                                     }
                                                     else {
                                                         return ``;
                                                     }
                                                 },
                                                 divCreate: {},
-                                            })
+                                            }),
                                         ]
                                             .filter((dd) => {
                                             return dd;
                                         })
                                             .join(BgWidget.mbContainer(24))}
-                                                            </div>`,
+                                                        </div>`,
                                         ratio: 25,
                                     })}
                                             ${BgWidget.mbContainer(240)}
@@ -2393,7 +2451,7 @@ export class ShoppingOrderManager {
                                                     ${gvc.bindView(() => {
                                         const id = gvc.glitter.getUUID();
                                         const vc = {
-                                            data: {}
+                                            data: {},
                                         };
                                         return {
                                             bind: id,
@@ -2440,7 +2498,7 @@ export class ShoppingOrderManager {
                                                 orderData.orderData.orderStatus = '-99';
                                                 dialog.dataLoading({
                                                     text: '刪除中',
-                                                    visible: true
+                                                    visible: true,
                                                 });
                                                 ApiShop.putOrder({
                                                     id: `${orderData.id}`,
@@ -2449,7 +2507,7 @@ export class ShoppingOrderManager {
                                                 }).then((response) => {
                                                     dialog.dataLoading({
                                                         text: '刪除中',
-                                                        visible: false
+                                                        visible: false,
                                                     });
                                                     if (response.result) {
                                                         dialog.infoMessage({
@@ -2497,8 +2555,8 @@ export class ShoppingOrderManager {
                     }
                 }),
                 divCreate: {
-                    class: `w-100`
-                }
+                    class: `w-100`,
+                },
             };
         });
     }
@@ -2647,8 +2705,8 @@ export class ShoppingOrderManager {
                 shipmentFree = false;
                 let leftHTML = newVoucher.title
                     ? html `
-                            <div>折扣</div>
-                            <div style="font-size: 14px;color:#8D8D8D;font-weight: 400;">${newVoucher.title}</div>
+                        <div>折扣</div>
+                        <div style="font-size: 14px;color:#8D8D8D;font-weight: 400;">${newVoucher.title}</div>
                     `
                     : `折扣`;
                 let rightTitle = '新增折扣';
@@ -2684,9 +2742,9 @@ export class ShoppingOrderManager {
                 let rightHTML = html `
                     <div style="color: #4D86DB;position: relative;">
                         <div
-                                class=" "
-                                style="cursor: pointer;width:158px;text-align: right"
-                                onclick="${gvc.event(() => {
+                            class=" "
+                            style="cursor: pointer;width:158px;text-align: right"
+                            onclick="${gvc.event(() => {
                     showDiscountEdit = !showDiscountEdit;
                     gvc.notifyDataChange('orderDetail');
                 })}"
@@ -2702,11 +2760,12 @@ export class ShoppingOrderManager {
                             var _a;
                             let discountHTML = ``;
                             let checkBox = html `
-                                            <div
-                                                    style="margin-right:6px;display: flex;width: 16px;height: 16px;justify-content: center;align-items: center;border-radius: 20px;border: 4px solid #393939"
-                                            ></div>`;
+                                        <div
+                                            style="margin-right:6px;display: flex;width: 16px;height: 16px;justify-content: center;align-items: center;border-radius: 20px;border: 4px solid #393939"
+                                        ></div>`;
                             let uncheckBox = html `
-                                            <div style="margin-right:6px;width: 16px;height: 16px;border-radius: 20px;border: 1px solid #DDD;"></div>`;
+                                        <div
+                                            style="margin-right:6px;width: 16px;height: 16px;border-radius: 20px;border: 1px solid #DDD;"></div>`;
                             showArray.map((rowData, index) => {
                                 if (rowData.select) {
                                     function drawVoucherDetail(rowData) {
@@ -2714,94 +2773,98 @@ export class ShoppingOrderManager {
                                             case 'rebate':
                                             case 'discount': {
                                                 return html `
-                                                                <div class="w-100 d-flex"
-                                                                     style="padding-left: 8px;margin-top: 8px;">
-                                                                    <div style="height: 100%;width:1px;background-color: #E5E5E5;margin-right: 14px;"></div>
-                                                                    <div style="display: flex;flex-direction: column;align-items: flex-start;gap: 12px;flex: 1 0 0;">
-                                                                        <div style="display: flex;flex-direction: column;align-items: flex-start;gap: 8px;align-self: stretch;">
-                                                                            <div
-                                                                                    style="display: flex;align-items: center;gap: 6px;"
-                                                                                    onclick="${gvc.event(() => {
+                                                            <div class="w-100 d-flex"
+                                                                 style="padding-left: 8px;margin-top: 8px;">
+                                                                <div
+                                                                    style="height: 100%;width:1px;background-color: #E5E5E5;margin-right: 14px;"></div>
+                                                                <div
+                                                                    style="display: flex;flex-direction: column;align-items: flex-start;gap: 12px;flex: 1 0 0;">
+                                                                    <div
+                                                                        style="display: flex;flex-direction: column;align-items: flex-start;gap: 8px;align-self: stretch;">
+                                                                        <div
+                                                                            style="display: flex;align-items: center;gap: 6px;"
+                                                                            onclick="${gvc.event(() => {
                                                     rowData.method = 'percent';
                                                     tempData.method = 'percent';
                                                     gvc.notifyDataChange('editDiscount');
                                                 })}"
-                                                                            >
-                                                                                ${rowData.method == 'percent' ? checkBox : uncheckBox}
-                                                                                百分比
-                                                                            </div>
-                                                                            <div
-                                                                                    style="${rowData.method == 'percent'
+                                                                        >
+                                                                            ${rowData.method == 'percent' ? checkBox : uncheckBox}
+                                                                            百分比
+                                                                        </div>
+                                                                        <div
+                                                                            style="${rowData.method == 'percent'
                                                     ? 'display: flex'
                                                     : 'display: none'};padding-left: 8px;align-items: center;gap: 14px;align-self: stretch;position:relative;"
-                                                                            >
-                                                                                <svg xmlns="http://www.w3.org/2000/svg"
-                                                                                     width="2" height="40"
-                                                                                     viewBox="0 0 2 40" fill="none">
-                                                                                    <path d="M1 0V40" stroke="#E5E5E5"/>
-                                                                                </svg>
-                                                                                <input
-                                                                                        class="w-100"
-                                                                                        style="border-radius: 10px;border: 1px solid #DDD;padding: 9px 18px;"
-                                                                                        type="number"
-                                                                                        max="100"
-                                                                                        min="1"
-                                                                                        value="${rowData.discount}"
-                                                                                        onchange="${gvc.event((e) => {
+                                                                        >
+                                                                            <svg xmlns="http://www.w3.org/2000/svg"
+                                                                                 width="2" height="40"
+                                                                                 viewBox="0 0 2 40" fill="none">
+                                                                                <path d="M1 0V40" stroke="#E5E5E5" />
+                                                                            </svg>
+                                                                            <input
+                                                                                class="w-100"
+                                                                                style="border-radius: 10px;border: 1px solid #DDD;padding: 9px 18px;"
+                                                                                type="number"
+                                                                                max="100"
+                                                                                min="1"
+                                                                                value="${rowData.discount}"
+                                                                                onchange="${gvc.event((e) => {
                                                     e.value = Math.min(e.value, 100);
                                                     rowData.discount = e.value;
                                                     tempData.discount = e.value;
                                                 })}"
-                                                                                />
-                                                                                <div
-                                                                                        class="h-100 d-flex align-items-center"
-                                                                                        style="color: #8D8D8D;font-size: 16px;font-style: normal;font-weight: 400;position: absolute;top:0;right:18px;"
-                                                                                >
-                                                                                    %
-                                                                                </div>
+                                                                            />
+                                                                            <div
+                                                                                class="h-100 d-flex align-items-center"
+                                                                                style="color: #8D8D8D;font-size: 16px;font-style: normal;font-weight: 400;position: absolute;top:0;right:18px;"
+                                                                            >
+                                                                                %
                                                                             </div>
                                                                         </div>
-                                                                        <div style="display: flex;gap: 6px;flex-direction: column;width: 100%;">
-                                                                            <div
-                                                                                    style="display: flex;align-items: center;gap: 6px;"
-                                                                                    onclick="${gvc.event(() => {
+                                                                    </div>
+                                                                    <div
+                                                                        style="display: flex;gap: 6px;flex-direction: column;width: 100%;">
+                                                                        <div
+                                                                            style="display: flex;align-items: center;gap: 6px;"
+                                                                            onclick="${gvc.event(() => {
                                                     rowData.method = 'fixed';
                                                     tempData.method = 'fixed';
                                                     gvc.notifyDataChange('editDiscount');
                                                 })}"
-                                                                            >
-                                                                                ${rowData.method == 'fixed' ? checkBox : uncheckBox}
-                                                                                固定金額
-                                                                            </div>
-                                                                            <div
-                                                                                    style="${rowData.method == 'fixed'
+                                                                        >
+                                                                            ${rowData.method == 'fixed' ? checkBox : uncheckBox}
+                                                                            固定金額
+                                                                        </div>
+                                                                        <div
+                                                                            style="${rowData.method == 'fixed'
                                                     ? 'display: flex'
                                                     : 'display: none'};padding-left: 8px;align-items: center;gap: 14px;align-self: stretch;position:relative;"
-                                                                            >
-                                                                                <svg xmlns="http://www.w3.org/2000/svg"
-                                                                                     width="2" height="40"
-                                                                                     viewBox="0 0 2 40" fill="none">
-                                                                                    <path d="M1 0V40" stroke="#E5E5E5"/>
-                                                                                </svg>
-                                                                                <input
-                                                                                        class="w-100"
-                                                                                        style="border-radius: 10px;border: 1px solid #DDD;padding: 9px 18px;"
-                                                                                        type="number"
-                                                                                        value="${rowData.discount}"
-                                                                                        min="1"
-                                                                                        onchange="${gvc.event((e) => {
+                                                                        >
+                                                                            <svg xmlns="http://www.w3.org/2000/svg"
+                                                                                 width="2" height="40"
+                                                                                 viewBox="0 0 2 40" fill="none">
+                                                                                <path d="M1 0V40" stroke="#E5E5E5" />
+                                                                            </svg>
+                                                                            <input
+                                                                                class="w-100"
+                                                                                style="border-radius: 10px;border: 1px solid #DDD;padding: 9px 18px;"
+                                                                                type="number"
+                                                                                value="${rowData.discount}"
+                                                                                min="1"
+                                                                                onchange="${gvc.event((e) => {
                                                     rowData.discount = e.value;
                                                     tempData.discount = e.value;
                                                 })}"
-                                                                                />
-                                                                                <div
-                                                                                        class="h-100 d-flex align-items-center"
-                                                                                        style="color: #8D8D8D;font-size: 16px;font-style: normal;font-weight: 400;position: absolute;top:0;right:18px;"
-                                                                                ></div>
-                                                                            </div>
+                                                                            />
+                                                                            <div
+                                                                                class="h-100 d-flex align-items-center"
+                                                                                style="color: #8D8D8D;font-size: 16px;font-style: normal;font-weight: 400;position: absolute;top:0;right:18px;"
+                                                                            ></div>
                                                                         </div>
                                                                     </div>
-                                                                </div>`;
+                                                                </div>
+                                                            </div>`;
                                             }
                                             default:
                                                 return ``;
@@ -2809,20 +2872,20 @@ export class ShoppingOrderManager {
                                     }
                                     tempData.reBackType = rowData.value;
                                     discountHTML += html `
-                                                    <div class="w-100 d-flex align-items-center flex-wrap"
-                                                         style="color:#393939">
-                                                        ${checkBox}
-                                                        <div>${rowData.text}</div>
-                                                        ${drawVoucherDetail(rowData)}
-                                                    </div>
-                                                `;
+                                                <div class="w-100 d-flex align-items-center flex-wrap"
+                                                     style="color:#393939">
+                                                    ${checkBox}
+                                                    <div>${rowData.text}</div>
+                                                    ${drawVoucherDetail(rowData)}
+                                                </div>
+                                            `;
                                 }
                                 else {
                                     discountHTML += html `
-                                                    <div
-                                                            class="w-100 d-flex align-items-center"
-                                                            style="color:#393939;cursor: pointer;"
-                                                            onclick="${gvc.event(() => {
+                                                <div
+                                                    class="w-100 d-flex align-items-center"
+                                                    style="color:#393939;cursor: pointer;"
+                                                    onclick="${gvc.event(() => {
                                         showArray = [
                                             {
                                                 value: 'discount',
@@ -2842,34 +2905,34 @@ export class ShoppingOrderManager {
                                         showArray[index].select = true;
                                         gvc.notifyDataChange('editDiscount');
                                     })}"
-                                                    >
-                                                        ${uncheckBox}
-                                                        <div>${rowData.text}</div>
-                                                    </div>
-                                                `;
+                                                >
+                                                    ${uncheckBox}
+                                                    <div>${rowData.text}</div>
+                                                </div>
+                                            `;
                                 }
                             });
                             return html `
-                                            <div class="d-flex flex-column " style="font-weight: 700;">
-                                                折扣名稱
-                                                <input
-                                                        class="w-100"
-                                                        style="border-radius: 10px;border: 1px solid #DDD;padding: 9px 18px;margin-top:12px;"
-                                                        value="${(_a = tempData.title) !== null && _a !== void 0 ? _a : ''}"
-                                                        onchange="${gvc.event((e) => {
+                                        <div class="d-flex flex-column " style="font-weight: 700;">
+                                            折扣名稱
+                                            <input
+                                                class="w-100"
+                                                style="border-radius: 10px;border: 1px solid #DDD;padding: 9px 18px;margin-top:12px;"
+                                                value="${(_a = tempData.title) !== null && _a !== void 0 ? _a : ''}"
+                                                onchange="${gvc.event((e) => {
                                 tempData.title = e.value;
                             })}"
-                                                />
-                                            </div>
-                                            <div class="d-flex flex-column" style="font-weight: 700;gap:8px;">折扣方式
-                                                ${discountHTML}
-                                            </div>
-                                            <div class="d-flex w-100 justify-content-end" style="gap:14px;">
-                                                ${BgWidget.cancel(gvc.event(() => {
+                                            />
+                                        </div>
+                                        <div class="d-flex flex-column" style="font-weight: 700;gap:8px;">折扣方式
+                                            ${discountHTML}
+                                        </div>
+                                        <div class="d-flex w-100 justify-content-end" style="gap:14px;">
+                                            ${BgWidget.cancel(gvc.event(() => {
                                 showDiscountEdit = !showDiscountEdit;
                                 gvc.notifyDataChange('orderDetail');
                             }))}
-                                                ${BgWidget.save(gvc.event(() => {
+                                            ${BgWidget.save(gvc.event(() => {
                                 showDiscountEdit = !showDiscountEdit;
                                 newVoucher.reBackType = tempData.reBackType;
                                 newVoucher.method = tempData.method;
@@ -2877,8 +2940,8 @@ export class ShoppingOrderManager {
                                 newVoucher.title = tempData.title;
                                 gvc.notifyDataChange('orderDetail');
                             }), '確定')}
-                                            </div>
-                                        `;
+                                        </div>
+                                    `;
                         },
                         divCreate: {
                             style: `display: flex;color:#393939;text-align: left;width: 348px;padding: 24px;flex-direction: column;gap: 18px;border-radius: 10px;background: #FFF;box-shadow: 2px 2px 10px 0px rgba(0, 0, 0, 0.15);position:absolute;right:0;top:33px;gap:18px;z-index:3;`,
@@ -3009,7 +3072,7 @@ export class ShoppingOrderManager {
                 </div>
                 <!-- 訂單內容 --- 商品資訊 -->
                 <div
-                        style="color: #393939;width: 100%;display: flex;padding: 20px;flex-direction: column;align-items: flex-start;gap: 18px;align-self: stretch;border-radius: 10px;background: #FFF;box-shadow: 0px 0px 10px 0px rgba(0, 0, 0, 0.08);"
+                    style="color: #393939;width: 100%;display: flex;padding: 20px;flex-direction: column;align-items: flex-start;gap: 18px;align-self: stretch;border-radius: 10px;background: #FFF;box-shadow: 0px 0px 10px 0px rgba(0, 0, 0, 0.08);"
                 >
                     <div class="tx_700">訂單內容</div>
                     <div style="width: 100%;display: flex;align-items: center;padding-right: 20px;">
@@ -3033,12 +3096,16 @@ export class ShoppingOrderManager {
                         productIMG = productIMG ? productIMG : product.content.preview_image[0] ? product.content.preview_image[0] : BgWidget.noImageURL;
                         selectVariant.qty = selectVariant.qty || 1;
                         returnHTML += html `
-                                        <div style="width: 100%;display: flex;align-items: center;position: relative;padding-right: 20px;">
+                                        <div
+                                            style="width: 100%;display: flex;align-items: center;position: relative;padding-right: 20px;">
                                             <div class="flex-fill d-flex align-items-center col-5"
                                                  style="font-size: 16px;font-weight: 700;gap: 12px;">
-                                                <div style="width: 54px;height: 54px; background: url('${productIMG}') lightgray 50% / cover no-repeat;"></div>
-                                                <div style="display: flex;flex-direction: column;align-items: flex-start;gap: 4px;width: calc(100% - 54px);padding-right: 15px;">
-                                                    <div style="text-overflow: ellipsis;white-space: nowrap;overflow: hidden;width: 100%;">
+                                                <div
+                                                    style="width: 54px;height: 54px; background: url('${productIMG}') lightgray 50% / cover no-repeat;"></div>
+                                                <div
+                                                    style="display: flex;flex-direction: column;align-items: flex-start;gap: 4px;width: calc(100% - 54px);padding-right: 15px;">
+                                                    <div
+                                                        style="text-overflow: ellipsis;white-space: nowrap;overflow: hidden;width: 100%;">
                                                         ${product.content.title}
                                                     </div>
                                                     <div class="d-flex" style="gap:8px;font-weight: 400;">
@@ -3048,7 +3115,7 @@ export class ShoppingOrderManager {
                                 selectVariant.spec.map((spec) => {
                                     tempHTML += html `
                                                                         <div
-                                                                                style="display: flex;height: 22px;padding: 4px 6px;justify-content: center;align-items: center;gap: 10px;border-radius: 7px;background: #EAEAEA;"
+                                                                            style="display: flex;height: 22px;padding: 4px 6px;justify-content: center;align-items: center;gap: 10px;border-radius: 7px;background: #EAEAEA;"
                                                                         >
                                                                             ${spec}
                                                                         </div>`;
@@ -3058,7 +3125,7 @@ export class ShoppingOrderManager {
                             else {
                                 return html `
                                                                     <div
-                                                                            style="display: flex;height: 22px;padding: 4px 6px;justify-content: center;align-items: center;gap: 10px;border-radius: 7px;background: #EAEAEA;"
+                                                                        style="display: flex;height: 22px;padding: 4px 6px;justify-content: center;align-items: center;gap: 10px;border-radius: 7px;background: #EAEAEA;"
                                                                     >
                                                                         單一規格
                                                                     </div>
@@ -3081,11 +3148,11 @@ export class ShoppingOrderManager {
                                             </div>
                                             <div class="tx_700" style="width:15%">
                                                 <input
-                                                        type="number"
-                                                        value="${selectVariant.qty}"
-                                                        style="width: 80px;transform: translateX(-16px);text-align: center;display: flex;padding: 9px 18px;align-items: center;gap: 32px;border-radius: 10px;border: 1px solid #DDD;"
-                                                        min="0"
-                                                        onchange="${gvc.event((e) => {
+                                                    type="number"
+                                                    value="${selectVariant.qty}"
+                                                    style="width: 80px;transform: translateX(-16px);text-align: center;display: flex;padding: 9px 18px;align-items: center;gap: 32px;border-radius: 10px;border: 1px solid #DDD;"
+                                                    min="0"
+                                                    onchange="${gvc.event((e) => {
                             if (e.value < 1) {
                                 const dialog = new ShareDialog(glitter);
                                 dialog.warningMessage({
@@ -3110,12 +3177,13 @@ export class ShoppingOrderManager {
                         })}"
                                                 />
                                             </div>
-                                            <div style="min-width: 6%;font-size: 16px;font-weight: 400;width: 50px;text-align: right;">
+                                            <div
+                                                style="min-width: 6%;font-size: 16px;font-weight: 400;width: 50px;text-align: right;">
                                                 <span>$${(selectVariant.sale_price * selectVariant.qty).toLocaleString()}</span>
                                                 <div
-                                                        class="d-flex align-items-center cursor_pointer"
-                                                        style="position: absolute;right:0;top:50%;transform: translateY(-50%)"
-                                                        onclick="${gvc.event(() => {
+                                                    class="d-flex align-items-center cursor_pointer"
+                                                    style="position: absolute;right:0;top:50%;transform: translateY(-50%)"
+                                                    onclick="${gvc.event(() => {
                             newOrder.productCheck.splice(index, 1);
                             gvc.notifyDataChange('listProduct');
                         })}"
@@ -3123,9 +3191,9 @@ export class ShoppingOrderManager {
                                                     <svg xmlns="http://www.w3.org/2000/svg" width="11" height="10"
                                                          viewBox="0 0 11 10" fill="none">
                                                         <path d="M1.51367 9.24219L9.99895 0.756906" stroke="#DDDDDD"
-                                                              stroke-width="1.3" stroke-linecap="round"/>
+                                                              stroke-width="1.3" stroke-linecap="round" />
                                                         <path d="M9.99805 9.24219L1.51276 0.756907" stroke="#DDDDDD"
-                                                              stroke-width="1.3" stroke-linecap="round"/>
+                                                              stroke-width="1.3" stroke-linecap="round" />
                                                     </svg>
                                                 </div>
                                             </div>
@@ -3145,9 +3213,9 @@ export class ShoppingOrderManager {
             view: () => {
                 return html `
                                 <div
-                                        class="w-100 d-flex justify-content-center align-items-center"
-                                        style="color: #36B;"
-                                        onclick="${gvc.event(() => {
+                                    class="w-100 d-flex justify-content-center align-items-center"
+                                    style="color: #36B;"
+                                    onclick="${gvc.event(() => {
                     let confirm = true;
                     window.parent.glitter.innerDialog((gvc) => {
                         newOrder.query = '';
@@ -3160,41 +3228,42 @@ export class ShoppingOrderManager {
                                 let width = window.innerWidth > 1000 ? 690 : 350;
                                 let searchLoading = false;
                                 return html `
-                                                                    <div
-                                                                            style="display: flex;width: ${width}px;flex-direction: column;align-items: flex-start;gap: 18px;border-radius: 10px;background: #FFF;"
-                                                                    >
+                                                            <div
+                                                                style="display: flex;width: ${width}px;flex-direction: column;align-items: flex-start;gap: 18px;border-radius: 10px;background: #FFF;"
+                                                            >
+                                                                <div
+                                                                    class="w-100"
+                                                                    style="display: flex;height: 46px;padding: 20px 20px 12px;align-items: center;align-self: stretch;color: #393939;font-size: 16px;font-weight: 700;"
+                                                                >
+                                                                    搜尋商品
+                                                                </div>
+                                                                <div class="w-100"
+                                                                     style="display: flex;flex-direction: column;align-items: flex-start;gap: 12px;">
+                                                                    <div class="w-100"
+                                                                         style="display: flex;padding: 0px 24px;flex-direction: column;align-items: center;gap: 18px;">
                                                                         <div
-                                                                                class="w-100"
-                                                                                style="display: flex;height: 46px;padding: 20px 20px 12px;align-items: center;align-self: stretch;color: #393939;font-size: 16px;font-weight: 700;"
-                                                                        >
-                                                                            搜尋商品
-                                                                        </div>
-                                                                        <div class="w-100"
-                                                                             style="display: flex;flex-direction: column;align-items: flex-start;gap: 12px;">
-                                                                            <div class="w-100"
-                                                                                 style="display: flex;padding: 0px 24px;flex-direction: column;align-items: center;gap: 18px;">
-                                                                                <div style="display: flex;justify-content: center;align-items: flex-start;gap: 12px;align-self: stretch;">
-                                                                                    <div class="w-100 position-relative">
-                                                                                        <i
-                                                                                                class="fa-regular fa-magnifying-glass"
-                                                                                                style="font-size: 18px; color: #A0A0A0; position: absolute; left: 18px; top: 50%; transform: translateY(-50%);"
-                                                                                                aria-hidden="true"
-                                                                                        ></i>
-                                                                                        <input
-                                                                                                class="form-control h-100"
-                                                                                                style="border-radius: 10px; border: 1px solid #DDD; padding-left: 50px;"
-                                                                                                placeholder="輸入商品名稱或商品貨號"
-                                                                                                oninput="${gvc.event((e) => {
+                                                                            style="display: flex;justify-content: center;align-items: flex-start;gap: 12px;align-self: stretch;">
+                                                                            <div class="w-100 position-relative">
+                                                                                <i
+                                                                                    class="fa-regular fa-magnifying-glass"
+                                                                                    style="font-size: 18px; color: #A0A0A0; position: absolute; left: 18px; top: 50%; transform: translateY(-50%);"
+                                                                                    aria-hidden="true"
+                                                                                ></i>
+                                                                                <input
+                                                                                    class="form-control h-100"
+                                                                                    style="border-radius: 10px; border: 1px solid #DDD; padding-left: 50px;"
+                                                                                    placeholder="輸入商品名稱或商品貨號"
+                                                                                    oninput="${gvc.event((e) => {
                                     searchLoading = false;
                                     newOrder.query = e.value;
                                     newOrder.productArray = [];
                                     gvc.notifyDataChange('productArray');
                                 })}"
-                                                                                                value="${(_a = newOrder.query) !== null && _a !== void 0 ? _a : ''}"
-                                                                                        />
-                                                                                    </div>
+                                                                                    value="${(_a = newOrder.query) !== null && _a !== void 0 ? _a : ''}"
+                                                                                />
+                                                                            </div>
 
-                                                                                    ${BgWidget.updownFilter({
+                                                                            ${BgWidget.updownFilter({
                                     gvc,
                                     callback: (value) => {
                                         searchLoading = false;
@@ -3205,11 +3274,11 @@ export class ShoppingOrderManager {
                                     default: newOrder.orderString || 'default',
                                     options: FilterOptions.productOrderBy,
                                 })}
-                                                                                </div>
-                                                                                <div
-                                                                                        style="height:350px;display: flex;justify-content: center;align-items: flex-start;padding-right: 24px;align-self: stretch;overflow-y: scroll;"
-                                                                                >
-                                                                                    ${gvc.bindView({
+                                                                        </div>
+                                                                        <div
+                                                                            style="height:350px;display: flex;justify-content: center;align-items: flex-start;padding-right: 24px;align-self: stretch;overflow-y: scroll;"
+                                                                        >
+                                                                            ${gvc.bindView({
                                     bind: 'productArray',
                                     view: () => {
                                         if (!searchLoading) {
@@ -3227,10 +3296,11 @@ export class ShoppingOrderManager {
                                         }
                                         if (newOrder.productArray.length == 0) {
                                             return html `
-                                                                                                    <div class="w-100 h-100 d-flex align-items-center justify-content-center"
-                                                                                                         style="color:#8D8D8D;">
-                                                                                                        查無此商品
-                                                                                                    </div>`;
+                                                                                            <div
+                                                                                                class="w-100 h-100 d-flex align-items-center justify-content-center"
+                                                                                                style="color:#8D8D8D;">
+                                                                                                查無此商品
+                                                                                            </div>`;
                                         }
                                         return newOrder.productArray
                                             .map((product, productIndex) => {
@@ -3238,98 +3308,101 @@ export class ShoppingOrderManager {
                                                 bind: `product${productIndex}`,
                                                 view: () => {
                                                     return html `
-                                                                                                                    ${(() => {
+                                                                                                        ${(() => {
                                                         if (product.select) {
                                                             return html `
-                                                                                                                                <svg
-                                                                                                                                        xmlns="http://www.w3.org/2000/svg"
-                                                                                                                                        width="16"
-                                                                                                                                        height="16"
-                                                                                                                                        viewBox="0 0 16 16"
-                                                                                                                                        fill="none"
-                                                                                                                                        onclick="${gvc.event(() => {
+                                                                                                                    <svg
+                                                                                                                        xmlns="http://www.w3.org/2000/svg"
+                                                                                                                        width="16"
+                                                                                                                        height="16"
+                                                                                                                        viewBox="0 0 16 16"
+                                                                                                                        fill="none"
+                                                                                                                        onclick="${gvc.event(() => {
                                                                 product.select = false;
                                                                 gvc.notifyDataChange(`product${productIndex}`);
                                                             })}"
-                                                                                                                                >
-                                                                                                                                    <rect width="16"
-                                                                                                                                          height="16"
-                                                                                                                                          rx="3"
-                                                                                                                                          fill="#393939"/>
-                                                                                                                                    <path
-                                                                                                                                            d="M4.5 8.5L7 11L11.5 5"
-                                                                                                                                            stroke="white"
-                                                                                                                                            stroke-width="2"
-                                                                                                                                            stroke-linecap="round"
-                                                                                                                                            stroke-linejoin="round"
-                                                                                                                                    />
-                                                                                                                                </svg>`;
+                                                                                                                    >
+                                                                                                                        <rect
+                                                                                                                            width="16"
+                                                                                                                            height="16"
+                                                                                                                            rx="3"
+                                                                                                                            fill="#393939" />
+                                                                                                                        <path
+                                                                                                                            d="M4.5 8.5L7 11L11.5 5"
+                                                                                                                            stroke="white"
+                                                                                                                            stroke-width="2"
+                                                                                                                            stroke-linecap="round"
+                                                                                                                            stroke-linejoin="round"
+                                                                                                                        />
+                                                                                                                    </svg>`;
                                                         }
                                                         else {
                                                             return html `
-                                                                                                                                <div
-                                                                                                                                        style="display: flex;align-items: center;justify-content: center;height: 60px;width: 16px;cursor: pointer;"
-                                                                                                                                        onclick="${gvc.event(() => {
+                                                                                                                    <div
+                                                                                                                        style="display: flex;align-items: center;justify-content: center;height: 60px;width: 16px;cursor: pointer;"
+                                                                                                                        onclick="${gvc.event(() => {
                                                                 product.select = true;
                                                                 if (product.content.variants.length > 1) {
                                                                     product.selectIndex = window.parent.document.querySelector('.varitantSelect').value;
                                                                 }
                                                                 gvc.notifyDataChange(`product${productIndex}`);
                                                             })}"
-                                                                                                                                >
-                                                                                                                                    <div
-                                                                                                                                            style="width: 16px;height: 16px;border-radius: 3px;border: 1px solid #DDD;cursor: pointer;"
-                                                                                                                                    ></div>
-                                                                                                                                </div>
-                                                                                                                            `;
+                                                                                                                    >
+                                                                                                                        <div
+                                                                                                                            style="width: 16px;height: 16px;border-radius: 3px;border: 1px solid #DDD;cursor: pointer;"
+                                                                                                                        ></div>
+                                                                                                                    </div>
+                                                                                                                `;
                                                         }
                                                     })()}
-                                                                                                                    <div
-                                                                                                                            style="width: 50px;height: 50px;border-radius: 5px;background: url('${product.content
+                                                                                                        <div
+                                                                                                            style="width: 50px;height: 50px;border-radius: 5px;background: url('${product.content
                                                         .preview_image[0]}') lightgray 50% / cover no-repeat;"
-                                                                                                                    ></div>
-                                                                                                                    <div class="flex-fill d-flex flex-column">
-                                                                                                                        <div style="color:#393939;font-size: 14px;font-weight: 400;margin-bottom: 4px;">
-                                                                                                                            ${product.content.title}
-                                                                                                                        </div>
-                                                                                                                        ${(() => {
+                                                                                                        ></div>
+                                                                                                        <div
+                                                                                                            class="flex-fill d-flex flex-column">
+                                                                                                            <div
+                                                                                                                style="color:#393939;font-size: 14px;font-weight: 400;margin-bottom: 4px;">
+                                                                                                                ${product.content.title}
+                                                                                                            </div>
+                                                                                                            ${(() => {
                                                         if (product.content.variants.length > 1) {
                                                             return html `
-                                                                                                                                    <select
-                                                                                                                                            class="w-100 d-flex align-items-center form-select varitantSelect"
-                                                                                                                                            style="border-radius: 10px;border: 1px solid #DDD;padding: 6px 18px;"
-                                                                                                                                            onchange="${gvc.event((e) => {
+                                                                                                                        <select
+                                                                                                                            class="w-100 d-flex align-items-center form-select varitantSelect"
+                                                                                                                            style="border-radius: 10px;border: 1px solid #DDD;padding: 6px 18px;"
+                                                                                                                            onchange="${gvc.event((e) => {
                                                                 product.selectIndex = e.value;
                                                             })}"
-                                                                                                                                    >
-                                                                                                                                        ${(() => {
+                                                                                                                        >
+                                                                                                                            ${(() => {
                                                                 let optionHTML = ``;
                                                                 product.content.variants.map((variant, index) => {
                                                                     optionHTML += html `
-                                                                                                                                                    <option
-                                                                                                                                                            value="${index}"
-                                                                                                                                                            ${(() => {
+                                                                                                                                        <option
+                                                                                                                                            value="${index}"
+                                                                                                                                            ${(() => {
                                                                         if (product.selectIndex == index)
                                                                             return `selected`;
                                                                         else
                                                                             return ``;
                                                                     })()}
-                                                                                                                                                    >
-                                                                                                                                                        ${variant.spec.join(', ')}
-                                                                                                                                                    </option>
-                                                                                                                                                `;
+                                                                                                                                        >
+                                                                                                                                            ${variant.spec.join(', ')}
+                                                                                                                                        </option>
+                                                                                                                                    `;
                                                                 });
                                                                 return optionHTML;
                                                             })()}
-                                                                                                                                    </select>
-                                                                                                                                `;
+                                                                                                                        </select>
+                                                                                                                    `;
                                                         }
                                                         else {
                                                             return `<div class="d-flex align-items-center" style="height: 34px;color: #8D8D8D;font-size: 14px;font-weight: 400;">單一規格</div>`;
                                                         }
                                                     })()}
-                                                                                                                    </div>
-                                                                                                                `;
+                                                                                                        </div>
+                                                                                                    `;
                                                 },
                                                 divCreate: {
                                                     style: `display: flex;padding: 0px 12px;align-items: center;gap: 18px;align-self: stretch;`,
@@ -3343,15 +3416,15 @@ export class ShoppingOrderManager {
                                         style: `gap: 18px;width:100%;`,
                                     },
                                 })}
-                                                                                </div>
-                                                                            </div>
-                                                                            <div class="w-100"
-                                                                                 style="display: flex;padding: 12px 20px;align-items: center;justify-content: end;gap: 10px;">
-                                                                                ${BgWidget.cancel(gvc.event(() => {
+                                                                        </div>
+                                                                    </div>
+                                                                    <div class="w-100"
+                                                                         style="display: flex;padding: 12px 20px;align-items: center;justify-content: end;gap: 10px;">
+                                                                        ${BgWidget.cancel(gvc.event(() => {
                                     confirm = false;
                                     gvc.closeDialog();
                                 }))}
-                                                                                ${BgWidget.save(gvc.event(() => {
+                                                                        ${BgWidget.save(gvc.event(() => {
                                     confirm = true;
                                     newOrder.productTemp = [];
                                     newOrder.productArray.map((product) => {
@@ -3361,9 +3434,9 @@ export class ShoppingOrderManager {
                                     });
                                     gvc.closeDialog();
                                 }))}
-                                                                            </div>
-                                                                        </div>
-                                                                    </div>`;
+                                                                    </div>
+                                                                </div>
+                                                            </div>`;
                             },
                             divCreate: {},
                         });
@@ -3401,9 +3474,9 @@ export class ShoppingOrderManager {
                                     <svg style="margin-left: 5px;" xmlns="http://www.w3.org/2000/svg" width="14"
                                          height="14" viewBox="0 0 14 14" fill="none">
                                         <path d="M1.5 7.23926H12.5" stroke="#3366BB" stroke-width="2"
-                                              stroke-linecap="round" stroke-linejoin="round"/>
+                                              stroke-linecap="round" stroke-linejoin="round" />
                                         <path d="M6.76172 1.5L6.76172 12.5" stroke="#3366BB" stroke-width="2"
-                                              stroke-linecap="round" stroke-linejoin="round"/>
+                                              stroke-linecap="round" stroke-linejoin="round" />
                                     </svg>
                                 </div>
                             `;
@@ -3424,9 +3497,11 @@ export class ShoppingOrderManager {
                 var _a, _b, _c, _d, _e;
                 customerData.info.searchable = true;
                 let checkBox = html `
-                                    <div style="display: flex;width: 16px;height: 16px;justify-content: center;align-items: center;border-radius: 20px;border: solid 4px #393939"></div>`;
+                                <div
+                                    style="display: flex;width: 16px;height: 16px;justify-content: center;align-items: center;border-radius: 20px;border: solid 4px #393939"></div>`;
                 let uncheckBox = html `
-                                    <div style="width: 16px;height: 16px;border-radius: 20px;border: 1px solid #DDD;"></div>`;
+                                <div
+                                    style="width: 16px;height: 16px;border-radius: 20px;border: 1px solid #DDD;"></div>`;
                 function syncUserData() {
                     if (CVSCheck) {
                         return;
@@ -3437,24 +3512,25 @@ export class ShoppingOrderManager {
                 }
                 syncUserData();
                 return html `
-                                    <div class="tx_700">顧客資料</div>
-                                    <div class="d-flex flex-column">
-                                        ${customerData.type == 'auto'
+                                <div class="tx_700">顧客資料</div>
+                                <div class="d-flex flex-column">
+                                    ${customerData.type == 'auto'
                     ? html `
-                                                    <div class="d-flex align-items-center" style="cursor: pointer;">
-                                                        ${checkBox}
-                                                        <div style="margin-left: 6px">現有的顧客</div>
-                                                    </div>
-                                                    <div class="d-flex align-items-center position-relative"
-                                                         style="min-height:40px;padding-left: 22px;margin-top: 8px;">
-                                                        <div style="height: 100%;width:1px;background-color: #E5E5E5;position: absolute;left: 8px;top: 0;"></div>
-                                                        <div class="position-relative w-100 d-flex flex-column">
-                                                            <input
-                                                                    class="w-100 searchInput"
-                                                                    placeholder="搜尋現有顧客"
-                                                                    value="${(_b = (_a = orderDetail.customer_info.email) !== null && _a !== void 0 ? _a : customerData.info.search) !== null && _b !== void 0 ? _b : ''}"
-                                                                    style="padding: 9px 18px;border-radius: 10px;border: 1px solid #DDD;"
-                                                                    onkeyup="${gvc.event((e) => {
+                                            <div class="d-flex align-items-center" style="cursor: pointer;">
+                                                ${checkBox}
+                                                <div style="margin-left: 6px">現有的顧客</div>
+                                            </div>
+                                            <div class="d-flex align-items-center position-relative"
+                                                 style="min-height:40px;padding-left: 22px;margin-top: 8px;">
+                                                <div
+                                                    style="height: 100%;width:1px;background-color: #E5E5E5;position: absolute;left: 8px;top: 0;"></div>
+                                                <div class="position-relative w-100 d-flex flex-column">
+                                                    <input
+                                                        class="w-100 searchInput"
+                                                        placeholder="搜尋現有顧客"
+                                                        value="${(_b = (_a = orderDetail.customer_info.email) !== null && _a !== void 0 ? _a : customerData.info.search) !== null && _b !== void 0 ? _b : ''}"
+                                                        style="padding: 9px 18px;border-radius: 10px;border: 1px solid #DDD;"
+                                                        onkeyup="${gvc.event((e) => {
                         if (customerData.info.searchable) {
                             customerData.info.searchable = false;
                             customerData.info.search = e.value;
@@ -3471,8 +3547,8 @@ export class ShoppingOrderManager {
                             }, 100);
                         }
                     })}"
-                                                            />
-                                                            ${gvc.bindView({
+                                                    />
+                                                    ${gvc.bindView({
                         bind: `accountSelect`,
                         dataList: [{ obj: customerData, key: 'pageType' }],
                         view: () => {
@@ -3490,10 +3566,10 @@ export class ShoppingOrderManager {
                                     rowData.map((data) => {
                                         var _a, _b;
                                         selectHTML += html `
-                                                                                    <div
-                                                                                            class="w-100"
-                                                                                            style="cursor: pointer;"
-                                                                                            onclick="${gvc.event(() => {
+                                                                            <div
+                                                                                class="w-100"
+                                                                                style="cursor: pointer;"
+                                                                                onclick="${gvc.event(() => {
                                             var _a, _b, _c, _d, _e;
                                             tempUserData[customerData.type] = data;
                                             orderDetail.customer_info.name = (_a = data.userData.name) !== null && _a !== void 0 ? _a : '';
@@ -3502,40 +3578,40 @@ export class ShoppingOrderManager {
                                             customerData.pageType = 'check';
                                             document.querySelector(`.searchInput`).value = `${(_d = data.userData.name) !== null && _d !== void 0 ? _d : 'uname'}(${(_e = data.account) !== null && _e !== void 0 ? _e : 'unknown email'})`;
                                         })}"
-                                                                                    >
-                                                                                        ${(_a = data.userData.name) !== null && _a !== void 0 ? _a : 'uname'}
-                                                                                            (${(_b = data.account) !== null && _b !== void 0 ? _b : 'unknown email'}
-                                                                                        )
-                                                                                    </div>
-                                                                                `;
+                                                                            >
+                                                                                ${(_a = data.userData.name) !== null && _a !== void 0 ? _a : 'uname'}
+                                                                                    (${(_b = data.account) !== null && _b !== void 0 ? _b : 'unknown email'}
+                                                                                )
+                                                                            </div>
+                                                                        `;
                                     });
                                     return html `
-                                                                                <div
-                                                                                        class="w-100 d-flex flex-column"
-                                                                                        style="gap:12px;position: absolute;right: 0; top: calc(100% + 12px);background-color: white;padding: 24px;flex-direction: column;justify-content: center;align-items: flex-start;border-radius: 10px;border: 1px solid #DDD;box-shadow: 2px 2px 10px 0px rgba(0, 0, 0, 0.15);"
-                                                                                >
-                                                                                    ${selectHTML}
-                                                                                </div>
-                                                                            `;
+                                                                        <div
+                                                                            class="w-100 d-flex flex-column"
+                                                                            style="gap:12px;position: absolute;right: 0; top: calc(100% + 12px);background-color: white;padding: 24px;flex-direction: column;justify-content: center;align-items: flex-start;border-radius: 10px;border: 1px solid #DDD;box-shadow: 2px 2px 10px 0px rgba(0, 0, 0, 0.15);"
+                                                                        >
+                                                                            ${selectHTML}
+                                                                        </div>
+                                                                    `;
                                 }
                                 case 'check': {
                                     return html `
-                                                                                <div>姓名</div>
-                                                                                <div class="w-100"
-                                                                                     style="border-radius: 10px;border: 1px solid #DDD;background: #F7F7F7;padding: 9px 18px;">
-                                                                                    ${(_a = tempUserData[customerData.type].userData.name) !== null && _a !== void 0 ? _a : 'uname'}
-                                                                                </div>
-                                                                                <div>電子信箱</div>
-                                                                                <div class="w-100"
-                                                                                     style="border-radius: 10px;border: 1px solid #DDD;background: #F7F7F7;padding: 9px 18px;">
-                                                                                    ${(_b = tempUserData[customerData.type].account) !== null && _b !== void 0 ? _b : 'unknown email'}
-                                                                                </div>
-                                                                                <div>電話</div>
-                                                                                <div class="w-100"
-                                                                                     style="min-height:45px;border-radius: 10px;border: 1px solid #DDD;background: #F7F7F7;padding: 9px 18px;">
-                                                                                    ${(_c = tempUserData[customerData.type].phone) !== null && _c !== void 0 ? _c : ''}
-                                                                                </div>
-                                                                            `;
+                                                                        <div>姓名</div>
+                                                                        <div class="w-100"
+                                                                             style="border-radius: 10px;border: 1px solid #DDD;background: #F7F7F7;padding: 9px 18px;">
+                                                                            ${(_a = tempUserData[customerData.type].userData.name) !== null && _a !== void 0 ? _a : 'uname'}
+                                                                        </div>
+                                                                        <div>電子信箱</div>
+                                                                        <div class="w-100"
+                                                                             style="border-radius: 10px;border: 1px solid #DDD;background: #F7F7F7;padding: 9px 18px;">
+                                                                            ${(_b = tempUserData[customerData.type].account) !== null && _b !== void 0 ? _b : 'unknown email'}
+                                                                        </div>
+                                                                        <div>電話</div>
+                                                                        <div class="w-100"
+                                                                             style="min-height:45px;border-radius: 10px;border: 1px solid #DDD;background: #F7F7F7;padding: 9px 18px;">
+                                                                            ${(_c = tempUserData[customerData.type].phone) !== null && _c !== void 0 ? _c : ''}
+                                                                        </div>
+                                                                    `;
                                 }
                                 case undefined:
                                 case 'none': {
@@ -3546,14 +3622,14 @@ export class ShoppingOrderManager {
                         },
                         divCreate: {},
                     })}
-                                                        </div>
-                                                    </div>
-                                                `
+                                                </div>
+                                            </div>
+                                        `
                     : html `
-                                                    <div
-                                                            class="d-flex align-items-center"
-                                                            style="margin-bottom: 12px;cursor: pointer;"
-                                                            onclick="${gvc.event(() => {
+                                            <div
+                                                class="d-flex align-items-center"
+                                                style="margin-bottom: 12px;cursor: pointer;"
+                                                onclick="${gvc.event(() => {
                         if (customerData.type == 'manual') {
                             orderDetail.user_info = {
                                 CVSAddress: '',
@@ -3573,50 +3649,51 @@ export class ShoppingOrderManager {
                         customerData.sameCustomer = false;
                         gvc.notifyDataChange('setLogistics');
                     })}"
-                                                    >
-                                                        ${uncheckBox}
-                                                        <div style="margin-left: 6px">現有的顧客</div>
-                                                    </div>`}
-                                        ${customerData.type == 'manual'
+                                            >
+                                                ${uncheckBox}
+                                                <div style="margin-left: 6px">現有的顧客</div>
+                                            </div>`}
+                                    ${customerData.type == 'manual'
                     ? html `
-                                                    <div class="d-flex align-items-center" style="cursor: pointer;">
-                                                        ${checkBox}
-                                                        <div style="margin-left: 6px">手動加入顧客</div>
-                                                    </div>
-                                                    <div class="d-flex align-items-center position-relative"
-                                                         style="min-height:40px;padding-left: 22px;margin-top: 8px;">
-                                                        <div style="height: 100%;width:1px;background-color: #E5E5E5;position: absolute;left: 8px;top: 0;"></div>
-                                                        <div class="position-relative w-100 d-flex flex-column"
-                                                             style="gap:8px;">
-                                                            <div>姓名</div>
-                                                            <input
-                                                                    class="w-100"
-                                                                    value="${(_c = orderDetail.user_info.name) !== null && _c !== void 0 ? _c : ''}"
-                                                                    style="border-radius: 10px;border: 1px solid #DDD;padding: 9px 18px;"
-                                                                    placeholder="請輸入姓名"
-                                                                    onchange="${gvc.event((e) => {
+                                            <div class="d-flex align-items-center" style="cursor: pointer;">
+                                                ${checkBox}
+                                                <div style="margin-left: 6px">手動加入顧客</div>
+                                            </div>
+                                            <div class="d-flex align-items-center position-relative"
+                                                 style="min-height:40px;padding-left: 22px;margin-top: 8px;">
+                                                <div
+                                                    style="height: 100%;width:1px;background-color: #E5E5E5;position: absolute;left: 8px;top: 0;"></div>
+                                                <div class="position-relative w-100 d-flex flex-column"
+                                                     style="gap:8px;">
+                                                    <div>姓名</div>
+                                                    <input
+                                                        class="w-100"
+                                                        value="${(_c = orderDetail.user_info.name) !== null && _c !== void 0 ? _c : ''}"
+                                                        style="border-radius: 10px;border: 1px solid #DDD;padding: 9px 18px;"
+                                                        placeholder="請輸入姓名"
+                                                        onchange="${gvc.event((e) => {
                         tempUserData[customerData.type].name = e.value;
                         orderDetail.user_info.name = e.value;
                     })}"
-                                                            />
-                                                            <div>電話</div>
-                                                            <input
-                                                                    class="w-100"
-                                                                    value="${(_d = orderDetail.user_info.phone) !== null && _d !== void 0 ? _d : ''}"
-                                                                    style="border-radius: 10px;border: 1px solid #DDD;padding: 9px 18px;"
-                                                                    placeholder="請輸入電話"
-                                                                    onchange="${gvc.event((e) => {
+                                                    />
+                                                    <div>電話</div>
+                                                    <input
+                                                        class="w-100"
+                                                        value="${(_d = orderDetail.user_info.phone) !== null && _d !== void 0 ? _d : ''}"
+                                                        style="border-radius: 10px;border: 1px solid #DDD;padding: 9px 18px;"
+                                                        placeholder="請輸入電話"
+                                                        onchange="${gvc.event((e) => {
                         tempUserData[customerData.type].phone = e.value;
                         orderDetail.user_info.phone = e.value;
                     })}"
-                                                            />
-                                                            <div>電子信箱</div>
-                                                            <input
-                                                                    class="w-100"
-                                                                    value="${(_e = orderDetail.user_info.email) !== null && _e !== void 0 ? _e : ''}"
-                                                                    style="border-radius: 10px;border: 1px solid #DDD;padding: 9px 18px;"
-                                                                    placeholder="請輸入電子信箱，同時會註冊暫時會員"
-                                                                    onchange="${gvc.event((e) => {
+                                                    />
+                                                    <div>電子信箱</div>
+                                                    <input
+                                                        class="w-100"
+                                                        value="${(_e = orderDetail.user_info.email) !== null && _e !== void 0 ? _e : ''}"
+                                                        style="border-radius: 10px;border: 1px solid #DDD;padding: 9px 18px;"
+                                                        placeholder="請輸入電子信箱，同時會註冊暫時會員"
+                                                        onchange="${gvc.event((e) => {
                         tempUserData[customerData.type].email = e.value;
                         ApiUser.getEmailCount(e.value).then((r) => {
                             if (r.response.result) {
@@ -3628,15 +3705,15 @@ export class ShoppingOrderManager {
                         });
                         orderDetail.user_info.email = e.value;
                     })}"
-                                                            />
-                                                        </div>
-                                                    </div>
-                                                `
+                                                    />
+                                                </div>
+                                            </div>
+                                        `
                     : html `
-                                                    <div
-                                                            class="d-flex align-items-center"
-                                                            style="margin-top: 12px;cursor: pointer;"
-                                                            onclick="${gvc.event(() => {
+                                            <div
+                                                class="d-flex align-items-center"
+                                                style="margin-top: 12px;cursor: pointer;"
+                                                onclick="${gvc.event(() => {
                         if (customerData.type == 'auto') {
                             orderDetail.user_info = {
                                 CVSAddress: '',
@@ -3656,12 +3733,12 @@ export class ShoppingOrderManager {
                         customerData.sameCustomer = false;
                         gvc.notifyDataChange(['setLogistics']);
                     })}"
-                                                    >
-                                                        ${uncheckBox}
-                                                        <div style="margin-left: 6px;">手動加入顧客</div>
-                                                    </div>`}
-                                    </div>
-                                `;
+                                            >
+                                                ${uncheckBox}
+                                                <div style="margin-left: 6px;">手動加入顧客</div>
+                                            </div>`}
+                                </div>
+                            `;
             },
             divCreate: { class: `d-flex flex-column`, style: `gap:18px;` },
         }))}
@@ -3672,66 +3749,66 @@ export class ShoppingOrderManager {
             view: () => {
                 var _a, _b, _c;
                 return html `
-                                    <div class="tx_700">設定金物流</div>
-                                    <div class="d-flex flex-column" style="gap: 18px">
-                                        <div class="d-flex align-items-center w-100" style="gap:18px;">
-                                            <div class="d-flex flex-column flex-fill" style="gap: 8px;">
-                                                <div>付款方式 / 付款狀態</div>
-                                                <select
-                                                        class="form-select"
-                                                        style="border-radius: 10px;border: 1px solid #DDD;padding: 9px 18px;"
-                                                        onchange="${gvc.event((e) => {
+                                <div class="tx_700">設定金物流</div>
+                                <div class="d-flex flex-column" style="gap: 18px">
+                                    <div class="d-flex align-items-center w-100" style="gap:18px;">
+                                        <div class="d-flex flex-column flex-fill" style="gap: 8px;">
+                                            <div>付款方式 / 付款狀態</div>
+                                            <select
+                                                class="form-select"
+                                                style="border-radius: 10px;border: 1px solid #DDD;padding: 9px 18px;"
+                                                onchange="${gvc.event((e) => {
                     orderDetail.pay_status = e.value;
                 })}"
-                                                >
-                                                    <option value="1" ${orderDetail.pay_status == 1 ? 'selected' : ''}>
-                                                        線下付款-已付款
-                                                    </option>
-                                                    <option value="0" ${orderDetail.pay_status == 0 ? 'selected' : ''}>
-                                                        線下付款-未付款
-                                                    </option>
-                                                </select>
-                                            </div>
-                                            <div class="d-flex flex-column flex-fill" style="gap: 8px;">
-                                                <div>運送方法</div>
-                                                <select
-                                                        class="form-select"
-                                                        style="border-radius: 10px;border: 1px solid #DDD;padding: 9px 18px;"
-                                                        onchange="${gvc.event((e) => {
+                                            >
+                                                <option value="1" ${orderDetail.pay_status == 1 ? 'selected' : ''}>
+                                                    線下付款-已付款
+                                                </option>
+                                                <option value="0" ${orderDetail.pay_status == 0 ? 'selected' : ''}>
+                                                    線下付款-未付款
+                                                </option>
+                                            </select>
+                                        </div>
+                                        <div class="d-flex flex-column flex-fill" style="gap: 8px;">
+                                            <div>運送方法</div>
+                                            <select
+                                                class="form-select"
+                                                style="border-radius: 10px;border: 1px solid #DDD;padding: 9px 18px;"
+                                                onchange="${gvc.event((e) => {
                     orderDetail.user_info.shipment = e.value;
                     orderDetailRefresh = true;
                     gvc.notifyDataChange(['listProduct', 'orderDetail']);
                 })}"
-                                                >
-                                                    <option value="normal"
-                                                            ${orderDetail.user_info.shipment == 'normal' ? 'selected' : ''}>
-                                                        宅配
-                                                    </option>
-                                                    <option value="UNIMARTC2C"
-                                                            ${orderDetail.user_info.shipment == 'UNIMARTC2C' ? 'selected' : ''}>
-                                                        7-11店到店
-                                                    </option>
-                                                    <option value="FAMIC2C"
-                                                            ${orderDetail.user_info.shipment == 'FAMIC2C' ? 'selected' : ''}>
-                                                        全家店到店
-                                                    </option>
-                                                    <option value="OKMARTC2C"
-                                                            ${orderDetail.user_info.shipment == 'OKMARTC2C' ? 'selected' : ''}>
-                                                        OK店到店
-                                                    </option>
-                                                    <option value="HILIFEC2C"
-                                                            ${orderDetail.user_info.shipment == 'HILIFEC2C' ? 'selected' : ''}>
-                                                        萊爾富店到店
-                                                    </option>
-                                                </select>
-                                            </div>
+                                            >
+                                                <option value="normal"
+                                                        ${orderDetail.user_info.shipment == 'normal' ? 'selected' : ''}>
+                                                    宅配
+                                                </option>
+                                                <option value="UNIMARTC2C"
+                                                        ${orderDetail.user_info.shipment == 'UNIMARTC2C' ? 'selected' : ''}>
+                                                    7-11店到店
+                                                </option>
+                                                <option value="FAMIC2C"
+                                                        ${orderDetail.user_info.shipment == 'FAMIC2C' ? 'selected' : ''}>
+                                                    全家店到店
+                                                </option>
+                                                <option value="OKMARTC2C"
+                                                        ${orderDetail.user_info.shipment == 'OKMARTC2C' ? 'selected' : ''}>
+                                                    OK店到店
+                                                </option>
+                                                <option value="HILIFEC2C"
+                                                        ${orderDetail.user_info.shipment == 'HILIFEC2C' ? 'selected' : ''}>
+                                                    萊爾富店到店
+                                                </option>
+                                            </select>
                                         </div>
+                                    </div>
 
-                                        <div class="tx_700">收件人資料</div>
-                                        <div
-                                                class="d-flex align-items-center"
-                                                style="gap:6px;cursor: pointer;"
-                                                onclick="${gvc.event(() => {
+                                    <div class="tx_700">收件人資料</div>
+                                    <div
+                                        class="d-flex align-items-center"
+                                        style="gap:6px;cursor: pointer;"
+                                        onclick="${gvc.event(() => {
                     var _a;
                     customerData.sameCustomer = !customerData.sameCustomer;
                     if (customerData.sameCustomer && !((_a = orderDetail.customer_info) === null || _a === void 0 ? void 0 : _a.email)) {
@@ -3746,57 +3823,58 @@ export class ShoppingOrderManager {
                     }
                     gvc.notifyDataChange('setLogistics');
                 })}"
-                                        >
-                                            ${customerData.sameCustomer
+                                    >
+                                        ${customerData.sameCustomer
                     ? html `
-                                                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16"
-                                                             viewBox="0 0 16 16" fill="none">
-                                                            <rect width="16" height="16" rx="3" fill="#393939"/>
-                                                            <path d="M4.5 8.5L7 11L11.5 5" stroke="white"
-                                                                  stroke-width="2" stroke-linecap="round"
-                                                                  stroke-linejoin="round"/>
-                                                        </svg>`
+                                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16"
+                                                     viewBox="0 0 16 16" fill="none">
+                                                    <rect width="16" height="16" rx="3" fill="#393939" />
+                                                    <path d="M4.5 8.5L7 11L11.5 5" stroke="white"
+                                                          stroke-width="2" stroke-linecap="round"
+                                                          stroke-linejoin="round" />
+                                                </svg>`
                     : html `
-                                                        <div style="width: 16px;height: 16px;border-radius: 3px;border: 1px solid #DDD;"></div>`}
-                                            同顧客資料
-                                        </div>
-                                        <div class="d-flex flex-column" style="gap: 8px">
-                                            <div>姓名</div>
-                                            <input
-                                                    style="border-radius: 10px;border: 1px solid #DDD;padding: 9px 18px;"
-                                                    value="${(_a = orderDetail.user_info.name) !== null && _a !== void 0 ? _a : ''}"
-                                                    placeholder="請輸入姓名"
-                                                    onchange="${gvc.event((e) => {
+                                                <div
+                                                    style="width: 16px;height: 16px;border-radius: 3px;border: 1px solid #DDD;"></div>`}
+                                        同顧客資料
+                                    </div>
+                                    <div class="d-flex flex-column" style="gap: 8px">
+                                        <div>姓名</div>
+                                        <input
+                                            style="border-radius: 10px;border: 1px solid #DDD;padding: 9px 18px;"
+                                            value="${(_a = orderDetail.user_info.name) !== null && _a !== void 0 ? _a : ''}"
+                                            placeholder="請輸入姓名"
+                                            onchange="${gvc.event((e) => {
                     orderDetail.user_info.name = e.value;
                 })}"
-                                                    ${customerData.sameCustomer ? 'disabled' : ''}
-                                            />
-                                        </div>
-                                        <div class="d-flex flex-column" style="gap: 8px">
-                                            <div>電話</div>
-                                            <input
-                                                    style="border-radius: 10px;border: 1px solid #DDD;padding: 9px 18px;"
-                                                    value="${(_b = orderDetail.user_info.phone) !== null && _b !== void 0 ? _b : ''}"
-                                                    placeholder="請輸入電話"
-                                                    onchange="${gvc.event((e) => {
+                                            ${customerData.sameCustomer ? 'disabled' : ''}
+                                        />
+                                    </div>
+                                    <div class="d-flex flex-column" style="gap: 8px">
+                                        <div>電話</div>
+                                        <input
+                                            style="border-radius: 10px;border: 1px solid #DDD;padding: 9px 18px;"
+                                            value="${(_b = orderDetail.user_info.phone) !== null && _b !== void 0 ? _b : ''}"
+                                            placeholder="請輸入電話"
+                                            onchange="${gvc.event((e) => {
                     orderDetail.user_info.phone = e.value;
                 })}"
-                                            />
-                                        </div>
-                                        <div class="d-flex flex-column" style="gap: 8px">
-                                            <div>電子信箱</div>
-                                            <input
-                                                    style="border-radius: 10px;border: 1px solid #DDD;padding: 9px 18px;"
-                                                    value="${(_c = orderDetail.customer_info.email) !== null && _c !== void 0 ? _c : ''}"
-                                                    placeholder="請輸入電子信箱"
-                                                    onchange="${gvc.event((e) => {
+                                        />
+                                    </div>
+                                    <div class="d-flex flex-column" style="gap: 8px">
+                                        <div>電子信箱</div>
+                                        <input
+                                            style="border-radius: 10px;border: 1px solid #DDD;padding: 9px 18px;"
+                                            value="${(_c = orderDetail.customer_info.email) !== null && _c !== void 0 ? _c : ''}"
+                                            placeholder="請輸入電子信箱"
+                                            onchange="${gvc.event((e) => {
                     orderDetail.customer_info.email = e.value;
                 })}"
-                                                    ${customerData.sameCustomer ? 'disabled' : ''}
-                                            />
-                                        </div>
-                                        <div class="d-flex flex-column" style="gap: 8px">
-                                            ${gvc.bindView({
+                                            ${customerData.sameCustomer ? 'disabled' : ''}
+                                        />
+                                    </div>
+                                    <div class="d-flex flex-column" style="gap: 8px">
+                                        ${gvc.bindView({
                     bind: 'CVSStore',
                     dataList: [{ obj: orderDetail.user_info, key: 'shipment' }],
                     view: () => {
@@ -3804,16 +3882,16 @@ export class ShoppingOrderManager {
                         switch ((_a = orderDetail.user_info) === null || _a === void 0 ? void 0 : _a.shipment) {
                             case 'normal': {
                                 return html `
-                                                                <div>宅配地址</div>
-                                                                <input
-                                                                        style="border-radius: 10px;border: 1px solid #DDD;padding: 9px 18px;margin-top:8px;width: 100%;"
-                                                                        value="${(_b = orderDetail.user_info.address) !== null && _b !== void 0 ? _b : ''}"
-                                                                        placeholder="請輸入宅配地址"
-                                                                        onchange="${gvc.event((e) => {
+                                                            <div>宅配地址</div>
+                                                            <input
+                                                                style="border-radius: 10px;border: 1px solid #DDD;padding: 9px 18px;margin-top:8px;width: 100%;"
+                                                                value="${(_b = orderDetail.user_info.address) !== null && _b !== void 0 ? _b : ''}"
+                                                                placeholder="請輸入宅配地址"
+                                                                onchange="${gvc.event((e) => {
                                     orderDetail.user_info.address = e.value;
                                 })}"
-                                                                />
-                                                            `;
+                                                            />
+                                                        `;
                             }
                             default: {
                                 let returnHTML = ``;
@@ -3825,57 +3903,58 @@ export class ShoppingOrderManager {
                                         OKMARTC2C: `https://d3jnmi1tfjgtti.cloudfront.net/file/234285319/1716734510490-beb1c70f9e168b7bab198ea2bf226148.png`,
                                     };
                                     returnHTML = html `
-                                                                    <div class="d-flex flex-column">
-                                                                        <div class="d-flex align-items-center">
-                                                                            <img style="width: 32px;height: 32px;margin-right: 8px;"
-                                                                                 src="${icon[orderDetail.user_info.shipment]}"
-                                                                                 alt="icon"/>
-                                                                            <div
-                                                                                    style="color:#4D86DB"
-                                                                                    onclick="${gvc.event(() => {
-                                        selectCVS(orderDetail.user_info.shipment);
-                                    })}"
-                                                                            >
-                                                                                點擊更換門市
-                                                                            </div>
-                                                                        </div>
-                                                                        <div class="d-flex">門市名稱:
-                                                                            ${orderDetail.user_info.CVSStoreName}
-                                                                        </div>
-                                                                        <div class="d-flex">門市店號:
-                                                                            ${orderDetail.user_info.CVSStoreID}
-                                                                        </div>
-                                                                        <div class="d-flex">門市地址:
-                                                                            ${orderDetail.user_info.CVSAddress}
-                                                                        </div>
-                                                                    </div>
-                                                                `;
-                                    return html `
-                                                                    <div>配送門市</div>
-                                                                    ${returnHTML}
-                                                                `;
-                                }
-                                else {
-                                    return html `
-                                                                    <div>配送門市</div>
-                                                                    <div
-                                                                            style="color: #4D86DB;cursor: pointer;margin-top:8px;cursor: pointer"
+                                                                <div class="d-flex flex-column">
+                                                                    <div class="d-flex align-items-center">
+                                                                        <img
+                                                                            style="width: 32px;height: 32px;margin-right: 8px;"
+                                                                            src="${icon[orderDetail.user_info.shipment]}"
+                                                                            alt="icon" />
+                                                                        <div
+                                                                            style="color:#4D86DB"
                                                                             onclick="${gvc.event(() => {
                                         selectCVS(orderDetail.user_info.shipment);
                                     })}"
-                                                                    >
-                                                                        請選擇配送門市
+                                                                        >
+                                                                            點擊更換門市
+                                                                        </div>
                                                                     </div>
-                                                                `;
+                                                                    <div class="d-flex">門市名稱:
+                                                                        ${orderDetail.user_info.CVSStoreName}
+                                                                    </div>
+                                                                    <div class="d-flex">門市店號:
+                                                                        ${orderDetail.user_info.CVSStoreID}
+                                                                    </div>
+                                                                    <div class="d-flex">門市地址:
+                                                                        ${orderDetail.user_info.CVSAddress}
+                                                                    </div>
+                                                                </div>
+                                                            `;
+                                    return html `
+                                                                <div>配送門市</div>
+                                                                ${returnHTML}
+                                                            `;
+                                }
+                                else {
+                                    return html `
+                                                                <div>配送門市</div>
+                                                                <div
+                                                                    style="color: #4D86DB;cursor: pointer;margin-top:8px;cursor: pointer"
+                                                                    onclick="${gvc.event(() => {
+                                        selectCVS(orderDetail.user_info.shipment);
+                                    })}"
+                                                                >
+                                                                    請選擇配送門市
+                                                                </div>
+                                                            `;
                                 }
                             }
                         }
                     },
                     divCreate: {},
                 })}
-                                        </div>
                                     </div>
-                                `;
+                                </div>
+                            `;
             },
             divCreate: { class: `d-flex flex-column`, style: `color:#393939;gap:18px;` },
         }))}
@@ -3884,8 +3963,8 @@ export class ShoppingOrderManager {
                     <div class="d-flex flex-column" style="gap: 8px">
                         <div class="tx_700">訂單備註</div>
                         <textarea
-                                style="cursor: pointer;height: 80px;padding: 9px 18px;border-radius: 10px;border: 1px solid #DDD;"
-                                onchange="${gvc.event((e) => {
+                            style="cursor: pointer;height: 80px;padding: 9px 18px;border-radius: 10px;border: 1px solid #DDD;"
+                            onchange="${gvc.event((e) => {
             orderDetail.user_info.note = e.value;
         })}"
                         ></textarea>
@@ -3909,46 +3988,47 @@ export class ShoppingOrderManager {
                     dialog.dataLoading({ visible: false });
                     window.parent.glitter.innerDialog((gvc) => {
                         return html `
-                                                        <div
-                                                                style="position: relative;width: 492px;height: 223px;border-radius: 10px;background: #FFF;display: flex;flex-direction: column;align-items: center;justify-content: center;"
-                                                        >
-                                                            <svg
-                                                                    xmlns="http://www.w3.org/2000/svg"
-                                                                    width="14"
-                                                                    height="14"
-                                                                    viewBox="0 0 14 14"
-                                                                    fill="none"
-                                                                    style="position: absolute;top: 12px;right: 12px;cursor: pointer;"
-                                                                    onclick="${gvc.event(() => {
+                                                <div
+                                                    style="position: relative;width: 492px;height: 223px;border-radius: 10px;background: #FFF;display: flex;flex-direction: column;align-items: center;justify-content: center;"
+                                                >
+                                                    <svg
+                                                        xmlns="http://www.w3.org/2000/svg"
+                                                        width="14"
+                                                        height="14"
+                                                        viewBox="0 0 14 14"
+                                                        fill="none"
+                                                        style="position: absolute;top: 12px;right: 12px;cursor: pointer;"
+                                                        onclick="${gvc.event(() => {
                             gvc.glitter.closeDiaLog();
                         })}"
-                                                            >
-                                                                <path d="M1 1L13 13" stroke="#393939"
-                                                                      stroke-linecap="round"/>
-                                                                <path d="M13 1L1 13" stroke="#393939"
-                                                                      stroke-linecap="round"/>
-                                                            </svg>
+                                                    >
+                                                        <path d="M1 1L13 13" stroke="#393939"
+                                                              stroke-linecap="round" />
+                                                        <path d="M13 1L1 13" stroke="#393939"
+                                                              stroke-linecap="round" />
+                                                    </svg>
 
-                                                            <svg xmlns="http://www.w3.org/2000/svg" width="75"
-                                                                 height="75" viewBox="0 0 75 75" fill="none">
-                                                                <g clip-path="url(#clip0_9850_171427)">
-                                                                    <path
-                                                                            d="M37.5 7.03125C45.5808 7.03125 53.3307 10.2413 59.0447 15.9553C64.7587 21.6693 67.9688 29.4192 67.9688 37.5C67.9688 45.5808 64.7587 53.3307 59.0447 59.0447C53.3307 64.7587 45.5808 67.9688 37.5 67.9688C29.4192 67.9688 21.6693 64.7587 15.9553 59.0447C10.2413 53.3307 7.03125 45.5808 7.03125 37.5C7.03125 29.4192 10.2413 21.6693 15.9553 15.9553C21.6693 10.2413 29.4192 7.03125 37.5 7.03125ZM37.5 75C47.4456 75 56.9839 71.0491 64.0165 64.0165C71.0491 56.9839 75 47.4456 75 37.5C75 27.5544 71.0491 18.0161 64.0165 10.9835C56.9839 3.95088 47.4456 0 37.5 0C27.5544 0 18.0161 3.95088 10.9835 10.9835C3.95088 18.0161 0 27.5544 0 37.5C0 47.4456 3.95088 56.9839 10.9835 64.0165C18.0161 71.0491 27.5544 75 37.5 75ZM54.0527 30.6152C55.4297 29.2383 55.4297 27.0117 54.0527 25.6494C52.6758 24.2871 50.4492 24.2725 49.0869 25.6494L32.8271 41.9092L25.9424 35.0244C24.5654 33.6475 22.3389 33.6475 20.9766 35.0244C19.6143 36.4014 19.5996 38.6279 20.9766 39.9902L30.3516 49.3652C31.7285 50.7422 33.9551 50.7422 35.3174 49.3652L54.0527 30.6152Z"
-                                                                            fill="#393939"
-                                                                    />
-                                                                </g>
-                                                                <defs>
-                                                                    <clipPath id="clip0_9850_171427">
-                                                                        <rect width="75" height="75" fill="white"/>
-                                                                    </clipPath>
-                                                                </defs>
-                                                            </svg>
-                                                            <div style="text-align: center;color: #393939;font-size: 16px;font-weight: 400;line-height: 160%;margin-top: 24px;">
-                                                                訂單新增成功！<br/>
-                                                                已將訂單明細發送至顧客信箱
-                                                            </div>
-                                                        </div>
-                                                    `;
+                                                    <svg xmlns="http://www.w3.org/2000/svg" width="75"
+                                                         height="75" viewBox="0 0 75 75" fill="none">
+                                                        <g clip-path="url(#clip0_9850_171427)">
+                                                            <path
+                                                                d="M37.5 7.03125C45.5808 7.03125 53.3307 10.2413 59.0447 15.9553C64.7587 21.6693 67.9688 29.4192 67.9688 37.5C67.9688 45.5808 64.7587 53.3307 59.0447 59.0447C53.3307 64.7587 45.5808 67.9688 37.5 67.9688C29.4192 67.9688 21.6693 64.7587 15.9553 59.0447C10.2413 53.3307 7.03125 45.5808 7.03125 37.5C7.03125 29.4192 10.2413 21.6693 15.9553 15.9553C21.6693 10.2413 29.4192 7.03125 37.5 7.03125ZM37.5 75C47.4456 75 56.9839 71.0491 64.0165 64.0165C71.0491 56.9839 75 47.4456 75 37.5C75 27.5544 71.0491 18.0161 64.0165 10.9835C56.9839 3.95088 47.4456 0 37.5 0C27.5544 0 18.0161 3.95088 10.9835 10.9835C3.95088 18.0161 0 27.5544 0 37.5C0 47.4456 3.95088 56.9839 10.9835 64.0165C18.0161 71.0491 27.5544 75 37.5 75ZM54.0527 30.6152C55.4297 29.2383 55.4297 27.0117 54.0527 25.6494C52.6758 24.2871 50.4492 24.2725 49.0869 25.6494L32.8271 41.9092L25.9424 35.0244C24.5654 33.6475 22.3389 33.6475 20.9766 35.0244C19.6143 36.4014 19.5996 38.6279 20.9766 39.9902L30.3516 49.3652C31.7285 50.7422 33.9551 50.7422 35.3174 49.3652L54.0527 30.6152Z"
+                                                                fill="#393939"
+                                                            />
+                                                        </g>
+                                                        <defs>
+                                                            <clipPath id="clip0_9850_171427">
+                                                                <rect width="75" height="75" fill="white" />
+                                                            </clipPath>
+                                                        </defs>
+                                                    </svg>
+                                                    <div
+                                                        style="text-align: center;color: #393939;font-size: 16px;font-weight: 400;line-height: 160%;margin-top: 24px;">
+                                                        訂單新增成功！<br />
+                                                        已將訂單明細發送至顧客信箱
+                                                    </div>
+                                                </div>
+                                            `;
                     }, 'orderFinish', {
                         dismiss: () => {
                             vm.type = 'list';
@@ -4007,14 +4087,14 @@ export class ShoppingOrderManager {
                                 size: 'sm',
                             },
                             text: {
-                                name: '前往結帳'
+                                name: '前往結帳',
                             },
                             event: gvc.event(() => {
                                 PaymentPage.storeHistory(orderData);
                                 gvc.closeDialog();
                                 localStorage.setItem('show_pos_page', 'payment');
                                 gvc.glitter.share.reloadPosPage();
-                            })
+                            }),
                         })}
                             </div>`);
                     }
@@ -4108,11 +4188,27 @@ export class ShoppingOrderManager {
                 const data = res.response.data;
                 if (data.result) {
                     if (data.link) {
-                        glitter.openNewTab(data.link);
+                        if (window.parent.glitter.share.PayConfig.posType === 'SUNMI') {
+                            glitter.runJsInterFace('print-web-view', {
+                                url: data.link,
+                            }, () => {
+                            });
+                        }
+                        else {
+                            glitter.openNewTab(data.link);
+                        }
                     }
                     else if (data.id) {
                         const url = ApiDelivery.getFormURL(data.id);
-                        glitter.openNewTab(url);
+                        if (window.parent.glitter.share.PayConfig.posType === 'SUNMI') {
+                            glitter.runJsInterFace('print-web-view', {
+                                url: url,
+                            }, () => {
+                            });
+                        }
+                        else {
+                            glitter.openNewTab(url);
+                        }
                     }
                     else {
                         dialog.errorMessage({ text: '列印失敗' });
@@ -4130,6 +4226,6 @@ export class ShoppingOrderManager {
     }
 }
 ShoppingOrderManager.vm = {
-    page: 1
+    page: 1,
 };
 window.glitter.setModule(import.meta.url, ShoppingOrderManager);

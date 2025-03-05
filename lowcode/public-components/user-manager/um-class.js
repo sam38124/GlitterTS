@@ -25,7 +25,8 @@ export class UmClass {
             loading: true,
             pageName: glitter.getUrlParameter('page'),
         };
-        let changePage = (index, type, subData) => { };
+        let changePage = (index, type, subData) => {
+        };
         gvc.glitter.getModule(new URL('./official_event/page/change-page.js', gvc.glitter.root_path).href, (cl) => {
             changePage = cl.changePage;
         });
@@ -92,7 +93,10 @@ export class UmClass {
                                         let get_verify_timer = 0;
                                         let repeat_pwd = '';
                                         return [
-                                            html `<div class="tx_normal fw-normal mb-1">${Language.text('password')}</div>`,
+                                            html `
+                                                            <div class="tx_normal fw-normal mb-1">
+                                                                ${Language.text('password')}
+                                                            </div>`,
                                             html `<input
                                                             class="bgw-input"
                                                             type="password"
@@ -102,7 +106,10 @@ export class UmClass {
                                             })}"
                                                             value="${update_vm.pwd}"
                                                         />`,
-                                            html `<div class="tx_normal fw-normal mt-2 mb-1">${Language.text('confirm_password')}</div>`,
+                                            html `
+                                                            <div class="tx_normal fw-normal mt-2 mb-1">
+                                                                ${Language.text('confirm_password')}
+                                                            </div>`,
                                             html `<input
                                                             class="bgw-input mb-2"
                                                             type="password"
@@ -155,12 +162,14 @@ export class UmClass {
                                             })}"
                                                             value="${update_vm.verify_code}"
                                                         />`,
-                                            html `<div class="d-flex align-items-center justify-content-end pt-2 border-top mx-n3">
+                                            html `
                                                             <div
-                                                                class="um-nav-btn um-nav-btn-active d-flex align-items-center justify-content-center"
-                                                                style="cursor:pointer;"
-                                                                type="button"
-                                                                onclick="${gvc.event(() => {
+                                                                class="d-flex align-items-center justify-content-end pt-2 border-top mx-n3">
+                                                                <div
+                                                                    class="um-nav-btn um-nav-btn-active d-flex align-items-center justify-content-center"
+                                                                    style="cursor:pointer;"
+                                                                    type="button"
+                                                                    onclick="${gvc.event(() => {
                                                 if (update_vm.pwd.length < 8) {
                                                     dialog.errorMessage({ text: Language.text('password_min_length') });
                                                     return;
@@ -195,10 +204,11 @@ export class UmClass {
                                                     }
                                                 });
                                             })}"
-                                                            >
-                                                                <span class="tx_700_white">${Language.text('confirm_reset')}</span>
-                                                            </div>
-                                                        </div>`,
+                                                                >
+                                                                    <span
+                                                                        class="tx_700_white">${Language.text('confirm_reset')}</span>
+                                                                </div>
+                                                            </div>`,
                                         ].join('');
                                     },
                                 });
@@ -217,18 +227,26 @@ export class UmClass {
                             `;
                     })
                         .join('');
-                    return html ` <div class="account-section">
-                        <div class="section-title mb-4 mt-0 pt-lg-3 um-nav-title px-2">${Language.text('my_profile')}</div>
-                        ${document.body.clientWidth > 768
-                        ? html ` <div class="mx-auto mt-3 um-nav-container">
-                                  <div class="account-options d-flex gap-3">${buttonHTML}</div>
-                              </div>`
-                        : html ` <div class="account-navigation w-100">
-                                  <nav class="nav-links mb-3 mb-md-0">
-                                      <div class="nav-options d-flex flex-wrap  um-nav-mobile-tags-container px-0">${buttonHTML}</div>
-                                  </nav>
-                              </div>`}
-                    </div>`;
+                    return html `
+                        <div class="account-section">
+                            <div class="section-title mb-4 mt-0 pt-lg-3 um-nav-title px-2">
+                                ${Language.text('my_profile')}
+                            </div>
+                            ${document.body.clientWidth > 768
+                        ? html `
+                                    <div class="mx-auto mt-3 um-nav-container">
+                                        <div class="account-options d-flex gap-3">${buttonHTML}</div>
+                                    </div>`
+                        : html `
+                                    <div class="account-navigation w-100">
+                                        <nav class="nav-links mb-3 mb-md-0">
+                                            <div
+                                                class="nav-options d-flex flex-wrap  um-nav-mobile-tags-container px-0">
+                                                ${buttonHTML}
+                                            </div>
+                                        </nav>
+                                    </div>`}
+                        </div>`;
                 }
             },
             divCreate: {},
@@ -259,41 +277,49 @@ export class UmClass {
             visible: ((_l = obj === null || obj === void 0 ? void 0 : obj.text) === null || _l === void 0 ? void 0 : _l.visible) === false ? false : true,
             fontSize: (_o = (_m = obj === null || obj === void 0 ? void 0 : obj.text) === null || _m === void 0 ? void 0 : _m.fontSize) !== null && _o !== void 0 ? _o : 16,
         };
-        return html ` <div class="d-flex align-items-center justify-content-center flex-column w-100 mx-auto ${container.class}" style="${container.style}">
-            <div
-                class="spinner-border ${circleAttr.visible ? '' : 'd-none'}"
-                style="font-size: ${circleAttr.borderSize}px; width: ${circleAttr.width}px; height: ${circleAttr.width}px;"
-                role="status"
-            ></div>
-            <span class="mt-3 ${textAttr.visible ? '' : 'd-none'}" style="font-size: ${textAttr.fontSize}px;">${textAttr.value}</span>
-        </div>`;
+        return html `
+            <div class="d-flex align-items-center justify-content-center flex-column w-100 mx-auto ${container.class}"
+                 style="${container.style}">
+                <div
+                    class="spinner-border ${circleAttr.visible ? '' : 'd-none'}"
+                    style="font-size: ${circleAttr.borderSize}px; width: ${circleAttr.width}px; height: ${circleAttr.width}px;"
+                    role="status"
+                ></div>
+                <span class="mt-3 ${textAttr.visible ? '' : 'd-none'}"
+                      style="font-size: ${textAttr.fontSize}px;">${textAttr.value}</span>
+            </div>`;
     }
     static dialog(obj) {
         return obj.gvc.glitter.innerDialog((gvc) => {
             var _a;
-            return html ` <div
-                class="bg-white shadow rounded-3"
-                style="overflow-y: auto; ${document.body.clientWidth > 768 ? `width: ${obj.width || 600}px;` : `width:  ${obj.width ? `${obj.width}px` : `90vw`}; max-width: 92.5vw;`}"
-            >
-                <div class="bg-white shadow rounded-3" style="width: 100%; overflow-y: auto; position: relative;">
-                    <div class="w-100 d-flex align-items-center p-3 border-bottom" style="position: sticky; top: 0; background: #fff;">
-                        <div style="font-size: 16px; font-weight: 700; color: #292218;">${(_a = obj.title) !== null && _a !== void 0 ? _a : ''}</div>
-                        <div class="flex-fill"></div>
-                        <i
-                            class="fa-regular fa-circle-xmark fs-5 text-dark"
-                            style="cursor: pointer"
-                            onclick="${gvc.event(() => {
+            return html `
+                <div
+                    class="bg-white shadow rounded-3"
+                    style="overflow-y: auto; ${document.body.clientWidth > 768 ? `width: ${obj.width || 600}px;` : `width:  ${obj.width ? `${obj.width}px` : `90vw`}; max-width: 92.5vw;`}"
+                >
+                    <div class="bg-white shadow rounded-3" style="width: 100%; overflow-y: auto; position: relative;">
+                        <div class="w-100 d-flex align-items-center p-3 border-bottom"
+                             style="position: sticky; top: 0; background: #fff;">
+                            <div style="font-size: 16px; font-weight: 700; color: #292218;">${(_a = obj.title) !== null && _a !== void 0 ? _a : ''}</div>
+                            <div class="flex-fill"></div>
+                            <i
+                                class="fa-regular fa-circle-xmark fs-5 text-dark"
+                                style="cursor: pointer"
+                                onclick="${gvc.event(() => {
                 gvc.closeDialog();
             })}"
-                        ></i>
-                    </div>
-                    <div class="c_dialog">
-                        <div class="c_dialog_body">
-                            <div class="c_dialog_main" style="gap: 24px; height: auto; max-height: 500px; padding: 12px 20px;">${obj.innerHTML(gvc)}</div>
+                            ></i>
+                        </div>
+                        <div class="c_dialog">
+                            <div class="c_dialog_body">
+                                <div class="c_dialog_main"
+                                     style="gap: 24px; height: auto; max-height: 500px; padding: 12px 20px;">
+                                    ${obj.innerHTML(gvc)}
+                                </div>
+                            </div>
                         </div>
                     </div>
-                </div>
-            </div>`;
+                </div>`;
         }, obj.tag);
     }
     static getRebateInfo() {
@@ -751,7 +777,8 @@ export class UmClass {
                 }
             }
         `);
-        const htmlString = html ` <div class="bounce-effect-${className}">${obj.text}</div>`;
+        const htmlString = html `
+            <div class="bounce-effect-${className}">${obj.text}</div>`;
         obj.gvc.glitter.document.body.insertAdjacentHTML('beforeend', htmlString);
         setTimeout(() => {
             const element = document.querySelector(`.bounce-effect-${className}`);

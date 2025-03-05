@@ -36,7 +36,8 @@ export class Entry {
                 }
                 localStorage.removeItem('clear_cart_items');
             }
-            catch (e) { }
+            catch (e) {
+            }
         }
         const clock = glitter.ut.clock();
         const hashLoop = setInterval(() => {
@@ -130,7 +131,7 @@ export class Entry {
         }
         window.renderClock = (_b = window.renderClock) !== null && _b !== void 0 ? _b : createClock();
         console.log(`Entry-time:`, window.renderClock.stop());
-        glitter.share.editerVersion = 'V_18.3.9';
+        glitter.share.editerVersion = 'V_18.4.3';
         glitter.share.start = new Date();
         const vm = { appConfig: [] };
         window.saasConfig = {
@@ -139,6 +140,7 @@ export class Entry {
             appConfig: undefined,
         };
         config.token = GlobalUser.saas_token;
+        console.log(3);
         Entry.resourceInitial(glitter, vm, (dd) => __awaiter(this, void 0, void 0, function* () {
             glitter.addStyle(`
         ${parseInt(window.parent.glitter.share.bottom_inset, 10)
@@ -229,7 +231,8 @@ export class Entry {
             if (glitter.getUrlParameter('type') === 'editor') {
                 const dialog = new ShareDialog(glitter);
                 dialog.dataLoading({ visible: true, text: '後台載入中' });
-                Entry.toBackendEditor(glitter, () => { });
+                Entry.toBackendEditor(glitter, () => {
+                });
             }
             else if (glitter.getUrlParameter('type') === 'htmlEditor') {
                 Entry.toHtmlEditor(glitter, vm, () => Entry.checkIframe(glitter));
@@ -281,11 +284,13 @@ export class Entry {
         glitter.share.LanguageApi = Language;
         glitter.share.plan_text = () => GlobalUser.getPlan().title;
         window.addEventListener('resize', () => {
+            const width = window.innerWidth;
             const height = window.innerHeight;
             for (const b of document.querySelectorAll(`.glitter-dialog`)) {
                 b.style.height = `${height}px`;
                 b.style.minHeight = `${height}px`;
             }
+            console.log(`視窗大小變化: 寬度=${width}px, 高度=${height}px`);
         });
     }
     static checkIframe(glitter) {
@@ -413,7 +418,9 @@ export class Entry {
             {
                 src: 'https://kit.fontawesome.com/cccedec0f8.js',
             },
-        ], () => { }, () => { });
+        ], () => {
+        }, () => {
+        });
         glitter.addStyle(`
       @media (prefers-reduced-motion: no-preference) {
         :root {
@@ -445,7 +452,9 @@ export class Entry {
                 src: `${glitter.htmlGenerate.configureCDN(glitter.htmlGenerate.resourceHook(dd.js))}`,
                 type: 'module',
             };
-        }), () => { }, () => { }, [{ key: 'async', value: 'true' }]);
+        }), () => {
+        }, () => {
+        }, [{ key: 'async', value: 'true' }]);
         glitter.htmlGenerate.loadScript(glitter, window.parent.editerData.setting
             .filter((dd) => {
             return ['widget', 'container', 'code'].indexOf(dd.type) === -1;
@@ -483,7 +492,9 @@ export class Entry {
             {
                 src: `https://unpkg.com/@lottiefiles/lottie-player@latest/dist/lottie-player.js`,
             },
-        ], () => { }, () => { });
+        ], () => {
+        }, () => {
+        });
         if (glitter.getUrlParameter('token') && glitter.getUrlParameter('return_type') === 'resetPassword') {
             GlobalUser.token = glitter.getUrlParameter('token');
             glitter.setUrlParameter('token');
@@ -514,7 +525,8 @@ export class Entry {
                 .map((dd) => {
                 return {
                     src: `${glitter.htmlGenerate.configureCDN(glitter.htmlGenerate.resourceHook(dd.js))}`,
-                    callback: () => { },
+                    callback: () => {
+                    },
                 };
             }));
             function authPass() {
@@ -570,8 +582,10 @@ export class Entry {
     static resourceInitial(glitter, vm, callback) {
         glitter.share.PayConfig = PayConfig;
         glitter.runJsInterFace('pos-device', {}, res => {
-            PayConfig.deviceType = res.deviceType === 'neostra' ? 'pos' : 'web';
-            if (PayConfig.deviceType === 'pos') {
+            console.log(`res.deviceType=>`, res.deviceType);
+            PayConfig.deviceType = (['SUNMI', 'neostra'].includes(res.deviceType)) ? 'pos' : 'web';
+            PayConfig.posType = res.deviceType;
+            if (res.deviceType === 'neostra') {
                 const script = document.createElement('script');
                 script.type = 'text/javascript';
                 script.src = 'https://cdnjs.cloudflare.com/ajax/libs/mui/3.7.1/js/mui.min.js';
@@ -583,11 +597,22 @@ export class Entry {
                 glitter.addMtScript([
                     'https://oss-sg.imin.sg/web/iMinPartner/js/imin-printer.min.js',
                     'https://cdn.jsdelivr.net/npm/jsbarcode@3.11.5/dist/JsBarcode.all.min.js',
-                ], () => { }, () => { });
+                    glitter.root_path + 'jslib/qrcode.min.js',
+                ], () => {
+                }, () => {
+                });
                 setTimeout(() => {
                     window.IminPrintInstance = new IminPrinter();
                     window.IminPrintInstance.connect();
                 }, 3000);
+            }
+            if (res.deviceType === 'SUNMI') {
+                glitter.addMtScript([
+                    'https://cdn.jsdelivr.net/npm/jsbarcode@3.11.5/dist/JsBarcode.all.min.js',
+                    glitter.root_path + 'jslib/qrcode.min.js',
+                ], () => {
+                }, () => {
+                });
             }
         });
         glitter.runJsInterFace('getTopInset', {}, (response) => {
