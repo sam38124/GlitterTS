@@ -863,7 +863,7 @@ export class ShoppingProductSetting {
                                                                 ].join('')
                                                         )
                                                 )}
-                                                ${BgWidget.mbContainer(240)}
+                                                ${BgWidget.minHeightContainer(240)}
                                             `
                                         );
                                     }

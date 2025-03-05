@@ -2198,6 +2198,9 @@ ${(_c = obj.default) !== null && _c !== void 0 ? _c : ''}</textarea
     static mbContainer(margin_bottom_px) {
         return html ` <div style="margin-bottom: ${margin_bottom_px}px"></div>`;
     }
+    static minHeightContainer(min_height) {
+        return html ` <div style="min-height: ${min_height}px"></div>`;
+    }
     static card(htmlString, classStyle = 'p-3 bg-white rounded-3 shadow border w-100') {
         return this.mainCard(htmlString);
     }

@@ -40,17 +40,21 @@ export class MemberTypeList {
                         value: `<span class="fs-7">${dd.count}</span>`,
                     },
                     {
-                        key: '',
-                        value: BgWidget.grayButton('查閱名單', gvc.event(() => {
-                            if (dd.type === 'subscriber') {
-                                vm.type = 'subscriber';
-                            }
-                            else {
-                                vm.type = 'list';
-                            }
-                            vm.group = dd;
-                            gvc.notifyDataChange(vm.id);
-                        }), { textStyle: 'font-weight: normal; font-size: 14px;' }),
+                        key: '查閱名單',
+                        value: BgWidget.customButton({
+                            button: { color: 'gray', size: 'sm' },
+                            text: { name: '查閱名單' },
+                            event: gvc.event(() => {
+                                if (dd.type === 'subscriber') {
+                                    vm.type = 'subscriber';
+                                }
+                                else {
+                                    vm.type = 'list';
+                                }
+                                vm.group = dd;
+                                gvc.notifyDataChange(vm.id);
+                            }),
+                        }),
                     },
                 ];
             });
@@ -62,11 +66,11 @@ export class MemberTypeList {
                 view: () => {
                     if (vm.type === 'groupList') {
                         return BgWidget.container(html `
-                                <div class="title-container">
-                                    ${BgWidget.title('顧客分群')}
-                                    <div class="flex-fill"></div>
-                                </div>
-                                ${BgWidget.container(BgWidget.mainCard(BgWidget.tableV3({
+              <div class="title-container">
+                ${BgWidget.title('顧客分群')}
+                <div class="flex-fill"></div>
+              </div>
+              ${BgWidget.container(BgWidget.mainCard(BgWidget.tableV3({
                             gvc: gvc,
                             getData: (vd) => __awaiter(this, void 0, void 0, function* () {
                                 vmi = vd;
@@ -82,7 +86,7 @@ export class MemberTypeList {
                             rowClick: () => { },
                             filter: [],
                         })))}
-                            `);
+            `);
                     }
                     else if (vm.type === 'subscriber') {
                         return UserList.main(gvc, {
@@ -112,41 +116,41 @@ export class MemberTypeList {
     static createSubscriberView(gvc, vm) {
         const html = String.raw;
         return gvc.event(() => {
-            gvc.glitter.innerDialog((gvc2) => {
+            gvc.glitter.innerDialog(gvc2 => {
                 let mail = '';
                 let tag = '';
                 return html `<div class="modal-content bg-white rounded-3 p-2" style="max-width:90%; width:400px;">
-                    <div class="border-bottom ms-1 my-2 pb-2">
-                        <span class="tx_700">新增推播信箱</span>
-                    </div>
-                    <div class="px-1 mb-1">
-                        ${BgWidget.editeInput({
+          <div class="border-bottom ms-1 my-2 pb-2">
+            <span class="tx_700">新增推播信箱</span>
+          </div>
+          <div class="px-1 mb-1">
+            ${BgWidget.editeInput({
                     gvc: gvc,
                     title: '信箱',
                     default: '',
                     placeHolder: '請輸入信箱',
-                    callback: (text) => {
+                    callback: text => {
                         mail = text;
                     },
                 })}
-                        ${BgWidget.editeInput({
+            ${BgWidget.editeInput({
                     gvc: gvc,
                     title: '標籤',
                     default: '',
                     placeHolder: '請輸入標籤',
-                    callback: (text) => {
+                    callback: text => {
                         tag = text;
                     },
                 })}
-                    </div>
-                    <div class="modal-footer mb-0 pt-1 pb-0">
-                        ${BgWidget.cancel(gvc.event(() => {
+          </div>
+          <div class="modal-footer mb-0 pt-1 pb-0">
+            ${BgWidget.cancel(gvc.event(() => {
                     gvc2.closeDialog();
                 }))}
-                        ${BgWidget.save(gvc.event(() => {
+            ${BgWidget.save(gvc.event(() => {
                     const dialog = new ShareDialog(gvc.glitter);
                     dialog.dataLoading({ visible: true });
-                    ApiUser.subScribe(mail, tag).then((response) => {
+                    ApiUser.subScribe(mail, tag).then(response => {
                         dialog.dataLoading({ visible: false });
                         if (response.result) {
                             dialog.successMessage({ text: '新增成功' });
@@ -158,8 +162,8 @@ export class MemberTypeList {
                         }
                     });
                 }))}
-                    </div>
-                </div>`;
+          </div>
+        </div>`;
             }, 'add');
         });
     }

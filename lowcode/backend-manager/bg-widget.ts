@@ -2629,6 +2629,10 @@ ${obj.default ?? ''}</textarea
     return html` <div style="margin-bottom: ${margin_bottom_px}px"></div>`;
   }
 
+  static minHeightContainer(min_height: number) {
+    return html` <div style="min-height: ${min_height}px"></div>`;
+  }
+
   static card(htmlString: string, classStyle: string = 'p-3 bg-white rounded-3 shadow border w-100') {
     // return html` <div class="${classStyle}">${htmlString}</div>`;
     return this.mainCard(htmlString);
