@@ -396,6 +396,7 @@ export class ShoppingInformation {
                 ${createToggle('啟用心願單功能', '方便客戶收藏並管理喜愛的商品清單，隨時查看心儀商品，提升購物體驗與轉換率', 'wishlist')}
                 ${createToggle('啟用顧客評論功能', '顧客可以對您的商品進行評論', 'customer_comment')}
                 ${createToggle('啟用 Cookie 聲明', '如需使用廣告追蹤行為，必須啟用 Cookie 聲明，才可發送廣告', 'cookie_check')}
+                ${createDialog('訂單結算模式', '設定訂單結算模式，可調整顧客累積消費金額、會員等級、數據分析的統計機制', 'checkout_mode')}
               </div>
             `);
                     },

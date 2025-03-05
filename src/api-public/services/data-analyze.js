@@ -10,6 +10,7 @@ const tool_js_1 = __importDefault(require("../../modules/tool.js"));
 const moment_1 = __importDefault(require("moment"));
 const config_js_1 = require("../../config.js");
 const shopping_js_1 = require("./shopping.js");
+const user_js_1 = require("./user.js");
 const workers_js_1 = require("./workers.js");
 function convertTimeZone(date) {
     return `CONVERT_TZ(${date}, '+00:00', '+08:00')`;
@@ -21,14 +22,12 @@ class DataAnalyze {
     }
     async workerExample(data) {
         try {
-            const jsonData = await database_js_1.default.query(`SELECT *
-                 FROM \`${this.app}\`.t_voucher_history`, []);
+            const jsonData = await database_js_1.default.query(`SELECT * FROM \`${this.app}\`.t_voucher_history`, []);
             const t0 = performance.now();
             if (data.type === 0) {
                 for (const record of jsonData) {
-                    await database_js_1.default.query(`UPDATE \`${this.app}\`.\`t_voucher_history\`
-                         SET ?
-                         WHERE id = ?`, [record, record.id]);
+                    await database_js_1.default.query(`UPDATE \`${this.app}\`.\`t_voucher_history\` SET ? WHERE id = ?
+            `, [record, record.id]);
                 }
                 return {
                     type: 'single',
@@ -38,9 +37,8 @@ class DataAnalyze {
             }
             const formatJsonData = jsonData.map((record) => {
                 return {
-                    sql: `UPDATE \`${this.app}\`.\`t_voucher_history\`
-                          SET ?
-                          WHERE id = ?`,
+                    sql: `UPDATE \`${this.app}\`.\`t_voucher_history\` SET ? WHERE id = ?
+          `,
                     data: [record, record.id],
                 };
             });
@@ -73,7 +71,7 @@ class DataAnalyze {
                 orders_per_month_1_year: () => this.getOrdersPerMonth1Year(query),
                 orders_per_month_2_week: () => this.getOrdersPerMonth2week(query),
                 orders_per_month: () => this.getOrdersPerMonth(query),
-                orders_per_month_custom: () => this.getOrdersPerMonthCostom(query),
+                orders_per_month_custom: () => this.getOrdersPerMonthCustom(query),
                 sales_per_month_2_week: () => this.getSalesPerMonth2week(query),
                 sales_per_month_1_year: () => this.getSalesPerMonth1Year(query),
                 sales_per_month_1_month: () => this.getSalesPerMonth(query),
@@ -111,19 +109,22 @@ class DataAnalyze {
             throw exception_js_1.default.BadRequestError('BAD_REQUEST', `getDataAnalyze Error: ${error}`, null);
         }
     }
+    async getOrderCountingSQL() {
+        return await new user_js_1.User(this.app).getCheckoutCountingModeSQL();
+    }
     async getRecentActiveUser() {
         try {
             const recentSQL = `
-                SELECT *
-                FROM \`${this.app}\`.t_user
-                WHERE online_time BETWEEN DATE_SUB(NOW(), INTERVAL 10 MINUTE) AND NOW();
-            `;
+          SELECT *
+          FROM \`${this.app}\`.t_user
+          WHERE online_time BETWEEN DATE_SUB(NOW(), INTERVAL 10 MINUTE) AND NOW();
+      `;
             const recent_users = await database_js_1.default.query(recentSQL, []);
             const monthSQL = `
-                SELECT *
-                FROM \`${this.app}\`.t_user
-                WHERE MONTH (online_time) = MONTH (NOW()) AND YEAR (online_time) = YEAR (NOW());
-            `;
+          SELECT *
+          FROM \`${this.app}\`.t_user
+          WHERE MONTH (online_time) = MONTH (NOW()) AND YEAR (online_time) = YEAR (NOW());
+      `;
             const month_users = await database_js_1.default.query(monthSQL, []);
             return { recent: recent_users.length, months: month_users.length };
         }
@@ -133,49 +134,47 @@ class DataAnalyze {
     }
     async getSalesInRecentMonth() {
         try {
-            const recentMonthSQL = `
-                SELECT *
-                FROM \`${this.app}\`.t_checkout
-                WHERE MONTH (created_time) = MONTH (NOW()) AND YEAR (created_time) = YEAR (NOW())   AND (orderData->>'$.orderStatus' is null or orderData->>'$.orderStatus' != '-1');
-            `;
-            const recentMonthCheckouts = await database_js_1.default.query(recentMonthSQL, []);
-            let recent_month_total = 0;
-            recentMonthCheckouts.map((checkout) => {
-                recent_month_total += parseInt(checkout.orderData.total, 10);
-            });
-            const previousMonthSQL = `
-                SELECT *
-                FROM \`${this.app}\`.t_checkout
-                WHERE
-                    MONTH (created_time) = MONTH (DATE_SUB(NOW()
-                    , INTERVAL 1 MONTH))
-                  AND YEAR (created_time) = YEAR (DATE_SUB(NOW()
-                    , INTERVAL 1 MONTH))
-                    AND (orderData->>'$.orderStatus' is null or orderData->>'$.orderStatus' != '-1');
-            `;
-            const previousMonthCheckouts = await database_js_1.default.query(previousMonthSQL, []);
-            let previous_month_total = 0;
-            previousMonthCheckouts.map((checkout) => {
-                previous_month_total += parseInt(checkout.orderData.total, 10);
-            });
-            let gap = 0;
-            if (recent_month_total !== 0 && previous_month_total !== 0) {
-                gap = Math.floor(((recent_month_total - previous_month_total) / previous_month_total) * 10000) / 10000;
-            }
+            const orderCountingSQL = await this.getOrderCountingSQL();
+            const getCheckoutsSQL = (monthOffset) => `
+        SELECT *
+        FROM \`${this.app}\`.t_checkout
+        WHERE MONTH(created_time) = MONTH(DATE_SUB(NOW(), INTERVAL ${monthOffset} MONTH))
+        AND YEAR(created_time) = YEAR(DATE_SUB(NOW(), INTERVAL ${monthOffset} MONTH))
+        AND (${orderCountingSQL});
+      `;
+            const calculateTotal = (checkouts) => checkouts.reduce((total, checkout) => total + parseInt(checkout.orderData.total, 10), 0);
+            const recentMonthCheckouts = await database_js_1.default.query(getCheckoutsSQL(0), []);
+            const previousMonthCheckouts = await database_js_1.default.query(getCheckoutsSQL(1), []);
+            const recent_month_total = calculateTotal(recentMonthCheckouts);
+            const previous_month_total = calculateTotal(previousMonthCheckouts);
+            const gap = previous_month_total
+                ? Math.floor(((recent_month_total - previous_month_total) / previous_month_total) * 10000) / 10000
+                : 0;
             return { recent_month_total, previous_month_total, gap };
         }
         catch (e) {
-            throw exception_js_1.default.BadRequestError('BAD_REQUEST', 'getRecentActiveUser Error:' + e, null);
+            throw exception_js_1.default.BadRequestError('BAD_REQUEST', 'getSalesInRecentMonth error: ' + e, null);
         }
     }
     async getHotProducts(duration, query = '{}') {
         try {
             const qData = JSON.parse(query);
-            const sqlConditions = ['1=1'];
+            const sqlConditions = [];
             if (qData.filter_date === 'custom' && qData.start && qData.end) {
                 const startDate = `'${tool_js_1.default.replaceDatetime(qData.start)}'`;
                 const endDate = `'${tool_js_1.default.replaceDatetime(qData.end)}'`;
-                sqlConditions.push(`(created_time BETWEEN ${startDate} AND ${endDate})`);
+                sqlConditions.push(`created_time BETWEEN ${startDate} AND ${endDate}`);
+            }
+            else {
+                const dateRanges = {
+                    today: '1 DAY',
+                    week: '7 DAY',
+                    '1m': '30 DAY',
+                    year: '1 YEAR',
+                };
+                if (qData.filter_date && dateRanges[qData.filter_date]) {
+                    sqlConditions.push(`created_time BETWEEN DATE_SUB(NOW(), INTERVAL ${dateRanges[qData.filter_date]}) AND NOW()`);
+                }
             }
             if (qData.come_from && qData.come_from !== 'all') {
                 const sourceCondition = {
@@ -184,31 +183,27 @@ class DataAnalyze {
                 };
                 sqlConditions.push(sourceCondition[qData.come_from] || `(orderData->>'$.pos_info.where_store' = '${qData.come_from}')`);
             }
-            const dateRanges = {
-                today: '1 DAY',
-                week: '7 DAY',
-                '1m': '30 DAY',
-                year: '1 YEAR',
-            };
-            if (dateRanges[qData.filter_date]) {
-                sqlConditions.push(`created_time BETWEEN DATE_SUB(NOW(), INTERVAL ${dateRanges[qData.filter_date]}) AND NOW()`);
-            }
+            const orderCountingSQL = await this.getOrderCountingSQL();
             const checkoutSQL = `
-                SELECT * FROM \`${this.app}\`.t_checkout
-                WHERE (orderData->>'$.orderStatus' is null or orderData->>'$.orderStatus' != '-1') AND ${duration === 'day'
+        SELECT * 
+        FROM \`${this.app}\`.t_checkout
+        WHERE ${duration === 'day'
                 ? `created_time BETWEEN NOW() AND NOW() + INTERVAL 1 DAY - INTERVAL 1 SECOND`
                 : duration === 'month'
                     ? `created_time BETWEEN DATE_SUB(NOW(), INTERVAL 1 MONTH) AND NOW()`
-                    : sqlConditions.join(' AND ')};
-            `;
+                    : sqlConditions.length
+                        ? sqlConditions.join(' AND ')
+                        : '1=1'}
+        AND (${orderCountingSQL});
+      `;
             const checkouts = await database_js_1.default.query(checkoutSQL, []);
             const productMap = new Map();
-            const collectionSales = {};
-            checkouts.forEach((j) => {
-                const orderData = j.orderData;
-                (orderData.lineItems || []).forEach((item) => {
+            const collectionSales = new Map();
+            checkouts.forEach(({ orderData }) => {
+                var _a;
+                (_a = orderData.lineItems) === null || _a === void 0 ? void 0 : _a.forEach((item) => {
                     const existing = productMap.get(item.title);
-                    const collections = item.collection.filter((c) => c.length > 0).map((c) => c.replace(/ /g, ''));
+                    const collections = new Set(item.collection.filter((c) => c.trim().length > 0));
                     if (existing) {
                         existing.count += item.count;
                         existing.sale_price += item.sale_price * item.count;
@@ -217,383 +212,245 @@ class DataAnalyze {
                         productMap.set(item.title, {
                             title: item.title,
                             count: item.count,
-                            collection: collections,
+                            collection: [...collections],
                             preview_image: item.preview_image,
                             sale_price: item.sale_price,
                             pos_info: orderData.pos_info,
                         });
                     }
                     collections.forEach((col) => {
-                        if (!collectionSales[col]) {
-                            collectionSales[col] = { count: 0, sale_price: 0 };
+                        if (!collectionSales.has(col)) {
+                            collectionSales.set(col, { count: 0, sale_price: 0 });
                         }
-                        collectionSales[col].count += item.count;
-                        collectionSales[col].sale_price += item.sale_price * item.count;
+                        const colData = collectionSales.get(col);
+                        colData.count += item.count;
+                        colData.sale_price += item.sale_price * item.count;
                     });
                 });
             });
-            const sortedCollections = Object.entries(collectionSales)
-                .filter(([col]) => col)
-                .map(([collection, data]) => {
-                return Object.assign({ collection: collection.replace(/\//g, ' / ') }, data);
-            })
+            const sortedCollections = [...collectionSales.entries()]
+                .map(([collection, data]) => (Object.assign({ collection: collection.replace(/\//g, ' / ') }, data)))
                 .sort((a, b) => b.sale_price - a.sale_price);
-            const finalProductList = Array.from(productMap.values()).sort((a, b) => b.count - a.count);
+            const finalProductList = [...productMap.values()].sort((a, b) => b.count - a.count);
             const topProducts = finalProductList.slice(0, 10);
             return {
-                series: topProducts.map((p) => p.count),
-                categories: topProducts.map((p) => p.title),
+                series: topProducts.map(p => p.count),
+                categories: topProducts.map(p => p.title),
                 product_list: finalProductList,
                 sorted_collections: sortedCollections,
             };
         }
         catch (e) {
-            console.error('getHotProducts Error:', e);
-            throw exception_js_1.default.BadRequestError('BAD_REQUEST', `getHotProducts Error: ${e}`, null);
+            console.error('getHotProducts error:', e);
+            throw exception_js_1.default.BadRequestError('BAD_REQUEST', `getHotProducts error: ${e}`, null);
         }
     }
     async getOrdersInRecentMonth() {
         try {
-            const recentMonthSQL = `
-                SELECT id
-                FROM \`${this.app}\`.t_checkout
-                WHERE MONTH (created_time) = MONTH (NOW()) AND YEAR (created_time) = YEAR (NOW())   AND (orderData->>'$.orderStatus' is null or orderData->>'$.orderStatus' != '-1');
-            `;
-            const recentMonthCheckouts = await database_js_1.default.query(recentMonthSQL, []);
-            let recent_month_total = recentMonthCheckouts.length;
-            const previousMonthSQL = `
-                SELECT id
-                FROM \`${this.app}\`.t_checkout
-                WHERE
-                    MONTH (created_time) = MONTH (DATE_SUB(NOW()
-                    , INTERVAL 1 MONTH))
-                  AND YEAR (created_time) = YEAR (DATE_SUB(NOW()
-                    , INTERVAL 1 MONTH))
-                    AND (orderData->>'$.orderStatus' is null or orderData->>'$.orderStatus' != '-1');
-            `;
-            const previousMonthCheckouts = await database_js_1.default.query(previousMonthSQL, []);
-            let previous_month_total = previousMonthCheckouts.length;
+            const orderCountingSQL = await this.getOrderCountingSQL();
+            const getCheckoutCountSQL = (monthOffset) => `
+        SELECT id
+        FROM \`${this.app}\`.t_checkout
+        WHERE MONTH(created_time) = MONTH(DATE_SUB(NOW(), INTERVAL ${monthOffset} MONTH))
+        AND YEAR(created_time) = YEAR(DATE_SUB(NOW(), INTERVAL ${monthOffset} MONTH))
+        AND ${orderCountingSQL};
+      `;
+            const recentMonthCheckouts = await database_js_1.default.query(getCheckoutCountSQL(0), []);
+            const previousMonthCheckouts = await database_js_1.default.query(getCheckoutCountSQL(1), []);
+            const recent_month_total = recentMonthCheckouts.length;
+            const previous_month_total = previousMonthCheckouts.length;
             let gap = 0;
-            if (recent_month_total !== 0 && previous_month_total !== 0) {
+            if (previous_month_total > 0) {
                 gap = Math.floor(((recent_month_total - previous_month_total) / previous_month_total) * 10000) / 10000;
             }
             return { recent_month_total, previous_month_total, gap };
         }
         catch (e) {
-            throw exception_js_1.default.BadRequestError('BAD_REQUEST', 'getRecentActiveUser Error:' + e, null);
+            throw exception_js_1.default.BadRequestError('BAD_REQUEST', 'getOrdersInRecentMonth error: ' + e, null);
         }
     }
     async getOrdersPerMonth2week(query) {
         try {
             const qData = JSON.parse(query);
-            const countArray = {};
-            const countArrayPos = {};
-            const countArrayWeb = {};
-            const countArrayStore = {};
-            let pass = 0;
-            await new Promise((resolve, reject) => {
-                for (let index = 0; index < 14; index++) {
-                    const monthCheckoutSQL = `
-                        SELECT id, orderData
-                        FROM \`${this.app}\`.t_checkout
-                        WHERE
-                            DAY (${convertTimeZone('created_time')}) = DAY (DATE_SUB(${convertTimeZone('NOW()')}
-                            , INTERVAL ${index} DAY))
-                          AND MONTH (${convertTimeZone('created_time')}) = MONTH (DATE_SUB(${convertTimeZone('NOW()')}
-                            , INTERVAL ${index} DAY))
-                          AND YEAR (${convertTimeZone('created_time')}) = YEAR (DATE_SUB(${convertTimeZone('NOW()')}
-                            , INTERVAL ${index} DAY))
-                            AND (orderData->>'$.orderStatus' is null or orderData->>'$.orderStatus' != '-1');
-                    `;
-                    database_js_1.default.query(monthCheckoutSQL, []).then((data) => {
-                        pass++;
-                        let total = 0;
-                        let total_pos = 0;
-                        let total_web = 0;
-                        let total_store = 0;
-                        data.map((checkout) => {
-                            if (checkout.orderData.orderSource === 'POS') {
-                                total_pos += 1;
-                                if (qData.come_from.includes('store_') && shopping_js_1.Shopping.isComeStore(checkout.orderData, qData)) {
-                                    total_store += 1;
-                                }
+            const orderCountingSQL = await this.getOrderCountingSQL();
+            const countArray = Array(14).fill(0);
+            const countArrayPos = Array(14).fill(0);
+            const countArrayWeb = Array(14).fill(0);
+            const countArrayStore = Array(14).fill(0);
+            const queries = Array.from({ length: 14 }, async (_, index) => {
+                const dayOffset = `DATE_SUB(DATE(NOW()), INTERVAL ${index} DAY)`;
+                const monthCheckoutSQL = `
+          SELECT orderData->>'$.orderSource' as orderSource, orderData
+          FROM \`${this.app}\`.t_checkout
+          WHERE DATE(${convertTimeZone('created_time')}) = ${dayOffset}
+          AND ${orderCountingSQL};
+        `;
+                return database_js_1.default.query(monthCheckoutSQL, []).then(data => {
+                    let total = 0, total_pos = 0, total_web = 0, total_store = 0;
+                    for (const checkout of data) {
+                        if (checkout.orderSource === 'POS') {
+                            total_pos += 1;
+                            if (qData.come_from.includes('store_') && shopping_js_1.Shopping.isComeStore(checkout.orderData, qData)) {
+                                total_store += 1;
                             }
-                            else {
-                                total_web += 1;
-                            }
-                            total += 1;
-                        });
-                        countArrayStore[index] = total_store;
-                        countArrayPos[index] = total_pos;
-                        countArrayWeb[index] = total_web;
-                        countArray[index] = total;
-                        if (pass === 14) {
-                            resolve(true);
                         }
-                    });
-                }
+                        else {
+                            total_web += 1;
+                        }
+                        total += 1;
+                    }
+                    countArray[index] = total;
+                    countArrayPos[index] = total_pos;
+                    countArrayWeb[index] = total_web;
+                    countArrayStore[index] = total_store;
+                });
             });
-            return {
-                countArray: Object.keys(countArray)
-                    .sort((a, b) => parseInt(a, 10) - parseInt(b, 10))
-                    .map((dd) => {
-                    return countArray[dd];
-                }),
-                countArrayPos: Object.keys(countArrayPos)
-                    .sort((a, b) => parseInt(a, 10) - parseInt(b, 10))
-                    .map((dd) => {
-                    return countArrayPos[dd];
-                }),
-                countArrayStore: Object.keys(countArrayStore)
-                    .sort((a, b) => parseInt(a, 10) - parseInt(b, 10))
-                    .map((dd) => {
-                    return countArrayStore[dd];
-                }),
-                countArrayWeb: Object.keys(countArrayWeb)
-                    .sort((a, b) => parseInt(a, 10) - parseInt(b, 10))
-                    .map((dd) => {
-                    return countArrayWeb[dd];
-                }),
-            };
+            await Promise.all(queries);
+            return { countArray, countArrayPos, countArrayStore, countArrayWeb };
         }
         catch (e) {
-            throw exception_js_1.default.BadRequestError('BAD_REQUEST', 'getRecentActiveUser Error:' + e, null);
+            console.error('getOrdersPerMonth2week 錯誤:', e);
+            throw exception_js_1.default.BadRequestError('BAD_REQUEST', `getOrdersPerMonth2week 錯誤: ${e}`, null);
         }
     }
     async getOrdersPerMonth(query) {
         try {
             const qData = JSON.parse(query);
-            const countArray = {};
-            const countArrayPos = {};
-            const countArrayWeb = {};
-            const countArrayStore = {};
-            let pass = 0;
-            await new Promise((resolve, reject) => {
-                for (let index = 0; index < 30; index++) {
-                    const monthCheckoutSQL = `
-                        SELECT orderData
-                        FROM \`${this.app}\`.t_checkout
-                        WHERE
-                            DAY (${convertTimeZone('created_time')}) = DAY (DATE_SUB(${convertTimeZone('NOW()')}
-                            , INTERVAL ${index} DAY))
-                          AND MONTH (${convertTimeZone('created_time')}) = MONTH (DATE_SUB(${convertTimeZone('NOW()')}
-                            , INTERVAL ${index} DAY))
-                          AND YEAR (${convertTimeZone('created_time')}) = YEAR (DATE_SUB(${convertTimeZone('NOW()')}
-                            , INTERVAL ${index} DAY))
-                            AND (orderData->>'$.orderStatus' is null or orderData->>'$.orderStatus' != '-1');
-                    `;
-                    database_js_1.default.query(monthCheckoutSQL, []).then((data) => {
-                        pass++;
-                        let total = 0;
-                        let total_pos = 0;
-                        let total_web = 0;
-                        let total_store = 0;
-                        data.map((checkout) => {
-                            if (checkout.orderData.orderSource === 'POS') {
-                                total_pos += 1;
-                                if (qData.come_from.includes('store_') && shopping_js_1.Shopping.isComeStore(checkout.orderData, qData)) {
-                                    total_store += 1;
-                                }
+            const orderCountingSQL = await this.getOrderCountingSQL();
+            const countArray = Array(30).fill(0);
+            const countArrayPos = Array(30).fill(0);
+            const countArrayWeb = Array(30).fill(0);
+            const countArrayStore = Array(30).fill(0);
+            const queries = Array.from({ length: 30 }, async (_, index) => {
+                const dayOffset = `DATE_SUB(DATE(NOW()), INTERVAL ${index} DAY)`;
+                const monthCheckoutSQL = `
+          SELECT orderData->>'$.orderSource' as orderSource, orderData
+          FROM \`${this.app}\`.t_checkout
+          WHERE DATE(${convertTimeZone('created_time')}) = ${dayOffset}
+          AND ${orderCountingSQL};
+        `;
+                return database_js_1.default.query(monthCheckoutSQL, []).then(data => {
+                    let total = 0, total_pos = 0, total_web = 0, total_store = 0;
+                    for (const checkout of data) {
+                        if (checkout.orderSource === 'POS') {
+                            total_pos += 1;
+                            if (qData.come_from.includes('store_') && shopping_js_1.Shopping.isComeStore(checkout.orderData, qData)) {
+                                total_store += 1;
                             }
-                            else {
-                                total_web += 1;
-                            }
-                            total += 1;
-                        });
-                        countArrayStore[index] = total_store;
-                        countArrayPos[index] = total_pos;
-                        countArrayWeb[index] = total_web;
-                        countArray[index] = total;
-                        if (pass === 30) {
-                            resolve(true);
                         }
-                    });
-                }
+                        else {
+                            total_web += 1;
+                        }
+                        total += 1;
+                    }
+                    countArray[index] = total;
+                    countArrayPos[index] = total_pos;
+                    countArrayWeb[index] = total_web;
+                    countArrayStore[index] = total_store;
+                });
             });
-            return {
-                countArray: Object.keys(countArray)
-                    .sort((a, b) => parseInt(a, 10) - parseInt(b, 10))
-                    .map((dd) => {
-                    return countArray[dd];
-                }),
-                countArrayPos: Object.keys(countArrayPos)
-                    .sort((a, b) => parseInt(a, 10) - parseInt(b, 10))
-                    .map((dd) => {
-                    return countArrayPos[dd];
-                }),
-                countArrayStore: Object.keys(countArrayStore)
-                    .sort((a, b) => parseInt(a, 10) - parseInt(b, 10))
-                    .map((dd) => {
-                    return countArrayStore[dd];
-                }),
-                countArrayWeb: Object.keys(countArrayWeb)
-                    .sort((a, b) => parseInt(a, 10) - parseInt(b, 10))
-                    .map((dd) => {
-                    return countArrayWeb[dd];
-                }),
-            };
+            await Promise.all(queries);
+            return { countArray, countArrayPos, countArrayStore, countArrayWeb };
         }
         catch (e) {
-            throw exception_js_1.default.BadRequestError('BAD_REQUEST', 'getRecentActiveUser Error:' + e, null);
+            console.error('getOrdersPerMonth 錯誤:', e);
+            throw exception_js_1.default.BadRequestError('BAD_REQUEST', `getOrdersPerMonth 錯誤: ${e}`, null);
         }
     }
-    async getOrdersPerMonthCostom(query) {
+    async getOrdersPerMonthCustom(query) {
         try {
-            const countArray = {};
-            const countArrayPos = {};
-            const countArrayWeb = {};
-            const countArrayStore = {};
             const qData = JSON.parse(query);
+            const orderCountingSQL = await this.getOrderCountingSQL();
             const days = this.diffDates(new Date(qData.start), new Date(qData.end));
-            const formatEndDate = `"${tool_js_1.default.replaceDatetime(qData.end)}"`;
-            let pass = 0;
-            await new Promise((resolve, reject) => {
-                for (let index = 0; index < days; index++) {
-                    const monthCheckoutSQL = `
-                        SELECT orderData
-                        FROM \`${this.app}\`.t_checkout
-                        WHERE
-                            DAY (${convertTimeZone('created_time')}) = DAY (DATE_SUB(${formatEndDate}
-                            , INTERVAL ${index} DAY))
-                          AND MONTH (${convertTimeZone('created_time')}) = MONTH (DATE_SUB(${formatEndDate}
-                            , INTERVAL ${index} DAY))
-                          AND YEAR (${convertTimeZone('created_time')}) = YEAR (DATE_SUB(${formatEndDate}
-                            , INTERVAL ${index} DAY))
-                            AND (orderData->>'$.orderStatus' is null or orderData->>'$.orderStatus' != '-1');
-                    `;
-                    database_js_1.default.query(monthCheckoutSQL, []).then((data) => {
-                        pass++;
-                        let total = 0;
-                        let total_pos = 0;
-                        let total_web = 0;
-                        let total_store = 0;
-                        data.map((checkout) => {
-                            if (checkout.orderData.orderSource === 'POS') {
-                                total_pos += 1;
-                                if (qData.come_from.includes('store_') && shopping_js_1.Shopping.isComeStore(checkout.orderData, qData)) {
-                                    total_store += 1;
-                                }
+            const endDate = tool_js_1.default.replaceDatetime(qData.end);
+            const countArray = Array(days).fill(0);
+            const countArrayPos = Array(days).fill(0);
+            const countArrayWeb = Array(days).fill(0);
+            const countArrayStore = Array(days).fill(0);
+            const queries = Array.from({ length: days }, async (_, index) => {
+                const dayOffset = `DATE_SUB(DATE("${endDate}"), INTERVAL ${index} DAY)`;
+                const monthCheckoutSQL = `
+          SELECT orderData->>'$.orderSource' as orderSource, orderData
+          FROM \`${this.app}\`.t_checkout
+          WHERE DATE(${convertTimeZone('created_time')}) = ${dayOffset}
+          AND ${orderCountingSQL};
+        `;
+                return database_js_1.default.query(monthCheckoutSQL, []).then(data => {
+                    let total = 0, total_pos = 0, total_web = 0, total_store = 0;
+                    for (const checkout of data) {
+                        if (checkout.orderSource === 'POS') {
+                            total_pos += 1;
+                            if (qData.come_from.includes('store_') && shopping_js_1.Shopping.isComeStore(checkout.orderData, qData)) {
+                                total_store += 1;
                             }
-                            else {
-                                total_web += 1;
-                            }
-                            total += 1;
-                        });
-                        countArrayStore[index] = total_store;
-                        countArrayPos[index] = total_pos;
-                        countArrayWeb[index] = total_web;
-                        countArray[index] = total;
-                        if (pass === days) {
-                            resolve(true);
                         }
-                    });
-                }
+                        else {
+                            total_web += 1;
+                        }
+                        total += 1;
+                    }
+                    countArray[index] = total;
+                    countArrayPos[index] = total_pos;
+                    countArrayWeb[index] = total_web;
+                    countArrayStore[index] = total_store;
+                });
             });
-            return {
-                countArray: Object.keys(countArray)
-                    .sort((a, b) => parseInt(a, 10) - parseInt(b, 10))
-                    .map((dd) => {
-                    return countArray[dd];
-                }),
-                countArrayPos: Object.keys(countArrayPos)
-                    .sort((a, b) => parseInt(a, 10) - parseInt(b, 10))
-                    .map((dd) => {
-                    return countArrayPos[dd];
-                }),
-                countArrayStore: Object.keys(countArrayStore)
-                    .sort((a, b) => parseInt(a, 10) - parseInt(b, 10))
-                    .map((dd) => {
-                    return countArrayStore[dd];
-                }),
-                countArrayWeb: Object.keys(countArrayWeb)
-                    .sort((a, b) => parseInt(a, 10) - parseInt(b, 10))
-                    .map((dd) => {
-                    return countArrayWeb[dd];
-                }),
-            };
+            await Promise.all(queries);
+            return { countArray, countArrayPos, countArrayStore, countArrayWeb };
         }
         catch (e) {
-            throw exception_js_1.default.BadRequestError('BAD_REQUEST', 'getRecentActiveUser Error:' + e, null);
+            console.error('getOrdersPerMonthCustom 錯誤:', e);
+            throw exception_js_1.default.BadRequestError('BAD_REQUEST', `getOrdersPerMonthCustom 錯誤: ${e}`, null);
         }
     }
     async getOrdersPerMonth1Year(query) {
         try {
             const qData = JSON.parse(query);
-            const countArray = {};
-            const countArrayPos = {};
-            const countArrayWeb = {};
-            const countArrayStore = {};
-            let pass = 0;
-            await new Promise((resolve, reject) => {
-                for (let index = 0; index < 12; index++) {
-                    const monthCheckoutSQL = `
-                        SELECT orderData
-                        FROM \`${this.app}\`.t_checkout
-                        WHERE
-                            MONTH (${convertTimeZone('created_time')}) = MONTH (DATE_SUB(${convertTimeZone('NOW()')}
-                            , INTERVAL ${index} MONTH))
-                          AND YEAR (${convertTimeZone('created_time')}) = YEAR (DATE_SUB(${convertTimeZone('NOW()')}
-                            , INTERVAL ${index} MONTH))
-                            AND (orderData->>'$.orderStatus' is null or orderData->>'$.orderStatus' != '-1');
-                    `;
-                    database_js_1.default.query(monthCheckoutSQL, []).then((data) => {
-                        pass++;
-                        let total = 0;
-                        let total_pos = 0;
-                        let total_web = 0;
-                        let total_store = 0;
-                        data.map((checkout) => {
-                            if (checkout.orderData.orderSource === 'POS') {
-                                total_pos += 1;
-                                if (qData.come_from.includes('store_') && shopping_js_1.Shopping.isComeStore(checkout.orderData, qData)) {
-                                    total_store += 1;
-                                }
+            const orderCountingSQL = await this.getOrderCountingSQL();
+            const countArray = Array(12).fill(0);
+            const countArrayPos = Array(12).fill(0);
+            const countArrayWeb = Array(12).fill(0);
+            const countArrayStore = Array(12).fill(0);
+            const queries = Array.from({ length: 12 }, async (_, index) => {
+                const monthOffset = `DATE_FORMAT(DATE_SUB(${convertTimeZone('NOW()')}, INTERVAL ${index} MONTH), '%Y-%m')`;
+                const monthCheckoutSQL = `
+          SELECT orderData->>'$.orderSource' as orderSource, orderData
+          FROM \`${this.app}\`.t_checkout
+          WHERE DATE_FORMAT(${convertTimeZone('created_time')}, '%Y-%m') = ${monthOffset}
+          AND ${orderCountingSQL};
+        `;
+                return database_js_1.default.query(monthCheckoutSQL, []).then(data => {
+                    let total = 0, total_pos = 0, total_web = 0, total_store = 0;
+                    for (const checkout of data) {
+                        if (checkout.orderSource === 'POS') {
+                            total_pos += 1;
+                            if (qData.come_from.includes('store_') && shopping_js_1.Shopping.isComeStore(checkout.orderData, qData)) {
+                                total_store += 1;
                             }
-                            else {
-                                total_web += 1;
-                            }
-                            total += 1;
-                        });
-                        countArrayStore[index] = total_store;
-                        countArrayPos[index] = total_pos;
-                        countArrayWeb[index] = total_web;
-                        countArray[index] = total;
-                        if (pass === 12) {
-                            resolve(true);
                         }
-                    });
-                }
+                        else {
+                            total_web += 1;
+                        }
+                        total += 1;
+                    }
+                    countArray[index] = total;
+                    countArrayPos[index] = total_pos;
+                    countArrayWeb[index] = total_web;
+                    countArrayStore[index] = total_store;
+                });
             });
-            return {
-                countArray: Object.keys(countArray)
-                    .sort((a, b) => parseInt(a, 10) - parseInt(b, 10))
-                    .map((dd) => {
-                    return countArray[dd];
-                }),
-                countArrayPos: Object.keys(countArrayPos)
-                    .sort((a, b) => parseInt(a, 10) - parseInt(b, 10))
-                    .map((dd) => {
-                    return countArrayPos[dd];
-                }),
-                countArrayStore: Object.keys(countArrayStore)
-                    .sort((a, b) => parseInt(a, 10) - parseInt(b, 10))
-                    .map((dd) => {
-                    return countArrayStore[dd];
-                }),
-                countArrayWeb: Object.keys(countArrayWeb)
-                    .sort((a, b) => parseInt(a, 10) - parseInt(b, 10))
-                    .map((dd) => {
-                    return countArrayWeb[dd];
-                }),
-            };
+            await Promise.all(queries);
+            return { countArray, countArrayPos, countArrayStore, countArrayWeb };
         }
         catch (e) {
-            throw exception_js_1.default.BadRequestError('BAD_REQUEST', 'getRecentActiveUser Error:' + e, null);
+            console.error('getOrdersPerMonth1Year 錯誤:', e);
+            throw exception_js_1.default.BadRequestError('BAD_REQUEST', `getOrdersPerMonth1Year 錯誤: ${e}`, null);
         }
     }
     async getSalesPerMonth1Year(query) {
         try {
             const qData = JSON.parse(query);
+            const orderCountingSQL = await this.getOrderCountingSQL();
             const countArray = {};
             const countArrayPos = {};
             const countArrayWeb = {};
@@ -609,9 +466,9 @@ class DataAnalyze {
                             , INTERVAL ${index} MONTH))
                           AND YEAR (${convertTimeZone('created_time')}) = YEAR (DATE_SUB(${convertTimeZone('NOW()')}
                             , INTERVAL ${index} MONTH))
-                            AND (orderData->>'$.orderStatus' is null or orderData->>'$.orderStatus' != '-1');
+                            AND ${orderCountingSQL};
                     `;
-                    database_js_1.default.query(monthCheckoutSQL, []).then((data) => {
+                    database_js_1.default.query(monthCheckoutSQL, []).then(data => {
                         pass++;
                         let total = 0;
                         let total_pos = 0;
@@ -642,22 +499,22 @@ class DataAnalyze {
             return {
                 countArray: Object.keys(countArray)
                     .sort((a, b) => parseInt(a, 10) - parseInt(b, 10))
-                    .map((dd) => {
+                    .map(dd => {
                     return countArray[dd];
                 }),
                 countArrayPos: Object.keys(countArrayPos)
                     .sort((a, b) => parseInt(a, 10) - parseInt(b, 10))
-                    .map((dd) => {
+                    .map(dd => {
                     return countArrayPos[dd];
                 }),
                 countArrayStore: Object.keys(countArrayStore)
                     .sort((a, b) => parseInt(a, 10) - parseInt(b, 10))
-                    .map((dd) => {
+                    .map(dd => {
                     return countArrayStore[dd];
                 }),
                 countArrayWeb: Object.keys(countArrayWeb)
                     .sort((a, b) => parseInt(a, 10) - parseInt(b, 10))
-                    .map((dd) => {
+                    .map(dd => {
                     return countArrayWeb[dd];
                 }),
             };
@@ -673,6 +530,7 @@ class DataAnalyze {
             const countArrayWeb = {};
             const countArrayStore = {};
             const qData = JSON.parse(query);
+            const orderCountingSQL = await this.getOrderCountingSQL();
             let pass = 0;
             await new Promise((resolve, reject) => {
                 for (let index = 0; index < 14; index++) {
@@ -686,9 +544,9 @@ class DataAnalyze {
                             , INTERVAL ${index} DAY))
                           AND YEAR (${convertTimeZone('created_time')}) = YEAR (DATE_SUB(${convertTimeZone('NOW()')}
                             , INTERVAL ${index} DAY))
-                            AND (orderData->>'$.orderStatus' is null or orderData->>'$.orderStatus' != '-1');
+                            AND ${orderCountingSQL};
                     `;
-                    database_js_1.default.query(monthCheckoutSQL, []).then((data) => {
+                    database_js_1.default.query(monthCheckoutSQL, []).then(data => {
                         pass++;
                         let total = 0;
                         let total_pos = 0;
@@ -719,22 +577,22 @@ class DataAnalyze {
             return {
                 countArray: Object.keys(countArray)
                     .sort((a, b) => parseInt(a, 10) - parseInt(b, 10))
-                    .map((dd) => {
+                    .map(dd => {
                     return countArray[dd];
                 }),
                 countArrayPos: Object.keys(countArrayPos)
                     .sort((a, b) => parseInt(a, 10) - parseInt(b, 10))
-                    .map((dd) => {
+                    .map(dd => {
                     return countArrayPos[dd];
                 }),
                 countArrayStore: Object.keys(countArrayStore)
                     .sort((a, b) => parseInt(a, 10) - parseInt(b, 10))
-                    .map((dd) => {
+                    .map(dd => {
                     return countArrayStore[dd];
                 }),
                 countArrayWeb: Object.keys(countArrayWeb)
                     .sort((a, b) => parseInt(a, 10) - parseInt(b, 10))
-                    .map((dd) => {
+                    .map(dd => {
                     return countArrayWeb[dd];
                 }),
             };
@@ -750,6 +608,7 @@ class DataAnalyze {
             const countArrayWeb = {};
             const countArrayStore = {};
             const qData = JSON.parse(query);
+            const orderCountingSQL = await this.getOrderCountingSQL();
             let pass = 0;
             await new Promise((resolve, reject) => {
                 for (let index = 0; index < 30; index++) {
@@ -763,9 +622,9 @@ class DataAnalyze {
                             , INTERVAL ${index} DAY))
                           AND YEAR (${convertTimeZone('created_time')}) = YEAR (DATE_SUB(${convertTimeZone('NOW()')}
                             , INTERVAL ${index} DAY))
-                            AND (orderData->>'$.orderStatus' is null or orderData->>'$.orderStatus' != '-1');
+                            AND ${orderCountingSQL};
                     `;
-                    database_js_1.default.query(monthCheckoutSQL, []).then((data) => {
+                    database_js_1.default.query(monthCheckoutSQL, []).then(data => {
                         pass++;
                         let total = 0;
                         let total_pos = 0;
@@ -774,7 +633,9 @@ class DataAnalyze {
                         data.map((checkout) => {
                             if (checkout.orderData.orderSource === 'POS') {
                                 total_pos += parseInt(checkout.orderData.total, 10);
-                                if (qData.come_from && qData.come_from.includes('store_') && shopping_js_1.Shopping.isComeStore(checkout.orderData, qData)) {
+                                if (qData.come_from &&
+                                    qData.come_from.includes('store_') &&
+                                    shopping_js_1.Shopping.isComeStore(checkout.orderData, qData)) {
                                     total_store += parseInt(checkout.orderData.total, 10);
                                 }
                             }
@@ -796,22 +657,22 @@ class DataAnalyze {
             return {
                 countArray: Object.keys(countArray)
                     .sort((a, b) => parseInt(a, 10) - parseInt(b, 10))
-                    .map((dd) => {
+                    .map(dd => {
                     return countArray[dd];
                 }),
                 countArrayPos: Object.keys(countArrayPos)
                     .sort((a, b) => parseInt(a, 10) - parseInt(b, 10))
-                    .map((dd) => {
+                    .map(dd => {
                     return countArrayPos[dd];
                 }),
                 countArrayStore: Object.keys(countArrayStore)
                     .sort((a, b) => parseInt(a, 10) - parseInt(b, 10))
-                    .map((dd) => {
+                    .map(dd => {
                     return countArrayStore[dd];
                 }),
                 countArrayWeb: Object.keys(countArrayWeb)
                     .sort((a, b) => parseInt(a, 10) - parseInt(b, 10))
-                    .map((dd) => {
+                    .map(dd => {
                     return countArrayWeb[dd];
                 }),
             };
@@ -834,6 +695,7 @@ class DataAnalyze {
             const qData = JSON.parse(query);
             const days = this.diffDates(new Date(qData.start), new Date(qData.end));
             const formatEndDate = `"${tool_js_1.default.replaceDatetime(qData.end)}"`;
+            const orderCountingSQL = await this.getOrderCountingSQL();
             let pass = 0;
             await new Promise((resolve, reject) => {
                 for (let index = 0; index < days; index++) {
@@ -847,9 +709,9 @@ class DataAnalyze {
                             , INTERVAL ${index} DAY))
                           AND YEAR (${convertTimeZone('created_time')}) = YEAR (DATE_SUB(${convertTimeZone(formatEndDate)}
                             , INTERVAL ${index} DAY))
-                            AND (orderData->>'$.orderStatus' is null or orderData->>'$.orderStatus' != '-1');
+                            AND ${orderCountingSQL};
                     `;
-                    database_js_1.default.query(monthCheckoutSQL, []).then((data) => {
+                    database_js_1.default.query(monthCheckoutSQL, []).then(data => {
                         pass++;
                         let total = 0;
                         let total_pos = 0;
@@ -880,22 +742,22 @@ class DataAnalyze {
             return {
                 countArray: Object.keys(countArray)
                     .sort((a, b) => parseInt(a, 10) - parseInt(b, 10))
-                    .map((dd) => {
+                    .map(dd => {
                     return countArray[dd];
                 }),
                 countArrayPos: Object.keys(countArrayPos)
                     .sort((a, b) => parseInt(a, 10) - parseInt(b, 10))
-                    .map((dd) => {
+                    .map(dd => {
                     return countArrayPos[dd];
                 }),
                 countArrayStore: Object.keys(countArrayStore)
                     .sort((a, b) => parseInt(a, 10) - parseInt(b, 10))
-                    .map((dd) => {
+                    .map(dd => {
                     return countArrayStore[dd];
                 }),
                 countArrayWeb: Object.keys(countArrayWeb)
                     .sort((a, b) => parseInt(a, 10) - parseInt(b, 10))
-                    .map((dd) => {
+                    .map(dd => {
                     return countArrayWeb[dd];
                 }),
             };
@@ -911,6 +773,7 @@ class DataAnalyze {
             const countArrayPos = {};
             const countArrayWeb = {};
             const countArrayStore = {};
+            const orderCountingSQL = await this.getOrderCountingSQL();
             let pass = 0;
             await new Promise((resolve, reject) => {
                 for (let index = 0; index < 12; index++) {
@@ -922,9 +785,9 @@ class DataAnalyze {
                             , INTERVAL ${index} MONTH))
                           AND YEAR (${convertTimeZone('created_time')}) = YEAR (DATE_SUB(${convertTimeZone('NOW()')}
                             , INTERVAL ${index} MONTH))
-                            AND (orderData->>'$.orderStatus' is null or orderData->>'$.orderStatus' != '-1');
+                            AND ${orderCountingSQL};
                     `;
-                    database_js_1.default.query(monthCheckoutSQL, []).then((data) => {
+                    database_js_1.default.query(monthCheckoutSQL, []).then(data => {
                         pass++;
                         let total = 0;
                         let total_pos = 0;
@@ -961,22 +824,22 @@ class DataAnalyze {
             return {
                 countArray: Object.keys(countArray)
                     .sort((a, b) => parseInt(a, 10) - parseInt(b, 10))
-                    .map((dd) => {
+                    .map(dd => {
                     return countArray[dd];
                 }),
                 countArrayPos: Object.keys(countArrayPos)
                     .sort((a, b) => parseInt(a, 10) - parseInt(b, 10))
-                    .map((dd) => {
+                    .map(dd => {
                     return countArrayPos[dd];
                 }),
                 countArrayStore: Object.keys(countArrayStore)
                     .sort((a, b) => parseInt(a, 10) - parseInt(b, 10))
-                    .map((dd) => {
+                    .map(dd => {
                     return countArrayStore[dd];
                 }),
                 countArrayWeb: Object.keys(countArrayWeb)
                     .sort((a, b) => parseInt(a, 10) - parseInt(b, 10))
-                    .map((dd) => {
+                    .map(dd => {
                     return countArrayWeb[dd];
                 }),
             };
@@ -992,6 +855,7 @@ class DataAnalyze {
             const countArrayPos = {};
             const countArrayWeb = {};
             const countArrayStore = {};
+            const orderCountingSQL = await this.getOrderCountingSQL();
             let pass = 0;
             await new Promise((resolve, reject) => {
                 for (let index = 0; index < 14; index++) {
@@ -1005,9 +869,9 @@ class DataAnalyze {
                             , INTERVAL ${index} DAY))
                           AND YEAR (${convertTimeZone('created_time')}) = YEAR (DATE_SUB(${convertTimeZone('NOW()')}
                             , INTERVAL ${index} DAY))
-                            AND (orderData->>'$.orderStatus' is null or orderData->>'$.orderStatus' != '-1');
+                            AND ${orderCountingSQL};
                     `;
-                    database_js_1.default.query(monthCheckoutSQL, []).then((data) => {
+                    database_js_1.default.query(monthCheckoutSQL, []).then(data => {
                         pass++;
                         let total = 0;
                         let total_pos = 0;
@@ -1044,22 +908,22 @@ class DataAnalyze {
             return {
                 countArray: Object.keys(countArray)
                     .sort((a, b) => parseInt(a, 10) - parseInt(b, 10))
-                    .map((dd) => {
+                    .map(dd => {
                     return countArray[dd];
                 }),
                 countArrayPos: Object.keys(countArrayPos)
                     .sort((a, b) => parseInt(a, 10) - parseInt(b, 10))
-                    .map((dd) => {
+                    .map(dd => {
                     return countArrayPos[dd];
                 }),
                 countArrayStore: Object.keys(countArrayStore)
                     .sort((a, b) => parseInt(a, 10) - parseInt(b, 10))
-                    .map((dd) => {
+                    .map(dd => {
                     return countArrayStore[dd];
                 }),
                 countArrayWeb: Object.keys(countArrayWeb)
                     .sort((a, b) => parseInt(a, 10) - parseInt(b, 10))
-                    .map((dd) => {
+                    .map(dd => {
                     return countArrayWeb[dd];
                 }),
             };
@@ -1075,6 +939,7 @@ class DataAnalyze {
             const countArrayPos = {};
             const countArrayWeb = {};
             const countArrayStore = {};
+            const orderCountingSQL = await this.getOrderCountingSQL();
             let pass = 0;
             await new Promise((resolve, reject) => {
                 for (let index = 0; index < 30; index++) {
@@ -1088,9 +953,9 @@ class DataAnalyze {
                             , INTERVAL ${index} DAY))
                           AND YEAR (${convertTimeZone('created_time')}) = YEAR (DATE_SUB(${convertTimeZone('NOW()')}
                             , INTERVAL ${index} DAY))
-                            AND (orderData->>'$.orderStatus' is null or orderData->>'$.orderStatus' != '-1');
+                            AND ${orderCountingSQL};
                     `;
-                    database_js_1.default.query(monthCheckoutSQL, []).then((data) => {
+                    database_js_1.default.query(monthCheckoutSQL, []).then(data => {
                         pass++;
                         let total = 0;
                         let total_pos = 0;
@@ -1127,22 +992,22 @@ class DataAnalyze {
             return {
                 countArray: Object.keys(countArray)
                     .sort((a, b) => parseInt(a, 10) - parseInt(b, 10))
-                    .map((dd) => {
+                    .map(dd => {
                     return countArray[dd];
                 }),
                 countArrayPos: Object.keys(countArrayPos)
                     .sort((a, b) => parseInt(a, 10) - parseInt(b, 10))
-                    .map((dd) => {
+                    .map(dd => {
                     return countArrayPos[dd];
                 }),
                 countArrayStore: Object.keys(countArrayStore)
                     .sort((a, b) => parseInt(a, 10) - parseInt(b, 10))
-                    .map((dd) => {
+                    .map(dd => {
                     return countArrayStore[dd];
                 }),
                 countArrayWeb: Object.keys(countArrayWeb)
                     .sort((a, b) => parseInt(a, 10) - parseInt(b, 10))
-                    .map((dd) => {
+                    .map(dd => {
                     return countArrayWeb[dd];
                 }),
             };
@@ -1160,6 +1025,7 @@ class DataAnalyze {
             const qData = JSON.parse(query);
             const days = this.diffDates(new Date(qData.start), new Date(qData.end));
             const formatEndDate = `"${tool_js_1.default.replaceDatetime(qData.end)}"`;
+            const orderCountingSQL = await this.getOrderCountingSQL();
             let pass = 0;
             await new Promise((resolve, reject) => {
                 for (let index = 0; index < days; index++) {
@@ -1173,9 +1039,9 @@ class DataAnalyze {
                             , INTERVAL ${index} DAY))
                           AND YEAR (${convertTimeZone('created_time')}) = YEAR (DATE_SUB(${convertTimeZone(formatEndDate)}
                             , INTERVAL ${index} DAY))
-                          AND (orderData->>'$.orderStatus' is null or orderData->>'$.orderStatus' != '-1')
+                          AND ${orderCountingSQL}
                     `;
-                    database_js_1.default.query(monthCheckoutSQL, []).then((data) => {
+                    database_js_1.default.query(monthCheckoutSQL, []).then(data => {
                         pass++;
                         let total = 0;
                         let total_pos = 0;
@@ -1212,22 +1078,22 @@ class DataAnalyze {
             return {
                 countArray: Object.keys(countArray)
                     .sort((a, b) => parseInt(a, 10) - parseInt(b, 10))
-                    .map((dd) => {
+                    .map(dd => {
                     return countArray[dd];
                 }),
                 countArrayPos: Object.keys(countArrayPos)
                     .sort((a, b) => parseInt(a, 10) - parseInt(b, 10))
-                    .map((dd) => {
+                    .map(dd => {
                     return countArrayPos[dd];
                 }),
                 countArrayStore: Object.keys(countArrayStore)
                     .sort((a, b) => parseInt(a, 10) - parseInt(b, 10))
-                    .map((dd) => {
+                    .map(dd => {
                     return countArrayStore[dd];
                 }),
                 countArrayWeb: Object.keys(countArrayWeb)
                     .sort((a, b) => parseInt(a, 10) - parseInt(b, 10))
-                    .map((dd) => {
+                    .map(dd => {
                     return countArrayWeb[dd];
                 }),
             };
@@ -1267,7 +1133,7 @@ class DataAnalyze {
                 unique_count: uniqueMacAddresses.size,
             };
         });
-        const result = dataList.map((data) => data.unique_count);
+        const result = dataList.map(data => data.unique_count);
         return {
             count_array: result.reverse(),
         };
@@ -1304,7 +1170,7 @@ class DataAnalyze {
                 unique_count: uniqueMacAddresses.size,
             };
         });
-        const result = dataList.map((data) => data.unique_count);
+        const result = dataList.map(data => data.unique_count);
         return {
             count_array: result.reverse(),
         };
@@ -1341,7 +1207,7 @@ class DataAnalyze {
                 unique_count: uniqueMacAddresses.size,
             };
         });
-        const result = dataList.map((data) => data.unique_count);
+        const result = dataList.map(data => data.unique_count);
         return {
             count_array: result.reverse(),
         };
@@ -1382,7 +1248,7 @@ class DataAnalyze {
                 unique_count: uniqueMacAddresses.size,
             };
         });
-        const result = dataList.map((data) => data.unique_count);
+        const result = dataList.map(data => data.unique_count);
         return {
             count_array: result.reverse(),
         };
@@ -1405,7 +1271,7 @@ class DataAnalyze {
                             , INTERVAL ${index} DAY))
                           AND status = 1;
                     `;
-                    database_js_1.default.query(monthCheckoutSQL, []).then((data) => {
+                    database_js_1.default.query(monthCheckoutSQL, []).then(data => {
                         countArray[index] = data[0]['count(1)'];
                         pass++;
                         if (pass === 30) {
@@ -1416,11 +1282,11 @@ class DataAnalyze {
             });
             return {
                 countArray: Object.keys(countArray)
-                    .map((dd) => {
+                    .map(dd => {
                     return parseInt(dd);
                 })
                     .sort((a, b) => parseInt(a, 10) - parseInt(b, 10))
-                    .map((dd) => {
+                    .map(dd => {
                     return countArray[dd];
                 })
                     .reverse(),
@@ -1451,7 +1317,7 @@ class DataAnalyze {
                             , INTERVAL ${index} DAY))
                           AND status = 1;
                     `;
-                    database_js_1.default.query(monthCheckoutSQL, []).then((data) => {
+                    database_js_1.default.query(monthCheckoutSQL, []).then(data => {
                         countArray[index] = data[0]['count(1)'];
                         pass++;
                         if (pass === days) {
@@ -1462,11 +1328,11 @@ class DataAnalyze {
             });
             return {
                 countArray: Object.keys(countArray)
-                    .map((dd) => {
+                    .map(dd => {
                     return parseInt(dd);
                 })
                     .sort((a, b) => parseInt(a, 10) - parseInt(b, 10))
-                    .map((dd) => {
+                    .map(dd => {
                     return countArray[dd];
                 })
                     .reverse(),
@@ -1494,7 +1360,7 @@ class DataAnalyze {
                             , INTERVAL ${index} DAY))
                           AND status = 1;
                     `;
-                    database_js_1.default.query(monthCheckoutSQL, []).then((data) => {
+                    database_js_1.default.query(monthCheckoutSQL, []).then(data => {
                         countArray[index] = data[0]['count(1)'];
                         pass++;
                         if (pass === 14) {
@@ -1505,11 +1371,11 @@ class DataAnalyze {
             });
             return {
                 countArray: Object.keys(countArray)
-                    .map((dd) => {
+                    .map(dd => {
                     return parseInt(dd);
                 })
                     .sort((a, b) => parseInt(a, 10) - parseInt(b, 10))
-                    .map((dd) => {
+                    .map(dd => {
                     return countArray[dd];
                 })
                     .reverse(),
@@ -1521,7 +1387,6 @@ class DataAnalyze {
     }
     async getRegisterYear() {
         try {
-            const formatJsonData = [];
             const countArray = {};
             const order = await database_js_1.default.query(`SELECT count(1)
                  FROM \`${this.app}\`.t_user
@@ -1537,7 +1402,7 @@ class DataAnalyze {
                           AND YEAR (${convertTimeZone('created_time')}) = YEAR (DATE_SUB(${convertTimeZone('NOW()')}
                             , INTERVAL ${index} MONTH))
                     `;
-                    database_js_1.default.query(monthRegisterSQL, []).then((data) => {
+                    database_js_1.default.query(monthRegisterSQL, []).then(data => {
                         pass++;
                         countArray[index] = data[0]['count(1)'];
                         if (pass === 12) {
@@ -1550,7 +1415,7 @@ class DataAnalyze {
                 today: order[0]['count(1)'],
                 count_register: Object.keys(countArray)
                     .sort((a, b) => parseInt(a, 10) - parseInt(b, 10))
-                    .map((dd) => {
+                    .map(dd => {
                     return countArray[dd];
                 })
                     .reverse(),
@@ -1563,37 +1428,30 @@ class DataAnalyze {
         }
     }
     async getOrderToDay() {
+        var _a;
         try {
-            const order = await database_js_1.default.query(`SELECT *
-                 FROM \`${this.app}\`.t_checkout
-                 WHERE DATE (created_time) = CURDATE()`, []);
+            const orderCountingSQL = await this.getOrderCountingSQL();
+            const [order, unShipmentCount] = await Promise.all([
+                database_js_1.default.query(`SELECT status, orderData->>'$.total' as total
+           FROM \`${this.app}\`.t_checkout
+           WHERE DATE(${convertTimeZone('created_time')}) = CURDATE()`, []),
+                database_js_1.default.query(`SELECT COUNT(1) as count
+           FROM \`${this.app}\`.t_checkout
+           WHERE ${orderCountingSQL}
+           AND DATE(${convertTimeZone('created_time')}) = CURDATE()`, []),
+            ]);
             return {
-                total_count: order.filter((dd) => {
-                    return dd.status === 1;
-                }).length,
-                un_shipment: (await database_js_1.default.query(`SELECT count(1)
-                         from \`${this.app}\`.t_checkout
-                         WHERE (orderData ->> '$.progress' is null || orderData ->> '$.progress' = 'wait')
-                           AND (orderData->>'$.orderStatus' is null or orderData->>'$.orderStatus' != '-1')`, []))[0]['count(1)'],
-                un_pay: order.filter((dd) => {
-                    return dd.status === 0;
-                }).length,
-                total_amount: (() => {
-                    let amount = 0;
-                    order
-                        .filter((dd) => {
-                        return dd.status === 1;
-                    })
-                        .map((dd) => {
-                        amount += dd.orderData.total;
-                    });
-                    return amount;
-                })(),
+                total_count: order.filter((dd) => dd.status === 1).length,
+                un_shipment: ((_a = unShipmentCount[0]) === null || _a === void 0 ? void 0 : _a.count) || 0,
+                un_pay: order.filter((dd) => dd.status === 0).length,
+                total_amount: order
+                    .filter((dd) => dd.status === 1)
+                    .reduce((sum, dd) => sum + Number(dd.total || 0), 0),
             };
         }
         catch (e) {
-            console.error(e);
-            throw exception_js_1.default.BadRequestError('BAD_REQUEST', 'getOrderToDay Error:' + e, null);
+            console.error('getOrderToDay Error:', e);
+            throw exception_js_1.default.BadRequestError('BAD_REQUEST', `getOrderToDay Error: ${e}`, null);
         }
     }
 }

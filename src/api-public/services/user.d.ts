@@ -87,7 +87,7 @@ export declare class User {
         orderBy: string;
         page?: number;
         limit?: number;
-    }): string;
+    }): Promise<string>;
     private getOrderByClause;
     getUserList(query: UserQuery): Promise<{
         data: any;
@@ -209,6 +209,7 @@ export declare class User {
     }): Promise<any>;
     forgetPassword(email: string): Promise<void>;
     static ipInfo(ip: string): Promise<any>;
+    getCheckoutCountingModeSQL(table?: string): Promise<string>;
     constructor(app: string, token?: IToken);
 }
 export {};

@@ -466,6 +466,11 @@ export class ShoppingInformation {
                   '如需使用廣告追蹤行為，必須啟用 Cookie 聲明，才可發送廣告',
                   'cookie_check'
                 )}
+                ${createDialog(
+                  '訂單結算模式',
+                  '設定訂單結算模式，可調整顧客累積消費金額、會員等級、數據分析的統計機制',
+                  'checkout_mode'
+                )}
               </div>
             `);
           },

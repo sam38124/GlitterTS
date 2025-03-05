@@ -3,21 +3,21 @@ import exception from '../../modules/exception';
 import tool, { getUUID } from '../../services/tool';
 import UserUtil from '../../utils/UserUtil';
 import config from '../../config.js';
-import { sendmail } from '../../services/ses.js';
 import App from '../../app.js';
 import redis from '../../modules/redis.js';
 import Tool from '../../modules/tool.js';
 import process from 'process';
+import axios from 'axios';
+import qs from 'qs';
+import jwt from 'jsonwebtoken';
+import moment from 'moment';
+import { sendmail } from '../../services/ses.js';
 import { UtDatabase } from '../utils/ut-database.js';
 import { CustomCode } from './custom-code.js';
 import { IToken } from '../models/Auth.js';
-import axios from 'axios';
 import { AutoSendEmail } from './auto-send-email.js';
-import qs from 'qs';
-import jwt from 'jsonwebtoken';
 import { OAuth2Client } from 'google-auth-library';
 import { Rebate } from './rebate.js';
-import moment from 'moment';
 import { ManagerNotify } from './notify.js';
 import { saasConfig } from '../../config';
 import { SMS } from './sms.js';
@@ -71,6 +71,7 @@ type MemberLevel = {
   dead_line: { type: string };
   create_date: string;
 };
+
 type MemberConfig = {
   start_with: string;
   id: string;
@@ -94,9 +95,13 @@ type MemberConfig = {
 };
 
 export class User {
-  static posEmail = '';
   public app: string;
   public token?: IToken;
+
+  constructor(app: string, token?: IToken) {
+    this.app = app;
+    this.token = token;
+  }
 
   public static generateUserID() {
     let userID = '';
@@ -1164,31 +1169,37 @@ export class User {
     return null;
   }
 
-  getUserAndOrderSQL(obj: { select: string; where: string[]; orderBy: string; page?: number; limit?: number }) {
+  async getUserAndOrderSQL(obj: { select: string; where: string[]; orderBy: string; page?: number; limit?: number }) {
     const orderByClause = this.getOrderByClause(obj.orderBy);
     const whereClause = obj.where.filter(str => str.length > 0).join(' AND ');
     const limitClause =
       obj.page !== undefined && obj.limit !== undefined ? `LIMIT ${obj.page * obj.limit}, ${obj.limit}` : '';
+    const orderCountingSQL = await this.getCheckoutCountingModeSQL();
 
     const sql = `
-            SELECT ${obj.select}
-            FROM (SELECT email,
-                         COUNT(*)                                                        AS order_count,
-                         SUM(CAST(JSON_EXTRACT(orderData, '$.total') AS DECIMAL(10, 2))) AS total_amount
-                  FROM \`${this.app}\`.t_checkout
-                  WHERE (orderData ->>'$.orderStatus' is null OR orderData->>'$.orderStatus' != '-1')
-                  GROUP BY email) AS o
-                     RIGHT JOIN \`${this.app}\`.t_user u ON o.email = u.account
-                     LEFT JOIN (SELECT email,
-                                       JSON_EXTRACT(orderData, '$.total') AS last_order_total,
-                                       created_time                       AS last_order_time,
-                                       ROW_NUMBER()                          OVER(PARTITION BY email ORDER BY created_time DESC) as rn
-                                FROM \`${this.app}\`.t_checkout
-                                WHERE (orderData ->>'$.orderStatus' is null OR orderData->>'$.orderStatus' != '-1')) AS lo
-                               ON o.email = lo.email AND lo.rn = 1
-            WHERE (${whereClause})
-            ORDER BY ${orderByClause} ${limitClause}
-        `;
+        SELECT ${obj.select}
+        FROM (
+            SELECT 
+                email,
+                COUNT(*) AS order_count,
+                SUM(CAST(JSON_EXTRACT(orderData, '$.total') AS DECIMAL(10, 2))) AS total_amount
+            FROM \`${this.app}\`.t_checkout
+            WHERE ${orderCountingSQL}
+            GROUP BY email
+        ) AS o
+        RIGHT JOIN \`${this.app}\`.t_user u ON o.email = u.account
+        LEFT JOIN (
+            SELECT 
+                email,
+                JSON_EXTRACT(orderData, '$.total') AS last_order_total,
+                created_time AS last_order_time,
+                ROW_NUMBER() OVER(PARTITION BY email ORDER BY created_time DESC) AS rn
+            FROM \`${this.app}\`.t_checkout
+            WHERE ${orderCountingSQL}
+        ) AS lo ON o.email = lo.email AND lo.rn = 1
+        WHERE (${whereClause})
+        ORDER BY ${orderByClause} ${limitClause}
+    `;
 
     return sql;
   }
@@ -1420,7 +1431,7 @@ export class User {
         querySql.push(`status = ${query.filter_type === 'block' ? 0 : 1}`);
       }
 
-      const dataSQL = this.getUserAndOrderSQL({
+      const dataSQL = await this.getUserAndOrderSQL({
         select: 'o.email, o.order_count, o.total_amount, u.*, lo.last_order_total, lo.last_order_time',
         where: querySql,
         orderBy: query.order_string ?? '',
@@ -1428,7 +1439,7 @@ export class User {
         limit: query.limit,
       });
 
-      const countSQL = this.getUserAndOrderSQL({
+      const countSQL = await this.getUserAndOrderSQL({
         select: 'count(1)',
         where: querySql,
         orderBy: query.order_string ?? '',
@@ -2668,8 +2679,54 @@ export class User {
     }
   }
 
-  constructor(app: string, token?: IToken) {
-    this.app = app;
-    this.token = token;
+  public async getCheckoutCountingModeSQL(table?: string) {
+    const asTable = table ? `${table}.` : '';
+    const storeInfo = await this.getConfigV2({ key: 'store-information', user_id: 'manager' });
+
+    const sqlQuery: string[] = [];
+    const sqlObject: Record<string, { key: string; options: Set<string>; addNull: Set<string> }> = {
+      orderStatus: {
+        key: `orderData->>'$.orderStatus'`,
+        options: new Set(['1', '0', '-1']),
+        addNull: new Set(['0']),
+      },
+      payload: {
+        key: `status`,
+        options: new Set(['1', '3', '0', '-1', '-2']),
+        addNull: new Set(),
+      },
+      progress: {
+        key: `orderData->>'$.progress'`,
+        options: new Set(['finish', 'arrived', 'shipping', 'pre_order', 'wait', 'returns']),
+        addNull: new Set(['wait']),
+      },
+    };
+
+    Object.entries(storeInfo.checkout_mode).forEach(([key, mode]: [string, unknown]) => {
+      const obj = sqlObject[key];
+      if (!Array.isArray(mode) || mode.length === 0 || !obj) return;
+
+      const modeSet = new Set(mode); // O(n) 預處理
+      const sqlTemp: string[] = [];
+
+      const validValues = [...obj.options].filter(val => modeSet.has(val)); // O(n)
+      if (validValues.length > 0) {
+        sqlTemp.push(`${asTable}${obj.key} IN (${validValues.map(val => `'${val}'`).join(',')})`);
+      }
+
+      if ([...obj.addNull].some(val => modeSet.has(val))) {
+        sqlTemp.push(`${asTable}${obj.key} IS NULL`);
+      }
+
+      if (sqlTemp.length > 0) {
+        sqlQuery.push(`(${sqlTemp.join(' OR ')})`);
+      }
+    });
+
+    if (sqlQuery.length === 0) {
+      return '1 = 0'; // 無需累計的判斷式
+    }
+
+    return sqlQuery.join(' AND ');
   }
 }
