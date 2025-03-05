@@ -149,7 +149,7 @@ export class Setting_editor {
                             ? `padding-top:${glitter.share.top_inset}px !important;`
                             : ``}"
                         >
-                            <img src="https://d3jnmi1tfjgtti.cloudfront.net/file/252530754/1718986163099-logo.svg" />
+                            <img style="height: 24px;" src="https://d3jnmi1tfjgtti.cloudfront.net/file/252530754/1718986163099-logo.svg" />
                             <span class="ms-1"
                                   style="font-size: 12px;color: orange;">${glitter.share.editerVersion}</span>
                         </div>

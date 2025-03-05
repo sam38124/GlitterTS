@@ -241,7 +241,7 @@ export class ShoppingInformation {
                     ];
 
                     return html` ${BgWidget.grayNote('提示：勾選項目後，該項目將會作為訂單累積與分析數據的篩選條件')}
-                      <div class="d-flex flex-column gap-2">
+                      <div class="d-flex flex-column gap-1">
                         ${arr
                           .map(obj => {
                             return BgWidget.inlineCheckBox({

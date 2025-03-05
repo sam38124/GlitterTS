@@ -37,6 +37,7 @@ type TableV3 = {
   tableData: {
     key: string;
     value: string;
+    stopClick?: boolean;
   }[][];
   originalData: any;
   callback: () => void;
@@ -1988,6 +1989,7 @@ ${obj.default ?? ''}</textarea
                           obj.itemSelect && obj.itemSelect();
                         },
                       }),
+                      stopClick: true,
                     },
                     ...item,
                   ];
@@ -2130,22 +2132,18 @@ ${obj.default ?? ''}</textarea
                             .map((d3, tdIndex: number) => {
                               const tdClass = Tool.randomString(5);
                               const style = `
-                                                                border: none;
-                                                                vertical-align: middle;
-                                                                width: ${widthList[tdIndex]}px;
-                                                                ${dd.length > 1 && tdIndex === 0 ? 'border-radius: 10px 0 0 10px;' : ''}
-                                                                ${dd.length > 1 && tdIndex === dd.length - 1 ? 'border-radius: 0 10px 10px 0;' : ''}
-                                                                ${dd.length === 1 ? 'border-radius: 10px;' : ''}
-                                                            `;
+                                border: none;
+                                vertical-align: middle;
+                                width: ${widthList[tdIndex]}px;
+                                ${dd.length > 1 && tdIndex === 0 ? 'border-radius: 10px 0 0 10px;' : ''}
+                                ${dd.length > 1 && tdIndex === dd.length - 1 ? 'border-radius: 0 10px 10px 0;' : ''}
+                                ${dd.length === 1 ? 'border-radius: 10px;' : ''}
+                              `;
                               return html` <td
                                 class="${ids.textClass} ${tdClass} tb_v3 tx_normal"
                                 style="${style}"
                                 ${obj.filter.length !== 0 && tdIndex === 0 ? `gvc-checkbox="checkbox${trIndex}"` : ''}
-                                onclick="${d3.key.includes('data-click="false"')
-                                  ? gvc.event((e, event) => {
-                                      event.stopPropagation();
-                                    })
-                                  : ''}"
+                                onclick="${d3.stopClick ? gvc.event((_, event) => event.stopPropagation()) : ''}"
                               >
                                 <div class="text-nowrap" style="color: #393939 !important;">${d3.value}</div>
                               </td>`;
