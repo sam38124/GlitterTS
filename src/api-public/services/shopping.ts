@@ -991,7 +991,6 @@ export class Shopping {
                    FROM \`${this.app}\`.t_manager_post
                    WHERE ${querySql.join(' and ')} ${query.order_by || `order by id desc`}
         `;
-    console.log(`querySqlProduct=>`, sql);
     if (query.id) {
       const data = (
         await db.query(
@@ -3153,10 +3152,8 @@ export class Shopping {
       }
       const store_config = await new User(this.app).getConfigV2({ key: 'store_manager', user_id: 'manager' });
       const origin = await db.query(
-        `SELECT *
-                 FROM \`${this.app}\`.t_checkout
-                 WHERE id = ?;
-                `,
+        `SELECT * FROM \`${this.app}\`.t_checkout WHERE id = ?;
+        `,
         [data.id]
       );
 
@@ -3165,7 +3162,7 @@ export class Shopping {
         let sns = new SMS(this.app);
         const updateProgress = JSON.parse(update.orderData).progress;
 
-        //Migrate舊版和新版訂單
+        // Migrate舊版和新版訂單
         function migrateOrder(lineItems: any) {
           for (const lineItem of lineItems) {
             lineItem.stockList = undefined;
@@ -3179,16 +3176,17 @@ export class Shopping {
 
         migrateOrder(data.orderData.lineItems);
         migrateOrder(origin[0].orderData.lineItems);
+
         if (data.orderData.orderStatus === '-1') {
           await this.releaseVoucherHistory(data.orderData.orderID, 0);
         } else {
           await this.releaseVoucherHistory(data.orderData.orderID, 1);
         }
 
-        //當訂單變成已取消的當下去執行庫存回填
+        // 當訂單變成已取消的當下去執行庫存回填
         if (origin[0].orderData.orderStatus !== '-1' && data.orderData.orderStatus === '-1') {
           for (const lineItem of origin[0].orderData.lineItems) {
-            //回填所有庫存點數量
+            // 回填所有庫存點數量
             if (lineItem.product_category === 'kitchen' && lineItem.spec && lineItem.spec.length) {
               await new Shopping(this.app, this.token).calcVariantsStock(
                 lineItem.count,
@@ -3265,7 +3263,7 @@ export class Shopping {
             data.orderData.language
           );
         } else {
-          //調撥庫存的判斷
+          // 調撥庫存的判斷
           if (data.orderData.orderStatus !== '-1') {
             for (const new_line_item of data.orderData.lineItems) {
               const og_line_items = origin[0].orderData.lineItems.find((dd: any) => {
@@ -3294,20 +3292,28 @@ export class Shopping {
           }
         }
 
-        //付款狀態不一致時發動更新
+        // 付款狀態不一致時發動更新
         if (origin[0].status !== update.status) {
           await this.releaseCheckout(update.status, data.orderData.orderID);
         }
       }
 
       await db.query(
-        `UPDATE \`${this.app}\`.t_checkout
-                 SET ?
-                 WHERE id = ?
-                `,
+        `UPDATE \`${this.app}\`.t_checkout SET ? WHERE id = ?;
+        `,
         [update, data.id]
       );
-      //
+
+      const orderCountingSQL = await new User(this.app).getCheckoutCountingModeSQL();
+      const orderCount = await db.query(
+        `SELECT * FROM \`${this.app}\`.t_checkout WHERE id = ? AND ${orderCountingSQL};
+        `,
+        [data.id]
+      );
+      if (orderCount[0]) {
+        await this.shareVoucherRebate(orderCount[0]);
+      }
+
       await Promise.all(
         origin[0].orderData.lineItems.map((lineItem: any) => {
           return new Promise(async (resolve, reject) => {
@@ -3813,54 +3819,6 @@ export class Shopping {
         }
 
         const userData = await new User(this.app).getUserData(cartData.email, 'account');
-        if (userData && cartData.orderData.rebate > 0) {
-          const rebateClass = new Rebate(this.app);
-          for (let i = 0; i < cartData.orderData.voucherList.length; i++) {
-            const orderVoucher = cartData.orderData.voucherList[i];
-
-            const voucherRow = await db.query(
-              `SELECT *
-                             FROM \`${this.app}\`.t_manager_post
-                             WHERE JSON_EXTRACT(content, '$.type') = 'voucher'
-                               AND id = ?;`,
-              [orderVoucher.id]
-            );
-
-            if (voucherRow[0]) {
-              for (const item of orderVoucher.bind) {
-                const useCheck = await rebateClass.canUseRebate(userData.userID, 'voucher', {
-                  voucher_id: orderVoucher.id,
-                  order_id: order_id,
-                  sku: item.sku,
-                  quantity: item.count,
-                });
-                if (item.rebate > 0 && useCheck?.result) {
-                  const content = voucherRow[0].content;
-                  if (item.rebate * item.count !== 0) {
-                    await rebateClass.insertRebate(
-                      userData.userID,
-                      item.rebate * item.count,
-                      `優惠券購物金：${content.title}`,
-                      {
-                        voucher_id: orderVoucher.id,
-                        order_id: order_id,
-                        sku: item.sku,
-                        quantity: item.count,
-                        deadTime: content.rebateEndDay
-                          ? moment().add(content.rebateEndDay, 'd').format('YYYY-MM-DD HH:mm:ss')
-                          : undefined,
-                      }
-                    );
-                  }
-                }
-              }
-            }
-          }
-        }
-
-        if (cartData.orderData.voucherList && cartData.orderData.voucherList.length > 0) {
-          await this.releaseVoucherHistory(order_id, 1);
-        }
 
         try {
           await new CustomCode(this.app).checkOutHook({ userData, cartData });
@@ -3871,6 +3829,61 @@ export class Shopping {
       }
     } catch (error) {
       throw exception.BadRequestError('BAD_REQUEST', 'Release Checkout Error:' + e, null);
+    }
+  }
+
+  async shareVoucherRebate(cartData: any) {
+    const order_id = cartData.cart_token;
+    const rebateClass = new Rebate(this.app);
+    const userClass = new User(this.app);
+    const userData = await userClass.getUserData(cartData.email, 'account');
+
+    if (order_id && userData && cartData.orderData.rebate > 0) {
+      for (let i = 0; i < cartData.orderData.voucherList.length; i++) {
+        const orderVoucher = cartData.orderData.voucherList[i];
+
+        const voucherRow = await db.query(
+          `SELECT * FROM \`${this.app}\`.t_manager_post 
+          WHERE JSON_EXTRACT(content, '$.type') = 'voucher' AND id = ?;`,
+          [orderVoucher.id]
+        );
+
+        if (voucherRow[0]) {
+          for (const item of orderVoucher.bind) {
+            const useCheck = await rebateClass.canUseRebate(userData.userID, 'voucher', {
+              voucher_id: orderVoucher.id,
+              order_id: order_id,
+              sku: item.sku,
+              quantity: item.count,
+            });
+            const usedVoucher = await this.isUsedVoucher(userData.userID, orderVoucher.id, order_id);
+
+            if (item.rebate > 0 && useCheck?.result && !usedVoucher) {
+              const content = voucherRow[0].content;
+              if (item.rebate * item.count !== 0) {
+                await rebateClass.insertRebate(
+                  userData.userID,
+                  item.rebate * item.count,
+                  `優惠券購物金：${content.title}`,
+                  {
+                    voucher_id: orderVoucher.id,
+                    order_id: order_id,
+                    sku: item.sku,
+                    quantity: item.count,
+                    deadTime: content.rebateEndDay
+                      ? moment().add(content.rebateEndDay, 'd').format('YYYY-MM-DD HH:mm:ss')
+                      : undefined,
+                  }
+                );
+              }
+            }
+          }
+        }
+      }
+    }
+
+    if (cartData.orderData.voucherList && cartData.orderData.voucherList.length > 0) {
+      await this.releaseVoucherHistory(order_id, 1);
     }
   }
 
@@ -3911,6 +3924,22 @@ export class Shopping {
       return true;
     } catch (error) {
       throw exception.BadRequestError('BAD_REQUEST', 'checkVoucherHistory Error:' + e, null);
+    }
+  }
+
+  async isUsedVoucher(user_id: number, voucher_id: number, order_id: string): Promise<boolean> {
+    try {
+      const history = await db.query(
+        `SELECT * FROM \`${this.app}\`.t_rebate_point 
+         WHERE user_id = ? 
+         AND content->>'$.order_id' = ? 
+         AND content->>'$.voucher_id' = ?;`,
+        [user_id, order_id, voucher_id]
+      );
+
+      return history.length > 0;
+    } catch (error) {
+      throw exception.BadRequestError('BAD_REQUEST', 'checkOrderVoucher 錯誤: ' + error, null);
     }
   }
 

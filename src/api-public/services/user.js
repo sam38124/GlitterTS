@@ -705,20 +705,18 @@ class User {
                 key: 'member_level_config',
                 user_id: 'manager',
             })).levels || [];
-            const order_list = (await database_1.default.query(`SELECT orderData ->> '$.total' as total, created_time
-                     FROM \`${this.app}\`.t_checkout
-                     where email in (${[userData.userData.email, userData.userData.phone]
-                .filter(dd => {
-                return dd;
-            })
-                .map(dd => {
-                return database_1.default.escape(dd);
-            })
+            const orderCountingSQL = await this.getCheckoutCountingModeSQL();
+            const order_list = (await database_1.default.query(`SELECT orderData ->> '$.total' AS total, created_time
+           FROM \`${this.app}\`.t_checkout
+           WHERE email IN (${[userData.userData.email, userData.userData.phone]
+                .filter(Boolean)
+                .map(database_1.default.escape)
                 .join(',')})
-                       and status = 1
-                     order by id desc`, [])).map((dd) => {
-                return { total_amount: parseInt(`${dd.total}`, 10), date: dd.created_time };
-            });
+           AND ${orderCountingSQL}
+           ORDER BY id DESC`, [])).map((dd) => ({
+                total_amount: parseInt(dd.total, 10),
+                date: dd.created_time,
+            }));
             let pass_level = true;
             const member = member_list
                 .map((dd, index) => {

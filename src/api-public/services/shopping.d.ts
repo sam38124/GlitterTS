@@ -420,7 +420,9 @@ export declare class Shopping {
         valid?: boolean;
     }): Promise<any>;
     releaseCheckout(status: 1 | 0 | -1, order_id: string): Promise<void>;
+    shareVoucherRebate(cartData: any): Promise<void>;
     checkVoucherLimited(user_id: number, voucher_id: number): Promise<boolean>;
+    isUsedVoucher(user_id: number, voucher_id: number, order_id: string): Promise<boolean>;
     insertVoucherHistory(user_id: number, order_id: string, voucher_id: number): Promise<void>;
     releaseVoucherHistory(order_id: string, status: 1 | 0): Promise<void>;
     resetVoucherHistory(): Promise<void>;

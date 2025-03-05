@@ -884,25 +884,23 @@ export class User {
           })
         ).levels || [];
       //用戶訂單
+      const orderCountingSQL = await this.getCheckoutCountingModeSQL();
       const order_list = (
         await db.query(
-          `SELECT orderData ->> '$.total' as total, created_time
-                     FROM \`${this.app}\`.t_checkout
-                     where email in (${[userData.userData.email, userData.userData.phone]
-                       .filter(dd => {
-                         return dd;
-                       })
-                       .map(dd => {
-                         return db.escape(dd);
-                       })
-                       .join(',')})
-                       and status = 1
-                     order by id desc`,
+          `SELECT orderData ->> '$.total' AS total, created_time
+           FROM \`${this.app}\`.t_checkout
+           WHERE email IN (${[userData.userData.email, userData.userData.phone]
+             .filter(Boolean) // 過濾掉 falsy 值
+             .map(db.escape) // 轉義輸入以防止 SQL 注入
+             .join(',')})
+           AND ${orderCountingSQL}
+           ORDER BY id DESC`,
           []
         )
-      ).map((dd: any) => {
-        return { total_amount: parseInt(`${dd.total}`, 10), date: dd.created_time };
-      });
+      ).map((dd: any) => ({
+        total_amount: parseInt(dd.total, 10), // 轉換為整數
+        date: dd.created_time, // 保留創建時間
+      }));
 
       // 判斷是否符合上個等級
       let pass_level = true;

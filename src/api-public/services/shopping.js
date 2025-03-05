@@ -693,7 +693,6 @@ class Shopping {
                    FROM \`${this.app}\`.t_manager_post
                    WHERE ${querySql.join(' and ')} ${query.order_by || `order by id desc`}
         `;
-        console.log(`querySqlProduct=>`, sql);
         if (query.id) {
             const data = (await database_js_1.default.query(`SELECT *
                      FROM (${sql}) as subqyery
@@ -2345,10 +2344,8 @@ class Shopping {
                 update.orderData = JSON.stringify(data.orderData);
             }
             const store_config = await new user_js_1.User(this.app).getConfigV2({ key: 'store_manager', user_id: 'manager' });
-            const origin = await database_js_1.default.query(`SELECT *
-                 FROM \`${this.app}\`.t_checkout
-                 WHERE id = ?;
-                `, [data.id]);
+            const origin = await database_js_1.default.query(`SELECT * FROM \`${this.app}\`.t_checkout WHERE id = ?;
+        `, [data.id]);
             if (update.orderData && JSON.parse(update.orderData)) {
                 let sns = new sms_js_1.SMS(this.app);
                 const updateProgress = JSON.parse(update.orderData).progress;
@@ -2429,10 +2426,14 @@ class Shopping {
                     await this.releaseCheckout(update.status, data.orderData.orderID);
                 }
             }
-            await database_js_1.default.query(`UPDATE \`${this.app}\`.t_checkout
-                 SET ?
-                 WHERE id = ?
-                `, [update, data.id]);
+            await database_js_1.default.query(`UPDATE \`${this.app}\`.t_checkout SET ? WHERE id = ?;
+        `, [update, data.id]);
+            const orderCountingSQL = await new user_js_1.User(this.app).getCheckoutCountingModeSQL();
+            const orderCount = await database_js_1.default.query(`SELECT * FROM \`${this.app}\`.t_checkout WHERE id = ? AND ${orderCountingSQL};
+        `, [data.id]);
+            if (orderCount[0]) {
+                await this.shareVoucherRebate(orderCount[0]);
+            }
             await Promise.all(origin[0].orderData.lineItems.map((lineItem) => {
                 return new Promise(async (resolve, reject) => {
                     const pd = await new Shopping(this.app, this.token).getProduct({
@@ -2810,43 +2811,6 @@ class Shopping {
                     console.log('付款成功line訊息寄送成功');
                 }
                 const userData = await new user_js_1.User(this.app).getUserData(cartData.email, 'account');
-                if (userData && cartData.orderData.rebate > 0) {
-                    const rebateClass = new rebate_js_1.Rebate(this.app);
-                    for (let i = 0; i < cartData.orderData.voucherList.length; i++) {
-                        const orderVoucher = cartData.orderData.voucherList[i];
-                        const voucherRow = await database_js_1.default.query(`SELECT *
-                             FROM \`${this.app}\`.t_manager_post
-                             WHERE JSON_EXTRACT(content, '$.type') = 'voucher'
-                               AND id = ?;`, [orderVoucher.id]);
-                        if (voucherRow[0]) {
-                            for (const item of orderVoucher.bind) {
-                                const useCheck = await rebateClass.canUseRebate(userData.userID, 'voucher', {
-                                    voucher_id: orderVoucher.id,
-                                    order_id: order_id,
-                                    sku: item.sku,
-                                    quantity: item.count,
-                                });
-                                if (item.rebate > 0 && (useCheck === null || useCheck === void 0 ? void 0 : useCheck.result)) {
-                                    const content = voucherRow[0].content;
-                                    if (item.rebate * item.count !== 0) {
-                                        await rebateClass.insertRebate(userData.userID, item.rebate * item.count, `優惠券購物金：${content.title}`, {
-                                            voucher_id: orderVoucher.id,
-                                            order_id: order_id,
-                                            sku: item.sku,
-                                            quantity: item.count,
-                                            deadTime: content.rebateEndDay
-                                                ? (0, moment_1.default)().add(content.rebateEndDay, 'd').format('YYYY-MM-DD HH:mm:ss')
-                                                : undefined,
-                                        });
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-                if (cartData.orderData.voucherList && cartData.orderData.voucherList.length > 0) {
-                    await this.releaseVoucherHistory(order_id, 1);
-                }
                 try {
                     await new custom_code_js_1.CustomCode(this.app).checkOutHook({ userData, cartData });
                 }
@@ -2858,6 +2822,48 @@ class Shopping {
         }
         catch (error) {
             throw exception_js_1.default.BadRequestError('BAD_REQUEST', 'Release Checkout Error:' + express_1.default, null);
+        }
+    }
+    async shareVoucherRebate(cartData) {
+        const order_id = cartData.cart_token;
+        const rebateClass = new rebate_js_1.Rebate(this.app);
+        const userClass = new user_js_1.User(this.app);
+        const userData = await userClass.getUserData(cartData.email, 'account');
+        if (order_id && userData && cartData.orderData.rebate > 0) {
+            for (let i = 0; i < cartData.orderData.voucherList.length; i++) {
+                const orderVoucher = cartData.orderData.voucherList[i];
+                const voucherRow = await database_js_1.default.query(`SELECT * FROM \`${this.app}\`.t_manager_post 
+          WHERE JSON_EXTRACT(content, '$.type') = 'voucher' AND id = ?;`, [orderVoucher.id]);
+                if (voucherRow[0]) {
+                    for (const item of orderVoucher.bind) {
+                        const useCheck = await rebateClass.canUseRebate(userData.userID, 'voucher', {
+                            voucher_id: orderVoucher.id,
+                            order_id: order_id,
+                            sku: item.sku,
+                            quantity: item.count,
+                        });
+                        const usedVoucher = await this.isUsedVoucher(userData.userID, orderVoucher.id, order_id);
+                        if (item.rebate > 0 && (useCheck === null || useCheck === void 0 ? void 0 : useCheck.result) && !usedVoucher) {
+                            const content = voucherRow[0].content;
+                            if (item.rebate * item.count !== 0) {
+                                console.log(`insertRebate: ${content.title}`);
+                                await rebateClass.insertRebate(userData.userID, item.rebate * item.count, `優惠券購物金：${content.title}`, {
+                                    voucher_id: orderVoucher.id,
+                                    order_id: order_id,
+                                    sku: item.sku,
+                                    quantity: item.count,
+                                    deadTime: content.rebateEndDay
+                                        ? (0, moment_1.default)().add(content.rebateEndDay, 'd').format('YYYY-MM-DD HH:mm:ss')
+                                        : undefined,
+                                });
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        if (cartData.orderData.voucherList && cartData.orderData.voucherList.length > 0) {
+            await this.releaseVoucherHistory(order_id, 1);
         }
     }
     async checkVoucherLimited(user_id, voucher_id) {
@@ -2890,6 +2896,18 @@ class Shopping {
         }
         catch (error) {
             throw exception_js_1.default.BadRequestError('BAD_REQUEST', 'checkVoucherHistory Error:' + express_1.default, null);
+        }
+    }
+    async isUsedVoucher(user_id, voucher_id, order_id) {
+        try {
+            const history = await database_js_1.default.query(`SELECT * FROM \`${this.app}\`.t_rebate_point 
+        WHERE user_id = ? AND content->>'$.order_id' = ? AND content->>'$.voucher_id' = ?`, [user_id, order_id, voucher_id]);
+            console.log('====== history =====');
+            console.log(history);
+            return Boolean(history && history.length > 0);
+        }
+        catch (error) {
+            throw exception_js_1.default.BadRequestError('BAD_REQUEST', 'checkOrderVoucher Error:' + express_1.default, null);
         }
     }
     async insertVoucherHistory(user_id, order_id, voucher_id) {
