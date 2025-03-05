@@ -3,7 +3,6 @@ import {BgWidget} from "../backend-manager/bg-widget.js";
 
 export class CmsRouter{
     public static main(gvc:GVC){
-        // alert(gvc.glitter.getUrlParameter('page'))
        return gvc.bindView(()=>{
            const id=gvc.glitter.getUUID()
            return {

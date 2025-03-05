@@ -2891,7 +2891,6 @@ export class CheckoutIndex {
                                                                         localStorage.setItem('clear_cart_items', JSON.stringify(vm.cartData.lineItems.map((item: any) => item.id)));
 
                                                                         if (res.response.off_line || res.response.is_free) {
-                                                                            alert(res.response.return_url);
                                                                             location.href = res.response.return_url;
                                                                         } else {
                                                                             if (res.response.returnCode == '0000' && vm.cartData.customer_info.payment_select == 'line_pay') {

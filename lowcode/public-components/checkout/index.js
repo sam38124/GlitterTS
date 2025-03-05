@@ -2730,7 +2730,6 @@ export class CheckoutIndex {
                                         }
                                         localStorage.setItem('clear_cart_items', JSON.stringify(vm.cartData.lineItems.map((item) => item.id)));
                                         if (res.response.off_line || res.response.is_free) {
-                                            alert(res.response.return_url);
                                             location.href = res.response.return_url;
                                         }
                                         else {

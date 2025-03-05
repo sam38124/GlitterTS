@@ -456,7 +456,6 @@ export class PageEditor {
                                 Storage.lastSelect = dd.id;
                                 localStorage.setItem('rightSelect', 'module')
                                 gvc.notifyDataChange(['right_NAV', 'MainEditorLeft', vid])
-                                // alert('s')
                                 setTimeout(() => {
                                     viewModel.selectContainer.refresh()
                                     const leftItem = document.querySelectorAll('.selectLeftItem');
@@ -510,7 +509,6 @@ console.log(`selectEditEvent-->`)
                                                  eval(toggle)
                                                  return
                                              }
-                                             // alert(dd.active)
                                              if (option.selectEvent) {
                                                  option.selectEvent(dd)
                                              } else if (dd.editorEvent) {

@@ -1260,7 +1260,7 @@ export class Main_editor {
 
                     deleteBlock();
                   } catch (e) {
-                    alert(e);
+                    console.error(e);
                   }
                 })}"
               >

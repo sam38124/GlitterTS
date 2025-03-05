@@ -2655,9 +2655,7 @@ class Shopping {
                 const data = await database_js_1.default.query(`SELECT *
                      FROM \`${this.app}\`.t_checkout
                      WHERE cart_token = ${query.search}`, []);
-                let returnSql = `SELECT *
-                                 FROM \`${this.app}\`.t_return_order
-                                 WHERE order_id = ${query.search}`;
+                let returnSql = `SELECT * FROM \`${this.app}\`.t_return_order WHERE order_id = ${query.search}`;
                 let returnData = await database_js_1.default.query(returnSql, []);
                 if (returnData.length > 0) {
                     returnData.forEach((returnOrder) => {
@@ -2677,8 +2675,8 @@ class Shopping {
             }
             const response_data = await new Promise(async (resolve, reject) => {
                 if (query.id) {
-                    const data = (await database_js_1.default.query(`SELECT *
-                         FROM (${sql}) as subqyery limit ${query.page * query.limit}, ${query.limit}`, []))[0];
+                    const data = (await database_js_1.default.query(`SELECT * FROM (${sql}) as subqyery limit ${query.page * query.limit}, ${query.limit}
+              `, []))[0];
                     resolve({
                         data: data,
                         result: !!data,
@@ -2686,10 +2684,10 @@ class Shopping {
                 }
                 else {
                     resolve({
-                        data: await database_js_1.default.query(`SELECT *
-                         FROM (${sql}) as subqyery limit ${query.page * query.limit}, ${query.limit}`, []),
-                        total: (await database_js_1.default.query(`SELECT count(1)
-                             FROM (${sql}) as subqyery`, []))[0]['count(1)'],
+                        data: await database_js_1.default.query(`SELECT * FROM (${sql}) as subqyery limit ${query.page * query.limit}, ${query.limit}
+              `, []),
+                        total: (await database_js_1.default.query(`SELECT count(1) FROM (${sql}) as subqyery
+                `, []))[0]['count(1)'],
                     });
                 }
             });

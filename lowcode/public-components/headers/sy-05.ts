@@ -10,7 +10,6 @@ const html = String.raw;
 export class Sy05 {
     public static main(gvc: GVC, widget: any, subData: any) {
         let changePage = (index: string, type: 'page' | 'home', subData: any) => {
-            alert('change_page_origin');
         };
         gvc.glitter.getModule(new URL('./official_event/page/change-page.js', gvc.glitter.root_path).href, (cl) => {
             changePage = cl.changePage;

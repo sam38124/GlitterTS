@@ -11,7 +11,6 @@ export class Sy02 {
     static main(gvc, widget, subData) {
         var _a, _b, _c, _d, _e;
         let changePage = (index, type, subData) => {
-            alert('change_page_origin');
         };
         gvc.glitter.getModule(new URL('./official_event/page/change-page.js', gvc.glitter.root_path).href, (cl) => {
             changePage = cl.changePage;

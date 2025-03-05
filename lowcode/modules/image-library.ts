@@ -590,17 +590,10 @@ export class imageLibrary {
                                             view: () => {
                                                 if (vm.tag) {
                                                     let group = vm.link.filter((item2) => {
-                                                        // return item2.tag.includes(vm.tag as string);
                                                         return item2.tag && item2.tag.includes(vm.tag ?? '');
                                                     });
                                                     return renderItems(group, {onlyRead: true});
                                                 }
-                                                // return renderItems(vm.link);
-                                                // alert("test");
-                                                // if (group.length > 1) {
-                                                //     return renderItems(group);
-                                                // }
-                                                //
                                                 return ``;
                                             },
                                             divCreate: {},
@@ -1313,10 +1306,6 @@ export class imageLibrary {
         };
 
         function editorView(gvc: GVC, item: FileItem) {
-            // ApiUser.setPublicConfig({
-            //     key:'alt_'+
-            // })
-            // alert(JSON.stringify(item))
             if (item.type === 'folder') {
                 return BgWidget.editeInput({
                     gvc: gvc,

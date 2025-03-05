@@ -73,7 +73,6 @@ Plugin.createComponent(import.meta.url, (glitter, editMode) => {
                                     gvc: gvc, widget: widget, clickEvent: config.initial, subData: subData
                                 }));
                                 vm.loading = false;
-                                alert(JSON.stringify(vm.data));
                                 gvc.notifyDataChange(id);
                             }));
                         }

@@ -144,7 +144,6 @@ export class ShoppingFinanceSetting {
                                             content: custom_finance.text,
                                             callback: (content) => {
                                                 custom_finance.text = content;
-                                                alert(custom_finance.text);
                                                 gvc.notifyDataChange(id);
                                             },
                                             title: '付款說明'
