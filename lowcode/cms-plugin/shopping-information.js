@@ -126,17 +126,14 @@ export class ShoppingInformation {
             bind: vm.id,
             dataList: [{ obj: vm, key: 'type' }],
             view: () => {
-                var _a;
                 if (vm.mainLoading) {
                     ApiUser.getPublicConfig('store-information', 'manager').then((response) => {
                         const data = response.response.value;
-                        vm.data = Object.assign({ ubn: '', email: '', phone: '', address: '', category: '', pos_type: 'retails', ai_search: false, wishlist: true, shop_name: '', support_pos_payment: ['cash', 'creditCard', 'line'] }, data);
+                        vm.data = Object.assign({ ubn: '', email: '', phone: '', address: '', category: '', pos_type: 'retails', ai_search: false, wishlist: true, shop_name: '', support_pos_payment: ['cash', 'creditCard', 'line'], web_type: ['shop'], currency_code: 'TWD' }, data);
                         vm.mainLoading = false;
                         gvc.notifyDataChange(vm.id);
                     });
                 }
-                vm.data.web_type = (_a = vm.data.web_type) !== null && _a !== void 0 ? _a : ['shop'];
-                vm.data.currency_code = vm.data.currency_code || 'TWD';
                 function createSection(title, description) {
                     return html `
             <div style="color: #393939; font-size: 16px;">${title}</div>
@@ -170,7 +167,7 @@ export class ShoppingInformation {
                     })}
             </div>`);
                 }
-                function createDialog(title, description, key) {
+                function createCheckoutModeDialog(title, description) {
                     return createRow(title, description, BgWidget.customButton({
                         button: { color: 'snow', size: 'md' },
                         text: { name: '編輯' },
@@ -178,7 +175,7 @@ export class ShoppingInformation {
                             const originData = structuredClone(vm.data);
                             BgWidget.settingDialog({
                                 gvc,
-                                title: '訂單結算模式',
+                                title,
                                 width: 600,
                                 innerHTML: gvc => {
                                     const modes = vm.data.checkout_mode;
@@ -199,8 +196,9 @@ export class ShoppingInformation {
                                             data: FilterOptions.progressOptions,
                                         },
                                     ];
-                                    return html `<div class="d-flex flex-column gap-2">
-                      ${arr
+                                    return html ` ${BgWidget.grayNote('提示：勾選項目後，該項目將會作為訂單累積與分析數據的篩選條件')}
+                      <div class="d-flex flex-column gap-2">
+                        ${arr
                                         .map(obj => {
                                         return BgWidget.inlineCheckBox({
                                             gvc,
@@ -214,7 +212,7 @@ export class ShoppingInformation {
                                         });
                                     })
                                         .join(BgWidget.mbContainer(12))}
-                    </div>`;
+                      </div>`;
                                 },
                                 footer_html: gvc => {
                                     return [
@@ -396,7 +394,7 @@ export class ShoppingInformation {
                 ${createToggle('啟用心願單功能', '方便客戶收藏並管理喜愛的商品清單，隨時查看心儀商品，提升購物體驗與轉換率', 'wishlist')}
                 ${createToggle('啟用顧客評論功能', '顧客可以對您的商品進行評論', 'customer_comment')}
                 ${createToggle('啟用 Cookie 聲明', '如需使用廣告追蹤行為，必須啟用 Cookie 聲明，才可發送廣告', 'cookie_check')}
-                ${createDialog('訂單結算模式', '設定訂單結算模式，可調整顧客累積消費金額、會員等級、數據分析的統計機制', 'checkout_mode')}
+                ${createCheckoutModeDialog('訂單結算模式', '設定訂單結算模式，可調整顧客累積消費金額、會員等級、數據分析的統計機制')}
               </div>
             `);
                     },

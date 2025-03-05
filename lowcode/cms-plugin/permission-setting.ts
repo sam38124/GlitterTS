@@ -203,7 +203,7 @@ export class PermissionSetting {
                                 {
                                     key: '最後登入',
                                     value: dd.online_time ? html`<span
-                                            class="fs-7">${glitter.ut.dateFormat(new Date(dd.online_time), 'yyyy-MM-dd hh:mm')}</span>` : '...',
+                                            class="fs-7">${glitter.ut.dateFormat(new Date(dd.online_time), 'yyyy-MM-dd hh:mm')}</span>` : '無登入紀錄',
                                 },
                             ];
                         }

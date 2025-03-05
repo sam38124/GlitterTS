@@ -153,6 +153,8 @@ export class ShoppingInformation {
               wishlist: true,
               shop_name: '',
               support_pos_payment: ['cash', 'creditCard', 'line'],
+              web_type: ['shop'],
+              currency_code: 'TWD',
               ...data,
             };
 
@@ -160,9 +162,6 @@ export class ShoppingInformation {
             gvc.notifyDataChange(vm.id);
           });
         }
-
-        vm.data.web_type = vm.data.web_type ?? ['shop'];
-        vm.data.currency_code = vm.data.currency_code || 'TWD';
 
         function createSection(title: string, description?: string) {
           return html`
@@ -208,7 +207,7 @@ export class ShoppingInformation {
           );
         }
 
-        function createDialog(title: string, description: string, key: keyof typeof vm.data) {
+        function createCheckoutModeDialog(title: string, description: string) {
           return createRow(
             title,
             description,
@@ -219,7 +218,7 @@ export class ShoppingInformation {
                 const originData = structuredClone(vm.data);
                 BgWidget.settingDialog({
                   gvc,
-                  title: '訂單結算模式',
+                  title,
                   width: 600,
                   innerHTML: gvc => {
                     const modes = vm.data.checkout_mode;
@@ -241,22 +240,23 @@ export class ShoppingInformation {
                       },
                     ];
 
-                    return html`<div class="d-flex flex-column gap-2">
-                      ${arr
-                        .map(obj => {
-                          return BgWidget.inlineCheckBox({
-                            gvc,
-                            title: obj.name,
-                            def: modes[obj.key],
-                            array: obj.data.map(item => ({ title: item.name, value: item.key })),
-                            callback: (array: any) => {
-                              modes[obj.key] = array;
-                            },
-                            type: 'multiple',
-                          });
-                        })
-                        .join(BgWidget.mbContainer(12))}
-                    </div>`;
+                    return html` ${BgWidget.grayNote('提示：勾選項目後，該項目將會作為訂單累積與分析數據的篩選條件')}
+                      <div class="d-flex flex-column gap-2">
+                        ${arr
+                          .map(obj => {
+                            return BgWidget.inlineCheckBox({
+                              gvc,
+                              title: obj.name,
+                              def: modes[obj.key],
+                              array: obj.data.map(item => ({ title: item.name, value: item.key })),
+                              callback: (array: any) => {
+                                modes[obj.key] = array;
+                              },
+                              type: 'multiple',
+                            });
+                          })
+                          .join(BgWidget.mbContainer(12))}
+                      </div>`;
                   },
                   footer_html: gvc => {
                     return [
@@ -466,10 +466,9 @@ export class ShoppingInformation {
                   '如需使用廣告追蹤行為，必須啟用 Cookie 聲明，才可發送廣告',
                   'cookie_check'
                 )}
-                ${createDialog(
+                ${createCheckoutModeDialog(
                   '訂單結算模式',
-                  '設定訂單結算模式，可調整顧客累積消費金額、會員等級、數據分析的統計機制',
-                  'checkout_mode'
+                  '設定訂單結算模式，可調整顧客累積消費金額、會員等級、數據分析的統計機制'
                 )}
               </div>
             `);
