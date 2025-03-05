@@ -48,9 +48,9 @@ type MemberLevel = {
     create_date: string;
 };
 export declare class User {
-    static posEmail: string;
     app: string;
     token?: IToken;
+    constructor(app: string, token?: IToken);
     static generateUserID(): string;
     findAuthUser(email?: string): Promise<any>;
     emailVerify(account: string): Promise<{
@@ -210,6 +210,5 @@ export declare class User {
     forgetPassword(email: string): Promise<void>;
     static ipInfo(ip: string): Promise<any>;
     getCheckoutCountingModeSQL(table?: string): Promise<string>;
-    constructor(app: string, token?: IToken);
 }
 export {};

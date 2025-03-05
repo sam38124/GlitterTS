@@ -3492,8 +3492,10 @@ export class Shopping {
         temp += `JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.orderStatus')) IN (${query.orderStatus})`;
         querySql.push(`(${temp})`);
       }
+
       if (query.valid) {
-        querySql.push(`(orderData->>'$.orderStatus' is null or orderData->>'$.orderStatus' != '-1')`);
+        const countingSQL = await new User(this.app).getCheckoutCountingModeSQL();
+        querySql.push(countingSQL);
       }
 
       if (query.progress) {
@@ -3593,9 +3595,7 @@ export class Shopping {
           []
         );
 
-        let returnSql = `SELECT *
-                                 FROM \`${this.app}\`.t_return_order
-                                 WHERE order_id = ${query.search}`;
+        let returnSql = `SELECT * FROM \`${this.app}\`.t_return_order WHERE order_id = ${query.search}`;
 
         let returnData = await db.query(returnSql, []);
         if (returnData.length > 0) {
@@ -3618,8 +3618,8 @@ export class Shopping {
         if (query.id) {
           const data = (
             await db.query(
-              `SELECT *
-                         FROM (${sql}) as subqyery limit ${query.page * query.limit}, ${query.limit}`,
+              `SELECT * FROM (${sql}) as subqyery limit ${query.page * query.limit}, ${query.limit}
+              `,
               []
             )
           )[0];
@@ -3630,14 +3630,14 @@ export class Shopping {
         } else {
           resolve({
             data: await db.query(
-              `SELECT *
-                         FROM (${sql}) as subqyery limit ${query.page * query.limit}, ${query.limit}`,
+              `SELECT * FROM (${sql}) as subqyery limit ${query.page * query.limit}, ${query.limit}
+              `,
               []
             ),
             total: (
               await db.query(
-                `SELECT count(1)
-                             FROM (${sql}) as subqyery`,
+                `SELECT count(1) FROM (${sql}) as subqyery
+                `,
                 []
               )
             )[0]['count(1)'],

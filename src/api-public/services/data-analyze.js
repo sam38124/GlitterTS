@@ -102,7 +102,7 @@ class DataAnalyze {
                     }
                 }
             }));
-            console.log('Analyze timer =>', timer);
+            console.info('Analyze timer =>', timer);
             return result;
         }
         catch (error) {
@@ -456,7 +456,7 @@ class DataAnalyze {
             const countArrayWeb = {};
             const countArrayStore = {};
             let pass = 0;
-            await new Promise((resolve, reject) => {
+            await new Promise(resolve => {
                 for (let index = 0; index < 12; index++) {
                     const monthCheckoutSQL = `
                         SELECT orderData
@@ -532,7 +532,7 @@ class DataAnalyze {
             const qData = JSON.parse(query);
             const orderCountingSQL = await this.getOrderCountingSQL();
             let pass = 0;
-            await new Promise((resolve, reject) => {
+            await new Promise(resolve => {
                 for (let index = 0; index < 14; index++) {
                     const monthCheckoutSQL = `
                         SELECT orderData
@@ -610,7 +610,7 @@ class DataAnalyze {
             const qData = JSON.parse(query);
             const orderCountingSQL = await this.getOrderCountingSQL();
             let pass = 0;
-            await new Promise((resolve, reject) => {
+            await new Promise(resolve => {
                 for (let index = 0; index < 30; index++) {
                     const monthCheckoutSQL = `
                         SELECT orderData
@@ -697,7 +697,7 @@ class DataAnalyze {
             const formatEndDate = `"${tool_js_1.default.replaceDatetime(qData.end)}"`;
             const orderCountingSQL = await this.getOrderCountingSQL();
             let pass = 0;
-            await new Promise((resolve, reject) => {
+            await new Promise(resolve => {
                 for (let index = 0; index < days; index++) {
                     const monthCheckoutSQL = `
                         SELECT orderData
@@ -775,7 +775,7 @@ class DataAnalyze {
             const countArrayStore = {};
             const orderCountingSQL = await this.getOrderCountingSQL();
             let pass = 0;
-            await new Promise((resolve, reject) => {
+            await new Promise(resolve => {
                 for (let index = 0; index < 12; index++) {
                     const monthCheckoutSQL = `
                         SELECT orderData
@@ -857,7 +857,7 @@ class DataAnalyze {
             const countArrayStore = {};
             const orderCountingSQL = await this.getOrderCountingSQL();
             let pass = 0;
-            await new Promise((resolve, reject) => {
+            await new Promise(resolve => {
                 for (let index = 0; index < 14; index++) {
                     const monthCheckoutSQL = `
                         SELECT orderData
@@ -941,7 +941,7 @@ class DataAnalyze {
             const countArrayStore = {};
             const orderCountingSQL = await this.getOrderCountingSQL();
             let pass = 0;
-            await new Promise((resolve, reject) => {
+            await new Promise(resolve => {
                 for (let index = 0; index < 30; index++) {
                     const monthCheckoutSQL = `
                         SELECT orderData
@@ -1027,7 +1027,7 @@ class DataAnalyze {
             const formatEndDate = `"${tool_js_1.default.replaceDatetime(qData.end)}"`;
             const orderCountingSQL = await this.getOrderCountingSQL();
             let pass = 0;
-            await new Promise((resolve, reject) => {
+            await new Promise(resolve => {
                 for (let index = 0; index < days; index++) {
                     const monthCheckoutSQL = `
                         SELECT orderData
@@ -1257,7 +1257,7 @@ class DataAnalyze {
         try {
             const countArray = {};
             let pass = 0;
-            await new Promise((resolve, reject) => {
+            await new Promise(resolve => {
                 for (let index = 0; index < 30; index++) {
                     const monthCheckoutSQL = `
                         SELECT count(1)
@@ -1303,7 +1303,7 @@ class DataAnalyze {
             const formatEndDate = `"${tool_js_1.default.replaceDatetime(qData.end)}"`;
             const countArray = {};
             let pass = 0;
-            await new Promise((resolve, reject) => {
+            await new Promise(resolve => {
                 for (let index = 0; index < days; index++) {
                     const monthCheckoutSQL = `
                         SELECT count(1)
@@ -1346,7 +1346,7 @@ class DataAnalyze {
         try {
             const countArray = {};
             let pass = 0;
-            await new Promise((resolve, reject) => {
+            await new Promise(resolve => {
                 for (let index = 0; index < 14; index++) {
                     const monthCheckoutSQL = `
                         SELECT count(1)
@@ -1392,7 +1392,7 @@ class DataAnalyze {
                  FROM \`${this.app}\`.t_user
                  WHERE DATE (created_time) = CURDATE()`, []);
             let pass = 0;
-            await new Promise((resolve, reject) => {
+            await new Promise(resolve => {
                 for (let index = 0; index < 12; index++) {
                     const monthRegisterSQL = `
                         SELECT count(1)

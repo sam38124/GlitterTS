@@ -2566,7 +2566,8 @@ class Shopping {
                 querySql.push(`(${temp})`);
             }
             if (query.valid) {
-                querySql.push(`(orderData->>'$.orderStatus' is null or orderData->>'$.orderStatus' != '-1')`);
+                const countingSQL = await new user_js_1.User(this.app).getCheckoutCountingModeSQL();
+                querySql.push(countingSQL);
             }
             if (query.progress) {
                 let newArray = query.progress.split(',');

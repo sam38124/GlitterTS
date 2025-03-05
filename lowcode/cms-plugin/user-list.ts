@@ -1104,7 +1104,7 @@ export class UserList {
           },
           {
             key: '總金額',
-            value: parseInt(dd.orderData.total, 10).toLocaleString(),
+            value: `$ ${parseInt(dd.orderData.total, 10).toLocaleString()}`,
           },
           {
             key: '訂單狀態',
@@ -1943,7 +1943,7 @@ export class UserList {
                       ]
                         .filter(item => item.length > 0)
                         .join(BgWidget.mbContainer(24)),
-                      ratio: 78,
+                      ratio: 75,
                     },
                     {
                       html: gvc.bindView(() => {
@@ -2041,6 +2041,15 @@ export class UserList {
                                             bind: id,
                                             view: () => {
                                               return new Promise<string>((resolve, reject) => {
+                                                function renderInfoBlock(title: string, content: string | typeof html) {
+                                                  return html`
+                                                    <div class="tx_700">${title}</div>
+                                                    <div style="font-size: 16px; font-weight: 400; color: #393939;">
+                                                      ${content}
+                                                    </div>
+                                                  `;
+                                                }
+
                                                 ApiShop.getOrder({
                                                   page: 0,
                                                   limit: 99999,
@@ -2048,73 +2057,59 @@ export class UserList {
                                                   email: vm.data.userData.email,
                                                   phone: vm.data.userData.phone,
                                                   valid: true,
-                                                }).then(data => {
-                                                  let total_price = 0;
-                                                  let firstData: any = undefined;
-                                                  data.response.data.map((item: any) => {
-                                                    if (!firstData) {
-                                                      firstData = item;
-                                                    }
-                                                    total_price += item.orderData.total;
-                                                  });
-                                                  const formatNum = (n: string | number) =>
-                                                    parseInt(`${n}`, 10).toLocaleString();
+                                                })
+                                                  .then(({ response }) => {
+                                                    const orders = response.data;
+                                                    const totalOrders = response.total;
+                                                    const firstData = orders.length > 0 ? orders[0] : undefined;
+                                                    const totalPrice = orders.reduce(
+                                                      (sum: number, item: any) => sum + item.orderData.total,
+                                                      0
+                                                    );
 
-                                                  resolve(
-                                                    html`<div>
-                                                      ${[
-                                                        // 累積消費金額
-                                                        html`<div class="tx_700">累積消費金額</div>
-                                                          ${total_price === 0
-                                                            ? html`<div
-                                                                style="font-size: 14px; font-weight: 400; color: #393939;"
-                                                              >
-                                                                此顧客還沒有任何消費紀錄
-                                                              </div>`
-                                                            : html`<div
-                                                                style="font-size: 32px; font-weight: 400; color: #393939;"
-                                                              >
-                                                                ${formatNum(total_price)}
-                                                              </div>`}`,
+                                                    const formatNum = (n: string | number) =>
+                                                      parseInt(`${n}`, 10).toLocaleString();
+                                                    const formatDate = (dateStr: string) =>
+                                                      gvc.glitter.ut.dateFormat(new Date(dateStr), 'yyyy-MM-dd hh:mm');
 
-                                                        // 累計消費次數
-                                                        html`<div class="tx_700">累計消費次數</div>
-                                                          <div
-                                                            style="font-size: 32px; font-weight: 400; color: #393939;"
-                                                          >
-                                                            ${formatNum(data.response.total)}
-                                                          </div>`,
-
-                                                        // 最後消費金額
-                                                        html`<div class="tx_700">最後消費金額</div>
-                                                          <div
-                                                            style="font-size: 14px; font-weight: 400; color: #393939;"
-                                                          >
-                                                            ${!firstData
-                                                              ? `此顧客還沒有任何消費紀錄`
-                                                              : html`<div
+                                                    resolve(html`
+                                                      <div>
+                                                        ${[
+                                                          renderInfoBlock(
+                                                            '累積消費金額',
+                                                            totalPrice
+                                                              ? html`<div
+                                                                  style="font-size: 32px; font-weight: 400; color: #393939;"
+                                                                >
+                                                                  ${formatNum(totalPrice)}
+                                                                </div>`
+                                                              : '尚無消費紀錄'
+                                                          ),
+                                                          renderInfoBlock(
+                                                            '累計消費次數',
+                                                            `${formatNum(totalOrders)}次`
+                                                          ),
+                                                          renderInfoBlock(
+                                                            '最後消費金額',
+                                                            firstData
+                                                              ? html`<div
                                                                   style="font-size: 32px; font-weight: 400; color: #393939;"
                                                                 >
                                                                   ${formatNum(firstData.orderData.total)}
-                                                                </div>`}
-                                                          </div>`,
-
-                                                        // 最後購買日期
-                                                        html`<div class="tx_700">最後購買日期</div>
-                                                          <div
-                                                            style="font-size: 16px; font-weight: 400; color: #393939;"
-                                                          >
-                                                            ${firstData
-                                                              ? gvc.glitter.ut.dateFormat(
-                                                                  new Date(firstData.created_time),
-                                                                  'yyyy-MM-dd hh:mm'
-                                                                )
-                                                              : '尚無消費紀錄'}
-                                                          </div>`,
-                                                      ].join(html`<div class="my-3 w-100 border-top"></div>`)}
-                                                    </div>`
-                                                  );
-                                                });
+                                                                </div>`
+                                                              : '尚無消費紀錄'
+                                                          ),
+                                                          renderInfoBlock(
+                                                            '最後購買日期',
+                                                            firstData
+                                                              ? formatDate(firstData.created_time)
+                                                              : '尚無消費紀錄'
+                                                          ),
+                                                        ].join(html`<div class="my-3 w-100 border-top"></div>`)}
+                                                      </div>
+                                                    `);
+                                                  })
+                                                  .catch(reject);
                                               });
                                             },
                                           });
@@ -2134,7 +2129,7 @@ export class UserList {
                           },
                         };
                       }),
-                      ratio: 22,
+                      ratio: 25,
                     }
                   ),
                   // 空白容器

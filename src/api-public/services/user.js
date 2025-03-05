@@ -32,20 +32,20 @@ const exception_1 = __importDefault(require("../../modules/exception"));
 const tool_1 = __importStar(require("../../services/tool"));
 const UserUtil_1 = __importDefault(require("../../utils/UserUtil"));
 const config_js_1 = __importDefault(require("../../config.js"));
-const ses_js_1 = require("../../services/ses.js");
 const app_js_1 = __importDefault(require("../../app.js"));
 const redis_js_1 = __importDefault(require("../../modules/redis.js"));
 const tool_js_1 = __importDefault(require("../../modules/tool.js"));
 const process_1 = __importDefault(require("process"));
-const ut_database_js_1 = require("../utils/ut-database.js");
-const custom_code_js_1 = require("./custom-code.js");
 const axios_1 = __importDefault(require("axios"));
-const auto_send_email_js_1 = require("./auto-send-email.js");
 const qs_1 = __importDefault(require("qs"));
 const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
+const moment_1 = __importDefault(require("moment"));
+const ses_js_1 = require("../../services/ses.js");
+const ut_database_js_1 = require("../utils/ut-database.js");
+const custom_code_js_1 = require("./custom-code.js");
+const auto_send_email_js_1 = require("./auto-send-email.js");
 const google_auth_library_1 = require("google-auth-library");
 const rebate_js_1 = require("./rebate.js");
-const moment_1 = __importDefault(require("moment"));
 const notify_js_1 = require("./notify.js");
 const config_1 = require("../../config");
 const sms_js_1 = require("./sms.js");
@@ -55,6 +55,18 @@ const share_permission_js_1 = require("./share-permission.js");
 const terms_check_js_1 = require("./terms-check.js");
 const app_js_2 = require("../../services/app.js");
 class User {
+    constructor(app, token) {
+        this.normalMember = {
+            id: '',
+            duration: { type: 'noLimit', value: 0 },
+            tag_name: '一般會員',
+            condition: { type: 'total', value: 0 },
+            dead_line: { type: 'noLimit' },
+            create_date: '2024-01-01T00:00:00.000Z',
+        };
+        this.app = app;
+        this.token = token;
+    }
     static generateUserID() {
         let userID = '';
         const characters = '0123456789';
@@ -2195,19 +2207,6 @@ class User {
         }
         return sqlQuery.join(' AND ');
     }
-    constructor(app, token) {
-        this.normalMember = {
-            id: '',
-            duration: { type: 'noLimit', value: 0 },
-            tag_name: '一般會員',
-            condition: { type: 'total', value: 0 },
-            dead_line: { type: 'noLimit' },
-            create_date: '2024-01-01T00:00:00.000Z',
-        };
-        this.app = app;
-        this.token = token;
-    }
 }
 exports.User = User;
-User.posEmail = '';
 //# sourceMappingURL=user.js.map
