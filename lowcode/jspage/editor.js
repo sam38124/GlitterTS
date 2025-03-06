@@ -269,20 +269,11 @@ export class Editor {
             >
               <div
                 class="navbar-brand text-dark d-none d-lg-flex py-0 h-100 "
-                style="${(() => {
-                switch (EditorConfig.backend_page()) {
-                    case 'page-editor':
-                        return `width: 219px;`;
-                    case 'user-editor':
-                        return `width: 300px;`;
-                    default:
-                        return `width: 218px;`;
-                }
-            })()}"
+                style="width: 255px;"
               >
                 <div
                   class="d-flex align-items-center justify-content-center border-end "
-                  style="height: 56px; width: 86px;"
+                  style="height: 56px; min-width: 60px;"
                 >
                   <i
                     class="fa-solid fa-left-to-bracket hoverBtn"
@@ -408,7 +399,16 @@ color: transparent;"
                       AI
                     </div>
                   `}
-              <div class="border-end d-none d-lg-block" style="width:50.5px;height: 56px; "></div>
+              <div class="border-end d-none d-lg-block" style="height: 56px;${(() => {
+                switch (EditorConfig.backend_page()) {
+                    case 'page-editor':
+                        return `width: 15px;`;
+                    case 'user-editor':
+                        return `width: 95px;`;
+                    default:
+                        return `width: 14px;`;
+                }
+            })()}"></div>
 
               ${(() => {
                 if (Storage.select_function === 'backend-manger') {

@@ -3209,6 +3209,7 @@ export class Shopping {
                 await this.sendNotifications(orderData, 'arrival');
               }
             } else {
+              // 商品調整出貨倉庫的更新
               await this.adjustStock(origin.orderData, orderData);
             }
 

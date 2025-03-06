@@ -232,31 +232,34 @@ export class BgProduct {
                     onCreate: () => {
                         if (vm.loading) {
                             ApiShop.getProduct({
-                                page: 0,
-                                limit: 99999,
-                                search: vm.query,
-                                orderBy: (() => {
-                                    switch (vm.orderString) {
-                                        case 'max_price':
-                                        case 'min_price':
-                                            return vm.orderString;
-                                        default:
-                                            return '';
-                                    }
-                                })(),
-                                productType: obj.productType,
-                                filter_visible: obj.filter_visible,
-                            }).then((data) => {
-                                vm.options = data.response.data.map((product: { content: { id: number; title: string; preview_image: string[] } }) => {
-                                    return {
-                                        key: product.content.id,
-                                        value: product.content.title,
-                                        content: product.content,
-                                        image: product.content.preview_image[0] ?? BgWidget.noImageURL,
-                                    };
-                                });
-                                vm.loading = false;
-                                gvc.notifyDataChange(vm.id);
+                              page: 0,
+                              limit: 99999,
+                              search: vm.query,
+                              orderBy: (() => {
+                                switch (vm.orderString) {
+                                  case 'max_price':
+                                  case 'min_price':
+                                    return vm.orderString;
+                                  default:
+                                    return '';
+                                }
+                              })(),
+                              productType: obj.productType,
+                              filter_visible: obj.filter_visible,
+                              status: 'inRange'
+                            }).then(data => {
+                              vm.options = data.response.data.map(
+                                (product: { content: { id: number; title: string; preview_image: string[] } }) => {
+                                  return {
+                                    key: product.content.id,
+                                    value: product.content.title,
+                                    content: product.content,
+                                    image: product.content.preview_image[0] ?? BgWidget.noImageURL,
+                                  };
+                                }
+                              );
+                              vm.loading = false;
+                              gvc.notifyDataChange(vm.id);
                             });
                         }
                     },
@@ -278,6 +281,7 @@ export class BgProduct {
                 limit: 99999,
                 productType: productType,
                 id_list: idList,
+                status: 'inRange'
             }).then((data) => {
                 const options = data.response.data.map((product: { content: { id: number; title: string; preview_image: string[] } }) => ({
                     key: product.content.id,

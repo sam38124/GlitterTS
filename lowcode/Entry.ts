@@ -141,7 +141,6 @@ export class Entry {
         };
         // 設定SAAS管理員請求API
         config.token = GlobalUser.saas_token;
-        console.log(3);
 
         // 資源初始化
         Entry.resourceInitial(glitter, vm, async dd => {

@@ -2518,7 +2518,7 @@ export class ShoppingOrderManager {
                                                                                              style="gap:8px;">
                                                                                             <div
                                                                                                 class="d-flex align-items-center"
-                                                                                                style="color: #4D86DB;font-weight: 400; gap:8px;cursor:pointer;"
+                                                                                                style="font-weight: 700; gap:8px;cursor:pointer;"
                                                                                                 onclick="${gvc.event(() => {
                                                                                                     if (userData.userID) {
                                                                                                         child_vm.userID = userData.userID;
@@ -2526,7 +2526,13 @@ export class ShoppingOrderManager {
                                                                                                     }
                                                                                                 })}"
                                                                                             >
-                                                                                                ${userData?.userData?.name ?? '訪客'}
+                                                                                                ${(()=>{
+                                                                                                    const name = userData?.userData?.name
+                                                                                                    if(name){
+                                                                                                        return html`<span style="color: #4D86DB;">${name}</span>`
+                                                                                                    }
+                                                                                                    return html`<span style="color: #393939;">訪客</span>`
+                                                                                                })()}
                                                                                                 ${(() => {
                                                                                                     if (userDataLoading) {
                                                                                                         return BgWidget.secondaryInsignia('讀取中');

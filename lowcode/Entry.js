@@ -140,7 +140,6 @@ export class Entry {
             appConfig: undefined,
         };
         config.token = GlobalUser.saas_token;
-        console.log(3);
         Entry.resourceInitial(glitter, vm, (dd) => __awaiter(this, void 0, void 0, function* () {
             glitter.addStyle(`
         ${parseInt(window.parent.glitter.share.bottom_inset, 10)

@@ -866,7 +866,7 @@ export class ShoppingOrderManager {
                             bind: mainViewID,
                             dataList: [{ obj: child_vm, key: 'type' }],
                             view: () => {
-                                var _a, _b, _c, _d, _e, _f, _g, _h, _j;
+                                var _a, _b, _c, _d, _e, _f, _g;
                                 try {
                                     if (userDataLoading || productLoading) {
                                         return BgWidget.spinner();
@@ -2188,7 +2188,7 @@ export class ShoppingOrderManager {
                                                                                              style="gap:8px;">
                                                                                             <div
                                                                                                 class="d-flex align-items-center"
-                                                                                                style="color: #4D86DB;font-weight: 400; gap:8px;cursor:pointer;"
+                                                                                                style="font-weight: 700; gap:8px;cursor:pointer;"
                                                                                                 onclick="${gvc.event(() => {
                                                     if (userData.userID) {
                                                         child_vm.userID = userData.userID;
@@ -2196,7 +2196,14 @@ export class ShoppingOrderManager {
                                                     }
                                                 })}"
                                                                                             >
-                                                                                                ${(_c = (_b = userData === null || userData === void 0 ? void 0 : userData.userData) === null || _b === void 0 ? void 0 : _b.name) !== null && _c !== void 0 ? _c : '訪客'}
+                                                                                                ${(() => {
+                                                    var _a;
+                                                    const name = (_a = userData === null || userData === void 0 ? void 0 : userData.userData) === null || _a === void 0 ? void 0 : _a.name;
+                                                    if (name) {
+                                                        return html `<span style="color: #4D86DB;">${name}</span>`;
+                                                    }
+                                                    return html `<span style="color: #393939;">訪客</span>`;
+                                                })()}
                                                                                                 ${(() => {
                                                     if (userDataLoading) {
                                                         return BgWidget.secondaryInsignia('讀取中');
@@ -2217,11 +2224,11 @@ export class ShoppingOrderManager {
                                                                                             </div>
                                                                                             <div
                                                                                                 style="color: #393939;font-weight: 400;">
-                                                                                                ${(_f = (_e = (_d = userData === null || userData === void 0 ? void 0 : userData.userData) === null || _d === void 0 ? void 0 : _d.phone) !== null && _e !== void 0 ? _e : orderData.orderData.user_info.phone) !== null && _f !== void 0 ? _f : '此會員未填手機'}
+                                                                                                ${(_d = (_c = (_b = userData === null || userData === void 0 ? void 0 : userData.userData) === null || _b === void 0 ? void 0 : _b.phone) !== null && _c !== void 0 ? _c : orderData.orderData.user_info.phone) !== null && _d !== void 0 ? _d : '此會員未填手機'}
                                                                                             </div>
                                                                                             <div
                                                                                                 style="color: #393939;font-weight: 400;word-break:break-all;">
-                                                                                                ${(_j = (_h = (_g = userData === null || userData === void 0 ? void 0 : userData.userData) === null || _g === void 0 ? void 0 : _g.email) !== null && _h !== void 0 ? _h : orderData.orderData.user_info.email) !== null && _j !== void 0 ? _j : ''}
+                                                                                                ${(_g = (_f = (_e = userData === null || userData === void 0 ? void 0 : userData.userData) === null || _e === void 0 ? void 0 : _e.email) !== null && _f !== void 0 ? _f : orderData.orderData.user_info.email) !== null && _g !== void 0 ? _g : ''}
                                                                                             </div>
                                                                                         </div>`,
                                                 BgWidget.horizontalLine(),

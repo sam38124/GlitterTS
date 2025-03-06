@@ -195,7 +195,8 @@ export class BgProduct {
                             })(),
                             productType: obj.productType,
                             filter_visible: obj.filter_visible,
-                        }).then((data) => {
+                            status: 'inRange'
+                        }).then(data => {
                             vm.options = data.response.data.map((product) => {
                                 var _a;
                                 return {
@@ -539,6 +540,7 @@ BgProduct.getProductOpts = (def, productType) => {
             limit: 99999,
             productType: productType,
             id_list: idList,
+            status: 'inRange'
         }).then((data) => {
             const options = data.response.data.map((product) => {
                 var _a;
