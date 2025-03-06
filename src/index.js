@@ -212,6 +212,7 @@ async function createAPP(dd) {
                     let home_page_data = await (async () => {
                         return await seo_js_1.Seo.getPageInfo(appName, 'index', language);
                     })();
+                    console.log(`home_page_data=>`, home_page_data);
                     if (data && data.page_config) {
                         data.page_config = (_a = data.page_config) !== null && _a !== void 0 ? _a : {};
                         const d = (_b = data.page_config.seo) !== null && _b !== void 0 ? _b : {};

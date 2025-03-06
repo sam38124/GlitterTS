@@ -635,8 +635,7 @@ ${BgWidget.grayNote('未輸入則參照預設')}
                                 {
                                     key: 'cash_on_delivery', name: `<div class="d-flex flex-wrap align-items-center" style="gap:5px;">
 貨到付款
-${BgWidget.greenNote('支援四大超商/黑貓代收')}
-</div>`, img: 'https://d3jnmi1tfjgtti.cloudfront.net/file/122538856/images.png', hide_setting: true
+</div>`, img: 'https://d3jnmi1tfjgtti.cloudfront.net/file/122538856/images.png'
                                 },
                                 ...keyData.payment_info_custom.map((dd) => {
                                     return {
@@ -684,6 +683,8 @@ ${BgWidget.greenNote('支援四大超商/黑貓代收')}
                                                             return ShoppingFinanceSetting.atm(gvc, keyData);
                                                         case 'line':
                                                             return ShoppingFinanceSetting.line_pay(gvc, keyData);
+                                                        case 'cash_on_delivery':
+                                                            return ShoppingFinanceSetting.cashOnDelivery(gvc, keyData);
                                                     }
                                                     return ``;
                                                 })()}</div>`;
@@ -954,6 +955,22 @@ ${BgWidget.greenNote('支援四大超商/黑貓代收')}
                         })
                     ].join('');
                 },
+            };
+        });
+    }
+    static cashOnDelivery(gvc, keyData) {
+        return gvc.bindView(() => {
+            const id = gvc.glitter.getUUID();
+            return {
+                bind: id,
+                view: () => {
+                    return [
+                        html `<div class="mx-2 mx-sm-0 mb-0 w-100">${BgWidget.normalInsignia('設定支援貨到付款的物流選項')}</div> `
+                    ].join('');
+                },
+                divCreate: {
+                    class: `w-100`
+                }
             };
         });
     }
