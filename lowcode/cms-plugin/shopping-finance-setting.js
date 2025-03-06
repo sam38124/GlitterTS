@@ -16,9 +16,9 @@ import { LanguageBackend } from './language-backend.js';
 import { Tool } from '../modules/tool.js';
 import { ProductAi } from './ai-generator/product-ai.js';
 import { imageLibrary } from '../modules/image-library.js';
-import { Language } from "../glitter-base/global/language.js";
-import { ShoppingShipmentSetting } from "./shopping-shipment-setting.js";
-import { ShipmentConfig } from "../glitter-base/global/shipment-config.js";
+import { Language } from '../glitter-base/global/language.js';
+import { ShoppingShipmentSetting } from './shopping-shipment-setting.js';
+import { ShipmentConfig } from '../glitter-base/global/shipment-config.js';
 const html = String.raw;
 export class ShoppingFinanceSetting {
     static main(gvc) {
@@ -33,42 +33,42 @@ export class ShoppingFinanceSetting {
             posBoxId: gvc.glitter.getUUID(),
             offBoxId: gvc.glitter.getUUID(),
             loading: true,
-            page: 'online'
+            page: 'online',
         };
         const onlinePayArray = [
             { key: 'newWebPay', name: '藍新金流', img: 'https://d3jnmi1tfjgtti.cloudfront.net/file/122538856/logo.jpg' },
             {
                 key: 'ecPay',
                 name: '綠界金流',
-                img: 'https://d3jnmi1tfjgtti.cloudfront.net/file/122538856/52415944_122858408.428215.png'
+                img: 'https://d3jnmi1tfjgtti.cloudfront.net/file/122538856/52415944_122858408.428215.png',
             },
             {
                 key: 'paynow',
                 name: 'PayNow 立吉富',
-                img: 'https://d3jnmi1tfjgtti.cloudfront.net/file/122538856/download.png'
+                img: 'https://d3jnmi1tfjgtti.cloudfront.net/file/122538856/download.png',
             },
             { key: 'paypal', name: 'PayPal', img: 'https://d3jnmi1tfjgtti.cloudfront.net/file/122538856/174861.png' },
             {
                 key: 'line_pay',
                 name: 'Line Pay',
-                img: 'https://d3jnmi1tfjgtti.cloudfront.net/file/122538856/tw-11134207-7r98t-ltrond04grjj74.jpeg'
+                img: 'https://d3jnmi1tfjgtti.cloudfront.net/file/122538856/tw-11134207-7r98t-ltrond04grjj74.jpeg',
             },
             {
                 key: 'jkopay',
                 name: '街口支付',
-                img: 'https://d3jnmi1tfjgtti.cloudfront.net/file/122538856/1200x630waw.png'
+                img: 'https://d3jnmi1tfjgtti.cloudfront.net/file/122538856/1200x630waw.png',
             },
             {
                 key: 'line_pay_scan',
                 name: 'Line Pay',
                 type: 'pos',
-                img: 'https://d3jnmi1tfjgtti.cloudfront.net/file/122538856/tw-11134207-7r98t-ltrond04grjj74.jpeg'
+                img: 'https://d3jnmi1tfjgtti.cloudfront.net/file/122538856/tw-11134207-7r98t-ltrond04grjj74.jpeg',
             },
             {
                 key: 'ut_credit_card',
                 name: '聯合信用卡',
                 type: 'pos',
-                img: 'https://d3jnmi1tfjgtti.cloudfront.net/file/122538856/unnamed (1) copy.jpg'
+                img: 'https://d3jnmi1tfjgtti.cloudfront.net/file/122538856/unnamed (1) copy.jpg',
             },
         ];
         const redDot = html ` <span class="red-dot">*</span>`;
@@ -76,8 +76,9 @@ export class ShoppingFinanceSetting {
             gvc.notifyDataChange(vm.id);
         }
         function saveData() {
-            saasConfig.api.setPrivateConfig(saasConfig.config.appName, 'glitter_finance', keyData).then((r) => {
-            });
+            saasConfig.api
+                .setPrivateConfig(saasConfig.config.appName, 'glitter_finance', keyData)
+                .then((r) => { });
         }
         function updateCustomFinance(obj) {
             const custom_finance = JSON.parse(JSON.stringify(obj.data || {
@@ -89,20 +90,19 @@ export class ShoppingFinanceSetting {
             BgWidget.settingDialog({
                 gvc: gvc,
                 title: obj.function === 'replace' ? `修改金流設定` : '新增自訂金流',
-                innerHTML: (gvc) => {
+                innerHTML: gvc => {
                     form = BgWidget.customForm(gvc, [
                         {
-                            title: html `
-                                <div class="tx_normal fw-bolder mt-2 d-flex flex-column" style="margin-bottom: 12px;">
-                                    自訂線下金流表單
-                                    <span style="color:#8D8D8D;font-size: 12px;">當客戶選擇此付款方式時，所需填寫的額外資料</span>
-                                </div>`,
+                            title: html ` <div class="tx_normal fw-bolder mt-2 d-flex flex-column" style="margin-bottom: 12px;">
+                自訂線下金流表單
+                <span style="color:#8D8D8D;font-size: 12px;">當客戶選擇此付款方式時，所需填寫的額外資料</span>
+              </div>`,
                             key: `form_finance_${custom_finance.id}`,
                             no_padding: true,
                         },
                     ]);
                     const vm = {
-                        page: "setting"
+                        page: 'setting',
                     };
                     return gvc.bindView((() => {
                         const id = gvc.glitter.getUUID();
@@ -112,11 +112,11 @@ export class ShoppingFinanceSetting {
                                 let v_ = [
                                     BgWidget.tab([
                                         { title: '金流設定', key: 'setting' },
-                                        { title: '付款說明', key: 'note' }
-                                    ], gvc, vm.page, (res) => {
+                                        { title: '付款說明', key: 'note' },
+                                    ], gvc, vm.page, res => {
                                         vm.page = res;
                                         gvc.notifyDataChange(id);
-                                    }, 'margin-bottom:0px;margin-top:-10px;')
+                                    }, 'margin-bottom:0px;margin-top:-10px;'),
                                 ];
                                 if (vm.page === 'setting') {
                                     v_ = v_.concat([
@@ -124,41 +124,39 @@ export class ShoppingFinanceSetting {
                                             gvc: gvc,
                                             title: '自訂金流名稱',
                                             default: custom_finance.name,
-                                            callback: (text) => {
+                                            callback: text => {
                                                 custom_finance.name = text;
                                             },
                                             placeHolder: '請輸入自訂金流名稱',
-                                            global_language: true
+                                            global_language: true,
                                         }),
                                         form.view,
                                     ]);
                                 }
                                 if (vm.page === 'note') {
                                     v_ = v_.concat([
-                                        html `
-                                                <div class="d-flex justify-content-between mb-3">
-                                                    <div class="tx_normal">付款說明</div>
-                                                </div>`,
+                                        html ` <div class="d-flex justify-content-between mb-3">
+                        <div class="tx_normal">付款說明</div>
+                      </div>`,
                                         BgWidget.richTextEditor({
                                             gvc: gvc,
                                             content: custom_finance.text,
-                                            callback: (content) => {
+                                            callback: content => {
                                                 custom_finance.text = content;
                                                 gvc.notifyDataChange(id);
                                             },
-                                            title: '付款說明'
-                                        })
+                                            title: '付款說明',
+                                        }),
                                     ]);
                                 }
                                 return v_.join(BgWidget.mbContainer(12));
                             },
                             divCreate: {},
-                            onCreate: () => {
-                            },
+                            onCreate: () => { },
                         };
                     })());
                 },
-                footer_html: (gvc) => {
+                footer_html: gvc => {
                     let array = [
                         BgWidget.save(gvc.event(() => {
                             return new Promise(() => __awaiter(this, void 0, void 0, function* () {
@@ -214,12 +212,11 @@ export class ShoppingFinanceSetting {
             });
         }
         return BgWidget.container(html `
-                ${[
-            html `
-                        <div class="title-container">
-                            ${BgWidget.title(`金流設定`)}
-                            <div class="flex-fill"></div>
-                        </div>`,
+      ${[
+            html ` <div class="title-container">
+          ${BgWidget.title(`金流設定`)}
+          <div class="flex-fill"></div>
+        </div>`,
             gvc.bindView({
                 bind: vm.id,
                 view: () => {
@@ -228,14 +225,14 @@ export class ShoppingFinanceSetting {
                         return BgWidget.spinner();
                     }
                     try {
-                        keyData.off_line_support = (_a = keyData.off_line_support) !== null && _a !== void 0 ? _a : Object.assign({ line: false, atm: false, cash_on_delivery: false }, keyData.payment_info_custom.map((dd) => {
+                        keyData.off_line_support = (_a = keyData.off_line_support) !== null && _a !== void 0 ? _a : Object.assign({ line: false, atm: false, cash_on_delivery: false }, keyData.payment_info_custom.map(dd => {
                             return {
                                 [dd.id]: false,
                             };
                         }));
-                        Object.keys(keyData.off_line_support).map((key) => {
+                        Object.keys(keyData.off_line_support).map(key => {
                             if (['line', 'atm', 'cash_on_delivery'].includes(key) ||
-                                keyData.payment_info_custom.some((item) => {
+                                keyData.payment_info_custom.some(item => {
                                     return item.id === key;
                                 })) {
                                 return;
@@ -246,27 +243,29 @@ export class ShoppingFinanceSetting {
                             BgWidget.tab([
                                 {
                                     key: 'online',
-                                    title: '線上金流'
+                                    title: '線上金流',
                                 },
                                 {
                                     key: 'offline',
-                                    title: '線下金流'
+                                    title: '線下金流',
                                 },
                                 {
                                     key: 'pos',
-                                    title: 'POS付款'
-                                }
+                                    title: 'POS付款',
+                                },
                             ], gvc, vm.page, (key) => {
                                 vm.page = key;
                                 gvc.notifyDataChange(vm.id);
-                            }, 'margin-top:0px;margin-bottom:0px;')
+                            }, 'margin-top:0px;margin-bottom:0px;'),
                         ];
                         if (vm.page === 'online') {
                             vMap.push(`<div class="my-2">${BgWidget.blueNote('透過線上金流消費者可於線上進行結帳付款。')}</div>`);
-                            vMap.push(html `
-                                        <div class="row">${onlinePayArray.filter((dd) => {
+                            vMap.push(html ` <div class="row">
+                    ${onlinePayArray
+                                .filter(dd => {
                                 return dd.type !== 'pos';
-                            }).map((dd) => {
+                            })
+                                .map(dd => {
                                 var _a;
                                 keyData[dd.key] = (_a = keyData[dd.key]) !== null && _a !== void 0 ? _a : {};
                                 return ` <div class="col-12 col-md-4 p-0 p-md-2">
@@ -279,10 +278,10 @@ export class ShoppingFinanceSetting {
                                                                                 ${BgWidget.customButton({
                                     button: {
                                         color: 'gray',
-                                        size: 'sm'
+                                        size: 'sm',
                                     },
                                     text: {
-                                        name: `金流設定`
+                                        name: `金流設定`,
                                     },
                                     event: gvc.event(() => {
                                         const payData = dd;
@@ -292,20 +291,23 @@ export class ShoppingFinanceSetting {
                                             title: '金流設定',
                                             innerHTML: (gvc) => {
                                                 try {
-                                                    return html `
-                                                                            ${BgWidget.editeInput({
+                                                    return html ` ${BgWidget.editeInput({
                                                         gvc: gvc,
                                                         title: `<div>自訂金流名稱
 ${BgWidget.grayNote('未輸入則參照預設')}
 </div>`,
                                                         default: key_d.custome_name,
-                                                        callback: (text) => {
-                                                            key_d.custome_name = text;
+                                                        callback: text => {
+                                                            key_d.custome_name =
+                                                                text;
                                                         },
                                                         placeHolder: '請輸入自訂顯示名稱',
-                                                        global_language: true
+                                                        global_language: true,
                                                     })}
-                                                                            <div style="margin-top:-20px;">${(() => {
+                                                                                            <div
+                                                                                              style="margin-top:-20px;"
+                                                                                            >
+                                                                                              ${(() => {
                                                         switch (payData.key) {
                                                             case 'newWebPay':
                                                             case 'ecPay':
@@ -315,7 +317,8 @@ ${BgWidget.grayNote('未輸入則參照預設')}
                                                                         gvc: gvc,
                                                                         def: key_d.ActionURL,
                                                                         array: (() => {
-                                                                            if (payData.key === 'newWebPay') {
+                                                                            if (payData.key ===
+                                                                                'newWebPay') {
                                                                                 return [
                                                                                     {
                                                                                         title: '正式站',
@@ -341,13 +344,20 @@ ${BgWidget.grayNote('未輸入則參照預設')}
                                                                             }
                                                                         })(),
                                                                         callback: (text) => {
-                                                                            key_d.ActionURL = text;
+                                                                            key_d.ActionURL =
+                                                                                text;
                                                                         },
                                                                     }),
                                                                     BgWidget.inlineCheckBox({
                                                                         title: '開通付款方式',
                                                                         gvc: gvc,
-                                                                        def: ['credit', 'atm', 'web_atm', 'c_code', 'c_bar_code'].filter((dd) => {
+                                                                        def: [
+                                                                            'credit',
+                                                                            'atm',
+                                                                            'web_atm',
+                                                                            'c_code',
+                                                                            'c_bar_code',
+                                                                        ].filter(dd => {
                                                                             return key_d[dd];
                                                                         }),
                                                                         array: [
@@ -373,10 +383,18 @@ ${BgWidget.grayNote('未輸入則參照預設')}
                                                                             },
                                                                         ],
                                                                         callback: (array) => {
-                                                                            ['credit', 'atm', 'web_atm', 'c_code', 'c_bar_code'].map((dd) => {
-                                                                                key_d[dd] = !!array.find((d1) => {
-                                                                                    return d1 === dd;
-                                                                                });
+                                                                            [
+                                                                                'credit',
+                                                                                'atm',
+                                                                                'web_atm',
+                                                                                'c_code',
+                                                                                'c_bar_code',
+                                                                            ].map(dd => {
+                                                                                key_d[dd] =
+                                                                                    !!array.find((d1) => {
+                                                                                        return (d1 ===
+                                                                                            dd);
+                                                                                    });
                                                                             });
                                                                         },
                                                                         type: 'multiple',
@@ -385,8 +403,9 @@ ${BgWidget.grayNote('未輸入則參照預設')}
                                                                         gvc: gvc,
                                                                         title: '特店編號',
                                                                         default: key_d.MERCHANT_ID,
-                                                                        callback: (text) => {
-                                                                            key_d.MERCHANT_ID = text;
+                                                                        callback: text => {
+                                                                            key_d.MERCHANT_ID =
+                                                                                text;
                                                                         },
                                                                         placeHolder: '請輸入特店編號',
                                                                     }),
@@ -394,8 +413,9 @@ ${BgWidget.grayNote('未輸入則參照預設')}
                                                                         gvc: gvc,
                                                                         title: 'HASH_KEY',
                                                                         default: key_d.HASH_KEY,
-                                                                        callback: (text) => {
-                                                                            key_d.HASH_KEY = text;
+                                                                        callback: text => {
+                                                                            key_d.HASH_KEY =
+                                                                                text;
                                                                         },
                                                                         placeHolder: '請輸入HASH_KEY',
                                                                     }),
@@ -403,8 +423,9 @@ ${BgWidget.grayNote('未輸入則參照預設')}
                                                                         gvc: gvc,
                                                                         title: 'HASH_IV',
                                                                         default: key_d.HASH_IV,
-                                                                        callback: (text) => {
-                                                                            key_d.HASH_IV = text;
+                                                                        callback: text => {
+                                                                            key_d.HASH_IV =
+                                                                                text;
                                                                         },
                                                                         placeHolder: '請輸入HASH_IV',
                                                                     }),
@@ -412,8 +433,9 @@ ${BgWidget.grayNote('未輸入則參照預設')}
                                                                         gvc: gvc,
                                                                         title: '信用卡授權檢查碼',
                                                                         default: key_d.CreditCheckCode,
-                                                                        callback: (text) => {
-                                                                            key_d.CreditCheckCode = text;
+                                                                        callback: text => {
+                                                                            key_d.CreditCheckCode =
+                                                                                text;
                                                                         },
                                                                         placeHolder: '請輸入信用卡檢查碼',
                                                                     }),
@@ -435,15 +457,17 @@ ${BgWidget.grayNote('未輸入則參照預設')}
                                                                             },
                                                                         ],
                                                                         callback: (text) => {
-                                                                            key_d.BETA = text;
+                                                                            key_d.BETA =
+                                                                                text;
                                                                         },
                                                                     }),
                                                                     BgWidget.editeInput({
                                                                         gvc: gvc,
                                                                         title: 'CLIENT_ID',
                                                                         default: key_d.PAYPAL_CLIENT_ID,
-                                                                        callback: (text) => {
-                                                                            key_d.PAYPAL_CLIENT_ID = text;
+                                                                        callback: text => {
+                                                                            key_d.PAYPAL_CLIENT_ID =
+                                                                                text;
                                                                         },
                                                                         placeHolder: '請輸入CLIENT_ID',
                                                                     }),
@@ -451,8 +475,9 @@ ${BgWidget.grayNote('未輸入則參照預設')}
                                                                         gvc: gvc,
                                                                         title: 'SECRET',
                                                                         default: key_d.PAYPAL_SECRET,
-                                                                        callback: (text) => {
-                                                                            key_d.PAYPAL_SECRET = text;
+                                                                        callback: text => {
+                                                                            key_d.PAYPAL_SECRET =
+                                                                                text;
                                                                         },
                                                                         placeHolder: '請輸入SECRET',
                                                                     }),
@@ -474,15 +499,17 @@ ${BgWidget.grayNote('未輸入則參照預設')}
                                                                             },
                                                                         ],
                                                                         callback: (text) => {
-                                                                            key_d.BETA = text;
+                                                                            key_d.BETA =
+                                                                                text;
                                                                         },
                                                                     }),
                                                                     BgWidget.editeInput({
                                                                         gvc: gvc,
                                                                         title: 'CLIENT_ID',
                                                                         default: key_d.CLIENT_ID,
-                                                                        callback: (text) => {
-                                                                            key_d.CLIENT_ID = text;
+                                                                        callback: text => {
+                                                                            key_d.CLIENT_ID =
+                                                                                text;
                                                                         },
                                                                         placeHolder: '請輸入CLIENT_ID',
                                                                     }),
@@ -490,8 +517,9 @@ ${BgWidget.grayNote('未輸入則參照預設')}
                                                                         gvc: gvc,
                                                                         title: 'SECRET',
                                                                         default: key_d.SECRET,
-                                                                        callback: (text) => {
-                                                                            key_d.SECRET = text;
+                                                                        callback: text => {
+                                                                            key_d.SECRET =
+                                                                                text;
                                                                         },
                                                                         placeHolder: '請輸入SECRET',
                                                                     }),
@@ -502,8 +530,9 @@ ${BgWidget.grayNote('未輸入則參照預設')}
                                                                         gvc: gvc,
                                                                         title: 'STORE_ID',
                                                                         default: key_d.STORE_ID,
-                                                                        callback: (text) => {
-                                                                            key_d.STORE_ID = text;
+                                                                        callback: text => {
+                                                                            key_d.STORE_ID =
+                                                                                text;
                                                                         },
                                                                         placeHolder: '請輸入STORE_ID',
                                                                     }),
@@ -511,8 +540,9 @@ ${BgWidget.grayNote('未輸入則參照預設')}
                                                                         gvc: gvc,
                                                                         title: 'API_KEY',
                                                                         default: key_d.API_KEY,
-                                                                        callback: (text) => {
-                                                                            key_d.API_KEY = text;
+                                                                        callback: text => {
+                                                                            key_d.API_KEY =
+                                                                                text;
                                                                         },
                                                                         placeHolder: '請輸入API_KEY',
                                                                     }),
@@ -520,8 +550,9 @@ ${BgWidget.grayNote('未輸入則參照預設')}
                                                                         gvc: gvc,
                                                                         title: 'SECRET',
                                                                         default: key_d.SECRET_KEY,
-                                                                        callback: (text) => {
-                                                                            key_d.SECRET_KEY = text;
+                                                                        callback: text => {
+                                                                            key_d.SECRET_KEY =
+                                                                                text;
                                                                         },
                                                                         placeHolder: '請輸入SECRET_KEY',
                                                                     }),
@@ -543,15 +574,17 @@ ${BgWidget.grayNote('未輸入則參照預設')}
                                                                             },
                                                                         ],
                                                                         callback: (text) => {
-                                                                            key_d.BETA = text;
+                                                                            key_d.BETA =
+                                                                                text;
                                                                         },
                                                                     }),
                                                                     BgWidget.editeInput({
                                                                         gvc: gvc,
                                                                         title: '串接帳號',
                                                                         default: key_d.account,
-                                                                        callback: (text) => {
-                                                                            key_d.account = text;
+                                                                        callback: text => {
+                                                                            key_d.account =
+                                                                                text;
                                                                         },
                                                                         placeHolder: '請輸入串接帳號',
                                                                     }),
@@ -559,33 +592,37 @@ ${BgWidget.grayNote('未輸入則參照預設')}
                                                                         gvc: gvc,
                                                                         title: '串接密碼',
                                                                         default: key_d.pwd,
-                                                                        callback: (text) => {
-                                                                            key_d.pwd = text;
+                                                                        callback: text => {
+                                                                            key_d.pwd =
+                                                                                text;
                                                                         },
                                                                         placeHolder: '請輸入串接密碼',
-                                                                    })
+                                                                    }),
                                                                 ].join('');
                                                         }
                                                         return ``;
                                                     })()}
-                                                                            </div>`;
+                                                                                            </div>`;
                                                 }
                                                 catch (e) {
                                                     console.error(e);
                                                     return `${e}`;
                                                 }
                                             },
-                                            footer_html: (gvc) => {
-                                                return [BgWidget.cancel(gvc.event(() => {
+                                            footer_html: gvc => {
+                                                return [
+                                                    BgWidget.cancel(gvc.event(() => {
                                                         gvc.closeDialog();
-                                                    })), BgWidget.save(gvc.event(() => {
+                                                    })),
+                                                    BgWidget.save(gvc.event(() => {
                                                         keyData[payData.key] = key_d;
                                                         saveData();
                                                         gvc.closeDialog();
-                                                    }))].join('');
-                                            }
+                                                    })),
+                                                ].join('');
+                                            },
                                         });
-                                    })
+                                    }),
                                 })}
                                                                             </div>
                                                                 <div style="align-self: stretch; justify-content: flex-start; align-items: center; gap: 28px; display: inline-flex">
@@ -616,8 +653,9 @@ ${BgWidget.grayNote('未輸入則參照預設')}
                                                                 </div>
                                                             </div>
                                                         </div>`;
-                            }).join('')}
-                                        </div>`);
+                            })
+                                .join('')}
+                  </div>`);
                         }
                         if (vm.page === 'offline') {
                             const offlinePayArray = [
@@ -625,43 +663,46 @@ ${BgWidget.grayNote('未輸入則參照預設')}
                                     key: 'atm',
                                     name: 'ATM銀行轉帳',
                                     customerClass: 'guide2-3',
-                                    img: 'https://d3jnmi1tfjgtti.cloudfront.net/file/122538856/20200804163522idfs9.jpg'
+                                    img: 'https://d3jnmi1tfjgtti.cloudfront.net/file/122538856/20200804163522idfs9.jpg',
                                 },
                                 {
                                     key: 'line',
                                     name: 'LINE 轉帳',
-                                    img: 'https://d3jnmi1tfjgtti.cloudfront.net/file/122538856/unnamed.webp'
+                                    img: 'https://d3jnmi1tfjgtti.cloudfront.net/file/122538856/unnamed.webp',
                                 },
                                 {
-                                    key: 'cash_on_delivery', name: `<div class="d-flex flex-wrap align-items-center" style="gap:5px;">
+                                    key: 'cash_on_delivery',
+                                    name: `<div class="d-flex flex-wrap align-items-center" style="gap:5px;">
 貨到付款
-</div>`, img: 'https://d3jnmi1tfjgtti.cloudfront.net/file/122538856/images.png'
+</div>`,
+                                    img: 'https://d3jnmi1tfjgtti.cloudfront.net/file/122538856/images.png',
                                 },
-                                ...keyData.payment_info_custom.map((dd) => {
+                                ...keyData.payment_info_custom.map(dd => {
                                     return {
                                         key: dd.id,
                                         name: html `${Language.getLanguageCustomText(dd.name)}`,
-                                        custom: true
+                                        custom: true,
                                     };
                                 }),
                             ];
                             vMap.push(`<div class="my-2">${BgWidget.blueNote('透過設定線下金流進入手動核款的流程，或使用超商取貨付款。')}</div>`);
-                            vMap.push(html `
-                                        <div class="row">${offlinePayArray.map((dd) => {
+                            vMap.push(html ` <div class="row">
+                    ${offlinePayArray
+                                .map((dd) => {
                                 return ` <div class="col-12 col-md-4 p-0 p-md-2">
                                                             <div
                                                                     class="w-100 position-relative main-card"
                                                                     style="padding: 24px 32px; background: white; overflow: hidden; flex-direction: column; justify-content: flex-start; align-items: flex-start; gap: 18px; display: inline-flex;"
                                                             >
-                                                                <div class="position-absolute fw-500 ${(dd.hide_setting) ? `d-none` : ``}"
+                                                                <div class="position-absolute fw-500 ${dd.hide_setting ? `d-none` : ``}"
                                                                                  style="cursor:pointer;right:15px;top:15px;">
                                                                                 ${BgWidget.customButton({
                                     button: {
                                         color: 'gray',
-                                        size: 'sm'
+                                        size: 'sm',
                                     },
                                     text: {
-                                        name: `金流設定`
+                                        name: `金流設定`,
                                     },
                                     event: gvc.event(() => {
                                         if (dd.custom) {
@@ -689,16 +730,19 @@ ${BgWidget.grayNote('未輸入則參照預設')}
                                                     return ``;
                                                 })()}</div>`;
                                             },
-                                            footer_html: (gvc) => {
-                                                return [BgWidget.cancel(gvc.event(() => {
+                                            footer_html: gvc => {
+                                                return [
+                                                    BgWidget.cancel(gvc.event(() => {
                                                         gvc.closeDialog();
-                                                    })), BgWidget.save(gvc.event(() => {
+                                                    })),
+                                                    BgWidget.save(gvc.event(() => {
                                                         saveData();
                                                         gvc.closeDialog();
-                                                    }))].join('');
-                                            }
+                                                    })),
+                                                ].join('');
+                                            },
                                         });
-                                    })
+                                    }),
                                 })}
                                                                             </div>
                                                                 <div style="align-self: stretch; justify-content: flex-start; align-items: center; gap: 28px; display: inline-flex">
@@ -730,33 +774,38 @@ ${BgWidget.grayNote('未輸入則參照預設')}
                                                                 </div>
                                                             </div>
                                                         </div>`;
-                            }).join('')}
-                                            <div
-                                                    class="col-12 col-md-4 p-0 p-md-2"
-                                                    style="cursor: pointer;"
-                                                    onclick="${gvc.event(() => {
+                            })
+                                .join('')}
+                    <div
+                      class="col-12 col-md-4 p-0 p-md-2"
+                      style="cursor: pointer;"
+                      onclick="${gvc.event(() => {
                                 updateCustomFinance({ function: 'plus' });
                             })}"
-                                            >
-                                                <div
-                                                        class="w-100 main-card"
-                                                        style="min-height:121px;padding: 24px; background: white; overflow: hidden; flex-direction: column; justify-content: center; align-items: center; gap: 18px; display: inline-flex"
-                                                >
-                                                    <div class="fw-bold"
-                                                         style="align-self: stretch; justify-content: center; align-items: center; gap: 14px; display: inline-flex;color:#4D86DB;">
-                                                        <i class="fa-regular fa-circle-plus fs-5"></i>
-                                                        <div class="fs-5">新增自訂付款</div>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>`);
+                    >
+                      <div
+                        class="w-100 main-card"
+                        style="min-height:121px;padding: 24px; background: white; overflow: hidden; flex-direction: column; justify-content: center; align-items: center; gap: 18px; display: inline-flex"
+                      >
+                        <div
+                          class="fw-bold"
+                          style="align-self: stretch; justify-content: center; align-items: center; gap: 14px; display: inline-flex;color:#4D86DB;"
+                        >
+                          <i class="fa-regular fa-circle-plus fs-5"></i>
+                          <div class="fs-5">新增自訂付款</div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>`);
                         }
                         if (vm.page === 'pos') {
                             vMap.push(`<div class="my-2">${BgWidget.blueNote('設定實體店面所需串接的付款方式。')}</div>`);
-                            vMap.push(html `
-                                        <div class="row">${onlinePayArray.filter((dd) => {
+                            vMap.push(html ` <div class="row">
+                    ${onlinePayArray
+                                .filter(dd => {
                                 return dd.type === 'pos';
-                            }).map((dd) => {
+                            })
+                                .map(dd => {
                                 return ` <div class="col-12 col-md-4 p-0 p-md-2">
                                                             <div
                                                                     class="w-100 position-relative main-card"
@@ -767,10 +816,10 @@ ${BgWidget.grayNote('未輸入則參照預設')}
                                                                                 ${BgWidget.customButton({
                                     button: {
                                         color: 'gray',
-                                        size: 'sm'
+                                        size: 'sm',
                                     },
                                     text: {
-                                        name: `金流設定`
+                                        name: `金流設定`,
                                     },
                                     event: gvc.event(() => {
                                         const payData = dd;
@@ -798,15 +847,17 @@ ${BgWidget.grayNote('未輸入則參照預設')}
                                                                         },
                                                                     ],
                                                                     callback: (text) => {
-                                                                        key_d.line_pay_scan.BETA = text;
+                                                                        key_d.line_pay_scan.BETA =
+                                                                            text;
                                                                     },
                                                                 }),
                                                                 BgWidget.editeInput({
                                                                     gvc: gvc,
                                                                     title: 'CLIENT_ID',
                                                                     default: key_d.CLIENT_ID,
-                                                                    callback: (text) => {
-                                                                        key_d.CLIENT_ID = text;
+                                                                    callback: text => {
+                                                                        key_d.CLIENT_ID =
+                                                                            text;
                                                                     },
                                                                     placeHolder: '請輸入CLIENT_ID',
                                                                 }),
@@ -814,7 +865,7 @@ ${BgWidget.grayNote('未輸入則參照預設')}
                                                                     gvc: gvc,
                                                                     title: 'SECRET',
                                                                     default: key_d.SECRET,
-                                                                    callback: (text) => {
+                                                                    callback: text => {
                                                                         key_d.SECRET = text;
                                                                     },
                                                                     placeHolder: '請輸入SECRET',
@@ -826,27 +877,30 @@ ${BgWidget.grayNote('未輸入則參照預設')}
                                                                     gvc: gvc,
                                                                     title: '刷卡機密碼',
                                                                     default: key_d.pwd,
-                                                                    callback: (text) => {
+                                                                    callback: text => {
                                                                         key_d.pwd = text;
                                                                     },
                                                                     placeHolder: '請輸入刷卡機密碼',
-                                                                })
+                                                                }),
                                                             ].join('')}`;
                                                     }
                                                     return ``;
                                                 })()}</div>`;
                                             },
-                                            footer_html: (gvc) => {
-                                                return [BgWidget.cancel(gvc.event(() => {
+                                            footer_html: gvc => {
+                                                return [
+                                                    BgWidget.cancel(gvc.event(() => {
                                                         gvc.closeDialog();
-                                                    })), BgWidget.save(gvc.event(() => {
+                                                    })),
+                                                    BgWidget.save(gvc.event(() => {
                                                         keyData[payData.key] = key_d;
                                                         saveData();
                                                         gvc.closeDialog();
-                                                    }))].join('');
-                                            }
+                                                    })),
+                                                ].join('');
+                                            },
                                         });
-                                    })
+                                    }),
                                 })}
                                                                             </div>
                                                                 <div style="align-self: stretch; justify-content: flex-start; align-items: center; gap: 28px; display: inline-flex">
@@ -877,8 +931,9 @@ ${BgWidget.grayNote('未輸入則參照預設')}
                                                                 </div>
                                                             </div>
                                                         </div>`;
-                            }).join('')}
-                                        </div>`);
+                            })
+                                .join('')}
+                  </div>`);
                         }
                         return vMap.join('<div></div>');
                     }
@@ -910,23 +965,29 @@ ${BgWidget.grayNote('未輸入則參照預設')}
                 },
             }),
         ].join(BgWidget.mbContainer(24))}
-                ${BgWidget.mbContainer(240)}
-            `);
+      ${BgWidget.mbContainer(240)}
+    `);
     }
     static line_pay(gvc, keyData) {
         var _a;
-        const defText = html `<p>您選擇了線下Line Pay付款。請完成付款後，提供證明截圖(圖一)，或是照著(圖二)的流程擷取『付款詳細資訊』並上傳，以便我們核款。&nbsp;</p>
-        <p>
-            <br/><img src="https://d3jnmi1tfjgtti.cloudfront.net/file/234285319/1722924978722-Frame%205078.png"
-                      class="fr-fic fr-dii" style="width: 215px;"/>&nbsp;<img
-                src="https://d3jnmi1tfjgtti.cloudfront.net/file/234285319/1722924973580-Frame%205058.png"
-                class="fr-fic fr-dii"
-                style="width: 545px;"
+        const defText = html `<p>
+        您選擇了線下Line
+        Pay付款。請完成付款後，提供證明截圖(圖一)，或是照著(圖二)的流程擷取『付款詳細資訊』並上傳，以便我們核款。&nbsp;
+      </p>
+      <p>
+        <br /><img
+          src="https://d3jnmi1tfjgtti.cloudfront.net/file/234285319/1722924978722-Frame%205078.png"
+          class="fr-fic fr-dii"
+          style="width: 215px;"
+        />&nbsp;<img
+          src="https://d3jnmi1tfjgtti.cloudfront.net/file/234285319/1722924973580-Frame%205058.png"
+          class="fr-fic fr-dii"
+          style="width: 545px;"
         />
-        </p>
-        <p>
-            <br/>
-        </p> `;
+      </p>
+      <p>
+        <br />
+      </p> `;
         keyData.payment_info_line_pay = (_a = keyData.payment_info_line_pay) !== null && _a !== void 0 ? _a : {
             text: '',
         };
@@ -937,40 +998,131 @@ ${BgWidget.grayNote('未輸入則參照預設')}
                 view: () => {
                     var _a;
                     return [
-                        html `
-                            <div class="d-flex justify-content-between mb-3">
-                                <div class="tx_normal">付款說明</div>
-                                ${BgWidget.blueNote('返回預設', gvc.event(() => {
+                        html ` <div class="d-flex justify-content-between mb-3">
+              <div class="tx_normal">付款說明</div>
+              ${BgWidget.blueNote('返回預設', gvc.event(() => {
                             keyData.payment_info_line_pay.text = defText;
                             gvc.notifyDataChange(id);
                         }))}
-                            </div>`,
+            </div>`,
                         BgWidget.richTextEditor({
                             gvc: gvc,
                             content: (_a = keyData.payment_info_line_pay.text) !== null && _a !== void 0 ? _a : '',
-                            callback: (content) => {
+                            callback: content => {
                                 keyData.payment_info_line_pay.text = content;
                             },
-                            title: '付款說明'
-                        })
+                            title: '付款說明',
+                        }),
                     ].join('');
                 },
             };
         });
     }
     static cashOnDelivery(gvc, keyData) {
+        var _a;
+        keyData.cash_on_delivery = (_a = keyData.cash_on_delivery) !== null && _a !== void 0 ? _a : { support: [] };
         return gvc.bindView(() => {
             const id = gvc.glitter.getUUID();
             return {
                 bind: id,
                 view: () => {
                     return [
-                        html `<div class="mx-2 mx-sm-0 mb-0 w-100">${BgWidget.normalInsignia('設定支援貨到付款的物流選項')}</div> `
+                        html ` <div class=" mx-0 mb-0 w-100">
+              ${BgWidget.normalInsignia('設定支援貨到付款的物流選項，當選擇貨到付款僅能選擇下方有勾選的物流配送方式。')}
+            </div>`,
+                        gvc.bindView(() => {
+                            const id = gvc.glitter.getUUID();
+                            function refresh() {
+                                gvc.notifyDataChange(id);
+                            }
+                            return {
+                                bind: id,
+                                view: () => __awaiter(this, void 0, void 0, function* () {
+                                    const saasConfig = window.parent.saasConfig;
+                                    const data = (yield saasConfig.api.getPrivateConfig(saasConfig.config.appName, 'logistics_setting'))
+                                        .response.result[0].value;
+                                    const custom_delivery = data.custom_delivery;
+                                    console.log(`support-data=>`, data);
+                                    return ShipmentConfig.list
+                                        .concat((custom_delivery !== null && custom_delivery !== void 0 ? custom_delivery : []).map((dd) => {
+                                        return {
+                                            title: Language.getLanguageCustomText(dd.name),
+                                            value: dd.id,
+                                            custom: true,
+                                            type: 'font_awesome',
+                                            src: `<i class="fa-regular fa-puzzle-piece-simple fs-4"></i>`,
+                                        };
+                                    }))
+                                        .map(dd => {
+                                        const support_i = true;
+                                        return html `
+                        <div class="col-lg-6 col-12 p-0 p-md-2">
+                          <div
+                            class="w-100 position-relative main-card shadow"
+                            style="padding: 24px 32px; background: white; overflow: hidden; flex-direction: column; justify-content: flex-start; align-items: flex-start; gap: 18px; display: inline-flex;"
+                          >
+                            <div
+                              style="align-self: stretch; justify-content: flex-start; align-items: center; gap: 28px; display: inline-flex"
+                            >
+                              <div style="min-width: 46px;max-width: 46px;">
+                                ${dd.type === 'font_awesome' ? dd.src : html ` <img src="${dd.src}" />`}
+                              </div>
+                              <div
+                                style="flex-direction: column; justify-content: center; align-items: flex-start; gap: 4px; display: inline-flex"
+                              >
+                                <div class="tx_normal">${dd.title}</div>
+                                <div class="d-flex align-items-center" style="gap:4px;">
+                                  <div class="tx_normal">
+                                    ${keyData.cash_on_delivery.support.find((d1) => {
+                                            return dd.value === d1;
+                                        })
+                                            ? `開啟`
+                                            : `關閉`}
+                                  </div>
+                                  <div class="cursor_pointer form-check form-switch" style="margin-top: 10px;">
+                                    <input
+                                      class="form-check-input"
+                                      type="checkbox"
+                                      onchange="${gvc.event((e, event) => {
+                                            if (keyData.cash_on_delivery.support.find((d1) => {
+                                                return dd.value === d1;
+                                            })) {
+                                                keyData.cash_on_delivery.support = keyData.cash_on_delivery.support.filter((d1) => {
+                                                    return dd.value !== d1;
+                                                });
+                                            }
+                                            else {
+                                                keyData.cash_on_delivery.support.push(dd.value);
+                                            }
+                                            gvc.notifyDataChange(id);
+                                        })}"
+                                      ${keyData.cash_on_delivery.support.find((d1) => {
+                                            return dd.value === d1;
+                                        })
+                                            ? `checked`
+                                            : ``}
+                                    />
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                        ${document.body.clientWidth > 768 ? '' : BgWidget.mbContainer(8)}
+                      `;
+                                    })
+                                        .join('');
+                                }),
+                                divCreate: {
+                                    class: 'row guide3-3 mt-3 px-1',
+                                },
+                            };
+                        }),
                     ].join('');
                 },
                 divCreate: {
-                    class: `w-100`
-                }
+                    class: `w-100`,
+                },
             };
         });
     }
@@ -978,26 +1130,24 @@ ${BgWidget.grayNote('未輸入則參照預設')}
         const fi_ = keyData.payment_info_custom.find((id_) => {
             return id_ === id;
         });
-        keyData[keyData.findIndex(fi_)]
-            = Object.assign({ text: '' }, keyData[keyData.findIndex(fi_)]);
+        keyData[keyData.findIndex(fi_)] = Object.assign({ text: '' }, keyData[keyData.findIndex(fi_)]);
         return gvc.bindView(() => {
             const view_id = gvc.glitter.getUUID();
             return {
                 bind: view_id,
                 view: () => {
                     return [
-                        html `
-                            <div class="d-flex justify-content-between mb-3">
-                                <div class="tx_normal">付款說明</div>
-                            </div>`,
+                        html ` <div class="d-flex justify-content-between mb-3">
+              <div class="tx_normal">付款說明</div>
+            </div>`,
                         BgWidget.richTextEditor({
                             gvc: gvc,
                             content: fi_.text,
-                            callback: (content) => {
+                            callback: content => {
                                 fi_.text = content;
                             },
-                            title: '付款說明'
-                        })
+                            title: '付款說明',
+                        }),
                     ].join('');
                 },
             };
@@ -1006,9 +1156,9 @@ ${BgWidget.grayNote('未輸入則參照預設')}
     static atm(gvc, keyData) {
         var _a;
         const defText = html `<p>當日下單匯款，隔日出貨，後天到貨。</p>
-        <p>若有需要統一編號 請提早告知</p>
-        <p>------------------------------------------------------------------</p>
-        <p>＊採臨櫃匯款者，電匯單上匯款人姓名與聯絡電話請務必填寫。</p> `;
+      <p>若有需要統一編號 請提早告知</p>
+      <p>------------------------------------------------------------------</p>
+      <p>＊採臨櫃匯款者，電匯單上匯款人姓名與聯絡電話請務必填寫。</p> `;
         keyData.payment_info_atm =
             (_a = keyData.payment_info_atm) !== null && _a !== void 0 ? _a : {
                 bank_account: '',
@@ -1023,9 +1173,8 @@ ${BgWidget.grayNote('未輸入則參照預設')}
                 view: () => {
                     var _a, _b;
                     return [
-                        html `
-                            <div class="row w-100">
-                                ${[
+                        html ` <div class="row w-100">
+              ${[
                             {
                                 key: 'bank_code',
                                 title: '銀行代號',
@@ -1043,43 +1192,47 @@ ${BgWidget.grayNote('未輸入則參照預設')}
                                 title: '銀行帳號',
                             },
                         ]
-                            .map((dd) => {
-                            return html `
-                                                <div class="col-12 col-md-6 mb-2 pe-0 pe-md-2">
-                                                    <div class="w-100 mb-1">
-                                                        <span style="color: #393939; font-size: 16px; font-family: Noto Sans; font-weight: 400; word-wrap: break-word">${dd.title}</span>
-                                                        <span style="color: #E80000; font-size: 16px; font-family: Noto Sans; font-weight: 400; word-wrap: break-word">*</span>
-                                                    </div>
-                                                    <input
-                                                            class="form-control w-100"
-                                                            placeholder="請輸入${dd.title}"
-                                                            value="${keyData.payment_info_atm[dd.key]}"
-                                                            onchange="${gvc.event((e, event) => {
+                            .map(dd => {
+                            return html ` <div class="col-12 col-md-6 mb-2 pe-0 pe-md-2">
+                    <div class="w-100 mb-1">
+                      <span
+                        style="color: #393939; font-size: 16px; font-family: Noto Sans; font-weight: 400; word-wrap: break-word"
+                        >${dd.title}</span
+                      >
+                      <span
+                        style="color: #E80000; font-size: 16px; font-family: Noto Sans; font-weight: 400; word-wrap: break-word"
+                        >*</span
+                      >
+                    </div>
+                    <input
+                      class="form-control w-100"
+                      placeholder="請輸入${dd.title}"
+                      value="${keyData.payment_info_atm[dd.key]}"
+                      onchange="${gvc.event((e, event) => {
                                 keyData.payment_info_atm[dd.key] = e.value;
                             })}"
-                                                    />
-                                                </div>`;
+                    />
+                  </div>`;
                         })
                             .join('')}
-                            </div>`,
-                        html `
-                            <div class="my-2 px-1" style="display:flex;justify-content: space-between;">
-                                <div class="tx_normal">付款說明</div>
-                                ${BgWidget.blueNote('返回預設', gvc.event(() => {
+            </div>`,
+                        html ` <div class="my-2 px-1" style="display:flex;justify-content: space-between;">
+              <div class="tx_normal">付款說明</div>
+              ${BgWidget.blueNote('返回預設', gvc.event(() => {
                             keyData.payment_info_atm.text = defText;
                             gvc.notifyDataChange(id);
                         }))}
-                            </div>`,
+            </div>`,
                         ``,
                         BgWidget.richTextEditor({
                             gvc: gvc,
                             content: (_b = (_a = keyData.payment_info_atm) === null || _a === void 0 ? void 0 : _a.text) !== null && _b !== void 0 ? _b : '',
-                            callback: (content) => {
+                            callback: content => {
                                 keyData.payment_info_atm.text = content;
                                 gvc.notifyDataChange(id);
                             },
-                            title: '付款說明'
-                        })
+                            title: '付款說明',
+                        }),
                     ].join('');
                 },
                 divCreate: { class: 'guide2-5' },
@@ -1107,13 +1260,15 @@ ${BgWidget.grayNote('未輸入則參照預設')}
                     Action: 'test',
                     toggle: 'false',
                     account: '',
-                    pwd: ''
-                }
+                    pwd: '',
+                },
             },
             language: window.parent.store_info.language_setting.def,
-            page: 'delivery_setting'
+            page: 'delivery_setting',
         };
-        saasConfig.api.getPrivateConfig(saasConfig.config.appName, 'logistics_setting').then((r) => {
+        saasConfig.api
+            .getPrivateConfig(saasConfig.config.appName, 'logistics_setting')
+            .then((r) => {
             if (r.response.result[0]) {
                 vm.data = r.response.result[0].value;
             }
@@ -1150,11 +1305,11 @@ ${BgWidget.grayNote('未輸入則參照預設')}
                         BgWidget.tab([
                             { title: '配送設定', key: 'delivery_setting' },
                             { title: '物流追蹤', key: 'delivery_track' },
-                            { title: '配送備註', key: 'delivery_note' }
-                        ], gvc, vm.page, (text) => {
+                            { title: '配送備註', key: 'delivery_note' },
+                        ], gvc, vm.page, text => {
                             vm.page = text;
                             gvc.notifyDataChange(vm.id);
-                        }, 'margin-bottom:0px;')
+                        }, 'margin-bottom:0px;'),
                     ];
                     if (vm.page === 'delivery_setting') {
                         view = view.concat([
@@ -1173,15 +1328,16 @@ ${BgWidget.grayNote('未輸入則參照預設')}
                                     BgWidget.settingDialog({
                                         gvc: gvc,
                                         title: '新增自訂物流',
-                                        innerHTML: (gvc) => {
+                                        innerHTML: gvc => {
                                             form = BgWidget.customForm(gvc, [
                                                 {
-                                                    title: html `
-                                                        <div class="tx_normal fw-bolder mt-2 d-flex flex-column"
-                                                             style="margin-bottom: 12px;">
-                                                            自訂物流表單
-                                                            <span style="color:#8D8D8D;font-size: 12px;">當客戶選擇此物流時所需填寫的額外資料</span>
-                                                        </div>`,
+                                                    title: html ` <div
+                            class="tx_normal fw-bolder mt-2 d-flex flex-column"
+                            style="margin-bottom: 12px;"
+                          >
+                            自訂物流表單
+                            <span style="color:#8D8D8D;font-size: 12px;">當客戶選擇此物流時所需填寫的額外資料</span>
+                          </div>`,
                                                     key: `form_delivery_${custom_delivery.id}`,
                                                     no_padding: true,
                                                 },
@@ -1196,22 +1352,21 @@ ${BgWidget.grayNote('未輸入則參照預設')}
                                                                 gvc: gvc,
                                                                 title: '自訂物流名稱',
                                                                 default: custom_delivery.name,
-                                                                callback: (text) => {
+                                                                callback: text => {
                                                                     custom_delivery.name = text;
                                                                 },
                                                                 placeHolder: '請輸入自訂物流名稱',
-                                                                global_language: true
+                                                                global_language: true,
                                                             }),
                                                             form.view,
                                                         ].join(BgWidget.mbContainer(12));
                                                     },
                                                     divCreate: {},
-                                                    onCreate: () => {
-                                                    },
+                                                    onCreate: () => { },
                                                 };
                                             })());
                                         },
-                                        footer_html: (gvc) => {
+                                        footer_html: gvc => {
                                             let array = [
                                                 BgWidget.save(gvc.event(() => {
                                                     return new Promise((resolve) => __awaiter(this, void 0, void 0, function* () {
@@ -1280,25 +1435,27 @@ ${BgWidget.grayNote('未輸入則參照預設')}
                                                 src: `<i class="fa-regular fa-puzzle-piece-simple fs-4"></i>`,
                                             };
                                         }))
-                                            .map((dd) => {
+                                            .map(dd => {
                                             return html `
-                                                    <div class="col-12 col-md-4 p-0 p-md-2">
-                                                        <div
-                                                                class="w-100 position-relative main-card"
-                                                                style="padding: 24px 32px; background: white; overflow: hidden; flex-direction: column; justify-content: flex-start; align-items: flex-start; gap: 18px; display: inline-flex;"
-                                                        >
-                                                            ${(() => {
+                          <div class="col-12 col-md-4 p-0 p-md-2">
+                            <div
+                              class="w-100 position-relative main-card"
+                              style="padding: 24px 32px; background: white; overflow: hidden; flex-direction: column; justify-content: flex-start; align-items: flex-start; gap: 18px; display: inline-flex;"
+                            >
+                              ${(() => {
                                                 if (dd.custom) {
                                                     return html `
-                                                                        <div class="position-absolute d-flex"
-                                                                             style="cursor:pointer;right:15px;top:15px;gap:5px;">
-                                                                            ${BgWidget.customButton({
+                                    <div
+                                      class="position-absolute d-flex"
+                                      style="cursor:pointer;right:15px;top:15px;gap:5px;"
+                                    >
+                                      ${BgWidget.customButton({
                                                         button: {
                                                             color: 'gray',
-                                                            size: 'sm'
+                                                            size: 'sm',
                                                         },
                                                         text: {
-                                                            name: `物流設定`
+                                                            name: `物流設定`,
                                                         },
                                                         event: gvc.event(() => {
                                                             updateCustomShipment({
@@ -1307,15 +1464,15 @@ ${BgWidget.grayNote('未輸入則參照預設')}
                                                                     return dd.value === d1.id;
                                                                 }),
                                                             });
-                                                        })
+                                                        }),
                                                     })}
-                                                                            ${BgWidget.customButton({
+                                      ${BgWidget.customButton({
                                                         button: {
                                                             color: 'gray',
-                                                            size: 'sm'
+                                                            size: 'sm',
                                                         },
                                                         text: {
-                                                            name: `運費設定`
+                                                            name: `運費設定`,
                                                         },
                                                         event: gvc.event(() => {
                                                             const vm = {
@@ -1325,7 +1482,7 @@ ${BgWidget.grayNote('未輸入則參照預設')}
                                                                     return new Promise((resolve, reject) => {
                                                                         resolve(true);
                                                                     });
-                                                                }
+                                                                },
                                                             };
                                                             BgWidget.settingDialog({
                                                                 gvc: gvc,
@@ -1337,31 +1494,34 @@ ${BgWidget.grayNote('未輸入則參照預設')}
                                                                     vm.gvc = gvc;
                                                                     return ShoppingShipmentSetting.main(vm);
                                                                 },
-                                                                footer_html: (gvc) => {
-                                                                    return [BgWidget.cancel(gvc.event(() => {
+                                                                footer_html: gvc => {
+                                                                    return [
+                                                                        BgWidget.cancel(gvc.event(() => {
                                                                             gvc.closeDialog();
-                                                                        })), BgWidget.save(gvc.event(() => {
-                                                                            vm.save_event().then(() => {
-                                                                            });
-                                                                        }))].join('');
-                                                                }
+                                                                        })),
+                                                                        BgWidget.save(gvc.event(() => {
+                                                                            vm.save_event().then(() => { });
+                                                                        })),
+                                                                    ].join('');
+                                                                },
                                                             });
-                                                        })
+                                                        }),
                                                     })}
-                                                                        </div>
-                                                                    `;
+                                    </div>
+                                  `;
                                                 }
                                                 else {
-                                                    return html `
-                                                                        <div class="position-absolute fw-500"
-                                                                             style="cursor:pointer;right:15px;top:15px;">
-                                                                            ${BgWidget.customButton({
+                                                    return html ` <div
+                                    class="position-absolute fw-500"
+                                    style="cursor:pointer;right:15px;top:15px;"
+                                  >
+                                    ${BgWidget.customButton({
                                                         button: {
                                                             color: 'gray',
-                                                            size: 'sm'
+                                                            size: 'sm',
                                                         },
                                                         text: {
-                                                            name: `運費設定`
+                                                            name: `運費設定`,
                                                         },
                                                         event: gvc.event(() => {
                                                             const vm = {
@@ -1371,7 +1531,7 @@ ${BgWidget.grayNote('未輸入則參照預設')}
                                                                     return new Promise((resolve, reject) => {
                                                                         resolve(true);
                                                                     });
-                                                                }
+                                                                },
                                                             };
                                                             BgWidget.settingDialog({
                                                                 gvc: gvc,
@@ -1383,42 +1543,45 @@ ${BgWidget.grayNote('未輸入則參照預設')}
                                                                     vm.gvc = gvc;
                                                                     return ShoppingShipmentSetting.main(vm);
                                                                 },
-                                                                footer_html: (gvc) => {
-                                                                    return [BgWidget.cancel(gvc.event(() => {
+                                                                footer_html: gvc => {
+                                                                    return [
+                                                                        BgWidget.cancel(gvc.event(() => {
                                                                             gvc.closeDialog();
-                                                                        })), BgWidget.save(gvc.event(() => {
-                                                                            vm.save_event().then(() => {
-                                                                            });
-                                                                        }))].join('');
-                                                                }
+                                                                        })),
+                                                                        BgWidget.save(gvc.event(() => {
+                                                                            vm.save_event().then(() => { });
+                                                                        })),
+                                                                    ].join('');
+                                                                },
                                                             });
-                                                        })
+                                                        }),
                                                     })}
-                                                                        </div>`;
+                                  </div>`;
                                                 }
                                             })()}
-                                                            <div style="align-self: stretch; justify-content: flex-start; align-items: center; gap: 28px; display: inline-flex">
-                                                                <div style="min-width: 46px;max-width: 46px;">
-                                                                    ${dd.type === 'font_awesome' ? dd.src : html `
-                                                                        <img src="${dd.src}"/>`}
-                                                                </div>
-                                                                <div style="flex-direction: column; justify-content: center; align-items: flex-start; gap: 4px; display: inline-flex">
-                                                                    <div class="tx_normal">${dd.title}</div>
-                                                                    <div class="d-flex align-items-center"
-                                                                         style="gap:4px;">
-                                                                        <div class="tx_normal">
-                                                                            ${vm.data.support.find((d1) => {
+                              <div
+                                style="align-self: stretch; justify-content: flex-start; align-items: center; gap: 28px; display: inline-flex"
+                              >
+                                <div style="min-width: 46px;max-width: 46px;">
+                                  ${dd.type === 'font_awesome' ? dd.src : html ` <img src="${dd.src}" />`}
+                                </div>
+                                <div
+                                  style="flex-direction: column; justify-content: center; align-items: flex-start; gap: 4px; display: inline-flex"
+                                >
+                                  <div class="tx_normal">${dd.title}</div>
+                                  <div class="d-flex align-items-center" style="gap:4px;">
+                                    <div class="tx_normal">
+                                      ${vm.data.support.find((d1) => {
                                                 return dd.value === d1;
                                             })
                                                 ? `開啟`
                                                 : `關閉`}
-                                                                        </div>
-                                                                        <div class="cursor_pointer form-check form-switch"
-                                                                             style="margin-top: 10px;">
-                                                                            <input
-                                                                                    class="form-check-input"
-                                                                                    type="checkbox"
-                                                                                    onchange="${gvc.event((e, event) => {
+                                    </div>
+                                    <div class="cursor_pointer form-check form-switch" style="margin-top: 10px;">
+                                      <input
+                                        class="form-check-input"
+                                        type="checkbox"
+                                        onchange="${gvc.event((e, event) => {
                                                 if (vm.data.support.find((d1) => {
                                                     return dd.value === d1;
                                                 })) {
@@ -1432,41 +1595,42 @@ ${BgWidget.grayNote('未輸入則參照預設')}
                                                 save();
                                                 gvc.notifyDataChange(id);
                                             })}"
-                                                                                    ${vm.data.support.find((d1) => {
+                                        ${vm.data.support.find((d1) => {
                                                 return dd.value === d1;
                                             })
                                                 ? `checked`
                                                 : ``}
-                                                                            />
-                                                                        </div>
-                                                                    </div>
-                                                                </div>
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                    ${document.body.clientWidth > 768 ? '' : BgWidget.mbContainer(8)}
-                                                `;
+                                      />
+                                    </div>
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                          ${document.body.clientWidth > 768 ? '' : BgWidget.mbContainer(8)}
+                        `;
                                         })
                                             .concat([
-                                            html `
-                                                    <div
-                                                            class="col-12 col-md-4 p-0 p-md-2"
-                                                            style="cursor: pointer;"
-                                                            onclick="${gvc.event(() => {
+                                            html ` <div
+                          class="col-12 col-md-4 p-0 p-md-2"
+                          style="cursor: pointer;"
+                          onclick="${gvc.event(() => {
                                                 updateCustomShipment({ function: 'plus' });
                                             })}"
-                                                    >
-                                                        <div
-                                                                class="w-100 main-card"
-                                                                style="min-height:121px;padding: 24px; background: white; overflow: hidden; flex-direction: column; justify-content: center; align-items: center; gap: 18px; display: inline-flex"
-                                                        >
-                                                            <div class="fw-bold"
-                                                                 style="align-self: stretch; justify-content: center; align-items: center; gap: 14px; display: inline-flex;color:#4D86DB;">
-                                                                <i class="fa-regular fa-circle-plus fs-5"></i>
-                                                                <div class="fs-5">新增自訂物流</div>
-                                                            </div>
-                                                        </div>
-                                                    </div>`,
+                        >
+                          <div
+                            class="w-100 main-card"
+                            style="min-height:121px;padding: 24px; background: white; overflow: hidden; flex-direction: column; justify-content: center; align-items: center; gap: 18px; display: inline-flex"
+                          >
+                            <div
+                              class="fw-bold"
+                              style="align-self: stretch; justify-content: center; align-items: center; gap: 14px; display: inline-flex;color:#4D86DB;"
+                            >
+                              <i class="fa-regular fa-circle-plus fs-5"></i>
+                              <div class="fs-5">新增自訂物流</div>
+                            </div>
+                          </div>
+                        </div>`,
                                         ])
                                             .join('');
                                     },
@@ -1474,19 +1638,16 @@ ${BgWidget.grayNote('未輸入則參照預設')}
                                         class: 'row guide3-3 mt-3 px-1',
                                     },
                                 };
-                            })
+                            }),
                         ]);
                     }
                     else if (vm.page === 'delivery_note') {
                         view.push(BgWidget.mbContainer(24));
                         view.push(BgWidget.mainCard([
-                            html `
-                                    <div class="title-container px-0">
-                                        <div class="d-flex d-md-block gap-2 align-items-center">
-                                            <div class="tx_700">
-                                                    配送說明${BgWidget.languageInsignia(vm.language, 'margin-left:5px;')}
-                                            </div>
-                                            ${document.body.clientWidth > 768
+                            html ` <div class="title-container px-0">
+                    <div class="d-flex d-md-block gap-2 align-items-center">
+                      <div class="tx_700">配送說明${BgWidget.languageInsignia(vm.language, 'margin-left:5px;')}</div>
+                      ${document.body.clientWidth > 768
                                 ? BgWidget.grayNote('於結帳頁面中顯示，告知顧客配送所需要注意的事項')
                                 : BgWidget.iconButton({
                                     icon: 'info',
@@ -1500,41 +1661,39 @@ ${BgWidget.grayNote('未輸入則參照預設')}
                                         });
                                     }),
                                 })}
-                                        </div>
-                                        <div class="flex-fill"></div>
-                                        ${LanguageBackend.switchBtn({
+                    </div>
+                    <div class="flex-fill"></div>
+                    ${LanguageBackend.switchBtn({
                                 gvc: gvc,
                                 language: vm.language,
-                                callback: (language) => {
+                                callback: language => {
                                     vm.language = language;
                                     gvc.notifyDataChange(vm.id);
                                 },
                             })}
-                                    </div>`,
+                  </div>`,
                             ,
                             BgWidget.mbContainer(18),
-                            html `
-                                    <div class="guide3-4">
-                                        ${gvc.bindView((() => {
+                            html ` <div class="guide3-4">
+                    ${gvc.bindView((() => {
                                 const id = gvc.glitter.getUUID();
                                 return {
                                     bind: id,
                                     view: () => {
-                                        return html `
-                                                                <div
-                                                                        class="d-flex justify-content-between align-items-center gap-3 mb-1"
-                                                                        style="cursor: pointer;"
-                                                                        onclick="${gvc.event(() => {
+                                        return html ` <div
+                              class="d-flex justify-content-between align-items-center gap-3 mb-1"
+                              style="cursor: pointer;"
+                              onclick="${gvc.event(() => {
                                             const originContent = `${language_data.info}`;
                                             BgWidget.fullDialog({
                                                 gvc: gvc,
-                                                title: (gvc2) => {
+                                                title: gvc2 => {
                                                     return `<div class="d-flex align-items-center" style="gap:10px;">${'配送資訊' +
                                                         BgWidget.aiChatButton({
                                                             gvc: gvc2,
                                                             select: 'writer',
                                                             click: () => {
-                                                                ProductAi.generateRichText(gvc, (text) => {
+                                                                ProductAi.generateRichText(gvc, text => {
                                                                     language_data.info += text;
                                                                     gvc.notifyDataChange(vm.id);
                                                                     gvc2.recreateView();
@@ -1542,42 +1701,40 @@ ${BgWidget.grayNote('未輸入則參照預設')}
                                                             },
                                                         })}</div>`;
                                                 },
-                                                innerHTML: (gvc2) => {
-                                                    return html `
-                                                                                        <div>
-                                                                                            ${EditorElem.richText({
+                                                innerHTML: gvc2 => {
+                                                    return html ` <div>
+                                      ${EditorElem.richText({
                                                         gvc: gvc2,
                                                         def: language_data.info,
                                                         setHeight: '100vh',
                                                         hiddenBorder: true,
-                                                        insertImageEvent: (editor) => {
+                                                        insertImageEvent: editor => {
                                                             const mark = `{{${Tool.randomString(8)}}}`;
                                                             editor.selection.setAtEnd(editor.$el.get(0));
                                                             editor.html.insert(mark);
                                                             editor.undo.saveStep();
-                                                            imageLibrary.selectImageLibrary(gvc, (urlArray) => {
+                                                            imageLibrary.selectImageLibrary(gvc, urlArray => {
                                                                 if (urlArray.length > 0) {
                                                                     const imgHTML = urlArray
-                                                                        .map((url) => {
-                                                                        return html `
-                                                                                                                                    <img src="${url.data}"/>`;
+                                                                        .map(url => {
+                                                                        return html ` <img src="${url.data}" />`;
                                                                     })
                                                                         .join('');
-                                                                    editor.html.set(editor.html.get(0).replace(mark, html `
-                                                                                                                                <div class="d-flex flex-column">
-                                                                                                                                    ${imgHTML}
-                                                                                                                                </div>`));
+                                                                    editor.html.set(editor.html
+                                                                        .get(0)
+                                                                        .replace(mark, html ` <div class="d-flex flex-column">${imgHTML}</div>`));
                                                                     editor.undo.saveStep();
                                                                 }
                                                                 else {
                                                                     const dialog = new ShareDialog(gvc.glitter);
                                                                     dialog.errorMessage({ text: '請選擇至少一張圖片' });
                                                                 }
-                                                            }, html `
-                                                                                                                <div class="d-flex flex-column"
-                                                                                                                     style="border-radius: 10px 10px 0px 0px;background: #F2F2F2;">
-                                                                                                                    圖片庫
-                                                                                                                </div>`, {
+                                                            }, html ` <div
+                                              class="d-flex flex-column"
+                                              style="border-radius: 10px 10px 0px 0px;background: #F2F2F2;"
+                                            >
+                                              圖片庫
+                                            </div>`, {
                                                                 mul: true,
                                                                 cancelEvent: () => {
                                                                     editor.html.set(editor.html.get(0).replace(mark, ''));
@@ -1585,12 +1742,12 @@ ${BgWidget.grayNote('未輸入則參照預設')}
                                                                 },
                                                             });
                                                         },
-                                                        callback: (text) => {
+                                                        callback: text => {
                                                             language_data.info = text;
                                                         },
                                                         rich_height: `calc(${window.parent.innerHeight}px - 70px - 58px - 49px - 64px - 40px + ${document.body.clientWidth < 800 ? `70` : `0`}px)`,
                                                     })}
-                                                                                        </div>`;
+                                    </div>`;
                                                 },
                                                 footer_html: (gvc2) => {
                                                     return [
@@ -1610,24 +1767,23 @@ ${BgWidget.grayNote('未輸入則參照預設')}
                                                 },
                                             });
                                         })}"
-                                                                >
-                                                                    ${(() => {
+                            >
+                              ${(() => {
                                             const text = gvc.glitter.utText.removeTag(language_data.info);
                                             return BgWidget.richTextView(Tool.truncateString(text, 100));
                                         })()}
-                                                                </div>`;
+                            </div>`;
                                     },
                                 };
                             })())}
-                                    </div>`,
+                  </div>`,
                         ].join('')));
                     }
                     else if (vm.page === 'delivery_track') {
                         view = view.concat([
-                            html `
-                                <div class="mx-2 mx-sm-0 mt-3 mb-0">
-                                    ${BgWidget.normalInsignia('透過設定物流追蹤，可直接列印托運單進行出貨，並自動追蹤貨態。')}
-                                </div>`,
+                            html ` <div class="mx-2 mx-sm-0 mt-3 mb-0">
+                ${BgWidget.normalInsignia('透過設定物流追蹤，可直接列印托運單進行出貨，並自動追蹤貨態。')}
+              </div>`,
                             gvc.bindView(() => {
                                 const id = gvc.glitter.getUUID();
                                 function refresh() {
@@ -1642,15 +1798,16 @@ ${BgWidget.grayNote('未輸入則參照預設')}
                                     BgWidget.settingDialog({
                                         gvc: gvc,
                                         title: '新增自訂物流',
-                                        innerHTML: (gvc) => {
+                                        innerHTML: gvc => {
                                             form = BgWidget.customForm(gvc, [
                                                 {
-                                                    title: html `
-                                                        <div class="tx_normal fw-bolder mt-2 d-flex flex-column"
-                                                             style="margin-bottom: 12px;">
-                                                            自訂物流表單
-                                                            <span style="color:#8D8D8D;font-size: 12px;">當客戶選擇此物流時所需填寫的額外資料</span>
-                                                        </div>`,
+                                                    title: html ` <div
+                            class="tx_normal fw-bolder mt-2 d-flex flex-column"
+                            style="margin-bottom: 12px;"
+                          >
+                            自訂物流表單
+                            <span style="color:#8D8D8D;font-size: 12px;">當客戶選擇此物流時所需填寫的額外資料</span>
+                          </div>`,
                                                     key: `form_delivery_${custom_delivery.id}`,
                                                     no_padding: true,
                                                 },
@@ -1665,22 +1822,21 @@ ${BgWidget.grayNote('未輸入則參照預設')}
                                                                 gvc: gvc,
                                                                 title: '自訂物流名稱',
                                                                 default: custom_delivery.name,
-                                                                callback: (text) => {
+                                                                callback: text => {
                                                                     custom_delivery.name = text;
                                                                 },
                                                                 placeHolder: '請輸入自訂物流名稱',
-                                                                global_language: true
+                                                                global_language: true,
                                                             }),
                                                             form.view,
                                                         ].join(BgWidget.mbContainer(12));
                                                     },
                                                     divCreate: {},
-                                                    onCreate: () => {
-                                                    },
+                                                    onCreate: () => { },
                                                 };
                                             })());
                                         },
-                                        footer_html: (gvc) => {
+                                        footer_html: gvc => {
                                             let array = [
                                                 BgWidget.save(gvc.event(() => {
                                                     return new Promise((resolve) => __awaiter(this, void 0, void 0, function* () {
@@ -1735,7 +1891,7 @@ ${BgWidget.grayNote('未輸入則參照預設')}
                                         },
                                     });
                                 }
-                                ApiPageConfig.getPrivateConfig(window.parent.appName, 'glitter_delivery').then((res) => {
+                                ApiPageConfig.getPrivateConfig(window.parent.appName, 'glitter_delivery').then(res => {
                                     vm.delivery = (() => {
                                         try {
                                             return res.response.result[0].value;
@@ -1766,26 +1922,27 @@ ${BgWidget.greenNote('支援四大超商/黑貓')}
 </div>`,
                                                 value: 'pay_now',
                                                 src: 'https://d3jnmi1tfjgtti.cloudfront.net/file/122538856/download.png',
-                                            }
+                                            },
                                         ]
-                                            .map((dd) => {
+                                            .map(dd => {
                                             return html `
-                                                    <div class="col-12 col-md-4 p-0 p-md-2">
-                                                        <div
-                                                                class="w-100 position-relative main-card"
-                                                                style="padding: 24px 32px; background: white; overflow: hidden; flex-direction: column; justify-content: flex-start; align-items: flex-start; gap: 18px; display: inline-flex;"
-                                                        >
-                                                            ${(() => {
-                                                return html `
-                                                                    <div class="position-absolute fw-500"
-                                                                         style="cursor:pointer;right:15px;top:15px;">
-                                                                        ${BgWidget.customButton({
+                          <div class="col-12 col-md-4 p-0 p-md-2">
+                            <div
+                              class="w-100 position-relative main-card"
+                              style="padding: 24px 32px; background: white; overflow: hidden; flex-direction: column; justify-content: flex-start; align-items: flex-start; gap: 18px; display: inline-flex;"
+                            >
+                              ${(() => {
+                                                return html ` <div
+                                  class="position-absolute fw-500"
+                                  style="cursor:pointer;right:15px;top:15px;"
+                                >
+                                  ${BgWidget.customButton({
                                                     button: {
                                                         color: 'gray',
-                                                        size: 'sm'
+                                                        size: 'sm',
                                                     },
                                                     text: {
-                                                        name: `串接設定`
+                                                        name: `串接設定`,
                                                     },
                                                     event: gvc.event(() => {
                                                         if (dd.value === 'ec_pay') {
@@ -1825,7 +1982,7 @@ ${BgWidget.greenNote('支援四大超商/黑貓')}
                                                                                                 gvc: gvc,
                                                                                                 title: '寄件人名稱',
                                                                                                 default: (_b = vm.delivery[dd.value].SenderName) !== null && _b !== void 0 ? _b : '',
-                                                                                                callback: (text) => {
+                                                                                                callback: text => {
                                                                                                     vm.delivery[dd.value].SenderName = text;
                                                                                                 },
                                                                                                 placeHolder: '請輸入寄件人名稱 / 您的商家名稱',
@@ -1834,7 +1991,7 @@ ${BgWidget.greenNote('支援四大超商/黑貓')}
                                                                                                 gvc: gvc,
                                                                                                 title: '寄件人手機',
                                                                                                 default: (_c = vm.delivery[dd.value].SenderCellPhone) !== null && _c !== void 0 ? _c : '',
-                                                                                                callback: (text) => {
+                                                                                                callback: text => {
                                                                                                     vm.delivery[dd.value].SenderCellPhone = text;
                                                                                                 },
                                                                                                 placeHolder: '請輸入寄件人手機 / 您的手機',
@@ -1843,7 +2000,7 @@ ${BgWidget.greenNote('支援四大超商/黑貓')}
                                                                                                 gvc: gvc,
                                                                                                 title: '寄件人地址',
                                                                                                 default: (_d = vm.delivery[dd.value].SenderAddress) !== null && _d !== void 0 ? _d : '',
-                                                                                                callback: (text) => {
+                                                                                                callback: text => {
                                                                                                     vm.delivery[dd.value].SenderAddress = text;
                                                                                                 },
                                                                                                 placeHolder: '請輸入寄件人地址 / 商家地址',
@@ -1852,7 +2009,7 @@ ${BgWidget.greenNote('支援四大超商/黑貓')}
                                                                                                 gvc: gvc,
                                                                                                 title: '特店編號',
                                                                                                 default: (_e = vm.delivery[dd.value].MERCHANT_ID) !== null && _e !== void 0 ? _e : '',
-                                                                                                callback: (text) => {
+                                                                                                callback: text => {
                                                                                                     vm.delivery[dd.value].MERCHANT_ID = text;
                                                                                                 },
                                                                                                 placeHolder: '請輸入特店編號',
@@ -1861,7 +2018,7 @@ ${BgWidget.greenNote('支援四大超商/黑貓')}
                                                                                                 gvc: gvc,
                                                                                                 title: 'HASH KEY',
                                                                                                 default: (_f = vm.delivery[dd.value].HASH_KEY) !== null && _f !== void 0 ? _f : '',
-                                                                                                callback: (text) => {
+                                                                                                callback: text => {
                                                                                                     vm.delivery[dd.value].HASH_KEY = text;
                                                                                                 },
                                                                                                 placeHolder: '請輸入 HASH KEY',
@@ -1870,7 +2027,7 @@ ${BgWidget.greenNote('支援四大超商/黑貓')}
                                                                                                 gvc: gvc,
                                                                                                 title: 'HASH IV',
                                                                                                 default: (_g = vm.delivery[dd.value].HASH_IV) !== null && _g !== void 0 ? _g : '',
-                                                                                                callback: (text) => {
+                                                                                                callback: text => {
                                                                                                     vm.delivery[dd.value].HASH_IV = text;
                                                                                                 },
                                                                                                 placeHolder: '請輸入 HASH IV',
@@ -1881,8 +2038,7 @@ ${BgWidget.greenNote('支援四大超商/黑貓')}
                                                                                 ].join(BgWidget.mbContainer(12));
                                                                             },
                                                                             divCreate: {},
-                                                                            onCreate: () => {
-                                                                            },
+                                                                            onCreate: () => { },
                                                                         };
                                                                     })());
                                                                 },
@@ -1903,28 +2059,28 @@ ${BgWidget.greenNote('支援四大超商/黑貓')}
                                                                                 const addressPattern = /^.{6,60}$/;
                                                                                 return addressPattern.test(input);
                                                                             }
-                                                                            if (CheckInput.isEmpty(vm.delivery[dd.value].SenderName) || !checkSenderPattern(vm.delivery[dd.value].SenderName)) {
+                                                                            if (CheckInput.isEmpty(vm.delivery[dd.value].SenderName) ||
+                                                                                !checkSenderPattern(vm.delivery[dd.value].SenderName)) {
                                                                                 dialog.infoMessage({
-                                                                                    text: html `
-                                                                                                                <div class="text-center">
-                                                                                                                    寄件人名稱請設定最多10字元<br/>（中文5個字,
-                                                                                                                    英文10個字,<br/>不得含指定特殊符號）
-                                                                                                                </div>`,
+                                                                                    text: html ` <div class="text-center">
+                                                      寄件人名稱請設定最多10字元<br />（中文5個字, 英文10個字,<br />不得含指定特殊符號）
+                                                    </div>`,
                                                                                 });
                                                                                 resolve(false);
                                                                                 return;
                                                                             }
-                                                                            if (CheckInput.isEmpty(vm.delivery[dd.value].SenderCellPhone) || !checkPhonePattern(vm.delivery[dd.value].SenderCellPhone)) {
+                                                                            if (CheckInput.isEmpty(vm.delivery[dd.value].SenderCellPhone) ||
+                                                                                !checkPhonePattern(vm.delivery[dd.value].SenderCellPhone)) {
                                                                                 dialog.infoMessage({ text: '寄件人手機應為09開頭的手機格式' });
                                                                                 resolve(false);
                                                                                 return;
                                                                             }
-                                                                            if (!vm.delivery[dd.value].SenderAddress || !checkAddressPattern(vm.delivery[dd.value].SenderAddress)) {
+                                                                            if (!vm.delivery[dd.value].SenderAddress ||
+                                                                                !checkAddressPattern(vm.delivery[dd.value].SenderAddress)) {
                                                                                 dialog.infoMessage({
-                                                                                    text: html `
-                                                                                                                <div class="text-center">
-                                                                                                                    請輸入正確的寄件人地址<br/>（中文6~60個字）
-                                                                                                                </div>`
+                                                                                    text: html ` <div class="text-center">
+                                                      請輸入正確的寄件人地址<br />（中文6~60個字）
+                                                    </div>`,
                                                                                 });
                                                                                 resolve(false);
                                                                                 return;
@@ -1964,15 +2120,16 @@ ${BgWidget.greenNote('支援四大超商/黑貓')}
                                                                                         gvc,
                                                                                         tag: 'delivery_alert_info',
                                                                                         title: '注意事項',
-                                                                                        insideHTML: html `
-                                                                                                                            <div class="mt-2"
-                                                                                                                                 style="white-space: normal;">
-                                                                                                                                ${BgWidget.alertInfo('', [
+                                                                                        insideHTML: html ` <div
+                                                          class="mt-2"
+                                                          style="white-space: normal;"
+                                                        >
+                                                          ${BgWidget.alertInfo('', [
                                                                                             '1. 支援四大超商（7-ELEVEN、全家、萊爾富、OK超商）與黑貓',
                                                                                             '2. 寄件人名稱請設定最多10字元（中文5個字, 英文10個字, 不得含指定特殊符號）',
                                                                                             '3. 寄件人手機應為09開頭的格式',
                                                                                         ])}
-                                                                                                                            </div>`,
+                                                        </div>`,
                                                                                         height: document.body.clientWidth > 768 ? 300 : 385,
                                                                                     }),
                                                                                     ...(() => {
@@ -1997,34 +2154,35 @@ ${BgWidget.greenNote('支援四大超商/黑貓')}
                                                                                                 },
                                                                                                 type: 'single',
                                                                                             }),
-                                                                                            html `
-                                                                                                                                <div
-                                                                                                                                        onclick="${gvc.event(() => {
+                                                                                            html ` <div
+                                                            onclick="${gvc.event(() => {
                                                                                                 const dialog = new ShareDialog(gvc.glitter);
-                                                                                                window.parent.navigator.clipboard.writeText(window.parent.saasConfig.config.url + `/api-public/v1/delivery/notify?g-app=${window.parent.appName}`);
+                                                                                                window.parent.navigator.clipboard.writeText(window.parent.saasConfig.config.url +
+                                                                                                    `/api-public/v1/delivery/notify?g-app=${window.parent.appName}`);
                                                                                                 dialog.successMessage({ text: '已複製至剪貼簿' });
                                                                                             })}"
-                                                                                                                                >
-                                                                                                                                    ${BgWidget.editeInput({
+                                                          >
+                                                            ${BgWidget.editeInput({
                                                                                                 readonly: true,
                                                                                                 gvc: gvc,
-                                                                                                title: html `
-                                                                                                                                            <div class="d-flex flex-column"
-                                                                                                                                                 style="gap:5px;">
-                                                                                                                                                物流追蹤通知
-                                                                                                                                                ${BgWidget.grayNote('點擊複製此連結至PAYNOW後台的貨態回傳網址')}
-                                                                                                                                            </div>`,
-                                                                                                default: window.parent.saasConfig.config.url + `/api-public/v1/delivery/notify?g-app=${window.parent.appName}`,
+                                                                                                title: html ` <div
+                                                                class="d-flex flex-column"
+                                                                style="gap:5px;"
+                                                              >
+                                                                物流追蹤通知
+                                                                ${BgWidget.grayNote('點擊複製此連結至PAYNOW後台的貨態回傳網址')}
+                                                              </div>`,
+                                                                                                default: window.parent.saasConfig.config.url +
+                                                                                                    `/api-public/v1/delivery/notify?g-app=${window.parent.appName}`,
                                                                                                 placeHolder: '',
-                                                                                                callback: (text) => {
-                                                                                                },
+                                                                                                callback: text => { },
                                                                                             })}
-                                                                                                                                </div>`,
+                                                          </div>`,
                                                                                             BgWidget.editeInput({
                                                                                                 gvc: gvc,
                                                                                                 title: '串接帳號',
                                                                                                 default: (_b = vm.delivery[dd.value].account) !== null && _b !== void 0 ? _b : '',
-                                                                                                callback: (text) => {
+                                                                                                callback: text => {
                                                                                                     vm.delivery[dd.value].account = text;
                                                                                                 },
                                                                                                 placeHolder: '請輸入串接帳號',
@@ -2033,7 +2191,7 @@ ${BgWidget.greenNote('支援四大超商/黑貓')}
                                                                                                 gvc: gvc,
                                                                                                 title: '串接密碼',
                                                                                                 default: (_c = vm.delivery[dd.value].pwd) !== null && _c !== void 0 ? _c : '',
-                                                                                                callback: (text) => {
+                                                                                                callback: text => {
                                                                                                     vm.delivery[dd.value].pwd = text;
                                                                                                 },
                                                                                                 placeHolder: '請輸入串接密碼',
@@ -2042,7 +2200,7 @@ ${BgWidget.greenNote('支援四大超商/黑貓')}
                                                                                                 gvc: gvc,
                                                                                                 title: '寄件人名稱',
                                                                                                 default: (_d = vm.delivery[dd.value].SenderName) !== null && _d !== void 0 ? _d : '',
-                                                                                                callback: (text) => {
+                                                                                                callback: text => {
                                                                                                     vm.delivery[dd.value].SenderName = text;
                                                                                                 },
                                                                                                 placeHolder: '請輸入寄件人名稱 / 您的商家名稱',
@@ -2051,7 +2209,7 @@ ${BgWidget.greenNote('支援四大超商/黑貓')}
                                                                                                 gvc: gvc,
                                                                                                 title: '寄件人手機',
                                                                                                 default: (_e = vm.delivery[dd.value].SenderCellPhone) !== null && _e !== void 0 ? _e : '',
-                                                                                                callback: (text) => {
+                                                                                                callback: text => {
                                                                                                     vm.delivery[dd.value].SenderCellPhone = text;
                                                                                                 },
                                                                                                 placeHolder: '請輸入寄件人手機 / 您的手機',
@@ -2060,7 +2218,7 @@ ${BgWidget.greenNote('支援四大超商/黑貓')}
                                                                                                 gvc: gvc,
                                                                                                 title: '寄件人地址',
                                                                                                 default: (_f = vm.delivery[dd.value].SenderAddress) !== null && _f !== void 0 ? _f : '',
-                                                                                                callback: (text) => {
+                                                                                                callback: text => {
                                                                                                     vm.delivery[dd.value].SenderAddress = text;
                                                                                                 },
                                                                                                 placeHolder: '請輸入寄件人地址 / 商家地址',
@@ -2069,19 +2227,18 @@ ${BgWidget.greenNote('支援四大超商/黑貓')}
                                                                                                 gvc: gvc,
                                                                                                 title: '寄件人信箱',
                                                                                                 default: (_g = vm.delivery[dd.value].SenderEmail) !== null && _g !== void 0 ? _g : '',
-                                                                                                callback: (text) => {
+                                                                                                callback: text => {
                                                                                                     vm.delivery[dd.value].SenderEmail = text;
                                                                                                 },
                                                                                                 placeHolder: '請輸入寄件人信箱',
-                                                                                            })
+                                                                                            }),
                                                                                         ];
                                                                                         return array;
                                                                                     })(),
                                                                                 ].join(BgWidget.mbContainer(12));
                                                                             },
                                                                             divCreate: {},
-                                                                            onCreate: () => {
-                                                                            },
+                                                                            onCreate: () => { },
                                                                         };
                                                                     })());
                                                                 },
@@ -2110,45 +2267,41 @@ ${BgWidget.greenNote('支援四大超商/黑貓')}
                                                                 cancel: {},
                                                             });
                                                         }
-                                                    })
+                                                    }),
                                                 })}
-                                                                    </div>`;
+                                </div>`;
                                             })()}
-                                                            <div style="align-self: stretch; justify-content: flex-start; align-items: center; gap: 28px; display: inline-flex">
-                                                                <div style="min-width: 46px;max-width: 46px;">
-                                                                    <img src="${dd.src}"/>
-                                                                </div>
-                                                                <div style="flex-direction: column; justify-content: center; align-items: flex-start; gap: 4px; display: inline-flex">
-                                                                    <div class="tx_normal">${dd.title}</div>
-                                                                    <div class="d-flex align-items-center"
-                                                                         style="gap:4px;">
-                                                                        <div class="tx_normal">
-                                                                            ${vm.delivery[dd.value].toggle
-                                                ? `開啟`
-                                                : `關閉`}
-                                                                        </div>
-                                                                        <div class="cursor_pointer form-check form-switch"
-                                                                             style="margin-top: 10px;">
-                                                                            <input
-                                                                                    class="form-check-input"
-                                                                                    type="checkbox"
-                                                                                    onchange="${gvc.event((e, event) => {
+                              <div
+                                style="align-self: stretch; justify-content: flex-start; align-items: center; gap: 28px; display: inline-flex"
+                              >
+                                <div style="min-width: 46px;max-width: 46px;">
+                                  <img src="${dd.src}" />
+                                </div>
+                                <div
+                                  style="flex-direction: column; justify-content: center; align-items: flex-start; gap: 4px; display: inline-flex"
+                                >
+                                  <div class="tx_normal">${dd.title}</div>
+                                  <div class="d-flex align-items-center" style="gap:4px;">
+                                    <div class="tx_normal">${vm.delivery[dd.value].toggle ? `開啟` : `關閉`}</div>
+                                    <div class="cursor_pointer form-check form-switch" style="margin-top: 10px;">
+                                      <input
+                                        class="form-check-input"
+                                        type="checkbox"
+                                        onchange="${gvc.event((e, event) => {
                                                 vm.delivery[dd.value].toggle = !vm.delivery[dd.value].toggle;
                                                 saveDelivery();
                                                 gvc.notifyDataChange(id);
                                             })}"
-                                                                                    ${vm.delivery[dd.value].toggle
-                                                ? `checked`
-                                                : ``}
-                                                                            />
-                                                                        </div>
-                                                                    </div>
-                                                                </div>
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                    ${document.body.clientWidth > 768 ? '' : BgWidget.mbContainer(8)}
-                                                `;
+                                        ${vm.delivery[dd.value].toggle ? `checked` : ``}
+                                      />
+                                    </div>
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                          ${document.body.clientWidth > 768 ? '' : BgWidget.mbContainer(8)}
+                        `;
                                         })
                                             .join('');
                                     },
@@ -2156,7 +2309,7 @@ ${BgWidget.greenNote('支援四大超商/黑貓')}
                                         class: 'row guide3-3 mt-3 px-1',
                                     },
                                 };
-                            })
+                            }),
                         ]);
                     }
                     view.push(BgWidget.mbContainer(240));
@@ -2178,7 +2331,9 @@ ${BgWidget.greenNote('支援四大超商/黑貓')}
         };
         function save(next) {
             widget.event('loading', { visible: true, title: '請稍候...' });
-            saasConfig.api.setPrivateConfig(saasConfig.config.appName, `invoice_setting`, vm.data).then((r) => {
+            saasConfig.api
+                .setPrivateConfig(saasConfig.config.appName, `invoice_setting`, vm.data)
+                .then((r) => {
                 setTimeout(() => {
                     widget.event('loading', { visible: false, title: '請稍候...' });
                     if (r.response) {
@@ -2194,11 +2349,11 @@ ${BgWidget.greenNote('支援四大超商/黑貓')}
             bind: vm.id,
             view: () => {
                 return BgWidget.container(html `
-                        <div class="title-container">
-                            ${BgWidget.title('發票設定')}
-                            <div class="flex-fill"></div>
-                        </div>
-                        ${BgWidget.container([
+          <div class="title-container">
+            ${BgWidget.title('發票設定')}
+            <div class="flex-fill"></div>
+          </div>
+          ${BgWidget.container([
                     BgWidget.mainCard(gvc.bindView(() => {
                         const id = gvc.glitter.getUUID();
                         return {
@@ -2223,64 +2378,60 @@ ${BgWidget.greenNote('支援四大超商/黑貓')}
                                             bind: id,
                                             view: () => {
                                                 return html `
-                                                                                    <div class="d-flex flex-column"
-                                                                                         style="gap:18px;">
-                                                                                        <div class="tx_normal fw-bold">
-                                                                                            服務商選擇
-                                                                                        </div>
-                                                                                        ${[
+                                  <div class="d-flex flex-column" style="gap:18px;">
+                                    <div class="tx_normal fw-bold">服務商選擇</div>
+                                    ${[
                                                     {
-                                                        title: html `
-                                                                                                    <div class="d-flex flex-column">
-                                                                                                        綠界發票
-                                                                                                        <span style="color:#8D8D8D;font-size: 12px;">透過綠界服務商串接，於商品購買時，自動開立電子發票</span>
-                                                                                                    </div>`,
+                                                        title: html ` <div class="d-flex flex-column">
+                                          綠界發票
+                                          <span style="color:#8D8D8D;font-size: 12px;"
+                                            >透過綠界服務商串接，於商品購買時，自動開立電子發票</span
+                                          >
+                                        </div>`,
                                                         value: 'ecpay',
                                                     },
                                                     {
-                                                        title: html `
-                                                                                                    <div class="d-flex flex-column">
-                                                                                                        線下開立
-                                                                                                        <span style="color:#8D8D8D;font-size: 12px;">顧客需填寫發票資訊，由店家自行開立發票</span>
-                                                                                                    </div>`,
+                                                        title: html ` <div class="d-flex flex-column">
+                                          線下開立
+                                          <span style="color:#8D8D8D;font-size: 12px;"
+                                            >顧客需填寫發票資訊，由店家自行開立發票</span
+                                          >
+                                        </div>`,
                                                         value: 'off_line',
                                                     },
                                                     {
-                                                        title: html `
-                                                                                                    <div class="d-flex flex-column">
-                                                                                                        不開立電子發票
-                                                                                                        <span style="color:#8D8D8D;font-size: 12px;">顧客不需填寫發票資訊，不需開立電子發票</span>
-                                                                                                    </div>`,
+                                                        title: html ` <div class="d-flex flex-column">
+                                          不開立電子發票
+                                          <span style="color:#8D8D8D;font-size: 12px;"
+                                            >顧客不需填寫發票資訊，不需開立電子發票</span
+                                          >
+                                        </div>`,
                                                         value: 'nouse',
                                                     },
                                                 ]
-                                                    .map((dd) => {
-                                                    return html `
-                                                                                                        <div>
-                                                                                                            ${[
-                                                        html `
-                                                                                                                    <div
-                                                                                                                            class="d-flex align-items-center cursor_pointer"
-                                                                                                                            style="gap:8px;"
-                                                                                                                            onclick="${gvc.event(() => {
+                                                    .map(dd => {
+                                                    return html ` <div>
+                                          ${[
+                                                        html ` <div
+                                              class="d-flex align-items-center cursor_pointer"
+                                              style="gap:8px;"
+                                              onclick="${gvc.event(() => {
                                                             vm.data.fincial = dd.value;
                                                             gvc.notifyDataChange(id);
                                                         })}"
-                                                                                                                    >
-                                                                                                                        ${vm.data.fincial === dd.value
+                                            >
+                                              ${vm.data.fincial === dd.value
                                                             ? `<i class="fa-sharp fa-solid fa-circle-dot color39"></i>`
                                                             : ` <div class="c_39_checkbox"></div>`}
-                                                                                                                        <div class="tx_normal fw-normal">
-                                                                                                                            ${dd.title}
-                                                                                                                        </div>
-                                                                                                                    </div>`,
-                                                        html `
-                                                                                                                    <div class="d-flex position-relative mt-2">
-                                                                                                                        <div class="ms-2 border-end position-absolute h-100"
-                                                                                                                             style="left: 0px;"></div>
-                                                                                                                        <div class="flex-fill "
-                                                                                                                             style="margin-left:30px;max-width: 518px;">
-                                                                                                                            ${(() => {
+                                              <div class="tx_normal fw-normal">${dd.title}</div>
+                                            </div>`,
+                                                        html ` <div class="d-flex position-relative mt-2">
+                                              <div
+                                                class="ms-2 border-end position-absolute h-100"
+                                                style="left: 0px;"
+                                              ></div>
+                                              <div class="flex-fill " style="margin-left:30px;max-width: 518px;">
+                                                ${(() => {
                                                             var _a, _b, _c;
                                                             if (vm.data.fincial === 'nouse' ||
                                                                 vm.data.fincial === 'off_line' ||
@@ -2303,7 +2454,7 @@ ${BgWidget.greenNote('支援四大超商/黑貓')}
                                                                                 value: 'official',
                                                                             },
                                                                         ],
-                                                                        callback: (text) => {
+                                                                        callback: text => {
                                                                             vm.data.point = text;
                                                                             if (vm.data.point == 'beta') {
                                                                                 vm.data.hashkey = vm.data.bhashkey;
@@ -2322,7 +2473,7 @@ ${BgWidget.greenNote('支援四大超商/黑貓')}
                                                                         default: (_a = vm.data.merchNO) !== null && _a !== void 0 ? _a : '',
                                                                         type: 'text',
                                                                         placeHolder: '請輸入特店編號',
-                                                                        callback: (text) => {
+                                                                        callback: text => {
                                                                             vm.data.merchNO = text;
                                                                         },
                                                                     }),
@@ -2332,7 +2483,7 @@ ${BgWidget.greenNote('支援四大超商/黑貓')}
                                                                         default: (_b = vm.data.hashkey) !== null && _b !== void 0 ? _b : '',
                                                                         type: 'text',
                                                                         placeHolder: '請輸入HashKey',
-                                                                        callback: (text) => {
+                                                                        callback: text => {
                                                                             vm.data.hashkey = text;
                                                                             if (vm.data.point == 'beta') {
                                                                                 vm.data.bhashkey = text;
@@ -2348,7 +2499,7 @@ ${BgWidget.greenNote('支援四大超商/黑貓')}
                                                                         default: (_c = vm.data.hashiv) !== null && _c !== void 0 ? _c : '',
                                                                         type: 'text',
                                                                         placeHolder: '請輸入HashIV',
-                                                                        callback: (text) => {
+                                                                        callback: text => {
                                                                             vm.data.hashiv = text;
                                                                             if (vm.data.point == 'beta') {
                                                                                 vm.data.bhashiv = text;
@@ -2361,14 +2512,14 @@ ${BgWidget.greenNote('支援四大超商/黑貓')}
                                                                 ].join(BgWidget.mbContainer(12));
                                                             }
                                                         })()}
-                                                                                                                        </div>
-                                                                                                                    </div>`,
+                                              </div>
+                                            </div>`,
                                                     ].join('')}
-                                                                                                        </div>`;
+                                        </div>`;
                                                 })
                                                     .join('')}
-                                                                                    </div>
-                                                                                `;
+                                  </div>
+                                `;
                                             },
                                             divCreate: {
                                                 style: ``,
@@ -2385,17 +2536,16 @@ ${BgWidget.greenNote('支援四大超商/黑貓')}
                         };
                     })),
                     BgWidget.mbContainer(240),
-                    html `
-                                        <div class="update-bar-container">
-                                            ${BgWidget.save(gvc.event(() => {
+                    html ` <div class="update-bar-container">
+                ${BgWidget.save(gvc.event(() => {
                         save(() => {
                             const dialog = new ShareDialog(gvc.glitter);
                             dialog.successMessage({ text: '設定成功' });
                         });
                     }))}
-                                        </div>`,
+              </div>`,
                 ].join(''))}
-                    `);
+        `);
             },
         });
     }

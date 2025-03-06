@@ -1894,10 +1894,10 @@ export class CheckoutIndex {
                           view: () => {
                             if (
                               vm.cartData.customer_info.payment_select === 'cash_on_delivery' &&
-                              !ShipmentConfig.supermarketList.includes(vm.cartData.user_info.shipment)
+                              !vm.cartData.cash_on_delivery_support.includes(vm.cartData.user_info.shipment)
                             ) {
                               const find = this.getShipmentMethod(vm.cartData).find((d1: any) => {
-                                return ShipmentConfig.supermarketList.includes(d1.value);
+                                return vm.cartData.cash_on_delivery_support.includes(d1.value);
                               });
                               vm.cartData.user_info.shipment = find && find.value;
                               this.storeLocalData(vm.cartData);
@@ -1930,7 +1930,7 @@ export class CheckoutIndex {
                                     .filter((dd: { name: string; value: string }) => {
                                       return !(
                                         vm.cartData.customer_info.payment_select === 'cash_on_delivery' &&
-                                        !ShipmentConfig.supermarketList.includes(dd.value)
+                                        !vm.cartData.cash_on_delivery_support.includes(dd.value)
                                       );
                                     })
                                     .map((dd: { name: string; value: string }) => {

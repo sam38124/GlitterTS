@@ -1718,9 +1718,9 @@ export class CheckoutIndex {
                                         bind: ids.shipping,
                                         view: () => {
                                             if (vm.cartData.customer_info.payment_select === 'cash_on_delivery' &&
-                                                !ShipmentConfig.supermarketList.includes(vm.cartData.user_info.shipment)) {
+                                                !vm.cartData.cash_on_delivery_support.includes(vm.cartData.user_info.shipment)) {
                                                 const find = this.getShipmentMethod(vm.cartData).find((d1) => {
-                                                    return ShipmentConfig.supermarketList.includes(d1.value);
+                                                    return vm.cartData.cash_on_delivery_support.includes(d1.value);
                                                 });
                                                 vm.cartData.user_info.shipment = find && find.value;
                                                 this.storeLocalData(vm.cartData);
@@ -1752,7 +1752,7 @@ export class CheckoutIndex {
                                                 return this.getShipmentMethod(vm.cartData)
                                                     .filter((dd) => {
                                                     return !(vm.cartData.customer_info.payment_select === 'cash_on_delivery' &&
-                                                        !ShipmentConfig.supermarketList.includes(dd.value));
+                                                        !vm.cartData.cash_on_delivery_support.includes(dd.value));
                                                 })
                                                     .map((dd) => {
                                                     return html ` <option
