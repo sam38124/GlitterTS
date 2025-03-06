@@ -66,6 +66,7 @@ router.use(config_1.config.getRoute(config_1.config.public_route.ai_chat, 'publi
 router.use(config_1.config.getRoute(config_1.config.public_route.ai_points, 'public'), require('./ai-points'));
 router.use(config_1.config.getRoute(config_1.config.public_route.sms_points, 'public'), require('./sms-points'));
 router.use(config_1.config.getRoute(config_1.config.public_route.track, 'public'), require('./track'));
+router.use(config_1.config.getRoute(config_1.config.public_route.voucher, 'public'), require('./voucher'));
 const whiteList = [
     { url: config_1.config.getRoute(config_1.config.public_route.shopee, 'public'), method: 'POST' },
     { url: config_1.config.getRoute(config_1.config.public_route.shopee + '/listenMessage', 'public'), method: 'POST' },
@@ -174,15 +175,15 @@ async function doAuthAction(req, resp, next_step) {
     async function checkBlockUser() {
         var _a, _b;
         if ((await database_1.default.query(`SELECT count(1)
-                             FROM \`${(_a = req.get('g-app')) !== null && _a !== void 0 ? _a : req.query['g-app']}\`.t_user
-                             where userID = ?
-                               and status = 0`, [req.body.token.userID]))[0]['count(1)'] === 1) {
+                     FROM \`${(_a = req.get('g-app')) !== null && _a !== void 0 ? _a : req.query['g-app']}\`.t_user
+                     where userID = ?
+                       and status = 0`, [req.body.token.userID]))[0]['count(1)'] === 1) {
             await redis_1.default.deleteKey(token);
             return true;
         }
         await database_1.default.execute(`update \`${(_b = req.get('g-app')) !== null && _b !== void 0 ? _b : req.query['g-app']}\`.t_user
-                          set online_time=NOW()
-                          where userID = ?`, [req.body.token.userID || '-1']);
+             set online_time=NOW()
+             where userID = ?`, [req.body.token.userID || '-1']);
         return false;
     }
     if (matches.length > 0) {
@@ -210,8 +211,8 @@ async function doAuthAction(req, resp, next_step) {
         const redisToken = await redis_1.default.getValue(token);
         if (!redisToken) {
             const tokenCheck = await database_1.default.query(`select count(1)
-                                               from \`${config_1.saasConfig.SAAS_NAME}\`.user
-                                               where editor_token = ?`, [token]);
+                 from \`${config_1.saasConfig.SAAS_NAME}\`.user
+                 where editor_token = ?`, [token]);
             if (tokenCheck[0]['count(1)'] !== 1) {
                 logger.error(TAG, 'Token is not match in redis.');
                 return response_1.default.fail(resp, exception_1.default.PermissionError('INVALID_TOKEN', 'invalid token'));

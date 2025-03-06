@@ -11,7 +11,8 @@ import { BaseApi } from '../../glitterBundle/api/base.js';
 import { GlobalUser } from '../global/global-user.js';
 import { ApiShop } from './shopping.js';
 export class ApiUser {
-    constructor() { }
+    constructor() {
+    }
     static register(json) {
         return BaseApi.create({
             url: getBaseUrl() + `/api-public/v1/user/register`,
@@ -391,6 +392,7 @@ export class ApiUser {
                                 data_from: 'manager',
                                 email: item.account,
                                 status: 1,
+                                valid: true,
                             }),
                         ]);
                         if (userLevel.status === 'fulfilled' && userLevel.value.result) {

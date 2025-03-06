@@ -131,7 +131,7 @@ export class Entry {
         }
         (window as any).renderClock = (window as any).renderClock ?? createClock();
         console.log(`Entry-time:`, (window as any).renderClock.stop());
-        glitter.share.editerVersion = 'V_18.4.3';
+        glitter.share.editerVersion = 'V_18.4.7';
         glitter.share.start = new Date();
         const vm = { appConfig: [] };
         (window as any).saasConfig = {
@@ -633,6 +633,7 @@ export class Entry {
                 new Date(vm.appConfig.dead_line).getTime() < new Date().getTime() &&
                 (!vm.appConfig.refer_app || vm.appConfig.refer_app === vm.appConfig.appName)
             ) {
+
                 authError('使用權限已過期，請前往後台執行續費。');
             } else {
                 authPass();

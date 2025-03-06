@@ -293,6 +293,31 @@ init(import.meta.url, (gvc, glitter, gBundle) => {
 </div>
             `);
             }
+            if (window.store_info.chat_toggle) {
+                map.push(gvc.bindView(() => {
+                    return {
+                        bind: gvc.glitter.getUUID(),
+                        view: () => {
+                            return new Promise((resolve, reject) => {
+                                const url = new URL('./cms-plugin/customer-message-user.js', gvc.glitter.root_path);
+                                gvc.glitter.getModule(url.href, (CustomerMessageUser) => {
+                                    resolve(CustomerMessageUser.showCustomerMessage({
+                                        gvc: gvc,
+                                        userID: (() => {
+                                            if (GlobalUser.token) {
+                                                return GlobalUser.parseJWT(GlobalUser.token).payload.userID;
+                                            }
+                                            else {
+                                                return gvc.glitter.macAddress;
+                                            }
+                                        })(),
+                                    }));
+                                });
+                            });
+                        },
+                    };
+                }));
+            }
             return map.join('');
         },
     };

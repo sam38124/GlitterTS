@@ -21,7 +21,7 @@ export class Post {
             const data = await db.query(
                 `INSERT INTO \`${this.app}\`.\`${tb}\`
                  SET ?`,
-                [content]
+                [content],
             );
             const reContent = JSON.parse(content.content);
             if (reContent.type === 'product' && tb === 't_manager_post') {
@@ -38,7 +38,7 @@ export class Post {
                 `update \`${this.app}\`.\`${tb}\`
                  SET ?
                  WHERE id = ${data.insertId}`,
-                [content]
+                [content],
             );
 
             Post.postObserverList.map((value, index, array) => {
@@ -84,7 +84,7 @@ export class Post {
                                     `select *
                                      from t_user
                                      where userID = ${this.token.userID ?? 0}`,
-                                    []
+                                    [],
                                 )
                             )[0] ?? user;
                     }
@@ -99,7 +99,7 @@ export class Post {
                         const myFunction = new Function(html`try { return
                         ${sq.sql.replace(
                             /new\s*Promise\s*\(\s*async\s*\(\s*resolve\s*,\s*reject\s*\)\s*=>\s*\{([\s\S]*)\}\s*\)/i,
-                            'new Promise(async (resolve, reject) => { try { $1 } catch (error) { console.log(error);reject(error); } })'
+                            'new Promise(async (resolve, reject) => { try { $1 } catch (error) { console.log(error);reject(error); } })',
                         )}
                         } catch (error) { return 'error'; }`);
 
@@ -130,7 +130,8 @@ export class Post {
                                                 };
                                                 type: 'topic' | 'token';
                                                 for: string;
-                                            }) => {},
+                                            }) => {
+                                            },
                                         },
                                     })
                                     .then((data: any) => {
@@ -145,7 +146,7 @@ export class Post {
                             }
                         });
                     }
-                }
+                },
             );
         } catch (e) {
             console.error(e);
@@ -167,7 +168,7 @@ export class Post {
                  where 1 = 1
                    and userID = ${this.token.userID}
                    and id = ${reContent.id}`,
-                [content]
+                [content],
             );
             return data;
         } catch (e) {
@@ -182,18 +183,18 @@ export class Post {
             let querySql: any = [];
             query.id && querySql.push(`id=${query.id}`);
             query.search &&
-                query.search.split(',').map((dd: any) => {
-                    if (dd.includes('->')) {
-                        const qu = dd.split('->');
-                        querySql.push(`(content->>'$.${qu[0]}'='${qu[1]}')`);
-                    } else if (dd.includes('-|>')) {
-                        const qu = dd.split('-|>');
-                        querySql.push(`(content->>'$.${qu[0]}' like '%${qu[1]}%')`);
-                    } else if (dd.includes('-[]>')) {
-                        const qu = dd.split('-[]>');
-                        querySql.push(`(JSON_CONTAINS(content, '"${qu[1]}"', '$.${qu[0]}'))`);
-                    }
-                });
+            query.search.split(',').map((dd: any) => {
+                if (dd.includes('->')) {
+                    const qu = dd.split('->');
+                    querySql.push(`(content->>'$.${qu[0]}'='${qu[1]}')`);
+                } else if (dd.includes('-|>')) {
+                    const qu = dd.split('-|>');
+                    querySql.push(`(content->>'$.${qu[0]}' like '%${qu[1]}%')`);
+                } else if (dd.includes('-[]>')) {
+                    const qu = dd.split('-[]>');
+                    querySql.push(`(JSON_CONTAINS(content, '"${qu[1]}"', '$.${qu[0]}'))`);
+                }
+            });
             return await new UtDatabase(this.app, manager ? `t_manager_post` : `t_post`).querySql(querySql, query);
         } catch (e) {
             throw exception.BadRequestError('BAD_REQUEST', 'GetContentV2 Error:' + e, null);
@@ -286,7 +287,7 @@ export class Post {
                                         .map((dd: any) => {
                                             return dd;
                                         })
-                                        .join("','")}')`;
+                                        .join('\',\'')}')`;
                                 }
                             }
                             countSql = `select count(1)
@@ -315,10 +316,11 @@ export class Post {
                                         `select userData
                                          from \`${this.app}\`.\`t_user\`
                                          where userID = ${dd.userID}`,
-                                        []
+                                        [],
                                     )
                                 )[0]['userData'];
-                            } catch (e) {}
+                            } catch (e) {
+                            }
                         }
                         dd.userData = userData[dd.userID];
                     }
@@ -341,7 +343,7 @@ export class Post {
                     console.error(e);
                     throw exception.BadRequestError('BAD_REQUEST', 'PostContent Error:' + e, null);
                 }
-            }
+            },
         );
     }
 

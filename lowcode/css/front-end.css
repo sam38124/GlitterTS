@@ -1,9 +1,15 @@
+.price_text {
+    color: #FF5353FF;
+}
+
 .pd_detail_content iframe {
     max-width: 100%;
 }
+
 .pd_detail_content img {
     max-width: 100%;
 }
+
 .swiper {
     width: 100%;
     height: 100%;
@@ -64,6 +70,7 @@
     height: 100%;
     object-fit: cover;
 }
+
 .insignia {
     border-radius: 0.5rem;
     padding: 6px 8px;
@@ -80,3 +87,4 @@
     background: #dddddd;
     color: #393939;
 }
+

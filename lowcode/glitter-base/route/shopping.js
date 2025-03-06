@@ -539,6 +539,30 @@ export class ApiShop {
             },
         });
     }
+    static putVoucher(json) {
+        return BaseApi.create({
+            'url': getBaseUrl() + `/api-public/v1/voucher`,
+            'type': 'PUT',
+            'headers': {
+                'Content-Type': 'application/json',
+                'g-app': getConfig().config.appName,
+                'Authorization': json.token || ((json.type === 'manager') ? getConfig().config.token : GlobalUser.token),
+            },
+            data: JSON.stringify(json),
+        });
+    }
+    static postVoucher(json) {
+        return BaseApi.create({
+            'url': getBaseUrl() + `/api-public/v1/voucher`,
+            'type': 'POST',
+            'headers': {
+                'Content-Type': 'application/json',
+                'g-app': getConfig().config.appName,
+                'Authorization': json.token || ((json.type === 'manager') ? getConfig().config.token : GlobalUser.token),
+            },
+            data: JSON.stringify(json),
+        });
+    }
     static getVoucher(json) {
         return BaseApi.create({
             url: getBaseUrl() +

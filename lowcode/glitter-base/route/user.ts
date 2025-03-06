@@ -3,7 +3,8 @@ import { GlobalUser } from '../global/global-user.js';
 import { ApiShop } from './shopping.js';
 
 export class ApiUser {
-    constructor() {}
+    constructor() {
+    }
 
     public static register(json: { account: string; pwd: string; userData: any }) {
         return BaseApi.create({
@@ -17,7 +18,9 @@ export class ApiUser {
         });
     }
 
-    public static quickRegister(json: { account: string; pwd: string; userData: any } | { userArray: { account: string; pwd: string; userData: any }[] }) {
+    public static quickRegister(json: { account: string; pwd: string; userData: any } | {
+        userArray: { account: string; pwd: string; userData: any }[]
+    }) {
         return BaseApi.create({
             url: getBaseUrl() + `/api-public/v1/user/manager/register`,
             type: 'POST',
@@ -316,7 +319,13 @@ export class ApiUser {
         });
     }
 
-    public static getUserList(json: { limit: number; page: number; search?: string; id?: string; search_type?: string }) {
+    public static getUserList(json: {
+        limit: number;
+        page: number;
+        search?: string;
+        id?: string;
+        search_type?: string
+    }) {
         return BaseApi.create({
             url:
                 getBaseUrl() +
@@ -428,6 +437,7 @@ export class ApiUser {
                                 data_from: 'manager',
                                 email: item.account,
                                 status: 1,
+                                valid: true,
                             }),
                         ]);
 
@@ -446,7 +456,7 @@ export class ApiUser {
                             item.checkout_total = 0;
                             item.checkout_count = 0;
                         }
-                    })
+                    }),
                 );
             }
 
@@ -751,7 +761,15 @@ export class ApiUser {
         });
     }
 
-    public static getPermission(json: { page: number; limit: number; self?: boolean; queryType?: string; query?: string; orderBy?: string; filter?: any }) {
+    public static getPermission(json: {
+        page: number;
+        limit: number;
+        self?: boolean;
+        queryType?: string;
+        query?: string;
+        orderBy?: string;
+        filter?: any
+    }) {
         return BaseApi.create({
             url:
                 getBaseUrl() +

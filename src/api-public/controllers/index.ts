@@ -66,14 +66,14 @@ router.use(config.getRoute(config.public_route.ai_chat, 'public'), require('./ai
 router.use(config.getRoute(config.public_route.ai_points, 'public'), require('./ai-points'));
 router.use(config.getRoute(config.public_route.sms_points, 'public'), require('./sms-points'));
 router.use(config.getRoute(config.public_route.track, 'public'), require('./track'));
-
+router.use(config.getRoute(config.public_route.voucher, 'public'), require('./voucher'));
 /******************************/
 const whiteList: {}[] = [
     { url: config.getRoute(config.public_route.shopee, 'public'), method: 'POST' },
     { url: config.getRoute(config.public_route.shopee + '/listenMessage', 'public'), method: 'POST' },
     { url: config.getRoute(config.public_route.shopee + '/listenMessage', 'public'), method: 'GET' },
-    { url: config.getRoute(config.public_route.shopee+'/stock-hook', 'public'), method: 'GET' },
-    { url: config.getRoute(config.public_route.shopee+'/stock-hook', 'public'), method: 'POST' },
+    { url: config.getRoute(config.public_route.shopee + '/stock-hook', 'public'), method: 'GET' },
+    { url: config.getRoute(config.public_route.shopee + '/stock-hook', 'public'), method: 'POST' },
     { url: config.getRoute(config.public_route.line_message + '/listenMessage', 'public'), method: 'POST' },
     { url: config.getRoute(config.public_route.fb_message + '/listenMessage', 'public'), method: 'GET' },
     { url: config.getRoute(config.public_route.fb_message + '/listenMessage', 'public'), method: 'POST' },
@@ -183,10 +183,10 @@ async function doAuthAction(req: express.Request, resp: express.Response, next_s
             (
                 await db.query(
                     `SELECT count(1)
-                             FROM \`${(req.get('g-app') as any) ?? req.query['g-app']}\`.t_user
-                             where userID = ?
-                               and status = 0`,
-                    [req.body.token.userID]
+                     FROM \`${(req.get('g-app') as any) ?? req.query['g-app']}\`.t_user
+                     where userID = ?
+                       and status = 0`,
+                    [req.body.token.userID],
                 )
             )[0]['count(1)'] === 1
         ) {
@@ -195,9 +195,9 @@ async function doAuthAction(req: express.Request, resp: express.Response, next_s
         }
         await db.execute(
             `update \`${(req.get('g-app') as any) ?? req.query['g-app']}\`.t_user
-                          set online_time=NOW()
-                          where userID = ?`,
-            [req.body.token.userID || '-1']
+             set online_time=NOW()
+             where userID = ?`,
+            [req.body.token.userID || '-1'],
         );
         return false;
     }
@@ -228,9 +228,9 @@ async function doAuthAction(req: express.Request, resp: express.Response, next_s
         if (!redisToken) {
             const tokenCheck = await db.query(
                 `select count(1)
-                                               from \`${saasConfig.SAAS_NAME}\`.user
-                                               where editor_token = ?`,
-                [token]
+                 from \`${saasConfig.SAAS_NAME}\`.user
+                 where editor_token = ?`,
+                [token],
             );
             if (tokenCheck[0]['count(1)'] !== 1) {
                 logger.error(TAG, 'Token is not match in redis.');

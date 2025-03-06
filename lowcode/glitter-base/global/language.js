@@ -885,6 +885,7 @@ export class Language {
             `,
             },
             { key: 'i_known', tw: '我知道了', cn: '我知道了', en: 'confirm' },
+            { key: 'quick_input', tw: '快速帶入', cn: '快速带入', en: 'Quick Fill' },
         ];
     }
     static getLanguageCustomText(text) {
