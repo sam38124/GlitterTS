@@ -81,8 +81,12 @@ export class OrderSetting {
     }
 
     static getShippingAddress(orderData: OrderData) {
-        if (['UNIMARTC2C', 'FAMIC2C', 'OKMARTC2C', 'HILIFEC2C'].includes(orderData.user_info.shipment)) {
-            return `${orderData.user_info.CVSStoreName} (${orderData.user_info.CVSAddress})`;
+        const shipment = orderData.user_info.shipment;
+        if (['UNIMARTC2C', 'FAMIC2C', 'OKMARTC2C', 'HILIFEC2C'].includes(shipment)) {
+          return `${orderData.user_info.CVSStoreName} (${orderData.user_info.CVSAddress})`;
+        }
+        if (shipment === 'shop') {
+          return '實體門市';
         }
         return orderData.user_info.address;
     }
@@ -142,7 +146,7 @@ export class OrderSetting {
             }
 
             let dialog = new ShareDialog(topGVC.glitter);
-            let origData = JSON.parse(JSON.stringify(postMD));
+            let origData = structuredClone(postMD);
             getStockStore();
 
             return gvc.bindView({
@@ -725,7 +729,7 @@ export class OrderSetting {
                                                             ]
                                                                 .map((item, i) => {
                                                                     return html`<div class="tx_normal" style="width: ${styles[i].width}%; text-align: ${styles[i].align};">
-                                                                        <span style="white-space: break-spaces;">${item.title.trim()}</span>
+                                                                        <span style="white-space: break-spaces;">${(item.title ?? '').trim()}</span>
                                                                     </div>`;
                                                                 })
                                                                 .join('');
@@ -774,32 +778,55 @@ export class OrderSetting {
 
                 // 電腦版頁面
                 const webView = (isExpanded: boolean) => {
+                  try {
                     return html`
-                        <div class="d-flex ${gClass('box')}" style="background: ${isExpanded ? '#F7F7F7' : '#FFF'}">
-                            <div class="tx_700" style="width: 10%; cursor: pointer;" onclick="${gvc.event(toggleOrderView)}">${orderToggle(isExpanded)}</div>
-                            <div style="width: 30%;">${userView()}</div>
-                            <div style="width: 7%;">${combineBadge()}</div>
-                            <div style="width: 46%;">${alertText()}</div>
-                            <div style="width: 7%;">${checkInfoBtn()}</div>
+                      <div class="d-flex ${gClass('box')}" style="background: ${isExpanded ? '#F7F7F7' : '#FFF'}">
+                        <div
+                          class="tx_700"
+                          style="width: 10%; cursor: pointer;"
+                          onclick="${gvc.event(toggleOrderView)}"
+                        >
+                          ${orderToggle(isExpanded)}
                         </div>
-                        ${isExpanded ? orderView() : ''}
+                        <div style="width: 30%;">${userView()}</div>
+                        <div style="width: 7%;">${combineBadge()}</div>
+                        <div style="width: 46%;">${alertText()}</div>
+                        <div style="width: 7%;">${checkInfoBtn()}</div>
+                      </div>
+                      ${isExpanded ? orderView() : ''}
                     `;
+                  } catch (error) {
+                    console.error('webView error: ', error);
+                    return '';
+                  }
                 };
 
                 // 手機版介面
                 const phoneView = (isExpanded: boolean) => {
-                    return html`
-                        <div class="d-flex flex-column gap-1 ${gClass('box')}" style="background: ${isExpanded ? '#F7F7F7' : '#FFF'};${isDesktop ? '' : 'position: sticky; left: 0;'}">
-                            <div class="d-flex">
-                                <div class="tx_700" style="width: 57.5%;" onclick="${gvc.event(toggleOrderView)}">${orderToggle(isExpanded)}</div>
-                                <div style="width: 20%;">${combineBadge()}</div>
-                                <div style="width: 22.5%;">${checkInfoBtn()}</div>
+                    try {
+                      return html`
+                        <div
+                          class="d-flex flex-column gap-1 ${gClass('box')}"
+                          style="background: ${isExpanded ? '#F7F7F7' : '#FFF'};${isDesktop
+                            ? ''
+                            : 'position: sticky; left: 0;'}"
+                        >
+                          <div class="d-flex">
+                            <div class="tx_700" style="width: 57.5%;" onclick="${gvc.event(toggleOrderView)}">
+                              ${orderToggle(isExpanded)}
                             </div>
-                            <div>${userView()}</div>
-                            <div>${alertText()}</div>
+                            <div style="width: 20%;">${combineBadge()}</div>
+                            <div style="width: 22.5%;">${checkInfoBtn()}</div>
+                          </div>
+                          <div>${userView()}</div>
+                          <div>${alertText()}</div>
                         </div>
                         ${isExpanded ? orderView() : ''}
-                    `;
+                      `;
+                    } catch (error) {
+                      console.error('phoneView error: ', error);
+                      return '';
+                    }
                 };
 
                 // 訂購人訂單列表
@@ -872,7 +899,7 @@ export class OrderSetting {
                                     ]
                                         .map((item, i) => {
                                             return html`<div class="tx_normal" style="width: ${styles[i].width}%; text-align: ${styles[i].align};">
-                                                <span style="white-space: break-spaces;">${item.title.trim()}</span>
+                                                <span style="white-space: break-spaces;">${(item.title ?? '').trim()}</span>
                                             </div>`;
                                         })
                                         .join('');
@@ -929,7 +956,7 @@ export class OrderSetting {
                     <div
                         class="${gClass('update')}"
                         onclick="${gvc.event(() => {
-                            vm.dataObject = JSON.parse(JSON.stringify(vm.originDataObject));
+                            vm.dataObject = structuredClone(vm.originDataObject);
                             gvc.notifyDataChange([ids.orderlist, ids.header, ids.dashboard]);
                         })}"
                     >
@@ -1032,7 +1059,7 @@ export class OrderSetting {
                     return;
                 }
 
-                const key = email || user_info?.email || user_info?.phone;
+                const key = user_info?.email || user_info?.phone || email;
                 if (key) {
                     temp[key] = temp[key] || { orders: [] };
                     temp[key].orders.push(order);
@@ -1041,7 +1068,7 @@ export class OrderSetting {
 
             // 設定原始資料
             vm.dataObject = setDataStatus(temp);
-            vm.originDataObject = JSON.parse(JSON.stringify(vm.dataObject));
+            vm.originDataObject = structuredClone(vm.dataObject);
 
             // 過濾掉只出現一次的訂購人
             const filteredData = Object.fromEntries(
