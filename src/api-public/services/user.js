@@ -2195,7 +2195,6 @@ class User {
                 addNull: new Set(['wait']),
             },
         };
-        console.log(`storeInfo.checkout_mode===>`, storeInfo);
         Object.entries(storeInfo.checkout_mode).forEach(([key, mode]) => {
             const obj = sqlObject[key];
             if (!Array.isArray(mode) || mode.length === 0 || !obj)
