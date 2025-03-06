@@ -2438,6 +2438,18 @@ export class User {
                 value: TermsCheck.check(config.key),
               });
               return await that.getConfigV2(config);
+            case 'store-information':
+              await that.setConfig({
+                key: config.key,
+                user_id: config.user_id,
+                value: {
+                  language_setting: {
+                    def: 'zh-TW',
+                    support: ['zh-TW'],
+                  },
+                },
+              });
+              return await that.getConfigV2(config);
           }
         }
         if (data && data.value) {

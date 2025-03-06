@@ -1961,6 +1961,18 @@ class User {
                                 value: terms_check_js_1.TermsCheck.check(config.key),
                             });
                             return await that.getConfigV2(config);
+                        case 'store-information':
+                            await that.setConfig({
+                                key: config.key,
+                                user_id: config.user_id,
+                                value: {
+                                    language_setting: {
+                                        def: 'zh-TW',
+                                        support: ['zh-TW'],
+                                    },
+                                },
+                            });
+                            return await that.getConfigV2(config);
                     }
                 }
                 if (data && data.value) {
@@ -2183,6 +2195,7 @@ class User {
                 addNull: new Set(['wait']),
             },
         };
+        console.log(`storeInfo.checkout_mode===>`, storeInfo);
         Object.entries(storeInfo.checkout_mode).forEach(([key, mode]) => {
             const obj = sqlObject[key];
             if (!Array.isArray(mode) || mode.length === 0 || !obj)
