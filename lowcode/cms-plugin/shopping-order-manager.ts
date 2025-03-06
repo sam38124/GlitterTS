@@ -1123,7 +1123,7 @@ export class ShoppingOrderManager {
                                                 </div>`,
                                         });
                                     } else {
-                                        dialog.successMessage({ text: '更新成功!' });
+                                        dialog.successMessage({ text: '更新成功' });
                                     }
                                     gvc.notifyDataChange('orderDetailRefresh');
                                 } else {
@@ -2854,7 +2854,7 @@ export class ShoppingOrderManager {
                                                                     });
                                                                     if (response.result) {
                                                                         dialog.infoMessage({
-                                                                            text: '刪除成功!',
+                                                                            text: '刪除成功',
                                                                         });
 
                                                                         vm.type = 'list';

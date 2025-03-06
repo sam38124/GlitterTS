@@ -3148,214 +3148,201 @@ export class Shopping {
 
     async putOrder(data: { id: string; orderData: any; status: any }) {
         try {
-            const update: any = {};
-            if (data.status !== undefined) {
-                update.status = data.status;
-            }
-            if (data.orderData) {
-                update.orderData = JSON.stringify(data.orderData);
-            }
-            const store_config = await new User(this.app).getConfigV2({ key: 'store_manager', user_id: 'manager' });
-            const origin = await db.query(
-                `SELECT *
-                 FROM \`${this.app}\`.t_checkout
-                 WHERE id = ?;
-                `,
-                [data.id],
-            );
+          const update: any = {};
+          const storeConfig = await new User(this.app).getConfigV2({ key: 'store_manager', user_id: 'manager' });
+          const origin = (await db.query(`SELECT * FROM \`${this.app}\`.t_checkout WHERE id = ?;`, [data.id]))[0];
 
-            if (update.orderData && JSON.parse(update.orderData)) {
-                // 商品出貨信件通知（消費者）
-                let sns = new SMS(this.app);
-                const updateProgress = JSON.parse(update.orderData).progress;
+          if (!origin) {
+            return {
+              result: 'error',
+              message: `訂單 id ${data.id} 不存在`,
+            };
+          }
 
-                // Migrate舊版和新版訂單
-                function migrateOrder(lineItems: any) {
-                    for (const lineItem of lineItems) {
-                        lineItem.stockList = undefined;
-                        lineItem.deduction_log = lineItem.deduction_log || {};
-                        if (Object.keys(lineItem.deduction_log).length === 0) {
-                            //將舊版回填migrate成新版本
-                            lineItem.deduction_log[store_config.list[0].id] = { count: lineItem.count };
-                        }
-                    }
-                }
+          if (data.status !== undefined) {
+            update.status = data.status;
+          }
 
-                migrateOrder(data.orderData.lineItems);
-                migrateOrder(origin[0].orderData.lineItems);
+          // lineItems 庫存修正
+          const resetLineItems = (lineItems: any[]) => {
+            return lineItems.map(item => ({
+              ...item,
+              stockList: undefined,
+              deduction_log: Object.keys(item.deduction_log || {}).length
+                ? item.deduction_log
+                : { [storeConfig.list[0].id]: item.count },
+            }));
+          };
 
-                if (data.orderData.orderStatus === '-1') {
-                    await this.releaseVoucherHistory(data.orderData.orderID, 0);
-                } else {
-                    await this.releaseVoucherHistory(data.orderData.orderID, 1);
-                }
+          if (data.orderData) {
+            const orderData = data.orderData;
+            update.orderData = structuredClone(orderData);
+            const updateProgress = update.orderData.progress;
 
-                // 當訂單變成已取消的當下去執行庫存回填
-                if (origin[0].orderData.orderStatus !== '-1' && data.orderData.orderStatus === '-1') {
-                    for (const lineItem of origin[0].orderData.lineItems) {
-                        // 回填所有庫存點數量
-                        if (lineItem.product_category === 'kitchen' && lineItem.spec && lineItem.spec.length) {
-                            await new Shopping(this.app, this.token).calcVariantsStock(
-                                lineItem.count,
-                                '',
-                                lineItem.id,
-                                lineItem.spec,
-                            );
-                        } else {
-                            for (const b of Object.keys(lineItem.deduction_log)) {
-                                await new Shopping(this.app, this.token).calcVariantsStock(
-                                    lineItem.deduction_log[b] || 0,
-                                    b,
-                                    lineItem.id,
-                                    lineItem.spec,
-                                );
-                            }
-                        }
-                    }
+            // 恢復取消訂單的庫存
+            orderData.lineItems = resetLineItems(orderData.lineItems);
+            origin.orderData.lineItems = resetLineItems(origin.orderData.lineItems);
 
-                    await AutoSendEmail.customerOrder(
-                        this.app,
-                        'auto-email-order-cancel-success',
-                        data.orderData.orderID,
-                        data.orderData.email,
-                        data.orderData.language,
-                    );
-                }
+            // 釋放優惠券
+            await this.releaseVoucherHistory(orderData.orderID, orderData.orderStatus === '-1' ? 0 : 1);
 
-                if (origin[0].orderData.progress !== 'shipping' && updateProgress === 'shipping') {
-                    if (data.orderData.customer_info.phone) {
-                        await sns.sendCustomerSns('auto-sns-shipment', data.orderData.orderID, data.orderData.customer_info.phone);
-                        console.log('出貨簡訊寄送成功');
-                    }
-                    if (data.orderData.customer_info.lineID) {
-                        let line = new LineMessage(this.app);
-                        await line.sendCustomerLine(
-                            'auto-line-shipment',
-                            data.orderData.orderID,
-                            data.orderData.customer_info.lineID,
-                        );
-                        console.log('出貨line訊息寄送成功');
-                    }
+            // 當訂單變成已取消時，執行庫存回填
+            const prevStatus = origin.orderData.orderStatus;
+            const prevProgress = origin.orderData.progress;
 
-                    await AutoSendEmail.customerOrder(
-                        this.app,
-                        'auto-email-shipment',
-                        data.orderData.orderID,
-                        data.orderData.email,
-                        data.orderData.language,
-                    );
-                } else if (origin[0].orderData.progress !== 'arrived' && updateProgress === 'arrived') {
-                    if (data.orderData.customer_info.phone) {
-                        await sns.sendCustomerSns(
-                            'auto-sns-shipment-arrival',
-                            data.orderData.orderID,
-                            data.orderData.customer_info.phone,
-                        );
-                        console.log('到貨簡訊寄送成功');
-                    }
-                    if (data.orderData.customer_info.lineID) {
-                        let line = new LineMessage(this.app);
-                        await line.sendCustomerLine(
-                            'auto-line-shipment-arrival',
-                            data.orderData.orderID,
-                            data.orderData.customer_info.lineID,
-                        );
-                        console.log('到貨line訊息寄送成功');
-                    }
-                    await AutoSendEmail.customerOrder(
-                        this.app,
-                        'auto-email-shipment-arrival',
-                        data.orderData.orderID,
-                        data.orderData.email,
-                        data.orderData.language,
-                    );
-                } else {
-                    // 調撥庫存的判斷
-                    if (data.orderData.orderStatus !== '-1') {
-                        for (const new_line_item of data.orderData.lineItems) {
-                            const og_line_items = origin[0].orderData.lineItems.find((dd: any) => {
-                                return dd.id === new_line_item.id && dd.spec.join('') === new_line_item.spec.join('');
-                            });
-                            if (new_line_item.product_category === 'kitchen' && new_line_item.spec && new_line_item.spec.length) {
-                                await new Shopping(this.app, this.token).calcVariantsStock(
-                                    new_line_item.count,
-                                    '',
-                                    new_line_item.id,
-                                    new_line_item.spec,
-                                );
-                            } else {
-                                for (const key of Object.keys(new_line_item.deduction_log)) {
-                                    const u_: number = new_line_item.deduction_log[key];
-                                    const o_: number = og_line_items.deduction_log[key];
-                                    await new Shopping(this.app, this.token).calcVariantsStock(
-                                        (u_ - o_) * -1,
-                                        key,
-                                        new_line_item.id,
-                                        new_line_item.spec,
-                                    );
-                                }
-                            }
-                        }
-                    }
-                }
-
-                // 付款狀態不一致時發動更新
-                if (origin[0].status !== update.status) {
-                    await this.releaseCheckout(update.status, data.orderData.orderID);
-                }
+            if (prevStatus !== '-1' && orderData.orderStatus === '-1') {
+              await this.restoreStock(origin.orderData.lineItems);
+              await AutoSendEmail.customerOrder(
+                this.app,
+                'auto-email-order-cancel-success',
+                orderData.orderID,
+                orderData.email,
+                orderData.language
+              );
             }
 
-            await db.query(
-                `UPDATE \`${this.app}\`.t_checkout
-                 SET ?
-                 WHERE id = ?;
-                `,
-                [update, data.id],
-            );
+            // 當訂單出貨狀態變更，觸發通知事件
+            if (prevProgress !== updateProgress) {
+              if (updateProgress === 'shipping') {
+                await this.sendNotifications(orderData, 'shipment');
+              } else if (updateProgress === 'arrived') {
+                await this.sendNotifications(orderData, 'arrival');
+              }
+            } else {
+              await this.adjustStock(origin.orderData, orderData);
+            }
 
-            const orderCountingSQL = await new User(this.app).getCheckoutCountingModeSQL();
-            const orderCount = await db.query(
-                `SELECT *
+            // 付款狀態不一致時發動更新
+            if (origin.status !== update.status) {
+              await this.releaseCheckout(update.status, data.orderData.orderID);
+            }
+          }
+
+          // ======= 更新訂單 =======
+          const updateData: Record<string, unknown> = Object.entries(update).reduce(
+            (acc, [key, value]) => ({
+              ...acc,
+              [key]: typeof value === 'object' ? JSON.stringify(value) : value,
+            }),
+            {}
+          );
+          await db.query(`UPDATE \`${this.app}\`.t_checkout SET ? WHERE id = ?;`, [updateData, data.id]);
+
+          // 若符合有效訂單設定，則發放類型為購物金的優惠券
+          const orderCountingSQL = await new User(this.app).getCheckoutCountingModeSQL();
+          const orderCount = await db.query(
+            `SELECT *
                  FROM \`${this.app}\`.t_checkout
                  WHERE id = ?
                    AND ${orderCountingSQL};
                 `,
-                [data.id],
-            );
-            if (orderCount[0]) {
-                await this.shareVoucherRebate(orderCount[0]);
-            }
+            [data.id]
+          );
+          if (orderCount[0]) {
+            await this.shareVoucherRebate(orderCount[0]);
+          }
 
-            await Promise.all(
-                origin[0].orderData.lineItems.map((lineItem: any) => {
-                    return new Promise(async (resolve, reject) => {
-                        const pd = await new Shopping(this.app, this.token).getProduct({
-                            id: lineItem.id as string,
-                            page: 0,
-                            limit: 10,
-                            skip_shopee_check: true,
-                        });
-                        if (pd.data && pd.data.shopee_id) {
-                            console.log(`sync-pd.data`, pd.data.content.variants);
-                            await new Shopee(this.app, this.token).asyncStockToShopee({
-                                product: pd.data,
-                                callback: () => {
-                                },
-                            });
-                        }
-                        resolve(true);
-                    });
-                }),
-            );
-            return {
-                result: 'success',
-                orderData: data.orderData,
-            };
+          // 同步蝦皮商品
+          await Promise.all(
+            origin.orderData.lineItems.map(async (lineItem: any) => {
+              const shopping = new Shopping(this.app, this.token);
+              const shopee = new Shopee(this.app, this.token);
+
+              const pd = await shopping.getProduct({
+                id: lineItem.id as string,
+                page: 0,
+                limit: 10,
+                skip_shopee_check: true,
+              });
+
+              if (pd.data?.shopee_id) {
+                await shopee.asyncStockToShopee({ product: pd.data, callback: () => {} });
+              }
+            })
+          );
+
+          return {
+            result: 'success',
+            orderData: data.orderData,
+          };
         } catch (e) {
-            console.error(e);
-            throw exception.BadRequestError('BAD_REQUEST', 'putOrder Error:' + e, null);
+          console.error(e);
+          throw exception.BadRequestError('BAD_REQUEST', 'putOrder Error:' + e, null);
         }
     }
+
+    private async restoreStock(lineItems: any[]) {
+        const stockUpdates = lineItems.map(async (item) => {
+            if (item.product_category === 'kitchen' && item.spec?.length) {
+                return new Shopping(this.app, this.token).calcVariantsStock(
+                    item.count, '', item.id, item.spec
+                );
+            }
+            return Promise.all(
+              Object.entries(item.deduction_log).map(([location, count]) => {
+                const intCount = parseInt(`${count || 0}`, 10);
+                return new Shopping(this.app, this.token).calcVariantsStock(intCount, location, item.id, item.spec);
+              })
+            );
+        });
+        await Promise.all(stockUpdates);
+    }
+
+    private async sendNotifications(orderData: any, type: 'shipment' | 'arrival') {
+        const { phone, lineID } = orderData.customer_info;
+        const messages = [];
+        const typeMap = {
+            shipment: 'shipment',
+            arrival: 'shipment-arrival'
+        }
+
+        if (phone) {
+            const sns = new SMS(this.app);
+            messages.push(sns.sendCustomerSns(`auto-sns-${typeMap[type]}`, orderData.orderID, phone));
+        }
+        if (lineID) {
+            const line = new LineMessage(this.app);
+            messages.push(line.sendCustomerLine(`auto-line-${typeMap[type]}`, orderData.orderID, lineID));
+        }
+        messages.push(AutoSendEmail.customerOrder(
+            this.app, `auto-email-${typeMap[type]}`, orderData.orderID, orderData.email, orderData.language
+        ));
+        
+        await Promise.all(messages);
+    }
+
+    private async adjustStock(origin: any, orderData: any) {
+        if (orderData.orderStatus === '-1') return;
+
+        const stockAdjustments = orderData.lineItems.map(async (newItem: any) => {
+            const originalItem = origin.lineItems.find((item: any) =>
+                item.id === newItem.id && item.spec.join('') === newItem.spec.join('')
+            );
+            
+            if (newItem.product_category === 'kitchen' && newItem.spec?.length) {
+                return new Shopping(this.app, this.token).calcVariantsStock(
+                    newItem.count, '', newItem.id, newItem.spec
+                );
+            }
+
+            return Promise.all(
+              Object.entries(newItem.deduction_log).map(([location, newCount]) => {
+                const originalCount = originalItem.deduction_log[location] || 0;
+                const parsedNewCount = Number(newCount || 0);
+                const delta = (isNaN(parsedNewCount) ? 0 : parsedNewCount) - originalCount;
+
+                return new Shopping(this.app, this.token).calcVariantsStock(
+                  delta * -1,
+                  location,
+                  newItem.id,
+                  newItem.spec
+                );
+              })
+            );
+        });
+        await Promise.all(stockAdjustments);
+    }
+    
 
     async cancelOrder(order_id: string) {
         try {

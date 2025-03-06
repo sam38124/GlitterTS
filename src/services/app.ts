@@ -988,7 +988,7 @@ export class App {
                 });
             });
             if (!response) {
-                throw exception.BadRequestError('BAD_REQUEST', '網域驗證失敗!', null);
+                throw exception.BadRequestError('BAD_REQUEST', '網域驗證失敗', null);
             }
             await db.execute(
                 `

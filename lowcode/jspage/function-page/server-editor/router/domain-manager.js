@@ -128,7 +128,7 @@ onclick="${gvc.event(() => {
                                                         dialog.dataLoading({ text: '', visible: false });
                                                         if (response.result) {
                                                             gvc.closeDialog();
-                                                            dialog.successMessage({ text: '設定成功!' });
+                                                            dialog.successMessage({ text: '設定成功' });
                                                         }
                                                         else {
                                                             dialog.errorMessage({ text: '設定失敗，DNS設定可能尚未生效或者請確認網域所有權。' });
@@ -224,7 +224,7 @@ onclick="${gvc.event(() => {
                                                             });
                                                             if (response.result) {
                                                                 gvc.closeDialog();
-                                                                dialog.successMessage({ text: '設定成功!' });
+                                                                dialog.successMessage({ text: '設定成功' });
                                                                 location.reload();
                                                             }
                                                             else {

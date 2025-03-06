@@ -236,7 +236,7 @@ export class BgCustomerMessage {
                                                                         user_id: 'manager',
                                                                     }).then((data: any) => {
                                                                         dialog.dataLoading({visible: false});
-                                                                        dialog.successMessage({text: '設定成功!'});
+                                                                        dialog.successMessage({text: '設定成功'});
                                                                     });
                                                                 })}"
                                                         >
@@ -379,7 +379,7 @@ export class BgCustomerMessage {
                                                     user_id: 'manager',
                                                 });
                                                 dialog.dataLoading({visible: false});
-                                                dialog.successMessage({text: '設定成功!'});
+                                                dialog.successMessage({text: '設定成功'});
                                             }
 
                                             const view = [
@@ -671,7 +671,7 @@ export class BgCustomerMessage {
                                                                                                                         user_id: 'manager',
                                                                                                                     });
                                                                                                                     dialog.dataLoading({visible: false});
-                                                                                                                    dialog.successMessage({text: '設定成功!'});
+                                                                                                                    dialog.successMessage({text: '設定成功'});
                                                                                                                     gvc.closeDialog()
                                                                                                                 }), '儲存')].join('')
                                                                                                             }

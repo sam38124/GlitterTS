@@ -542,7 +542,7 @@ export class FormSetting {
                                                         visible: false,
                                                     });
                                                     dialog.successMessage({
-                                                        text: '新增成功!',
+                                                        text: '新增成功',
                                                     });
                                                 });
                                             } else {
@@ -554,7 +554,7 @@ export class FormSetting {
                                                         visible: false,
                                                     });
                                                     dialog.successMessage({
-                                                        text: '更新成功!',
+                                                        text: '更新成功',
                                                     });
                                                 });
                                             }

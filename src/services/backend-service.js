@@ -280,7 +280,7 @@ class BackendService {
                 });
             });
             if (!response) {
-                throw exception_js_1.default.BadRequestError('BAD_REQUEST', '網域驗證失敗!', null);
+                throw exception_js_1.default.BadRequestError('BAD_REQUEST', '網域驗證失敗', null);
             }
             await database_js_1.default.query(`replace
             into \`${this.appName}\`.t_domain_setting  set ?`, [

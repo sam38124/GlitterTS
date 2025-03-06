@@ -432,7 +432,7 @@ export class ShoppingReturnOrderManager {
                         }).then((response) => {
                             dialog.dataLoading({ text: '上傳中', visible: false });
                             if (response.result) {
-                                dialog.successMessage({ text: '更新成功!' });
+                                dialog.successMessage({ text: '更新成功' });
                                 vm.type = 'list';
                             }
                             else {
@@ -966,7 +966,7 @@ export class ShoppingReturnOrderManager {
                             let dialog = new ShareDialog(gvc.glitter);
                             dialog.dataLoading({ text: '上傳中', visible: false });
                             if (response.result) {
-                                dialog.successMessage({ text: '更新成功!' });
+                                dialog.successMessage({ text: '更新成功' });
                                 vm.type = 'list';
                             }
                             else {

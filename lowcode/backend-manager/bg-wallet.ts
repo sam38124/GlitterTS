@@ -163,7 +163,7 @@ export class BgWallet {
                                                                                                     dialog.dataLoading({
                                                                                                         visible: false,
                                                                                                     });
-                                                                                                    dialog.successMessage({ text: `設定成功!` });
+                                                                                                    dialog.successMessage({ text: `設定成功` });
                                                                                                     gvc.closeDialog();
                                                                                                     gvc2.closeDialog();
                                                                                                     refresh();
@@ -639,7 +639,7 @@ export class BgWallet {
                                                                     gvc.closeDialog();
                                                                     gvc2.closeDialog();
                                                                 } else {
-                                                                    dialog.successMessage({ text: `變更成功!` });
+                                                                    dialog.successMessage({ text: `變更成功` });
                                                                     gvc.closeDialog();
                                                                     gvc2.closeDialog();
                                                                     refresh();
@@ -902,7 +902,7 @@ export class BgWallet {
                                                                                                     dialog.dataLoading({
                                                                                                         visible: false,
                                                                                                     });
-                                                                                                    dialog.successMessage({ text: `設定成功!` });
+                                                                                                    dialog.successMessage({ text: `設定成功` });
                                                                                                     gvc.closeDialog();
                                                                                                     gvc2.closeDialog();
                                                                                                     refresh();

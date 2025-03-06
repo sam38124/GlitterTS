@@ -370,10 +370,10 @@ export class ShoppingInformation {
                   apiMethod({ ...payload, token: saasConfig.config.token }).then((res: any) => {
                     dialog.dataLoading({ visible: false });
                     if (res.result) {
-                      dialog.successMessage({ text: '網域部署成功!' });
+                      dialog.successMessage({ text: '網域部署成功' });
                       editorVM.domain = domainType === 'custom' ? domainText : `${domainText}.shopnex.tw`;
                     } else {
-                      dialog.errorMessage({ text: '網域部署失敗!' });
+                      dialog.errorMessage({ text: '網域部署失敗' });
                     }
                   });
                 };

@@ -1,37 +1,14 @@
-var __awaiter = (this && this.__awaiter) || function(thisArg, _arguments, P, generator) {
-    function adopt(value) {
-        return value instanceof P ? value : new P(function(resolve) {
-            resolve(value);
-        });
-    }
-
-    return new (P || (P = Promise))(function(resolve, reject) {
-        function fulfilled(value) {
-            try {
-                step(generator.next(value));
-            } catch (e) {
-                reject(e);
-            }
-        }
-
-        function rejected(value) {
-            try {
-                step(generator['throw'](value));
-            } catch (e) {
-                reject(e);
-            }
-        }
-
-        function step(result) {
-            result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected);
-        }
-
+var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
 import { PayConfig } from './pay-config.js';
 import { PaymentPage } from './payment-page.js';
-
 export class IminModule {
     static printInvoice(invoice, orderID, staff_title) {
         return __awaiter(this, void 0, void 0, function* () {
@@ -40,7 +17,6 @@ export class IminModule {
                 return;
             }
             const IminPrintInstance = window.IminPrintInstance;
-
             function generateBarcodeBase64(barcodeString) {
                 const canvas = document.createElement('canvas');
                 JsBarcode(canvas, barcodeString, {
@@ -54,7 +30,6 @@ export class IminModule {
                 console.log('Base64 Barcode:', base64String);
                 return base64String;
             }
-
             yield IminPrintInstance.setAlignment(1);
             yield IminPrintInstance.setTextSize(50);
             yield IminPrintInstance.setTextStyle(1);
@@ -153,11 +128,9 @@ ${tempDiv.querySelector('.invoice-detail-sum').children[2].textContent.replace(/
             }), 1000);
         });
     }
-
     static printInvoiceSunMi(invoice, orderID, staff_title) {
         return __awaiter(this, void 0, void 0, function* () {
             const glitter = window.glitter;
-
             function mergeQRCodes(code) {
                 return __awaiter(this, void 0, void 0, function* () {
                     return new Promise((resolve, reject) => __awaiter(this, void 0, void 0, function* () {
@@ -186,7 +159,6 @@ ${tempDiv.querySelector('.invoice-detail-sum').children[2].textContent.replace(/
                     }));
                 });
             }
-
             function generateQRCode(text, size) {
                 return new Promise((resolve) => {
                     const div = document.createElement('div');
@@ -202,7 +174,6 @@ ${tempDiv.querySelector('.invoice-detail-sum').children[2].textContent.replace(/
                     }, 200);
                 });
             }
-
             const ba = (new Blob([invoice.qrcode_0]).size - (new Blob([invoice.qrcode_1]).size)) * 1.1;
             for (let a = 0; a <= ba; a++) {
                 invoice.qrcode_1 += '*';
@@ -268,7 +239,7 @@ ${tempDiv.querySelector('.invoice-detail-sum').children[2].textContent.replace(/
                         {
                             key: 'print-text', data: {
                                 style: 'normal',
-                                text: `${invoice.random_code}      ${invoice.total}`,
+                                text: `${invoice.random_code}             ${invoice.total}`,
                                 font_size: 24,
                                 align: 0,
                             },
@@ -472,7 +443,6 @@ ${tempDiv.querySelector('.invoice-detail-sum').children[2].textContent.replace(/
             });
         });
     }
-
     static printCodeSumi(code) {
         return __awaiter(this, void 0, void 0, function* () {
             const glitter = window.glitter;
@@ -495,7 +465,6 @@ ${tempDiv.querySelector('.invoice-detail-sum').children[2].textContent.replace(/
             }, {});
         });
     }
-
     static printQrCodeSumi(code) {
         return __awaiter(this, void 0, void 0, function* () {
             const glitter = window.glitter;
@@ -519,7 +488,6 @@ ${tempDiv.querySelector('.invoice-detail-sum').children[2].textContent.replace(/
                         }, 200);
                     });
                 }
-
                 generateQRCode(code, 185).then((res) => {
                     glitter.runJsInterFace('start-print', {
                         'command-list': [
@@ -543,11 +511,9 @@ ${tempDiv.querySelector('.invoice-detail-sum').children[2].textContent.replace(/
             });
         });
     }
-
     static printCode(code) {
         return __awaiter(this, void 0, void 0, function* () {
             const IminPrintInstance = window.parent.IminPrintInstance;
-
             function generateBarcodeBase64(barcodeString) {
                 const canvas = window.parent.document.createElement('canvas');
                 window.parent.JsBarcode(canvas, barcodeString, {
@@ -561,7 +527,6 @@ ${tempDiv.querySelector('.invoice-detail-sum').children[2].textContent.replace(/
                 console.log('Base64 Barcode:', base64String);
                 return base64String;
             }
-
             IminPrintInstance.printSingleBitmap(generateBarcodeBase64(code));
             yield IminPrintInstance.printAndFeedPaper(70);
         });

@@ -385,8 +385,16 @@ export declare class Shopping {
         status: any;
     }): Promise<{
         result: string;
+        message: string;
+        orderData?: undefined;
+    } | {
+        result: string;
         orderData: any;
+        message?: undefined;
     }>;
+    private restoreStock;
+    private sendNotifications;
+    private adjustStock;
     cancelOrder(order_id: string): Promise<{
         data: boolean;
     }>;

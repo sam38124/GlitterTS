@@ -1187,66 +1187,7 @@ export class BgRecommend {
                                                             },
                                                         ], [(_a = vm.data.voucher_status) !== null && _a !== void 0 ? _a : ''], (data) => {
                                                             vm.data.voucher_status = data[0];
-                                                        }, { single: true })}
-                                                                        ${(() => {
-                                                            const voucherData = vm.voucherList.find((item) => item.id === vm.data.voucher);
-                                                            if (!voucherData) {
-                                                                return '';
-                                                            }
-                                                            const vou = voucherData.content;
-                                                            return [
-                                                                BgWidget.horizontalLine(),
-                                                                html ` <div class="tx_700">優惠概覽</div>`,
-                                                                BgWidget.summaryHTML([
-                                                                    [
-                                                                        `優惠活動名稱: ${vou.title}`,
-                                                                        `適用顧客範圍: ${(() => {
-                                                                            switch (vou.target) {
-                                                                                case 'customer':
-                                                                                    return '特定顧客';
-                                                                                case 'levels':
-                                                                                    return '會員等級';
-                                                                                case 'group':
-                                                                                    return '顧客分群';
-                                                                                case 'all':
-                                                                                default:
-                                                                                    return '所有顧客';
-                                                                            }
-                                                                        })()}`,
-                                                                        `將此優惠套用至: ${(() => {
-                                                                            switch (vou.for) {
-                                                                                case 'collection':
-                                                                                    return `指定 ${vou.forKey.length} 種商品分類`;
-                                                                                case 'product':
-                                                                                    return `指定 ${vou.forKey.length} 個商品`;
-                                                                                case 'all':
-                                                                                default:
-                                                                                    return '所有商品';
-                                                                            }
-                                                                        })()}`,
-                                                                        `消費條件: ${(() => {
-                                                                            if (vou.rule === 'min_price')
-                                                                                return `最少消費金額 ${vou.ruleValue} 元`;
-                                                                            if (vou.rule === 'min_count')
-                                                                                return `最少購買數量 ${vou.ruleValue} 個`;
-                                                                            return '';
-                                                                        })()}`,
-                                                                        `折扣優惠: ${(() => {
-                                                                            switch (vou.reBackType) {
-                                                                                case 'rebate':
-                                                                                    return vou.method === 'fixed' ? `${vou.value} 點購物金` : `訂單總額的 ${vou.value} ％作為購物金`;
-                                                                                case 'discount':
-                                                                                    return vou.method === 'fixed' ? `折扣 ${vou.value} 元` : `訂單總額折扣 ${vou.value} ％`;
-                                                                                case 'shipment_free':
-                                                                                    return '免運費';
-                                                                                default:
-                                                                                    return '';
-                                                                            }
-                                                                        })()}`,
-                                                                    ],
-                                                                ]),
-                                                            ].join(BgWidget.mbContainer(18));
-                                                        })()}`;
+                                                        }, { single: true })}`;
                                                     },
                                                 });
                                             })()),

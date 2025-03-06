@@ -199,7 +199,7 @@ export class WebConfigSetting {
                                     visible: false,
                                 });
                                 dialog.successMessage({
-                                    text: '更新成功!',
+                                    text: '更新成功',
                                 });
                             });
                         })}"
@@ -383,7 +383,7 @@ export class WebConfigSetting {
                                         visible: false,
                                     });
                                     dialog.successMessage({
-                                        text: '新增成功!',
+                                        text: '新增成功',
                                     });
                                     cf.vm.type = 'list';
                                 });
@@ -397,7 +397,7 @@ export class WebConfigSetting {
                                         visible: false,
                                     });
                                     dialog.successMessage({
-                                        text: '更新成功!',
+                                        text: '更新成功',
                                     });
                                 });
                             }

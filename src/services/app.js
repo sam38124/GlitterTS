@@ -742,7 +742,7 @@ class App {
                 });
             });
             if (!response) {
-                throw exception_1.default.BadRequestError('BAD_REQUEST', '網域驗證失敗!', null);
+                throw exception_1.default.BadRequestError('BAD_REQUEST', '網域驗證失敗', null);
             }
             await database_1.default.execute(`
                     update \`${config_1.saasConfig.SAAS_NAME}\`.app_config
