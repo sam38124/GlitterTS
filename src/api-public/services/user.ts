@@ -2342,144 +2342,94 @@ export class User {
 
   public async getConfigV2(config: { key: string; user_id: string }): Promise<any> {
     try {
-      const data_ = await db.execute(
-        `select *
-                 from \`${this.app}\`.t_user_public_config
-                 where ${
-                   config.key.includes(',')
-                     ? `\`key\` in (${config.key
-                         .split(',')
-                         .map(dd => {
-                           return db.escape(dd);
-                         })
-                         .join(',')})`
-                     : `\`key\` = ${db.escape(config.key)}`
-                 }
-                   and user_id = ${db.escape(config.user_id)}
-                `,
+      const that = this;
+
+      const getData = await db.execute(
+        `SELECT *
+         FROM \`${this.app}\`.t_user_public_config
+         WHERE ${
+           config.key.includes(',')
+             ? `\`key\` IN (${config.key
+                 .split(',')
+                 .map(dd => db.escape(dd))
+                 .join(',')})`
+             : `\`key\` = ${db.escape(config.key)}`
+         }
+         AND user_id = ${db.escape(config.user_id)}`,
         []
       );
-      const that = this;
 
       async function loop(data: any) {
         if (!data && config.user_id === 'manager') {
-          //特定Key沒有值要補值進去
-          switch (config.key) {
-            case 'customer_form_user_setting':
-              await that.setConfig({
-                key: config.key,
-                user_id: config.user_id,
-                value: {
-                  list: FormCheck.initialUserForm([]),
+          const defaultValues: Record<string, any> = {
+            customer_form_user_setting: { list: FormCheck.initialUserForm([]) },
+            global_express_country: { country: [] },
+            store_version: { version: 'v1' },
+            store_manager: {
+              list: [
+                {
+                  id: 'store_default',
+                  name: '庫存點1(預設)',
+                  note: '',
+                  address: '',
+                  manager_name: '',
+                  manager_phone: '',
                 },
-              });
-              return await that.getConfigV2(config);
-            case 'global_express_country':
-              await that.setConfig({
-                key: config.key,
-                user_id: config.user_id,
-                value: {
-                  country: [],
-                },
-              });
-              return await that.getConfigV2(config);
-            case 'store_version':
-              await that.setConfig({
-                key: config.key,
-                user_id: config.user_id,
-                value: {
-                  version: 'v1',
-                },
-              });
-              return await that.getConfigV2(config);
-            case 'store_manager':
-              await that.setConfig({
-                key: config.key,
-                user_id: config.user_id,
-                value: {
-                  list: [
-                    {
-                      id: 'store_default',
-                      name: '庫存點1(預設)',
-                      note: '',
-                      address: '',
-                      manager_name: '',
-                      manager_phone: '',
-                    },
-                  ],
-                },
-              });
-              return await that.getConfigV2(config);
-            case 'member_level_config':
-              await that.setConfig({
-                key: config.key,
-                user_id: config.user_id,
-                value: {
-                  levels: [],
-                },
-              });
-              return await that.getConfigV2(config);
-            case 'language-label':
-              await that.setConfig({
-                key: config.key,
-                user_id: config.user_id,
-                value: {
-                  label: [],
-                },
-              });
-              return await that.getConfigV2(config);
-            case 'terms-related-refund-zh-TW':
-            case 'terms-related-delivery-zh-TW':
-            case 'terms-related-privacy-zh-TW':
-            case 'terms-related-term-zh-TW':
-              await that.setConfig({
-                key: config.key,
-                user_id: config.user_id,
-                value: TermsCheck.check(config.key),
-              });
-              return await that.getConfigV2(config);
-            case 'store-information':
-              await that.setConfig({
-                key: config.key,
-                user_id: config.user_id,
-                value: {
-                  language_setting: {
-                    def: 'zh-TW',
-                    support: ['zh-TW'],
-                  },
-                },
-              });
-              return await that.getConfigV2(config);
-          }
-        }
-        if (data && data.value) {
-          data.value = (await that.checkLeakData(config.key, data.value)) || data.value;
-        } else if (config.key === 'store-information') {
-          return {
-            language_setting: {
-              def: 'zh-TW',
-              support: ['zh-TW'],
+              ],
+            },
+            member_level_config: { levels: [] },
+            'language-label': { label: [] },
+            'store-information': {
+              language_setting: { def: 'zh-TW', support: ['zh-TW'] },
+            },
+            'list-header-view': {
+              'user-list': [
+                '顧客名稱',
+                '電子信箱',
+                '訂單',
+                '會員等級',
+                '累積消費',
+                '上次登入時間',
+                '社群綁定',
+                '用戶狀態',
+              ],
             },
           };
+
+          // 處理條款類型的 key
+          if (config.key.startsWith('terms-related-')) {
+            defaultValues[config.key] = TermsCheck.check(config.key);
+          }
+
+          // 設定並返回新的值
+          if (defaultValues.hasOwnProperty(config.key)) {
+            await that.setConfig({
+              key: config.key,
+              user_id: config.user_id,
+              value: defaultValues[config.key],
+            });
+            return await that.getConfigV2(config);
+          }
         }
+
+        if (data && data.value) {
+          data.value = (await that.checkLeakData(config.key, data.value)) || data.value; // 資料存在則進行異常數據檢查
+        } else if (config.key === 'store-information') {
+          return { language_setting: { def: 'zh-TW', support: ['zh-TW'] } }; // store-information 預設回傳
+        }
+
         return (data && data.value) || {};
       }
 
       if (config.key.includes(',')) {
-        return await Promise.all(
-          config.key.split(',').map(async (dd: any) => {
-            return {
-              key: dd,
-              value: await loop(
-                data_.find((d1: any) => {
-                  return d1.key === dd;
-                })
-              ),
-            };
-          })
+        return Promise.all(
+          config.key.split(',').map(async dd => ({
+            key: dd,
+            value: await loop(getData.find((d1: any) => d1.key === dd)),
+          }))
         );
       } else {
-        return await loop(data_[0]);
+        return loop(getData[0]);
       }
     } catch (e) {
       console.error(e);
@@ -2488,45 +2438,43 @@ export class User {
   }
 
   public async checkLeakData(key: string, value: any) {
-    if (key === 'store-information') {
-      value.language_setting = value.language_setting ?? {
-        def: 'zh-TW',
-        support: ['zh-TW'],
-      };
-      if (value.chat_toggle === undefined) {
-        value.chat_toggle = (
-          await this.getConfigV2({
-            key: 'message_setting',
-            user_id: 'manager',
-          })
-        ).toggle;
-      }
-      if (value.checkout_mode === undefined) {
-        value.checkout_mode = {
+    switch (key) {
+      case 'store-information': {
+        value.language_setting ??= { def: 'zh-TW', support: ['zh-TW'] };
+
+        if (value.chat_toggle === undefined) {
+          const config = await this.getConfigV2({ key: 'message_setting', user_id: 'manager' });
+          value.chat_toggle = config.toggle;
+        }
+
+        value.checkout_mode ??= {
           payload: ['1', '3', '0'],
           progress: ['shipping', 'wait', 'finish', 'arrived', 'pre_order'],
           orderStatus: ['1', '0'],
         };
+        break;
       }
-    } else if (['menu-setting', 'footer-setting'].includes(key) && Array.isArray(value)) {
-      return {
-        'zh-TW': value,
-        'en-US': [],
-        'zh-CN': [],
-      };
-    } else if (key === 'store_manager') {
-      value.list = value.list ?? [
-        {
-          id: 'store_default',
-          name: '庫存點1(預設)',
-          note: '',
-          address: '',
-          manager_name: '',
-          manager_phone: '',
-        },
-      ];
-    } else if (key === 'customer_form_user_setting') {
-      value.list = FormCheck.initialUserForm(value.list);
+      case 'menu-setting':
+      case 'footer-setting':
+        if (Array.isArray(value)) {
+          return { 'zh-TW': value, 'en-US': [], 'zh-CN': [] };
+        }
+        break;
+      case 'store_manager':
+        value.list ??= [
+          {
+            id: 'store_default',
+            name: '庫存點1(預設)',
+            note: '',
+            address: '',
+            manager_name: '',
+            manager_phone: '',
+          },
+        ];
+        break;
+      case 'customer_form_user_setting':
+        value.list = FormCheck.initialUserForm(value.list);
+        break;
     }
   }
 

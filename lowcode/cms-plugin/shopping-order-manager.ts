@@ -670,7 +670,7 @@ export class ShoppingOrderManager {
                 })(),
                 BgWidget.tableV3({
                   gvc: gvc,
-                  def_page: ShoppingOrderManager.vm.page,
+                  defPage: ShoppingOrderManager.vm.page,
                   getData: vmi => {
                     const limit = 20;
                     ShoppingOrderManager.vm.page = vmi.page;

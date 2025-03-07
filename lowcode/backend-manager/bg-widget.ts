@@ -36,6 +36,7 @@ type TableV3 = {
   pageSize: number;
   tableData: {
     key: string;
+    title?: string;
     value: string;
     stopClick?: boolean;
   }[][];
@@ -533,7 +534,6 @@ export class BgWidget {
   }
 
   static selectLanguage(obj: { selectable?: boolean; callback?: (tag: string) => void }) {
-    const html = String.raw;
     let topGVC = (window.parent as any).glitter.pageConfig[(window.parent as any).glitter.pageConfig.length - 1].gvc;
     const elementLength = 220;
     let titleArray = [
@@ -1869,13 +1869,13 @@ ${obj.default ?? ''}</textarea
 
   static tableV3(obj: {
     gvc: GVC;
-    getData: (vm: TableV3) => void;
-    rowClick: (data: any, index: number) => void;
-    filter: TableV3Filter[];
+    filter: TableV3Filter[]; // 批量編輯與刪除物件陣列
+    getData: (vm: TableV3) => void; // 非同步取得資料陣列事件
+    rowClick: (data: any, index: number) => void; // row 點擊事件
+    hiddenPageSplit?: boolean; // 表格頁面導覽列
+    defPage?: number; // 預設顯示第幾頁
     itemSelect?: () => void;
-    hiddenPageSplit?: boolean;
-    tab_click?: (vm: TableV3) => void;
-    def_page?: number;
+    tabClick?: (vm: TableV3) => void;
   }) {
     const gvc = obj.gvc;
     const glitter = gvc.glitter;
@@ -1919,7 +1919,7 @@ ${obj.default ?? ''}</textarea
     return gvc.bindView(() => {
       const vm: TableV3 = {
         loading: true,
-        page: obj.def_page ?? 1,
+        page: obj.defPage ?? 1,
         pageSize: 0,
         tableData: [],
         originalData: [],
@@ -2021,6 +2021,8 @@ ${obj.default ?? ''}</textarea
               }
             }
 
+            initCheckData();
+
             // 全部取消勾選物件
             const cancelAllObject = {
               gvc,
@@ -2029,8 +2031,6 @@ ${obj.default ?? ''}</textarea
                 renderRowCheckbox(false);
               },
             };
-
-            initCheckData();
 
             return html` <div style="margin-top: 4px; overflow-x: scroll; position: relative; min-height: 350px">
                 <div
@@ -2209,7 +2209,7 @@ ${obj.default ?? ''}</textarea
                         vm.page = page;
                         vm.loading = true;
                         created.checkbox = false;
-                        obj.tab_click && obj.tab_click!!(vm);
+                        obj.tabClick && obj.tabClick!!(vm);
                         if (created.header && created.table) {
                           gvc.notifyDataChange(ids.container);
                         }
@@ -3128,10 +3128,21 @@ ${obj.default ?? ''}</textarea
     </div>`;
   }
 
+  static columnFilter(obj: { gvc: GVC; callback: (value: any) => void }) {
+    return html` <div
+      class="c_funnel"
+      onclick="${obj.gvc.event(() => {
+        obj.callback('c_funnel');
+      })}"
+    >
+      <i class="fa-regular fa-columns-3"></i>
+    </div>`;
+  }
+
   static funnelFilter(obj: { gvc: GVC; callback: (value: any) => void }) {
     return html` <div
       class="c_funnel"
-      onclick="${obj.gvc.event(e => {
+      onclick="${obj.gvc.event(() => {
         obj.callback('c_funnel');
       })}"
     >
@@ -3146,7 +3157,8 @@ ${obj.default ?? ''}</textarea
       show: false,
     };
 
-    return html` <div
+    return html`<div class="d-flex">
+      <div
         class="c_updown"
         onclick="${obj.gvc.event(() => {
           vm.show = !vm.show;
@@ -3191,7 +3203,8 @@ ${obj.default ?? ''}</textarea
         divCreate: {
           style: 'position: relative;',
         },
-      })}`;
+      })}
+    </div>`;
   }
 
   static selectDropList(obj: {
@@ -4275,7 +4288,6 @@ ${obj.default ?? ''}</textarea
     if (obj.gvc.glitter.getUrlParameter('cms') === 'true') {
       obj.gvc = (window.parent as any).glitter.pageConfig[0].gvc;
     }
-    const html = String.raw;
 
     return obj.gvc.glitter.innerDialog((gvc: GVC) => {
       return html`
@@ -5229,7 +5241,6 @@ ${obj.default ?? ''}</textarea
     },
     openNewSet?: boolean
   ) {
-    const html = String.raw;
     const vm = {
       viewId: Tool.randomString(7),
       enterId: Tool.randomString(7),

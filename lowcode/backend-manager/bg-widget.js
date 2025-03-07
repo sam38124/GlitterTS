@@ -394,7 +394,6 @@ export class BgWidget {
         return numberRegex.test(str);
     }
     static selectLanguage(obj) {
-        const html = String.raw;
         let topGVC = window.parent.glitter.pageConfig[window.parent.glitter.pageConfig.length - 1].gvc;
         const elementLength = 220;
         let titleArray = [
@@ -1599,7 +1598,7 @@ ${(_c = obj.default) !== null && _c !== void 0 ? _c : ''}</textarea
             var _a;
             const vm = {
                 loading: true,
-                page: (_a = obj.def_page) !== null && _a !== void 0 ? _a : 1,
+                page: (_a = obj.defPage) !== null && _a !== void 0 ? _a : 1,
                 pageSize: 0,
                 tableData: [],
                 originalData: [],
@@ -1681,6 +1680,7 @@ ${(_c = obj.default) !== null && _c !== void 0 ? _c : ''}</textarea
                                 created.checkbox = !created.checkbox;
                             }
                         }
+                        initCheckData();
                         const cancelAllObject = {
                             gvc,
                             event: () => {
@@ -1688,7 +1688,6 @@ ${(_c = obj.default) !== null && _c !== void 0 ? _c : ''}</textarea
                                 renderRowCheckbox(false);
                             },
                         };
-                        initCheckData();
                         return html ` <div style="margin-top: 4px; overflow-x: scroll; position: relative; min-height: 350px">
                 <div
                   class="w-100 h-100 bg-white top-0"
@@ -1848,7 +1847,7 @@ ${(_c = obj.default) !== null && _c !== void 0 ? _c : ''}</textarea
                                 vm.page = page;
                                 vm.loading = true;
                                 created.checkbox = false;
-                                obj.tab_click && obj.tab_click(vm);
+                                obj.tabClick && obj.tabClick(vm);
                                 if (created.header && created.table) {
                                     gvc.notifyDataChange(ids.container);
                                 }
@@ -2615,10 +2614,20 @@ ${(_c = obj.default) !== null && _c !== void 0 ? _c : ''}</textarea
       />
     </div>`;
     }
+    static columnFilter(obj) {
+        return html ` <div
+      class="c_funnel"
+      onclick="${obj.gvc.event(() => {
+            obj.callback('c_funnel');
+        })}"
+    >
+      <i class="fa-regular fa-columns-3"></i>
+    </div>`;
+    }
     static funnelFilter(obj) {
         return html ` <div
       class="c_funnel"
-      onclick="${obj.gvc.event(e => {
+      onclick="${obj.gvc.event(() => {
             obj.callback('c_funnel');
         })}"
     >
@@ -2631,7 +2640,8 @@ ${(_c = obj.default) !== null && _c !== void 0 ? _c : ''}</textarea
             checkClass: this.getDarkDotClass(obj.gvc),
             show: false,
         };
-        return html ` <div
+        return html `<div class="d-flex">
+      <div
         class="c_updown"
         onclick="${obj.gvc.event(() => {
             vm.show = !vm.show;
@@ -2674,7 +2684,8 @@ ${(_c = obj.default) !== null && _c !== void 0 ? _c : ''}</textarea
             divCreate: {
                 style: 'position: relative;',
             },
-        })}`;
+        })}
+    </div>`;
     }
     static selectDropList(obj) {
         const vm = {
@@ -3588,7 +3599,6 @@ ${(_c = obj.default) !== null && _c !== void 0 ? _c : ''}</textarea
         if (obj.gvc.glitter.getUrlParameter('cms') === 'true') {
             obj.gvc = window.parent.glitter.pageConfig[0].gvc;
         }
-        const html = String.raw;
         return obj.gvc.glitter.innerDialog((gvc) => {
             var _a, _b, _c;
             return html `
@@ -4429,7 +4439,6 @@ ${(_c = obj.default) !== null && _c !== void 0 ? _c : ''}</textarea
         };
     }
     static multipleInput(gvc, def, cb, openNewSet) {
-        const html = String.raw;
         const vm = {
             viewId: Tool.randomString(7),
             enterId: Tool.randomString(7),

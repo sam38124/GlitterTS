@@ -246,6 +246,180 @@ export class BgListComponent {
       right: true,
     });
   }
+
+  static rightMenu(obj: {
+    menuTitle: string;
+    items: FilterItem[];
+    frame: any;
+    default: any;
+    cancelType: 'default' | 'clear';
+    save: (data: any) => void;
+  }) {
+    const glitter = (window.parent as any).glitter;
+    const gvc: GVC = glitter.pageConfig[glitter.pageConfig.length - 1].gvc;
+    const menu = glitter.share.NormalPageEditor;
+
+    const items = obj.items;
+    const menuTitle = obj.menuTitle;
+    const cancelType = obj.cancelType;
+    const cloneFrame = structuredClone(obj.frame);
+    const cloneDefault = structuredClone(obj.default);
+
+    const vmShow = { id: gvc.glitter.getUUID() };
+
+    const vm = {
+      id: gvc.glitter.getUUID(),
+      filter: obj.default,
+      getFilterObject: () => cloneFrame,
+      getConfigObject: () => cloneDefault,
+    };
+
+    menu.closeEvent = () => gvc.notifyDataChange(vm.id);
+
+    return menu.toggle({
+      visible: true,
+      title: menuTitle ?? '篩選',
+      view: gvc.bindView(() => {
+        return {
+          bind: vmShow.id,
+          view: () => {
+            return html`<!-- Accordion: 篩選 -->
+              <div class="accordion" id="accordion${vmShow.id}">
+                ${gvc.map(
+                  items.length > 0
+                    ? items.map((item: any) => {
+                        let contentHTML = '';
+                        switch (item.type) {
+                          case 'during':
+                            contentHTML +=
+                              item.data && item.data.list.length > 0
+                                ? BgWidget.duringInputContainer(gvc, item.data, vm.filter[item.key], value => {
+                                    vm.filter[item.key] = value;
+                                  })
+                                : '';
+                            break;
+                          case 'multi_checkbox':
+                            contentHTML +=
+                              item.data.length > 0
+                                ? BgWidget.multiCheckboxContainer(gvc, item.data, vm.filter[item.key], value => {
+                                    vm.filter[item.key] = value;
+                                  })
+                                : '';
+
+                            break;
+                          case 'radio_and_input':
+                            contentHTML +=
+                              item.data.length > 0
+                                ? BgWidget.radioInputContainer(gvc, item.data, vm.filter[item.key], value => {
+                                    vm.filter[item.key] = value;
+                                  })
+                                : '';
+                            break;
+                        }
+
+                        return contentHTML.length > 0
+                          ? html`<!-- Item -->
+                              <div class="accordion-item border-0 rounded-3 mb-3">
+                                <h3 class="accordion-header" id="heading${item.key}">
+                                  <button
+                                    class="accordion-button shadow-none rounded-3 p-0 collapsed"
+                                    type="button"
+                                    data-bs-toggle="collapse"
+                                    data-bs-target="#collapse${item.key}"
+                                    aria-expanded="false"
+                                    aria-controls="collapse${item.key}"
+                                  >
+                                    ${item.name}
+                                  </button>
+                                </h3>
+                                <div
+                                  class="accordion-collapse collapse"
+                                  id="collapse${item.key}"
+                                  aria-labelledby="heading${item.key}"
+                                  data-bs-parent="#accordion${vmShow.id}"
+                                >
+                                  <div class="accordion-body p-0 pt-1">${contentHTML}</div>
+                                </div>
+                              </div> `
+                          : '';
+                      })
+                    : ['無篩選項目']
+                )}
+              </div>
+              <div
+                class="position-absolute bottom-0 left-0 w-100 d-flex align-items-center justify-content-end p-3 border-top pe-4"
+                style="gap:10px;"
+              >
+                ${BgWidget.cancel(
+                  gvc.event(() => {
+                    const cancelMap = {
+                      default: () => {
+                        vm.filter = vm.getConfigObject();
+                        gvc.notifyDataChange(vmShow.id);
+                      },
+                      clear: () => {
+                        vm.filter = vm.getFilterObject();
+                        menu.toggle({ visible: false });
+                        gvc.notifyDataChange(vm.id);
+                      },
+                    };
+                    return cancelMap[cancelType] ? cancelMap[cancelType]() : cancelMap.default();
+                  }),
+                  (() => {
+                    const cancelMap = {
+                      default: '回到預設值',
+                      clear: '清除',
+                    };
+                    return cancelMap[cancelType] ?? cancelMap.default;
+                  })()
+                )}
+                ${BgWidget.save(
+                  gvc.event(() => {
+                    for (const name of Object.keys(vm.filter)) {
+                      const obj = items.find(item => item.key === name);
+                      const during = vm.filter[name];
+                      const dialog = new ShareDialog(gvc.glitter);
+                      if (obj && obj.type === 'during') {
+                        if (
+                          (during[0].length > 0 && during[1].length === 0) ||
+                          (during[0].length === 0 && during[1].length > 0)
+                        ) {
+                          dialog.infoMessage({ text: `${obj.name}欄位，開始日期與結束日期皆為必填` });
+                          return;
+                        }
+                        if (!BgListComponent.duringInputVerify(during)) {
+                          dialog.infoMessage({ text: `${obj.name}欄位，結束日期不得早於開始日期` });
+                          return;
+                        }
+                      }
+                    }
+                    menu.toggle({ visible: false });
+                    obj.save(vm.filter);
+                  }),
+                  '完成'
+                )}
+              </div>`;
+          },
+          divCreate: { style: 'padding: 20px;' },
+          onCreate: () => {
+            gvc.addStyle(`
+              .accordion-button:not(.collapsed)::after {
+                box-shadow: none !important;
+                color: #393939 !important;
+                background-color: #fff !important;
+                background-image: url(${BgWidget.arrowDownDataImage('#000')}) !important;
+              }
+
+              .accordion-button::after {
+                background-color: #fff !important;
+              }
+            `);
+          },
+        };
+      }),
+      right: true,
+    });
+  }
 }
 
 (window as any).glitter.setModule(import.meta.url, BgListComponent);

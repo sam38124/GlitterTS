@@ -23,6 +23,7 @@ import { CheckInput } from '../modules/checkInput.js';
 import { BgNotify } from '../backend-manager/bg-notify.js';
 import { UserExcel } from './module/user-excel.js';
 import { GlobalUser } from '../glitter-base/global/global-user.js';
+import { ListHeaderOption } from './list-header-option.js';
 const html = String.raw;
 export class UserList {
     static setUserTags(gvc, arr) {
@@ -80,8 +81,10 @@ export class UserList {
     }
     static main(gvc, obj) {
         const glitter = gvc.glitter;
+        const dialog = new ShareDialog(gvc.glitter);
         const vm = {
             id: glitter.getUUID(),
+            loading: true,
             type: 'list',
             data: {},
             dataList: undefined,
@@ -96,11 +99,12 @@ export class UserList {
             initial_data: {},
             group: obj && obj.group ? obj.group : undefined,
             plan: GlobalUser.getPlan().id,
+            headerConfig: [],
         };
         const ListComp = new BgListComponent(gvc, vm, FilterOptions.userFilterFrame);
         vm.filter = ListComp.getFilterObject();
         let vmi = undefined;
-        function getDatalist() {
+        function getUserlist() {
             return vm.dataList.map((dd) => {
                 return [
                     {
@@ -181,6 +185,9 @@ export class UserList {
                         })(),
                     },
                 ].filter(item => {
+                    if (!vm.headerConfig.includes(item.key)) {
+                        return false;
+                    }
                     if (item.key === '會員等級') {
                         return vm.plan > 1;
                     }
@@ -268,7 +275,10 @@ export class UserList {
                                 gvc.bindView({
                                     bind: vm.barId,
                                     view: () => __awaiter(this, void 0, void 0, function* () {
-                                        var _a;
+                                        var _a, _b, _c;
+                                        if (vm.loading) {
+                                            return '';
+                                        }
                                         const userFunnel = yield FilterOptions.getUserFunnel();
                                         const filterList = [
                                             BgWidget.selectFilter({
@@ -297,6 +307,34 @@ export class UserList {
                                                 default: vm.orderString || 'default',
                                                 options: FilterOptions.userOrderBy,
                                             }),
+                                            BgWidget.columnFilter({
+                                                gvc,
+                                                callback: () => BgListComponent.rightMenu({
+                                                    menuTitle: '表格設定',
+                                                    items: ListHeaderOption.userListItems,
+                                                    frame: ListHeaderOption.userListFrame,
+                                                    default: {
+                                                        headerColumn: vm.headerConfig,
+                                                    },
+                                                    cancelType: 'default',
+                                                    save: data => {
+                                                        if (data.headerColumn) {
+                                                            dialog.dataLoading({ visible: true });
+                                                            ApiUser.getPublicConfig('list-header-view', 'manager').then((dd) => {
+                                                                ApiUser.setPublicConfig({
+                                                                    key: 'list-header-view',
+                                                                    value: Object.assign(Object.assign({}, dd.response.value), { 'user-list': data.headerColumn }),
+                                                                    user_id: 'manager',
+                                                                }).then(() => {
+                                                                    dialog.dataLoading({ visible: false });
+                                                                    vm.loading = true;
+                                                                    gvc.notifyDataChange([vm.barId, vm.tableId]);
+                                                                });
+                                                            });
+                                                        }
+                                                    },
+                                                }),
+                                            }),
                                         ];
                                         const filterTags = ListComp.getFilterTags(userFunnel);
                                         if (document.body.clientWidth < 768) {
@@ -304,9 +342,8 @@ export class UserList {
                                 style="display: flex; align-items: center; gap: 10px; width: 100%; justify-content: space-between"
                               >
                                 <div>${filterList[0]}</div>
-                                <div style="display: flex;">
-                                  ${filterList[2] ? `<div class="me-2">${filterList[2]}</div>` : ''}
-                                  ${(_a = filterList[3]) !== null && _a !== void 0 ? _a : ''}
+                                <div style="display: flex; gap: 4px;">
+                                  ${(_a = filterList[2]) !== null && _a !== void 0 ? _a : ''} ${(_b = filterList[3]) !== null && _b !== void 0 ? _b : ''} ${(_c = filterList[4]) !== null && _c !== void 0 ? _c : ''}
                                 </div>
                               </div>
                               <div style="display: flex; margin-top: 8px;">${filterList[1]}</div>
@@ -323,9 +360,11 @@ export class UserList {
                                 gvc.bindView({
                                     bind: vm.tableId,
                                     view: () => {
+                                        if (vm.loading) {
+                                            return '';
+                                        }
                                         function batchUpdateUser(gvcSp, checkedData) {
                                             return __awaiter(this, void 0, void 0, function* () {
-                                                const dialog = new ShareDialog(gvcSp.glitter);
                                                 dialog.dataLoading({ visible: true });
                                                 try {
                                                     const results = yield Promise.all(checkedData.map((item) => ApiUser.updateUserDataManager(item, item.userID)));
@@ -368,7 +407,7 @@ export class UserList {
                                                     vm.dataList = data.response.data;
                                                     vmi.pageSize = Math.ceil(data.response.total / limit);
                                                     vmi.originalData = vm.dataList;
-                                                    vmi.tableData = getDatalist();
+                                                    vmi.tableData = getUserlist();
                                                     vmi.loading = false;
                                                     if (vmi.pageSize != 0 && vmi.page > vmi.pageSize) {
                                                         UserList.vm.page = 1;
@@ -609,7 +648,6 @@ export class UserList {
                                                 {
                                                     name: '批量刪除',
                                                     event: (dataArray) => {
-                                                        const dialog = new ShareDialog(gvc.glitter);
                                                         dialog.warningMessage({
                                                             text: '您即將批量刪除所選顧客的所有資料<br />此操作無法復原。確定要刪除嗎？',
                                                             callback: response => {
@@ -640,8 +678,17 @@ export class UserList {
                                                 }
                                                 return true;
                                             }),
-                                            def_page: UserList.vm.page,
+                                            defPage: UserList.vm.page,
                                         });
+                                    },
+                                    onCreate: () => {
+                                        if (vm.loading) {
+                                            ApiUser.getPublicConfig('list-header-view', 'manager').then((dd) => {
+                                                vm.headerConfig = dd.response.value['user-list'];
+                                                vm.loading = false;
+                                                gvc.notifyDataChange([vm.barId, vm.tableId]);
+                                            });
+                                        }
                                     },
                                 }),
                             ].join('')),
@@ -670,6 +717,7 @@ export class UserList {
         const glitter = gvc.glitter;
         const vm = {
             id: glitter.getUUID(),
+            loading: true,
             type: 'list',
             data: {},
             dataList: undefined,
@@ -683,6 +731,7 @@ export class UserList {
             barId: glitter.getUUID(),
             group: obj && obj.group ? obj.group : undefined,
             plan: 0,
+            headerConfig: [],
         };
         const ListComp = new BgListComponent(gvc, vm, FilterOptions.userFilterFrame);
         vm.filter = ListComp.getFilterObject();

@@ -15,11 +15,13 @@ import { CheckInput } from '../modules/checkInput.js';
 import { BgNotify } from '../backend-manager/bg-notify.js';
 import { UserExcel } from './module/user-excel.js';
 import { GlobalUser } from '../glitter-base/global/global-user.js';
+import { ListHeaderOption } from './list-header-option.js';
 
 const html = String.raw;
 
 type ViewModel = {
   id: string;
+  loading: boolean;
   filterId: string;
   tableId: string;
   barId: string;
@@ -34,6 +36,7 @@ type ViewModel = {
   initial_data?: any;
   group?: { type: string; title: string };
   plan: number;
+  headerConfig: string[];
 };
 
 export class UserList {
@@ -107,9 +110,11 @@ export class UserList {
     }
   ) {
     const glitter = gvc.glitter;
+    const dialog = new ShareDialog(gvc.glitter);
 
     const vm: ViewModel = {
       id: glitter.getUUID(),
+      loading: true,
       type: 'list',
       data: {},
       dataList: undefined,
@@ -124,14 +129,14 @@ export class UserList {
       initial_data: {},
       group: obj && obj.group ? obj.group : undefined,
       plan: GlobalUser.getPlan().id,
+      headerConfig: [],
     };
 
     const ListComp = new BgListComponent(gvc, vm, FilterOptions.userFilterFrame);
-
     vm.filter = ListComp.getFilterObject();
     let vmi: any = undefined;
 
-    function getDatalist() {
+    function getUserlist() {
       return vm.dataList.map((dd: any) => {
         return [
           {
@@ -210,6 +215,9 @@ export class UserList {
             })(),
           },
         ].filter(item => {
+          if (!vm.headerConfig.includes(item.key)) {
+            return false;
+          }
           if (item.key === '會員等級') {
             return vm.plan > 1;
           }
@@ -318,6 +326,10 @@ export class UserList {
                       gvc.bindView({
                         bind: vm.barId,
                         view: async () => {
+                          if (vm.loading) {
+                            return '';
+                          }
+
                           const userFunnel = await FilterOptions.getUserFunnel();
 
                           const filterList = [
@@ -351,6 +363,38 @@ export class UserList {
                               default: vm.orderString || 'default',
                               options: FilterOptions.userOrderBy,
                             }),
+                            BgWidget.columnFilter({
+                              gvc,
+                              callback: () =>
+                                BgListComponent.rightMenu({
+                                  menuTitle: '表格設定',
+                                  items: ListHeaderOption.userListItems,
+                                  frame: ListHeaderOption.userListFrame,
+                                  default: {
+                                    headerColumn: vm.headerConfig,
+                                  },
+                                  cancelType: 'default',
+                                  save: data => {
+                                    if (data.headerColumn) {
+                                      dialog.dataLoading({ visible: true });
+                                      ApiUser.getPublicConfig('list-header-view', 'manager').then((dd: any) => {
+                                        ApiUser.setPublicConfig({
+                                          key: 'list-header-view',
+                                          value: {
+                                            ...dd.response.value,
+                                            'user-list': data.headerColumn,
+                                          },
+                                          user_id: 'manager',
+                                        }).then(() => {
+                                          dialog.dataLoading({ visible: false });
+                                          vm.loading = true;
+                                          gvc.notifyDataChange([vm.barId, vm.tableId]);
+                                        });
+                                      });
+                                    }
+                                  },
+                                }),
+                            }),
                           ];
 
                           const filterTags = ListComp.getFilterTags(userFunnel);
@@ -361,9 +405,8 @@ export class UserList {
                                 style="display: flex; align-items: center; gap: 10px; width: 100%; justify-content: space-between"
                               >
                                 <div>${filterList[0]}</div>
-                                <div style="display: flex;">
-                                  ${filterList[2] ? `<div class="me-2">${filterList[2]}</div>` : ''}
-                                  ${filterList[3] ?? ''}
+                                <div style="display: flex; gap: 4px;">
+                                  ${filterList[2] ?? ''} ${filterList[3] ?? ''} ${filterList[4] ?? ''}
                                 </div>
                               </div>
                               <div style="display: flex; margin-top: 8px;">${filterList[1]}</div>
@@ -380,8 +423,11 @@ export class UserList {
                       gvc.bindView({
                         bind: vm.tableId,
                         view: () => {
+                          if (vm.loading) {
+                            return '';
+                          }
+
                           async function batchUpdateUser(gvcSp: GVC, checkedData: any) {
-                            const dialog = new ShareDialog(gvcSp.glitter);
                             dialog.dataLoading({ visible: true });
 
                             try {
@@ -432,7 +478,7 @@ export class UserList {
                                 vm.dataList = data.response.data;
                                 vmi.pageSize = Math.ceil(data.response.total / limit);
                                 vmi.originalData = vm.dataList;
-                                vmi.tableData = getDatalist();
+                                vmi.tableData = getUserlist();
                                 vmi.loading = false;
                                 if (vmi.pageSize != 0 && vmi.page > vmi.pageSize) {
                                   UserList.vm.page = 1;
@@ -692,7 +738,6 @@ export class UserList {
                               {
                                 name: '批量刪除',
                                 event: (dataArray: any) => {
-                                  const dialog = new ShareDialog(gvc.glitter);
                                   dialog.warningMessage({
                                     text: '您即將批量刪除所選顧客的所有資料<br />此操作無法復原。確定要刪除嗎？',
                                     callback: response => {
@@ -722,8 +767,17 @@ export class UserList {
                               }
                               return true;
                             }),
-                            def_page: UserList.vm.page,
+                            defPage: UserList.vm.page,
                           });
+                        },
+                        onCreate: () => {
+                          if (vm.loading) {
+                            ApiUser.getPublicConfig('list-header-view', 'manager').then((dd: any) => {
+                              vm.headerConfig = dd.response.value['user-list'];
+                              vm.loading = false;
+                              gvc.notifyDataChange([vm.barId, vm.tableId]);
+                            });
+                          }
                         },
                       }),
                     ].join('')
@@ -761,6 +815,7 @@ export class UserList {
 
     const vm: ViewModel = {
       id: glitter.getUUID(),
+      loading: true,
       type: 'list',
       data: {},
       dataList: undefined,
@@ -774,6 +829,7 @@ export class UserList {
       barId: glitter.getUUID(),
       group: obj && obj.group ? obj.group : undefined,
       plan: 0,
+      headerConfig: [],
     };
 
     const ListComp = new BgListComponent(gvc, vm, FilterOptions.userFilterFrame);
@@ -808,7 +864,6 @@ export class UserList {
             key: '上次登入時間',
             value: `<span class="fs-7">${glitter.ut.dateFormat(new Date(dd.online_time), 'yyyy-MM-dd hh:mm')}</span>`,
           },
-
           {
             key: '用戶狀態',
             value: (() => {

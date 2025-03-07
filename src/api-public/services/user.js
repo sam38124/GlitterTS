@@ -1872,134 +1872,80 @@ class User {
     }
     async getConfigV2(config) {
         try {
-            const data_ = await database_1.default.execute(`select *
-                 from \`${this.app}\`.t_user_public_config
-                 where ${config.key.includes(',')
-                ? `\`key\` in (${config.key
+            const that = this;
+            const getData = await database_1.default.execute(`SELECT *
+         FROM \`${this.app}\`.t_user_public_config
+         WHERE ${config.key.includes(',')
+                ? `\`key\` IN (${config.key
                     .split(',')
-                    .map(dd => {
-                    return database_1.default.escape(dd);
-                })
+                    .map(dd => database_1.default.escape(dd))
                     .join(',')})`
                 : `\`key\` = ${database_1.default.escape(config.key)}`}
-                   and user_id = ${database_1.default.escape(config.user_id)}
-                `, []);
-            const that = this;
+         AND user_id = ${database_1.default.escape(config.user_id)}`, []);
             async function loop(data) {
                 if (!data && config.user_id === 'manager') {
-                    switch (config.key) {
-                        case 'customer_form_user_setting':
-                            await that.setConfig({
-                                key: config.key,
-                                user_id: config.user_id,
-                                value: {
-                                    list: form_check_js_1.FormCheck.initialUserForm([]),
+                    const defaultValues = {
+                        customer_form_user_setting: { list: form_check_js_1.FormCheck.initialUserForm([]) },
+                        global_express_country: { country: [] },
+                        store_version: { version: 'v1' },
+                        store_manager: {
+                            list: [
+                                {
+                                    id: 'store_default',
+                                    name: '庫存點1(預設)',
+                                    note: '',
+                                    address: '',
+                                    manager_name: '',
+                                    manager_phone: '',
                                 },
-                            });
-                            return await that.getConfigV2(config);
-                        case 'global_express_country':
-                            await that.setConfig({
-                                key: config.key,
-                                user_id: config.user_id,
-                                value: {
-                                    country: [],
-                                },
-                            });
-                            return await that.getConfigV2(config);
-                        case 'store_version':
-                            await that.setConfig({
-                                key: config.key,
-                                user_id: config.user_id,
-                                value: {
-                                    version: 'v1',
-                                },
-                            });
-                            return await that.getConfigV2(config);
-                        case 'store_manager':
-                            await that.setConfig({
-                                key: config.key,
-                                user_id: config.user_id,
-                                value: {
-                                    list: [
-                                        {
-                                            id: 'store_default',
-                                            name: '庫存點1(預設)',
-                                            note: '',
-                                            address: '',
-                                            manager_name: '',
-                                            manager_phone: '',
-                                        },
-                                    ],
-                                },
-                            });
-                            return await that.getConfigV2(config);
-                        case 'member_level_config':
-                            await that.setConfig({
-                                key: config.key,
-                                user_id: config.user_id,
-                                value: {
-                                    levels: [],
-                                },
-                            });
-                            return await that.getConfigV2(config);
-                        case 'language-label':
-                            await that.setConfig({
-                                key: config.key,
-                                user_id: config.user_id,
-                                value: {
-                                    label: [],
-                                },
-                            });
-                            return await that.getConfigV2(config);
-                        case 'terms-related-refund-zh-TW':
-                        case 'terms-related-delivery-zh-TW':
-                        case 'terms-related-privacy-zh-TW':
-                        case 'terms-related-term-zh-TW':
-                            await that.setConfig({
-                                key: config.key,
-                                user_id: config.user_id,
-                                value: terms_check_js_1.TermsCheck.check(config.key),
-                            });
-                            return await that.getConfigV2(config);
-                        case 'store-information':
-                            await that.setConfig({
-                                key: config.key,
-                                user_id: config.user_id,
-                                value: {
-                                    language_setting: {
-                                        def: 'zh-TW',
-                                        support: ['zh-TW'],
-                                    },
-                                },
-                            });
-                            return await that.getConfigV2(config);
+                            ],
+                        },
+                        member_level_config: { levels: [] },
+                        'language-label': { label: [] },
+                        'store-information': {
+                            language_setting: { def: 'zh-TW', support: ['zh-TW'] },
+                        },
+                        'list-header-view': {
+                            'user-list': [
+                                '顧客名稱',
+                                '電子信箱',
+                                '訂單',
+                                '會員等級',
+                                '累積消費',
+                                '上次登入時間',
+                                '社群綁定',
+                                '用戶狀態',
+                            ],
+                        },
+                    };
+                    if (config.key.startsWith('terms-related-')) {
+                        defaultValues[config.key] = terms_check_js_1.TermsCheck.check(config.key);
+                    }
+                    if (defaultValues.hasOwnProperty(config.key)) {
+                        await that.setConfig({
+                            key: config.key,
+                            user_id: config.user_id,
+                            value: defaultValues[config.key],
+                        });
+                        return await that.getConfigV2(config);
                     }
                 }
                 if (data && data.value) {
                     data.value = (await that.checkLeakData(config.key, data.value)) || data.value;
                 }
                 else if (config.key === 'store-information') {
-                    return {
-                        language_setting: {
-                            def: 'zh-TW',
-                            support: ['zh-TW'],
-                        },
-                    };
+                    return { language_setting: { def: 'zh-TW', support: ['zh-TW'] } };
                 }
                 return (data && data.value) || {};
             }
             if (config.key.includes(',')) {
-                return await Promise.all(config.key.split(',').map(async (dd) => {
-                    return {
-                        key: dd,
-                        value: await loop(data_.find((d1) => {
-                            return d1.key === dd;
-                        })),
-                    };
-                }));
+                return Promise.all(config.key.split(',').map(async (dd) => ({
+                    key: dd,
+                    value: await loop(getData.find((d1) => d1.key === dd)),
+                })));
             }
             else {
-                return await loop(data_[0]);
+                return loop(getData[0]);
             }
         }
         catch (e) {
@@ -2008,47 +1954,42 @@ class User {
         }
     }
     async checkLeakData(key, value) {
-        var _a, _b;
-        if (key === 'store-information') {
-            value.language_setting = (_a = value.language_setting) !== null && _a !== void 0 ? _a : {
-                def: 'zh-TW',
-                support: ['zh-TW'],
-            };
-            if (value.chat_toggle === undefined) {
-                value.chat_toggle = (await this.getConfigV2({
-                    key: 'message_setting',
-                    user_id: 'manager',
-                })).toggle;
-            }
-            if (value.checkout_mode === undefined) {
-                value.checkout_mode = {
+        var _a, _b, _c;
+        switch (key) {
+            case 'store-information': {
+                (_a = value.language_setting) !== null && _a !== void 0 ? _a : (value.language_setting = { def: 'zh-TW', support: ['zh-TW'] });
+                if (value.chat_toggle === undefined) {
+                    const config = await this.getConfigV2({ key: 'message_setting', user_id: 'manager' });
+                    value.chat_toggle = config.toggle;
+                }
+                (_b = value.checkout_mode) !== null && _b !== void 0 ? _b : (value.checkout_mode = {
                     payload: ['1', '3', '0'],
                     progress: ['shipping', 'wait', 'finish', 'arrived', 'pre_order'],
                     orderStatus: ['1', '0'],
-                };
+                });
+                break;
             }
-        }
-        else if (['menu-setting', 'footer-setting'].includes(key) && Array.isArray(value)) {
-            return {
-                'zh-TW': value,
-                'en-US': [],
-                'zh-CN': [],
-            };
-        }
-        else if (key === 'store_manager') {
-            value.list = (_b = value.list) !== null && _b !== void 0 ? _b : [
-                {
-                    id: 'store_default',
-                    name: '庫存點1(預設)',
-                    note: '',
-                    address: '',
-                    manager_name: '',
-                    manager_phone: '',
-                },
-            ];
-        }
-        else if (key === 'customer_form_user_setting') {
-            value.list = form_check_js_1.FormCheck.initialUserForm(value.list);
+            case 'menu-setting':
+            case 'footer-setting':
+                if (Array.isArray(value)) {
+                    return { 'zh-TW': value, 'en-US': [], 'zh-CN': [] };
+                }
+                break;
+            case 'store_manager':
+                (_c = value.list) !== null && _c !== void 0 ? _c : (value.list = [
+                    {
+                        id: 'store_default',
+                        name: '庫存點1(預設)',
+                        note: '',
+                        address: '',
+                        manager_name: '',
+                        manager_phone: '',
+                    },
+                ]);
+                break;
+            case 'customer_form_user_setting':
+                value.list = form_check_js_1.FormCheck.initialUserForm(value.list);
+                break;
         }
     }
     async checkEmailExists(email) {

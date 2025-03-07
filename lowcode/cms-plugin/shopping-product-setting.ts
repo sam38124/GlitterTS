@@ -774,7 +774,7 @@ export class ShoppingProductSetting {
                                                                             ShoppingProductSetting.select_language = ((window.parent as any).store_info.language_setting.def);
                                                                             vm.type = 'replace';
                                                                         },
-                                                                        tab_click: (vmi) => {
+                                                                        tabClick: (vmi) => {
                                                                             ShoppingProductSetting.select_page_index = vmi.page - 1;
                                                                         },
                                                                         filter: [
