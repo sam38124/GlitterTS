@@ -87,7 +87,7 @@ export class PayNowLogistics {
         };
         const response = await axios(config)
         console.log(`response_data==>`, response.data)
-        if (response.data && !(response.data.includes('已繳費'))) {
+        if (response.data && !(response.data.includes('已繳費')) && !(response.data.includes('已寄件'))) {
             const order = (await db.query(`select *
                                            from \`${this.app_name}\`.t_checkout
                                            where cart_token = ?`, [orderNO]))[0]
