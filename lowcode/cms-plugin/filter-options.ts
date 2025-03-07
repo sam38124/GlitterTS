@@ -367,6 +367,7 @@ export class FilterOptions {
     { key: 'phone', value: '手機' },
     { key: 'title', value: '商品名稱' },
     { key: 'sku', value: '商品貨號(SKU)' },
+    { key: 'shipment_number', value: '出貨單號碼' },
     { key: 'invoice_number', value: '發票號碼' },
   ];
 

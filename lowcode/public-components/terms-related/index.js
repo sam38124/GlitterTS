@@ -52,7 +52,7 @@ export class TermsRelated {
                             });
                         });
                     }
-                    else if (['blog_tag_setting', 'blog_global_setting', 'fb_live', 'ig_live', 'line_plus'].includes(glitter.getUrlParameter('page'))) {
+                    else if (['blog_tag_setting', 'blog_global_setting', 'fb_live', 'ig_live', 'line_plus', 'shipment_list', 'shipment_list_archive'].includes(glitter.getUrlParameter('page'))) {
                         return yield new Promise((resolve, reject) => {
                             glitter.getModule(new URL('./cms-plugin/cms-router.js', gvc.glitter.root_path).href, (res) => {
                                 document.querySelector(`.${id}`).outerHTML = res.main(gvc);

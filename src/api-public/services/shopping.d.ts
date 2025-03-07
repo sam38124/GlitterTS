@@ -426,6 +426,7 @@ export declare class Shopping {
         returnSearch?: string;
         distribution_code?: string;
         valid?: boolean;
+        is_shipment?: boolean;
     }): Promise<any>;
     releaseCheckout(status: 1 | 0 | -1, order_id: string): Promise<void>;
     shareVoucherRebate(cartData: any): Promise<void>;

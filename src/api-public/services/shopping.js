@@ -2570,6 +2570,9 @@ class Shopping {
                     case 'cart_token':
                         querySql.push(`(cart_token like '%${query.search}%')`);
                         break;
+                    case 'shipment_number':
+                        querySql.push(`(orderData->>'$.user_info.shipment_number' like '%${query.search}%')`);
+                        break;
                     case 'name':
                     case 'invoice_number':
                     case 'phone':
@@ -2592,6 +2595,9 @@ class Shopping {
             if (query.valid) {
                 const countingSQL = await new user_js_1.User(this.app).getCheckoutCountingModeSQL();
                 querySql.push(countingSQL);
+            }
+            if (query.is_shipment) {
+                querySql.push(`(orderData->>'$.user_info.shipment_number' IS NOT NULL) and (orderData->>'$.user_info.shipment_number' != '')`);
             }
             if (query.progress) {
                 let newArray = query.progress.split(',');

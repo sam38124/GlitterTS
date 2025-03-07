@@ -277,7 +277,8 @@ router.get('/order', async (req, resp) => {
                 archived: req.query.archived,
                 distribution_code: req.query.distribution_code,
                 returnSearch: req.query.returnSearch,
-                valid: req.query.valid === 'true'
+                valid: req.query.valid === 'true',
+                is_shipment: req.query.is_shipment === 'true',
             }));
         }
         else if (await ut_permission_1.UtPermission.isAppUser(req)) {

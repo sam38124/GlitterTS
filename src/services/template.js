@@ -197,7 +197,7 @@ SELECT * FROM  \`${config_1.saasConfig.SAAS_NAME}\`.page_config where  1=1 ${whe
         if (query_page.includes('#')) {
             query_page = query_page.substring(0, query_page.indexOf('#'));
         }
-        if (['privacy', 'term', 'refund', 'delivery', 'blogs', 'blog_tag_setting', 'blog_global_setting', 'checkout', 'fb_live', 'ig_live', 'line_plus'].includes(query_page)) {
+        if (['privacy', 'term', 'refund', 'delivery', 'blogs', 'blog_tag_setting', 'blog_global_setting', 'checkout', 'fb_live', 'ig_live', 'line_plus', 'shipment_list', 'shipment_list_archive'].includes(query_page)) {
             console.log('isofficial-router');
             return 'official-router';
         }

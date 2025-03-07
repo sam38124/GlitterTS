@@ -549,6 +549,7 @@ export class ApiShop {
         distribution_code?: string;
         returnSearch?: 'true';
         valid?: boolean
+        is_shipment?: boolean;
     }) {
         const filterString = this.orderListFilterString(json.filter);
         return BaseApi.create({
@@ -567,6 +568,7 @@ export class ApiShop {
                     json.archived && par.push(`archived=${json.archived}`);
                     json.distribution_code && par.push(`distribution_code=${json.distribution_code}`);
                     json.returnSearch && par.push(`returnSearch=${json.returnSearch ?? 'false'}`);
+                    json.is_shipment && par.push(`is_shipment=${json.is_shipment}`);
                     if (json.is_pos === true || json.is_pos === false) {
                         par.push(`is_pos=${json.is_pos}`);
                     }

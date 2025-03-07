@@ -32,6 +32,15 @@ export class CmsRouter {
 <div class="insignia insignia-warning">功能優化中，預計於3月7號重新開放!</div>
 </div>`);
                                 break;
+                            case 'shipment_list':
+                            case 'shipment_list_archive':
+                                gvc.glitter.getModule(new URL('./cms-plugin/shopping-order-manager.js', gvc.glitter.root_path).href, (cl) => {
+                                    resolve(cl.main(gvc, {
+                                        isShipment: true,
+                                        isArchived: gvc.glitter.getUrlParameter('page') === 'shipment_list_archive'
+                                    }));
+                                });
+                                break;
                             default:
                                 resolve('no page');
                         }

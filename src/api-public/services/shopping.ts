@@ -3489,6 +3489,7 @@ export class Shopping {
     returnSearch?: string;
     distribution_code?: string;
     valid?: boolean;
+    is_shipment?:boolean
   }) {
     try {
       let querySql = ['1=1'];
@@ -3498,6 +3499,9 @@ export class Shopping {
         switch (query.searchType) {
           case 'cart_token':
             querySql.push(`(cart_token like '%${query.search}%')`);
+            break;
+          case 'shipment_number':
+            querySql.push(`(orderData->>'$.user_info.shipment_number' like '%${query.search}%')`);
             break;
           case 'name':
           case 'invoice_number':
@@ -3529,6 +3533,9 @@ export class Shopping {
         querySql.push(countingSQL);
       }
 
+      if(query.is_shipment) {
+        querySql.push(`(orderData->>'$.user_info.shipment_number' IS NOT NULL) and (orderData->>'$.user_info.shipment_number' != '')`);
+      }
       if (query.progress) {
         let newArray = query.progress.split(',');
         let temp = '';
