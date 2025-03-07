@@ -408,7 +408,8 @@ export class Delivery {
                         const her_=new URL(link.replace('S,',''));
                         if(her_.searchParams.get('LogisticNumbers')){
                             carData.user_info.shipment_number=her_.searchParams.get('LogisticNumbers');
-                            carData.user_info.shipment_refer='paynow'
+                            carData.user_info.shipment_refer='paynow';
+                            carData.user_info.shipment_date=(new Date()).toISOString()
                             await db.query(`update \`${this.appName}\`.t_checkout set orderData=? where cart_token=?`,[JSON.stringify(carData),dd[0].cart_token])
                         }
                     }catch (e) {

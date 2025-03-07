@@ -2694,8 +2694,8 @@ export class CheckoutIndex {
                                               <button
                                                 class="${gClass(verify.length > 0 ? 'button-bgr-disable' : 'button-bgr')}"
                                                 style="${document.body.clientWidth < 800
-                                            ? `width:100px;`
-                                            : `width:380px;`}"
+                                            ? `min-width:100px;`
+                                            : `min-width:380px;`}"
                                                 onclick="${gvc.event(() => {
                                             var _a;
                                             if (window.login_config.login_in_to_order &&

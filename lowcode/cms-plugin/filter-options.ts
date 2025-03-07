@@ -1,5 +1,7 @@
 import { ShipmentConfig } from '../glitter-base/global/shipment-config.js';
 import { ApiUser } from '../glitter-base/route/user.js';
+import { PaymentConfig } from '../glitter-base/global/payment-config.js';
+import { BgWidget } from '../backend-manager/bg-widget.js';
 
 export class FilterOptions {
   static userFilterFrame = {
@@ -138,6 +140,7 @@ export class FilterOptions {
     orderStatus: [],
     payload: [],
     progress: [],
+    payment_select:[],
     shipment: [],
     created_time: ['', ''],
   };
@@ -214,15 +217,35 @@ export class FilterOptions {
         })
       );
 
+
     return [
       { key: 'orderStatus', type: 'multi_checkbox', name: '訂單狀態', data: this.orderStatusOptions },
       { key: 'payload', type: 'multi_checkbox', name: '付款狀態', data: this.payloadStatusOptions },
+      { key: 'payment_select', type: 'multi_checkbox', name: '付款方式', data:( await  PaymentConfig.getSupportPayment()).map((dd)=>{
+        if(dd.type==='pos' && !(dd.name.includes('POS'))){
+          const name=dd.name;
+dd.name=`<div class="d-flex">${[BgWidget.warningInsignia('POS'),name].join(`<div class="mx-1"></div>`)}</div>`
+        }
+        return dd
+        }) },
       { key: 'progress', type: 'multi_checkbox', name: '出貨狀況', data: this.progressOptions },
       { key: 'shipment', type: 'multi_checkbox', name: '運送方式', data: shipmentOptions },
       {
         key: 'created_time',
         type: 'during',
         name: '訂單日期',
+        data: {
+          centerText: '至',
+          list: [
+            { key: 'start', type: 'date', placeHolder: '請選擇開始時間' },
+            { key: 'end', type: 'date', placeHolder: '請選擇結束時間' },
+          ],
+        },
+      },
+      {
+        key: 'shipment_time',
+        type: 'during',
+        name: '出貨日期',
         data: {
           centerText: '至',
           list: [

@@ -2381,6 +2381,12 @@ class Shopping {
                     await this.restoreStock(origin.orderData.lineItems);
                     await auto_send_email_js_1.AutoSendEmail.customerOrder(this.app, 'auto-email-order-cancel-success', orderData.orderID, orderData.email, orderData.language);
                 }
+                if ((update.orderData.user_info.shipment_number) && (!update.orderData.user_info.shipment_date)) {
+                    update.orderData.user_info.shipment_date = (new Date()).toISOString();
+                }
+                else {
+                    delete update.orderData.user_info.shipment_date;
+                }
                 if (prevProgress !== updateProgress) {
                     if (updateProgress === 'shipping') {
                         await this.sendNotifications(orderData, 'shipment');
@@ -2599,6 +2605,9 @@ class Shopping {
             if (query.is_shipment) {
                 querySql.push(`(orderData->>'$.user_info.shipment_number' IS NOT NULL) and (orderData->>'$.user_info.shipment_number' != '')`);
             }
+            if (query.payment_select) {
+                querySql.push(`(orderData->>'$.customer_info.payment_select') in (${query.payment_select.split(',').map(d => `'${d}'`).join(',')})`);
+            }
             if (query.progress) {
                 let newArray = query.progress.split(',');
                 let temp = '';
@@ -2635,6 +2644,15 @@ class Shopping {
                     querySql.push(`
                         (created_time BETWEEN ${database_js_1.default.escape(`${created_time[0]}`)} 
                         AND ${database_js_1.default.escape(`${created_time[1]}`)})
+                    `);
+                }
+            }
+            if (query.shipment_time) {
+                const shipment_time = query.shipment_time.split(',');
+                if (shipment_time.length > 1) {
+                    querySql.push(`
+                       (orderData->>'$.user_info.shipment_date' >= ${database_js_1.default.escape(`${shipment_time[0]} 00:00:00`)}) and
+                        (orderData->>'$.user_info.shipment_date' <= ${database_js_1.default.escape(`${shipment_time[1]} 23:59:59`)})
                     `);
                 }
             }

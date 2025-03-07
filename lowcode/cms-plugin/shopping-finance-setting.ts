@@ -196,7 +196,7 @@ export class ShoppingFinanceSetting {
             {
               title: html` <div class="tx_normal fw-bolder mt-2 d-flex flex-column" style="margin-bottom: 12px;">
                 自訂線下金流表單
-                <span style="color:#8D8D8D;font-size: 12px;">當客戶選擇此付款方式時，所需填寫的額外資料</span>
+                <span style="color:#8D8D8D;font-size: 12px;">當客戶選擇此付款方式時，所需上傳的付款證明</span>
               </div>`,
               key: `form_finance_${custom_finance.id}`,
               no_padding: true,

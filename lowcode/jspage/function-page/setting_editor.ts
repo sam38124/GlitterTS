@@ -367,7 +367,7 @@ export class Setting_editor {
             {
                 icon: '',
                 page: 'operational_order',
-                group: '報表分析',
+                group: '數據分析',
                 title: '營運分析',
                 appName: 'cms_system',
                 groupIcon: 'https://d3jnmi1tfjgtti.cloudfront.net/file/122538856/Component 56 (7).svg',
@@ -376,7 +376,7 @@ export class Setting_editor {
             {
                 icon: '',
                 page: 'Product_analysis',
-                group: '報表分析',
+                group: '數據分析',
                 title: '商品分析',
                 appName: 'cms_system',
                 groupIcon: 'https://d3jnmi1tfjgtti.cloudfront.net/file/122538856/Component 56 (7).svg',

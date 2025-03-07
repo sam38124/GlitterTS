@@ -2943,8 +2943,8 @@ export class CheckoutIndex {
                                                   verify.length > 0 ? 'button-bgr-disable' : 'button-bgr'
                                                 )}"
                                                 style="${document.body.clientWidth < 800
-                                                  ? `width:100px;`
-                                                  : `width:380px;`}"
+                                                  ? `min-width:100px;`
+                                                  : `min-width:380px;`}"
                                                 onclick="${gvc.event(() => {
                                                   if (
                                                     (window as any).login_config.login_in_to_order &&

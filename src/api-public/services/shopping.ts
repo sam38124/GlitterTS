@@ -3221,6 +3221,13 @@ export class Shopping {
           );
         }
 
+        //當訂單多了出貨單號碼，新增出貨日期，反之清空出貨日期。
+        if((update.orderData.user_info.shipment_number) && (!update.orderData.user_info.shipment_date)){
+          update.orderData.user_info.shipment_date=(new Date()).toISOString()
+        }else{
+          delete update.orderData.user_info.shipment_date
+        }
+
         // 當訂單出貨狀態變更，觸發通知事件
         if (prevProgress !== updateProgress) {
           if (updateProgress === 'shipping') {
@@ -3484,12 +3491,14 @@ export class Shopping {
     progress?: string;
     orderStatus?: string;
     created_time?: string;
+    shipment_time?:string;
     orderString?: string;
     archived?: string;
     returnSearch?: string;
     distribution_code?: string;
     valid?: boolean;
-    is_shipment?:boolean
+    is_shipment?:boolean;
+    payment_select?:string
   }) {
     try {
       let querySql = ['1=1'];
@@ -3536,6 +3545,9 @@ export class Shopping {
       if(query.is_shipment) {
         querySql.push(`(orderData->>'$.user_info.shipment_number' IS NOT NULL) and (orderData->>'$.user_info.shipment_number' != '')`);
       }
+      if(query.payment_select){
+        querySql.push(`(orderData->>'$.customer_info.payment_select') in (${query.payment_select.split(',').map(d => `'${d}'`).join(',')})`);
+      }
       if (query.progress) {
         let newArray = query.progress.split(',');
         let temp = '';
@@ -3575,6 +3587,15 @@ export class Shopping {
           querySql.push(`
                         (created_time BETWEEN ${db.escape(`${created_time[0]}`)} 
                         AND ${db.escape(`${created_time[1]}`)})
+                    `);
+        }
+      }
+      if (query.shipment_time) {
+        const shipment_time = query.shipment_time.split(',');
+        if (shipment_time.length > 1) {
+          querySql.push(`
+                       (orderData->>'$.user_info.shipment_date' >= ${db.escape(`${shipment_time[0]} 00:00:00`)}) and
+                        (orderData->>'$.user_info.shipment_date' <= ${db.escape(`${shipment_time[1]} 23:59:59`)})
                     `);
         }
       }

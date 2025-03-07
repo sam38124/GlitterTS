@@ -421,12 +421,14 @@ export declare class Shopping {
         progress?: string;
         orderStatus?: string;
         created_time?: string;
+        shipment_time?: string;
         orderString?: string;
         archived?: string;
         returnSearch?: string;
         distribution_code?: string;
         valid?: boolean;
         is_shipment?: boolean;
+        payment_select?: string;
     }): Promise<any>;
     releaseCheckout(status: 1 | 0 | -1, order_id: string): Promise<void>;
     shareVoucherRebate(cartData: any): Promise<void>;

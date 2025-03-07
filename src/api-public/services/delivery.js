@@ -300,6 +300,7 @@ class Delivery {
                         if (her_.searchParams.get('LogisticNumbers')) {
                             carData.user_info.shipment_number = her_.searchParams.get('LogisticNumbers');
                             carData.user_info.shipment_refer = 'paynow';
+                            carData.user_info.shipment_date = (new Date()).toISOString();
                             await database_js_1.default.query(`update \`${this.appName}\`.t_checkout set orderData=? where cart_token=?`, [JSON.stringify(carData), dd[0].cart_token]);
                         }
                     }

@@ -406,6 +406,9 @@ export class ApiShop {
             if (obj.created_time && obj.created_time.length > 1 && (obj === null || obj === void 0 ? void 0 : obj.created_time[0].length) > 0 && (obj === null || obj === void 0 ? void 0 : obj.created_time[1].length) > 0) {
                 list.push(`created_time=${obj.created_time[0]},${obj.created_time[1]}`);
             }
+            if (obj.shipment_time && obj.shipment_time.length > 1 && (obj === null || obj === void 0 ? void 0 : obj.shipment_time[0].length) > 0 && (obj === null || obj === void 0 ? void 0 : obj.shipment_time[1].length) > 0) {
+                list.push(`shipment_time=${obj.shipment_time[0]},${obj.shipment_time[1]}`);
+            }
             if (obj.shipment && obj.shipment.length > 0) {
                 list.push(`shipment=${obj.shipment.join(',')}`);
             }
@@ -417,6 +420,9 @@ export class ApiShop {
             }
             if (obj.orderStatus && obj.orderStatus.length > 0) {
                 list.push(`orderStatus=${obj.orderStatus.join(',')}`);
+            }
+            if (obj.payment_select && obj.payment_select.length > 0) {
+                list.push(`payment_select=${obj.payment_select.join(',')}`);
             }
         }
         return list;

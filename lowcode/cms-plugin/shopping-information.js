@@ -194,7 +194,7 @@ export class ShoppingInformation {
                                             key: 'progress',
                                             name: '出貨狀況',
                                             data: FilterOptions.progressOptions,
-                                        },
+                                        }
                                     ];
                                     return html ` ${BgWidget.grayNote('提示：勾選項目後，該項目將會作為訂單累積與分析數據的篩選條件')}
                       <div class="d-flex flex-column gap-1">

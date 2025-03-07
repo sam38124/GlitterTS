@@ -27,6 +27,7 @@ import { OrderSetting } from './module/order-setting.js';
 import { CountryTw } from '../modules/country-language/country-tw.js';
 import { PaymentPage } from './pos-pages/payment-page.js';
 import { ShipmentConfig } from '../glitter-base/global/shipment-config.js';
+import { PaymentConfig } from '../glitter-base/global/payment-config.js';
 const html = String.raw;
 export class ShoppingOrderManager {
     static main(gvc, query) {
@@ -89,34 +90,13 @@ export class ShoppingOrderManager {
                     }
                     return buf;
                 }
-                const saasConfig = window.saasConfig;
                 const fileName = `訂單列表_${glitter.ut.dateFormat(new Date(), 'yyyyMMddhhmmss')}.xlsx`;
-                saasConfig.api.uploadFile(fileName).then((data) => {
-                    const blobData = new Blob([s2ab(wbout)], { type: 'application/octet-stream' });
-                    const data1 = data.response;
-                    dialog.dataLoading({ visible: true });
-                    $.ajax({
-                        url: data1.url,
-                        type: 'put',
-                        data: blobData,
-                        processData: false,
-                        headers: {
-                            'Content-Type': data1.type,
-                        },
-                        crossDomain: true,
-                        success: () => {
-                            dialog.dataLoading({ visible: false });
-                            const link = document.createElement('a');
-                            link.href = data1.fullUrl;
-                            link.download = fileName;
-                            link.click();
-                        },
-                        error: () => {
-                            dialog.dataLoading({ visible: false });
-                            dialog.errorMessage({ text: '上傳失敗' });
-                        },
-                    });
-                });
+                const blobData = new Blob([s2ab(wbout)], { type: 'application/octet-stream' });
+                const url = URL.createObjectURL(blobData);
+                const a = document.createElement("a");
+                a.href = url;
+                a.download = fileName;
+                a.click();
             }
         }
         if (window.parent.glitter.getUrlParameter('orderID')) {
@@ -173,7 +153,7 @@ export class ShoppingOrderManager {
                         }
                     })())}
               <div class="flex-fill"></div>
-              <div class="${query.isShipment ? `d-none` : `d-flex`}" style=" gap: 14px;">
+              <div class="" style=" gap: 14px;">
                 <input
                   class="d-none"
                   type="file"
@@ -320,7 +300,7 @@ export class ShoppingOrderManager {
                             },
                         });
                     }))}
-                ${query.isArchived
+                ${query.isArchived || query.isShipment
                         ? ''
                         : BgWidget.darkButton('新增', gvc.event(() => {
                             vm.type = 'add';
@@ -441,7 +421,9 @@ export class ShoppingOrderManager {
                                                     },
                                                     {
                                                         key: '出貨日期',
-                                                        value: glitter.ut.dateFormat(new Date(dd.created_time), 'yyyy-MM-dd hh:mm:ss'),
+                                                        value: dd.orderData.user_info.shipment_date
+                                                            ? glitter.ut.dateFormat(new Date(dd.orderData.user_info.shipment_date), 'yyyy-MM-dd hh:mm')
+                                                            : '尚未設定',
                                                     },
                                                     {
                                                         key: '訂購人',
@@ -597,6 +579,7 @@ export class ShoppingOrderManager {
                                         return this.printStoreOrderInfo({
                                             gvc,
                                             cart_token: checkArray.map((dd) => dd.cart_token).join(','),
+                                            print: true,
                                         });
                                     },
                                 },
@@ -958,6 +941,22 @@ export class ShoppingOrderManager {
                                                     return '';
                                                 }
                                                 return [
+                                                    is_shipment
+                                                        ? html `
+                                  <div class="tx_700 d-flex align-items-center" style="gap:5px;">訂單號碼</div>
+                                  ${BgWidget.mbContainer(12)}
+                                  <div
+                                    class=""
+                                    style="color: #4D86DB;cursor:pointer;"
+                                    onclick="${gvc.event(() => {
+                                                            is_shipment = false;
+                                                            gvc.notifyDataChange('orderDetailRefresh');
+                                                        })}"
+                                  >
+                                    ${orderData.orderData.orderID}
+                                  </div>
+                                `
+                                                        : ``,
                                                     is_shipment ? `` : html ` <div class="tx_700">配送 / 出貨單資訊</div>`,
                                                     html ` <div class="tx_700 d-flex align-items-center flex-wrap" style="gap:10px;">
                                 出貨狀態
@@ -1046,16 +1045,6 @@ export class ShoppingOrderManager {
                                                             DeliveryHTML.print(gvc, [orderData], 'shipment');
                                                         }),
                                                     })}
-                                ${BgWidget.customButton({
-                                                        button: {
-                                                            color: 'gray',
-                                                            size: 'sm',
-                                                        },
-                                                        text: { name: '列印揀貨單' },
-                                                        event: gvc.event(() => {
-                                                            DeliveryHTML.print(gvc, [orderData], 'pick');
-                                                        }),
-                                                    })}
                               </div>`,
                                                     `<div class="tx_700 d-flex align-items-center" style="gap:5px;">出貨單號碼</div>
 ${is_shipment ? `` : BgWidget.grayNote('取號後將自動生成出貨單，於出貨單列表單中。')}
@@ -1076,12 +1065,14 @@ ${is_shipment ? `` : BgWidget.grayNote('取號後將自動生成出貨單，於�
                                                                 name: orderData.orderData.user_info
                                                                     .shipment_number
                                                                     ? '列印出貨單'
-                                                                    : '取號並列印',
+                                                                    : '出貨單取號',
                                                             },
                                                             event: gvc.event(() => {
                                                                 return this.printStoreOrderInfo({
                                                                     gvc,
                                                                     cart_token: orderData.cart_token,
+                                                                    print: !!orderData.orderData.user_info
+                                                                        .shipment_number,
                                                                 });
                                                             }),
                                                         })
@@ -1214,17 +1205,70 @@ ${is_shipment ? `` : BgWidget.grayNote('取號後將自動生成出貨單，於�
                                                         }
                                                     })()}
                                                                         `,
-                                                    is_shipment
-                                                        ? html `
-                                  <div class="tx_700 d-flex align-items-center" style="gap:5px;">訂單號碼</div>
-                                  ${BgWidget.mbContainer(12)}
-                                  <div class="" style="color: #4D86DB;cursor:pointer;" onclick="${gvc.event(() => {
-                                                            is_shipment = false;
-                                                            gvc.notifyDataChange('orderDetailRefresh');
-                                                        })}">
-                                      ${orderData.orderData.orderID}
-                                  </div>
-                                `
+                                                    orderData.orderData.user_info.shipment_number
+                                                        ? `
+                             <div class="tx_700 d-flex align-items-center" style="gap:5px;">出貨日期</div>
+                              ${BgWidget.mbContainer(12)}
+                              <div class="d-flex" style="gap:5px;">
+                                ${orderData.orderData.user_info.shipment_date ? gvc.glitter.ut.dateFormat(new Date(orderData.orderData.user_info.shipment_date), 'yyyy-MM-dd hh:mm') : '尚未設定'}
+                                ${BgWidget.customButton({
+                                                            button: {
+                                                                color: 'gray',
+                                                                size: 'sm',
+                                                            },
+                                                            text: { name: '設定出貨日期' },
+                                                            event: gvc.event(() => {
+                                                                let shipment_date = orderData.orderData.user_info.shipment_date
+                                                                    ? gvc.glitter.ut.dateFormat(new Date(orderData.orderData.user_info.shipment_date), 'yyyy-MM-dd')
+                                                                    : gvc.glitter.ut.dateFormat(new Date(), 'yyyy-MM-dd');
+                                                                let shipment_time = orderData.orderData.user_info.shipment_date
+                                                                    ? gvc.glitter.ut.dateFormat(new Date(orderData.orderData.user_info.shipment_date), 'hh:mm')
+                                                                    : gvc.glitter.ut.dateFormat(new Date(), 'hh:mm');
+                                                                BgWidget.settingDialog({
+                                                                    gvc: gvc,
+                                                                    title: '設定出貨日期',
+                                                                    innerHTML: (gvc) => {
+                                                                        return [
+                                                                            BgWidget.editeInput({
+                                                                                gvc: gvc,
+                                                                                title: '出貨日期',
+                                                                                default: shipment_date,
+                                                                                callback: text => {
+                                                                                    shipment_date = text;
+                                                                                },
+                                                                                type: 'date',
+                                                                                placeHolder: '請輸入出貨日期',
+                                                                            }),
+                                                                            BgWidget.editeInput({
+                                                                                gvc: gvc,
+                                                                                title: '出貨時間',
+                                                                                default: shipment_time,
+                                                                                callback: text => {
+                                                                                    shipment_time = text;
+                                                                                },
+                                                                                type: 'time',
+                                                                                placeHolder: '請輸入出貨時間',
+                                                                            }),
+                                                                        ].join('');
+                                                                    },
+                                                                    footer_html: (gvc) => {
+                                                                        return [
+                                                                            BgWidget.cancel(gvc.event(() => {
+                                                                                gvc.closeDialog();
+                                                                            }), '取消'),
+                                                                            BgWidget.save(gvc.event(() => {
+                                                                                orderData.orderData.user_info.shipment_date = new Date(`${shipment_date} ${shipment_time}:00`).toISOString();
+                                                                                gvc.closeDialog();
+                                                                                saveEvent();
+                                                                            }), '儲存'),
+                                                                        ].join('');
+                                                                    },
+                                                                    width: 350,
+                                                                });
+                                                            }),
+                                                        })}
+</div>
+                            `
                                                         : ``,
                                                     html ` ${[
                                                         'UNIMARTC2C',
@@ -1549,7 +1593,7 @@ ${is_shipment ? `` : BgWidget.grayNote('取號後將自動生成出貨單，於�
                             class="align-items-center"
                             style="gap:10px;color: #393939;font-size: 24px;font-weight: 700;"
                           >
-                            #${(is_shipment) ? orderData.orderData.user_info.shipment_number : orderData.cart_token}
+                            #${is_shipment ? orderData.orderData.user_info.shipment_number : orderData.cart_token}
                           </div>
                           ${BgWidget.grayNote(`訂單成立時間 : ${glitter.ut.dateFormat(new Date(orderData.created_time), 'yyyy-MM-dd hh:mm')}`)}
                         </div>
@@ -1891,42 +1935,16 @@ ${is_shipment ? `` : BgWidget.grayNote('取號後將自動生成出貨單，於�
                                   </div>
                                 `)
                                                 : ``,
-                                            is_shipment ? `` : BgWidget.mainCard([
-                                                html ` <div
-                                  style="display: flex;flex-direction: column;align-items: flex-start;gap: 12px;align-self: stretch;"
-                                >
-                                  <div class="tx_700">付款狀態</div>
-                                  <div class="ms-auto w-100">
-                                    ${is_shipment
-                                                    ? (_c = [
-                                                        {
-                                                            title: '變更付款狀態',
-                                                            value: '',
-                                                        },
-                                                        {
-                                                            title: '已付款',
-                                                            value: '1',
-                                                        },
-                                                        {
-                                                            title: '部分付款',
-                                                            value: '3',
-                                                        },
-                                                        {
-                                                            title: orderData.orderData.proof_purchase ? `待核款` : `未付款`,
-                                                            value: '0',
-                                                        },
-                                                        {
-                                                            title: '已退款',
-                                                            value: '-2',
-                                                        },
-                                                    ].find(dd => {
-                                                        return dd.value === `${orderData.status}`;
-                                                    })) === null || _c === void 0 ? void 0 : _c.title
-                                                    : EditorElem.select({
-                                                        title: ``,
-                                                        gvc: gvc,
-                                                        def: `${orderData.status}`,
-                                                        array: [
+                                            is_shipment
+                                                ? ``
+                                                : BgWidget.mainCard([
+                                                    html ` <div
+                                      style="display: flex;flex-direction: column;align-items: flex-start;gap: 12px;align-self: stretch;"
+                                    >
+                                      <div class="tx_700">付款狀態</div>
+                                      <div class="ms-auto w-100">
+                                        ${is_shipment
+                                                        ? (_c = [
                                                             {
                                                                 title: '變更付款狀態',
                                                                 value: '',
@@ -1947,154 +1965,182 @@ ${is_shipment ? `` : BgWidget.grayNote('取號後將自動生成出貨單，於�
                                                                 title: '已退款',
                                                                 value: '-2',
                                                             },
-                                                        ],
-                                                        callback: text => {
-                                                            const dialog = new ShareDialog(gvc.glitter);
-                                                            dialog.checkYesOrNot({
-                                                                text: '是否確認變更付款狀態?',
-                                                                callback: response => {
-                                                                    if (response) {
-                                                                        if (text && text !== `${orderData.status}`) {
-                                                                            orderData.status = parseInt(text, 10);
-                                                                            saveEvent();
-                                                                        }
-                                                                    }
-                                                                    else {
-                                                                        gvc.notifyDataChange(mainViewID);
-                                                                    }
+                                                        ].find(dd => {
+                                                            return dd.value === `${orderData.status}`;
+                                                        })) === null || _c === void 0 ? void 0 : _c.title
+                                                        : EditorElem.select({
+                                                            title: ``,
+                                                            gvc: gvc,
+                                                            def: `${orderData.status}`,
+                                                            array: [
+                                                                {
+                                                                    title: '變更付款狀態',
+                                                                    value: '',
                                                                 },
-                                                            });
-                                                        },
-                                                    })}
-                                  </div>
-                                </div>`,
-                                                html ` <div
-                                  style="display: flex;flex-direction: column;align-items: flex-start;gap: 12px;align-self: stretch;"
-                                >
-                                  <div class="tx_700">付款方式</div>
-                                  <div class="tx_normal">
-                                    ${ShoppingOrderManager.getPaymentMethodText(orderData.orderData.method, orderData.orderData, gvc)}
-                                  </div>
-                                  ${ShoppingOrderManager.getProofPurchaseString(orderData.orderData, gvc)}
-                                </div>`,
-                                                (() => {
-                                                    var _a, _b;
-                                                    if (orderData.orderData.customer_info.payment_select === 'ecPay') {
-                                                        const cash_flow = orderData.orderData.cash_flow;
-                                                        return html ` <div
+                                                                {
+                                                                    title: '已付款',
+                                                                    value: '1',
+                                                                },
+                                                                {
+                                                                    title: '部分付款',
+                                                                    value: '3',
+                                                                },
+                                                                {
+                                                                    title: orderData.orderData.proof_purchase ? `待核款` : `未付款`,
+                                                                    value: '0',
+                                                                },
+                                                                {
+                                                                    title: '已退款',
+                                                                    value: '-2',
+                                                                },
+                                                            ],
+                                                            callback: text => {
+                                                                const dialog = new ShareDialog(gvc.glitter);
+                                                                dialog.checkYesOrNot({
+                                                                    text: '是否確認變更付款狀態?',
+                                                                    callback: response => {
+                                                                        if (response) {
+                                                                            if (text && text !== `${orderData.status}`) {
+                                                                                orderData.status = parseInt(text, 10);
+                                                                                saveEvent();
+                                                                            }
+                                                                        }
+                                                                        else {
+                                                                            gvc.notifyDataChange(mainViewID);
+                                                                        }
+                                                                    },
+                                                                });
+                                                            },
+                                                        })}
+                                      </div>
+                                    </div>`,
+                                                    html ` <div
                                       style="display: flex;flex-direction: column;align-items: flex-start;gap: 12px;align-self: stretch;"
                                     >
-                                      <div class="tx_700">金流對帳</div>
-                                      <div>
-                                        ${(cash_flow.TradeStatus === '1'
-                                                            ? [
-                                                                `<div class="d-flex align-items-center">
+                                      <div class="tx_700">付款方式</div>
+                                      <div class="tx_normal">
+                                        ${ShoppingOrderManager.getPaymentMethodText(orderData.orderData.method, orderData.orderData, gvc)}
+                                      </div>
+                                      ${ShoppingOrderManager.getProofPurchaseString(orderData.orderData, gvc)}
+                                    </div>`,
+                                                    (() => {
+                                                        var _a, _b;
+                                                        if (orderData.orderData.customer_info.payment_select === 'ecPay') {
+                                                            const cash_flow = orderData.orderData.cash_flow;
+                                                            return html ` <div
+                                          style="display: flex;flex-direction: column;align-items: flex-start;gap: 12px;align-self: stretch;"
+                                        >
+                                          <div class="tx_700">金流對帳</div>
+                                          <div>
+                                            ${(cash_flow.TradeStatus === '1'
+                                                                ? [
+                                                                    `<div class="d-flex align-items-center">
 金流交易結果: ${(cash_flow.credit_receipt && cash_flow.credit_receipt.status) || '已付款'}  <button class="btn btn-gray rounded-2 ms-2 ${cash_flow.PaymentType.toLowerCase().includes('credit') && cash_flow.credit_receipt && cash_flow.credit_receipt.status === '已授權' ? `` : `d-none`}" type="button" style="height:22px;" onclick="${gvc.event(() => {
-                                                                    const doalog = new ShareDialog(gvc.glitter);
-                                                                    doalog.checkYesOrNot({
-                                                                        text: '是否確認退刷交易?',
-                                                                        callback: response => {
-                                                                            if (response) {
-                                                                                doalog.dataLoading({ visible: true });
-                                                                                ApiShop.ecPayBrushOrders({
-                                                                                    tradNo: cash_flow.TradeNo,
-                                                                                    orderID: orderData.cart_token,
-                                                                                    total: cash_flow.TradeAmt,
-                                                                                }).then(res => {
-                                                                                    doalog.dataLoading({ visible: false });
-                                                                                    orderData.status = -2;
-                                                                                    saveEvent();
-                                                                                });
-                                                                            }
-                                                                        },
-                                                                    });
-                                                                })}">
+                                                                        const doalog = new ShareDialog(gvc.glitter);
+                                                                        doalog.checkYesOrNot({
+                                                                            text: '是否確認退刷交易?',
+                                                                            callback: response => {
+                                                                                if (response) {
+                                                                                    doalog.dataLoading({ visible: true });
+                                                                                    ApiShop.ecPayBrushOrders({
+                                                                                        tradNo: cash_flow.TradeNo,
+                                                                                        orderID: orderData.cart_token,
+                                                                                        total: cash_flow.TradeAmt,
+                                                                                    }).then(res => {
+                                                                                        doalog.dataLoading({ visible: false });
+                                                                                        orderData.status = -2;
+                                                                                        saveEvent();
+                                                                                    });
+                                                                                }
+                                                                            },
+                                                                        });
+                                                                    })}">
                 <span class=" tx_700" style="font-size:13px;">退刷</span>
             </button>
 </div>`,
-                                                                `金流交易方式: ${(_a = [
-                                                                    {
-                                                                        title: 'WebATM',
-                                                                        key: 'WebATM',
-                                                                    },
-                                                                    {
-                                                                        title: 'ATM',
-                                                                        key: 'ATM',
-                                                                    },
-                                                                    {
-                                                                        title: '超商代碼',
-                                                                        key: 'CVS',
-                                                                    },
-                                                                    {
-                                                                        title: '超商條碼',
-                                                                        key: 'BARCODE',
-                                                                    },
-                                                                    {
-                                                                        title: '信用卡',
-                                                                        key: 'Credit',
-                                                                    },
-                                                                    {
-                                                                        title: '未知付款方式',
-                                                                        key: '',
-                                                                    },
-                                                                ].find(dd => {
-                                                                    return cash_flow.PaymentType.toLowerCase().includes(dd.key.toLowerCase());
-                                                                })) === null || _a === void 0 ? void 0 : _a.title}`,
-                                                                `交易手續費: ${cash_flow.HandlingCharge}`,
-                                                                `交易總金額: ${cash_flow.TradeAmt}`,
-                                                                `交易時間: ${cash_flow.PaymentDate}`,
-                                                            ]
-                                                            : [`金流交易結果: 未付款`]).join(`<div class="my-2"></div>`)}
-                                      </div>
-                                    </div>`;
-                                                    }
-                                                    else if (orderData.orderData.customer_info.payment_select === 'paynow') {
-                                                        const cash_flow = orderData.orderData.cash_flow;
-                                                        return html `
-                                      <div
-                                        style="display: flex;flex-direction: column;align-items: flex-start;gap: 12px;align-self: stretch;"
-                                      >
-                                        <div class="tx_700">金流對帳</div>
-                                        <div>
-                                          ${(cash_flow.status === 'success'
-                                                            ? [
-                                                                html ` <div class="d-flex align-items-center">
-                                                  金流交易結果: 已付款
-                                                </div>`,
-                                                                html `金流交易方式:
-                                                ${(_b = [
-                                                                    {
-                                                                        title: 'ATM',
-                                                                        key: 'ATM',
-                                                                    },
-                                                                    {
-                                                                        title: '信用卡',
-                                                                        key: 'CreditCard',
-                                                                    },
-                                                                    {
-                                                                        title: '超商代碼',
-                                                                        key: 'ConvenienceStore',
-                                                                    },
-                                                                ].find(dd => {
-                                                                    return cash_flow.payment.paymentMethod === dd.key;
-                                                                })) === null || _b === void 0 ? void 0 : _b.title}`,
-                                                                `交易總金額: ${cash_flow.amount}`,
-                                                                `交易時間: ${gvc.glitter.ut.dateFormat(new Date(cash_flow.payment.paidAt), 'yyyy-MM-dd hh:mm:ss')}`,
-                                                            ]
-                                                            : [`金流交易結果: 未付款`]).join(`<div class="my-2"></div>`)}
-                                        </div>
-                                      </div>
-                                    `;
-                                                    }
-                                                    else {
-                                                        return ``;
-                                                    }
-                                                })(),
-                                            ]
-                                                .filter(dd => {
-                                                return dd;
-                                            })
-                                                .join(BgWidget.mbContainer(18))),
+                                                                    `金流交易方式: ${(_a = [
+                                                                        {
+                                                                            title: 'WebATM',
+                                                                            key: 'WebATM',
+                                                                        },
+                                                                        {
+                                                                            title: 'ATM',
+                                                                            key: 'ATM',
+                                                                        },
+                                                                        {
+                                                                            title: '超商代碼',
+                                                                            key: 'CVS',
+                                                                        },
+                                                                        {
+                                                                            title: '超商條碼',
+                                                                            key: 'BARCODE',
+                                                                        },
+                                                                        {
+                                                                            title: '信用卡',
+                                                                            key: 'Credit',
+                                                                        },
+                                                                        {
+                                                                            title: '未知付款方式',
+                                                                            key: '',
+                                                                        },
+                                                                    ].find(dd => {
+                                                                        return cash_flow.PaymentType.toLowerCase().includes(dd.key.toLowerCase());
+                                                                    })) === null || _a === void 0 ? void 0 : _a.title}`,
+                                                                    `交易手續費: ${cash_flow.HandlingCharge}`,
+                                                                    `交易總金額: ${cash_flow.TradeAmt}`,
+                                                                    `交易時間: ${cash_flow.PaymentDate}`,
+                                                                ]
+                                                                : [`金流交易結果: 未付款`]).join(`<div class="my-2"></div>`)}
+                                          </div>
+                                        </div>`;
+                                                        }
+                                                        else if (orderData.orderData.customer_info.payment_select === 'paynow') {
+                                                            const cash_flow = orderData.orderData.cash_flow;
+                                                            return html `
+                                          <div
+                                            style="display: flex;flex-direction: column;align-items: flex-start;gap: 12px;align-self: stretch;"
+                                          >
+                                            <div class="tx_700">金流對帳</div>
+                                            <div>
+                                              ${(cash_flow.status === 'success'
+                                                                ? [
+                                                                    html ` <div class="d-flex align-items-center">
+                                                      金流交易結果: 已付款
+                                                    </div>`,
+                                                                    html `金流交易方式:
+                                                    ${(_b = [
+                                                                        {
+                                                                            title: 'ATM',
+                                                                            key: 'ATM',
+                                                                        },
+                                                                        {
+                                                                            title: '信用卡',
+                                                                            key: 'CreditCard',
+                                                                        },
+                                                                        {
+                                                                            title: '超商代碼',
+                                                                            key: 'ConvenienceStore',
+                                                                        },
+                                                                    ].find(dd => {
+                                                                        return cash_flow.payment.paymentMethod === dd.key;
+                                                                    })) === null || _b === void 0 ? void 0 : _b.title}`,
+                                                                    `交易總金額: ${cash_flow.amount}`,
+                                                                    `交易時間: ${gvc.glitter.ut.dateFormat(new Date(cash_flow.payment.paidAt), 'yyyy-MM-dd hh:mm:ss')}`,
+                                                                ]
+                                                                : [`金流交易結果: 未付款`]).join(`<div class="my-2"></div>`)}
+                                            </div>
+                                          </div>
+                                        `;
+                                                        }
+                                                        else {
+                                                            return ``;
+                                                        }
+                                                    })(),
+                                                ]
+                                                    .filter(dd => {
+                                                    return dd;
+                                                })
+                                                    .join(BgWidget.mbContainer(18))),
                                             is_shipment ? `` : shipment_card,
                                             BgWidget.mainCard(gvc.bindView(() => {
                                                 const vm = {
@@ -4252,28 +4298,17 @@ ${is_shipment ? `` : BgWidget.grayNote('取號後將自動生成出貨單，於�
             })()}
             `;
         }
-        switch (orderData.customer_info.payment_select) {
-            case 'jkopay':
-                return '街口支付';
-            case 'paynow':
-                return `PayNow立吉富`;
-            case 'off_line':
-                return `線下付款`;
-            case 'newWebPay':
-                return `藍新金流`;
-            case 'ecPay':
-                return `綠界金流`;
-            case 'line_pay':
-                return 'Line Pay';
-            case 'atm':
-                return `銀行轉帳`;
-            case 'line':
-                return `Line 轉帳`;
-            case 'cash_on_delivery':
-                return `貨到付款`;
-            default:
-                return `線下付款`;
-        }
+        return gvc.bindView(() => {
+            return {
+                bind: gvc.glitter.getUUID(),
+                view: () => __awaiter(this, void 0, void 0, function* () {
+                    var _a;
+                    return (((_a = (yield PaymentConfig.getSupportPayment()).find(dd => {
+                        return dd.key === orderData.customer_info.payment_select;
+                    })) === null || _a === void 0 ? void 0 : _a.name) || '線下付款');
+                }),
+            };
+        });
     }
     static getProofPurchaseString(orderData, gvc) {
         if (orderData.method !== 'off_line' || orderData.customer_info.payment_select === 'cash_on_delivery') {
@@ -4331,6 +4366,9 @@ ${is_shipment ? `` : BgWidget.grayNote('取號後將自動生成出貨單，於�
             var _a;
             gvc.notifyDataChange('orderDetailRefresh');
             dialog.dataLoading({ visible: false });
+            if (!obj.print) {
+                return;
+            }
             if (res.result && res.response.data) {
                 const data = res.response.data;
                 if (data.result) {
