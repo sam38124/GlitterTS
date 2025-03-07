@@ -391,7 +391,6 @@ export class ApiUser {
                                 limit: 99999,
                                 data_from: 'manager',
                                 email: item.account,
-                                status: 1,
                                 valid: true,
                             }),
                         ]);

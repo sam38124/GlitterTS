@@ -990,6 +990,8 @@ class User {
         WHERE (${whereClause})
         ORDER BY ${orderByClause} ${limitClause}
     `;
+        console.log('================');
+        console.log(sql);
         return sql;
     }
     getOrderByClause(orderBy) {
